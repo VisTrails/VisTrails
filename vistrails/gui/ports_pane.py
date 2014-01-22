@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +35,7 @@
 from PyQt4 import QtCore, QtGui
 from itertools import izip
 import os
+import string
 
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import identifier as basic_identifier
@@ -42,7 +43,7 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.utils import create_port_spec_string
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.system import vistrails_root_directory
-from vistrails.gui.modules import get_widget_class
+from vistrails.gui.modules.utils import get_widget_class
 from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.port_documentation import QPortDocumentation
 from vistrails.gui.theme import CurrentTheme
@@ -208,7 +209,16 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
 
         for i, (psi, param) in enumerate(izip(self.port_spec.port_spec_items, 
                                               params)):
-            widget_class = widget_accessor(psi.descriptor.module)
+            if psi.entry_type is not None:
+                # !!only pull off the prefix!! options follow in camelcase
+                prefix_end = len(psi.entry_type.lstrip(string.lowercase))
+                if prefix_end == 0:
+                    entry_type = psi.entry_type
+                else:
+                    entry_type = psi.entry_type[:-prefix_end]
+            else:
+                entry_type = None
+            widget_class = widget_accessor(psi.descriptor, entry_type)
             if param is not None:
                 obj = param
             else:
@@ -222,7 +232,9 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             param_widget = widget_class(obj, self.group_box)
             self.my_widgets.append(param_widget)
             layout.addWidget(label, i, 0)
+            layout.setAlignment(label, QtCore.Qt.AlignLeft)
             layout.addWidget(param_widget, i, 1)
+            layout.addItem(QtGui.QSpacerItem(0,0, QtGui.QSizePolicy.MinimumExpanding), i, 2)
 
         self.group_box.setLayout(layout)
         def updateMethod():
@@ -286,7 +298,8 @@ class PortItem(QtGui.QTreeWidgetItem):
         return self.connected_checkbox
 
     def is_constant(self):
-        return get_module_registry().is_method(self.port_spec)
+        return (self.port_spec.is_valid and 
+                get_module_registry().is_constant(self.port_spec))
 
     def build_item(self, port_spec, is_connected, is_optional, is_visible):
         if not is_optional:
@@ -294,11 +307,11 @@ class PortItem(QtGui.QTreeWidgetItem):
         elif is_visible:
             self.setIcon(0, PortItem.eye_icon)
             
-        # if port_spec is not a method, make it gray
         if is_connected:
             self.setIcon(1, PortItem.conn_icon)
         self.setText(2, port_spec.name)
 
+        # if port_spec is not a method, make it gray
         if not self.is_constant():
             self.setForeground(2, 
                                QtGui.QBrush(QtGui.QColor.fromRgb(128,128,128)))
@@ -393,7 +406,6 @@ class PortsList(QtGui.QTreeWidget):
             if self.port_type == 'input':
                 for function in module.functions:
                     if not function.is_valid:
-                        debug.critical("function '%s' not valid", function.name)
                         continue
                     port_spec, item = self.port_spec_items[function.name]
                     subitem = self.entry_klass(port_spec, function)

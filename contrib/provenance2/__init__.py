@@ -126,9 +126,9 @@ class AlignWarp(ProvenanceChallenge):
     """AlignWarp executes the AIR warping tool on the input."""
 
     def compute(self):
-        image = self.getInputFromPort("image")
-        ref = self.getInputFromPort("reference")
-        model = self.getInputFromPort("model")
+        image = self.get_input("image")
+        ref = self.get_input("reference")
+        model = self.get_input("model")
         o = self.interpreter.filePool.create_file(suffix='.warp')
         cmd = self.air_cmd_line('align_warp',
                                   image.baseName,
@@ -138,14 +138,14 @@ class AlignWarp(ProvenanceChallenge):
                                   model,
                                   '-q')
         self.run(cmd)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class Reslice(ProvenanceChallenge):
     """AlignWarp executes the AIR reslicing tool on the input."""
 
     def compute(self):
-        warp = self.getInputFromPort("warp")
+        warp = self.get_input("warp")
         o = self.interpreter.filePool.create_file()
         cmd = self.air_cmd_line('reslice',
                                  warp.name,
@@ -153,14 +153,14 @@ class Reslice(ProvenanceChallenge):
         self.run(cmd)
         ofs = FileSet()
         ofs.baseName = o.name
-        self.setResult("output", ofs)
+        self.set_output("output", ofs)
 
 
 class SoftMean(ProvenanceChallenge):
     """SoftMean executes the AIR softmean averaging tool on the input."""
 
     def compute(self):
-        imageList = self.getInputFromPort("imageList")
+        imageList = self.get_input("imageList")
         o = self.interpreter.filePool.create_file()
         cmd = self.air_cmd_line('softmean',
                                 o.name,
@@ -170,28 +170,28 @@ class SoftMean(ProvenanceChallenge):
         self.run(cmd)
         ofs = FileSet()
         ofs.baseName = o.name
-        self.setResult('output', ofs)
+        self.set_output('output', ofs)
 
 class Slicer(ProvenanceChallenge):
     """Slicer executes the FSL slicer tool on the input."""
 
     def compute(self):
         cmd = ['slicer']
-        i = self.getInputFromPort("input")
+        i = self.get_input("input")
         cmd.append(i.baseName)
-        if self.hasInputFromPort("slice_x"):
+        if self.has_input("slice_x"):
             cmd.append('-x')
-            cmd.append(str(self.getInputFromPort("slice_x")))
-        elif self.hasInputFromPort("slice_y"):
+            cmd.append(str(self.get_input("slice_x")))
+        elif self.has_input("slice_y"):
             cmd.append('-y')
-            cmd.append(str(self.getInputFromPort("slice_y")))
-        elif self.hasInputFromPort("slice_z"):
+            cmd.append(str(self.get_input("slice_y")))
+        elif self.has_input("slice_z"):
             cmd.append('-z')
-            cmd.append(str(self.getInputFromPort("slice_z")))
+            cmd.append(str(self.get_input("slice_z")))
         o = self.interpreter.filePool.create_file(suffix='.pgm')
         cmd.append(o.name)
         self.run(self.fsl_cmd_line(*cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
 
 
 class PGMToPPM(ProvenanceChallenge):
@@ -199,13 +199,13 @@ class PGMToPPM(ProvenanceChallenge):
 
     def compute(self):
         cmd = ['pgmtoppm white']
-        i = self.getInputFromPort("input")
+        i = self.get_input("input")
         cmd.append(i.name)
         o = self.interpreter.filePool.create_file(suffix='.ppm')
         cmd.append(' >')
         cmd.append(o.name)
         self.run(self.netpbm_cmd_line(*cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
         
 
 class PNMToJpeg(ProvenanceChallenge):
@@ -213,24 +213,24 @@ class PNMToJpeg(ProvenanceChallenge):
 
     def compute(self):
         cmd = ['pnmtojpeg']
-        i = self.getInputFromPort("input")
+        i = self.get_input("input")
         cmd.append(i.name)
         o = self.interpreter.filePool.create_file(suffix='.jpg')
         cmd.append(' >')
         cmd.append(o.name)
         self.run(self.netpbm_cmd_line(*cmd))
-        self.setResult('output', o)
+        self.set_output('output', o)
 
 class FileSet(ProvenanceChallenge):
     """FileSet stores a set of files related by a common filename base."""
 
     def compute(self):
-        self.checkInputPort("baseName")
-        n = self.getInputFromPort("baseName")
-	if self.hasInputFromPort("file_hdr") and \
-		self.hasInputFromPort("file_img"):
-	    n1 = self.getInputFromPort("file_hdr").name
-	    n2 = self.getInputFromPort("file_img").name
+        self.check_input("baseName")
+        n = self.get_input("baseName")
+	if self.has_input("file_hdr") and \
+		self.has_input("file_img"):
+	    n1 = self.get_input("file_hdr").name
+	    n2 = self.get_input("file_img").name
 	    if n1.endswith('.hdr'):
 		n1base = n1.rsplit('.hdr',1)[0]
 	    else:
@@ -257,25 +257,25 @@ class FileSet(ProvenanceChallenge):
 		self.baseName = n1base
 	else:
 	    self.baseName = n
-        self.setResult("local_basename", self.baseName)
+        self.set_output("local_basename", self.baseName)
 
 class FileSetSink(ProvenanceChallenge):
     """FileSetSink is a module that takes a file set and writes them
     in a user-specified location in the file system."""
 
     def compute(self):
-        self.checkInputPort("fileSet")
-        self.checkInputPort("outputBaseName")
-        v1 = self.getInputFromPort("fileSet")
-        v2 = self.getInputFromPort("outputBaseName")
+        self.check_input("fileSet")
+        self.check_input("outputBaseName")
+        v1 = self.get_input("fileSet")
+        v2 = self.get_input("outputBaseName")
         filenames = glob.glob('%s.*' % v1.baseName)
         for filename in filenames:
             try:
                 outFilename = filename.replace(v1.baseName, v2, 1)
                 core.system.link_or_copy(filename, outFilename)
             except OSError, e:
-                if (self.hasInputFromPort("overrideFile") and
-                    self.getInputFromPort("overrideFile")):
+                if (self.has_input("overrideFile") and
+                    self.get_input("overrideFile")):
                     try:
                         os.unlink(outFilename)
                         core.system.link_or_copy(filename, outFilename)

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -121,7 +121,8 @@ def _guess_suse():
 _system_guesser.add_test(_guess_suse, 'linux-suse')
 
 def _guess_ubuntu():
-    return platform.linux_distribution()[0]=='Ubuntu'
+    return platform.linux_distribution()[0]=='Ubuntu' or \
+           platform.linux_distribution()[0]=='LinuxMint'
 _system_guesser.add_test(_guess_ubuntu, 'linux-ubuntu')
 
 def _guess_debian():
@@ -139,11 +140,15 @@ _system_guesser.add_test(_guess_windows, 'windows')
 ##############################################################################
 
 def guess_system():
-    """guess_system will try to identify which system you're running. Result
-will be a string describing the system. This is more discriminating than
-Linux/OSX/Windows: We'll try to figure out whether you're running SuSE, Debian,
-Ubuntu, RedHat, fink, darwinports, etc.
+    """guess_system will try to identify which system you're
+    running. Result will be a string describing the system. This is
+    more discriminating than Linux/OSX/Windows: We'll try to figure
+    out whether you're running SuSE, Debian, Ubuntu, RedHat, fink,
+    darwinports, etc.
 
-Currently, we only support SuSE, Debian, Ubuntu and Fedora. However, we only
-have actual bundle installing for Debian, Ubuntu and Fedora."""
+    Currently, we only support SuSE, Debian, Ubuntu and
+    Fedora. However, we only have actual bundle installing for Debian,
+    Ubuntu and Fedora.
+
+    """
     return _system_guesser.guess_system()

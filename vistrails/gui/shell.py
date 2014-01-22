@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -961,6 +961,5 @@ try:
         QShellDialog = getIPythonDialog()
     except Exception, e:
         import traceback; traceback.print_exc()
-        print str(e)
 except:
     pass

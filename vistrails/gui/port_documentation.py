@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -80,7 +80,7 @@ class QPortDocumentation(QtGui.QDialog):
         if doc:
             self.textEdit.insertPlainText(doc)
         else:
-            self.textEdit.insertPlainText("Documentation not available.")
+            self.textEdit.insertPlainText("(Documentation not available)")
         self.textEdit.setReadOnly(True)
         self.textEdit.setTextCursor(QtGui.QTextCursor(self.textEdit.document()))
         self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)

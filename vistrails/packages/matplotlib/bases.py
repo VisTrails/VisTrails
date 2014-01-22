@@ -48,6 +48,9 @@ class MplProperties(Module):
         # must implement in subclass
         pass
         
+    def update_sub_props(self, objs):
+        # must implement in subclass
+        pass
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
@@ -86,7 +89,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
     def compute(self):
         """ compute() -> None
         """
-        source = self.getInputFromPort('source')
+        source = self.get_input('source')
         s = ('from pylab import *\n'
              'from numpy import *\n' +
              'figure(%d)\n' % self.figInstance.number +
@@ -113,36 +116,37 @@ class MplFigure(Module):
         Module.__init__(self)
         self.figInstance = None
 
-    def updateUpstream(self):
+    def update_upstream(self):
         # Create a figure
         if self.figInstance is None:
             self.figInstance = pylab.figure()
         pylab.hold(True)
 
         # Set it on the plots
-        for connectorList in self.inputPorts.itervalues():
-            for connector in connectorList:
-                connector.obj.set_figure(self.figInstance)
+        connectorList = self.inputPorts.get('addPlot', [])
+        connectorList.extend(self.inputPorts.get('setLegend', []))
+        for connector in connectorList:
+            connector.obj.set_figure(self.figInstance)
 
         # Now we can run upstream modules
-        super(MplFigure, self).updateUpstream()
+        super(MplFigure, self).update_upstream()
 
     def compute(self):
-        plots = self.getInputListFromPort("addPlot")
+        plots = self.get_input_list("addPlot")
 
-        if self.hasInputFromPort("figureProperties"):
-            figure_props = self.getInputFromPort("figureProperties")
+        if self.has_input("figureProperties"):
+            figure_props = self.get_input("figureProperties")
             figure_props.update_props(self.figInstance)
-        if self.hasInputFromPort("axesProperties"):
-            axes_props = self.getInputFromPort("axesProperties")
+        if self.has_input("axesProperties"):
+            axes_props = self.get_input("axesProperties")
             axes_props.update_props(self.figInstance.gca())
-        if self.hasInputFromPort("setLegend"):
-            legend = self.getInputFromPort("setLegend")
+        if self.has_input("setLegend"):
+            legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 
         #FIXME write file out if File port is attached!
 
-        self.setResult("self", self)
+        self.set_output("self", self)
 
 class MplContourSet(Module):
     pass

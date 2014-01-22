@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -73,9 +73,10 @@ def disable_lion_restore():
     os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
 
 
-def enable_user_base():
-    # USER_BASE and USER_SITE in site.py is not set when running from py2app,
-    # this is neded by at least scipy.weave
+def fix_site():
+    # py2app ships a stripped version of site.py
+    # USER_BASE and USER_SITE is not set,
+    # this is needed by at least scipy.weave
     import platform
     if platform.system()!='Darwin': return
     import site
@@ -83,7 +84,7 @@ def enable_user_base():
     from vistrails.core.system import mac_site
     site.USER_BASE = mac_site.getuserbase()
     site.USER_SITE = mac_site.getusersitepackages()
-
+    site._Helper = mac_site._Helper
 
 def fix_paths():
     import site
@@ -109,7 +110,7 @@ def fix_paths():
 if __name__ == '__main__':
     fix_paths()
     disable_lion_restore()
-    enable_user_base()
+    fix_site()
 
     # Load the default locale (from environment)
     import locale
@@ -138,9 +139,10 @@ if __name__ == '__main__':
         app = vistrails.gui.application.get_vistrails_application()
         if app:
             app.finishSession()
-        print "Uncaught exception on initialization: %s" % e
         import traceback
-        traceback.print_exc()
+        print >>sys.stderr, "Uncaught exception on initialization: %s" % (
+                traceback._format_final_exc_line(type(e).__name__, e))
+        traceback.print_exc(sys.stderr)
         sys.exit(255)
     if (app.temp_configuration.interactiveMode and
         not app.temp_configuration.check('spreadsheetDumpCells')): 

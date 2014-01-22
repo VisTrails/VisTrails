@@ -13,8 +13,8 @@ name = 'Mesh utility'
 class MeshArea(Module):
 
     def compute(self):
-        self.checkInputPort('input_file')
-        f1 = self.getInputFromPort('input_file')
+        self.check_input('input_file')
+        f1 = self.get_input('input_file')
         text_output = self.interpreter.filePool.create_file()
 
         cmdline = []
@@ -31,7 +31,7 @@ class MeshArea(Module):
             v = float(l)
         except:
             raise ModuleError(self, "Expected a float, got '%s'" % l)
-        self.setResult('area', v)
+        self.set_output('area', v)
 
 class MeshChoose(Module):
 
@@ -43,14 +43,14 @@ class MeshChoose(Module):
             return input_file_name[i:]
 
     def compute(self):
-        self.checkInputPort('input_file_1')
-        self.checkInputPort('input_file_2')
+        self.check_input('input_file_1')
+        self.check_input('input_file_2')
 
-        input_file_1 = self.getInputFromPort('input_file_1')
-        input_file_2 = self.getInputFromPort('input_file_2')
+        input_file_1 = self.get_input('input_file_1')
+        input_file_2 = self.get_input('input_file_2')
 
-        if self.hasInputFromPort('output_format'):
-            output_suffix = self.getInputFromPort('output_format')
+        if self.has_input('output_format'):
+            output_suffix = self.get_input('output_format')
         else:
             output_suffix = self.guess_input_format(input_file_2.name)
 
@@ -65,7 +65,7 @@ class MeshChoose(Module):
         result = os.system(cmdline)
         if result != 0:
             raise ModuleError(self, "execution failed")
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
 
 def setpath(prefix):
     global meshareapath

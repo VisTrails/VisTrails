@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -363,7 +363,7 @@ class SourceConfigurationWidget(SourceWidget):
             try:
                 code = str(self.codeEditor.toPlainText())
             except UnicodeEncodeError, e:
-                debug.critical('Source Code Editor does not support non-ascii characters', str(e)) 
+                debug.critical('Source Code Editor does not support non-ascii characters', e)
                 return False
             if self.sourceEncode:
                 code = urllib.quote(code)
@@ -377,7 +377,7 @@ class SourceConfigurationWidget(SourceWidget):
                                                        added_ports,
                                                        functions)
         except PortAlreadyExists, e:
-            debug.critical('Port Already Exists %s' % str(e))
+            debug.critical('Port Already Exists %s' % e)
             return False
         return True
     

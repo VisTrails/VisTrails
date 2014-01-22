@@ -57,7 +57,7 @@ Notice that when you drag ``Map`` to the pipeline canvas it will be drawn in a d
 
 .. topic:: Next Step!
 
-  Select the ``vtkContourFilter`` module and delete its method "SetValue" in the ``Set Methods`` container. Then, make this port visible by clicking on the first column left of its name in the "inputs" tab to toggle the eye icon..
+  Select the ``vtkContourFilter`` module and delete its method "SetValue" in the ``Module Information`` tab. Then, make this port visible by clicking on the first column left of its name in the "inputs" tab to toggle the eye icon..
 
   Connect the modules as shown in Figure :ref:`fig-controlflow-calculate_area`.
 
@@ -93,7 +93,7 @@ structure.
    xaxis = []
 
    for i in xrange(len(InputList)):
-       xaxis.append(X_values[i][1])
+       xaxis.append(X_Values[i][1])
 
    l, = plot(xaxis, InputList, marker="o", markerfacecolor="red",
              markersize=7, label="IsoSurface Areas", linewidth=1.5)
@@ -248,9 +248,53 @@ port is chosen, the result of this port will not be returned in a list. If
 "TrueOutputPorts" or "FalseOutputPorts" are not enabled,
 "Result" returns ``None``.
 
-Let's do now a simple example to show how this module works. This example is
-from the bioinformatics domain, and takes a string as the input.  If this string is a structure identifier, a web service from the European Bioinformatics Institute - EBI (http://www.ebi.ac.uk/) is used to put the structure into PDB format (a standard representation for macromolecular structure) and the ``VTK`` package is used to show the protein in
-the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and a message is generated in the Spreadsheet.
+Let's do a simple example to show how this module works.
+
+.. topic:: Try it Now!
+
+  Our example will contain 2 different text strings.
+  The string that is used by the workflow will depend on the condition of the ``If`` module.
+  The final text will be rendered in a spreadsheet cell.
+  You can change the final text by changing the condition on the ``If`` module.
+  Create a new workflow and add the following modules:
+  
+  * ``Boolean`` (under "Basic Modules")
+  * ``String`` (under "Basic Modules") - you will need two of them
+  * ``If`` (under "Control Flow")
+  * ``WriteFile`` (under "Basic Modules")
+  * ``RichTextCell`` (under "|vistrails| Spreadsheet")
+  
+  Name the ``Boolean`` module "Condition", the first ``String`` module
+  "True Branch", and the second ``String`` module "False Branch".
+  Connect the modules as shown in Figure :ref:`fig-controlflow-if_example`.
+  The ``Condition`` should be connected to the "Condition" port on the ``If``
+  module and will determine which of the branches that will be executed.
+  ``True Branch`` should be connected to the "TruePort" on the ``If`` module
+  and will be executed when the ``If`` module evaluates to ``True``.
+  ``False Branch`` should be connected to the "FalsePort" on the ``If``
+  module and will be executed when the ``If`` module evaluates to ``False``.
+  On the ``If`` module, set parameters "TrueOutputPorts" and "FalseOutputPorts"
+  to "['value']". This will tell the ``If`` module to output the "value" port on the
+  ``String`` modules.
+  Finally, set the "value" port on the ``Condition`` module to either ``True`` or
+  ``False``. Execute the workflow and see that the branch specified by the
+  ``If`` condition has been executed.
+  	
+.. _fig-controlflow-if_example:
+
+.. figure:: figures/controlflow/If_Example.png
+   :align: center
+   :width: 3.0in
+
+   Simple If example
+
+Lets do a more advanced example from the bioinformatics domain. This workflow
+will take a string as the input.  If this string is a structure identifier, a
+web service from the European Bioinformatics Institute - EBI (http://www.ebi.ac.uk/)
+is used to put the structure into PDB format (a standard representation for
+macromolecular structure) and the ``VTK`` package is used to show the protein in
+the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and a
+message is generated in the Spreadsheet.
 
 .. topic:: Try it Now!
 
@@ -260,7 +304,7 @@ the |vistrails| Spreadsheet.  Otherwise, the input is assumed to be invalid and 
   ``http://www.ebi.ac.uk/Tools/webservices/wsdl/WSDbfetch.wsdl``
 
 
-  Don't forget to ensure that the ``webServices`` package is enabled in the  ``Preferences`` dialog. For more information about web services in |vistrails|, see Chapter :ref:`chap-webservices`.
+  Don't forget to ensure that the ``SudsWebServices`` package is enabled in the  ``Preferences`` dialog. For more information about web services in |vistrails|, see Chapter :ref:`chap-webservices`.
 
   Now, you're going to drag the following modules to the canvas:
 
@@ -344,7 +388,7 @@ that will be executed if the input is a structure identifier.
    text = '</BODY></HTML>'
    f.write(text)
 
-   self.setResult('html', f)
+   self.set_output('html', f)
 
    f.close()
 
@@ -429,6 +473,8 @@ the previous run.
   workflows and that we are twisting it's execution model a little, but this
   will demonstrate the functionality should you actually need it.
 
+  Note that you can find the completed example here: :vtl:`gcd.vt`.
+
   The modules we are going to need are:
 
    * ``And``
@@ -493,6 +539,15 @@ the previous run.
    :width: 4.0in
 
    The final pipeline
+
+
+For loop
+========
+
+The ``For`` module is very similar to ``Map``, except that it uses input values
+from a range. It can be used to make a module or group run several times with
+successive integer input, or just to repeatedly execute a task (optionally
+waiting between each iteration).
 
 
 Boolean operations

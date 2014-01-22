@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -58,7 +58,7 @@ class BaseLocator(_BaseLocator):
         elif locator.__class__ == _ZIPFileLocator:
             locator.__class__ = ZIPFileLocator
         elif locator.__class__ == _DBLocator:
-            locator.__class__ = DBLocator
+            DBLocator.convert(locator)
         elif locator.__class__ == _UntitledLocator:
             locator.__class__ = UntitledLocator
             
@@ -255,8 +255,9 @@ class DBLocator(_DBLocator, CoreLocator):
                     shutil.copyfile(thumbnail, cachedir_thumbnail)
                     new_thumbnails.append(cachedir_thumbnail)
                 except Exception, e:
-                    debug.critical('copying %s -> %s failed: %s' % \
-                                       (thumbnail, cachedir_thumbnail, str(e)))
+                    debug.critical("copying %s -> %s failed" % (
+                                   thumbnail, cachedir_thumbnail),
+                                   e)
         save_bundle.thumbnails = new_thumbnails
         # Need to update thumbnail cache in case some references have changed
         thumb_cache.add_entries_from_files(save_bundle.thumbnails)
@@ -322,10 +323,10 @@ class DBLocator(_DBLocator, CoreLocator):
                 config['name'] = '%s@%s'%(self._user,self._host)
                 config['id'] = -1
             except VistrailsDBException, e:
-                debug.critical('VisTrails DB Exception',  str(e))
+                debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
             except Exception, e2:
-                debug.critical('VisTrails Exception', str(e2))
+                debug.critical('VisTrails Exception', e2)
                 config['succeeded'] = False
         if config is not None:
             if config['succeeded'] == False:
@@ -343,7 +344,7 @@ class DBLocator(_DBLocator, CoreLocator):
                     config['succeeded'] = True
                     config['passwd'] = self._passwd
                 except VistrailsDBException, e:
-                    debug.critical('VisTrails DB Exception',  str(e))
+                    debug.critical('VisTrails DB Exception', e)
                     config['succeeded'] = False
             
             if config['succeeded'] == True:
@@ -444,7 +445,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                self._obj_id == other._obj_id and
+                long(self._obj_id) == long(other._obj_id) and
                 self._obj_type == other._obj_type)
 
     ##########################################################################
@@ -470,6 +471,12 @@ class DBLocator(_DBLocator, CoreLocator):
         locator.__class__ = DBLocator
         return locator
     
+    @staticmethod
+    def convert(locator):
+        locator.__class__ = DBLocator
+        locator.__list = ExtConnectionList.getInstance(
+                                                   default_connections_file())
+
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
     def __init__(self, filename, **kwargs):

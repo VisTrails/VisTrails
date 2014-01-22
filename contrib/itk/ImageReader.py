@@ -28,9 +28,9 @@ from Image import Image
 class ImageReader(Module):
     my_namespace = "ImageReader"
     def compute(self):
-        dim = self.getInputFromPort("Dimension")
-        outPixelType = self.getInputFromPort("Pixel Type")
-        fn = self.getInputFromPort("Filename")
+        dim = self.get_input("Dimension")
+        outPixelType = self.get_input("Pixel Type")
+        fn = self.get_input("Filename")
         self.reader = itk.ImageFileReader[itk.Image[outPixelType._type, dim]].New()
         self.reader.SetFileName(fn)
         self.reader.Update()
@@ -41,8 +41,8 @@ class ImageReader(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Image", outIm)
-        self.setResult("Reader", self)
+        self.set_output("Image", outIm)
+        self.set_output("Reader", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -57,25 +57,25 @@ class ImageReader(Module):
 class ImageToFile(Module):
     my_namespace = "ImageReader"
     def compute(self):
-        im = self.getInputFromPort("Image")
+        im = self.get_input("Image")
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")._type
+        if self.has_input("Input PixelType"):
+            inPixelType = self.get_input("Input PixelType")._type
         else:
             inPixelType = im.getPixelType()
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+        if self.has_input("Dimension"):
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
-        suf = self.getInputFromPort("Suffix")
+        suf = self.get_input("Suffix")
         f = self.createOutputFile(suf)
         writeType = itk.Image[inPixelType._type, dim]
         writer = itk.ImageFileWriter[writeType].New(im.getImg(), FileName=f.name)
         writer.Update()
-        self.setResult("File", f)
+        self.set_output("File", f)
 
     def createOutputFile(self, s):
         return self.interpreter.filePool.create_file(suffix=s)
@@ -93,8 +93,8 @@ class ImageToFile(Module):
 class GDCMReader(Module):
     my_namespace = "ImageReader"
     def compute(self):
-        dir = self.getInputFromPort("Directory")
-        dim = self.getInputFromPort("Dimension")
+        dir = self.get_input("Directory")
+        dim = self.get_input("Dimension")
         self.dicomNames_ = itk.GDCMSeriesFileNames.New()
 
         self.dicomNames_.SetDirectory(dir)
@@ -115,7 +115,7 @@ class GDCMReader(Module):
         outIm.setPixelType(itk.US)
         outIm.setDim(dim)
 
-        self.setResult("Image Series", outIm)
+        self.set_output("Image Series", outIm)
 
     @classmethod
     def register(cls, reg, basic):
@@ -127,8 +127,8 @@ class GDCMReader(Module):
 class DICOMReader(Module):
     my_namespace = "ImageReader"
     def compute(self):
-        dir = self.getInputFromPort("Directory")
-        dim = self.getInputFromPort("Dimension")
+        dir = self.get_input("Directory")
+        dim = self.get_input("Dimension")
         self.dicomNames_ = itk.DICOMSeriesFileNames.New()
 
         self.dicomNames_.SetFileNameSortingOrderToSortByImagePositionPatient()
@@ -145,7 +145,7 @@ class DICOMReader(Module):
         outIm.setPixelType(itk.US)
         outIm.setDim(dim)
 
-        self.setResult("Image Series", outIm)
+        self.set_output("Image Series", outIm)
 
     @classmethod
     def register(cls, reg, basic):
@@ -157,13 +157,13 @@ class DICOMReader(Module):
 class ITKImageToVTKData(Module):
     my_namespace = "ImageReader"
     def compute(self):
-        dim = self.getInputFromPort("Dimension")
-        pType = self.getInputFromPort("Input PixelType")
+        dim = self.get_input("Dimension")
+        pType = self.get_input("Input PixelType")
         iType = itk.Image[itk.pType,dim]
         self.vtkExport_ = itk.VTKImageExport[iType].New()
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
         self.vtkExport_.SetInput(im)
         self.vtkExport_.Update()
-        self.setResult("VTK Output", self.vtkExport_.GetOutput())
+        self.set_output("VTK Output", self.vtkExport_.GetOutput())
 
         #TODO add register method

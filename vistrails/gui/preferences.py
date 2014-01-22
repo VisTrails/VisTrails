@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -299,8 +299,9 @@ class QPackagesWidget(QtGui.QWidget):
             new_deps = self._current_package.dependencies()
         except Exception, e:
             debug.critical("Failed getting dependencies of package %s, "
-                           "so it will not be enabled" % \
-                            self._current_package.name, str(e))
+                           "so it will not be enabled" %
+                            self._current_package.name,
+                            e)
             return
         from vistrails.core.modules.basic_modules import identifier as basic_modules_identifier
         if self._current_package.identifier != basic_modules_identifier:
@@ -309,7 +310,7 @@ class QPackagesWidget(QtGui.QWidget):
         try:
             pm.check_dependencies(self._current_package, new_deps)
         except Package.MissingDependency, e:
-            debug.critical("Missing dependencies", str(e))
+            debug.critical("Missing dependencies", e)
         else:
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(False)
@@ -317,7 +318,8 @@ class QPackagesWidget(QtGui.QWidget):
                 pm.late_enable_package(codepath)
             except Package.InitializationFailed, e:
                 debug.critical("Initialization of package '%s' failed" %
-                               codepath, str(e))
+                               codepath,
+                               e)
                 raise
             finally:
                 palette.setUpdatesEnabled(True)
@@ -350,15 +352,24 @@ class QPackagesWidget(QtGui.QWidget):
         dlg.exec_()
 
     def reload_current_package(self):
-        # DISABLES the current package and all reverse dependencies
-        inst = self._enabled_packages_list
-        item = inst.currentItem()
-        pm = get_package_manager()
-        codepath = str(item.text())
-        
-        palette = QModulePalette.instance()
-        palette.setUpdatesEnabled(False)
-        pm.reload_package_disable(codepath)
+        if self._enabled_packages_list.currentItem() is not None:
+            # Disables the selected package (which was enabled) and all its
+            # reverse dependencies, then enables it all again
+            item = self._enabled_packages_list.currentItem()
+            pm = get_package_manager()
+            codepath = str(item.text())
+
+            palette = QModulePalette.instance()
+            palette.setUpdatesEnabled(False)
+            pm.reload_package_disable(codepath)
+        elif self._available_packages_list.currentItem() is not None:
+            # Reloads the selected package's (which was not enabled) __init__
+            # module
+            item = self._available_packages_list.currentItem()
+            pm = get_package_manager()
+            codepath = str(item.text())
+            pm._available_packages.pop(codepath).unload()
+            self.selected_available_list()
 
     def reload_current_package_finisher(self, codepath, reverse_deps, prefix_dictionary):
         # REENABLES the current package and all reverse dependencies
@@ -367,7 +378,8 @@ class QPackagesWidget(QtGui.QWidget):
             pm.reload_package_enable(reverse_deps, prefix_dictionary)
         except Package.InitializationFailed, e:
             debug.critical("Re-initialization of package '%s' failed" % 
-                            codepath, str(e))
+                            codepath,
+                            e)
             raise
         finally:
             self.populate_lists()
@@ -440,7 +452,7 @@ class QPackagesWidget(QtGui.QWidget):
         self._configure_button.setEnabled(False)
         self._disable_button.setEnabled(False)
         self._enable_button.setEnabled(True)
-        self._reload_button.setEnabled(False)
+        self._reload_button.setEnabled(True)
 
     def set_package_information(self):
         """Looks at current package and sets all labels (name,
@@ -460,15 +472,16 @@ class QPackagesWidget(QtGui.QWidget):
             self._dependencies_label.setText(msg)
             self._description_label.setText(msg)
             self._reverse_dependencies_label.setText(msg)
-            debug.critical('Cannot load package', str(e))
+            debug.critical('Cannot load package', e)
         else:
             self._name_label.setText(p.name)
             try:
                 deps = ', '.join(str(d) for d in p.dependencies()) or \
                     'No package dependencies.'
             except Exception, e:
-                debug.critical("Failed getting dependencies of package %s "
-                               "" % p.name, str(e))
+                debug.critical("Failed getting dependencies of package %s" %
+                               p.name,
+                               e)
                 deps = "ERROR: Failed getting dependencies"
             try:
                 pm = get_package_manager()

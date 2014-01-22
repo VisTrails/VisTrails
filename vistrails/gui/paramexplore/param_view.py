@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -262,13 +262,10 @@ class QParameterTreeWidget(QSearchTreeWidget):
             # Add available parameters
             if module.is_valid:
                 for port_spec in module.destinationPorts():
-                    if port_spec.name in function_names or \
-                        not len(port_spec.port_spec_items) or \
-                        False in [issubclass(
-                            reg.get_module_by_name(p.package,
-                                                   p.module,
-                                                   p.namespace),
-                            Constant) for p in port_spec.port_spec_items]:
+                    if (port_spec.name in function_names or
+                        not port_spec.is_valid or 
+                        not len(port_spec.port_spec_items) or
+                        not reg.is_constant(port_spec)):
                         # The function already exists or is empty
                         # or contains non-constant modules
                         continue

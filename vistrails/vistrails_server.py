@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -67,8 +67,9 @@ if __name__ == '__main__':
         print str(e)
         sys.exit(e)
     except Exception, e:
-        print "Uncaught exception on initialization: %s" % e
         import traceback
+        print "Uncaught exception on initialization: %s" % (
+                traceback._format_final_exc_line(type(e).__name__, e))
         traceback.print_exc()
         sys.exit(255)
      

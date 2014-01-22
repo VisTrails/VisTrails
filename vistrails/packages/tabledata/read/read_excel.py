@@ -5,6 +5,7 @@ except ImportError:
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
+from vistrails.packages.tabledata.common import TableObject
 
 from ..common import Table
 
@@ -20,52 +21,13 @@ def get_xlrd():
         return None
 
 
-class ExcelSpreadsheet(Table):
-    _input_ports = [
-            ('file', '(org.vistrails.vistrails.basic:File)'),
-            ('sheet_name', '(org.vistrails.vistrails.basic:String)',
-             {'optional': True}),
-            ('sheet_index', '(org.vistrails.vistrails.basic:Integer)',
-             {'optional': True}),
-            ('header_present', '(org.vistrails.vistrails.basic:Boolean)',
-             {'optional': True, 'defaults': "['False']"})]
-    _output_ports = [
-            ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
-            ('column_names', '(org.vistrails.vistrails.basic:String)'),
-            ('self', '(org.vistrails.vistrails.tabledata:'
-             'read|ExcelSpreadsheet)')]
+class ExcelTable(TableObject):
+    def __init__(self, sheet, header_present):
+        self.sheet = sheet
 
-    def compute(self):
-        xlrd = get_xlrd()
-        if xlrd is None: # pragma: no cover
-            raise ModuleError(self, "xlrd is not available")
-
-        workbook = self.getInputFromPort('file')
-        workbook = xlrd.open_workbook(workbook.name)
-
-        if self.hasInputFromPort('sheet_index'):
-            sheet_index = self.getInputFromPort('sheet_index')
-        if self.hasInputFromPort('sheet_name'):
-            name = self.getInputFromPort('sheet_name')
-            try:
-                index = workbook.sheet_names().index(name)
-            except:
-                raise ModuleError(self, "Sheet name not found")
-            if self.hasInputFromPort('sheet_index'):
-                if sheet_index != index:
-                    raise ModuleError(self,
-                                      "Both sheet_name and sheet_index were "
-                                      "specified, and they don't agree")
-        elif self.hasInputFromPort('sheet_index'):
-            index = sheet_index
-        else:
-            index = 0
-        self.sheet = workbook.sheet_by_index(index)
-
-        self.header_present = self.getInputFromPort('header_present')
+        self.header_present = header_present
         if self.header_present:
             self.names = [c.value for c in self.sheet.row(0)]
-            self.setResult('column_names', self.names)
         else:
             self.names = None
 
@@ -74,7 +36,6 @@ class ExcelSpreadsheet(Table):
             self.rows -= 1
 
         self.columns = self.sheet.ncols
-        self.setResult('column_count', self.columns)
 
         self.column_cache = {}
 
@@ -94,6 +55,56 @@ class ExcelSpreadsheet(Table):
         return result
 
 
+class ExcelSpreadsheet(Table):
+    _input_ports = [
+            ('file', '(org.vistrails.vistrails.basic:File)'),
+            ('sheet_name', '(org.vistrails.vistrails.basic:String)',
+             {'optional': True}),
+            ('sheet_index', '(org.vistrails.vistrails.basic:Integer)',
+             {'optional': True}),
+            ('header_present', '(org.vistrails.vistrails.basic:Boolean)',
+             {'optional': True, 'defaults': "['False']"})]
+    _output_ports = [
+            ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
+            ('column_names', '(org.vistrails.vistrails.basic:String)'),
+            ('value', '(org.vistrails.vistrails.tabledata:'
+             'read|ExcelSpreadsheet)')]
+
+    def compute(self):
+        xlrd = get_xlrd()
+        if xlrd is None: # pragma: no cover
+            raise ModuleError(self, "xlrd is not available")
+
+        workbook = self.get_input('file')
+        workbook = xlrd.open_workbook(workbook.name)
+
+        if self.has_input('sheet_index'):
+            sheet_index = self.get_input('sheet_index')
+        if self.has_input('sheet_name'):
+            name = self.get_input('sheet_name')
+            try:
+                index = workbook.sheet_names().index(name)
+            except:
+                raise ModuleError(self, "Sheet name not found")
+            if self.has_input('sheet_index'):
+                if sheet_index != index:
+                    raise ModuleError(self,
+                                      "Both sheet_name and sheet_index were "
+                                      "specified, and they don't agree")
+        elif self.has_input('sheet_index'):
+            index = sheet_index
+        else:
+            index = 0
+        sheet = workbook.sheet_by_index(index)
+        header_present = self.get_input('header_present')
+        table = ExcelTable(sheet, header_present)
+        self.set_output('value', table)
+
+        if table.names is not None:
+            self.set_output('column_names', table.names)
+        self.set_output('column_count', table.columns)
+
+
 _modules = [ExcelSpreadsheet]
 
 
@@ -109,7 +120,7 @@ from ..common import ExtractColumn
 class ExcelTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if get_xlrd() is None:
+        if get_xlrd() is None: # pragma: no cover
             raise unittest.SkipTest("xlrd not available")
         import os
         cls._test_dir = os.path.join(
@@ -139,7 +150,7 @@ class ExcelTestCase(unittest.TestCase):
                         ]),
                     ],
                     [
-                        (0, 'self', 1, 'table'),
+                        (0, 'value', 1, 'table'),
                     ]))
         self.assertEqual(cols, [1])
         self.assertEqual(len(results), 1)
@@ -191,7 +202,7 @@ class ExcelTestCase(unittest.TestCase):
                         ]),
                     ],
                     [
-                        (0, 'self', 1, 'table'),
+                        (0, 'value', 1, 'table'),
                     ]))
         self.assertEqual(cols, [2])
         self.assertEqual(len(results), 1)
@@ -214,7 +225,7 @@ class ExcelTestCase(unittest.TestCase):
                         ]),
                     ],
                     [
-                        (0, 'self', 1, 'table'),
+                        (0, 'value', 1, 'table'),
                     ]))
         self.assertEqual(cols, [2])
         self.assertEqual(len(results), 1)

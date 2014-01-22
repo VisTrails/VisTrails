@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 import copy
+import inspect
 from itertools import chain
 import os
 import re
@@ -250,9 +251,9 @@ class Package(DBPackage):
     ##########################################################################
     # Methods
 
-    _python_lib_regex = re.compile(r'python[0-9.]+[a-z]?/lib/',
+    _python_lib_regex = re.compile(r'python[0-9.]+[a-z]?/lib/(vistrails)?',
                                    re.IGNORECASE)
-    _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/',
+    _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/(vistrails)?',
                                    re.IGNORECASE)
     def import_override(self, orig_import,
                         name, globals, locals, fromlist, level,
@@ -274,8 +275,9 @@ class Package(DBPackage):
                 return True
             if os.sep != '/':
                 pkg_fname = pkg_fname.replace(os.sep, '/')
-            return (self._python_lib_regex.search(pkg_fname) or
-                    self._lib_python_regex.search(pkg_fname))
+            m1 = self._python_lib_regex.search(pkg_fname)
+            m2 = self._lib_python_regex.search(pkg_fname)
+            return (m1 and not m1.group(0)) or (m2 and not m2.group(0))
 
         sys_modules = sys.modules.keys()
 
@@ -478,11 +480,12 @@ class Package(DBPackage):
             except AttributeError:
                 v = self._module
             raise e
-        if hasattr(self._module, '__doc__') and self._module.__doc__:
-            self.description = self._module.__doc__
+        descr = inspect.getdoc(self._module)
+        if descr:
+            self.description = re.sub('^ *\n', '', descr.rstrip())
         else:
-            self.description = "No description available"
-            
+            self.description = "(No description available)"
+
     def can_handle_all_errors(self):
         return hasattr(self._init_module, 'handle_all_errors')
 

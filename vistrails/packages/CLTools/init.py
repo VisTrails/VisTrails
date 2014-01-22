@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -122,7 +122,7 @@ def add_tool(path):
                         args.append('%s%s' % (options.get('prefix', ''), name))
             elif "input" == type:
                 # handle multiple inputs
-                values = self.forceGetInputListFromPort(name)
+                values = self.force_get_input_list(name)
                 if values and 'list' == klass:
                     values = values[0]
                     klass = options['type'].lower() \
@@ -156,14 +156,14 @@ def add_tool(path):
                     args.append(options['flag'])
                 args.append(fname)
                 if "file" == klass:
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == klass:
                     setOutput.append((name, file))
                 else:
                     raise ValueError
             elif "inputoutput" == type:
                 # handle single file that is both input and output
-                value = self.getInputFromPort(name)
+                value = self.get_input(name)
 
                 # create copy of infile to operate on
                 outfile = self.interpreter.filePool.create_file(
@@ -178,12 +178,12 @@ def add_tool(path):
                 if 'flag' in options:
                     args.append(options['flag'])
                 args.append(value)
-                self.setResult(name, outfile)
+                self.set_output(name, outfile)
         if "stdin" in self.conf:
             name, type, options = self.conf["stdin"]
             type = type.lower()
-            if self.hasInputFromPort(name):
-                value = self.getInputFromPort(name)
+            if self.has_input(name):
+                value = self.get_input(name)
                 if "file" == type:
                     if file_std:
                         f = open(value.name, 'rb')
@@ -214,7 +214,7 @@ def add_tool(path):
                 file = self.interpreter.filePool.create_file(
                         suffix=DEFAULTFILESUFFIX)
                 if "file" == type:
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
                     setOutput.append((name, file))
                 else: # pragma: no cover
@@ -231,7 +231,7 @@ def add_tool(path):
                 file = self.interpreter.filePool.create_file(
                         suffix=DEFAULTFILESUFFIX)
                 if "file" == type:
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
                     setOutput.append((name, file))
                 else: # pragma: no cover
@@ -243,7 +243,7 @@ def add_tool(path):
                 kwargs['stderr'] = subprocess.PIPE
 
         if "return_code" in self.conf:
-            return_code = self.forceGetInputFromPort(name)
+            return_code = self.force_get_input(name)
         else:
             return_code = None
 
@@ -275,7 +275,7 @@ def add_tool(path):
                 raise ModuleError('Error parsing module env: %s' % e)
             
         if 'options' in self.conf and 'env_port' in self.conf['options']:
-            for e in self.forceGetInputListFromPort('env'):
+            for e in self.force_get_input_list('env'):
                 try:
                     for var in e.split(';'):
                         if not var:
@@ -315,14 +315,14 @@ def add_tool(path):
             if process.returncode != return_code:
                 raise ModuleError("Command returned %d (!= %d)" % (
                                   process.returncode, return_code))
-        self.setResult('return_code', process.returncode)
+        self.set_output('return_code', process.returncode)
 
         for f in open_files:
             f.close()
 
         for name, file in setOutput:
             f = open(file.name, 'rb')
-            self.setResult(name, f.read())
+            self.set_output(name, f.read())
             f.close()
 
         if not file_std:
@@ -335,9 +335,9 @@ def add_tool(path):
                     f = open(file.name, 'wb')
                     f.write(stdout)
                     f.close()
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
-                    self.setResult(name, stdout)
+                    self.set_output(name, stdout)
                 else: # pragma: no cover
                     raise ValueError
             if stderr and "stderr" in self.conf:
@@ -349,9 +349,9 @@ def add_tool(path):
                     f = open(file.name, 'wb')
                     f.write(stderr)
                     f.close()
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
-                    self.setResult(name, stderr)
+                    self.set_output(name, stderr)
                 else: # pragma: no cover
                     raise ValueError
 

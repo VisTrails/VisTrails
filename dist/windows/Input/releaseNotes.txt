@@ -1,6 +1,62 @@
 RELEASE NOTES
 -------------
-Release Name: v2.1 beta2 build 99faabb791a0 from v2.1 branch
+Release Name: v2.1.1 build 90975fc00211 from v2.1 branch
+
+Bug fixes: 
+ - Ticket 816: Saved vistrail doesn't appear in 'my vistrails' (784414a617d2)
+ - Ticket 814: Parameter Exploration Broken (13da70d0b35f)
+ - Ticket Fix font issue for OS X 10.9. (22c0f0cca937)
+ - Fixes early gui import in application_server (3b2f6186cea9)
+
+From Release: v2.1 build 179c82045907 from v2.1 branch
+
+Enhancements: 
+ - Ticket 292: Add XSL support to RichTextCell (ae0126167aa8)
+ - Set file associations on Linux (579d702aaab9)
+
+Bug fixes: 
+ - Ticket 610: Exporting to the database should update locator (e6c3203a2710)
+ - Ticket 809: Suspending module attached to more than one sink kills workflow execution (3b791e47c453)
+ - Save button is not disabled when file is saved (d0dc3525f334)
+ - Items in workspace were sometimes shown incorrectly (d0dc3525f334)
+ - Context Menus in workspace were missing (d0dc3525f334)
+ - Read only string widget had multi-line button (9117e5bb367e)
+ - Opening configuration window with unsaved changes fails (fa3c1335580f)
+ - Infinite loop when changing string in Mashup App (2ee81b444300)
+ - Ticket 802: Can't exit VisTrails (da5c18a8b550)
+ - Ticket 796: [JobSubmssion] Issue when resuming job from unsaved vistrail after quitting (cc3d342688fb)
+ - Temporary files for untitled locators did not work correctly (3d9df4ab5ea2)
+ - Autosave prompts when vistrail is already open (cfc06bbc1c2c)
+ - Added LinuxMint as a supported Ubuntu variant (145c4c3c16ec)
+ - Ticket 581: Latex extension: clicking on a figure on the PDF file (on acrobat) gives an error (f1a581b11929)
+ - Publishing widget did not show unsaved vistrails correctly (0a4f49d7b081)
+ - Ticket 712: Useful messages when loading abstractions (07745fca0e99)
+ - Ticket 670: Traceback in configuration window (073b57d3bfca)
+ - Ticket 709: Recursing on abstractions tracebacks (5b850844b735)
+ - Ticket 776: 'Open in New Window' feature (71147be4b5ef)
+ - Ticket 794: Exits with 'cannot connect to X server' when starting core application (3c94ccc0ac9a)
+ - Fixed DBLocator equality method (e6c3203a2710)
+ - Ticket 771: Export to DB hangs if schema is not present (c102cb8f72c8)
+ - Ticket 787: Mac color chooser locks keyboard (628fb3e773fc)
+ - Ticket 740: Double-clicking a workflow in the workspace collapses the tree (3775961debd4)
+ - Ticket 738: Double-clicking a workflow in the workspace does not select it in the history view (3775961debd4)
+ - Ticket 723: Changing view fails on Fedora (ee7b4652e845)
+ - Ticket 722: Pipeline validation doesn't check for invalid functions (47d9c6de3e45)
+ - Ticket 277: Don't always receive "enable package" dialog (802fd0de0a7e)
+ - Ticket 415: Version tree refresh after API calls (0a2f6a59d6a7)
+ - Ticket 730: help() not available warning in Mac 2.1 binary (a946e4da59c1)
+ - Ticket 683: Packages should honor -S flag (9e5b83351d2f)
+ - Ticket 649: Batch mode doesn't allow a vt without a version (b5b65892aa10)
+ - Ticket 611: Mashups relational support missing (6bf5b2b02e48)
+ - Ticket 759: QLineEdit.setPlaceholderText does not exist in Qt 4.6.3 (a57fbba44e6e)
+ - Added progress reporting to Map module (0666e24d35f5)
+ - Cannot abort execution while a vtkAlgorithm is running (6b86705c0e59)
+ - Debian install script was used on Fedora (4acca49bcf74)
+ - Ticket 751: Display history view when opening vistrail with tagged versions (f2b053cee1aa)
+ - Spreadsheet history file path was set incorrectly (1789513a3afd)
+ - Fixes slot bug in PyQt 4.7.3 (17230667d58e)
+
+From Release: v2.1 beta2 build 99faabb791a0 from v2.1 branch
 
 Bug fixes: 
  - Ticket #735: Windows dulwich install via pip fails (14d362a695df)

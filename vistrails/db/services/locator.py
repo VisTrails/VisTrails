@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -115,6 +115,12 @@ class BaseLocator(object):
     def has_temporaries(self):
         return self.get_temporary() is not None
 
+    def clean_temporaries(self):
+        pass
+
+    def save_temporary(self, obj):
+        pass
+    
     def serialize(self, dom, element):
         """Serializes this locator to XML.
 
@@ -366,7 +372,7 @@ class SaveTemporariesMixin(object):
             number = int(temporary[split:])
             return base + str(number+1)
 
-class UntitledLocator(BaseLocator, SaveTemporariesMixin):
+class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     UNTITLED_NAME = "Untitled"
     UNTITLED_PREFIX = UNTITLED_NAME + "_"
 
@@ -1068,7 +1074,7 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                self._obj_id == other._obj_id and
+                long(self._obj_id) == long(other._obj_id) and
                 self._obj_type == other._obj_type)
 
     def __ne__(self, other):

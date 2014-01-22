@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -70,6 +70,7 @@ def initialize(*args, **kwargs):
     abs_vistrails = my_vistrails
     last_count = len(my_vistrails) + 1
 
+    missing_depends = {}
     cannot_load = {}
     while len(abs_vistrails) > 0 and len(abs_vistrails) < last_count:
         new_vistrails = {}
@@ -88,6 +89,9 @@ def initialize(*args, **kwargs):
                         if not reg.has_descriptor_with_name(*descriptor_info):
                             add_abstraction = False
                             new_vistrails[abs_name] = abs_info
+                            missing_depends[abs_name] = "Missing module '%s:%s'"\
+                                                        % (descriptor_info[0],
+                                                           descriptor_info[1])
                             break
             if add_abstraction:
                 abstraction = None
@@ -130,7 +134,11 @@ def initialize(*args, **kwargs):
         if e:
             debug.critical("- %s" % e)
     for abs_name in abs_vistrails:
-        debug.critical("Cannot load subworkflow '%s'" % abs_name)
+        if abs_name in missing_depends:
+            debug.critical("Cannot load subworkflow '%s'" % abs_name,
+                           missing_depends[abs_name])
+        else:
+            debug.critical("Cannot load subworkflow '%s'" % abs_name)
 
 def package_dependencies():
     import vistrails.core.packagemanager

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -64,7 +64,7 @@ def hide_splash_if_necessary():
     """Disables the splashscreen, otherwise it sits in front of windows.
     """
     app = get_vistrails_application()
-    if hasattr(app, 'splashScreen'):
+    if hasattr(app, 'splashScreen') and app.splashScreen:
         app.splashScreen.hide()
 
 

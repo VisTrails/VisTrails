@@ -1277,22 +1277,18 @@ If rectprops has "boxstyle" key. A FancyBboxPatch is initialized with rectprops 
           a boolean which determines whether to draw tick label
 
     </docstring>
-    <inputPortSpec arg="label1On" arg_pos="14" constructor_arg="True" name="label1On" port_type="basic:Boolean">
+    <inputPortSpec arg="label1On" arg_pos="14" not_setp="True" name="label1On" port_type="basic:Boolean">
       <defaults>['True']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="loc" arg_pos="1" constructor_arg="True" name="loc" />
     <inputPortSpec arg="major" arg_pos="16" constructor_arg="True" name="major" port_type="basic:Boolean">
       <defaults>['True']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="label2On" arg_pos="15" constructor_arg="True" name="label2On" port_type="basic:Boolean">
+    <inputPortSpec arg="label2On" arg_pos="15" not_setp="True" name="label2On" port_type="basic:Boolean">
       <defaults>['False']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="color" arg_pos="5" constructor_arg="True" name="color" />
-    <inputPortSpec arg="label1" name="label1">
-      <docstring>Set the text of ticklabel</docstring>
-    </inputPortSpec>
-    <inputPortSpec arg="label2" name="label2">
-      <docstring>Set the text of ticklabel2</docstring>
+    <inputPortSpec arg="color" arg_pos="5" constructor_arg="True" name="color" port_type="basic:Color">
+      <translations>translate_color</translations>
     </inputPortSpec>
     <inputPortSpec arg="axes" arg_pos="0" constructor_arg="True" name="axes" />
     <inputPortSpec arg="clip_path" name="clip_path" port_type="basic:String">
@@ -1316,17 +1312,26 @@ For efficiency, if the path happens to be an axis-aligned rectangle, this method
     <inputPortSpec arg="pad" name="pad" port_type="basic:Float">
       <docstring>Set the tick label pad in points</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="gridOn" arg_pos="11" constructor_arg="True" name="gridOn" />
+    <inputPortSpec arg="gridOn" arg_pos="11" not_setp="True" name="gridOn" />
     <inputPortSpec arg="zorder" arg_pos="10" constructor_arg="True" name="zorder" />
-    <inputPortSpec arg="tick2On" arg_pos="13" constructor_arg="True" name="tick2On" port_type="basic:Boolean">
+    <inputPortSpec arg="tick2On" arg_pos="13" not_setp="True" name="tick2On" port_type="basic:Boolean">
       <defaults>['True']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="labelsize" arg_pos="8" constructor_arg="True" name="labelsize" />
     <inputPortSpec arg="width" arg_pos="4" constructor_arg="True" name="width" />
-    <inputPortSpec arg="tick1On" arg_pos="12" constructor_arg="True" name="tick1On" port_type="basic:Boolean">
+    <inputPortSpec arg="tick1On" arg_pos="12" not_setp="True" name="tick1On" port_type="basic:Boolean">
       <defaults>['True']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="size" arg_pos="3" constructor_arg="True" name="size" />
+    <outputPortSpec arg="label1" compute_name="label1" compute_parent="label1" name="label1Properties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text">
+      <docstring>Set the text of ticklabel</docstring>
+    </outputPortSpec>
+    <outputPortSpec arg="label2" compute_name="label2" compute_parent="label2" name="label2Properties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text">
+      <docstring>Set the text of ticklabel2</docstring>
+    </outputPortSpec>
+    <outputPortSpec arg="tick1line" compute_name="tick1line" compute_parent="tick1line" name="tick1lineProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.lines.Line2D"/>
+    <outputPortSpec arg="tick2line" compute_name="tick2line" compute_parent="tick2line" name="tick2lineProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.lines.Line2D"/>
+    <outputPortSpec arg="gridline" compute_name="gridline" compute_parent="gridline" name="gridlineProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.lines.Line2D"/>
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.axis.XTick" name="MplXTickProperties" superclass="MplTickProperties">
     <docstring>
@@ -1454,6 +1459,8 @@ You can also specify the coordinate system of the label with the transform.  If 
 
 For documentation of keyword arguments, see :meth:`matplotlib.axes.Axes.tick_params`.</docstring>
     </inputPortSpec>
+    <outputPortSpec arg="major_ticks" compute_name="major_ticks" compute_parent="get_major_ticks()" name="majorTickProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.Tick" />
+    <outputPortSpec arg="minor_ticks" compute_name="minor_ticks" compute_parent="get_minor_ticks()" name="minorTickProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.Tick" />
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.axis.XAxis" name="MplXAxisProperties" superclass="MplAxisProperties">
     <docstring>None</docstring>
@@ -1710,9 +1717,8 @@ Set the title for the axes.</docstring>
     <inputPortSpec arg="label" arg_pos="6" constructor_arg="True" name="label" port_type="basic:String">
       <defaults>['']</defaults>
     </inputPortSpec>
-    <inputPortSpec arg="xticks" name="xticksSequence" port_type="basic:List">
+    <inputPortSpec arg="xticks" name="xticks" port_type="basic:List">
       <docstring>Set the x ticks with list of ticks</docstring>
-      <alternateSpec arg="xticks" name="xticksScalar" port_type="basic:Float" />
     </inputPortSpec>
     <inputPortSpec arg="fig" arg_pos="0" constructor_arg="True" name="fig" />
     <inputPortSpec arg="ylabel" name="ylabel">
@@ -1809,9 +1815,8 @@ labelpad is the spacing in points between the label and the x-axis</docstring>
     <inputPortSpec arg="xbound" name="xbound">
       <docstring>Set the lower and upper numerical bounds of the x-axis. This method will honor axes inversion regardless of parameter order. It will not change the _autoscaleXon attribute.</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="yticks" name="yticksSequence" port_type="basic:List">
+    <inputPortSpec arg="yticks" name="yticks" port_type="basic:List">
       <docstring>Set the y ticks with list of ticks Keyword arguments:</docstring>
-      <alternateSpec arg="yticks" name="yticksScalar" port_type="basic:Float" />
     </inputPortSpec>
     <inputPortSpec arg="ymargin" name="ymargin" port_type="basic:Float">
       <docstring>Set padding of Y data limits prior to autoscaling.
@@ -1845,6 +1850,8 @@ agg_filter: unknown alpha: float (0.0 transparent through 1.0 opaque) animated: 
       <alternateSpec arg="xticklabels" name="xticklabelsScalar" port_type="basic:String" />
     </inputPortSpec>
     <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
+    <outputPortSpec arg="xaxis" compute_name="xaxis" compute_parent="xaxis" name="xaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.XAxis" />
+    <outputPortSpec arg="yaxis" compute_name="yaxis" compute_parent="yaxis" name="yaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.YAxis" />
   </moduleSpec>
   <moduleSpec code_ref="matplotlib.axes.AxesSubplot" name="MplAxesSubplotProperties" superclass="MplAxesProperties">
     <docstring>None</docstring>

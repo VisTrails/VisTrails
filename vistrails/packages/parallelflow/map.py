@@ -93,26 +93,33 @@ def execute_wf(wf, output_port):
                 errors.append(msg)
 
         # Get the execution log from the controller
-        module_log = controller.log.workflow_execs[0].item_execs[0]
-        machine = controller.log.machine_list[0]
-        xml_log = serialize(module_log)
-        machine_log = serialize(machine)
+        try:
+            module_log = controller.log.workflow_execs[0].item_execs[0]
+        except IndexError:
+            errors.append("Module log not found")
+            return dict(errors=errors)
+        else:
+            machine = controller.log.workflow_execs[0].machines[
+                    module_log.machine_id]
+            xml_log = serialize(module_log)
+            machine_log = serialize(machine)
 
         # Get the output value
-        executed_module, = execution[0][0].executed
-        executed_module = execution[0][0].objects[executed_module]
-        try:
-            output = executed_module.get_output(output_port)
-        except ModuleError, e:
-            errors.append("Output port not found: %s" % output_port)
-            return dict(errors=errors)
-        reg = vistrails.core.modules.module_registry.get_module_registry()
-        base_classes = inspect.getmro(type(output))
-        if Module in base_classes:
-            serializable = reg.get_descriptor(type(output)).sigstring
-            output = output.serialize()
-        else:
-            serializable = None
+        output = None
+        serializable = None
+        if not execution_errors:
+            executed_module, = execution[0][0].executed
+            executed_module = execution[0][0].objects[executed_module]
+            try:
+                output = executed_module.get_output(output_port)
+            except ModuleError:
+                errors.append("Output port not found: %s" % output_port)
+                return dict(errors=errors)
+            reg = vistrails.core.modules.module_registry.get_module_registry()
+            base_classes = inspect.getmro(type(output))
+            if Module in base_classes:
+                serializable = reg.get_descriptor(type(output)).sigstring
+                output = output.serialize()
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
@@ -143,15 +150,15 @@ class Map(Module):
     def __init__(self):
         Module.__init__(self)
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update_upstream(self):
+        """A modified version of the update_upstream method."""
 
         # everything is the same except that we don't update anything
         # upstream of FunctionPort
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    connector.obj.update_upstream()
             else:
                 for connector in connector_list:
                     connector.obj.update()
@@ -160,7 +167,7 @@ class Map(Module):
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
                             InvalidOutput:
-                        self.removeInputConnector(port_name, connector)
+                        self.remove_input_connector(port_name, connector)
 
     @staticmethod
     def print_compositeerror(e):
@@ -185,9 +192,9 @@ class Map(Module):
         updates the module connected to the FunctionPort port, executing it in
         parallel.
         """
-        nameInput = self.getInputFromPort('InputPort')
-        nameOutput = self.getInputFromPort('OutputPort')
-        rawInputList = self.getInputFromPort('InputList')
+        nameInput = self.get_input('InputPort')
+        nameOutput = self.get_input('OutputPort')
+        rawInputList = self.get_input('InputList')
 
         # Create inputList to always have iterable elements
         # to simplify code
@@ -220,13 +227,11 @@ class Map(Module):
                 else:
                     self.element = element[0]
 
-                pipeline_modules = dict((k,m.do_copy()) for k, m in original_pipeline.modules.iteritems())
-
                 # checking type and setting input in the module
                 self.typeChecking(connector.obj, nameInput, inputList)
                 self.setInputValues(connector.obj, nameInput, element)
 
-                pipeline_db_module = pipeline_modules[module_id]
+                pipeline_db_module = original_pipeline.modules[module_id].do_copy()
 
                 # transforming a subworkflow in a group
                 # TODO: should we also transform inner subworkflows?
@@ -249,11 +254,11 @@ class Map(Module):
 
                 # getting highest id between functions to guarantee unique ids
                 # TODO: can get current IdScope here?
-                high_id = 0
-                module_functions = pipeline_db_module.functions
-                for function in module_functions:
-                    if int(function.id) > high_id:
-                        high_id = int(function.id)
+                if pipeline_db_module.functions:
+                    high_id = max(function.db_id
+                                  for function in pipeline_db_module.functions)
+                else:
+                    high_id = 0
 
                 # adding function and parameter to module in pipeline
                 # TODO: 'pos' should not be always 0 here
@@ -261,6 +266,15 @@ class Map(Module):
                 for elementValue, inputPort in izip(element, nameInput):
 
                     p_spec = pipeline_db_module.get_port_spec(inputPort, 'input')
+                    descrs = p_spec.descriptors()
+                    if len(descrs) != 1:
+                        raise ModuleError(
+                                self,
+                                "Tuple input ports are not supported")
+                    if not issubclass(descrs[0].module, Constant):
+                        raise ModuleError(
+                                self,
+                                "Module inputs should be Constant types")
                     type = p_spec.sigstring[1:-1]
 
                     mod_function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
@@ -284,10 +298,12 @@ class Map(Module):
         # IPython stuff
         try:
             rc = get_client()
-            engines = rc.ids
         except Exception, error:
             raise ModuleError(self, "Exception while loading IPython: "
                               "%s" % error)
+        if rc is None:
+            raise ModuleError(self, "Couldn't get an IPython connection")
+        engines = rc.ids
         if not engines:
             raise ModuleError(
                     self,
@@ -324,8 +340,11 @@ class Map(Module):
 
             # initializing a VisTrails application
             try:
-                init_view.execute('app = vistrails.core.application.init(args=[])',
-                                  block=True)
+                init_view.execute(
+                        'app = vistrails.core.application.init('
+                        '        {"spawned": True},'
+                        '        args=[])',
+                        block=True)
             except CompositeError, e:
                 self.print_compositeerror(e)
                 raise ModuleError(self, "Error initializing application on "
@@ -401,19 +420,17 @@ class Map(Module):
 
             # before adding the execution log, we need to get the machine information
             machine = unserialize(map_result[engine]['machine_log'], Machine)
-            machine.id = self.logging.log.log.id_scope.getNewId(Machine.vtType) #assigning new id
-            self.logging.log.log.add_machine(machine)
+            machine_id = self.logging.add_machine(machine)
 
             # recursively add machine information to execution items
             def add_machine_recursive(exec_):
-                for i in range(len(exec_.item_execs)):
-                    if hasattr(exec_.item_execs[i], 'machine_id'):
-                        exec_.item_execs[i].machine_id = machine.id
-                        vt_type = exec_.item_execs[i].vtType
-                        if (vt_type == 'abstraction') or (vt_type == 'group'):
-                            add_machine_recursive(exec_.item_execs[i])
+                for item in exec_.item_execs:
+                    if hasattr(item, 'machine_id'):
+                        item.machine_id = machine_id
+                        if item.vtType in ('abstraction', 'group'):
+                            add_machine_recursive(item)
 
-            exec_.machine_id = machine.id
+            exec_.machine_id = machine_id
             if (vtType == 'abstraction') or (vtType == 'group'):
                 add_machine_recursive(exec_)
 
@@ -512,7 +529,7 @@ class Map(Module):
         self.result = None
         self.updateFunctionPort()
 
-        self.setResult('Result', self.result)
+        self.set_output('Result', self.result)
 
 ###############################################################################
 
@@ -521,7 +538,7 @@ class NewConstant(Constant):
     A new Constant module to be used inside the Map module.
     """
     def setValue(self, v):
-        self.setResult("value", v)
+        self.set_output("value", v)
         self.upToDate = True
 
 def create_constant(value):

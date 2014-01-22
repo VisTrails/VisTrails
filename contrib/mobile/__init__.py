@@ -77,7 +77,7 @@ class LocationCoordinate2D(Constant):
     @staticmethod
     def translate_to_python(x):
         result = LocationCoordinate2D.from_xml_string(x)
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
 
     @staticmethod
@@ -85,18 +85,18 @@ class LocationCoordinate2D(Constant):
         return LocationCoordinate2D.to_xml_string(x)
         
     def compute(self):
-        if self.hasInputFromPort("value"):
-            data = self.getInputFromPort("value")
+        if self.has_input("value"):
+            data = self.get_input("value")
             self.latitude = data.latitude
             self.longitude = data.longitude
         
         if self.latitude is None or self.longitude is None:
-            self.checkInputPort("latitude")
-            self.checkInputPort("longitude")
-            self.latitude = self.getInputFromPort("latitude")
-            self.longitude = self.getInputFromPort("longitude")
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+            self.check_input("latitude")
+            self.check_input("longitude")
+            self.latitude = self.get_input("latitude")
+            self.longitude = self.get_input("longitude")
+        self.set_output("value", self)
+        self.set_output("value_as_string", self.translate_to_string(self))
         
     @classmethod
     def provide_input_port_documentation(cls, port_name):
@@ -192,7 +192,7 @@ class Location(Constant):
     @staticmethod
     def translate_to_python(x):
         result = Location.from_xml_string(x)
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
 
     @staticmethod
@@ -200,8 +200,8 @@ class Location(Constant):
         return Location.to_xml_string(x)
     
     def compute(self):
-        if self.hasInputFromPort("value"):
-            data = self.getInputFromPort("value")
+        if self.has_input("value"):
+            data = self.get_input("value")
             self.coordinate = data.coordinate
             self.altitude = data.altitude
             self.horizontal_accuracy = data.horizontal_accuracy
@@ -211,32 +211,32 @@ class Location(Constant):
             self.course = data.course
         
         if self.coordinate is None or self.altitude is None:
-            self.checkInputPort("coordinate")
-            self.checkInputPort("altitude")
-            self.coordinate = self.getInputFromPort("coordinate")
-            self.altitude = self.getInputFromPort("altitude")
+            self.check_input("coordinate")
+            self.check_input("altitude")
+            self.coordinate = self.get_input("coordinate")
+            self.altitude = self.get_input("altitude")
             
             #check optional ports
-            if self.hasInputFromPort("horizontalAccuracy"):
+            if self.has_input("horizontalAccuracy"):
                 self.horizontal_accuracy = \
-                              self.getInputFromPort("horizontalAccuracy")
+                              self.get_input("horizontalAccuracy")
                               
-            if self.hasInputFromPort("verticalAccuracy"):
+            if self.has_input("verticalAccuracy"):
                 self.vertical_accuracy = \
-                              self.getInputFromPort("verticalAccuracy")
+                              self.get_input("verticalAccuracy")
                               
-            if self.hasInputFromPort("timestamp"):
-                data = self.getInputFromPort("timestamp")
+            if self.has_input("timestamp"):
+                data = self.get_input("timestamp")
                 self.timestamp = \
                             datetime(*strptime(data, '%Y-%m-%d %H:%M:%S')[0:6])
-            if self.hasInputFromPort("speed"):
-                self.speed = self.getInputFromPort("speed")
+            if self.has_input("speed"):
+                self.speed = self.get_input("speed")
                 
-            if self.hasInputFromPort("course"):
-                self.course = self.getInputFromPort("course")
+            if self.has_input("course"):
+                self.course = self.get_input("course")
         
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.set_output("value", self)
+        self.set_output("value_as_string", self.translate_to_string(self))
     
     @classmethod
     def provide_input_port_documentation(cls, port_name):
@@ -299,7 +299,7 @@ class B64EncodedContents(Constant):
     def translate_to_python(x):
         result = B64EncodedContents()
         result.contents = str(x)
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
         
     @staticmethod
@@ -307,18 +307,18 @@ class B64EncodedContents(Constant):
         return x.contents
     
     def compute(self):
-        if self.hasInputFromPort("value"):
-            data = self.getInputFromPort("value")
+        if self.has_input("value"):
+            data = self.get_input("value")
             self.contents = data.contents
         
         if self.contents is None:
-            if self.hasInputFromPort("file"):
-                file_ = self.getInputFromPort("file")
+            if self.has_input("file"):
+                file_ = self.get_input("file")
                 c = open(file_.name)
                 self.contents = base64.b64encode(c.read()) 
             
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.set_output("value", self)
+        self.set_output("value_as_string", self.translate_to_string(self))
         
 B64EncodedContents._input_ports = [('value', B64EncodedContents),
                                    ('contents', String, True), 
@@ -335,7 +335,7 @@ class Image(B64EncodedContents):
     def translate_to_python(x):
         result = Image()
         result.contents = str(x)
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
     
 Image._input_ports = [('value', Image)]
@@ -351,7 +351,7 @@ class Audio(B64EncodedContents):
     def translate_to_python(x):
         result = Audio()
         result.contents = str(x)
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
     
 Audio._input_ports = [('value', Audio)]
