@@ -1,4 +1,5 @@
 from vistrails.core.modules.basic_modules import Constant, Integer, String
+from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 
@@ -22,7 +23,7 @@ class QueryCondition(Constant):
     This is abstract and implemented by modules Query*
     """
     _input_ports = [
-            ('key', String)]
+            IPort('key', String)]
 
     @staticmethod
     def translate_to_python(c):
@@ -51,7 +52,7 @@ class QueryCondition(Constant):
         return self.__str__()
 
 QueryCondition._output_ports = [
-        ('self', QueryCondition)]
+        OPort('self', QueryCondition)]
 
 
 class Metadata(QueryCondition):
@@ -63,8 +64,8 @@ class Metadata(QueryCondition):
     inserting, and a condition, through the 'condition' attribute.
     """
     _input_ports = [
-            ('key', String),
-            ('value', Module)]
+            IPort('key', String),
+            IPort('value', Module)]
 
     def __init__(self, *args):
         super(Metadata, self).__init__()
@@ -76,8 +77,8 @@ class Metadata(QueryCondition):
             self.key, self.value = None, None
 
     def compute(self):
-        self.key = self.getInputFromPort('key')
-        self.value = self.getInputFromPort('value')
+        self.key = self.get_input('key')
+        self.value = self.get_input('value')
 
         self.set_results()
 
@@ -89,30 +90,30 @@ class Metadata(QueryCondition):
         return '%s(%r, %r)' % (self.__class__.__name__, self.key, self.value)
 
 Metadata._output_ports = [
-        ('self', Metadata)]
+        OPort('self', Metadata)]
 
 
 class EqualString(Metadata):
     _input_ports = [
-            ('key', String),
-            ('value', String)]
+            IPort('key', String),
+            IPort('value', String)]
 
     _type = 'str'
 
 
 class EqualInt(Metadata):
     _input_ports = [
-            ('key', String),
-            ('value', Integer)]
+            IPort('key', String),
+            IPort('value', Integer)]
 
     _type = 'int'
 
 
 class IntInRange(QueryCondition):
     _input_ports = [
-            ('key', String),
-            ('lower_bound', Integer, True),
-            ('higher_bound', Integer, True)]
+            IPort('key', String),
+            IPort('lower_bound', Integer, optional=True),
+            IPort('higher_bound', Integer, optional=True)]
 
     def __init__(self, *args):
         super(IntInRange, self).__init__()
@@ -124,11 +125,11 @@ class IntInRange(QueryCondition):
             self.key, self.low, self.high = None, None, None
 
     def compute(self):
-        self.key = self.getInputFromPort('key')
-        if self.hasInputFromPort('lower_bound'):
-            self.low = self.getInputFromPort('lower_bound')
-        if self.hasInputFromPort('higher_bound'):
-            self.high = self.getInputFromPort('higher_bound')
+        self.key = self.get_input('key')
+        if self.has_input('lower_bound'):
+            self.low = self.get_input('lower_bound')
+        if self.has_input('higher_bound'):
+            self.high = self.get_input('higher_bound')
         if not (self.low is not None or self.high is not None):
             raise ModuleError(self, "No bound set")
         self.set_results()

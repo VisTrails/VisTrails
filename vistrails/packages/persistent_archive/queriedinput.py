@@ -2,6 +2,7 @@ import os
 
 from vistrails.core.modules.basic_modules import Boolean, Directory, File, \
     Integer, List, Path
+from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TIME, get_default_store, wrap_path
@@ -16,16 +17,16 @@ class QueriedInputPath(Module):
     """
 
     _input_ports = [
-            ('query', QueryCondition),
-            ('unique', Boolean, {'optional': True, 'defaults': '["False"]'})]
+            IPort('query', QueryCondition),
+            IPort('unique', Boolean, optional=True, default='False')]
     _output_ports = [
-            ('most_recent', Path),
-            ('results', List),
-            ('count', Integer)]
+            OPort('most_recent', Path),
+            OPort('results', List),
+            OPort('count', Integer, optional=True)]
 
     def compute(self):
         # Do the query
-        conditions = self.getInputListFromPort('query')
+        conditions = self.get_input_list('query')
         conditions = dict(c.condition for c in conditions)
 
         file_store = get_default_store()
@@ -43,7 +44,7 @@ class QueriedInputPath(Module):
         if best is None:
             raise ModuleError(self, "No match")
 
-        if nb > 1 and self.getInputFromPort('unique'):
+        if nb > 1 and self.get_input('unique'):
             raise ModuleError(self,
                               "Query returned %d results and 'unique' is "
                               "True" % nb)
@@ -54,18 +55,18 @@ class QueriedInputPath(Module):
         pass
 
     def _set_result(self, results, latest):
-        self.setResult('most_recent', wrap_path(latest.filename))
-        self.setResult('results', [wrap_path(e.filename)
+        self.set_output('most_recent', wrap_path(latest.filename))
+        self.set_output('results', [wrap_path(e.filename)
                                    for e in results])
-        self.setResult('count', len(results))
+        self.set_output('count', len(results))
         # TODO : output metadata
 
 
 class QueriedInputFile(QueriedInputPath):
     _output_ports = [
-            ('most_recent', File),
-            ('results', List),
-            ('count', Integer)]
+            OPort('most_recent', File),
+            OPort('results', List),
+            OPort('count', Integer, optional=True)]
 
     def check_path_type(self, path):
         if not os.path.isfile(path):
@@ -74,9 +75,9 @@ class QueriedInputFile(QueriedInputPath):
 
 class QueriedInputDir(QueriedInputPath):
     _output_ports = [
-            ('most_recent', Directory),
-            ('results', List),
-            ('count', Integer)]
+            OPort('most_recent', Directory),
+            OPort('results', List),
+            OPort('count', Integer, optional=True)]
 
     def check_path_type(self, path):
         if not os.path.isdir(path):

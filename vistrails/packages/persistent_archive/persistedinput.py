@@ -4,6 +4,7 @@ import os
 
 import vistrails.core.debug as debug
 from vistrails.core.modules.basic_modules import Directory, File, Path
+from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TYPE, TYPE_INPUT, KEY_TIME, \
@@ -28,16 +29,16 @@ class PersistedInputPath(Module):
     """
 
     _input_ports = [
-            ('path', Path, True),
-            ('metadata', Metadata, True),
-            ('hash', PersistentHash, True)]
+            IPort('path', Path, optional=True),
+            IPort('metadata', Metadata, optional=True),
+            IPort('hash', PersistentHash, optional=True)]
     _output_ports = [
-            ('path', Path)]
+            OPort('path', Path)]
 
     def compute(self):
-        localpath = self.forceGetInputFromPort('path')
-        hasquery = self.hasInputFromPort('metadata')
-        hashash = self.hasInputFromPort('hash')
+        localpath = self.force_get_input('path')
+        hasquery = self.has_input('metadata')
+        hashash = self.has_input('hash')
 
         file_store = get_default_store()
 
@@ -45,11 +46,11 @@ class PersistedInputPath(Module):
             if localpath or hasquery:
                 raise ModuleError(self,
                                   "Don't set other ports if 'hash' is set")
-            h = self.getInputFromPort('hash')._hash
+            h = self.get_input('hash')._hash
             self._set_result(file_store.get(h))
         elif hasquery:
             # Do the query
-            metadata = self.getInputListFromPort('metadata')
+            metadata = self.get_input_list('metadata')
             metadata = dict(m.metadata for m in metadata)
             # Find the most recent match
             best = None
@@ -95,17 +96,17 @@ class PersistedInputPath(Module):
         pass
 
     def _set_result(self, entry):
-        self.setResult('path', wrap_path(entry.filename))
+        self.set_output('path', wrap_path(entry.filename))
         # TODO : output metadata
 
 
 class PersistedInputFile(PersistedInputPath):
     _input_ports = [
-            ('path', File, True),
-            ('metadata', Metadata, True),
-            ('hash', PersistentHash, True)]
+            IPort('path', File, optional=True),
+            IPort('metadata', Metadata, optional=True),
+            IPort('hash', PersistentHash, optional=True)]
     _output_ports = [
-            ('path', File)]
+            OPort('path', File)]
 
     def check_path_type(self, path):
         if not os.path.isfile(path):
@@ -114,11 +115,11 @@ class PersistedInputFile(PersistedInputPath):
 
 class PersistedInputDir(PersistedInputPath):
     _input_ports = [
-            ('path', Directory, True),
-            ('metadata', Metadata, True),
-            ('hash', PersistentHash, True)]
+            IPort('path', Directory,  optional=True),
+            IPort('metadata', Metadata,  optional=True),
+            IPort('hash', PersistentHash,  optional=True)]
     _output_ports = [
-            ('path', File)]
+            OPort('path', File)]
 
     def check_path_type(self, path):
         if not os.path.isdir(path):

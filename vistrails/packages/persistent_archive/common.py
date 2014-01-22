@@ -2,6 +2,7 @@ import os
 
 from vistrails.core.modules.basic_modules import Constant, Directory, File, \
     String
+from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import ModuleError
 
 
@@ -99,18 +100,18 @@ class PersistentHash(Constant):
             return "<PersistentHash (invalid)>"
 
     def compute(self):
-        if self.hasInputFromPort('value') == self.hasInputFromPort('hash'):
+        if self.has_input('value') == self.has_input('hash'):
             raise ModuleError(self, "Set either 'value' or 'hash'")
-        if self.hasInputFromPort('value'):
-            self._hash = self.getInputFromPort('value')._hash
+        if self.has_input('value'):
+            self._hash = self.get_input('value')._hash
         else:
             try:
-                self._set_hash(self.getInputFromPort('hash'))
+                self._set_hash(self.get_input('hash'))
             except ValueError, e:
                 raise ModuleError(self, e.message)
 
 PersistentHash._input_ports = [
-        ('value', PersistentHash),
-        ('hash', String)]
+        IPort('value', PersistentHash),
+        IPort('hash', String)]
 PersistentHash._output_ports = [
-        ('value', PersistentHash)]
+        OPort('value', PersistentHash)]

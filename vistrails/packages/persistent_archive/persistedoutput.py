@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 
 from vistrails.core.modules.basic_modules import Directory, File, Path
+from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TYPE, TYPE_INPUT, \
@@ -15,14 +16,12 @@ class PersistedPath(Module):
     """
 
     _input_ports = [
-            ('path', Path),
-            ('metadata', Metadata, True)]
+            IPort('path', Path),
+            IPort('metadata', Metadata, optional=True)]
     _output_ports = [
-            ('path', Path)]
+            OPort('path', Path)]
 
-    def __init__(self):
-        Module.__init__(self)
-        self._cached = None
+    _cached = None
 
     def updateUpstream(self):
         """A modified version of the updateUpstream method.
@@ -47,9 +46,9 @@ class PersistedPath(Module):
             self._set_result(self._cached)
         else:
             file_store = get_default_store()
-            newpath = self.getInputFromPort('path').name
+            newpath = self.get_input('path').name
             self.check_path_type(newpath)
-            metadata = self.getInputListFromPort('metadata')
+            metadata = self.get_input_list('metadata')
             metadata = dict(m.metadata for m in metadata)
             metadata[KEY_TYPE] = TYPE_INPUT
             metadata[KEY_TIME] = datetime.strftime(datetime.utcnow(),
@@ -69,15 +68,15 @@ class PersistedPath(Module):
         pass
 
     def _set_result(self, path):
-        self.setResult('path', wrap_path(path))
+        self.set_output('path', wrap_path(path))
 
 
 class PersistedFile(PersistedPath):
     _input_ports = [
-            ('path', File),
-            ('metadata', Metadata, True)]
+            IPort('path', File),
+            IPort('metadata', Metadata, optional=True)]
     _output_ports = [
-            ('path', File)]
+            OPort('path', File)]
 
     def check_path_type(self, path):
         if not os.path.isfile(path):
@@ -86,10 +85,10 @@ class PersistedFile(PersistedPath):
 
 class PersistedDir(PersistedPath):
     _input_ports = [
-            ('path', Directory),
-            ('metadata', Metadata, True)]
+            IPort('path', Directory),
+            IPort('metadata', Metadata, optional=True)]
     _output_ports = [
-            ('path', Directory)]
+            OPort('path', Directory)]
 
     def check_path_type(self, path):
         if not os.path.isdir(path):
