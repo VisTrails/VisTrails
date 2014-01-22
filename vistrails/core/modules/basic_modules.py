@@ -1320,7 +1320,10 @@ def initialize(*args, **kwargs):
     reg.add_input_port(TupleToList, 'in_value', Variant)
     reg.add_output_port(TupleToList, 'out_value', List)
 
-    reg.add_module(StringFormat)
+    reg.add_module(StringFormat,
+                   configureWidgetType=(
+                           "vistrails.gui.modules.stringformat_configuration",
+                           "StringFormatConfigurationWidget"))
     reg.add_input_port(StringFormat, 'format', String)
     reg.add_output_port(StringFormat, 'value', String)
 
