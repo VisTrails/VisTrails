@@ -473,6 +473,8 @@ the previous run.
   workflows and that we are twisting it's execution model a little, but this
   will demonstrate the functionality should you actually need it.
 
+  Note that you can find the completed example here: :vtl:`gcd.vt`.
+
   The modules we are going to need are:
 
    * ``And``
