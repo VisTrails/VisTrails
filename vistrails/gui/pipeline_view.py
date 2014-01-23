@@ -601,6 +601,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.annotateAct)
         menu.addAction(self.viewDocumentationAct)
         menu.addAction(self.changeModuleLabelAct)
+        menu.addAction(self.editLoopingAct)
         menu.addAction(self.setBreakpointAct)
         menu.addAction(self.setWatchedAct)
         menu.addAction(self.runModuleAct)
@@ -629,6 +630,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.viewDocumentationAct,
                                QtCore.SIGNAL("triggered()"),
                                self.viewDocumentation)
+        self.editLoopingAct = QtGui.QAction("Looping Options", self.scene())
+        self.editLoopingAct.setStatusTip("Edit looping options")
+        QtCore.QObject.connect(self.editLoopingAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.editLooping)
         self.changeModuleLabelAct = QtGui.QAction("Set Module Label...", self.scene())
         self.changeModuleLabelAct.setStatusTip("Set or remove module label")
         QtCore.QObject.connect(self.changeModuleLabelAct,
@@ -705,6 +711,13 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """
         assert self.moduleId >= 0
         self.scene().open_documentation_window(self.moduleId)
+
+    def editLooping(self):
+        """ editLooping() -> None
+        Show the looping options for the module
+        """
+        assert self.moduleId >= 0
+        self.scene().open_looping_window(self.moduleId)
 
     def changeModuleLabel(self):
         """ changeModuleLabel() -> None
@@ -2832,6 +2845,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         from vistrails.gui.vistrails_window import _app
         _app.show_documentation()
+
+    def open_looping_window(self, id):
+        """ open_looping_window(int) -> None
+        Opens the modal module looping options window for module with given id
+        """
+        from vistrails.gui.vistrails_window import _app
+        _app.show_looping_options()
 
     def toggle_breakpoint(self, id):
         """ toggle_breakpoint(int) -> None

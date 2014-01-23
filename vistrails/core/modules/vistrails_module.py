@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 import copy
-from itertools import izip
+from itertools import izip, product
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
@@ -451,9 +451,16 @@ class Module(Serializable):
 
     def compute_all(self):
         """This method executes the module once for each module.
-           Similar to fold.
+           Similarly to fold.
 
         """
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        LOOP_KEY = '__loop_type__'
+        type = 'pairwise'
+        if p_module.has_annotation_with_key(LOOP_KEY):
+            type = p_module.get_annotation_by_key(LOOP_KEY).value
+
         suspended = []
 
         ports = self.iterated_ports
@@ -461,10 +468,14 @@ class Module(Serializable):
         for port in ports:
             inputs[port] = self.get_input_list(port).value
         # TODO right now assuming pairwise elements
+
         num_inputs = len(inputs[ports[0]])
         elements = []
-        for i in xrange(num_inputs):
-            elements.append([inputs[port][i] for port in ports])
+        if type=='pairwise':
+            elements = zip(*[inputs[port] for port in ports])
+        if type=='cartesian':
+            elements = list(product(*[inputs[port] for port in ports]))
+        num_inputs = len(elements)
         loop = self.logging.begin_loop_execution(self, num_inputs)
         ## Update everything for each value inside the list
         outputs = {}
