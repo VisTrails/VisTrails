@@ -62,43 +62,7 @@ Source: C:\Python27_64\libs\*; DestDir: {app}\Python27_64\libs
 Source: C:\Python27_64\Scripts\*; DestDir: {app}\Python27_64\Scripts
 Source: C:\Python27_64\tcl\*; DestDir: {app}\Python27_64\tcl; Flags: recursesubdirs
 Source: C:\Python27_64\Tools\*; DestDir: {app}\Python27_64\Tools; Flags: recursesubdirs
-Source: ..\..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\chebi_webservice.vt; DestDir: {app}\examples; Components: examples
-;Source: ..\..\examples\cmop_starter_trail.vt; DestDir: {app}\examples; Components: examples
-;Source: ..\..\examples\DataTransformation_webservice.vt; DestDir: {app}\examples; Components: examples
-;Source: ..\..\examples\DDBJ_webservice.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\EMBOSS_webservices.vt; DestDir: {app}\examples; Components: examples
-;Source: ..\..\examples\gridfieldexample.vt; DestDir: {app}\examples; Components: examples
-;Source: ..\..\examples\bathymetry.vt; DestDir: {app}\examples; Components: examples
-;Source: ..\..\examples\croos2.vt; DestDir: {app}\examples; Components: examples
-;Source: ..\..\examples\gridfieldexample.xml; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\head.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\KEGG_SearchEntities_webservice.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\KEGG_webservices.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\lung.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\noaa_webservices.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\offscreen.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\plot.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\protein_visualization.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\r_stats.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\spx.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\structure_or_id_webservice.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\terminator.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\triangle_area.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\vtk.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\vtk_book_3rd_p189.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Components: examples
-Source: ..\..\..\examples\vtk_examples\*; DestDir: {app}\examples\vtk_examples; Components: examples; Flags: recursesubdirs
-Source: ..\..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: examples
-;Source: ..\..\examples\XSLTSample.xsl; DestDir: {app}\examples; Components: examples
-Source: ..\..\examples\usersguide\*; DestDir: {app}\examples\usersguide; Components: examples
-;Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
-;Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
-;Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data; Components: examples
-;Source: ..\..\examples\data\gktbhL123.vtk; DestDir: {app}\examples\data; Components: examples
-;Source: ..\..\examples\data\head.120.vtk; DestDir: {app}\examples\data; Components: examples
-;Source: ..\..\examples\data\spx.vtk; DestDir: {app}\examples\data; Components: examples
-;Source: ..\..\examples\data\vslice_circ1.bp; DestDir: {app}\examples\data; Components: examples
+Source: ..\..\examples\*; DestDir: {app}\examples; Components: examples Flags: recursesubdirs
 Source: ..\..\..\scripts\*; DestDir: {app}\scripts; Flags: recursesubdirs
 Source: ..\..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 Source: ..\..\..\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
@@ -146,7 +110,7 @@ Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.pyd; DestDir
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 ;Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 ;;;; --------    ALPS FILES    ----------;;;;
-Source: ..\Input\x64\alps_libs\vistrails\*; DestDir: {app}; Flags: recursesubdirs
+Source: ..\Input\x64\alps_libs\*; DestDir: {app}; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs
@@ -165,10 +129,7 @@ Source: C:\Users\vistrails\code\extra_packages\gdal\x64\site-packages\*; DestDir
 Name: {app}\vistrails
 ;;Name: {app}\Configuration
 ;;Name: {app}\itkExtras
-Name: {app}\examples; Components: examples; Tasks: N
-Name: {app}\examples\usersguide
-Name: {app}\examples\vtk_examples
-Name: {app}\examples\data
+Name: {app}\examples; Components: examples; Tasks:
 Name: {app}\extensions; Components: extensions; Tasks:
 Name: {app}\doc; Components: usersguide; Tasks:  
 Name: {app}\scripts
@@ -225,7 +186,6 @@ Name: {app}\dgnlib.dll; Type: files
 Name: {app}\_Xdmf.dll; Type: files
 Name: {app}\geotiff.dll; Type: files
 Name: {app}\libmysql.dll; Type: files
-Name: {app}\examples\gridfieldexample.vt; Type: files
 Name: {app}\vistrails; Type: filesandordirs
 
 [Run]
