@@ -146,7 +146,7 @@ Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.pyd; DestDir: 
 
 ;-->Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 ;;;; --------    ALPS FILES    ----------;;;;
-Source: Input\x86\alps_libs\vistrails\*; DestDir: {app}; Flags: recursesubdirs
+Source: Input\x86\alps_libs\*; DestDir: {app}; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs

@@ -146,7 +146,7 @@ Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.pyd; DestDir
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 ;Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 ;;;; --------    ALPS FILES    ----------;;;;
-Source: ..\Input\x64\alps_libs\vistrails\*; DestDir: {app}; Flags: recursesubdirs
+Source: ..\Input\x64\alps_libs\*; DestDir: {app}; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs
@@ -165,7 +165,7 @@ Source: C:\Users\vistrails\code\extra_packages\gdal\x64\site-packages\*; DestDir
 Name: {app}\vistrails
 ;;Name: {app}\Configuration
 ;;Name: {app}\itkExtras
-Name: {app}\examples; Components: examples; Tasks: N
+Name: {app}\examples; Components: examples; Tasks:
 Name: {app}\examples\usersguide
 Name: {app}\examples\vtk_examples
 Name: {app}\examples\data
