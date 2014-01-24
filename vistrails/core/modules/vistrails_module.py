@@ -384,8 +384,8 @@ class Module(Serializable):
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             # check if values on this port should be looped over
             inputs = self.get_input_list(iport)
-            from vistrails.core.modules.basic_modules import ListOf
-            if isinstance(inputs, ListOf):
+            from vistrails.core.modules.basic_modules import Iterator
+            if isinstance(inputs, Iterator):
                 self.iterated_ports.append(iport)
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
@@ -520,10 +520,10 @@ class Module(Serializable):
                     "function module suspended in %d/%d iterations" % (
                             len(suspended), num_inputs),
                     children=suspended)
-        from vistrails.core.modules.basic_modules import ListOf
+        from vistrails.core.modules.basic_modules import Iterator
         # set final outputs
         for nameOutput in outputs:
-            l = ListOf()
+            l = Iterator()
             l.value = outputs[nameOutput]
             self.set_output(nameOutput, l)
         loop.end_loop_execution()
@@ -641,13 +641,13 @@ class Module(Serializable):
             raise ModuleError(self, "Missing value from port %s" % port_name)
         # Cannot resolve circular reference here, need to be fixed later
         from vistrails.core.modules.sub_module import InputPort
-        from vistrails.core.modules.basic_modules import ListOf
+        from vistrails.core.modules.basic_modules import Iterator
         fromInputPortModule = [connector()
                                for connector in self.inputPorts[port_name]
                                if isinstance(connector.obj, InputPort)]
         if len(fromInputPortModule)>0:
             return fromInputPortModule
-        is_listOf = False
+        is_Iterator = False
         ports = []
         for connector in self.inputPorts[port_name]:
             p_modules = self.moduleInfo['pipeline'].modules
@@ -657,21 +657,21 @@ class Module(Serializable):
             if not (port_spec and \
                     port_spec.signature and \
                     port_spec.signature[0] and \
-                    port_spec.signature[0][0] is ListOf) and \
-               isinstance(value, ListOf) and len(value.value)>0:
+                    port_spec.signature[0][0] is Iterator) and \
+               isinstance(value, Iterator) and len(value.value)>0:
                 #try:
                     self.typeChecking(self, [port_name], [[value.value[0]]])
                     ports.extend(value.value)
-                    is_listOf = True
+                    is_Iterator = True
                     continue
             ports.append(value)
-        if is_listOf:
-            l = ListOf() 
+        if is_Iterator:
+            l = Iterator() 
             l.value = ports
             return l
         return ports
 
-    def get_input_list_no_listof(self, port_name):
+    def get_input_list_no_Iterator(self, port_name):
         """Returns the value(s) coming in on the input port named
         **port_name**.  When a port can accept more than one input,
         this method obtains all the values being passed in.
@@ -1031,9 +1031,9 @@ class ModuleConnector(object):
                 if not typecheck[0]:
                     return result
                 mod = descs[0].module
-                from vistrails.core.modules.basic_modules import ListOf
+                from vistrails.core.modules.basic_modules import Iterator
                 value = result
-                if isinstance(value, ListOf):
+                if isinstance(value, Iterator):
                     value = value.value[0] if value.value else None
                 if hasattr(mod, 'validate') and value and not mod.validate(value):
                     raise ModuleError(self.obj, "Type passed on Variant port "

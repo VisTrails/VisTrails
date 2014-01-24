@@ -1174,22 +1174,66 @@ class Variant(Module):
 
 ##############################################################################
 
-class ListOf(Module):
-    """Represent list of another type.
+class Iterator(Module):
+    """
+    Created by IterateList, it contains a list stored in .value. A module with
+    this as input will be executed once for each input in the list and return
+    a new Iterator. It can be converted to a normal list using AccumulateList.
+    
+    """
+    _settings = ModuleSettings(hide_descriptor=True)
+
+
+class IterateList(Module):
+    """
+    IterateList creates a special Iterator list that will execute modules once
+    for each input in the list and return a new Iterator. It can be converted
+    to a normal list using AccumulateList.
+    
+    This is used to execute modules once for each value in the list. This
+    item-wise execution will continue downstream until AccumulateList is used
+    to convert the Iterator to a normal list.
+    
+    
     """
     
-    _input_ports = [IPort('value', 'ListOf'), IPort('value_as_list', 'List')]
-    _output_ports = [OPort('value', 'ListOf'), OPort('value_as_list', 'List')]
+    _input_ports = [IPort('value', 'List')]
+    _output_ports = [OPort('value', 'Iterator')]
+    _settings = ModuleSettings(left_fringe=[(0.0, 0.0),
+                                            (-0.2, 0.0),
+                                            (0.0, 1.0)],
+                               right_fringe=[(0.0, 0.0),
+                                             (0.2, 0.0),
+                                             (0.0, 1.0)])
+
+    def compute(self):
+        self.value = self.get_input('value')
+        i = Iterator()
+        i.value = self.value
+        self.set_output('value', i)
+
+class AccumulateList(Module):
+    """
+    AccumulateList takes an Iterator created upstream by IterateList and turns
+    it into a list, thereby ending the item-wise execution.
+    
+    """
+    
+    _input_ports = [IPort('value', 'Iterator')]
+    _output_ports = [OPort('value', 'List')]
+    _settings = ModuleSettings(left_fringe=[(0.0, 0.0),
+                                            (-0.2, 1.0),
+                                            (0.0, 1.0)],
+                               right_fringe=[(0.0, 0.0),
+                                             (0.2, 1.0),
+                                             (0.0, 1.0)])
 
     def compute(self):
         if self.has_input('value'):
             self.value = self.get_input('value').value
-        elif self.has_input('value_as_list'):
-            self.value = self.get_input('value_as_list')
         else:
             self.value = []
-        self.set_output('value', self)
-        self.set_output('value_as_list', self.value)
+        self.set_output('value', self.value)
 
 ##############################################################################
 
@@ -1232,7 +1276,12 @@ def init_constant(m):
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
 
-_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, ListOf, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual]
+_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List,
+            Iterator, IterateList, AccumulateList, Path, File, Directory,
+            OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput,
+            Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant,
+            Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color,
+            Round, TupleToList, Assert, AssertEqual]
 
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
@@ -1242,34 +1291,34 @@ def initialize(*args, **kwargs):
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-   from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-   reg = get_module_registry()
+    from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+    reg = get_module_registry()
 
-   def outputName_remap(old_conn, new_module):
-       ops = []
-       old_src_module = pipeline.modules[old_conn.source.moduleId]
-       op_desc = reg.get_descriptor(OutputPath)
-       new_x = (old_src_module.location.x + new_module.location.x) / 2.0
-       new_y = (old_src_module.location.y + new_module.location.y) / 2.0
-       op_module = \
-           controller.create_module_from_descriptor(op_desc, new_x, new_y)
-       ops.append(('add', op_module))
-       create_new_connection = UpgradeWorkflowHandler.create_new_connection
-       new_conn_1 = create_new_connection(controller,
-                                          old_src_module,
-                                          old_conn.source,
-                                          op_module,
-                                          "name")
-       ops.append(('add', new_conn_1))
-       new_conn_2 = create_new_connection(controller,
-                                          op_module,
-                                          "value",
-                                          new_module,
-                                          "outputPath")
-       ops.append(('add', new_conn_2))
-       return ops
+    def outputName_remap(old_conn, new_module):
+        ops = []
+        old_src_module = pipeline.modules[old_conn.source.moduleId]
+        op_desc = reg.get_descriptor(OutputPath)
+        new_x = (old_src_module.location.x + new_module.location.x) / 2.0
+        new_y = (old_src_module.location.y + new_module.location.y) / 2.0
+        op_module = \
+            controller.create_module_from_descriptor(op_desc, new_x, new_y)
+        ops.append(('add', op_module))
+        create_new_connection = UpgradeWorkflowHandler.create_new_connection
+        new_conn_1 = create_new_connection(controller,
+                                           old_src_module,
+                                           old_conn.source,
+                                           op_module,
+                                           "name")
+        ops.append(('add', new_conn_1))
+        new_conn_2 = create_new_connection(controller,
+                                           op_module,
+                                           "value",
+                                           new_module,
+                                           "outputPath")
+        ops.append(('add', new_conn_2))
+        return ops
 
-   module_remap = {'FileSink':
+    module_remap = {'FileSink':
                        [(None, '1.6', None,
                          {'dst_port_remap':
                               {'overrideFile': 'overwrite',
@@ -1294,7 +1343,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                        [(None, '1.6', None, {})],
                    }
 
-   return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
+    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                               module_remap)
 
 ###############################################################################

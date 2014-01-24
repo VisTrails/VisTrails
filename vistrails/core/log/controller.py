@@ -245,7 +245,10 @@ class LogWorkflowController(LogController):
         for parent_exec in (self.module_execs.get(loop_module),
                             self.parent_exec):
             if parent_exec is not None:
-                parent_exec.add_loop_exec(loop_exec)
+                if isinstance(parent_exec, GroupExec):
+                    parent_exec.add_item_exec(loop_exec)
+                else:
+                    parent_exec.add_loop_exec(loop_exec)
                 break
         else:
             self.workflow_exec.add_item_exec(loop_exec)
