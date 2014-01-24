@@ -1391,6 +1391,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
 ###############################################################################
 
+import sys
 import unittest
 
 class TestConcatenateString(unittest.TestCase):
@@ -1778,6 +1779,13 @@ class TestStringFormat(unittest.TestCase):
         self.assertEqual(results, [expected])
 
     def test_format(self):
+        self.run_format('{{ {a} }} b {c!s}', '{ 42 } b 12',
+                        a=('Integer', '42'),
+                        c=('Integer', '12'))
+
+    # Python 2.6 doesn't support {}
+    @unittest.skipIf(sys.version_info < (2, 7), "No {} support on 2.6")
+    def test_format_27(self):
         self.run_format('{} {}', 'a b',
                         _0=('String', 'a'), _1=('String', 'b'))
         self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',
