@@ -1162,9 +1162,9 @@ class StringFormat(Module):
         fmt = self.getInputFromPort('format')
         args, kwargs = StringFormat.list_placeholders(fmt)
         f_args = [self.getInputFromPort('_%d' % n)
-                   for n in xrange(args)]
-        f_kwargs = {n: self.getInputFromPort(n)
-                    for n in kwargs}
+                  for n in xrange(args)]
+        f_kwargs = dict((n, self.getInputFromPort(n))
+                        for n in kwargs)
         self.setResult('value', fmt.format(*f_args, **f_kwargs))
 
 ##############################################################################
