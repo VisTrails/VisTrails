@@ -35,27 +35,30 @@
 """Main file for running VisTrails in server mode"""
 import os
 import sys
-if __name__ == '__main__':
+
+def fix_paths():
+    import site
+    if not hasattr(site, "USER_BASE"): return # We are running py2app
+
     # Fix import path: add parent directory(so that we can
     # import vistrails.[gui|...] and remove other paths below it (we might have
     # been started from a subdir)
-
-    # DAK: the deletes screw things up in the binary (definitely for
-    #   Mac) and since subdir is unlikely, I'm commenting them out. A
-    #   better solution is probably to move run.py up a
-    #   directory in the repo
+    # A better solution is probably to move run.py up a
+    # directory in the repo
+    old_dir = os.path.realpath(os.path.dirname(__file__))
     vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
-    # i = 0
-    # print "vistrails_dir:", vistrails_dir
-    # while i < len(sys.path):
-    #     rpath = os.path.realpath(sys.path[i])
-    #     if rpath.startswith(vistrails_dir):
-    #         print " deleting", rpath, sys.path[i]
-    #         del sys.path[i]
-    #     else:
-    #         i += 1
-    sys.path.insert(0, vistrails_dir)
+    i = 0
+    while i < len(sys.path):
+        rpath = os.path.realpath(sys.path[i])
+        if rpath.startswith(old_dir):
+            del sys.path[i]
+        else:
+            i += 1
+    if vistrails_dir not in sys.path:
+        sys.path.insert(0, vistrails_dir)
 
+if __name__ == '__main__':
+    fix_paths()
     import vistrails.gui.requirements
     vistrails.gui.requirements.require_pyqt4_api2()
 
