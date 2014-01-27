@@ -5,7 +5,7 @@ from vistrails.core.modules.basic_modules import Directory, File, Path
 from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
-from .common import KEY_TYPE, TYPE_INPUT, \
+from .common import KEY_TYPE, TYPE_OUTPUT, \
     KEY_SIGNATURE, KEY_TIME, KEY_WORKFLOW, KEY_MODULE_ID, \
     get_default_store, wrap_path
 from .queries import Metadata
@@ -50,7 +50,7 @@ class PersistedPath(Module):
             self.check_path_type(newpath)
             metadata = self.get_input_list('metadata')
             metadata = dict(m.metadata for m in metadata)
-            metadata[KEY_TYPE] = TYPE_INPUT
+            metadata[KEY_TYPE] = TYPE_OUTPUT
             metadata[KEY_TIME] = datetime.strftime(datetime.utcnow(),
                                                    '%Y-%m-%d %H:%M:%S')
             metadata[KEY_SIGNATURE] = self.signature
