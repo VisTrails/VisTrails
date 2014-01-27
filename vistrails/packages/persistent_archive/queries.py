@@ -29,12 +29,12 @@ class QueryCondition(Constant):
     def translate_to_python(c):
         try:
             i = c.index('(')
-        except KeyError:
-            return None
-        cls = c[:i]
-        cls = find_subclass(QueryCondition, cls)
+        except ValueError:
+            raise ValueError("Invalid QueryCondition syntax")
+        clsname = c[:i]
+        cls = find_subclass(QueryCondition, clsname)
         if cls is None:
-            return None
+            raise ValueError("No such condition type: %s" % clsname)
         return cls(*eval(c[i+1:-1]))
 
     @staticmethod
