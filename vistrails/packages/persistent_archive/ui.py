@@ -14,6 +14,12 @@ class VistrailsViewerWindow(StoreViewerWindow):
 
     _vt_only = True
 
+    def __init__(self, store):
+        StoreViewerWindow.__init__(self, store)
+
+        # Search with no condition: list all entries (there is a limit)
+        self._search()
+
     def _create_buttons(self):
         buttons = super(VistrailsViewerWindow, self)._create_buttons()
 
