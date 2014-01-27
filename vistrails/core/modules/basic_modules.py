@@ -1233,7 +1233,14 @@ class AccumulateList(Module):
             self.value = self.get_input('value').value
         else:
             self.value = []
-        self.set_output('value', self.value)
+
+        # accumulate multiple levels of iterators
+        def recurse_list(l):
+            if isinstance(l, Iterator):
+                return [recurse_list(i) for i in l.value]
+            return l
+        
+        self.set_output('value', [recurse_list(i) for i in self.value])
 
 ##############################################################################
 
