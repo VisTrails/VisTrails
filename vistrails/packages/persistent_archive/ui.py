@@ -12,6 +12,8 @@ from .common import get_default_store
 class VistrailsViewerWindow(StoreViewerWindow):
     WINDOW_TITLE = "Persistent archive viewer"
 
+    _vt_only = True
+
     def _create_buttons(self):
         buttons = super(VistrailsViewerWindow, self)._create_buttons()
 
@@ -20,7 +22,25 @@ class VistrailsViewerWindow(StoreViewerWindow):
                      self._open_vt)
         buttons.append(('vt', open_vt_button))
 
+        only_vt_checkbox = QtGui.QCheckBox("Only VisTrails Persisted files")
+        only_vt_checkbox.setChecked(self._vt_only)
+        self.connect(only_vt_checkbox, QtCore.SIGNAL('stateChanged(int)'),
+                     self._set_vt_only)
+        buttons.append(('alwayson', only_vt_checkbox))
+
         return buttons
+
+    def _set_vt_only(self, state):
+        state = state == QtCore.Qt.Checked
+        if state == self._vt_only:
+            return
+        self._vt_only = state
+        self._search()
+
+    def _alter_search_conditions(self, conditions):
+        if self._vt_only and not 'vistrails_workflow' in conditions:
+            conditions['vistrails_workflow'] = {'type': 'str'}
+        return conditions
 
     def _selection_changed(self):
         super(VistrailsViewerWindow, self)._selection_changed()
