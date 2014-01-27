@@ -4,7 +4,7 @@ import os
 
 import vistrails.core.debug as debug
 from vistrails.core.modules.basic_modules import Directory, File, Path
-from vistrails.core.modules.config import IPort, OPort
+from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TYPE, TYPE_INPUT, KEY_TIME, \
@@ -107,6 +107,8 @@ class PersistedInputFile(PersistedInputPath):
             IPort('hash', PersistentHash, optional=True)]
     _output_ports = [
             OPort('path', File)]
+    _settings = ModuleSettings(configure_widget=
+            'vistrails.packages.persistent_archive.widgets:SetMetadataWidget')
 
     def check_path_type(self, path):
         if not os.path.isfile(path):
@@ -120,6 +122,8 @@ class PersistedInputDir(PersistedInputPath):
             IPort('hash', PersistentHash,  optional=True)]
     _output_ports = [
             OPort('path', File)]
+    _settings = ModuleSettings(configure_widget=
+            'vistrails.packages.persistent_archive.widgets:SetMetadataWidget')
 
     def check_path_type(self, path):
         if not os.path.isdir(path):

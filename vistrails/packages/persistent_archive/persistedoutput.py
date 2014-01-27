@@ -2,7 +2,7 @@ from datetime import datetime
 import os
 
 from vistrails.core.modules.basic_modules import Directory, File, Path
-from vistrails.core.modules.config import IPort, OPort
+from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TYPE, TYPE_OUTPUT, \
@@ -77,6 +77,8 @@ class PersistedFile(PersistedPath):
             IPort('metadata', Metadata, optional=True)]
     _output_ports = [
             OPort('path', File)]
+    _settings = ModuleSettings(configure_widget=
+            'vistrails.packages.persistent_archive.widgets:SetMetadataWidget')
 
     def check_path_type(self, path):
         if not os.path.isfile(path):
@@ -89,6 +91,8 @@ class PersistedDir(PersistedPath):
             IPort('metadata', Metadata, optional=True)]
     _output_ports = [
             OPort('path', Directory)]
+    _settings = ModuleSettings(configure_widget=
+            'vistrails.packages.persistent_archive.widgets:SetMetadataWidget')
 
     def check_path_type(self, path):
         if not os.path.isdir(path):
