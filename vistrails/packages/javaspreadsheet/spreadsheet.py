@@ -59,11 +59,11 @@ SpreadsheetInterfaceImpl = implement(
 
 # This is an adaptation of packages.spreadsheet.spreadsheet_execute
 # FIXME : there must be a better way to do this
-def assignPipelineCellLocations(pipeline, sheetName, 
+def assignPipelineCellLocations(pipeline, sheetName,
                                 dst_loc, modules=[]):
     """ assignPipelineCellLocations(pipeline: Pipeline, sheetName: str,
                                     dst_loc: (int, int),
-                                    modules: [ids]) -> Pipeline                                  
+                                    modules: [ids]) -> Pipeline
     Modify the pipeline to have its cells (provided by modules) to
     be located at the specified location on this sheet.
     """
@@ -89,7 +89,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
 
     for id_list in modules:
         # find at which depth we need to be working
-        try:                
+        try:
             id_iter = iter(id_list)
             m = pipeline.modules[id_iter.next()]
             for mId in id_iter:
@@ -99,7 +99,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
             mId = id_list
 
         m = pipeline.modules[mId]
-        if not reg.is_descriptor_subclass(m.module_descriptor, 
+        if not reg.is_descriptor_subclass(m.module_descriptor,
                                           spreadsheet_cell_desc):
             continue
 
@@ -126,16 +126,16 @@ def assignPipelineCellLocations(pipeline, sheetName,
         sheetReference = create_module(
                 id_scope,
                 'edu.utah.sci.vistrails.javaspreadsheet', 'SheetReference')
-        sheetNameFunction = create_function(id_scope, sheetReference, 
+        sheetNameFunction = create_function(id_scope, sheetReference,
                                             'sheet', [str(sheetName)])
         sheetReference.add_function(sheetNameFunction)
 
         # Add a cell location module with a specific row and column
-        cellLocation = create_module(id_scope, 
+        cellLocation = create_module(id_scope,
                                      "edu.utah.sci.vistrails.javaspreadsheet",
                                      "CellLocation")
         rowFunction = create_function(id_scope, cellLocation, "row", [str(row)])
-        colFunction = create_function(id_scope, cellLocation, "column", 
+        colFunction = create_function(id_scope, cellLocation, "column",
                                       [str(col)])
 
         cellLocation.add_function(rowFunction)
