@@ -11,8 +11,8 @@ from extras.java_vm import get_java_vm, implement
 
 _JAVA_VM = get_java_vm()
 
-Spreadsheet = _JAVA_VM.edu.utah.sci.vistrails.javaspreadsheet.Spreadsheet
-JavaCellLocation = _JAVA_VM.edu.utah.sci.vistrails.javaspreadsheet.CellLocation
+Spreadsheet = _JAVA_VM.org.vistrails.javaspreadsheet.Spreadsheet
+JavaCellLocation = _JAVA_VM.org.vistrails.javaspreadsheet.CellLocation
 Integer = _JAVA_VM.java.lang.Integer
 
 
@@ -53,7 +53,7 @@ class SpreadsheetInterfaceImpl(object):
         app = get_vistrails_application()
         return app.select_vistrail(infos['locator'], infos['version'])
 SpreadsheetInterfaceImpl = implement(
-        'edu.utah.sci.vistrails.javaspreadsheet.SpreadsheetInterface')(
+        'org.vistrails.javaspreadsheet.SpreadsheetInterface')(
         SpreadsheetInterfaceImpl)
 
 
@@ -72,7 +72,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
     reg = get_module_registry()
     # These are the modules we need to edit
     spreadsheet_cell_desc = \
-        reg.get_descriptor_by_name('edu.utah.sci.vistrails.javaspreadsheet',
+        reg.get_descriptor_by_name('org.vistrails.vistrails.javaspreadsheet',
                                    'AssignCell')
 
     create_module = VistrailController.create_module_static
@@ -125,14 +125,14 @@ def assignPipelineCellLocations(pipeline, sheetName,
         # Add a sheet reference with a specific name
         sheetReference = create_module(
                 id_scope,
-                'edu.utah.sci.vistrails.javaspreadsheet', 'SheetReference')
+                'org.vistrails.vistrails.javaspreadsheet', 'SheetReference')
         sheetNameFunction = create_function(id_scope, sheetReference,
                                             'sheet', [str(sheetName)])
         sheetReference.add_function(sheetNameFunction)
 
         # Add a cell location module with a specific row and column
         cellLocation = create_module(id_scope,
-                                     "edu.utah.sci.vistrails.javaspreadsheet",
+                                     "org.vistrails.vistrails.javaspreadsheet",
                                      "CellLocation")
         rowFunction = create_function(id_scope, cellLocation, "row", [str(row)])
         colFunction = create_function(id_scope, cellLocation, "column",
@@ -167,7 +167,7 @@ class SheetReferenceImpl(object):
     def getName(self):
         return self.__name
 SheetReferenceImpl = implement(
-        'edu.utah.sci.vistrails.javaspreadsheet.SheetReference')(
+        'org.vistrails.javaspreadsheet.SheetReference')(
         SheetReferenceImpl)
 
 
@@ -204,7 +204,7 @@ class CellInfos(object):
     def getInfos(infos):
         return CellInfos.__ORIG_DATA[infos.getInternalID()]
 CellInfosImpl = implement(
-        'edu.utah.sci.vistrails.javaspreadsheet.CellInfos')(
+        'org.vistrails.javaspreadsheet.CellInfos')(
         CellInfos)
 
 
@@ -263,7 +263,7 @@ import unittest
 
 class SheetTest(unittest.TestCase):
     def setUp(self):
-        self._Sheet = _JAVA_VM.edu.utah.sci.vistrails.javaspreadsheet.Sheet
+        self._Sheet = _JAVA_VM.org.vistrails.javaspreadsheet.Sheet
         self._sheet = self._Sheet()
 
     def test_getCell(self):

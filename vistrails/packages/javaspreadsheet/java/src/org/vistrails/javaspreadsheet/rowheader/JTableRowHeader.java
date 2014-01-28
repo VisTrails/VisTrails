@@ -1,4 +1,4 @@
-package edu.utah.sci.vistrails.javaspreadsheet.rowheader;
+package org.vistrails.javaspreadsheet.rowheader;
 
 import java.awt.Component;
 import java.awt.Dimension;

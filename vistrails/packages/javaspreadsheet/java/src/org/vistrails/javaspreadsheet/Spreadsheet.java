@@ -1,4 +1,4 @@
-package edu.utah.sci.vistrails.javaspreadsheet;
+package org.vistrails.javaspreadsheet;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;

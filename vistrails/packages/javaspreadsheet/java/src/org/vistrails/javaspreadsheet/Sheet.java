@@ -1,11 +1,11 @@
-package edu.utah.sci.vistrails.javaspreadsheet;
+package org.vistrails.javaspreadsheet;
 
 import java.awt.Point;
 
 import javax.swing.JScrollPane;
 
-import edu.utah.sci.vistrails.javaspreadsheet.Spreadsheet.Mode;
-import edu.utah.sci.vistrails.javaspreadsheet.rowheader.JTableRowHeader;
+import org.vistrails.javaspreadsheet.Spreadsheet.Mode;
+import org.vistrails.javaspreadsheet.rowheader.JTableRowHeader;
 
 
 /**

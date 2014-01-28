@@ -1,4 +1,4 @@
-package edu.utah.sci.vistrails.javaspreadsheet;
+package org.vistrails.javaspreadsheet;
 
 import java.awt.Point;
 import java.util.HashMap;
@@ -6,7 +6,7 @@ import java.util.Map;
 
 import javax.swing.table.DefaultTableModel;
 
-import edu.utah.sci.vistrails.javaspreadsheet.Spreadsheet.Mode;
+import org.vistrails.javaspreadsheet.Spreadsheet.Mode;
 
 
 class SpreadsheetModel extends DefaultTableModel implements Cell.Observer {

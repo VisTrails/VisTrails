@@ -1,4 +1,4 @@
-package edu.utah.sci.vistrails.javaspreadsheet;
+package org.vistrails.javaspreadsheet;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -18,7 +18,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import edu.utah.sci.vistrails.javaspreadsheet.Spreadsheet.Mode;
+import org.vistrails.javaspreadsheet.Spreadsheet.Mode;
 
 
 public class Cell extends JPanel {
