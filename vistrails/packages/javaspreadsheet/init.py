@@ -33,8 +33,8 @@ class AssignCell(NotCacheable, Module):
     automatically.
     """
     def compute(self):
-        sheetref = self.forceGetInputFromPort('sheet', SheetReference())
-        location = self.forceGetInputFromPort('location', CellLocation())
+        sheetref = self.force_get_input('sheet', SheetReference())
+        location = self.force_get_input('location', CellLocation())
 
         sheet = spreadsheet.getSheet(sheetref)
         cell = sheet.getCell(location)
@@ -54,7 +54,7 @@ class AssignCell(NotCacheable, Module):
 
         spreadsheet.setVisible(True)
 
-        self.setResult('cell', cell)
+        self.set_output('cell', cell)
         return cell
 
 
@@ -67,7 +67,7 @@ class SwingCell(AssignCell):
     """
     def compute(self):
         cell = AssignCell.compute(self)
-        widget = self.getInputFromPort('widget')
+        widget = self.get_input('widget')
         cell.setWidget(widget)
 
 
@@ -76,7 +76,7 @@ class RichTextCell(AssignCell):
     """
     def compute(self):
         cell = AssignCell.compute(self)
-        richTextFile = self.getInputFromPort('html_file')
+        richTextFile = self.get_input('html_file')
         java_file = JavaFile(richTextFile.name)
         editor_pane = JEditorPane(java_file.toURI().toURL())
         editor_pane.setEditable(False)
@@ -88,7 +88,7 @@ class TextCell(AssignCell):
     """
     def compute(self):
         cell = AssignCell.compute(self)
-        text = self.getInputFromPort('text')
+        text = self.get_input('text')
         text_area = JTextArea(text)
         text_area.setEditable(False)
         cell.setWidget(text_area)

@@ -10,8 +10,8 @@ class SheetReference(Module):
         self.name = name
 
     def compute(self):
-        name = self.forceGetInputFromPort('sheet', None)
-        self.setResult('reference', SheetReference(name))
+        name = self.force_get_input('sheet', None)
+        self.set_output('reference', SheetReference(name))
 
 
 class CellLocation(Module):
@@ -23,6 +23,6 @@ class CellLocation(Module):
         self.column = column
 
     def compute(self):
-        row = self.forceGetInputFromPort('row', None)
-        column = self.forceGetInputFromPort('column', None)
-        self.setResult('location', CellLocation(row, column))
+        row = self.force_get_input('row', None)
+        column = self.force_get_input('column', None)
+        self.set_output('location', CellLocation(row, column))

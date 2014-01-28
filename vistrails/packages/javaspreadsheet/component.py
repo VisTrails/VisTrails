@@ -14,6 +14,6 @@ JLabel = _JAVA_VM.javax.swing.JLabel
 # debugging/testing purposes
 class Component(Module):
     def compute(self):
-        text = self.forceGetInputFromPort('text', "<Swing component>")
+        text = self.force_get_input('text', "<Swing component>")
         component = JLabel(text)
-        self.setResult('component', component)
+        self.set_output('component', component)
