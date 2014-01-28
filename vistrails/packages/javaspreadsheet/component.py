@@ -2,7 +2,7 @@
 from vistrails.core.modules.vistrails_module import Module
 
 # Java imports
-from vistrails.extras.java_vm import get_java_vm
+from vistrails.packages.java.java_vm import get_java_vm
 
 
 _JAVA_VM = get_java_vm()

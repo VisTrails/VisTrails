@@ -1,8 +1,8 @@
-from core import debug
-
 from javareflect import format_type
 
-from extras.java_vm import get_class
+from vistrails.core import debug
+
+from .java_vm import get_class
 
 
 def format_type_list(l):

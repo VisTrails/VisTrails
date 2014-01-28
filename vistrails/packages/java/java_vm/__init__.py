@@ -1,9 +1,9 @@
 from __future__ import absolute_import
 
-import os
-import sys
-import platform
 import functools
+import os
+import platform
+import sys
 
 from vistrails.core.bundles.pyimport import py_import
 

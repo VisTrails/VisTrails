@@ -1,5 +1,6 @@
 from zipfile import ZipFile
-from core import debug
+
+from vistrails.core import debug
 
 
 def shortname(name):
@@ -462,6 +463,6 @@ def load_tests(loader, tests, ignore):
 
 
 if __name__ == '__main__':
-    debug.DebugPrint.getInstance().set_message_level(debug.DebugPrint.Log)
+    debug.DebugPrint.getInstance().set_message_level(debug.DebugPrint.INFO)
 
     unittest.main()

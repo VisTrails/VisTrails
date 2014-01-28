@@ -1,10 +1,9 @@
 from itertools import izip
 
-from core import debug
+from vistrails.core import debug
 
-import javaparser
-
-from extras.java_vm import get_java_vm, JavaException
+from .java_vm import get_java_vm, JavaException
+from . import javaparser
 
 
 _JAVA_VM = get_java_vm()
@@ -230,7 +229,7 @@ def parse_jar(filename, parsed_sources=None):
 
 
 if __name__ == '__main__':
-    debug.DebugPrint.getInstance().set_message_level(debug.DebugPrint.Log)
+    debug.DebugPrint.getInstance().set_message_level(debug.DebugPrint.INFO)
 
     from pprint import pprint
     pprint(parse_jar('C:\\Program Files (x86)\\Weka-3-6\\weka.jar', dict()))

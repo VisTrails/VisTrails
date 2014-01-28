@@ -6,7 +6,7 @@ from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.utils import DummyView
 from vistrails.core.vistrail.controller import VistrailController
-from vistrails.extras.java_vm import get_java_vm, implement
+from vistrails.packages.java.java_vm import get_java_vm, implement
 
 
 _JAVA_VM = get_java_vm()

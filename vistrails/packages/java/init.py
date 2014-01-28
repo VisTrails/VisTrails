@@ -15,15 +15,15 @@ startup, as Weka is a pretty big library.
 
 from __future__ import with_statement
 
-import sys
+import hashlib
 import os
 import pickle
-import hashlib
 
-from core import debug
-from core import configuration
-from core.system import default_dot_vistrails
-from extras.java_vm import add_on_classpath
+from vistrails.core import configuration
+from vistrails.core import debug
+from vistrails.core.system import default_dot_vistrails
+
+from .java_vm import add_on_classpath
 
 
 class WekaConfigurationError(Exception):

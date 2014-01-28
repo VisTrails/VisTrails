@@ -3,7 +3,7 @@ from vistrails.core.modules.vistrails_module import Module, NotCacheable
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules import basic_modules
 
-from vistrails.extras.java_vm import get_java_vm
+from vistrails.packages.java.java_vm import get_java_vm
 
 from .component import Component
 from .spreadsheet import setup_spreadsheet

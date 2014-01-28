@@ -1,9 +1,9 @@
-from core.modules.vistrails_module import Module
-from core.modules.module_registry import get_module_registry
+from vistrails.core.modules.basic_modules import Boolean, Float, Integer, \
+    String
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.vistrails_module import Module
 
-from core.modules.basic_modules import Boolean, Float, Integer, String
-
-from modules_runtime import GetterModuleMixin, ConstructorModuleMixin
+from .modules_runtime import GetterModuleMixin, ConstructorModuleMixin
 
 
 class WekaBaseModule(Module):

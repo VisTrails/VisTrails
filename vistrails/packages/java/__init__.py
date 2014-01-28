@@ -4,7 +4,8 @@ It is a Java library that is automatically wrapper as VisTrails modules through
 limited parsing of the JARs.
 """
 
-from core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject
+
 
 name = 'Weka'
 identifier = "edu.utah.sci.vistrails.weka"
