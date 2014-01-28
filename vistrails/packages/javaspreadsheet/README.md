@@ -48,3 +48,10 @@ You will need a JDK. The 'javac' executable must either be in your PATH or in
 $JAVA_HOME/bin (you can alter the Makefile to match your system's
 configuration if necessary). Simply running 'make' from the java sources
 directory should work in most cases.
+
+
+Example
+-------
+
+An example of usage of a Java library (Weka) is available:
+[form_classification](http://dl.dropboxusercontent.com/u/13131521/20120627-weka-form_classification/l.html).
