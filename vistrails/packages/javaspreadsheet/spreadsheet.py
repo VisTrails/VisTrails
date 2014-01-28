@@ -1,12 +1,12 @@
 import copy
 
-from core.application import get_vistrails_application
-from core.inspector import PipelineInspector
-from core.interpreter.default import get_default_interpreter
-from core.modules.module_registry import get_module_registry
-from core.utils import DummyView
-from core.vistrail.controller import VistrailController
-from extras.java_vm import get_java_vm, implement
+from vistrails.core.application import get_vistrails_application
+from vistrails.core.inspector import PipelineInspector
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.utils import DummyView
+from vistrails.core.vistrail.controller import VistrailController
+from vistrails.extras.java_vm import get_java_vm, implement
 
 
 _JAVA_VM = get_java_vm()

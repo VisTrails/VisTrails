@@ -1,5 +1,5 @@
 # VisTrails module imports
-from core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module import Module
 
 
 class SheetReference(Module):
