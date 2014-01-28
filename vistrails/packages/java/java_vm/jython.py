@@ -3,6 +3,8 @@ from __future__ import absolute_import
 import os
 import sys
 
+from vistrails.core.system import vistrails_root_directory
+
 
 _java_vm = None
 
@@ -32,9 +34,11 @@ def get_java_vm():
         classpath = classpath.split(os.pathsep)
 
     # Application library directory
+    vt_root = vistrails_root_directory()
     for d in ['../javalibs', '../libs', '../lib', '../jars', '../jar',
               '../../javalibs', '../../libs', '../../lib', '../../jars',
               '../../jar']:
+        d = os.path.join(vt_root, d)
         if os.path.isdir(d):
             for root, dirs, files in os.walk(d):
                 for f in files:
