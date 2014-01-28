@@ -5,9 +5,9 @@ from vistrails.core.modules import basic_modules
 
 from vistrails.extras.java_vm import get_java_vm
 
-from component import Component
-from spreadsheet import setup_spreadsheet
-from references import SheetReference, CellLocation
+from .component import Component
+from .spreadsheet import setup_spreadsheet
+from .references import SheetReference, CellLocation
 
 
 _JAVA_VM = get_java_vm()
