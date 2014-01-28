@@ -4,6 +4,7 @@ import functools
 import jpype
 import os
 import platform
+import sys
 
 
 _java_vm = None
@@ -61,12 +62,17 @@ def _find_java_dll():
             if os.path.exists(path):
                 return path
             else:
-                return os.path.realpath(os.path.join(
+                path = os.path.realpath(os.path.join(
                     java, '../client/jvm.dll'))
+                if not os.path.exists(path):
+                    path = None
 
         # Else, look for a Java distribution in standard locations
-        for path in ['C:/Program Files/Java',
-                     'C:/Program Files (x86)/Java']:
+        if sys.maxint > (2 << 32): # 64-bit Python
+            paths = ['C:/Program Files/Java']
+        else:
+            paths = ['C:/Program Files (x86)/Java', 'C:/Program Files/Java']
+        for path in paths:
             # First attempt to use the 'jre7' version
             try:
                 if os.stat(os.path.join(path, 'jre7')):
