@@ -1131,6 +1131,44 @@ class AssertEqual(Module):
 
 ##############################################################################
 
+class StringFormat(Module):
+    """
+    Builds a string from objects using Python's str.format().
+    """
+    @staticmethod
+    def list_placeholders(fmt):
+        placeholders = set()
+        nb = 0
+        i = 0
+        n = len(fmt)
+        while i < n:
+            if fmt[i] == '{':
+                i += 1
+                if fmt[i] == '}': # KeyError
+                    nb += 1
+                elif fmt[i] != '{': # KeyError
+                    e = fmt.index('}', i + 1) # KeyError
+                    f = e
+                    for c in (':', '!', '[', '.'):
+                        c = fmt.find(c, i + 1)
+                        if c != -1:
+                            f = min(f, c)
+                    placeholders.add(fmt[i:f])
+                    i = e
+            i += 1
+        return nb, placeholders
+
+    def compute(self):
+        fmt = self.getInputFromPort('format')
+        args, kwargs = StringFormat.list_placeholders(fmt)
+        f_args = [self.getInputFromPort('_%d' % n)
+                  for n in xrange(args)]
+        f_kwargs = dict((n, self.getInputFromPort(n))
+                        for n in kwargs)
+        self.setResult('value', fmt.format(*f_args, **f_kwargs))
+
+##############################################################################
+
 def init_constant(m):
     reg = get_module_registry()
 
@@ -1282,6 +1320,13 @@ def initialize(*args, **kwargs):
     reg.add_input_port(TupleToList, 'in_value', Variant)
     reg.add_output_port(TupleToList, 'out_value', List)
 
+    reg.add_module(StringFormat,
+                   configureWidgetType=(
+                           "vistrails.gui.modules.stringformat_configuration",
+                           "StringFormatConfigurationWidget"))
+    reg.add_input_port(StringFormat, 'format', String)
+    reg.add_output_port(StringFormat, 'value', String)
+
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
     vistrails.core.modules.sub_module.initialize(*args, **kwargs)
@@ -1346,6 +1391,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
 ###############################################################################
 
+import sys
 import unittest
 
 class TestConcatenateString(unittest.TestCase):
@@ -1708,3 +1754,40 @@ class TestTypechecking(unittest.TestCase):
                 (1, 'output', 'r',
                  'org.vistrails.vistrails.basic:String'),
             ])
+
+
+class TestStringFormat(unittest.TestCase):
+    def test_list_placeholders(self):
+        fmt = 'a {} b}} {c!s} {{d e}} {}f'
+        self.assertEqual(StringFormat.list_placeholders(fmt),
+                         (2, set(['c'])))
+
+    def run_format(self, fmt, expected, **kwargs):
+        from vistrails.tests.utils import execute, intercept_result
+        functions = [('format', [('String', fmt)])]
+        functions.extend((n, [(t, v)])
+                         for n, (t, v) in kwargs.iteritems())
+        with intercept_result(StringFormat, 'value') as results:
+            self.assertFalse(execute([
+                    ('StringFormat', 'org.vistrails.vistrails.basic',
+                     functions),
+                ],
+                add_port_specs=[
+                    (0, 'input', n, t)
+                    for n, (t, v) in kwargs.iteritems()
+                ]))
+        self.assertEqual(results, [expected])
+
+    def test_format(self):
+        self.run_format('{{ {a} }} b {c!s}', '{ 42 } b 12',
+                        a=('Integer', '42'),
+                        c=('Integer', '12'))
+
+    # Python 2.6 doesn't support {}
+    @unittest.skipIf(sys.version_info < (2, 7), "No {} support on 2.6")
+    def test_format_27(self):
+        self.run_format('{} {}', 'a b',
+                        _0=('String', 'a'), _1=('String', 'b'))
+        self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',
+                        a=('Integer', '42'), _0=('String', 'b'),
+                        b=('Integer', '12'))
