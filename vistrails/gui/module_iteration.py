@@ -38,12 +38,13 @@
 QModuleIteration
 """
 from PyQt4 import QtCore, QtGui
+from vistrails.core.modules.vistrails_module import LOOP_KEY, \
+    WHILE_COND_KEY, WHILE_INPUT_KEY, WHILE_OUTPUT_KEY, WHILE_MAX_KEY, \
+    WHILE_DELAY_KEY
 from vistrails.core.modules.module_registry import ModuleRegistryException
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
-################################################################################
-
-LOOP_KEY = '__loop_type__'
+###############################################################################
 
 class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
     """
@@ -58,6 +59,14 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         """
         QtGui.QDialog.__init__(self, parent)
         self.setWindowTitle("Module Looping")
+        self.createButtons()
+        self.update_module()
+
+    def createButtons(self):
+        """ createButtons() -> None
+        Create and connect signals to Ok & Cancel button
+        
+        """
         self.setLayout(QtGui.QVBoxLayout())
         # self.layout().addStrut()
         layout = QtGui.QHBoxLayout()
@@ -82,18 +91,84 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         layout.addWidget(self.cartesianButton)
         layout.setStretch(1, 0)
         layout.addStretch(1)
-        #layout.addStretch(1)
         self.layout().addLayout(layout)
         self.layout().setStretch(0, 0)
-        self.layout().addStretch(1)
-        self.createButtons()
-        self.update_module()
 
-    def createButtons(self):
-        """ createButtons() -> None
-        Create and connect signals to Ok & Cancel button
-        
-        """
+        whileLayout = QtGui.QVBoxLayout()
+
+        self.whileButton = QtGui.QCheckBox("While Loop")
+        self.whileButton.setToolTip('Repeatedly execute module until a specified output port has a false value')
+        self.whileButton.toggled.connect(self.stateChanged)
+        self.whileButton.toggled.connect(self.whileToggled)
+        whileLayout.addWidget(self.whileButton)
+        whileLayout.setStretch(0, 0)
+
+        layout = QtGui.QHBoxLayout()
+        self.condLabel = QtGui.QLabel("Condition output port:")
+        layout.addWidget(self.condLabel)
+        layout.setStretch(0, 0)
+        self.condEdit = QtGui.QLineEdit()
+        self.condEdit.setToolTip('Name of output port containing the condition of the loop')
+        self.condEdit.textChanged.connect(self.stateChanged)
+        layout.addWidget(self.condEdit)
+        layout.setStretch(1, 1)
+        whileLayout.addLayout(layout)
+        whileLayout.setStretch(1, 0)
+
+        layout = QtGui.QHBoxLayout()
+        self.maxLabel = QtGui.QLabel("Max iterations:")
+        layout.addWidget(self.maxLabel)
+        layout.setStretch(0, 0)
+        self.maxEdit = QtGui.QLineEdit()
+        self.maxEdit.setValidator(QtGui.QIntValidator())
+        self.maxEdit.setToolTip('Fail after this number of iterations have been reached (default=20)')
+        self.maxEdit.textChanged.connect(self.stateChanged)
+        layout.addWidget(self.maxEdit)
+        layout.setStretch(1, 1)
+        whileLayout.addLayout(layout)
+        whileLayout.setStretch(2, 0)
+
+        layout = QtGui.QHBoxLayout()
+        self.delayLabel = QtGui.QLabel("Delay:")
+        layout.addWidget(self.delayLabel)
+        layout.setStretch(0, 0)
+        self.delayEdit = QtGui.QLineEdit()
+        self.delayEdit.setValidator(QtGui.QDoubleValidator())
+        self.delayEdit.setToolTip('Delay between iterations in fractions of seconds')
+        self.delayEdit.textChanged.connect(self.stateChanged)
+        layout.addWidget(self.delayEdit)
+        layout.setStretch(1, 1)
+        whileLayout.addLayout(layout)
+        whileLayout.setStretch(2, 0)
+
+        layout = QtGui.QHBoxLayout()
+        self.feedInputLabel = QtGui.QLabel("Feedback Input port:")
+        layout.addWidget(self.feedInputLabel)
+        layout.setStretch(0, 0)
+        self.feedInputEdit = QtGui.QLineEdit()
+        self.feedInputEdit.setToolTip('Name of input port to feed the value from last iteration')
+        self.feedInputEdit.textChanged.connect(self.stateChanged)
+        layout.addWidget(self.feedInputEdit)
+        layout.setStretch(1, 1)
+        whileLayout.addLayout(layout)
+        whileLayout.setStretch(3, 0)
+
+        layout = QtGui.QHBoxLayout()
+        self.feedOutputLabel = QtGui.QLabel("Feedback Output port:")
+        layout.addWidget(self.feedOutputLabel)
+        layout.setStretch(0, 0)
+        self.feedOutputEdit = QtGui.QLineEdit()
+        self.feedOutputEdit.setToolTip('Name of output port to feed to next iteration')
+        self.feedOutputEdit.textChanged.connect(self.stateChanged)
+        layout.addWidget(self.feedOutputEdit)
+        layout.setStretch(1, 1)
+        whileLayout.addLayout(layout)
+        whileLayout.setStretch(4, 0)
+
+        whileLayout.addStretch(1)
+        self.layout().addLayout(whileLayout)
+
+        self.layout().addStretch(1)
         self.buttonLayout = QtGui.QHBoxLayout()
         self.buttonLayout.setMargin(5)
         self.saveButton = QtGui.QPushButton('&Save', self)
@@ -141,6 +216,35 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
         self.state_changed = True
+
+    def whileToggled(self, state=False):
+        if state:
+            self.condEdit.setVisible(True)
+            self.maxEdit.setVisible(True)
+            self.delayEdit.setVisible(True)
+            self.feedInputEdit.setVisible(True)
+            self.feedOutputEdit.setVisible(True)
+            self.condLabel.setVisible(True)
+            self.maxLabel.setVisible(True)
+            self.delayLabel.setVisible(True)
+            self.feedInputLabel.setVisible(True)
+            self.feedOutputLabel.setVisible(True)
+            self.condEdit.setText('')
+            self.maxEdit.setText('')
+            self.delayEdit.setText('')
+            self.feedInputEdit.setText('')
+            self.feedOutputEdit.setText('')
+        else:
+            self.condEdit.setVisible(False)
+            self.maxEdit.setVisible(False)
+            self.delayEdit.setVisible(False)
+            self.feedInputEdit.setVisible(False)
+            self.feedOutputEdit.setVisible(False)
+            self.condLabel.setVisible(False)
+            self.maxLabel.setVisible(False)
+            self.delayLabel.setVisible(False)
+            self.feedInputLabel.setVisible(False)
+            self.feedOutputLabel.setVisible(False)
     
     def closeEvent(self, event):
         self.askToSaveChanges()
@@ -162,20 +266,78 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         if not module:
             self.pairwiseButton.setEnabled(False)
             self.cartesianButton.setEnabled(False)
+            self.whileButton.setEnabled(False)
+            self.condEdit.setVisible(False)
+            self.maxEdit.setVisible(False)
+            self.delayEdit.setVisible(False)
+            self.feedInputEdit.setVisible(False)
+            self.feedOutputEdit.setVisible(False)
+            self.condLabel.setVisible(False)
+            self.maxLabel.setVisible(False)
+            self.delayLabel.setVisible(False)
+            self.feedInputLabel.setVisible(False)
+            self.feedOutputLabel.setVisible(False)
             return
+        # set defaults
         self.pairwiseButton.setEnabled(True)
         self.pairwiseButton.setChecked(True)
         self.cartesianButton.setEnabled(True)
+
+        self.whileButton.setEnabled(True)
+        self.whileButton.setChecked(False)
+        self.condEdit.setVisible(False)
+        self.maxEdit.setVisible(False)
+        self.delayEdit.setVisible(False)
+        self.feedInputEdit.setVisible(False)
+        self.feedOutputEdit.setVisible(False)
+        self.condLabel.setVisible(False)
+        self.maxLabel.setVisible(False)
+        self.delayLabel.setVisible(False)
+        self.feedInputLabel.setVisible(False)
+        self.feedOutputLabel.setVisible(False)
         if module.has_annotation_with_key(LOOP_KEY):
             type = module.get_annotation_by_key(LOOP_KEY).value
             self.pairwiseButton.setChecked(type=='pairwise')
             self.cartesianButton.setChecked(type=='cartesian')
-
+        if module.has_annotation_with_key(WHILE_COND_KEY) or \
+           module.has_annotation_with_key(WHILE_MAX_KEY):
+            self.whileButton.setChecked(True)
+        if module.has_annotation_with_key(WHILE_COND_KEY):
+            cond = module.get_annotation_by_key(WHILE_COND_KEY).value
+            self.condEdit.setText(cond)
+        if module.has_annotation_with_key(WHILE_MAX_KEY):
+            max = module.get_annotation_by_key(WHILE_MAX_KEY).value
+            self.maxEdit.setText(max)
+        if module.has_annotation_with_key(WHILE_DELAY_KEY):
+            delay = module.get_annotation_by_key(WHILE_DELAY_KEY).value
+            self.delayEdit.setText(delay)
+        if module.has_annotation_with_key(WHILE_INPUT_KEY):
+            input = module.get_annotation_by_key(WHILE_INPUT_KEY).value
+            self.feedInputEdit.setText(input)
+        if module.has_annotation_with_key(WHILE_OUTPUT_KEY):
+            output = module.get_annotation_by_key(WHILE_OUTPUT_KEY).value
+            self.feedOutputEdit.setText(output)
+            
     def updateVistrail(self):
-        type = 'pairwise' if self.pairwiseButton.isChecked() else 'cartesian'
-        if self.module.has_annotation_with_key(LOOP_KEY):
-            self.controller.delete_annotation(LOOP_KEY, self.module.id)
-        self.controller.add_annotation((LOOP_KEY, type), self.module.id)
+        values = []
+        value = None if self.pairwiseButton.isChecked() else 'cartesian'
+        values.append((LOOP_KEY, value))
+        _while = self.whileButton.isChecked()
+        values.append((WHILE_COND_KEY, _while and self.condEdit.text()))
+        values.append((WHILE_MAX_KEY, _while and self.maxEdit.text()))
+        values.append((WHILE_DELAY_KEY, _while and self.delayEdit.text()))
+        values.append((WHILE_INPUT_KEY, _while and self.feedInputEdit.text()))
+        values.append((WHILE_OUTPUT_KEY,_while and self.feedOutputEdit.text()))
+        for key, value in values:                
+            if value:
+                if not self.module.has_annotation_with_key(key) or \
+                        value != self.module.get_annotation_by_key(key).value:
+                    if self.module.has_annotation_with_key(key):
+                        self.controller.delete_annotation(key, self.module.id)
+                    self.controller.add_annotation((key, value),
+                                                   self.module.id)
+            elif self.module.has_annotation_with_key(key):
+                self.controller.delete_annotation(key, self.module.id)
         return True
 
     def activate(self):

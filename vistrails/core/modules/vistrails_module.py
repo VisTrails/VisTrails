@@ -33,12 +33,21 @@
 ##
 ###############################################################################
 import copy
+import time
 from itertools import izip, product
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.utils import VistrailsInternalError, deprecated
+
+
+LOOP_KEY = '__loop_type__'
+WHILE_COND_KEY = '__while_cond__'
+WHILE_INPUT_KEY = '__while_input__'
+WHILE_OUTPUT_KEY = '__while_output__'
+WHILE_MAX_KEY = '__while_max__'
+WHILE_DELAY_KEY = '__while_delay__'
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -265,6 +274,7 @@ class Module(Serializable):
         self.upToDate = False
         self.had_error = False
         self.was_suspended = False
+        self.is_while = False
         self.set_output("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -418,7 +428,15 @@ class Module(Serializable):
             if self.iterated_ports:
                 self.compute_all()
             else:
-                self.compute()
+                p_modules = self.moduleInfo['pipeline'].modules
+                p_module = p_modules[self.moduleInfo['moduleId']]
+                if not self.is_while and \
+                          (p_module.has_annotation_with_key(WHILE_COND_KEY) or 
+                           p_module.has_annotation_with_key(WHILE_MAX_KEY)):
+                    self.is_while = True
+                    self.compute_while()
+                else:
+                    self.compute()
             self.computed = True
         except ModuleSuspended, e:
             self.had_error, self.was_suspended = False, True
@@ -456,7 +474,6 @@ class Module(Serializable):
         """
         p_modules = self.moduleInfo['pipeline'].modules
         p_module = p_modules[self.moduleInfo['moduleId']]
-        LOOP_KEY = '__loop_type__'
         type = 'pairwise'
         if p_module.has_annotation_with_key(LOOP_KEY):
             type = p_module.get_annotation_by_key(LOOP_KEY).value
@@ -467,7 +484,6 @@ class Module(Serializable):
         inputs = {}
         for port in ports:
             inputs[port] = self.get_input_list(port).value
-        # TODO right now assuming pairwise elements
 
         num_inputs = len(inputs[ports[0]])
         elements = []
@@ -527,6 +543,103 @@ class Module(Serializable):
             l.value = outputs[nameOutput]
             self.set_output(nameOutput, l)
         loop.end_loop_execution()
+
+    def compute_while(self):
+        """This method executes the module once for each module.
+           Similarly to fold.
+
+        """
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        name_condition = None
+        if p_module.has_annotation_with_key(WHILE_COND_KEY):
+            name_condition = p_module.get_annotation_by_key(WHILE_COND_KEY).value
+        max_iterations = 20
+        if p_module.has_annotation_with_key(WHILE_MAX_KEY):
+            max_iterations = int(p_module.get_annotation_by_key(WHILE_MAX_KEY
+                                                                ).value)
+        delay = 0.0
+        if p_module.has_annotation_with_key(WHILE_DELAY_KEY):
+            delay = float(p_module.get_annotation_by_key(WHILE_DELAY_KEY
+                                                                ).value)
+        # todo only one state port supported right now
+        name_state_input = None
+        if p_module.has_annotation_with_key(WHILE_INPUT_KEY):
+            name_state_input = [p_module.get_annotation_by_key(WHILE_INPUT_KEY
+                                                              ).value]
+        name_state_output = None
+        if p_module.has_annotation_with_key(WHILE_OUTPUT_KEY):
+            name_state_output = [\
+                       p_module.get_annotation_by_key(WHILE_OUTPUT_KEY).value]
+
+        from vistrails.core.modules.basic_modules import create_constant
+
+        if name_state_input or name_state_output:
+            if not name_state_input or not name_state_output:
+                raise ModuleError(self,
+                                  "Passing state between iterations requires "
+                                  "BOTH StateInputPorts and StateOutputPorts "
+                                  "to be set")
+            if len(name_state_input) != len(name_state_output):
+                raise ModuleError(self,
+                                  "StateInputPorts and StateOutputPorts need "
+                                  "to have the same number of ports "
+                                  "(got %d and %d)" % (len(name_state_input),
+                                                       len(name_state_output)))
+
+        module = copy.copy(self)
+        module.had_error = False
+
+        state = None
+
+        loop = self.logging.begin_loop_execution(self, max_iterations)
+        for i in xrange(max_iterations):
+            if not self.upToDate:
+                module.upToDate = False
+                module.computed = False
+
+                # Set state on input ports
+                if i > 0 and name_state_input:
+                    for value, port in izip(state, name_state_input):
+                        if port in module.inputPorts:
+                            del module.inputPorts[port]
+                        new_connector = ModuleConnector(
+                                create_constant(value),
+                                'value')
+                        module.set_input_port(port, new_connector)
+
+            loop.begin_iteration(module, i)
+
+            try:
+                module.update() # might raise ModuleError, ModuleSuspended,
+                                # ModuleHadError, ModuleWasSuspended
+            except ModuleSuspended, e:
+                e.loop_iteration = i
+                raise
+
+            loop.end_iteration(module)
+
+            if name_condition is not None:
+                if name_condition not in module.outputPorts:
+                    raise ModuleError(
+                            module,
+                            "Invalid output port: %s" % name_condition)
+                if not module.get_output(name_condition):
+                    break
+
+            if delay and i+1 != max_iterations:
+                time.sleep(delay)
+
+            # Get state on output ports
+            if name_state_output:
+                state = [module.get_output(port) for port in name_state_output]
+
+            self.logging.update_progress(self, i * 1.0 / max_iterations)
+
+        loop.end_loop_execution()
+
+        for name_output in self.outputPorts:
+            self.set_output(name_output, module.get_output(name_output))
 
     def setInputValues(self, module, inputPorts, elementList):
         """
