@@ -428,9 +428,11 @@ class Module(Serializable):
             if self.iterated_ports:
                 self.compute_all()
             else:
-                p_modules = self.moduleInfo['pipeline'].modules
-                p_module = p_modules[self.moduleInfo['moduleId']]
-                if not self.is_while and \
+                p_modules = self.moduleInfo['pipeline'] and \
+                            self.moduleInfo['pipeline'].modules
+                p_module = p_modules and \
+                           p_modules[self.moduleInfo['moduleId']]
+                if p_module and not self.is_while and \
                           (p_module.has_annotation_with_key(WHILE_COND_KEY) or 
                            p_module.has_annotation_with_key(WHILE_MAX_KEY)):
                     self.is_while = True
