@@ -825,6 +825,8 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         Create the shape, initialize its pen and brush accordingly
 
         """
+        self.srcPortItem = srcPortItem
+        self.dstPortItem = dstPortItem
         path = self.create_path(srcPortItem.getPosition(), 
                                 dstPortItem.getPosition())
         QtGui.QGraphicsPathItem.__init__(self, path, parent)
@@ -832,8 +834,6 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         # Bump it slightly higher than the highest module
         self.setZValue(max(srcModule.id,
                            dstModule.id) + 0.1)
-        self.srcPortItem = srcPortItem
-        self.dstPortItem = dstPortItem
         self.connectionPen = CurrentTheme.CONNECTION_PEN
         self.connectingModules = (srcModule, dstModule)
         self.ghosted = False
@@ -936,9 +936,34 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         self._control_2 = self.endPos - displacement + QtCore.QPointF(0.0, 1e-11)
         # self._control_2 = endPos - displacement
 
-
-        path = QtGui.QPainterPath(self.startPos)
-        path.cubicTo(self._control_1, self._control_2, self.endPos)
+        # draw multiple connections depending in list depth
+        startDepth = self.srcPortItem.port.depth or 0
+        endDepth = self.dstPortItem.port.depth or 0
+        if startDepth == endDepth:
+            path = QtGui.QPainterPath(self.startPos)
+            path.cubicTo(self._control_1, self._control_2, self.endPos)
+        elif startDepth > endDepth:
+            depth = startDepth - endDepth + 1
+            for i in xrange(depth):
+                # put them side by side
+                diff = QtCore.QPointF((5.0 + 10.0*i)/depth - 5.0, 0.0)
+                if i:
+                    path.moveTo(self.startPos + diff)
+                else:
+                    path = QtGui.QPainterPath(self.startPos + diff)
+                path.cubicTo(self._control_1, self._control_2, self.endPos)
+        else:
+            depth = endDepth - startDepth + 1
+            for i in xrange(depth):
+                # put them side by side
+                diff = QtCore.QPointF((5.0 + 10.0*i)/depth - 5.0, 0.0)
+                if i:
+                    path.moveTo(self.startPos)
+                else:
+                    path = QtGui.QPainterPath(self.startPos)
+                path.cubicTo(self._control_1, self._control_2,
+                             self.endPos + diff)
+            
         return path
 
     def itemChange(self, change, value):
