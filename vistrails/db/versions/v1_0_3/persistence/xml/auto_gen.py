@@ -443,6 +443,8 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         type = self.convertFromStr(data, 'str')
         data = node.get('optional', None)
         optional = self.convertFromStr(data, 'int')
+        data = node.get('depth', None)
+        depth = self.convertFromStr(data, 'int')
         data = node.get('sortKey', None)
         sort_key = self.convertFromStr(data, 'int')
         data = node.get('minConns', None)
@@ -470,6 +472,7 @@ class DBPortSpecXMLDAOBase(XMLDAO):
                          name=name,
                          type=type,
                          optional=optional,
+                         depth=depth,
                          sort_key=sort_key,
                          portSpecItems=portSpecItems,
                          min_conns=min_conns,
@@ -486,6 +489,7 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         node.set('name',self.convertToStr(portSpec.db_name, 'str'))
         node.set('type',self.convertToStr(portSpec.db_type, 'str'))
         node.set('optional',self.convertToStr(portSpec.db_optional, 'int'))
+        node.set('depth',self.convertToStr(portSpec.db_depth, 'int'))
         node.set('sortKey',self.convertToStr(portSpec.db_sort_key, 'int'))
         node.set('minConns',self.convertToStr(portSpec.db_min_conns, 'int'))
         node.set('maxConns',self.convertToStr(portSpec.db_max_conns, 'int'))
@@ -968,6 +972,39 @@ class DBOpmProcessesXMLDAOBase(XMLDAO):
             if (processs is not None) and (processs != ""):
                 childNode = ElementTree.SubElement(node, 'process')
                 self.getDao('opm_process').toXML(process, childNode)
+        
+        return node
+
+class DBRefProvActivityXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'prov:activity':
+            return None
+        
+        # read attributes
+        data = node.get('prov:ref', None)
+        prov_ref = self.convertFromStr(data, 'str')
+        
+        obj = DBRefProvActivity(prov_ref=prov_ref)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, ref_prov_activity, node=None):
+        if node is None:
+            node = ElementTree.Element('prov:activity')
+        
+        # set attributes
+        node.set('prov:ref',self.convertToStr(ref_prov_activity.db_prov_ref, 'str'))
         
         return node
 
@@ -5394,39 +5431,6 @@ class DBDeleteXMLDAOBase(XMLDAO):
         
         return node
 
-class DBRefProvActivityXMLDAOBase(XMLDAO):
-
-    def __init__(self, daoList):
-        self.daoList = daoList
-
-    def getDao(self, dao):
-        return self.daoList[dao]
-
-    def fromXML(self, node):
-        if node.tag[0] == "{":
-            node_tag = node.tag.split("}")[1]
-        else:
-            node_tag = node.tag
-        if node_tag != 'prov:activity':
-            return None
-        
-        # read attributes
-        data = node.get('prov:ref', None)
-        prov_ref = self.convertFromStr(data, 'str')
-        
-        obj = DBRefProvActivity(prov_ref=prov_ref)
-        obj.is_dirty = False
-        return obj
-    
-    def toXML(self, ref_prov_activity, node=None):
-        if node is None:
-            node = ElementTree.Element('prov:activity')
-        
-        # set attributes
-        node.set('prov:ref',self.convertToStr(ref_prov_activity.db_prov_ref, 'str'))
-        
-        return node
-
 class DBProvAssociationXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -5755,6 +5759,8 @@ class XMLDAOListBase(dict):
             self['opm_account'] = DBOpmAccountXMLDAOBase(self)
         if 'opm_processes' not in self:
             self['opm_processes'] = DBOpmProcessesXMLDAOBase(self)
+        if 'ref_prov_activity' not in self:
+            self['ref_prov_activity'] = DBRefProvActivityXMLDAOBase(self)
         if 'opm_account_id' not in self:
             self['opm_account_id'] = DBOpmAccountIdXMLDAOBase(self)
         if 'port' not in self:
@@ -5879,8 +5885,6 @@ class XMLDAOListBase(dict):
             self['opm_agent'] = DBOpmAgentXMLDAOBase(self)
         if 'delete' not in self:
             self['delete'] = DBDeleteXMLDAOBase(self)
-        if 'ref_prov_activity' not in self:
-            self['ref_prov_activity'] = DBRefProvActivityXMLDAOBase(self)
         if 'prov_association' not in self:
             self['prov_association'] = DBProvAssociationXMLDAOBase(self)
         if 'vistrail' not in self:

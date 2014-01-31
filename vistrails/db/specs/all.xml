@@ -1670,6 +1670,11 @@
       <sql type="int"/>
     </property>
 
+    <property name="depth" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
     <property name="sort_key" type="int">
       <xml name="sortKey" nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>

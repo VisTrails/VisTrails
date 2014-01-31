@@ -1020,11 +1020,12 @@ class DBPortSpec(object):
 
     vtType = 'portSpec'
 
-    def __init__(self, id=None, name=None, type=None, optional=None, sort_key=None, portSpecItems=None, min_conns=None, max_conns=None):
+    def __init__(self, id=None, name=None, type=None, optional=None, depth=None, sort_key=None, portSpecItems=None, min_conns=None, max_conns=None):
         self._db_id = id
         self._db_name = name
         self._db_type = type
         self._db_optional = optional
+        self._db_depth = depth
         self._db_sort_key = sort_key
         self.db_deleted_portSpecItems = []
         self.db_portSpecItems_id_index = {}
@@ -1047,6 +1048,7 @@ class DBPortSpec(object):
                         name=self._db_name,
                         type=self._db_type,
                         optional=self._db_optional,
+                        depth=self._db_depth,
                         sort_key=self._db_sort_key,
                         min_conns=self._db_min_conns,
                         max_conns=self._db_max_conns)
@@ -1098,6 +1100,11 @@ class DBPortSpec(object):
             new_obj.db_optional = res
         elif hasattr(old_obj, 'db_optional') and old_obj.db_optional is not None:
             new_obj.db_optional = old_obj.db_optional
+        if 'depth' in class_dict:
+            res = class_dict['depth'](old_obj, trans_dict)
+            new_obj.db_depth = res
+        elif hasattr(old_obj, 'db_depth') and old_obj.db_depth is not None:
+            new_obj.db_depth = old_obj.db_depth
         if 'sort_key' in class_dict:
             res = class_dict['sort_key'](old_obj, trans_dict)
             new_obj.db_sort_key = res
@@ -1199,6 +1206,19 @@ class DBPortSpec(object):
         self._db_optional = optional
     def db_delete_optional(self, optional):
         self._db_optional = None
+    
+    def __get_db_depth(self):
+        return self._db_depth
+    def __set_db_depth(self, depth):
+        self._db_depth = depth
+        self.is_dirty = True
+    db_depth = property(__get_db_depth, __set_db_depth)
+    def db_add_depth(self, depth):
+        self._db_depth = depth
+    def db_change_depth(self, depth):
+        self._db_depth = depth
+    def db_delete_depth(self, depth):
+        self._db_depth = None
     
     def __get_db_sort_key(self):
         return self._db_sort_key
@@ -2938,6 +2958,78 @@ class DBOpmProcesses(object):
         return self.db_processs_id_index[key]
     def db_has_process_with_id(self, key):
         return key in self.db_processs_id_index
+    
+
+
+class DBRefProvActivity(object):
+
+    vtType = 'ref_prov_activity'
+
+    def __init__(self, prov_ref=None):
+        self._db_prov_ref = prov_ref
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBRefProvActivity.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBRefProvActivity(prov_ref=self._db_prov_ref)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+            if hasattr(self, 'db_prov_ref') and ('prov_activity', self._db_prov_ref) in id_remap:
+                cp._db_prov_ref = id_remap[('prov_activity', self._db_prov_ref)]
+        
+        # recreate indices and set flags
+        if not new_ids:
+            cp.is_dirty = self.is_dirty
+            cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBRefProvActivity()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'prov_ref' in class_dict:
+            res = class_dict['prov_ref'](old_obj, trans_dict)
+            new_obj.db_prov_ref = res
+        elif hasattr(old_obj, 'db_prov_ref') and old_obj.db_prov_ref is not None:
+            new_obj.db_prov_ref = old_obj.db_prov_ref
+        new_obj.is_new = old_obj.is_new
+        new_obj.is_dirty = old_obj.is_dirty
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False, for_action=False):
+        return [(self, parent[0], parent[1])]
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        return False
+    def __get_db_prov_ref(self):
+        return self._db_prov_ref
+    def __set_db_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+        self.is_dirty = True
+    db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
+    def db_add_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+    def db_change_prov_ref(self, prov_ref):
+        self._db_prov_ref = prov_ref
+    def db_delete_prov_ref(self, prov_ref):
+        self._db_prov_ref = None
     
 
 
@@ -15792,78 +15884,6 @@ class DBDelete(object):
     
     def getPrimaryKey(self):
         return self._db_id
-
-class DBRefProvActivity(object):
-
-    vtType = 'ref_prov_activity'
-
-    def __init__(self, prov_ref=None):
-        self._db_prov_ref = prov_ref
-        self.is_dirty = True
-        self.is_new = True
-    
-    def __copy__(self):
-        return DBRefProvActivity.do_copy(self)
-
-    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBRefProvActivity(prov_ref=self._db_prov_ref)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-            if hasattr(self, 'db_prov_ref') and ('prov_activity', self._db_prov_ref) in id_remap:
-                cp._db_prov_ref = id_remap[('prov_activity', self._db_prov_ref)]
-        
-        # recreate indices and set flags
-        if not new_ids:
-            cp.is_dirty = self.is_dirty
-            cp.is_new = self.is_new
-        return cp
-
-    @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
-        if new_obj is None:
-            new_obj = DBRefProvActivity()
-        class_dict = {}
-        if new_obj.__class__.__name__ in trans_dict:
-            class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'prov_ref' in class_dict:
-            res = class_dict['prov_ref'](old_obj, trans_dict)
-            new_obj.db_prov_ref = res
-        elif hasattr(old_obj, 'db_prov_ref') and old_obj.db_prov_ref is not None:
-            new_obj.db_prov_ref = old_obj.db_prov_ref
-        new_obj.is_new = old_obj.is_new
-        new_obj.is_dirty = old_obj.is_dirty
-        return new_obj
-
-    def db_children(self, parent=(None,None), orphan=False, for_action=False):
-        return [(self, parent[0], parent[1])]
-    def db_deleted_children(self, remove=False):
-        children = []
-        return children
-    def has_changes(self):
-        if self.is_dirty:
-            return True
-        return False
-    def __get_db_prov_ref(self):
-        return self._db_prov_ref
-    def __set_db_prov_ref(self, prov_ref):
-        self._db_prov_ref = prov_ref
-        self.is_dirty = True
-    db_prov_ref = property(__get_db_prov_ref, __set_db_prov_ref)
-    def db_add_prov_ref(self, prov_ref):
-        self._db_prov_ref = prov_ref
-    def db_change_prov_ref(self, prov_ref):
-        self._db_prov_ref = prov_ref
-    def db_delete_prov_ref(self, prov_ref):
-        self._db_prov_ref = None
-    
-
 
 class DBProvAssociation(object):
 

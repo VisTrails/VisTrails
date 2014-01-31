@@ -87,13 +87,13 @@ class SourceWidget(PortTableConfigurationWidget):
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
             self.inputPortTable = PortTable(self)
-            labels = ["Input Port Name", "Type"]
+            labels = ["Input Port Name", "Type", "List Depth"]
             self.inputPortTable.setHorizontalHeaderLabels(labels)
             self.inputPortTable.initializePorts(self.module.input_port_specs)
             self.layout().addWidget(self.inputPortTable)
         if has_outputs:
             self.outputPortTable = PortTable(self)
-            labels = ["Output Port Name", "Type"]
+            labels = ["Output Port Name", "Type", "List Depth"]
             self.outputPortTable.setHorizontalHeaderLabels(labels)
             self.outputPortTable.initializePorts(self.module.output_port_specs, 
                                                  True)
@@ -197,8 +197,8 @@ class SourceViewerWidget(SourceWidget):
         
     def createPortTable(self, has_inputs=True, has_outputs=True):
         if has_inputs:
-            self.inputPortTable = QtGui.QTableWidget(1, 2, self)
-            labels = ["Input Port Name", "Type"]
+            self.inputPortTable = QtGui.QTableWidget(1, 3, self)
+            labels = ["Input Port Name", "Type", "List Depth"]
             self.inputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
             self.inputPortTable.horizontalHeader().setMovable(False)
             self.inputPortTable.horizontalHeader().setStretchLastSection(True)
@@ -207,8 +207,8 @@ class SourceViewerWidget(SourceWidget):
                                  self.module.input_port_specs)
             self.layout().addWidget(self.inputPortTable)
         if has_outputs:
-            self.outputPortTable = QtGui.QTableWidget(1, 2, self)
-            labels = ["Output Port Name", "Type"]
+            self.outputPortTable = QtGui.QTableWidget(1, 3, self)
+            labels = ["Output Port Name", "Type", "List Depth"]
             self.outputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
             self.outputPortTable.horizontalHeader().setMovable(False)
             self.outputPortTable.horizontalHeader().setStretchLastSection(True)
@@ -235,12 +235,16 @@ class SourceViewerWidget(SourceWidget):
             sigstring = p.sigstring[1:-1]
             siglist = sigstring.split(':')
             short_name = "%s (%s)" % (siglist[1], siglist[0])
+
             item = QtGui.QTableWidgetItem(p.name)
             item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsEnabled)
             table.setItem(row, 0, item)
             item = QtGui.QTableWidgetItem(short_name)
             item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsEnabled)
             table.setItem(row, 1, item)
+            item = QtGui.QTableWidgetItem(p.depth)
+            item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsEnabled)
+            table.setItem(row, 2, item)
             table.setRowCount(table.rowCount()+1)
         
     def fixTableGeometry(self, table):

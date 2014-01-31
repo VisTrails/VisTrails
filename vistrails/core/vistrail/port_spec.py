@@ -122,6 +122,8 @@ class PortSpec(DBPortSpec):
             
         if 'sort_key' not in kwargs:
             kwargs['sort_key'] = -1
+        if 'depth' not in kwargs:
+            kwargs['depth'] = 0
         if 'id' not in kwargs:
             kwargs['id'] = -1
         if 'tooltip' in kwargs:
@@ -219,6 +221,7 @@ class PortSpec(DBPortSpec):
     sort_key = DBPortSpec.db_sort_key
     min_conns = DBPortSpec.db_min_conns
     max_conns = DBPortSpec.db_max_conns
+    depth = DBPortSpec.db_depth
     port_spec_items = DBPortSpec.db_portSpecItems
     items = DBPortSpec.db_portSpecItems
 
@@ -398,9 +401,11 @@ class PortSpec(DBPortSpec):
             port_string = self.type.capitalize()
         else:
             port_string = 'Invalid'
-        self._tooltip = "%s port %s\n%s" % (port_string,
+        _depth = " (depth %s)" % self.depth if self.depth else ''
+        self._tooltip = "%s port %s\n%s%s" % (port_string,
                                             self.name,
-                                            self._short_sigstring)
+                                            self._short_sigstring,
+                                            _depth)
         
     ##########################################################################
     # Operators

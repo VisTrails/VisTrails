@@ -749,13 +749,15 @@ class VistrailController(object):
     
     @staticmethod
     def create_port_spec_static(id_scope, module, port_type, port_name, 
-                                port_sigstring, port_sort_key=-1):
+                                port_sigstring, port_sort_key=-1,
+                                port_depth=0):
         p_id = id_scope.getNewId(PortSpec.vtType)
         port_spec = PortSpec(id=p_id,
                              type=port_type,
                              name=port_name,
                              sigstring=port_sigstring,
                              sort_key=port_sort_key,
+                             depth=port_depth
                              )
         # don't know how many port spec items are created until after...
         for psi in port_spec.port_spec_items:
