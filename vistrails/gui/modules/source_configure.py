@@ -201,7 +201,8 @@ class SourceViewerWidget(SourceWidget):
             labels = ["Input Port Name", "Type", "List Depth"]
             self.inputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
             self.inputPortTable.horizontalHeader().setMovable(False)
-            self.inputPortTable.horizontalHeader().setStretchLastSection(True)
+            #self.inputPortTable.horizontalHeader().setStretchLastSection(True)
+            self.inputPortTable.horizontalHeader().setResizeMode(1, self.inputPortTable.horizontalHeader().Stretch)
             self.inputPortTable.setHorizontalHeaderLabels(labels)
             self.initializePorts(self.inputPortTable, 
                                  self.module.input_port_specs)
@@ -211,7 +212,8 @@ class SourceViewerWidget(SourceWidget):
             labels = ["Output Port Name", "Type", "List Depth"]
             self.outputPortTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
             self.outputPortTable.horizontalHeader().setMovable(False)
-            self.outputPortTable.horizontalHeader().setStretchLastSection(True)
+            #self.outputPortTable.horizontalHeader().setStretchLastSection(True)
+            self.outputPortTable.horizontalHeader().setResizeMode(1, self.outputPortTable.horizontalHeader().Stretch)
             
             self.outputPortTable.setHorizontalHeaderLabels(labels)
             self.initializePorts(self.outputPortTable, 
@@ -242,7 +244,7 @@ class SourceViewerWidget(SourceWidget):
             item = QtGui.QTableWidgetItem(short_name)
             item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsEnabled)
             table.setItem(row, 1, item)
-            item = QtGui.QTableWidgetItem(p.depth)
+            item = QtGui.QTableWidgetItem(str(p.depth))
             item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsEnabled)
             table.setItem(row, 2, item)
             table.setRowCount(table.rowCount()+1)
