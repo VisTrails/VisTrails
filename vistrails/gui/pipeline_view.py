@@ -869,8 +869,9 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
             painter.setPen(self.connectionPen)
         painter.drawPath(self.path())
 
-    def setupConnection(self, startPos, endPos):
-        path = self.create_path(startPos, endPos)
+    def setupConnection(self, startPos=None, endPos=None):
+        path = self.create_path(startPos or self.startPos,
+                                endPos or self.endPos)
         self.setPath(path)
 
     def create_path(self, startPos, endPos):
@@ -936,33 +937,27 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         self._control_2 = self.endPos - displacement + QtCore.QPointF(0.0, 1e-11)
         # self._control_2 = endPos - displacement
 
-        # draw multiple connections depending in list depth
-        startDepth = self.srcPortItem.port.depth or 0
-        endDepth = self.dstPortItem.port.depth or 0
-        if startDepth == endDepth:
-            path = QtGui.QPainterPath(self.startPos)
-            path.cubicTo(self._control_1, self._control_2, self.endPos)
-        elif startDepth > endDepth:
-            depth = startDepth - endDepth + 1
-            for i in xrange(depth):
-                # put them side by side
-                diff = QtCore.QPointF((5.0 + 10.0*i)/depth - 5.0, 0.0)
-                if i:
-                    path.moveTo(self.startPos + diff)
+
+        # draw multiple connections depending on list depth
+        
+        def diff(i, depth):
+            return QtCore.QPointF((5.0 + 10.0*i)/depth - 5.0, 0.0)
+        
+        startDepth = self.srcPortItem.parentItem().module.list_depth + 1
+        endDepth = self.dstPortItem.parentItem().module.list_depth + 1
+        starts = [diff(i, startDepth) for i in xrange(startDepth)]
+        ends = [diff(i, endDepth) for i in xrange(endDepth)]
+    
+        first = True
+        for start in starts:
+            for end in ends:
+                if first:
+                    path = QtGui.QPainterPath(self.startPos + start)
+                    first = False
                 else:
-                    path = QtGui.QPainterPath(self.startPos + diff)
-                path.cubicTo(self._control_1, self._control_2, self.endPos)
-        else:
-            depth = endDepth - startDepth + 1
-            for i in xrange(depth):
-                # put them side by side
-                diff = QtCore.QPointF((5.0 + 10.0*i)/depth - 5.0, 0.0)
-                if i:
-                    path.moveTo(self.startPos)
-                else:
-                    path = QtGui.QPainterPath(self.startPos)
+                    path.moveTo(self.startPos + start)
                 path.cubicTo(self._control_1, self._control_2,
-                             self.endPos + diff)
+                             self.endPos + end)
             
         return path
 
@@ -1970,6 +1965,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             var_uuid = srcModule.module.get_vistrail_var()
             dstPortItem.addVistrailVar(
                 self.controller.get_vistrail_variable_by_uuid(var_uuid))
+        self.update_connections()
         return connectionItem
 
     def selected_subgraph(self):
@@ -2029,6 +2025,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.removeItem(self.connections[c_id])
         del self.connections[c_id]
         self._old_connection_ids.remove(c_id)
+        self.update_connections()
         
 
     def recreate_module(self, pipeline, m_id):
@@ -2076,7 +2073,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
             # clear things
             self.clear()
         if not pipeline: return 
-            
+        
+        self.pipeline.mark_list_depth()
+
         needReset = len(self.items())==0
         try:
             new_modules = set(pipeline.modules)
@@ -2157,6 +2156,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.reset_module_colors()
             for m_id in selected_modules:
                 self.modules[m_id].setSelected(True)
+
         except ModuleRegistryException, e:
             import traceback
             traceback.print_exc()
@@ -2573,6 +2573,15 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         return self.tmp_module_item
 
+    def update_connections(self):
+        for module_id, list_depth in \
+                           self.controller.current_pipeline.mark_list_depth():
+            if module_id in self.modules:
+                self.modules[module_id].module.list_depth = list_depth 
+        for c in self.connections.itervalues():
+            c.setupConnection()
+
+    
     def delete_tmp_module(self):
         if self.tmp_module_item is not None:
             self.removeItem(self.tmp_module_item)
