@@ -312,6 +312,10 @@ class QPackagesWidget(QtGui.QWidget):
         except Package.MissingDependency, e:
             debug.critical("Missing dependencies", e)
         else:
+            # Deselects available list to prevent another package from getting
+            # selected once the current item leaves the list
+            self._available_packages_list.setCurrentItem(None)
+
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(False)
             try:
@@ -320,6 +324,8 @@ class QPackagesWidget(QtGui.QWidget):
                 debug.critical("Initialization of package '%s' failed" %
                                codepath,
                                e)
+                # Loading failed: reselect the item
+                self._available_packages_list.setCurrentItem(item)
                 raise
             finally:
                 palette.setUpdatesEnabled(True)
