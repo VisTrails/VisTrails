@@ -127,8 +127,7 @@ class CSVTable(TableObject):
             return self._rows
         with open(self.filename, 'rb') as fp:
             self._rows = count_lines(fp)
-        if self.header_present:
-            self._rows -= 1
+        self._rows -= self.skip_lines
         return self._rows
 
 
