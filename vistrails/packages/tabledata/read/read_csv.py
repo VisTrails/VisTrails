@@ -6,7 +6,7 @@ except ImportError:
     numpy = None
 
 from vistrails.core.modules.vistrails_module import ModuleError
-from ..common import TableObject, Table
+from ..common import TableObject, Table, InternalModuleError
 
 
 def count_lines(fp):
@@ -44,8 +44,8 @@ class CSVTable(TableObject):
                         izip(CSVTable._STANDARD_DELIMITERS, counts),
                         key=lambda (delim, count): count)
                 if count == 0:
-                    raise ModuleError(self,
-                                      "Couldn't guess the field delimiter")
+                    raise InternalModuleError(
+                        "Couldn't guess the field delimiter")
                 else:
                     delimiter = read_delimiter
             else:
@@ -60,7 +60,7 @@ class CSVTable(TableObject):
             else:
                 column_names = None
         except IOError:
-            raise ModuleError(self, "File does not exist")
+            raise InternalModuleError("File does not exist")
 
         return column_count, column_names, delimiter
 
@@ -117,7 +117,10 @@ class CSVFile(Table):
         header_present = self.get_input('header_present')
         delimiter = self.force_get_input('delimiter', None)
 
-        table = CSVTable(csv_file, header_present, delimiter)
+        try:
+            table = CSVTable(csv_file, header_present, delimiter)
+        except InternalModuleError, e:
+            e.raise_module_error(self)
 
         self.set_output('column_count', table.columns)
         self.set_output('column_names', table.names)

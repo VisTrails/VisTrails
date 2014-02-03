@@ -6,6 +6,11 @@ except ImportError:
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
+class InternalModuleError(Exception):
+    """Track ModuleError in subclasses."""
+
+    def raise_module_error(self, module_obj):
+        raise ModuleError(module_obj, self.message)
 
 class TableObject(object):
     columns = None
