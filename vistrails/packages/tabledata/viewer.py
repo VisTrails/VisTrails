@@ -19,6 +19,7 @@ class TableCellWidget(QCellWidget):
         QCellWidget.__init__(self, parent)
 
         layout = QtGui.QVBoxLayout()
+        layout.setContentsMargins(0,0,0,0)
 
         self.table = QtGui.QTableWidget()
 
