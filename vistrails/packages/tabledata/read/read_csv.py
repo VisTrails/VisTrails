@@ -13,6 +13,10 @@ def count_lines(fp):
     return lines
 
 
+class ReadError(Exception):
+    pass
+
+
 class CSVFile(Table):
     _input_ports = [
             ('file', '(org.vistrails.vistrails.basic:File)'),
@@ -43,8 +47,7 @@ class CSVFile(Table):
                         izip(CSVFile._STANDARD_DELIMITERS, counts),
                         key=lambda (delim, count): count)
                 if count == 0:
-                    raise ModuleError(self,
-                                      "Couldn't guess the field delimiter")
+                    raise ReadError("Couldn't guess the field delimiter")
                 else:
                     delimiter = read_delimiter
             else:
@@ -59,7 +62,7 @@ class CSVFile(Table):
             else:
                 column_names = None
         except IOError:
-            raise ModuleError(self, "File does not exist")
+            raise ReadError("File does not exist")
 
         return column_count, column_names, delimiter
 
@@ -74,8 +77,13 @@ class CSVFile(Table):
 
         self.filename = csv_file
 
-        self.columns, self.names, self.delimiter = \
-                self.read_file(csv_file, self.delimiter, self.header_present)
+        try:
+            self.columns, self.names, self.delimiter = self.read_file(
+                    csv_file,
+                    self.delimiter,
+                    self.header_present)
+        except ReadError, e:
+            raise ModuleError(self, *e.args)
 
         self.column_cache = {}
 
