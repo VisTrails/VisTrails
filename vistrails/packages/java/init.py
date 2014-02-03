@@ -1,36 +1,26 @@
-"""Entry point for the Weka module.
+"""Entry point for the Java package.
 
-The goal here is to automagically create the VisTrails module from the Weka
-distribution.
-The 'javareflect' module uses the Java language's reflection capabilities to
-discover the classes and build a hierarchy of modules.
-Because the parameter names are not included in class files, we use the
-'javaparser' module to process the source JAR and discover the parameter names.
-Finally, the module_generator emits the VisTrails modules.
-
-Because this process is slow, the hierarchy of classes is cached in JSON format
-in the dot_vistrails directory so that we don't have to do everything at each
-startup, as Weka is a pretty big library.
+Here we create the modules for each Java package from the serialized
+information we have as JSON.
 """
 
-from __future__ import with_statement
-
 import hashlib
-import os
-import pickle
+import warnings
 
 from vistrails.core import configuration
 from vistrails.core import debug
-from vistrails.core.system import default_dot_vistrails
+from vistrails.core.modules.module_registry import get_module_registry
 
-from .java_vm import add_on_classpath
+from ._json import has_fast_json
+from .module_generator import JavaPackage
+from .module_runtime import JavaBaseModule
 
 
-class WekaConfigurationError(Exception):
+class JavaConfigurationError(Exception):
     pass
 
 
-def hashfile(filename, hash=hashlib.md5()):
+def hashfile(filename, hash=hashlib.sha1()):
     """Computes the hash of a file, given its path.
 
     Opens the file in binary mode and wraps the appropriate calls to
@@ -39,91 +29,48 @@ def hashfile(filename, hash=hashlib.md5()):
     block_size = hash.block_size
     with open(filename, 'rb') as f:
         chunk = f.read(block_size)
-        while chunk != '':
+        while chunk:
             hash.update(chunk)
+            if len(chunk) != block_size:
+                break
             chunk = f.read(block_size)
     return hash.hexdigest()
 
 
+PACKAGES = {}
+
+
 def initialize():
-    """Entry point for this module.
+    """Entry point for this package.
 
-    This function create the VisTrails Module's from the JARs. It attempts to
-    load the package configuration from a cache file, or regenerates it by
-    parsing the source JAR (for method parameter names) and the class JAR.
-
-    Related configuration options:
-      'wekaDirectory': where to find the JARs
-      'wekaJar': the class JAR (default: weka.jar). May be relative to
-          'wekaDirectory'
-      'wekaSrcJar': the source JAR (default: weka-src.jar). May be relative to
-          'wekaDirectory'
+    This function create the VisTrails Modules from the JSON files.
     """
-    weka_jar = getattr(configuration, 'wekaJar', 'weka.jar')
-    weka_src = getattr(configuration, 'wekaSrcJar', 'weka-src.jar')
+    if not has_fast_json:
+        warnings.warn("We appear to be using a pure-Python JSON library; this "
+                      "is slower")
 
-    try:
-        #weka_dir = os.path.abspath(getattr(configuration, 'wekaDirectory', ''))
-        weka_dir = 'C:\\Program Files (x86)\\Weka-3-6' # DEBUG
-        if not os.path.isdir(weka_dir):
-            debug.warning("specified wekaDirectory is not a directory:\n"
-                          "%s" % weka_dir)
-        else:
-            weka_jar = os.path.join(weka_dir, weka_jar)
-            weka_src = os.path.join(weka_dir, weka_src)
-    except KeyError:
-        weka_dir = ''
+    reg = get_module_registry()
+    reg.add_module(JavaBaseModule, abstract=True)
 
-    if not os.path.isfile(weka_jar):
-        raise WekaConfigurationError("Couldn't find Weka JAR: %s" % weka_jar)
+    package_names = getattr(configuration, 'packages', '')
+    package_names = filter(lambda x: x, package_names.split(';'))
 
-    parseResultFilename = os.path.join(
-            default_dot_vistrails(),
-            'weka-methods.pickle')
-
-    # Attempt to load the cached result
-    try:
-        parseResultFile = open(parseResultFilename, 'rb')
-        parseResult = pickle.load(parseResultFile)
-        parseResultFile.close()
-    # If it fails, rebuild everything
-    except IOError:
-        parseResult = None
-    else:
-        # Check that we are still using the same Weka library
-        pass
-        # TODO : store the hash somewhere
-        #if parseResult['weka_md5'] != hashfile(weka_jar):
-        #    parseResult = None
-
-    if parseResult is None:
-        debug.warning("couldn't find the Weka interface cache file\n"
-                      "Parsing the Weka JARs now - could take a few minutes")
-        import javaparser, javareflect
-        if os.path.isfile(weka_src):
-            parsed_classes = javaparser.parse_jar(weka_src, 'src/main/java')
-        else:
-            parsed_classes = None
-        parseResult = javareflect.parse_jar(weka_jar, parsed_classes)
+    enabled = set()
+    for pkgname in package_names:
+        enabled.add(pkgname)
         try:
-            parseResultFile = open(parseResultFilename, 'wb')
-            pickle.dump(parseResult, parseResultFile, pickle.HIGHEST_PROTOCOL)
-            parseResultFile.close()
-        except IOError:
-            debug.warning("couldn't write the weka reflection cache file\n"
-                          "it will have to be parsed again next time...")
+            PACKAGES[pkgname] = JavaPackage(pkgname)
+        except Exception, e:
+            debug.critical("Got exception while enabling package %s" % pkgname,
+                           e)
 
-    # This is possible in Jython but not with JPype
-    add_on_classpath(weka_jar)
-    # You have to put the weka JAR in the CLASSPATH environment variable before
-    # running VisTrails
-
-    import module_generator
-    module_generator.generate(parseResult)
-
-    from additional_modules import register_additional_modules
-    register_additional_modules()
+    for pkgname, package in PACKAGES.items():
+        if package not in enabled:
+            package.disable()
+            del PACKAGES[pkgname]
 
 
-if __name__ == '__main__':
-    initialize()
+def finalize():
+    for package in PACKAGES.itervalues():
+        package.disable()
+    PACKAGES = {}

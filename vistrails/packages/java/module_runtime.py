@@ -1,8 +1,14 @@
 from javareflect import format_type
 
 from vistrails.core import debug
+from vistrails.core.modules.vistrails_module import Module
 
 from .java_vm import get_class
+
+
+class JavaBaseModule(Module):
+    """Base Module from which all Java modules inherit.
+    """
 
 
 def format_type_list(l):
@@ -62,7 +68,8 @@ class ConstructorModuleMixin(object):
                 self._ctor = c
                 break
         if self._ctor is None:
-            debug.critical("Couldn't load the Java class %s" % self._classname)
+            debug.critical("Couldn't load the Java class %s" %
+                           self._classname)
 
     def compute(self):
         # Get the constructor parameters from the input ports
