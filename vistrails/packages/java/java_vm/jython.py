@@ -97,7 +97,7 @@ def build_jarray(t, seq):
     return jarray.array(seq, t)
 
 
-def add_on_classpath(path):
+def add_to_classpath(path):
     if isinstance(path, basestring):
         if not path in sys.path:
             sys.path.append(path)

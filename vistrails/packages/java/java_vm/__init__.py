@@ -15,7 +15,7 @@ USING_JYTHON = platform.system() in ['Java', 'JAVA']
 
 
 __all__ = ['get_java_vm', 'get_class', 'build_jarray', 'implement_interface',
-           'JavaException', 'USING_JYTHON']
+           'add_to_classpath', 'JavaException', 'USING_JYTHON']
 
 
 if USING_JYTHON:

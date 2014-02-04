@@ -11,6 +11,8 @@ from .locate_dll import find_java_dll
 
 _java_vm = None
 
+classpath_additions = []
+
 
 class JPypeVM(object):
     def __getattr__(self, name):
@@ -71,6 +73,8 @@ def get_java_vm():
                     else:
                         i += 1
 
+    classpath.extend(classpath_additions)
+
     # Locate the Java DLL
     dll = find_java_dll()
     print "using Java DLL: %s" % dll
@@ -118,8 +122,12 @@ def build_jarray(t, seq):
     return jpype.JArray(t)(seq)
 
 
-def add_on_classpath(path):
-    return False # Can't do this on JPype...
+def add_to_classpath(path):
+    if _java_vm is not None:
+        return False # Can't do this on JPype...
+    else:
+        classpath_additions.append(path)
+        return True
 
 
 def implement(interface_name):
