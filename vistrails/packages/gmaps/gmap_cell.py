@@ -1,11 +1,12 @@
-from PyQt4 import QtCore, QtGui
-
 import json
-import sys
 import uuid
+import sys
+
+from vistrails.core.modules.vistrails_module import ModuleError
 
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.widgets.webview.webview import WebViewCellWidget
+
 
 class GMapCell(SpreadsheetCell):
     """
@@ -31,7 +32,7 @@ class GMapCell(SpreadsheetCell):
             cmap = self.get_input('colormapName')
         else:
             cmap = 'default'
-        self.displayAndWait(GMapCellWidget, (table, zoom, cmap, 
+        self.displayAndWait(GMapCellWidget, (table, zoom, cmap,
                                              self.interpreter))
 
 GMAP_TEMPLATE = """
@@ -83,9 +84,6 @@ MARKER_TEMPLATE = "var marker%d = new google.maps.Marker(%s);"
 #   });
 
 
-import json
-import uuid
-
 class RawJavaScriptText(object):
     def __init__(self, jstext=None):
         self.jstext = jstext
@@ -114,7 +112,7 @@ class RawJsJSONEncoder(json.JSONEncoder):
             return key
         else:
             return json.JSONEncoder.default(self, o)
-    
+
     def encode(self, o):
         result = json.JSONEncoder.encode(self, o)
         for k, v in self._replacement_map.iteritems():
@@ -204,7 +202,7 @@ class GMapCellWidget(WebViewCellWidget):
     0.79607844352722168), (0.875, 0.64705884456634521,
     0.64705884456634521), (1.0, 0.40392157435417175,
     0.40392157435417175)]}
-        
+
         # _hot_data = {'red':   ((0., 0.0416, 0.0416),
         #                        (0.365079, 1.000000, 1.000000),
         #                        (1.0, 1.0, 1.0)),
@@ -241,7 +239,7 @@ class GMapCellWidget(WebViewCellWidget):
                     min_value = -abs(max_value)
         if table.columns > 3:
             title_col = table.get_column(3)
-        
+
         web_color = None
         # for i, row in enumerate(data):
         for i in xrange(table.rows):
@@ -264,7 +262,7 @@ class GMapCellWidget(WebViewCellWidget):
                                           int(255 * color['green']),
                                           int(255 * color['blue']))
                 # marker_str += 'symbol["fillColor"] = "%s";' % web_color
-                    
+
             marker_options = {'position': GMapLatLng(lat_col[i], long_col[i]),
                               'map': RawJavaScriptText("map")}
             if value_col is not None:
