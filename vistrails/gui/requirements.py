@@ -34,7 +34,6 @@
 ###############################################################################
 
 from vistrails.core.requirements import MissingRequirement, require_python_module
-import vistrails.gui.bundles.installbundle
 
 
 def setNewPyQtAPI():
@@ -44,14 +43,22 @@ def setNewPyQtAPI():
     sip.setapi('QVariant', 2)
 
 
-def require_pyqt4_api2():
+def qt_available():
     try:
         require_python_module('sip')
         setNewPyQtAPI()
         require_python_module('PyQt4.QtGui')
         require_python_module('PyQt4.QtOpenGL')
     except MissingRequirement:
-        r = vistrails.gui.bundles.installbundle.install({
+        return False
+    else:
+        return True
+
+
+def require_pyqt4_api2():
+    if not qt_available():
+        from vistrails.gui.bundles.installbundle import install
+        r = install({
             'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
             'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
             'linux-fedora': ['PyQt4'],

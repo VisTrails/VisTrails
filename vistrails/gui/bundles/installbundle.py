@@ -42,17 +42,11 @@ from vistrails.core.system import executable_is_in_path, get_executable_path
 from vistrails.core.system import vistrails_root_directory, systemType
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
+from vistrails.gui.requirements import qt_available
 import subprocess
 import sys
 
 ##############################################################################
-
-def has_qt():
-    try:
-        import PyQt4.QtGui
-        return True
-    except ImportError:
-        return False
 
 pip_installed = True
 try:
@@ -120,7 +114,7 @@ def run_install_command_as_root(graphical, cmd, args):
 
 
 def linux_debian_install(package_name):
-    qt = has_qt()
+    qt = qt_available()
     try:
         import apt
         import apt_pkg
@@ -142,7 +136,7 @@ linux_ubuntu_install = linux_debian_install
 
 
 def linux_fedora_install(package_name):
-    qt = has_qt()
+    qt = qt_available()
     hide_splash_if_necessary()
 
     if qt:
@@ -161,10 +155,10 @@ def pip_install(package_name):
         cmd = '%s install' % shell_escape(get_executable_path('pip'))
     else:
         cmd = shell_escape(sys.executable) + ' -m pip install'
-    return run_install_command_as_root(has_qt(), cmd, package_name)
+    return run_install_command_as_root(qt_available(), cmd, package_name)
 
 def show_question(which_files, has_distro_pkg, has_pip):
-    if has_qt():
+    if qt_available():
         from PyQt4 import QtCore, QtGui
         if isinstance(which_files, str):
             which_files = [which_files]
