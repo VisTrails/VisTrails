@@ -21,7 +21,7 @@ extraction and conversion routines.
 
 from vistrails.core.packagemanager import get_package_manager
 
-from identifiers import *
+from .identifiers import *
 
 
 def package_dependencies():

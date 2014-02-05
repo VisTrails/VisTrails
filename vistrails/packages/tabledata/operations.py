@@ -1,8 +1,9 @@
 from vistrails.core.modules.vistrails_module import ModuleError
 
-from common import TableObject, Table, InternalModuleError
+from .common import TableObject, Table
 
 # FIXME use pandas?
+
 
 class JoinedTables(TableObject):
     def __init__(self, left_t, right_t, left_key_col, right_key_col,
@@ -55,7 +56,7 @@ class JoinedTables(TableObject):
         if self.row_map is None:
             self.compute_row_map()
 
-        result = []        
+        result = []
         if index < self.left_t.columns:
             column = self.left_t.get_column(index)
             for i in xrange(self.left_t.rows):
@@ -78,7 +79,7 @@ class JoinedTables(TableObject):
         def build_key_dict(table, key_col):
             key_dict = {}
             if self.case_sensitive:
-                key_dict = dict((val.strip(), i) for i, val in 
+                key_dict = dict((val.strip(), i) for i, val in
                                 enumerate(table.get_column(key_col)))
             else:
                 key_dict = dict((val.strip().upper(), i) for i, val in
@@ -86,7 +87,7 @@ class JoinedTables(TableObject):
             return key_dict
 
         right_keys = build_key_dict(self.right_t, self.right_key_col)
-        
+
         new_data = []
         self.row_map = {}
         for left_row_idx, key in enumerate(
@@ -102,6 +103,7 @@ class JoinedTables(TableObject):
             return self._rows
         self.compute_row_map()
         return len(self.row_map)
+
 
 class JoinTables(Table):
     _input_ports = [('left_table', 'Table'),
@@ -160,6 +162,7 @@ class JoinTables(Table):
                              case_sensitive, always_prefix)
         self.set_output('value', table)
 
+
 class ProjectedTable(TableObject):
     def __init__(self, table, col_idxs):
         self.table = table
@@ -167,7 +170,7 @@ class ProjectedTable(TableObject):
         self.columns = len(self.col_map)
         if self.table.names is not None:
             self.names = [self.table.names[i] for i in col_idxs]
-        
+
     def get_column(self, index, numeric=False):
         mapped_idx = self.col_map[index]
         return self.table.get_column(mapped_idx, numeric)
@@ -175,6 +178,7 @@ class ProjectedTable(TableObject):
     @property
     def rows(self):
         return self.table.rows
+
 
 class ProjectTable(Table):
     _input_ports = [("table", "Table"),
@@ -184,7 +188,7 @@ class ProjectTable(Table):
 
     def compute(self):
         Table.compute(self)
-        
+
         table = self.get_input("table")
         if self.has_input('column_indexes'):
             column_indexes = self.get_input('column_indexes')
@@ -218,11 +222,12 @@ class ProjectTable(Table):
             raise ModuleError(self,
                               "You must set one of column_names or "
                               "column_indexes")
-            
+
         projected_table = ProjectedTable(table, indexes)
         self.set_output("value", projected_table)
 
-class SelectedTable(Table):
+
+class SelectedTable(TableObject):
     def __init__(self, table, idx, comparer, comparand):
         def do_compare(v1, v2, c):
             if type(v2) == float:
@@ -259,6 +264,7 @@ class SelectedTable(Table):
     def get_column(self, index, numeric=False):
         col = self.table.get_column(index, numeric)
         return [col[i] for i in self.matched_rows]
+
 
 class SelectFromTable(Table):
     _input_ports = [('table', 'Table'),
@@ -298,5 +304,5 @@ class SelectFromTable(Table):
         selected_table = SelectedTable(table, idx, comparer, val)
         self.set_output('value', selected_table)
 
-                    
+
 _modules = [JoinTables, ProjectTable, SelectFromTable]
