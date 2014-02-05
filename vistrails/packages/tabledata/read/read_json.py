@@ -44,7 +44,7 @@ class JSONFile(Table):
                       'org.vistrails.vistrails.tabledata:read|JSONFile)')]
 
     def compute(self):
-        json_file = self.getInputFromPort('file').name
+        json_file = self.get_input('file').name
         try:
             table = JSONTable(json_file)
         except InternalModuleError, e:
