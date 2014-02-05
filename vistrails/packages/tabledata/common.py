@@ -13,17 +13,20 @@ class InternalModuleError(Exception):
         raise ModuleError(module_obj, self.message)
 
 class TableObject(object):
-    columns = None
-    rows = None
-
-    names = None
+    columns = None # the number of columns in the table
+    rows = None # the number of rows in the table
+    names = None # the names of the columns
+    name = None # a name for the table (useful for joins, etc.)
 
     def get_column(self, i, numeric=False): # pragma: no cover
         raise NotImplementedError
 
 
 class Table(Module):
-    pass
+    _input_ports = [('name', '(org.vistrails.vistrails.basic:String)')]
+    
+    def compute(self):
+        self.name = self.force_get_input('name', None)
 
 
 class ExtractColumn(Module):
