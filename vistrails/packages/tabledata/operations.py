@@ -86,7 +86,6 @@ class JoinedTables(TableObject):
             return key_dict
 
         right_keys = build_key_dict(self.right_t, self.right_key_col)
-        print 'right_keys:', right_keys
         
         new_data = []
         self.row_map = {}
@@ -96,7 +95,6 @@ class JoinedTables(TableObject):
                 self.row_map[left_row_idx] = right_keys[key.strip()]
             elif (not self.case_sensitive and key.strip().upper() in right_keys):
                 self.row_map[left_row_idx] = right_keys[key.strip().upper()]
-        print "ROW MAP:", self.row_map
 
     @property
     def rows(self):
@@ -119,6 +117,8 @@ class JoinTables(Table):
     _output_ports = [('value', 'Table')]
 
     def compute(self):
+        Table.compute(self)
+
         left_t = self.get_input('left_table')
         right_t = self.get_input('right_table')
         case_sensitive = self.get_input('case_sensitive')
@@ -159,5 +159,144 @@ class JoinTables(Table):
         table = JoinedTables(left_t, right_t, left_key_col, right_key_col,
                              case_sensitive, always_prefix)
         self.set_output('value', table)
+
+class ProjectedTable(TableObject):
+    def __init__(self, table, col_idxs):
+        self.table = table
+        self.col_map = dict(enumerate(col_idxs))
+        self.columns = len(self.col_map)
+        if self.table.names is not None:
+            self.names = [self.table.names[i] for i in col_idxs]
+        
+    def get_column(self, index, numeric=False):
+        mapped_idx = self.col_map[index]
+        return self.table.get_column(mapped_idx, numeric)
+
+    @property
+    def rows(self):
+        return self.table.rows
+
+class ProjectTable(Table):
+    _input_ports = [("table", "Table"),
+                    ("column_names", "basic:List"),
+                    ("column_indexes", "basic:List")]
+    _output_ports = [("value", "Table")]
+
+    def compute(self):
+        Table.compute(self)
+        
+        table = self.get_input("table")
+        if self.has_input('column_indexes'):
+            column_indexes = self.get_input('column_indexes')
+        if self.has_input('column_names'):
+            indexes = []
+            names = self.get_input('column_names')
+            for name in names:
+                if isinstance(name, unicode):
+                    name = name.encode('utf-8')
+                if table.names is None:
+                    raise ModuleError("Unable to get column by names: table "
+                                      "doesn't have column names")
+                try:
+                    index = table.names.index(name)
+                except ValueError:
+                    try:
+                        name = name.strip()
+                        index = table.column_names.index(name)
+                    except:
+                        raise ModuleError(self, "Column name was not found")
+                indexes.append(index)
+            if self.has_input('column_index'):
+                if column_indexes != indexes:
+                    raise ModuleError(self,
+                                      "Both column_names and column_indexes "
+                                      "were specified, and they don't agree")
+
+        elif self.has_input('column_indexes'):
+            indexes = column_indexes
+        else:
+            raise ModuleError(self,
+                              "You must set one of column_names or "
+                              "column_indexes")
+            
+        projected_table = ProjectedTable(table, indexes)
+        self.set_output("value", projected_table)
+
+class SelectedTable(Table):
+    def __init__(self, table, idx, comparer, comparand):
+        def do_compare(v1, v2, c):
+            if type(v2) == float:
+                v1 = float(v1)
+            if c == '==':
+                return v1 == v2
+            elif c == '!=':
+                return v1 != v2
+            elif c == '<':
+                return v1 < v2
+            elif c == '>':
+                return v1 > v2
+            elif c == '<=':
+                return v1 <= v2
+            elif c == '>=':
+                return v1 >= v2
+            elif c == '=~':
+                raise ModuleError(self, "=~ is not yet implemented.")
+
+        self.table = table
+        self.matched_rows = []
+        numeric = False
+        if type(comparand) == float:
+            numeric = True
+        column = self.table.get_column(idx, numeric)
+        for i, col_val in enumerate(column):
+            if do_compare(col_val, comparand, comparer):
+                self.matched_rows.append(i)
+
+        self.rows = len(self.matched_rows)
+        self.names = self.table.names
+        self.columns = self.table.columns
+
+    def get_column(self, index, numeric=False):
+        col = self.table.get_column(index, numeric)
+        return [col[i] for i in self.matched_rows]
+
+class SelectFromTable(Table):
+    _input_ports = [('table', 'Table'),
+                    ('str_expr', 'basic:String,basic:String,basic:String',
+                     {'entry_types': "['default','enum','default']",
+                      'values': "[[], ['==', '!=', '=~'], []]"}),
+                    ('float_expr', 'basic:String,basic:String,basic:Float',
+                     {'entry_types': "['default','enum','default']",
+                      'values': "[[], ['==', '!=', '<', '>', '<=', '>='], []]"})]
+
+    # 'values': "[[], ['==', '!=', '<', '>', '<=', '>='], []]"
+    _output_ports = [('value', 'Table')]
+
+    def compute(self):
+        table = self.get_input('table')
+        header = table.names
+
+        if self.has_input('str_expr'):
+            (col, comparer, val) = self.get_input('str_expr')
+        elif self.has_input('float_expr'):
+            (col, comparer, val) = self.get_input('float_expr')
+        else:
+            raise ModuleError(self, "Must have some expression")
+
+        idx = None
+        if header is not None:
+            try:
+                idx = header.index(col)
+            except ValueError:
+                pass
+        if idx is None:
+            try:
+                idx = int(col)
+            except ValueError:
+                raise ModuleError(self, 'Do not reognize columns "%s"' % col)
+
+        selected_table = SelectedTable(table, idx, comparer, val)
+        self.set_output('value', selected_table)
+
                     
-_modules = [JoinTables]
+_modules = [JoinTables, ProjectTable, SelectFromTable]
