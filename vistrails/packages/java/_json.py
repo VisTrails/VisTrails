@@ -2,7 +2,7 @@ has_fast_json = False
 try:
     import simplejson as json
     try:
-        import simplejson.speedups
+        import simplejson._speedups
         has_fast_json = True
     except ImportError:
         pass
