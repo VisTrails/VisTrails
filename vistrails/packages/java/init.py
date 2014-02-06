@@ -4,10 +4,10 @@ Here we create the modules for each Java package from the serialized
 information we have as JSON.
 """
 
+import functools
 import hashlib
 import warnings
 
-from vistrails.core import configuration
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
 
@@ -40,6 +40,21 @@ def hashfile(filename, hash=hashlib.sha1()):
 PACKAGES = {}
 
 
+def no_reentry(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if wrapper.running:
+            return None
+        wrapper.running = True
+        try:
+            return func(*args, **kwargs)
+        finally:
+            wrapper.running = False
+    wrapper.running = False
+    return wrapper
+
+
+@no_reentry
 def initialize():
     """Entry point for this package.
 
@@ -55,22 +70,19 @@ def initialize():
     package_names = getattr(configuration, 'packages', '')
     package_names = filter(lambda x: x, package_names.split(';'))
 
-    enabled = set()
     for pkgname in package_names:
-        enabled.add(pkgname)
-        try:
-            PACKAGES[pkgname] = JavaPackage(pkgname)
-        except Exception, e:
-            debug.critical("Got exception while enabling package %s" % pkgname,
-                           e)
-
-    for pkgname, package in PACKAGES.items():
-        if package not in enabled:
-            package.disable()
-            del PACKAGES[pkgname]
+        if pkgname not in PACKAGES:
+            try:
+                debug.debug("enabling %r" % pkgname)
+                PACKAGES[pkgname] = JavaPackage(pkgname)
+                debug.debug("enabled %r" % pkgname)
+            except Exception, e:
+                debug.debug("failed to enable %r" % pkgname)
+                debug.critical("Got exception while enabling package %s" % pkgname,
+                               e)
 
 
 def finalize():
     for package in PACKAGES.itervalues():
         package.disable()
-    PACKAGES = {}
+    PACKAGES.clear()

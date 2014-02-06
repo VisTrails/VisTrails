@@ -78,13 +78,13 @@ def get_java_vm():
     # Locate the Java DLL
     dll = find_java_dll()
     print "using Java DLL: %s" % dll
+    print '-Djava.class.path=%s' % os.pathsep.join(classpath)
 
     # Start the JVM
     jpype.startJVM(
             dll,
             '-ea',
             '-Djava.class.path=%s' % os.pathsep.join(classpath))
-    print '-Djava.class.path=%s' % os.pathsep.join(classpath)
 
     _java_vm = JPypeVM()
 
