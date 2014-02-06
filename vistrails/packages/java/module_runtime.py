@@ -1,14 +1,22 @@
-from javareflect import format_type
-
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module
 
 from .java_vm import get_class
 
 
+Class = get_class('java.lang.Class')
+
+
 class JavaBaseModule(Module):
     """Base Module from which all Java modules inherit.
     """
+
+
+def format_type(t):
+    if not Class.isArray(t):
+        return Class.getName(t)
+    else:
+        return format_type(Class.getComponentType(t)) + '[]'
 
 
 def format_type_list(l):
