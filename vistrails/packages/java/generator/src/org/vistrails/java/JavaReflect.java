@@ -83,7 +83,6 @@ public class JavaReflect {
         {
             int mods = m.getModifiers();
             if(Modifier.isAbstract(mods) ||
-                    Modifier.isStatic(mods) ||
                     !Modifier.isPublic(mods))
                 continue;
             List<ReadParam> readParams = new LinkedList<ReadParam>();
@@ -117,6 +116,7 @@ public class JavaReflect {
 
             readMethods.add(new ReadMethod(
                     m.getName(),
+                    Modifier.isStatic(mods),
                     format_type(m.getReturnType()),
                     readParams));
         }
