@@ -272,6 +272,7 @@ class Module(DBModule):
 
     def summon(self):
         result = self.module_descriptor.module()
+        result.list_depth = self.list_depth
         if self.cache != 1:
             result.is_cacheable = lambda *args: False
         if hasattr(result, 'input_ports_order'):

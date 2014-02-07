@@ -1181,9 +1181,39 @@ class Iterator(Module):
     a new Iterator. It can be converted to a normal list using AccumulateList.
     
     """
-    _settings = ModuleSettings(hide_descriptor=True)
+    _settings = ModuleSettings(abstract=True)
 
+    def __init__(self, values=None, depth=1, module=None, size=None):
+        Module.__init__(self)
+        self.list_depth = depth
+        self.values = values
+        self.module = None
+        self.size = size
+        if size is None and values:
+            self.size = len(values)
+        self.pos = 0
 
+    def next(self):
+        if self.list is not None:
+            try:
+                item = self.list[self.pos]
+                self.pos += 1
+                return item
+            except KeyError:
+                return None
+        # TODO compute module with next values
+        return None
+    
+    def all(self):
+        if self.values:
+            return self.values
+        items = []
+        item = self.next()
+        while item is not None:
+            items.append(item)
+            item = self.next()
+        return items
+        
 class IterateList(Module):
     """
     IterateList creates a special Iterator list that will execute modules once

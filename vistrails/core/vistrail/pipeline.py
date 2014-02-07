@@ -966,6 +966,8 @@ class Pipeline(DBWorkflow):
                 self.is_valid = False
                 return False
 
+        self.mark_list_depth()
+
         self.is_valid = True
         return True
 

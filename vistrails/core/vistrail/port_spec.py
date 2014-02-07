@@ -221,7 +221,7 @@ class PortSpec(DBPortSpec):
     sort_key = DBPortSpec.db_sort_key
     min_conns = DBPortSpec.db_min_conns
     max_conns = DBPortSpec.db_max_conns
-    depth = DBPortSpec.db_depth
+    _depth = DBPortSpec.db_depth
     port_spec_items = DBPortSpec.db_portSpecItems
     items = DBPortSpec.db_portSpecItems
 
@@ -253,6 +253,12 @@ class PortSpec(DBPortSpec):
             signature.append((i.descriptor.module, i.label))
         return signature
     signature = property(_get_signature)
+
+    def _get_depth(self):
+        return self._depth or 0
+    def _set_depth(self, depth):
+        self._depth = depth
+    depth = property(_get_depth, _set_depth)
 
     def toolTip(self):
         if self._tooltip is None:
@@ -415,9 +421,9 @@ class PortSpec(DBPortSpec):
         object. 
 
         """
-        rep = "<portSpec id=%s name=%s type=%s signature=%s />"
+        rep = "<portSpec id=%s name=%s type=%s signature=%s depth=%s />"
         return  rep % (str(self.id), str(self.name), 
-                       str(self.type), str(self.sigstring))
+                       str(self.type), str(self.sigstring), str(self.depth))
 
     def __eq__(self, other):
         """ __eq__(other: PortSpec) -> boolean
