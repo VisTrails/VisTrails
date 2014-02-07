@@ -48,6 +48,15 @@ from vistrails.db.domain import IdScope
 import vistrails.core
 
 ################################################################################
+_registry = None
+def get_registry():
+    global _registry
+    if _registry is None:
+        from vistrails.core.modules.module_registry import \
+            get_module_registry
+        _registry = get_module_registry()
+    return _registry
+
 
 PortEndPoint = enum('PortEndPoint',
                     ['Invalid', 'Source', 'Destination'])
@@ -185,8 +194,6 @@ class PortSpec(DBPortSpec):
 
     @staticmethod
     def convert(_port_spec):
-        from vistrails.core.modules.module_registry import module_registry_loaded, \
-            ModuleRegistryException
         if _port_spec.__class__ == PortSpec:
             return
         _port_spec.__class__ = PortSpec
@@ -330,8 +337,7 @@ class PortSpec(DBPortSpec):
         # multiple parameters, where each parameter can be either of the above:
         # add_input_port(_, _, [Float, (Integer, 'count')])
 
-        from vistrails.core.modules.module_registry import get_module_registry
-        registry = get_module_registry()
+        registry = get_registry()
         entries = []
         def canonicalize(sig_item):
             if isinstance(sig_item, tuple):

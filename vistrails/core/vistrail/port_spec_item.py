@@ -40,6 +40,21 @@ from vistrails.db.domain import DBPortSpecItem
 import unittest
 from vistrails.db.domain import IdScope
 
+_registry = None
+_MissingPackage = None
+def get_registry():
+    global _registry
+    if _registry is None:
+        from vistrails.core.modules.module_registry import get_module_registry
+        _registry = get_module_registry()
+    return _registry
+def get_MissingPackage():
+    global _MissingPackage
+    if _MissingPackage is None:
+        from vistrails.core.modules.module_registry import MissingPackage
+        _MissingPackage = MissingPackage
+    return _MissingPackage
+
 class PortSpecItem(DBPortSpecItem):
 
     ##########################################################################
@@ -70,9 +85,8 @@ class PortSpecItem(DBPortSpecItem):
             org.vistrails.vistrails) and use the current one.
 
             """
-            from vistrails.core.modules.module_registry import \
-                get_module_registry, MissingPackage
-            reg = get_module_registry()
+            reg = get_registry()
+            MissingPackage = get_MissingPackage()
             try:
                 identifier = reg.get_package_by_name(identifier).identifier
             except MissingPackage:
@@ -160,8 +174,7 @@ class PortSpecItem(DBPortSpecItem):
 
     def _get_descriptor(self):
         if self._descriptor is None:
-            from vistrails.core.modules.module_registry import get_module_registry
-            reg = get_module_registry()
+            reg = get_registry()
             if self.package is None:
                 self._descriptor = \
                     reg.get_descriptor_from_name_only(self.module)
