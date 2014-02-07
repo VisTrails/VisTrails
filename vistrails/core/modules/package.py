@@ -279,8 +279,10 @@ class Package(DBPackage):
             m2 = self._lib_python_regex.search(pkg_fname)
             return (m1 and not m1.group(0)) or (m2 and not m2.group(0))
 
+        sys_modules = sys.modules.keys()
+
         def checked_add_package(qual_name, pkg):
-            if qual_name in sys.modules:
+            if qual_name in sys_modules:
                 return
             if (not in_package_list(qual_name, self._force_no_unload) and
                     (self._force_sys_unload or not is_sys_pkg(pkg)
