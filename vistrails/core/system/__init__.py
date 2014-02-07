@@ -343,6 +343,15 @@ def vistrails_revision():
                     release = lines[0].strip(" \n")
     return release
 
+
+_registry = None
+def get_module_registry():
+    global _registry
+    if _registry is None:
+        from vistrails.core.modules.module_registry import get_module_registry
+        _registry = get_module_registry()
+    return _registry
+
 def short_about_string():
     return """VisTrails version %s.%s -- contact@vistrails.org""" % \
             (vistrails_version(), vistrails_revision())
