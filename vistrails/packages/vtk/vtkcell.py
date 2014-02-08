@@ -68,7 +68,14 @@ class VTKCell(SpreadsheetCell):
     VTKCell is a VisTrails Module that can display vtkRenderWindow inside a cell
     
     """
-
+    _input_ports = [("Location", "spreadsheet:CellLocation"),
+                    ("AddRenderer", "vtkRenderer"),
+                    # ("SetRenderView", "vtkRenderView"),
+                    # ("InteractionHandler", "vtkInteractionHandler"),
+                    ("InteractorStyle", "vtkInteractorStyle"),
+                    ("AddPicker", "vtkAbstractPicker")]
+    _output_ports = [("self", "VTKCell")]
+                    
     def __init__(self):
         SpreadsheetCell.__init__(self)
         self.cellWidget = None
@@ -78,18 +85,20 @@ class VTKCell(SpreadsheetCell):
         Dispatch the vtkRenderer to the actual rendering widget
         """
         renderers = self.force_get_input_list('AddRenderer')
-        renderViews = self.force_get_input_list('SetRenderView')
-        if len(renderViews)>1:
-            raise ModuleError(self, 'There can only be one vtkRenderView '
-                              'per cell')
-        if len(renderViews)==1 and len(renderers)>0:
-            raise ModuleError(self, 'Cannot set both vtkRenderView '
-                              'and vtkRenderer to a cell')
-        renderView = self.force_get_input('SetRenderView')
-        iHandlers = self.force_get_input_list('InteractionHandler')
+        # FIXME fix these
+        # renderViews = self.force_get_input_list('SetRenderView')
+        # if len(renderViews)>1:
+        #     raise ModuleError(self, 'There can only be one vtkRenderView '
+        #                       'per cell')
+        # if len(renderViews)==1 and len(renderers)>0:
+        #     raise ModuleError(self, 'Cannot set both vtkRenderView '
+        #                       'and vtkRenderer to a cell')
+        # renderView = self.force_get_input('SetRenderView')
+        # iHandlers = self.force_get_input_list('InteractionHandler')
         iStyle = self.force_get_input('InteractorStyle')
         picker = self.force_get_input('AddPicker')
-        self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
+        # self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
+        self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, None, [], iStyle, picker))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -236,9 +245,10 @@ class QVTKWidget(QCellWidget):
         j = 0
         for renderer in renderers:
             if renderView==None:
-                vtkInstance = renderer.vtkInstance
+                vtkInstance = renderer #.vtkInstance
                 renWin.AddRenderer(vtkInstance)
-                self.renderer_maps[vtkInstance] = renderer.moduleInfo['moduleId']
+                # FIXME need to figure out what to do here (not wrapping)
+                # self.renderer_maps[vtkInstance] = renderer.moduleInfo['moduleId']
             else:
                 vtkInstance = renderer
             if hasattr(vtkInstance, 'IsActiveCameraCreated'):
@@ -252,7 +262,7 @@ class QVTKWidget(QCellWidget):
             
         iren = renWin.GetInteractor()
         if picker:
-            iren.SetPicker(picker.vtkInstance)
+            iren.SetPicker(picker) #.vtkInstance)
             
         # Update interactor style
         self.removeObserversFromInteractorStyle()
@@ -260,7 +270,7 @@ class QVTKWidget(QCellWidget):
             if iStyle==None:
                 iStyleInstance = vtk.vtkInteractorStyleTrackballCamera()
             else:
-                iStyleInstance = iStyle.vtkInstance
+                iStyleInstance = iStyle #.vtkInstance
             iren.SetInteractorStyle(iStyleInstance)
         self.addObserversToInteractorStyle()
         
@@ -1123,24 +1133,4 @@ class QVTKWidgetToolBar(QCellToolBar):
         self.addAnimationButtons()
         self.appendAction(QVTKWidgetSaveCamera(self))
 
-def registerSelf():
-    """ registerSelf() -> None
-    Registry module with the registry
-    """
-    registry = get_module_registry()
-    registry.add_module(VTKCell)
-    registry.add_input_port(VTKCell, "Location", CellLocation)
-    from vistrails.core import debug
-    for (port,module) in [("AddRenderer",'vtkRenderer'),
-                          ("SetRenderView",'vtkRenderView'),
-                          ("InteractionHandler",'vtkInteractionHandler'),
-                          ("InteractorStyle", 'vtkInteractorStyle'),
-                          ("AddPicker",'vtkAbstractPicker')]:
-        try:
-            registry.add_input_port(VTKCell, port,
-                                    '(%s:%s)' % (vtk_pkg_identifier, module))
-        except Exception, e:
-            debug.warning("Got an exception adding VTKCell's %s input "
-                          "port" % port, e)
-
-    registry.add_output_port(VTKCell, "self", VTKCell)
+_modules = [VTKCell,]
