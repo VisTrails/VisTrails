@@ -1,17 +1,15 @@
 """Entry point for the Java package.
 
 Here we create the modules for each Java package from the serialized
-information we have as JSON.
+information we have as XML.
 """
 
 import functools
 import hashlib
-import warnings
 
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
 
-from ._json import has_fast_json
 from .module_generator import JavaPackage
 from .module_runtime import JavaBaseModule
 
@@ -58,12 +56,8 @@ def no_reentry(func):
 def initialize():
     """Entry point for this package.
 
-    This function create the VisTrails Modules from the JSON files.
+    This function create the VisTrails Modules from the XML files.
     """
-    if not has_fast_json:
-        warnings.warn("We appear to be using a pure-Python JSON library; this "
-                      "is slower")
-
     reg = get_module_registry()
     reg.add_module(JavaBaseModule, abstract=True)
 
@@ -76,10 +70,11 @@ def initialize():
                 debug.debug("enabling %r" % pkgname)
                 PACKAGES[pkgname] = JavaPackage(pkgname)
                 debug.debug("enabled %r" % pkgname)
-            except Exception, e:
+            except Exception:
                 debug.debug("failed to enable %r" % pkgname)
+                import traceback
                 debug.critical("Got exception while enabling package %s" % pkgname,
-                               e)
+                               traceback.format_exc())
 
 
 def finalize():

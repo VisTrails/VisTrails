@@ -5,12 +5,13 @@ from vistrails.core.modules.basic_modules import Boolean, Float, Integer, \
     String
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package
-from vistrails.core.system import current_dot_vistrails
+from vistrails.core.system import current_dot_vistrails, \
+    get_elementtree_library
 
-from ._json import json
 from . import identifiers
 from .module_runtime import GetterModuleMixin, ConstructorModuleMixin, \
     JavaBaseModule
+from .structs import PackageInfos
 
 
 class JavaPackage(object):
@@ -19,14 +20,14 @@ class JavaPackage(object):
 
         debug.log("Creating Java package for %s" % pkgname)
 
-        # Find the JSON file
-        jsonfile = os.path.join(current_dot_vistrails(),
-                                'Java',
-                                pkgname)
+        ElementTree = get_elementtree_library()
 
-        with open(jsonfile, 'rb') as fp:
-            package_infos = json.load(
-                    fp)
+        # Find the XML file
+        xmlfile = os.path.join(current_dot_vistrails(),
+                                'Java',
+                                pkgname + '.xml')
+        tree = ElementTree.parse(xmlfile)
+        package_infos = PackageInfos.from_xml(tree.getroot())
 
         # This is copied from SUDS
         pkg_signature = 'Java#%s' % pkgname
