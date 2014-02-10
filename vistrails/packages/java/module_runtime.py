@@ -67,7 +67,7 @@ class ConstructorModuleMixin(object):
         # modules
         self._class = get_class(self._classname)
         # Find the correct constructor
-        expected_parameters = [t for t, n in self._ctor_params]
+        expected_parameters = [param.type for param in self._ctor_params]
         ctors = self._class.getConstructors()
         self._ctor = None
         for c in ctors:
@@ -82,8 +82,8 @@ class ConstructorModuleMixin(object):
     def compute(self):
         # Get the constructor parameters from the input ports
         params = []
-        for t, n in self._ctor_params:
-            params.append(self.getInputFromPort('ctor_%s' % n))
+        for param in self._ctor_params:
+            params.append(self.get_input('ctor_%s' % param.name))
 
         # Call the constructor
         this = self._ctor.newInstance(params)

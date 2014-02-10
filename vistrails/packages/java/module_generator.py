@@ -48,10 +48,11 @@ class JavaPackage(object):
         reg.add_package(package)
         reg.signals.emit_new_package(pkg_signature)
         #
+        package.prefix = ''
+        package.codepath = 'java'
 
         try:
-            creator = ModuleCreator(package_infos['modules'],
-                                    pkg_signature, pkg_version)
+            creator = ModuleCreator(package_infos, pkg_signature, pkg_version)
             creator.create_all_modules()
         except:
             self.disable()
@@ -131,8 +132,8 @@ class ModuleCreator(object):
         # as a top-level module?
         pass
 
-    def __init__(self, modules_info, pkg_signature, pkg_version):
-        self._modules_info = modules_info
+    def __init__(self, package_infos, pkg_signature, pkg_version):
+        self._package_infos = package_infos
         self._created_modules = dict()
         self._module_registry = get_module_registry()
         self._used_methods = 0
@@ -144,56 +145,55 @@ class ModuleCreator(object):
     def _get_type_module(self, typename):
         """Return the VisTrails module that represents the given typename.
         """
-        try:
-            # If this is one of the Java classes, we can return the abstract
-            # module associated with it
-            if typename.startswith('weka.'):
-                return self._created_modules[typename]
-            # Else we look it up in our map of standard types
+        # If this is one of the Java classes, we can return the abstract
+        # module associated with it
+        if typename in self._created_modules:
+            return self._created_modules[typename]
+        # Else we look it up in our map of standard types
+        elif typename in _type_to_module:
             return _type_to_module[typename]
-        except KeyError:
-            pass
+        # No match; default on the base Java module
+        else:
+            return JavaBaseModule
 
-        return JavaBaseModule
-
-    def _create_module(self, c):
-        if c['fullname'] in self._created_modules:
+    def _create_module(self, clasz):
+        if clasz.fullname in self._created_modules:
             # Already created
             return
 
-        if c['fullname'] in self._creating_modules:
+        if clasz.fullname in self._creating_modules:
             # Already being created! We stumbled on the same module while
             # following the 'extends' relations! This is bad!
             raise ModuleCreator.CyclicInheritance
-        self._creating_modules.add(c['fullname'])
+        self._creating_modules.add(clasz.fullname)
 
         # Process the parent class first
         parent = JavaBaseModule
-        if c['extends'] is not None:
-            if c['extends'] not in self._created_modules:
+        if clasz.superclass is not None:
+            if clasz.superclass not in self._created_modules:
                 try:
-                    parent = self._modules_info[c['extends']]
+                    parent = self._package_infos.classes[clasz.superclass]
                 except KeyError:
                     raise ModuleCreator.MissingParent(
                             "%s extends %s but it couldn't be found" % (
-                                    c['fullname'],
-                                    c['extends']))
+                                    clasz.fullname,
+                                    clasz.superclass))
                 self._create_module(parent)
-            parent = self._created_modules[c['extends']]
+            parent = self._created_modules[clasz.superclass]
 
-        (namespace, name) = fullname_to_pair(c['fullname'])
+        (namespace, name) = fullname_to_pair(clasz.fullname)
 
         # Create the abstract module
         mod = type(str(name), (parent,), dict(
-                _classname=c['fullname'],
+                _classname=clasz.fullname,
                 _namespace=namespace))
         self._module_registry.add_module(mod, abstract=True,
                                          namespace=namespace,
                                          **self.pkg_opts)
-        self._created_modules[c['fullname']] = mod
+        self._created_modules[clasz.fullname] = mod
 
-    def _populate_modules(self, c):
-        mod = self._created_modules[c['fullname']]
+    def _populate_modules(self, clasz):
+        mod = self._created_modules[clasz.fullname]
         name = mod.__name__
         namespace = mod._namespace
 
@@ -202,23 +202,23 @@ class ModuleCreator(object):
         # Note that we only add the getters as ports of the Module!
         setters = dict()
         getters = set()
-        for m in c['methods']:
+        for method in clasz.methods:
             # Setters
-            if (m['name'].startswith('set') and
-                    len(m['params']) == 1):
-                setters[m['name']] = (
-                        self._get_type_module(m['params'][0][0]),
-                        m['params'][0][1])
+            if (method.name.startswith('set') and
+                    len(method.parameters) == 1):
+                setters[method.name] = (
+                        self._get_type_module(method.parameters[0].type),
+                        method.parameters[0].name)
                 self._used_methods += 1
             # Getters
-            elif (m['name'].startswith('get') and
-                    len(m['params']) == 0):
-                getters.add(m['name'])
+            elif (method.name.startswith('get') and
+                    len(method.parameters) == 0):
+                getters.add(method.name)
                 self._module_registry.add_output_port(
-                        mod, m['name'],
+                        mod, method.name,
                         (
-                                self._get_type_module(m['returnType']),
-                                m['returnType']))
+                                self._get_type_module(method.return_type),
+                                method.return_type))
                 self._used_methods += 1
             else:
                 self._ignored_methods += 1
@@ -239,24 +239,24 @@ class ModuleCreator(object):
                     (mod, 'the object to call getters on'))
 
         # Now, we need to create a new concrete module for each constructor
-        if not c['abstract']:
+        if not clasz.is_abstract:
             i = 0
-            for m in c['constructors']:
+            for ctor in clasz.constructors:
                 i += 1
                 cname = '%s_%d' % (name, i)
                 cmod = type(
                         str(cname),
                         (ConstructorModuleMixin, mod),
-                        dict(_ctor_params=m['params']))
+                        dict(_ctor_params=ctor.parameters))
                 self._module_registry.add_module(cmod, namespace=namespace,
                                                  **self.pkg_opts)
                 # Constructor parameters
-                for t, n in m['params']:
+                for param in ctor.parameters:
                     self._module_registry.add_input_port(
-                            cmod, ("ctor_%s" % n),
+                            cmod, ("ctor_%s" % param.name),
                             (
-                                    self._get_type_module(t),
-                                    t))
+                                    self._get_type_module(param.type),
+                                    param.name))
                 # Setters
                 for sname, (t, n) in setters.iteritems():
                     self._module_registry.add_input_port(
@@ -271,15 +271,15 @@ class ModuleCreator(object):
 
     def create_all_modules(self):
         # Create the abstract modules
-        for c in self._modules_info.itervalues():
+        for clasz in self._package_infos.classes.itervalues():
             # This field is used to detect cycles in the dependency graph
             self._creating_modules = set()
 
-            self._create_module(c)
+            self._create_module(clasz)
 
         # Add the input/output ports and create the concrete modules
-        for c in self._modules_info.itervalues():
-            self._populate_modules(c)
+        for clasz in self._package_infos.classes.itervalues():
+            self._populate_modules(clasz)
 
 ##############################################################################
 

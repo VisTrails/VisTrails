@@ -83,6 +83,8 @@ class ReadClass(Unserializable):
     def from_xml(cls, node):
         instance = super(cls, cls).from_xml(node)
         instance.is_abstract = instance.is_abstract != '0'
+        if not instance.superclass:
+            instance.superclass = None
         return instance
 
 
