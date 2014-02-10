@@ -33,10 +33,10 @@ public class ReadClass implements XMLSerializable {
         out.writeAttribute("name", fullname);
         out.writeAttribute("superclass", (superclass != null)?superclass:"");
         out.writeAttribute("abstract", is_abstract?"1":"0");
-        for(ReadMethod method : methods)
-            method.write_xml(out);
         for(ReadConstructor constructor : constructors)
             constructor.write_xml(out);
+        for(ReadMethod method : methods)
+            method.write_xml(out);
         out.writeEndElement();
     }
 
