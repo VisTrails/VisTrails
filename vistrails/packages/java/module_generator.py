@@ -49,13 +49,17 @@ class JavaPackage(object):
         reg.signals.emit_new_package(pkg_signature)
         #
 
-        creator = ModuleCreator(package_infos['modules'],
-                                pkg_signature, pkg_version)
-        creator.create_all_modules()
+        try:
+            creator = ModuleCreator(package_infos['modules'],
+                                    pkg_signature, pkg_version)
+            creator.create_all_modules()
+        except:
+            self.disable()
+            raise
 
     def disable(self):
         reg = get_module_registry()
-        reg.remove_package(self.pkgname)
+        reg.remove_package(self.package)
 
 
 _type_to_module = {
