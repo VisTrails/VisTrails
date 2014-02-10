@@ -6,7 +6,7 @@ from .identifiers import name, identifier, version
 from vistrails.core.configuration import ConfigurationObject
 
 
-configuration = ConfigurationObject()
+configuration = ConfigurationObject(packages='')
 
 
 def can_handle_identifier(identifier):
@@ -17,3 +17,6 @@ def can_handle_identifier(identifier):
 
 def package_requirements():
     from .java_vm import get_java_vm
+
+
+_force_no_unload_pkg_list = ['vistrails.packages.java.java_vm']

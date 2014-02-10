@@ -1,6 +1,7 @@
 package org.vistrails.javaspreadsheet;
 
 import java.awt.BorderLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
@@ -126,6 +127,33 @@ public class Spreadsheet extends JFrame {
                 addTab("sheet1", sheet);
             }
             return sheet;
+        }
+    }
+
+    public static void main(String[] args)
+    {
+        try
+        {
+            Spreadsheet window = new Spreadsheet(new SpreadsheetInterface() {
+                @Override
+                public boolean select_version(CellInfos infos)
+                {
+                    return false;
+                }
+
+                @Override
+                public boolean executePipelineToCell(CellInfos infos, String dst_sheet,
+                        Point dst_loc)
+                {
+                    return false;
+                }
+            });
+
+            window.setVisible(true);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
         }
     }
 
