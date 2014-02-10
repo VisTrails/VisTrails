@@ -1176,33 +1176,39 @@ class Variant(Module):
 
 class Iterator(Module):
     """
-    Created by IterateList, it contains a list stored in .value. A module with
-    this as input will be executed once for each input in the list and return
-    a new Iterator. It can be converted to a normal list using AccumulateList.
-    
+    Used to keep track if list iteration, it will execute a module once for
+    each input in the list/generator.
     """
     _settings = ModuleSettings(abstract=True)
 
-    def __init__(self, values=None, depth=1, module=None, size=None):
+    generators = []
+    def __init__(self, values=None, depth=1, size=None,
+                 module=None, generator=None, port=None):
         Module.__init__(self)
         self.list_depth = depth
         self.values = values
-        self.module = None
+        self.module = module
+        self.generator = generator
+        self.port = port
         self.size = size
         if size is None and values:
             self.size = len(values)
         self.pos = 0
-
+        if generator and generator not in Iterator.generators:
+            # add to global list of generators
+            # they will be uniquely ordered topologically
+            Iterator.generators.append(self.generator)
+            
     def next(self):
-        if self.list is not None:
+        if self.values is not None:
             try:
-                item = self.list[self.pos]
+                item = self.values[self.pos]
                 self.pos += 1
                 return item
             except KeyError:
                 return None
-        # TODO compute module with next values
-        return None
+        # return next value - the generator
+        return self.module.get_output(self.port)
     
     def all(self):
         if self.values:
@@ -1213,64 +1219,18 @@ class Iterator(Module):
             items.append(item)
             item = self.next()
         return items
-        
-class IterateList(Module):
-    """
-    IterateList creates a special Iterator list that will execute modules once
-    for each input in the list and return a new Iterator. It can be converted
-    to a normal list using AccumulateList.
-    
-    This is used to execute modules once for each value in the list. This
-    item-wise execution will continue downstream until AccumulateList is used
-    to convert the Iterator to a normal list.
-    
-    
-    """
-    
-    _input_ports = [IPort('value', 'List')]
-    _output_ports = [OPort('value', 'Iterator')]
-    _settings = ModuleSettings(left_fringe=[(0.0, 0.0),
-                                            (-0.2, 0.0),
-                                            (0.0, 1.0)],
-                               right_fringe=[(0.0, 0.0),
-                                             (0.2, 0.0),
-                                             (0.0, 1.0)])
 
-    def compute(self):
-        self.value = self.get_input('value')
-        i = Iterator()
-        i.value = self.value
-        self.set_output('value', i)
-
-class AccumulateList(Module):
-    """
-    AccumulateList takes an Iterator created upstream by IterateList and turns
-    it into a list, thereby ending the item-wise execution.
-    
-    """
-    
-    _input_ports = [IPort('value', 'Iterator')]
-    _output_ports = [OPort('value', 'List')]
-    _settings = ModuleSettings(left_fringe=[(0.0, 0.0),
-                                            (-0.2, 1.0),
-                                            (0.0, 1.0)],
-                               right_fringe=[(0.0, 0.0),
-                                             (0.2, 1.0),
-                                             (0.0, 1.0)])
-
-    def compute(self):
-        if self.has_input('value'):
-            self.value = self.get_input('value').value
-        else:
-            self.value = []
-
-        # accumulate multiple levels of iterators
-        def recurse_list(l):
-            if isinstance(l, Iterator):
-                return [recurse_list(i) for i in l.value]
-            return l
-        
-        self.set_output('value', [recurse_list(i) for i in self.value])
+    @staticmethod
+    def stream():
+        # execute all generators until inputs are exhausted
+        # this makes sure branching and multiple sinks are executed correctly
+        result = True
+        if not Iterator.generators:
+            return
+        while result is not None:
+            for g in Iterator.generators:
+                result = g.next()
+        Iterator.generators = []
 
 ##############################################################################
 
@@ -1314,7 +1274,7 @@ def init_constant(m):
     reg.add_output_port(m, "value", m)
 
 _modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List,
-            Iterator, IterateList, AccumulateList, Path, File, Directory,
+            Iterator, Path, File, Directory,
             OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput,
             Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant,
             Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color,

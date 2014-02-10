@@ -390,7 +390,6 @@ class Module(Serializable):
                     children=suspended)
         elif was_suspended is not None:
             raise was_suspended
-        self.iterated_ports = []
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
@@ -437,14 +436,18 @@ class Module(Serializable):
                 raise ModuleBreakpoint(self)
             self.set_iterated_ports()
             if self.iterated_ports:
-                self.compute_all()
+                # check if no port is a generator
+                if sum([1 for i in self.iterated_ports.values() if i[1].values]):
+                    self.compute_all()
+                else:
+                    self.compute_streaming()
             else:
                 p_modules = self.moduleInfo['pipeline'] and \
                             self.moduleInfo['pipeline'].modules
                 p_module = p_modules and \
                            p_modules[self.moduleInfo['moduleId']]
                 if p_module and not self.is_while and \
-                          (p_module.has_annotation_with_key(WHILE_COND_KEY) or 
+                          (p_module.has_annotation_with_key(WHILE_COND_KEY) or
                            p_module.has_annotation_with_key(WHILE_MAX_KEY)):
                     self.is_while = True
                     self.compute_while()
@@ -505,9 +508,9 @@ class Module(Serializable):
             if self.iterated_ports[port][0] > 1:
                 # wrap values in Iterator of 1 less list depth
                 d = self.iterated_ports[port][1].list_depth - 1
-                value = [i if isinstance(i, Iterator) else Iterator(i, d) for i in value]
+                value = [i if isinstance(i, Iterator) else Iterator(i, d)
+                         for i in value]
             inputs[port] = value
-        "all", inputs, self
         elements = []
         if type=='pairwise':
             elements = zip(*[inputs[port] for port in ports])
@@ -517,21 +520,21 @@ class Module(Serializable):
         loop = self.logging.begin_loop_execution(self, num_inputs)
         ## Update everything for each value inside the list
         outputs = {}
+        module = copy.copy(self)
+        module.list_depth = self.list_depth - 1
         for i in xrange(num_inputs):
             self.logging.update_progress(self, float(i)/num_inputs)
-            module = copy.copy(self)
-            module.list_depth = self.list_depth - 1
             module.had_error = False
 
             if not self.upToDate: # pragma: no partial
                 ## Type checking
                 if i == 0:
-                    self.typeChecking(module, ports, elements)
+                    module.typeChecking(module, ports, elements)
 
                 module.upToDate = False
                 module.computed = False
 
-                self.setInputValues(module, ports, elements[i])
+                module.setInputValues(module, ports, elements[i])
 
             loop.begin_iteration(module, i)
 
@@ -563,6 +566,82 @@ class Module(Serializable):
         for nameOutput in outputs:
             self.set_output(nameOutput, outputs[nameOutput])
         loop.end_loop_execution()
+
+    def compute_streaming(self):
+        """This method creates a generator object and sets the outputs as 
+        Iterator generators.
+
+        """
+        from vistrails.core.modules.basic_modules import Iterator
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        type = 'pairwise'
+        if p_module.has_annotation_with_key(LOOP_KEY):
+            type = p_module.get_annotation_by_key(LOOP_KEY).value
+        if type == 'cartesian':
+            raise ModuleError(self,
+                              'Cannot use cartesian product while streaming!')
+        suspended = []
+
+        # only iterate the max depth and leave others for the next iteration
+        ports = [port for port in self.iterated_ports
+                 if self.iterated_ports[port][0] == self.list_depth]
+        num_inputs = self.iterated_ports.values()[0][1].size or 0
+        # the generator will read next from each iterated input port and
+        # compute the module again
+        module = copy.copy(self)
+        module.list_depth = self.list_depth - 1
+        loop = self.logging.begin_loop_execution(self, num_inputs)
+
+        def generator(self):
+            i = 0
+            while 1:
+                elements = [self.iterated_ports[port][1].next() for port in ports]
+                if None in elements:
+                    for name_output in module.outputPorts:
+                        module.set_output(name_output, None)
+                    if suspended:
+                        raise ModuleSuspended(
+                                self,
+                                ("function module suspended after streaming "
+                                 "%d/%d iterations") % (
+                                        len(suspended), num_inputs),
+                                children=suspended)
+                    self.logging.update_progress(self, 1.0)
+                    loop.end_loop_execution()
+                    yield None
+                self.logging.update_progress(self, float(i)/(num_inputs or (i+1)))
+                module.had_error = False
+                ## Type checking
+                if i == 0:
+                    module.typeChecking(module, ports, [elements])
+    
+                module.upToDate = False
+                module.computed = False
+    
+                module.setInputValues(module, ports, elements)
+    
+                loop.begin_iteration(module, i)
+    
+                try:
+                    module.update()
+                except ModuleSuspended, e:
+                    e.loop_iteration = i
+                    suspended.append(e)
+                    loop.end_iteration(module)
+                loop.end_iteration(module)
+                i += 1
+                yield True
+    
+        _generator = generator(self)
+        # set streaming outputs
+        for name_output in self.outputPorts:
+            iterator = Iterator(depth=self.list_depth,
+                                size=num_inputs,
+                                module=module,
+                                generator=_generator,
+                                port=name_output)
+            self.set_output(name_output, iterator)
 
     def compute_while(self):
         """This method executes the module once for each module.
@@ -796,7 +875,8 @@ class Module(Serializable):
                     depth += 1
                 for i in xrange(1, depth):
                     try:
-                        root = [(item.all() if isinstance(item, Iterator) else item) for item in root] 
+                        root = [(item.all() if isinstance(item, Iterator)
+                                 else item) for item in root]
                         root = [item for sublist in root for item in sublist] 
                     except TypeError:
                         raise ModuleError(self, "List on port %s has wrong"
@@ -859,10 +939,11 @@ class Module(Serializable):
                             self.moduleInfo['pipeline'].modules
                 p_module = p_modules and p_modules[self.moduleInfo['moduleId']]
                 try:
-                    port_spec = p_module and p_module.get_port_spec(port_name, 'output')
+                    port_spec = p_module and p_module.get_port_spec(port_name,
+                                                                    'output')
                 except Exception:
                     port_spec = None
-                if port_spec and (port_spec.depth or self.list_depth):
+                if port_spec and (port_spec.depth + self.list_depth):
                     value = Iterator(value, port_spec.depth + self.list_depth)
         self.outputPorts[port_name] = value
 
@@ -1022,8 +1103,9 @@ class Module(Serializable):
                 del self.inputPorts[port_name]
 
     def create_instance_of_type(self, ident, name, ns=''):
-        """ Create a vistrails module from the module registry.  This creates an instance of the module
-        for use in creating the object output by a Module.
+        """ Create a vistrails module from the module registry.  This creates
+        an instance of the module for use in creating the object output by a
+        Module.
         """
         from vistrails.core.modules.module_registry import get_module_registry
         try:
@@ -1104,6 +1186,14 @@ class NotCacheable(object):
 
     def is_cacheable(self):
         return False
+
+################################################################################
+
+class Streaming(object):
+    """ A mixin indicating support for streamable inputs
+    
+    """
+    pass
 
 ################################################################################
 

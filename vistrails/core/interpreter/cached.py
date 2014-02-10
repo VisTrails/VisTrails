@@ -46,7 +46,8 @@ from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
-from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.basic_modules import identifier as basic_pkg, \
+                                                 Iterator
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
     ModuleConnector, ModuleError, ModuleErrors, ModuleHadError, \
@@ -484,6 +485,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
 
+        Iterator.generators = []
         # Update new sinks
         for obj in persistent_sinks:
             abort = False
@@ -515,6 +517,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 abort = True
             if stop_on_error or abort:
                 break
+        Iterator.stream()
+
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)
@@ -641,7 +645,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
                                          'to execute: %s' % kwargs)
-
         self.clean_non_cacheable_modules()
 
 #         if controller is not None:
