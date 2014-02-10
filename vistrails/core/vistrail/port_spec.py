@@ -37,7 +37,8 @@ import operator
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.modules.utils import create_port_spec_string, parse_port_spec_string
-from vistrails.core.system import get_vistrails_basic_pkg_id
+from vistrails.core.system import get_vistrails_basic_pkg_id, \
+    get_module_registry
 from vistrails.core.utils import enum, VistrailsInternalError
 from vistrails.core.vistrail.port_spec_item import PortSpecItem
 from vistrails.db.domain import DBPortSpec
@@ -46,8 +47,6 @@ import unittest
 import copy
 from vistrails.db.domain import IdScope
 import vistrails.core
-
-################################################################################
 
 PortEndPoint = enum('PortEndPoint',
                     ['Invalid', 'Source', 'Destination'])
@@ -185,8 +184,6 @@ class PortSpec(DBPortSpec):
 
     @staticmethod
     def convert(_port_spec):
-        from vistrails.core.modules.module_registry import module_registry_loaded, \
-            ModuleRegistryException
         if _port_spec.__class__ == PortSpec:
             return
         _port_spec.__class__ = PortSpec
@@ -330,7 +327,6 @@ class PortSpec(DBPortSpec):
         # multiple parameters, where each parameter can be either of the above:
         # add_input_port(_, _, [Float, (Integer, 'count')])
 
-        from vistrails.core.modules.module_registry import get_module_registry
         registry = get_module_registry()
         entries = []
         def canonicalize(sig_item):

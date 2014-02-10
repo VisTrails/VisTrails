@@ -35,10 +35,18 @@
 import copy
 from vistrails.core.modules.utils import parse_port_spec_item_string, \
     create_port_spec_item_string
-from vistrails.db.domain import DBPortSpecItem
+from vistrails.core.system import get_module_registry
+from vistrails.db.domain import DBPortSpecItem, IdScope
 
 import unittest
-from vistrails.db.domain import IdScope
+
+_MissingPackage = None
+def get_MissingPackage():
+    global _MissingPackage
+    if _MissingPackage is None:
+        from vistrails.core.modules.module_registry import MissingPackage
+        _MissingPackage = MissingPackage
+    return _MissingPackage
 
 class PortSpecItem(DBPortSpecItem):
 
@@ -70,9 +78,8 @@ class PortSpecItem(DBPortSpecItem):
             org.vistrails.vistrails) and use the current one.
 
             """
-            from vistrails.core.modules.module_registry import \
-                get_module_registry, MissingPackage
             reg = get_module_registry()
+            MissingPackage = get_MissingPackage()
             try:
                 identifier = reg.get_package_by_name(identifier).identifier
             except MissingPackage:
@@ -160,7 +167,6 @@ class PortSpecItem(DBPortSpecItem):
 
     def _get_descriptor(self):
         if self._descriptor is None:
-            from vistrails.core.modules.module_registry import get_module_registry
             reg = get_module_registry()
             if self.package is None:
                 self._descriptor = \
