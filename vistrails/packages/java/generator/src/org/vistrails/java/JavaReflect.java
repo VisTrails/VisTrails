@@ -207,7 +207,7 @@ public class JavaReflect {
                     Class<?> c = Class.forName(classname, true, classLoader);
                     status = analyzer.process(c);
                 }
-                catch(ClassNotFoundException|NoClassDefFoundError e)
+                catch(ClassNotFoundException e)
                 {
                     e.printStackTrace();
                     status = "error";

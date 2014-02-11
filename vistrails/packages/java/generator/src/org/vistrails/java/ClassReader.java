@@ -123,7 +123,12 @@ public class ClassReader {
             System.err.println("Output path is not valid");
             System.exit(1);
         }
-        catch(UnsupportedEncodingException|XMLStreamException e)
+        catch(UnsupportedEncodingException e)
+        {
+            System.err.println("XML lib doesn't support UTF-8");
+            System.exit(2);
+        }
+        catch(XMLStreamException e)
         {
             System.err.println("Error writing XML:");
             e.printStackTrace();
