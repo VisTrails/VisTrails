@@ -45,7 +45,7 @@ class GetterModuleMixin(object):
             called = False
             for method in self._class.getMethods():
                 if method.getName() == getter:
-                    output = method.invoke(this)
+                    output = method.invoke(this, [])
                     called = True
                     break
             if called:
