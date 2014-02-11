@@ -3,11 +3,6 @@
 
 from .identifiers import name, identifier, version
 
-from vistrails.core.configuration import ConfigurationObject
-
-
-configuration = ConfigurationObject(packages='')
-
 
 def can_handle_identifier(identifier):
     """This package handles packages starting with Java#

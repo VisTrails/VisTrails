@@ -6,9 +6,11 @@ information we have as XML.
 
 import functools
 import hashlib
+import os
 
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.system import current_dot_vistrails
 
 from .module_generator import JavaPackage
 from .module_runtime import JavaBaseModule
@@ -61,10 +63,11 @@ def initialize():
     reg = get_module_registry()
     reg.add_module(JavaBaseModule, abstract=True)
 
-    package_names = getattr(configuration, 'packages', '')
-    package_names = filter(lambda x: x, package_names.split(';'))
+    for filename in os.listdir(os.path.join(current_dot_vistrails(), 'Java')):
+        if filename[-4:].lower() != '.xml':
+            continue
+        pkgname = os.path.basename(filename)[:-4]
 
-    for pkgname in package_names:
         if pkgname not in PACKAGES:
             try:
                 debug.debug("enabling %r" % pkgname)
