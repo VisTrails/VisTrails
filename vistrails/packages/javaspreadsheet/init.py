@@ -101,7 +101,7 @@ class Frame(Module):
     use the spreadsheet.
     """
     def compute(self):
-        widgets = self.getInputListFromPort('widget')
+        widgets = self.get_input_list('widget')
         frame = JFrame()
         top = JPanel()
         top.setLayout(BoxLayout(top, BoxLayout.PAGE_AXIS))

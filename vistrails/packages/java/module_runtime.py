@@ -38,7 +38,7 @@ class GetterModuleMixin(object):
 
     def compute(self):
         # Get the object fron the input port
-        this = self.getInputFromPort('this')
+        this = self.get_input('this')
 
         # Call the getters
         for getter in self._getters:
@@ -49,7 +49,7 @@ class GetterModuleMixin(object):
                     called = True
                     break
             if called:
-                self.setResult(getter, output)
+                self.set_output(getter, output)
             else:
                 debug.warning("didn't find requested getter method\n"
                               "class=%s, method=%s" % (
@@ -92,11 +92,11 @@ class ConstructorModuleMixin(object):
         # Call the setters
         for setter in self._setters:
             if self.hasInputFromPort(setter):
-                input = self.getInputFromPort(setter)
+                value = self.get_input(setter)
                 called = False
                 for method in self._class.getMethods():
                     if method.getName() == setter:
-                        method.invoke(this, [input])
+                        method.invoke(this, [value])
                         called = True
                         break
                 if not called:
@@ -113,10 +113,10 @@ class ConstructorModuleMixin(object):
                     called = True
                     break
             if called:
-                self.setResult(getter, output)
+                self.set_output(getter, output)
             else:
                 debug.warning("didn't find requested getter method\n"
                               "class=%s, method=%s" % (
                               self._classname, getter))
 
-        self.setResult('this', this)
+        self.set_output('this', this)
