@@ -91,7 +91,7 @@ class ConstructorModuleMixin(object):
 
         # Call the setters
         for setter in self._setters:
-            if self.hasInputFromPort(setter):
+            if self.has_input(setter):
                 value = self.get_input(setter)
                 called = False
                 for method in self._class.getMethods():
