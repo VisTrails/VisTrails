@@ -1,6 +1,7 @@
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module
 
+from . import java_vm
 from .java_vm import get_class
 
 
@@ -13,10 +14,10 @@ class JavaBaseModule(Module):
 
 
 def format_type(t):
-    if not Class.isArray(t):
-        return Class.getName(t)
+    if not java_vm.isArray(t):
+        return java_vm.getName(t)
     else:
-        return format_type(Class.getComponentType(t)) + '[]'
+        return format_type(java_vm.getComponentType(t)) + '[]'
 
 
 def format_type_list(l):

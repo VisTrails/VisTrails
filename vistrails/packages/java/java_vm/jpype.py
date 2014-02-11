@@ -140,3 +140,18 @@ def implement(interface_name):
             return jpype.JProxy(interface_name, inst=inst)
         return constructor
     return actual_decorator
+
+
+# Reflection
+
+
+def isArray(javaclass):
+    return javaclass.__javaclass__.isArray()
+
+
+def getName(javaclass):
+    return javaclass.__javaclass__.getName()
+
+
+def getComponentType(javaclass):
+    return javaclass.__javaclass__.getComponentType()
