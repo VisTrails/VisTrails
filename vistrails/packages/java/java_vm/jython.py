@@ -119,3 +119,18 @@ def implement(interface_name):
             dict())
         return subclass
     return actual_decorator
+
+
+# Reflection
+
+
+def isArray(javaclass):
+    return javaclass.isArray()
+
+
+def getName(javaclass):
+    return javaclass.getName()
+
+
+def getComponentType(javaclass):
+    return javaclass.getComponentType()
