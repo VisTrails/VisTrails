@@ -9,8 +9,8 @@ from vistrails.core.system import current_dot_vistrails, \
     get_elementtree_library
 
 from . import identifiers
-from .module_runtime import GetterModuleMixin, ConstructorModuleMixin, \
-    JavaBaseModule
+from .module_runtime import ConstructorModuleMixin, GetterModuleMixin, \
+    JavaBaseModule, StaticModuleMixin
 from .structs import PackageInfos
 
 
@@ -200,11 +200,13 @@ class ModuleCreator(object):
         # We identify the input ports for the setters, and the output ports for
         # the getters
         # Note that we only add the getters as ports of the Module!
-        setters = dict()
-        getters = set()
+        setters = dict()    # methodname -> (typemodule, paramname)
+        getters = set()     # methodname
         for method in clasz.methods:
+            if method.is_static:
+                continue
             # Setters
-            if (method.name.startswith('set') and
+            elif (method.name.startswith('set') and
                     len(method.parameters) == 1):
                 setters[method.name] = (
                         self._get_type_module(method.parameters[0].type),
@@ -267,7 +269,30 @@ class ModuleCreator(object):
                         cmod, 'this',
                         (mod, 'the created object'))
 
-        # TODO : static methods
+        # Then, a module for each static method
+        for method in clasz.methods:
+            if not method.is_static:
+                continue
+            sname = '%s_%s' % (name, method.name)
+            smod = type(
+                    str(sname),
+                    (StaticModuleMixin, JavaBaseModule),
+                    dict(_classname=clasz.fullname,
+                         _params=method.parameters))
+            self._module_registry.add_module(smod, namespace=namespace,
+                                             **self.pkg_opts)
+            # Parameters
+            for param in method.parameters:
+                self._module_registry.add_input_port(
+                        smod, param.name,
+                        (
+                                self._get_type_module(param.type),
+                                param.name))
+            # Result
+            self._module_registry.add_output_port(
+                        smod, 'Result',
+                        self._get_type_module(method.return_type))
+            self._used_methods += 1
 
     def create_all_modules(self):
         # Create the abstract modules

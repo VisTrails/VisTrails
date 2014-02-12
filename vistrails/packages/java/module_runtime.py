@@ -2,8 +2,10 @@ from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module
 
 from . import java_vm
-from .java_vm import get_class
+from .java_vm import get_java_vm, get_class
 
+
+_JAVA_VM = get_java_vm()
 
 Class = get_class('java.lang.Class')
 
@@ -120,3 +122,39 @@ class ConstructorModuleMixin(object):
                               self._classname, getter))
 
         self.set_output('this', this)
+
+
+class StaticModuleMixin(object):
+    """The mixin implementating the logic for static method modules.
+
+    Uses the _classname and _params attributes.
+    """
+    def __init__(self):
+        super(StaticModuleMixin, self).__init__()
+        # Load the class
+        # We do it now so that we don't load unused classes when building the
+        # modules
+        self._class = get_class(self._classname)
+        # Find the correct static method
+        expected_parameters = [param.type for param in self._params]
+        methods = self._class.getDeclaredMethods()
+        self._method = None
+        for m in methods:
+            params = format_type_list(list(m.getParameterTypes()))
+            if params == expected_parameters:
+                self._method = m
+                break
+        if self._method is None:
+            debug.critical("Couldn't load the Java class %s" % self._classname)
+
+    def compute(self):
+        # Get the method parameters from the input ports
+        params = []
+        for param in self._params:
+            params.append(self.get_input(param.name))
+
+        # Call the method
+        result = self._method.invoke(None, params)
+        result = _JAVA_VM.unbox(result)
+
+        self.set_output('Result', result)
