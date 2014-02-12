@@ -3,15 +3,37 @@ from __future__ import absolute_import
 import os
 import sys
 
+import java.lang
+
 from vistrails.core.system import vistrails_root_directory
 
 
 _java_vm = None
 
 
+_unbox = {
+        java.lang.Boolean: lambda b: b.booleanValue(),
+        java.lang.Byte: lambda i: i.intValue(),
+        java.lang.Character: unicode,
+        java.lang.Double: lambda d: d.doubleValue(),
+        java.lang.Float: lambda f: f.floatValue(),
+        java.lang.Integer: lambda i: i.intValue(),
+        java.lang.Long: lambda i: i.intValue(),
+        java.lang.Short: lambda i: i.intValue(),
+        java.lang.String: unicode}
+
 class JythonVM(object):
     def __getattr__(self, name):
         return __import__(name, globals(), locals())
+
+    @staticmethod
+    def unbox(obj):
+        try:
+            f =_unbox[type(obj)]
+        except KeyError:
+            return obj
+        else:
+            return f(obj)
 
 
 def get_java_vm():
@@ -58,7 +80,6 @@ def get_java_vm():
     # We can access Java classes natively through import
     _java_vm = JythonVM()
 
-    import java.lang
     JavaException = java.lang.Exception
 
     return _java_vm

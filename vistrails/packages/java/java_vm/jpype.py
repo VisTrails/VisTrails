@@ -15,11 +15,31 @@ classpath_additions = []
 
 
 class JPypeVM(object):
+    def __init__(self):
+        self.__unbox = {
+                self.java.lang.Boolean: lambda b: b.booleanValue(),
+                self.java.lang.Byte: lambda i: i.intValue(),
+                self.java.lang.Character: unicode,
+                self.java.lang.Double: lambda d: d.doubleValue(),
+                self.java.lang.Float: lambda f: f.floatValue(),
+                self.java.lang.Integer: lambda i: i.intValue(),
+                self.java.lang.Long: lambda i: i.intValue(),
+                self.java.lang.Short: lambda i: i.intValue(),
+                self.java.lang.String: unicode}
+
     def __getattr__(self, name):
         try:
             return getattr(jpype, name)
         except AttributeError:
             return jpype.JPackage(name)
+
+    def unbox(self, obj):
+        try:
+            f = self.__unbox[type(obj)]
+        except KeyError:
+            return obj
+        else:
+            return f(obj)
 
 
 class JPypeReflectedClass(object):
