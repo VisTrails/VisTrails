@@ -200,7 +200,7 @@ public class JavaReflect {
             analyzer = new JavaReflect(parsed_classes);
 
             Map<String, Integer> statuses = new HashMap<String, Integer>();
-            for(String classname : new JarClassList(jar_filename))
+            for(String classname : JarUtils.list_classes(jar_filename))
             {
                 String status;
                 try {
