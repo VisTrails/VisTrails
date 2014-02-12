@@ -162,7 +162,8 @@ class ViewUpdatingLogController(object):
         if i in self.ids:
             self.ids.remove(i)
             self.view.set_execution_progress(
-                    1.0 - (len(self.ids) * 1.0 / self.nb_modules))
+                    1.0 - ((len(self.ids) + len(Iterator.generators)) * 1.0 /
+                           (self.nb_modules + len(Iterator.generators))))
 
         msg = '' if error is None else error.msg
         self.log.finish_execution(obj, msg, errorTrace,
@@ -517,8 +518,43 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 abort = True
             if stop_on_error or abort:
                 break
-        Iterator.stream()
 
+        # execute all generators until inputs are exhausted
+        # this makes sure branching and multiple sinks are executed correctly
+        result = True
+        if Iterator.generators:
+            while result is not None:
+                for g in Iterator.generators:
+                    abort = False
+                    try:
+                        result = g.next()
+                        continue
+                    except ModuleWasSuspended:
+                        continue
+                    except ModuleHadError:
+                        pass
+                    except AbortExecution:
+                        break
+                    except ModuleSuspended, ms:
+                        ms.module.logging.end_update(ms.module, ms,
+                                                     was_suspended=True)
+                        continue
+                    except ModuleErrors, mes:
+                        for me in mes.module_errors:
+                            me.module.logging.end_update(me.module, me)
+                            logging_obj.signalError(me.module, me)
+                            abort = abort or me.abort
+                    except ModuleError, me:
+                        me.module.logging.end_update(me.module, me, me.errorTrace)
+                        logging_obj.signalError(me.module, me)
+                        abort = me.abort
+                    except ModuleBreakpoint, mb:
+                        mb.module.logging.end_update(mb.module)
+                        logging_obj.signalError(mb.module, mb)
+                        abort = True
+                    if stop_on_error or abort:
+                        break
+        Iterator.generators = []
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)

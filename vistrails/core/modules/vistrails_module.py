@@ -613,12 +613,14 @@ class Module(Serializable):
         # compute the module again
         module = copy.copy(self)
         module.list_depth = self.list_depth - 1
-        loop = self.logging.begin_loop_execution(self, num_inputs)
-
+        if num_inputs:
+            milestones = [i*num_inputs/10 for i in xrange(1,11)]
         def generator(self):
+            self.logging.begin_compute(module)
             i = 0
             while 1:
-                elements = [self.iterated_ports[port][1].next() for port in ports]
+                elements = [self.iterated_ports[port][1].next()
+                            for port in ports]
                 if None in elements:
                     for name_output in module.outputPorts:
                         module.set_output(name_output, None)
@@ -630,9 +632,13 @@ class Module(Serializable):
                                         len(suspended), num_inputs),
                                 children=suspended)
                     self.logging.update_progress(self, 1.0)
-                    loop.end_loop_execution()
+                    self.logging.end_update(module)
                     yield None
-                self.logging.update_progress(self, float(i)/(num_inputs or (i+1)))
+                if num_inputs:
+                    if i in milestones:
+                        self.logging.update_progress(self,float(i)/num_inputs)
+                else:
+                    self.logging.update_progress(self, 0.5)
                 module.had_error = False
                 ## Type checking
                 if i == 0:
@@ -643,15 +649,13 @@ class Module(Serializable):
     
                 module.setInputValues(module, ports, elements)
     
-                loop.begin_iteration(module, i)
-    
                 try:
                     module.compute()
                 except ModuleSuspended, e:
                     e.loop_iteration = i
                     suspended.append(e)
-                    loop.end_iteration(module)
-                loop.end_iteration(module)
+                except Exception, e:
+                    raise ModuleError(module, str(e))
                 i += 1
                 yield True
     
@@ -674,7 +678,7 @@ class Module(Serializable):
         from vistrails.core.modules.basic_modules import Iterator
         suspended = []
         # max depth should be one
-        ports = [port for port in self.streamed_ports]
+        ports = self.streamed_ports.keys()
         num_inputs = self.streamed_ports[ports[0]].size
         # the generator will read next from each iterated input port and
         # compute the module again
@@ -686,16 +690,21 @@ class Module(Serializable):
 
         inputs = dict([(port, []) for port in ports])
         def generator(self):
+            self.logging.begin_update(module)
             i = 0
             while 1:
                 elements = [self.streamed_ports[port].next() for port in ports]
                 if None in elements:
+                    self.logging.begin_compute(module)
                     # assembled all inputs so do the actual computation
                     elements = [inputs[port] for port in ports]
                     ## Type checking
                     module.typeChecking(module, ports, zip(*elements))
                     module.setInputValues(module, ports, elements)
-                    module.update()
+                    try:
+                        module.compute()
+                    except Exception, e:
+                        raise ModuleError(module, str(e))
                     if suspended:
                         raise ModuleSuspended(
                                 self,
@@ -703,7 +712,7 @@ class Module(Serializable):
                                  "%d/%d iterations") % (
                                         len(suspended), num_inputs),
                                 children=suspended)
-                    self.logging.update_progress(self, 1.0)
+                    self.logging.end_update(module)
                     yield None
 
                 for port, value in zip(ports, elements):
@@ -744,14 +753,19 @@ class Module(Serializable):
         module.computed = False
 
         def generator(self):
+            self.logging.begin_update(module)
             i = 0
             while 1:
                 elements = [self.streamed_ports[port].next() for port in ports]
                 if None not in elements:
+                    self.logging.begin_compute(module)
                     ## Type checking
                     module.typeChecking(module, ports, [elements])
                     module.setInputValues(module, ports, elements)
-                    module.update()
+                    try:
+                        module.compute()
+                    except Exception, e:
+                        raise ModuleError(module, str(e))
                     if suspended:
                         raise ModuleSuspended(
                                 self,
@@ -760,6 +774,7 @@ class Module(Serializable):
                                         len(suspended), num_inputs),
                                 children=suspended)
                     self.logging.update_progress(self, 1.0)
+                    self.logging.end_update(module)
                     yield None
 
                 for name_output in module.outputPorts:
@@ -1230,17 +1245,32 @@ class Module(Serializable):
         module = copy.copy(self)
         module.list_depth = -1
 
+        if size:
+            milestones = [i*size/10 for i in xrange(1,11)]
         def _generator():
+            i = 0
             while 1:
                 try:
                     value = generator.next()
                 except StopIteration:
                     module.set_output(port, None)
+                    self.logging.update_progress(self, 1.0)
                     yield None
+                except Exception, e:
+                    me = ModuleError(self, "Error generating value: %s"% str(e),
+                                      errorTrace=str(e))
+                    raise me
                 if value is None:
                     module.set_output(port, None)
+                    self.logging.update_progress(self, 1.0)
                     yield None
                 module.set_output(port, value)
+                if size:
+                    if i in milestones:
+                        self.logging.update_progress(self,float(i)/size)
+                else:
+                    self.logging.update_progress(self, 0.5)
+                i += 1
                 yield True
         self.set_output(port, Iterator(size=size,
                                        module=module,
