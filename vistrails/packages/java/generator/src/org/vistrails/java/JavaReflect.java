@@ -8,14 +8,18 @@ import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.vistrails.java.structs.ParsedClass;
+import org.vistrails.java.structs.ParsedConstructor;
 import org.vistrails.java.structs.ParsedMethod;
+import org.vistrails.java.structs.ParsedParam;
 import org.vistrails.java.structs.ReadClass;
 import org.vistrails.java.structs.ReadConstructor;
 import org.vistrails.java.structs.ReadMethod;
@@ -49,6 +53,14 @@ public class JavaReflect {
     {
         sources = parsed_classes;
         classes = new HashMap<String, ReadClass>();
+    }
+
+    private List<String> defaultParamNames(int nb)
+    {
+        List<String> paramNames = new ArrayList<String>(nb);
+        for(int i = 0; i < nb; ++i)
+            paramNames.add(String.format("arg%d", i));
+        return paramNames;
     }
 
     private String process(Class<?> c)
@@ -89,16 +101,20 @@ public class JavaReflect {
             Class<?>[] params = m.getParameterTypes();
 
             // Find the parameter names from the parsed source
-            String[] paramNames = null;
+            List<String> paramNames = null;
             if(sourceClass != null)
             {
                 int nb_params = m.getParameterTypes().length;
                 for(ParsedMethod sourceMethod : sourceClass.methods)
                 {
+                    // FIXME : only checks for number of arguments,
+                    // should check all types
                     if(sourceMethod.name.equals(m.getName()) &&
-                            sourceMethod.parameters.length == nb_params)
+                            nb_params == sourceMethod.parameters.size())
                     {
-                        paramNames = sourceMethod.parameters;
+                        paramNames = new ArrayList<String>(nb_params);
+                        for(ParsedParam param : sourceMethod.parameters)
+                            paramNames.add(param.name);
                         break;
                     }
                 }
@@ -106,13 +122,14 @@ public class JavaReflect {
             if(paramNames == null)
             {
                 status = OK_NO_PARAM_NAME;
-                paramNames = new String[params.length];
-                for(int i = 0; i < params.length; ++i)
-                    paramNames[i] = String.format("arg%d", i);
+                paramNames = defaultParamNames(params.length);
             }
 
-            for(int i = 0; i < params.length; ++i)
-                readParams.add(new ReadParam(params[i], paramNames[i]));
+            {
+                Iterator<String> paramName = paramNames.iterator();
+                for(int i = 0; i < params.length; ++i)
+                    readParams.add(new ReadParam(params[i], paramName.next()));
+            }
 
             readMethods.add(new ReadMethod(
                     m.getName(),
@@ -133,30 +150,35 @@ public class JavaReflect {
             Class<?>[] params = m.getParameterTypes();
 
             // Find the parameter names from the parsed source
-            String[] paramNames = null;
+            List<String> paramNames = null;
             if(sourceClass != null)
             {
                 int nb_params = m.getParameterTypes().length;
-                for(ParsedMethod sourceMethod : sourceClass.methods)
+                for(ParsedConstructor sourceMethod : sourceClass.constructors)
                 {
-                    if(sourceMethod.name.equals(m.getName()) &&
-                            sourceMethod.parameters.length == nb_params)
+                    // FIXME : only checks for number of arguments,
+                    // should check all types
+                    if(sourceMethod.parameters.size() == nb_params)
                     {
-                        paramNames = sourceMethod.parameters;
+                        paramNames = new ArrayList<String>(nb_params);
+                        for(ParsedParam param : sourceMethod.parameters)
+                            paramNames.add(param.name);
                         break;
                     }
                 }
             }
             if(paramNames == null)
             {
-                status = OK_NO_PARAM_NAME;
-                paramNames = new String[params.length];
-                for(int i = 0; i < params.length; ++i)
-                    paramNames[i] = String.format("arg%d", i);
+                if(params.length > 0)
+                    status = OK_NO_PARAM_NAME;
+                paramNames = defaultParamNames(params.length);
             }
 
-            for(int i = 0; i < params.length; ++i)
-                readParams.add(new ReadParam(params[i], paramNames[i]));
+            {
+                Iterator<String> paramName = paramNames.iterator();
+                for(int i = 0; i < params.length; ++i)
+                    readParams.add(new ReadParam(params[i], paramName.next()));
+            }
 
             readConstructors.add(new ReadConstructor(readParams));
         }

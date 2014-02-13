@@ -46,7 +46,7 @@ public class ClassReader {
         {
             if(src_prefix == null && opt.equals("-s"))
                 src_prefix = readArgument();
-            if(output_xml == null && opt.equals("-o"))
+            else if(output_xml == null && opt.equals("-o"))
                 output_xml = readArgument();
             else
                 throw new Error();
