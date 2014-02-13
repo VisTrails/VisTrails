@@ -211,6 +211,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self._objects = {}
         self._executed = {}
         self.filePool = self._file_pool
+        self._streams = []
 
     def clear(self):
         self._file_pool.cleanup()
@@ -341,6 +342,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             persistent_id = tmp_to_persistent_module_map[i]
             module = self._persistent_pipeline.modules[persistent_id]
             obj = self._objects[persistent_id] = module.summon()
+            obj.list_depth = module.list_depth
             obj.interpreter = self
             obj.id = persistent_id
             obj.is_breakpoint = module.is_breakpoint
@@ -486,7 +488,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
 
+        self._streams.append(Iterator.generators)
         Iterator.generators = []
+
         # Update new sinks
         for obj in persistent_sinks:
             abort = False
@@ -521,8 +525,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         # execute all generators until inputs are exhausted
         # this makes sure branching and multiple sinks are executed correctly
-        result = True
-        if Iterator.generators:
+        if not logging_obj.errors and not logging_obj.suspended and \
+                                                          Iterator.generators:
+            result = True
             while result is not None:
                 for g in Iterator.generators:
                     abort = False
@@ -554,7 +559,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                         abort = True
                     if stop_on_error or abort:
                         break
-        Iterator.generators = []
+        Iterator.generators = self._streams.pop()
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)
@@ -682,6 +687,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             raise VistrailsInternalError('Wrong parameters passed '
                                          'to execute: %s' % kwargs)
         self.clean_non_cacheable_modules()
+
 
 #         if controller is not None:
 #             vistrail = controller.vistrail

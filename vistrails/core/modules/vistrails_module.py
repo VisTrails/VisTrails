@@ -587,9 +587,16 @@ class Module(Serializable):
         """
         if self.list_depth == 0:
             # this will be executed once after streaming is finished
+            # if all has depth=0 this is a post-streaming module
             if max([i.list_depth for i in self.streamed_ports.itervalues()]):
                 # input accumulation needed
-                self.compute_accumulate()
+                from vistrails.core.modules.basic_modules import PythonSource
+                if isinstance(self, Streaming) or\
+                   (isinstance(self, PythonSource) and
+                    '%23STREAMING' in self.get_input('source')): #STREAMING
+                    self.compute()
+                else:
+                    self.compute_accumulate()
             else:
                 # forward the result after streaming
                 self.compute_after_streaming()
@@ -631,14 +638,14 @@ class Module(Serializable):
                                  "%d/%d iterations") % (
                                         len(suspended), num_inputs),
                                 children=suspended)
-                    self.logging.update_progress(self, 1.0)
+                    self.logging.update_progress(module, 1.0)
                     self.logging.end_update(module)
                     yield None
                 if num_inputs:
                     if i in milestones:
-                        self.logging.update_progress(self,float(i)/num_inputs)
+                        self.logging.update_progress(module,float(i)/num_inputs)
                 else:
-                    self.logging.update_progress(self, 0.5)
+                    self.logging.update_progress(module, 0.5)
                 module.had_error = False
                 ## Type checking
                 if i == 0:
@@ -733,9 +740,9 @@ class Module(Serializable):
             self.set_output(name_output, iterator)
 
     def compute_after_streaming(self):
-        """This method creates a generator object that computes when the
-        streaming is finished.
-        
+        """This method creates a generator object that computes when the                                                                                                           
+        streaming is finished.                                                                                                                                                     
+                                                                                                                                                                                   
         """
         from vistrails.core.modules.basic_modules import Iterator
         suspended = []
@@ -755,6 +762,8 @@ class Module(Serializable):
         def generator(self):
             self.logging.begin_update(module)
             i = 0
+            for name_output in module.outputPorts:
+                module.set_output(name_output, None)
             while 1:
                 elements = [self.streamed_ports[port].next() for port in ports]
                 if None not in elements:
@@ -771,14 +780,11 @@ class Module(Serializable):
                                 self,
                                 ("function module suspended after streaming "
                                  "%d/%d iterations") % (
-                                        len(suspended), num_inputs),
+                                 len(suspended), num_inputs),
                                 children=suspended)
                     self.logging.update_progress(self, 1.0)
                     self.logging.end_update(module)
                     yield None
-
-                for name_output in module.outputPorts:
-                    module.set_output(name_output, None)
                 i += 1
                 yield True
     
