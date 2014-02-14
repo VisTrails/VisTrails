@@ -1173,7 +1173,7 @@ class ModuleRegistry(DBRegistry):
 
         if identifier is None:
             raise VistrailsInternalError("No package is currently being "
-                                         "loaded and arugment 'package' is "
+                                         "loaded and argument 'package' is "
                                          "not specified.")
 
         package = self.package_versions[(identifier, package_version)]

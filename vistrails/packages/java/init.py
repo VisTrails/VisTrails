@@ -6,9 +6,13 @@ information we have as XML.
 
 import functools
 import hashlib
+import imp
 import os
+import sys
 
+import vistrails
 from vistrails.core import debug
+from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package
 from vistrails.core.system import current_dot_vistrails, \
@@ -78,6 +82,7 @@ class JavaPackage(object):
         package.prefix = ''
         package.codepath = 'java'
 
+        # Create Java modules
         try:
             creator = ModuleCreator(package_infos, pkg_signature, pkg_version)
             creator.create_all_modules()
@@ -85,9 +90,69 @@ class JavaPackage(object):
             self.disable()
             raise
 
+        # Add additional modules
+        self.load_additional_code()
+
     def disable(self):
         reg = get_module_registry()
         reg.remove_package(self.package)
+
+    def load_additional_code(self):
+        path = os.path.join(current_dot_vistrails(), 'Java')
+
+        if not (
+                os.path.isfile(os.path.join(path, self.pkgname + '.py')) or
+                os.path.isfile(os.path.join(path,
+                                            self.pkgname, '__init__.py'))):
+            return
+
+        debug.debug("Loading additional code for %r" % self.pkgname)
+
+        if 'vistrails.java_additions' not in sys.modules:
+            additions = imp.new_module('vistrails.java_additions')
+            additions.__path__ = [path]
+            sys.modules['vistrails.java_additions'] = additions
+            vistrails.java_additions = additions
+
+        name = 'vistrails.java_additions.%s' % self.pkgname
+        additional_module = __import__(name, globals(), locals())
+        additional_module = getattr(additional_module.java_additions,
+                                    self.pkgname)
+
+        from vistrails.core.modules.module_registry import _toposort_modules
+        reg = get_module_registry()
+        pkg = reg._current_package
+        reg._current_package = self.package
+        try:
+            # Copied from module_registry:ModuleRegistry#initialize_package()
+            debug.debug('%s' % hasattr(additional_module, '_modules'))
+            if hasattr(additional_module, '_modules'):
+                modules = additional_module._modules
+                if isinstance(modules, dict):
+                    module_list = []
+                    for namespace, m_list in modules.iteritems():
+                        for module in m_list:
+                            m_dict = {'namespace': namespace}
+                            if isinstance(module, tuple):
+                                m_dict.update(module[1])
+                                module_list.append((module[0], m_dict))
+                            elif '_settings' in module.__dict__:
+                                kwargs = module._settings._asdict()
+                                kwargs.update(m_dict)
+                                module._settings = ModuleSettings(**kwargs)
+                                module_list.append(module)
+                            else:
+                                module_list.append((module, m_dict))
+                else:
+                    module_list = modules
+                modules = _toposort_modules(module_list)
+                # We add all modules before adding ports because
+                # modules inside package might use each other as ports
+                for module in modules:
+                    reg.auto_add_module(module)
+            #
+        finally:
+            reg._current_package = pkg
 
 
 PACKAGES = {}
