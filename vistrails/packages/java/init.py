@@ -10,10 +10,14 @@ import os
 
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.system import current_dot_vistrails
+from vistrails.core.modules.package import Package
+from vistrails.core.system import current_dot_vistrails, \
+    get_elementtree_library
 
-from .module_generator import JavaPackage
+from . import identifiers
+from .module_generator import ModuleCreator
 from .module_runtime import JavaBaseModule
+from .structs import PackageInfos
 
 
 class JavaConfigurationError(Exception):
@@ -35,6 +39,55 @@ def hashfile(filename, hash=hashlib.sha1()):
                 break
             chunk = f.read(block_size)
     return hash.hexdigest()
+
+
+class JavaPackage(object):
+    def __init__(self, pkgname):
+        self.pkgname = pkgname
+
+        debug.log("Creating Java package for %s" % pkgname)
+
+        ElementTree = get_elementtree_library()
+
+        # Find the XML file
+        xmlfile = os.path.join(current_dot_vistrails(),
+                                'Java',
+                                pkgname + '.xml')
+        tree = ElementTree.parse(xmlfile)
+        package_infos = PackageInfos.from_xml(tree.getroot())
+
+        # This is copied from SUDS
+        pkg_signature = 'Java#%s' % pkgname
+        pkg_version = '1'
+        reg = get_module_registry()
+        if pkg_signature in reg.packages:
+            reg.remove_package(reg.packages[pkg_signature])
+        package_id = reg.idScope.getNewId(Package.vtType)
+        package = Package(id=package_id,
+                          load_configuration=False,
+                          name='Java#' + pkgname,
+                          identifier=pkg_signature,
+                          version='1')
+        java_package = reg.get_package_by_name(identifiers.identifier)
+        package._module = java_package.module
+        package._init_module = java_package.init_module
+        self.package = package
+        reg.add_package(package)
+        reg.signals.emit_new_package(pkg_signature)
+        #
+        package.prefix = ''
+        package.codepath = 'java'
+
+        try:
+            creator = ModuleCreator(package_infos, pkg_signature, pkg_version)
+            creator.create_all_modules()
+        except:
+            self.disable()
+            raise
+
+    def disable(self):
+        reg = get_module_registry()
+        reg.remove_package(self.package)
 
 
 PACKAGES = {}
