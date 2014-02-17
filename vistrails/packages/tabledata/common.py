@@ -24,10 +24,13 @@ class TableObject(object):
 
 class Table(Module):
     _input_ports = [('name', '(org.vistrails.vistrails.basic:String)')]
-    
-    def compute(self):
-        self.name = self.force_get_input('name', None)
+    _output_ports = [('value', 'Table')]
 
+    def set_output(self, port_name, value):
+        if port_name == 'value':
+            if value.name is None:
+                value.name = self.force_get_input('name', None)
+        Module.set_output(self, port_name, value)
 
 class ExtractColumn(Module):
     _input_ports = [
