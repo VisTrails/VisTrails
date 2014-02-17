@@ -62,6 +62,7 @@ from vistrails.core import debug
 from vistrails.gui.application import get_vistrails_application
 from vistrails.gui.preferences import QPreferencesDialog
 from vistrails.gui.base_view import BaseView
+from vistrails.gui.common_widgets import QToolWindow
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.repository import QRepositoryDialog
 from vistrails.gui.theme import initializeCurrentTheme, CurrentTheme
@@ -2623,7 +2624,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                                QAliasInspector,
                                QCellWidget,
                                QMashupViewTab,
-                               QVistrailsPaletteInterface]
+                               QVistrailsPaletteInterface,
+                               QToolWindow]
             old_view = self.get_current_view()
             view = None
             if self.isAncestorOf(current):
