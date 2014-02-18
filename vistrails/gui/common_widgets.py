@@ -89,6 +89,10 @@ class QToolWindow(QtGui.QDockWidget):
         self.mwindow.addToolBar(self.toolbar)
                    
     def setDefaultPinStatus(self, topLevel):
+        # Fixes QTBUG-30276
+        if self.acceptDrops():
+            self.setAcceptDrops(False)
+            self.setAcceptDrops(True)
         if topLevel:
             self.setPinStatus(False)
             self.pinButton.setEnabled(False)
