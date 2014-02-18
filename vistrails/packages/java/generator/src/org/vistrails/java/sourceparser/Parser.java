@@ -43,6 +43,8 @@ public class Parser {
             new Token(Token.Type.IDENTIFIER, "import");
     private static final Token CLASS_DEFINITION =
             new Token(Token.Type.IDENTIFIER, "class");
+    private static final Token INTERFACE_DEFINITION =
+            new Token(Token.Type.IDENTIFIER, "interface");
     private static final Token THROWS_SPECIFIER =
             new Token(Token.Type.IDENTIFIER, "throws");
     private static final Token OPEN_PAREN =
@@ -309,7 +311,8 @@ public class Parser {
             {
                 int modifiers = MODIFIERS.get(t.text);
                 Token t2 = next_token(Token.Type.IDENTIFIER);
-                while(!t2.equals(CLASS_DEFINITION))
+                while(!t2.equals(CLASS_DEFINITION) &&
+                      !t2.equals(INTERFACE_DEFINITION))
                 {
                     modifiers |= MODIFIERS.get(t2.text);
                     t2 = next_token(Token.Type.IDENTIFIER);
@@ -317,15 +320,20 @@ public class Parser {
                 String classname = next_token(Token.Type.IDENTIFIER).text;
                 if(!classname.equals(expected_classname))
                     skip_block(0);
+                else if(t2.equals(INTERFACE_DEFINITION))
+                    return null; // It's an interface; skip
                 else
                     return parse_class(classname, modifiers);
                 modifiers = 0;
             }
-            else if(t.equals(CLASS_DEFINITION))
+            else if(t.equals(CLASS_DEFINITION) ||
+                    t.equals(INTERFACE_DEFINITION))
             {
                 String classname = next_token(Token.Type.IDENTIFIER).text;
                 if(!classname.equals(expected_classname))
                     skip_block(0);
+                else if(t.equals(INTERFACE_DEFINITION))
+                    return null; // It's an interface; skip
                 return parse_class(classname, 0);
             }
             else
@@ -382,6 +390,9 @@ public class Parser {
                 modifiers = 0;
                 skip_block();
             }
+            else if(t.equals(CLASS_DEFINITION) ||
+                    t.equals(INTERFACE_DEFINITION))
+                skip_block(0);
             else if(is_modifier(t))
                 modifiers |= MODIFIERS.get(t.text);
             else if(t.type == Token.Type.IDENTIFIER)
