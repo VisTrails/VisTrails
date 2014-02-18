@@ -43,6 +43,8 @@ public class Parser {
             new Token(Token.Type.IDENTIFIER, "import");
     private static final Token CLASS_DEFINITION =
             new Token(Token.Type.IDENTIFIER, "class");
+    private static final Token THROWS_SPECIFIER =
+            new Token(Token.Type.IDENTIFIER, "throws");
     private static final Token OPEN_PAREN =
             new Token(Token.Type.OPERATOR, "(");
     private static final Token CLOSE_PAREN =
@@ -409,6 +411,8 @@ public class Parser {
                             Token end_sig = next_token();
                             if(end_sig.equals(BEGIN_BLOCK))
                                 skip_block();
+                            else if(end_sig.equals(THROWS_SPECIFIER))
+                                skip_block(0);
                             else if(!end_sig.equals(END_STATEMENT))
                                 throw unexpected(end_sig);
                         }
@@ -431,8 +435,13 @@ public class Parser {
                         constructors.add(new ParsedConstructor(
                                 modifiers,
                                 parameters));
-                        next_token(BEGIN_BLOCK);
-                        skip_block();
+                        t = next_token();
+                        if(t.equals(BEGIN_BLOCK))
+                            skip_block();
+                        else if(t.equals(THROWS_SPECIFIER))
+                            skip_block(0);
+                        else
+                            throw unexpected(t);
                     }
                 }
                 modifiers = 0;
