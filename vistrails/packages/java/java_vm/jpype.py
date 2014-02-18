@@ -16,6 +16,15 @@ classpath_additions = []
 
 class JPypeVM(object):
     def __init__(self):
+        self.__box = {
+                'boolean': self.java.lang.Boolean,
+                'byte': self.java.lang.Byte,
+                'char': self.java.lang.Character,
+                'double': self.java.lang.Double,
+                'float': self.java.lang.Float,
+                'int': self.java.lang.Integer,
+                'long': self.java.lang.Long,
+                'short': self.java.lang.Short}
         self.__unbox = {
                 self.java.lang.Boolean: lambda b: b.booleanValue(),
                 self.java.lang.Byte: lambda i: i.intValue(),
@@ -32,6 +41,9 @@ class JPypeVM(object):
             return getattr(jpype, name)
         except AttributeError:
             return jpype.JPackage(name)
+
+    def box(self, type_, obj):
+        return self.__box[type_](obj)
 
     def unbox(self, obj):
         try:

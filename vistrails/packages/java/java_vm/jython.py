@@ -11,6 +11,15 @@ from vistrails.core.system import vistrails_root_directory
 _java_vm = None
 
 
+_box = {
+        'boolean': java.lang.Boolean,
+        'byte': java.lang.Byte,
+        'char': java.lang.Character,
+        'double': java.lang.Double,
+        'float': java.lang.Float,
+        'int': java.lang.Integer,
+        'long': java.lang.Long,
+        'short': java.lang.Short}
 _unbox = {
         java.lang.Boolean: lambda b: b.booleanValue(),
         java.lang.Byte: lambda i: i.intValue(),
@@ -25,6 +34,10 @@ _unbox = {
 class JythonVM(object):
     def __getattr__(self, name):
         return __import__(name, globals(), locals())
+
+    @staticmethod
+    def box(type_, box):
+        return _box[type_](box)
 
     @staticmethod
     def unbox(obj):
