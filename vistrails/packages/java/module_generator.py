@@ -143,7 +143,7 @@ class ModuleCreator(object):
         # We identify the input ports for the setters, and the output ports for
         # the getters
         # Note that we only add the getters as ports of the Module!
-        setters = dict()    # methodname -> (typemodule, paramname)
+        setters = dict()    # methodname -> (typename, typemodule, paramname)
         getters = set()     # methodname
         for method in clasz.methods:
             if method.is_static:
@@ -152,6 +152,7 @@ class ModuleCreator(object):
             elif (method.name.startswith('set') and
                     len(method.parameters) == 1):
                 setters[method.name] = (
+                        method.parameters[0].type,
                         self._get_type_module(method.parameters[0].type),
                         method.parameters[0].name)
                 self._used_methods += 1
@@ -167,7 +168,8 @@ class ModuleCreator(object):
                 self._used_methods += 1
             else:
                 self._ignored_methods += 1
-        mod._setters = set(setters.keys())
+        mod._setters = [(n, type_)
+                        for n, (type_, tmod, pname) in setters.iteritems()]
         mod._getters = getters
 
         # Create the getter module
@@ -203,10 +205,10 @@ class ModuleCreator(object):
                                     self._get_type_module(param.type),
                                     param.name))
                 # Setters
-                for sname, (t, n) in setters.iteritems():
+                for sname, (tname, tmod, n) in setters.iteritems():
                     self._module_registry.add_input_port(
                             cmod, sname,
-                            (t, n))
+                            (tmod, n))
                 # The 'this' output port, that returns the created object
                 self._module_registry.add_output_port(
                         cmod, 'this',

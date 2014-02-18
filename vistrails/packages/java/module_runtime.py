@@ -95,12 +95,16 @@ class ConstructorModuleMixin(object):
         this = self._ctor.newInstance(params)
 
         # Call the setters
-        for setter in self._setters:
+        for setter, type_ in self._setters:
             if self.has_input(setter):
                 value = self.get_input(setter)
                 called = False
                 for method in self._class.getMethods():
-                    if method.getName() == setter:
+                    method_params = format_type_list(
+                            list(method.getParameterTypes()))
+                    if method.getName() == setter and [type_] == method_params:
+                        if type_ in ('float', 'double'):
+                            value = _JAVA_VM.box(type_, value)
                         method.invoke(this, [value])
                         called = True
                         break
