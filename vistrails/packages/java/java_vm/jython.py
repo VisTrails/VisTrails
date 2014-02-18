@@ -115,6 +115,10 @@ def build_jarray(t, seq):
         t = 'I'
     elif t == 'long':
         t = 'J'
+    elif t == 'object':
+        t = java.lang.Object
+    else:
+        raise ValueError
     return jarray.array(seq, t)
 
 
