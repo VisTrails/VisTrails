@@ -47,7 +47,7 @@ def hashfile(filename, hash=hashlib.sha1()):
 
 
 class JavaPackage(object):
-    def __init__(self, pkgname):
+    def __init__(self, pkgname, xmlfile):
         self.pkgname = pkgname
 
         debug.log("Creating Java package for %s" % pkgname)
@@ -55,9 +55,6 @@ class JavaPackage(object):
         ElementTree = get_elementtree_library()
 
         # Find the XML file
-        xmlfile = os.path.join(current_dot_vistrails(),
-                                'Java',
-                                pkgname + '.xml')
         tree = ElementTree.parse(xmlfile)
         package_infos = PackageInfos.from_xml(tree.getroot())
 
@@ -102,19 +99,21 @@ class JavaPackage(object):
             pass
 
     def load_additional_code(self):
-        path = os.path.join(current_dot_vistrails(), 'Java')
+        userpath = os.path.join(current_dot_vistrails(), 'Java')
+        pkgpath = os.path.join(os.path.dirname(__file__), 'pkgs')
 
-        if not (
+        if not any(
                 os.path.isfile(os.path.join(path, self.pkgname + '.py')) or
                 os.path.isfile(os.path.join(path,
-                                            self.pkgname, '__init__.py'))):
+                                            self.pkgname, '__init__.py'))
+                for path in (userpath, pkgpath)):
             return
 
         debug.debug("Loading additional code for %r" % self.pkgname)
 
         if 'vistrails.java_additions' not in sys.modules:
             additions = imp.new_module('vistrails.java_additions')
-            additions.__path__ = [path]
+            additions.__path__ = [userpath, pkgpath]
             sys.modules['vistrails.java_additions'] = additions
             vistrails.java_additions = additions
 
@@ -185,15 +184,26 @@ def initialize():
     reg = get_module_registry()
     reg.add_module(JavaBaseModule, abstract=True)
 
-    for filename in os.listdir(os.path.join(current_dot_vistrails(), 'Java')):
-        if filename[-4:].lower() != '.xml':
-            continue
+    loaded = set()
+    filenames = []
+    for dirname in (os.path.join(current_dot_vistrails(), 'Java'),
+                    os.path.join(os.path.dirname(__file__), 'pkgs')):
+        for filename in os.listdir(dirname):
+            if filename[-4:].lower() == '.xml':
+                if filename in loaded:
+                    debug.log("Encountered %s twice, ignoring the one from "
+                              "VisTrails (using .vistrails)")
+                    continue
+                loaded.add(filename)
+                filenames.append(os.path.join(dirname, filename))
+
+    for filename in filenames:
         pkgname = os.path.basename(filename)[:-4]
 
         if pkgname not in PACKAGES:
             try:
                 debug.debug("enabling %r" % pkgname)
-                PACKAGES[pkgname] = JavaPackage(pkgname)
+                PACKAGES[pkgname] = JavaPackage(pkgname, filename)
                 debug.debug("enabled %r" % pkgname)
             except Exception:
                 debug.debug("failed to enable %r" % pkgname)
