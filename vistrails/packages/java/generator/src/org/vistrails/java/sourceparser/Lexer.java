@@ -61,9 +61,7 @@ public class Lexer {
             return c;
         }
         else
-        {
             return reader.read();
-        }
     }
 
     private void unread(char c)

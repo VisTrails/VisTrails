@@ -49,6 +49,7 @@ public class Parser {
             new Token(Token.Type.OPERATOR, ")");
 
     private Lexer lexer;
+    private Token stored;
     private String filename;
     private String expected_classname;
     private String expected_pkgname;
@@ -83,14 +84,27 @@ public class Parser {
      * Reading tokens from the lexer
      * */
 
+    private void store_token(Token t)
+    {
+        assert stored == null;
+        stored = t;
+    }
+
     private Token next_token() throws EndOfStream
     {
-        return lexer.next_token();
+        if(stored != null)
+        {
+            Token res = stored;
+            stored = null;
+            return res;
+        }
+        else
+            return lexer.next_token();
     }
 
     private Token next_token(Token.Type type) throws ParserError
     {
-        Token t = lexer.next_token();
+        Token t = next_token();
         if(t.type != type)
             throw unexpected(t);
         return t;
@@ -98,7 +112,7 @@ public class Parser {
 
     private void next_token(Token expected) throws ParserError
     {
-        Token t = lexer.next_token();
+        Token t = next_token();
         if(!t.equals(expected))
             throw unexpected(t);
     }
@@ -186,7 +200,7 @@ public class Parser {
         }
     }
 
-    private Token skip_annotation() throws ParserError
+    private void skip_annotation() throws ParserError
     {
         next_token(Token.Type.IDENTIFIER);
         Token t = next_token();
@@ -199,10 +213,13 @@ public class Parser {
                 Token t2 = next_token();
                 while(!t2.equals(CLOSE_PAREN))
                     t2 = next_token();
-                return next_token();
+                return ;
             }
             else
-                return t;
+            {
+                store_token(t);
+                return ;
+            }
             t = next_token();
         }
     }
@@ -253,10 +270,7 @@ public class Parser {
             else if(t.equals(IMPORT_STATEMENT))
                 parse_qualifiedname(); // Discard that
             else if(t.equals(ANNOTATION))
-            {
-                t = skip_annotation();
-                continue;
-            }
+                skip_annotation();
             else if(is_modifier(t))
             {
                 int modifiers = MODIFIERS.get(t.text);
@@ -326,10 +340,7 @@ public class Parser {
             if(t.equals(END_BLOCK))
                 break;
             else if(t.equals(ANNOTATION))
-            {
-                t = skip_annotation();
-                continue;
-            }
+                skip_annotation();
             else if(t.equals(END_STATEMENT))
                 ;
             else if(t.equals(BEGIN_BLOCK))
