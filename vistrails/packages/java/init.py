@@ -13,7 +13,8 @@ import sys
 import vistrails
 from vistrails.core import debug
 from vistrails.core.modules.config import ModuleSettings
-from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.module_registry import get_module_registry,\
+    MissingPackage
 from vistrails.core.modules.package import Package
 from vistrails.core.system import current_dot_vistrails, \
     get_elementtree_library
@@ -95,7 +96,10 @@ class JavaPackage(object):
 
     def disable(self):
         reg = get_module_registry()
-        reg.remove_package(self.package)
+        try:
+            reg.remove_package(self.package)
+        except MissingPackage:
+            pass
 
     def load_additional_code(self):
         path = os.path.join(current_dot_vistrails(), 'Java')
