@@ -196,9 +196,3 @@ def initialize():
                 import traceback
                 debug.critical("Got exception while enabling package %s" % pkgname,
                                traceback.format_exc())
-
-
-def finalize():
-    for package in PACKAGES.itervalues():
-        package.disable()
-    PACKAGES.clear()
