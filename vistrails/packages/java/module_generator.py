@@ -30,6 +30,21 @@ def fullname_to_pair(fullname):
         return (None, fullname)
 
 
+def shortname(name):
+    """Return the last component of a name.
+
+    >>> shortname('java.lang.String')
+    'String'
+    >>> shortname('long')
+    'long'
+    """
+    try:
+        pos = name.rindex('.')
+        return name[pos+1:]
+    except ValueError:
+        return name
+
+
 class ModuleCreator(object):
     """Walk over the module info structure and emit the Modules in order.
 
@@ -188,9 +203,13 @@ class ModuleCreator(object):
         # Now, we need to create a new concrete module for each constructor
         if not clasz.is_abstract:
             i = 0
-            for ctor in clasz.constructors:
+            constructors = [
+                    (ctor,
+                     name + '_' + '_'.join(shortname(p.type)
+                                           for p in ctor.parameters))
+                    for ctor in clasz.constructors]
+            for ctor, cname in constructors:
                 i += 1
-                cname = '%s_%d' % (name, i)
                 cmod = type(
                         str(cname),
                         (ConstructorModuleMixin, mod),
