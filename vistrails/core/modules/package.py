@@ -734,7 +734,7 @@ class Package(DBPackage):
         (dom, element) = self.find_own_dom_element()
 
         configuration = enter_named_element(element, 'configuration')
-        if configuration:
+        if configuration and self.configuration is not None:
             self.configuration.set_from_dom_node(configuration)
         dom.unlink()
 
