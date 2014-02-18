@@ -86,7 +86,10 @@ class ConstructorModuleMixin(object):
         # Get the constructor parameters from the input ports
         params = []
         for param in self._ctor_params:
-            params.append(self.get_input('ctor_%s' % param.name))
+            value = self.get_input('ctor_%s' % param.name)
+            if param.type in ('float', 'double'):
+                value = _JAVA_VM.box(param.type, value)
+            params.append(value)
 
         # Call the constructor
         this = self._ctor.newInstance(params)
