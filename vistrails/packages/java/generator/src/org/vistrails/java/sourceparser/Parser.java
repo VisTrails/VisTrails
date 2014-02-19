@@ -441,7 +441,19 @@ public class Parser {
                             if(end_sig.equals(BEGIN_BLOCK))
                                 skip_block();
                             else if(end_sig.equals(THROWS_SPECIFIER))
-                                skip_block(0);
+                            {
+                                while(true)
+                                {
+                                    t = next_token();
+                                    if(t.equals(BEGIN_BLOCK))
+                                    {
+                                        skip_block();
+                                        break;
+                                    }
+                                    else if(t.equals(END_STATEMENT))
+                                        break;
+                                }
+                            }
                             else if(!end_sig.equals(END_STATEMENT))
                                 throw unexpected(end_sig);
                         }
