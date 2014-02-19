@@ -35,6 +35,8 @@ public class Parser {
             new Token(Token.Type.OPERATOR, ".");
     private static final Token COMMA =
             new Token(Token.Type.OPERATOR, ",");
+    private static final Token STAR =
+            new Token(Token.Type.OPERATOR, "*");
     private static final Token ANNOTATION =
             new Token(Token.Type.OPERATOR, "@");
     private static final Token PACKAGE_STATEMENT =
@@ -43,12 +45,21 @@ public class Parser {
             new Token(Token.Type.IDENTIFIER, "import");
     private static final Token CLASS_DEFINITION =
             new Token(Token.Type.IDENTIFIER, "class");
+    private static final Token INTERFACE_DEFINITION =
+            new Token(Token.Type.IDENTIFIER, "interface");
+    private static final Token THROWS_SPECIFIER =
+            new Token(Token.Type.IDENTIFIER, "throws");
     private static final Token OPEN_PAREN =
             new Token(Token.Type.OPERATOR, "(");
     private static final Token CLOSE_PAREN =
             new Token(Token.Type.OPERATOR, ")");
+    private static final Token ARRAY_LEFT =
+            new Token(Token.Type.OPERATOR, "[");
+    private static final Token ARRAY_RIGHT =
+            new Token(Token.Type.OPERATOR, "]");
 
     private Lexer lexer;
+    private Token stored;
     private String filename;
     private String expected_classname;
     private String expected_pkgname;
@@ -83,14 +94,27 @@ public class Parser {
      * Reading tokens from the lexer
      * */
 
+    private void store_token(Token t)
+    {
+        assert stored == null;
+        stored = t;
+    }
+
     private Token next_token() throws EndOfStream
     {
-        return lexer.next_token();
+        if(stored != null)
+        {
+            Token res = stored;
+            stored = null;
+            return res;
+        }
+        else
+            return lexer.next_token();
     }
 
     private Token next_token(Token.Type type) throws ParserError
     {
-        Token t = lexer.next_token();
+        Token t = next_token();
         if(t.type != type)
             throw unexpected(t);
         return t;
@@ -98,7 +122,7 @@ public class Parser {
 
     private void next_token(Token expected) throws ParserError
     {
-        Token t = lexer.next_token();
+        Token t = next_token();
         if(!t.equals(expected))
             throw unexpected(t);
     }
@@ -186,7 +210,7 @@ public class Parser {
         }
     }
 
-    private Token skip_annotation() throws ParserError
+    private void skip_annotation() throws ParserError
     {
         next_token(Token.Type.IDENTIFIER);
         Token t = next_token();
@@ -199,10 +223,13 @@ public class Parser {
                 Token t2 = next_token();
                 while(!t2.equals(CLOSE_PAREN))
                     t2 = next_token();
-                return next_token();
+                return ;
             }
             else
-                return t;
+            {
+                store_token(t);
+                return ;
+            }
             t = next_token();
         }
     }
@@ -224,12 +251,60 @@ public class Parser {
         {
             if(!t.equals(DOT))
                 throw new ParserError("Invalid qualified name", lineNumber());
-            t = next_token(Token.Type.IDENTIFIER);
+            t = next_token();
+            if(t.equals(STAR))
+            {
+                name.append('*');
+                next_token(END_STATEMENT);
+                return name.toString();
+            }
+            else if(t.type != Token.Type.IDENTIFIER)
+                throw unexpected(t);
             name.append('.');
             name.append(t.text);
             t = next_token();
         }
         return name.toString();
+    }
+
+    /**
+     * Parses a type name.
+     */
+    private String parse_type(Token t) throws ParserError
+    {
+        assert t.type == Token.Type.IDENTIFIER;
+        StringBuilder type = new StringBuilder(t.text);
+        t = next_token();
+        while(true)
+        {
+            if(t.equals(DOT))
+            {
+                Token n = next_token();
+                if(n.type == Token.Type.IDENTIFIER)
+                {
+                    type.append('.');
+                    type.append(n.text);
+                }
+                else if(n.equals(DOT))
+                {
+                    next_token(DOT);
+                    type.append("[]");
+                    return type.toString();
+                }
+                else
+                    throw unexpected(n);
+            }
+            else if(t.equals(BEGIN_TEMPLATE))
+                skip_template_declaration();
+            else if(t.equals(ARRAY_LEFT))
+                next_token(ARRAY_RIGHT);
+            else
+            {
+                store_token(t);
+                return type.toString();
+            }
+            t = next_token();
+        }
     }
 
     /**
@@ -253,15 +328,13 @@ public class Parser {
             else if(t.equals(IMPORT_STATEMENT))
                 parse_qualifiedname(); // Discard that
             else if(t.equals(ANNOTATION))
-            {
-                t = skip_annotation();
-                continue;
-            }
+                skip_annotation();
             else if(is_modifier(t))
             {
                 int modifiers = MODIFIERS.get(t.text);
                 Token t2 = next_token(Token.Type.IDENTIFIER);
-                while(!t2.equals(CLASS_DEFINITION))
+                while(!t2.equals(CLASS_DEFINITION) &&
+                      !t2.equals(INTERFACE_DEFINITION))
                 {
                     modifiers |= MODIFIERS.get(t2.text);
                     t2 = next_token(Token.Type.IDENTIFIER);
@@ -269,16 +342,22 @@ public class Parser {
                 String classname = next_token(Token.Type.IDENTIFIER).text;
                 if(!classname.equals(expected_classname))
                     skip_block(0);
+                else if(t2.equals(INTERFACE_DEFINITION))
+                    return null; // It's an interface; skip
                 else
                     return parse_class(classname, modifiers);
                 modifiers = 0;
             }
-            else if(t.equals(CLASS_DEFINITION))
+            else if(t.equals(CLASS_DEFINITION) ||
+                    t.equals(INTERFACE_DEFINITION))
             {
                 String classname = next_token(Token.Type.IDENTIFIER).text;
                 if(!classname.equals(expected_classname))
                     skip_block(0);
-                return parse_class(classname, 0);
+                else if(t.equals(INTERFACE_DEFINITION))
+                    return null; // It's an interface; skip
+                else
+                    return parse_class(classname, 0);
             }
             else
                 throw unexpected(t);
@@ -310,11 +389,7 @@ public class Parser {
             class_modifiers |= Modifiers.TEMPLATE;
         }
         while(!t.equals(BEGIN_BLOCK))
-        {
-            if(!t.equals(COMMA) && t.type != Token.Type.IDENTIFIER)
-                throw unexpected(t);
             t = next_token();
-        }
 
         int modifiers = 0;
         List<ParsedConstructor> constructors =
@@ -326,10 +401,7 @@ public class Parser {
             if(t.equals(END_BLOCK))
                 break;
             else if(t.equals(ANNOTATION))
-            {
-                t = skip_annotation();
-                continue;
-            }
+                skip_annotation();
             else if(t.equals(END_STATEMENT))
                 ;
             else if(t.equals(BEGIN_BLOCK))
@@ -337,8 +409,13 @@ public class Parser {
                 modifiers = 0;
                 skip_block();
             }
+            else if(t.equals(CLASS_DEFINITION) ||
+                    t.equals(INTERFACE_DEFINITION))
+                skip_block(0);
             else if(is_modifier(t))
                 modifiers |= MODIFIERS.get(t.text);
+            else if(t.equals(BEGIN_TEMPLATE))
+                skip_template_declaration();
             else if(t.type == Token.Type.IDENTIFIER)
             {
                 if(!IGNORED_INNER_STRUCTS.contains(t.text))
@@ -350,6 +427,7 @@ public class Parser {
                      * id(...) { ... }      constructor
                      * id id(...) { ...}    method
                      */
+                    String type = parse_type(t);
                     Token t2 = next_token();
                     if(t2.type == Token.Type.IDENTIFIER)
                     {
@@ -360,11 +438,25 @@ public class Parser {
                             methods.add(new ParsedMethod(
                                     t2.text,    // name
                                     modifiers,  // modifiers
-                                    t.text,     // return type
+                                    type,       // return type
                                     parameters));
                             Token end_sig = next_token();
                             if(end_sig.equals(BEGIN_BLOCK))
                                 skip_block();
+                            else if(end_sig.equals(THROWS_SPECIFIER))
+                            {
+                                while(true)
+                                {
+                                    t = next_token();
+                                    if(t.equals(BEGIN_BLOCK))
+                                    {
+                                        skip_block();
+                                        break;
+                                    }
+                                    else if(t.equals(END_STATEMENT))
+                                        break;
+                                }
+                            }
                             else if(!end_sig.equals(END_STATEMENT))
                                 throw unexpected(end_sig);
                         }
@@ -378,7 +470,7 @@ public class Parser {
                     }
                     else if(t2.equals(OPEN_PAREN)) // Constructor
                     {
-                        if(!t.text.equals(classname))
+                        if(!type.equals(classname))
                             throw new ParserError(
                                     "Constructor with wrong name (or method " +
                                     "with no return type)",
@@ -387,10 +479,17 @@ public class Parser {
                         constructors.add(new ParsedConstructor(
                                 modifiers,
                                 parameters));
-                        next_token(BEGIN_BLOCK);
-                        skip_block();
+                        t = next_token();
+                        if(t.equals(BEGIN_BLOCK))
+                            skip_block();
+                        else if(t.equals(THROWS_SPECIFIER))
+                            skip_block(0);
+                        else
+                            throw unexpected(t);
                     }
                 }
+                else
+                    skip_block(0);
                 modifiers = 0;
             }
             else
@@ -424,18 +523,19 @@ public class Parser {
                 modifiers |= MODIFIERS.get(t.text);
             else
             {
-                StringBuilder type = new StringBuilder(t.text);
-                t = next_token();
-                while(t.equals(DOT))
+                String type = parse_type(t);
+                t = next_token(Token.Type.IDENTIFIER);
                 {
-                    type.append('.');
-                    type.append(next_token(Token.Type.IDENTIFIER).text);
-                    t = next_token();
+                    Token n = next_token();
+                    while(n.equals(ARRAY_LEFT))
+                    {
+                        next_token(ARRAY_RIGHT);
+                        type = type + "[]";
+                        n = next_token();
+                    }
+                    store_token(n);
                 }
-                if(t.type != Token.Type.IDENTIFIER)
-                    throw unexpected(t);
-                parameters.add(new ParsedParam(type.toString(), t.text,
-                                               modifiers));
+                parameters.add(new ParsedParam(type, t.text, modifiers));
                 modifiers = 0;
 
                 t = next_token();

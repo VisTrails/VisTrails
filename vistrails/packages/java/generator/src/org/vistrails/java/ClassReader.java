@@ -34,12 +34,15 @@ public class ClassReader {
                   "Options:\n" +
                   "  -s src_prefix: path to root of source files in the " +
                   "JAR\n" +
-                  "  -o output_xml: path to the XML file to be written");
+                  "  -o output_xml: path to the XML file to be written\n" +
+                  "  -S src_jar: path to the JAR files containing the " +
+                  "sources, if different");
         }
 
         String jar_filename = null;
         String src_prefix = null;
         String output_xml = null;
+        String src_jar_filename = null;
 
         @Override
         protected void handleOption(String opt) throws Error
@@ -48,6 +51,8 @@ public class ClassReader {
                 src_prefix = readArgument();
             else if(output_xml == null && opt.equals("-o"))
                 output_xml = readArgument();
+            else if(src_jar_filename == null && opt.equals("-S"))
+                src_jar_filename = readArgument();
             else
                 throw new Error();
         }
@@ -83,8 +88,12 @@ public class ClassReader {
             // This is optional, but if not present, parameters will be numbered
             // (e.g. arg0, arg1, ...)
             Map<String, ParsedClass> parsed_classes = null;
+            if(cli.src_jar_filename != null && cli.src_prefix == null)
+                cli.src_prefix = "";
+            if(cli.src_jar_filename == null)
+                cli.src_jar_filename = cli.jar_filename;
             if(cli.src_prefix != null)
-                parsed_classes = JavaParser.parse_jar(cli.jar_filename,
+                parsed_classes = JavaParser.parse_jar(cli.src_jar_filename,
                                                       cli.src_prefix);
             if(parsed_classes == null)
                 System.err.println("Reading JAR without sources; parameter " +
