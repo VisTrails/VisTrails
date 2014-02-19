@@ -136,7 +136,7 @@ def add_tool(path):
                         else:
                             # use name as flag
                             value = name
-                    elif 'file' == klass:
+                    elif klass in ('file', 'directory', 'path'):
                         value = value.name
                     # check for flag and append file name
                     if not 'flag' == klass and 'flag' in options:
@@ -375,7 +375,8 @@ def add_tool(path):
     def to_vt_type(s):
         # add recognized types here - default is String
         return '(basic:%s)' % \
-          {'file':'File', 'flag':'Boolean', 'list':'List',
+          {'file':'File', 'path':'Path', 'directory': 'Directory',
+           'flag':'Boolean', 'list':'List',
            'float':'Float','integer':'Integer'
           }.get(s.lower(), 'String')
     # add module ports
