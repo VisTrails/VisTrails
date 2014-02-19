@@ -414,6 +414,8 @@ public class Parser {
                 skip_block(0);
             else if(is_modifier(t))
                 modifiers |= MODIFIERS.get(t.text);
+            else if(t.equals(BEGIN_TEMPLATE))
+                skip_template_declaration();
             else if(t.type == Token.Type.IDENTIFIER)
             {
                 if(!IGNORED_INNER_STRUCTS.contains(t.text))
