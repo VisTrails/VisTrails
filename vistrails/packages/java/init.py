@@ -128,7 +128,10 @@ class JavaPackage(object):
         reg._current_package = self.package
         try:
             # Copied from module_registry:ModuleRegistry#initialize_package()
-            debug.debug('%s' % hasattr(additional_module, '_modules'))
+            if not hasattr(additional_module, '_modules'):
+                debug.warning("Possible programming mistake: code additions "
+                              "for Java package %s has no '_modules' "
+                              "global" % self.pkgname)
             if hasattr(additional_module, '_modules'):
                 modules = additional_module._modules
                 if isinstance(modules, dict):
@@ -153,6 +156,11 @@ class JavaPackage(object):
                 # modules inside package might use each other as ports
                 for module in modules:
                     reg.auto_add_module(module)
+
+            # allow all modules to auto_add_ports!
+            for descriptor in self.package.descriptor_list:
+                if hasattr(descriptor, 'module'):
+                    reg.auto_add_ports(descriptor.module)
             #
         finally:
             reg._current_package = pkg
