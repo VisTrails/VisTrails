@@ -488,6 +488,8 @@ public class Parser {
                             throw unexpected(t);
                     }
                 }
+                else
+                    skip_block(0);
                 modifiers = 0;
             }
             else
