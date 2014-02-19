@@ -77,6 +77,7 @@ public class JavaReflect {
         if(sources != null)
         {
             sourceClass = sources.get(c.getName());
+            // FIXME : Template classes should probably work anyway...
             if(sourceClass != null && sourceClass.template)
                 return "skipped (template)";
         }
@@ -230,6 +231,11 @@ public class JavaReflect {
                     status = analyzer.process(c);
                 }
                 catch(ClassNotFoundException e)
+                {
+                    e.printStackTrace();
+                    status = "error";
+                }
+                catch(NoClassDefFoundError e)
                 {
                     e.printStackTrace();
                     status = "error";
