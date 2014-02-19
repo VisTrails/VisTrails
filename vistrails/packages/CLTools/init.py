@@ -171,8 +171,9 @@ def add_tool(path):
                 try:
                     shutil.copyfile(value.name, outfile.name)
                 except IOError, e: # pragma: no cover
-                    raise ModuleError(self, "Error copying file '%s': %s" % (
-                                      value.name, e))
+                    raise ModuleError(self,
+                                      "Error copying file '%s': %s" %
+                                      (value.name, debug.format_exception(e)))
                 value = '%s%s' % (options.get('prefix', ''), outfile.name)
                 # check for flag and append file name
                 if 'flag' in options:
@@ -259,7 +260,8 @@ def add_tool(path):
                         env[key] = value
             except Exception, e: # pragma: no cover
                 raise ModuleError(self,
-                                  "Error parsing configuration env: %s" % e)
+                                  "Error parsing configuration env: %s" % (
+                                  debug.format_exception(e)))
 
         if 'options' in self.conf and 'env' in self.conf['options']:
             try:
@@ -271,7 +273,8 @@ def add_tool(path):
                         env[key] = value
             except Exception, e: # pragma: no cover
                 raise ModuleError(self,
-                                  "Error parsing module env: %s" % e)
+                                  "Error parsing module env: %s" % (
+                                  debug.format_exception(e)))
             
         if 'options' in self.conf and 'env_port' in self.conf['options']:
             for e in self.force_get_input_list('env'):
@@ -286,7 +289,8 @@ def add_tool(path):
                             env[key] = value
                 except Exception, e: # pragma: no cover
                     raise ModuleError(self,
-                                      "Error parsing env port: %s" % e)
+                                      "Error parsing env port: %s" % (
+                                      debug.format_exception(e)))
 
         if env:
             kwargs['env'] = dict(os.environ)
