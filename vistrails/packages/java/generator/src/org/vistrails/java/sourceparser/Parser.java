@@ -512,6 +512,16 @@ public class Parser {
             {
                 String type = parse_type(t);
                 t = next_token(Token.Type.IDENTIFIER);
+                {
+                    Token n = next_token();
+                    while(n.equals(ARRAY_LEFT))
+                    {
+                        next_token(ARRAY_RIGHT);
+                        type = type + "[]";
+                        n = next_token();
+                    }
+                    store_token(n);
+                }
                 parameters.add(new ParsedParam(type, t.text, modifiers));
                 modifiers = 0;
 
