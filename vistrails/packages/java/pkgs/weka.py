@@ -16,6 +16,13 @@ JavaString = _JAVA_VM.java.lang.String
 Class = _JAVA_VM.java.lang.Class
 
 
+reg = get_module_registry()
+
+Classifier = reg.get_module_by_name('Java#weka',
+                                    'Classifier',
+                                    'weka|classifiers')
+
+
 def _direct(param):
     return param
 def _file(param):
@@ -64,13 +71,24 @@ class EvaluateClassifier(Module):
             "Root relative squared error": 'root_rel_sq_error',
             "Total Number of Instances": 'instances'}
 
+    _input_ports = [
+            ('classifier', Classifier)] + [
+            (name, sig)
+            for name, description, option, sig, convert in OPTIONS]
+    _output_ports = [
+            ('stdout', '(edu.utah.sci.vistrails.basic:String)'),
+            ('results', '(edu.utah.sci.vistrails.basic:Dictionary)'),
+            ('classifier_name', '(edu.utah.sci.vistrails.basic:String)')] + [
+            (name, '(edu.utah.sci.vistrails.basic:Float)')
+            for name in FIELDS.itervalues()]
+
     def compute(self):
-        classifier = self.getInputFromPort('classifier')
+        classifier = self.get_input('classifier')
         options = []
         for portname, description, option, sig, convert in \
                 EvaluateClassifier.OPTIONS:
-            if self.hasInputFromPort(portname):
-                value = self.getInputFromPort(portname)
+            if self.has_input(portname):
+                value = self.get_input(portname)
                 if value is not None:
                     options.extend([option, convert(value)])
 
@@ -78,7 +96,7 @@ class EvaluateClassifier(Module):
 
         stdout = Evaluation.evaluateModel(classifier, options)
 
-        self.setResult('stdout', stdout)
+        self.set_output('stdout', stdout)
 
         results = dict()
 
@@ -90,7 +108,7 @@ class EvaluateClassifier(Module):
         if classifier_name.startswith('=='):
             classifier_name = ''
 
-        self.setResult('classifier_name', classifier_name)
+        self.set_output('classifier_name', classifier_name)
         results['classifier_name'] = classifier_name
 
         pos = stdout.find('=== Stratified cross-validation ===')
@@ -106,10 +124,10 @@ class EvaluateClassifier(Module):
                 except KeyError:
                     continue
                 res = float(m.group(2))
-                self.setResult(key, res)
+                self.set_output(key, res)
                 results[key] = res
 
-        self.setResult('results', results)
+        self.set_output('results', results)
 
 
 class EvaluationResultTable(Module):
@@ -118,8 +136,13 @@ class EvaluationResultTable(Module):
     This module can be used to turn the output of the EvaluateClassifier
     module into an HTML table suitable for display.
     """
+    _input_ports = [
+            ('statistics', '(edu.utah.sci.vistrails.basic:Dictionary)')]
+    _output_ports = [
+            ('html', '(edu.utah.sci.vistrails.basic:File)')]
+
     def compute(self):
-        statistics = self.getInputListFromPort('statistics')
+        statistics = self.get_input_list('statistics')
 
         tempfile = self.interpreter.filePool.create_file(suffix='.html')
         output = open(str(tempfile.name), 'w')
@@ -155,44 +178,7 @@ h1 { font-size: 130%; }
 
         output.close()
 
-        self.setResult('html', tempfile)
+        self.set_output('html', tempfile)
 
 
-def register_additional_modules():
-    reg = get_module_registry()
-
-
-    reg.add_module(EvaluateClassifier)
-    reg.add_input_port(
-            EvaluateClassifier, 'classifier',
-            '(edu.utah.sci.vistrails.weka:Classifier:weka|classifiers)')
-
-    for portname, description, option, sig, convert in \
-            EvaluateClassifier.OPTIONS:
-        reg.add_input_port(
-                EvaluateClassifier, portname,
-                sig)
-
-    reg.add_output_port(
-            EvaluateClassifier, 'stdout',
-            '(edu.utah.sci.vistrails.basic:String)')
-    reg.add_output_port(
-            EvaluateClassifier, 'results',
-            '(edu.utah.sci.vistrails.basic:Dictionary)')
-    reg.add_output_port(
-            EvaluateClassifier, 'classifier_name',
-            '(edu.utah.sci.vistrails.basic:String)')
-
-    for string, portname in EvaluateClassifier.FIELDS.iteritems():
-        reg.add_output_port(
-                EvaluateClassifier, portname,
-                '(edu.utah.sci.vistrails.basic:Float)')
-
-
-    reg.add_module(EvaluationResultTable)
-    reg.add_input_port(
-            EvaluationResultTable, 'statistics',
-            '(edu.utah.sci.vistrails.basic:Dictionary)')
-    reg.add_output_port(
-            EvaluationResultTable, 'html',
-            '(edu.utah.sci.vistrails.basic:File)')
+_modules = [EvaluateClassifier, EvaluationResultTable]
