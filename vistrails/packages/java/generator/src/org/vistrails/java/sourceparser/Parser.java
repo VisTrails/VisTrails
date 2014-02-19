@@ -356,7 +356,8 @@ public class Parser {
                     skip_block(0);
                 else if(t.equals(INTERFACE_DEFINITION))
                     return null; // It's an interface; skip
-                return parse_class(classname, 0);
+                else
+                    return parse_class(classname, 0);
             }
             else
                 throw unexpected(t);
