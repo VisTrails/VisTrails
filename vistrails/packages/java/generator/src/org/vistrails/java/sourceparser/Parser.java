@@ -35,6 +35,8 @@ public class Parser {
             new Token(Token.Type.OPERATOR, ".");
     private static final Token COMMA =
             new Token(Token.Type.OPERATOR, ",");
+    private static final Token STAR =
+            new Token(Token.Type.OPERATOR, "*");
     private static final Token ANNOTATION =
             new Token(Token.Type.OPERATOR, "@");
     private static final Token PACKAGE_STATEMENT =
@@ -249,7 +251,15 @@ public class Parser {
         {
             if(!t.equals(DOT))
                 throw new ParserError("Invalid qualified name", lineNumber());
-            t = next_token(Token.Type.IDENTIFIER);
+            t = next_token();
+            if(t.equals(STAR))
+            {
+                name.append('*');
+                next_token(END_STATEMENT);
+                return name.toString();
+            }
+            else if(t.type != Token.Type.IDENTIFIER)
+                throw unexpected(t);
             name.append('.');
             name.append(t.text);
             t = next_token();
