@@ -46,6 +46,17 @@ def shortname(name):
         return name
 
 
+def doubles(seq):
+    repeated = set()
+    found = set()
+    for elem in seq:
+        if elem in found:
+            repeated.add(elem)
+        else:
+            found.add(elem)
+    return repeated
+
+
 class ModuleCreator(object):
     """Walk over the module info structure and emit the Modules in order.
 
@@ -238,10 +249,16 @@ class ModuleCreator(object):
                         (mod, 'the created object'))
 
         # Then, a module for each static method
+        overloaded_methods = doubles(m.name for m in clasz.methods)
         for method in clasz.methods:
             if not method.is_static:
                 continue
-            sname = '%s_%s' % (name, method.name)
+            if method.name in overloaded_methods and method.parameters:
+                sname = '%s_%s_%s' % (name, method.name, '_'.join(
+                        shortname(p.type)
+                        for p in method.parameters))
+            else:
+                sname = '%s_%s' % (name, method.name)
             smod = type(
                     str(sname),
                     (StaticModuleMixin, JavaBaseModule),
