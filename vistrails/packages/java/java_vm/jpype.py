@@ -153,8 +153,6 @@ def build_jarray(t, seq):
         t = jpype.JLong
     elif t == 'object':
         t = 'java.lang.Object'
-    else:
-        raise ValueError
     return jpype.JArray(t)(seq)
 
 

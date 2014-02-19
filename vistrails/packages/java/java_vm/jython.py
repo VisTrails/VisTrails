@@ -130,8 +130,6 @@ def build_jarray(t, seq):
         t = 'J'
     elif t == 'object':
         t = java.lang.Object
-    else:
-        raise ValueError
     return jarray.array(seq, t)
 
 
