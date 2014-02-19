@@ -388,11 +388,7 @@ public class Parser {
             class_modifiers |= Modifiers.TEMPLATE;
         }
         while(!t.equals(BEGIN_BLOCK))
-        {
-            if(!t.equals(COMMA) && t.type != Token.Type.IDENTIFIER)
-                throw unexpected(t);
             t = next_token();
-        }
 
         int modifiers = 0;
         List<ParsedConstructor> constructors =
