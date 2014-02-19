@@ -1,3 +1,4 @@
+from vistrails.core import debug
 from vistrails.core.modules.basic_modules import Boolean, Float, Integer, \
     String
 from vistrails.core.modules.module_registry import get_module_registry
@@ -132,12 +133,14 @@ class ModuleCreator(object):
                 try:
                     parent = self._package_infos.classes[clasz.superclass]
                 except KeyError:
-                    raise ModuleCreator.MissingParent(
-                            "%s extends %s but it couldn't be found" % (
-                                    clasz.fullname,
-                                    clasz.superclass))
-                self._create_module(parent)
-            parent = self._created_modules[clasz.superclass]
+                    debug.log("%s extends %s but it couldn't be found" % (
+                              clasz.fullname,
+                              clasz.superclass))
+                    parent = JavaBaseModule
+                else:
+                    parent = self._create_module(parent)
+            else:
+                parent = self._created_modules[clasz.superclass]
 
         (namespace, name) = fullname_to_pair(clasz.fullname)
 
@@ -149,6 +152,7 @@ class ModuleCreator(object):
                                          namespace=namespace,
                                          **self.pkg_opts)
         self._created_modules[clasz.fullname] = mod
+        return mod
 
     def _populate_modules(self, clasz):
         mod = self._created_modules[clasz.fullname]
