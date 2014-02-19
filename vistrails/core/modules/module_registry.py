@@ -979,7 +979,7 @@ class ModuleRegistry(DBRegistry):
         return descriptor
 
     def convert_port_val(self, val, sig=None, cls=None):
-        from vistrails.core.modules.basic_modules import identifier as basic_pkg
+        basic_pkg = get_vistrails_basic_pkg_id()
         if sig is None and cls is None:
             raise ValueError("One of sig or cls must be set")
         try:

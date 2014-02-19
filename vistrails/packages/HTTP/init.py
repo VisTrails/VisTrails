@@ -149,7 +149,7 @@ class HTTPFile(Module):
                 if not size_header:
                     raise ValueError
                 size_header = int(size_header)
-            except ValueError:
+            except (KeyError, ValueError):
                 size_header = None
 
             result = vistrails.core.modules.basic_modules.File()

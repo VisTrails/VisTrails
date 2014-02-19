@@ -136,7 +136,7 @@ def add_tool(path):
                         else:
                             # use name as flag
                             value = name
-                    elif 'file' == klass:
+                    elif klass in ('file', 'directory', 'path'):
                         value = value.name
                     # check for flag and append file name
                     if not 'flag' == klass and 'flag' in options:
@@ -171,8 +171,9 @@ def add_tool(path):
                 try:
                     shutil.copyfile(value.name, outfile.name)
                 except IOError, e: # pragma: no cover
-                    raise ModuleError("Error copying file '%s': %s" %
-                                      (value.name, e))
+                    raise ModuleError(self,
+                                      "Error copying file '%s': %s" %
+                                      (value.name, debug.format_exception(e)))
                 value = '%s%s' % (options.get('prefix', ''), outfile.name)
                 # check for flag and append file name
                 if 'flag' in options:
@@ -242,10 +243,7 @@ def add_tool(path):
             else:
                 kwargs['stderr'] = subprocess.PIPE
 
-        if "return_code" in self.conf:
-            return_code = self.force_get_input(name)
-        else:
-            return_code = None
+        return_code = self.conf.get('return_code', None)
 
         env = {}
         # 0. add defaults
@@ -261,7 +259,9 @@ def add_tool(path):
                     if key:
                         env[key] = value
             except Exception, e: # pragma: no cover
-                raise ModuleError('Error parsing configuration env: %s' % e)
+                raise ModuleError(self,
+                                  "Error parsing configuration env: %s" % (
+                                  debug.format_exception(e)))
 
         if 'options' in self.conf and 'env' in self.conf['options']:
             try:
@@ -272,7 +272,9 @@ def add_tool(path):
                     if key:
                         env[key] = value
             except Exception, e: # pragma: no cover
-                raise ModuleError('Error parsing module env: %s' % e)
+                raise ModuleError(self,
+                                  "Error parsing module env: %s" % (
+                                  debug.format_exception(e)))
             
         if 'options' in self.conf and 'env_port' in self.conf['options']:
             for e in self.force_get_input_list('env'):
@@ -286,7 +288,9 @@ def add_tool(path):
                         if key:
                             env[key] = value
                 except Exception, e: # pragma: no cover
-                    raise ModuleError('Error parsing env port: %s' % e)
+                    raise ModuleError(self,
+                                      "Error parsing env port: %s" % (
+                                      debug.format_exception(e)))
 
         if env:
             kwargs['env'] = dict(os.environ)
@@ -313,7 +317,7 @@ def add_tool(path):
 
         if return_code is not None:
             if process.returncode != return_code:
-                raise ModuleError("Command returned %d (!= %d)" % (
+                raise ModuleError(self, "Command returned %d (!= %d)" % (
                                   process.returncode, return_code))
         self.set_output('return_code', process.returncode)
 
@@ -371,7 +375,8 @@ def add_tool(path):
     def to_vt_type(s):
         # add recognized types here - default is String
         return '(basic:%s)' % \
-          {'file':'File', 'flag':'Boolean', 'list':'List',
+          {'file':'File', 'path':'Path', 'directory': 'Directory',
+           'flag':'Boolean', 'list':'List',
            'float':'Float','integer':'Integer'
           }.get(s.lower(), 'String')
     # add module ports

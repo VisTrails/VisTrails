@@ -33,9 +33,15 @@
 ##
 ###############################################################################
 
+_get_vistrails_application = None
+
 def get_vistrails_application():
-    import vistrails.core.application
-    return vistrails.core.application.get_vistrails_application()
+    global _get_vistrails_application
+    if _get_vistrails_application is None:
+        import vistrails.core.application
+        _get_vistrails_application = \
+                        vistrails.core.application.get_vistrails_application
+    return _get_vistrails_application()
 
 def is_running_gui():
     return get_vistrails_application() and get_vistrails_application().is_running_gui()
