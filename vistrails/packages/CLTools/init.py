@@ -171,8 +171,8 @@ def add_tool(path):
                 try:
                     shutil.copyfile(value.name, outfile.name)
                 except IOError, e:
-                    raise ModuleError("Error copying file '%s': %s" %
-                                      (value.name, e))
+                    raise ModuleError(self, "Error copying file '%s': %s" % (
+                                      value.name, e))
                 value = '%s%s' % (options.get('prefix', ''), outfile.name)
                 # check for flag and append file name
                 if 'flag' in options:
@@ -242,10 +242,7 @@ def add_tool(path):
             else:
                 kwargs['stderr'] = subprocess.PIPE
 
-        if "return_code" in self.conf:
-            return_code = self.forceGetInputFromPort(name)
-        else:
-            return_code = None
+        return_code = self.conf.get('return_code', None)
 
         env = {}
         # 0. add defaults
@@ -261,7 +258,8 @@ def add_tool(path):
                     if key:
                         env[key] = value
             except Exception, e:
-                raise ModuleError('Error parsing configuration env: %s' % e)
+                raise ModuleError(self,
+                                  "Error parsing configuration env: %s" % e)
 
         if 'options' in self.conf and 'env' in self.conf['options']:
             try:
@@ -272,7 +270,8 @@ def add_tool(path):
                     if key:
                         env[key] = value
             except Exception, e:
-                raise ModuleError('Error parsing module env: %s' % e)
+                raise ModuleError(self,
+                                  "Error parsing module env: %s" % e)
             
         if 'options' in self.conf and 'env_port' in self.conf['options']:
             for e in self.forceGetInputListFromPort('env'):
@@ -286,7 +285,8 @@ def add_tool(path):
                         if key:
                             env[key] = value
                 except Exception, e:
-                    raise ModuleError('Error parsing env port: %s' % e)
+                    raise ModuleError(self,
+                                      "Error parsing env port: %s" % e)
 
         if env:
             kwargs['env'] = dict(os.environ)
@@ -313,7 +313,7 @@ def add_tool(path):
 
         if return_code is not None:
             if process.returncode != return_code:
-                raise ModuleError("Command returned %d (!= %d)" % (
+                raise ModuleError(self, "Command returned %d (!= %d)" % (
                                   process.returncode, return_code))
         self.setResult('return_code', process.returncode)
 
