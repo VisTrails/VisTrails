@@ -269,8 +269,20 @@ public class Parser {
         {
             if(t.equals(DOT))
             {
-                type.append('.');
-                type.append(next_token(Token.Type.IDENTIFIER).text);
+                Token n = next_token();
+                if(n.type == Token.Type.IDENTIFIER)
+                {
+                    type.append('.');
+                    type.append(n.text);
+                }
+                else if(n.equals(DOT))
+                {
+                    next_token(DOT);
+                    type.append("[]");
+                    return type.toString();
+                }
+                else
+                    throw unexpected(n);
             }
             else if(t.equals(BEGIN_TEMPLATE))
                 skip_template_declaration();

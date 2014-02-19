@@ -178,7 +178,7 @@ public class Lexer {
             {
                 // Ambiguity: this can be in a number literal or by itself
                 char n = read();
-                if(char_is_numeric(n, true))
+                if(n != '.' && char_is_numeric(n, true))
                 {
                     n = read();
                     while(char_is_numeric(n, false))
