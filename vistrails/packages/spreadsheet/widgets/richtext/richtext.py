@@ -36,7 +36,7 @@
 # Richtext widgets implementation
 ################################################################################
 import os
-from PyQt4 import QtGui
+from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import QUrl
 from PyQt4.QtXmlPatterns import QXmlQuery
 
@@ -60,7 +60,7 @@ class RichTextCell(SpreadsheetCell):
         text_format = self.get_input("Format")
         with open(filename, 'rb') as fp:
             if text_format == 'html':
-                html = fp.read().decode('utf-8')
+                html = fp.read() # reads bytes
             elif text_format == 'rtf':
                 try:
                     py_import('pyth', {'pip': 'pyth'})
@@ -71,7 +71,7 @@ class RichTextCell(SpreadsheetCell):
                     from pyth.plugins.rtf15.reader import Rtf15Reader
                     from pyth.plugins.xhtml.writer import XHTMLWriter
                     doc = Rtf15Reader.read(fp)
-                    html = XHTMLWriter.write(doc).read().decode('utf-8')
+                    html = XHTMLWriter.write(doc).read() # gets bytes
             else:
                 raise ModuleError(self, "'%s' format is unknown" % text_format)
 
@@ -93,7 +93,9 @@ class XSLCell(SpreadsheetCell):
         query = QXmlQuery(QXmlQuery.XSLT20)
         query.setFocus(QUrl.fromLocalFile(os.path.join(os.getcwd(), xml)))
         query.setQuery(QUrl.fromLocalFile(os.path.join(os.getcwd(), xsl)))
-        html = query.evaluateToString()
+        html = query.evaluateToString() # gets a unicode object
+        if html is None:
+            raise ModuleError(self, "Error applying XSL")
 
         self.cellWidget = self.displayAndWait(RichTextCellWidget, (html,))
 
@@ -121,7 +123,12 @@ class RichTextCellWidget(QCellWidget):
 
         """
         (self.html,) = inputPorts
-        self.browser.setHtml(self.html)
+        if isinstance(self.html, unicode):
+            html = self.html
+        else:
+            codec = QtCore.QTextCodec.codecForHtml(self.html)
+            html = codec.toUnicode(self.html)
+        self.browser.setHtml(html)
 
     def dumpToFile(self, filename):
         """ dumpToFile(filename) -> None
@@ -132,7 +139,13 @@ class RichTextCellWidget(QCellWidget):
         if self.html is not None:
             basename, ext = os.path.splitext(filename)
             with open(basename + '.html', 'wb') as fp:
-                fp.write(self.html.encode('utf-8'))
+                if isinstance(self.html, bytes):
+                    fp.write(self.html)
+                else:
+                    codec = QtCore.QTextCodec.codecForHtml(
+                            self.html.encode('utf-8'),
+                            QtCore.QTextCodec.codecForName('UTF-8'))
+                    fp.write(codec.fromUnicode(self.html))
         QCellWidget.dumpToFile(self,filename)
 
     def saveToPDF(self, filename):
