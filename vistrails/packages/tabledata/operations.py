@@ -88,7 +88,6 @@ class JoinedTables(TableObject):
 
         right_keys = build_key_dict(self.right_t, self.right_key_col)
 
-        new_data = []
         self.row_map = {}
         for left_row_idx, key in enumerate(
                 self.left_t.get_column(self.left_key_col)):

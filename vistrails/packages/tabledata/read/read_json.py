@@ -1,5 +1,4 @@
 import json
-from vistrails.core.modules.vistrails_module import ModuleError
 
 from ..common import TableObject, Table, InternalModuleError
 

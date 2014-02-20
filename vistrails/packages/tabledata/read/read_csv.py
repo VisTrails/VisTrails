@@ -1,11 +1,9 @@
 import csv
-from itertools import izip
 try:
     import numpy
 except ImportError:
     numpy = None
 
-from vistrails.core.modules.vistrails_module import ModuleError
 from ..common import TableObject, Table, InternalModuleError
 
 
@@ -69,7 +67,7 @@ class CSVTable(TableObject):
 
                 for i in xrange(skip_lines):
                     if not line:
-                        raise IntneralModuleError("skip_lines greater than "
+                        raise InternalModuleError("skip_lines greater than "
                                                   "the number of lines in the "
                                                   "file")
                     line = fp.readline()
@@ -106,7 +104,7 @@ class CSVTable(TableObject):
                 for i in xrange(self.skip_lines):
                     line = fp.readline()
                     if not line:
-                        raise IntneralModuleError("skip_lines greater than "
+                        raise InternalModuleError("skip_lines greater than "
                                                   "the number of lines in the "
                                                   "file")
                 if self.dialect is not None:

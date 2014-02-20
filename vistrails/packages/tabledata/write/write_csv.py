@@ -7,7 +7,7 @@ from ..common import Table
 
 
 class WriteCSV(Module):
-    """Writes a table to a CSV file."
+    """Writes a table to a CSV file.
     """
 
     _input_ports = [
