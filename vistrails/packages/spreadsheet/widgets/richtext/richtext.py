@@ -60,7 +60,7 @@ class RichTextCell(SpreadsheetCell):
         text_format = self.get_input("Format")
         with open(filename, 'rb') as fp:
             if text_format == 'html':
-                html = fp.read()
+                html = fp.read().decode('utf-8')
             elif text_format == 'rtf':
                 try:
                     py_import('pyth', {'pip': 'pyth'})
