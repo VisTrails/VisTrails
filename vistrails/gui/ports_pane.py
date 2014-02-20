@@ -247,9 +247,12 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         return self.build_widget(get_widget_class, True)
 
 class PortItem(QtGui.QTreeWidgetItem):
-    null_icon = QtGui.QIcon()
-    eye_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
-                                        'gui/resources/images/eye.png'))
+    eye_open_icon = \
+        QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                                 'gui/resources/images/eye.png'))
+    eye_closed_icon = \
+        QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                                 'gui/resources/images/eye_closed.png'))
     eye_disabled_icon = \
         QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                  'gui/resources/images/eye_gray.png'))
@@ -275,9 +278,9 @@ class PortItem(QtGui.QTreeWidgetItem):
     def set_visible(self, visible):
         self.is_visible = visible
         if visible:
-            self.setIcon(0, PortItem.eye_icon)
+            self.setIcon(0, PortItem.eye_open_icon)
         else:
-            self.setIcon(0, PortItem.null_icon)
+            self.setIcon(0, PortItem.eye_closed_icon)
 
     def get_visible(self):
         return self.visible_checkbox
@@ -293,8 +296,10 @@ class PortItem(QtGui.QTreeWidgetItem):
         if not is_optional:
             self.setIcon(0, PortItem.eye_disabled_icon)
         elif is_visible:
-            self.setIcon(0, PortItem.eye_icon)
-            
+            self.setIcon(0, PortItem.eye_open_icon)
+        else:
+            self.setIcon(0, PortItem.eye_closed_icon)
+
         if is_connected:
             self.setIcon(1, PortItem.conn_icon)
         self.setText(2, port_spec.name)
