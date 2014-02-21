@@ -9,7 +9,7 @@ try:
             'linux-debian': 'python-numpy',
             'linux-ubuntu': 'python-numpy',
             'linux-fedora': 'numpy'})
-except ImportError:
+except ImportError: # pragma: no cover
     pass
 
 from .common import _modules as common_modules
@@ -25,7 +25,8 @@ _modules = [common_modules,
             read_modules,
             write_modules]
 
-if get_package_manager().has_package('org.vistrails.vistrails.spreadsheet'):
+if get_package_manager().has_package( # pragma: no branch
+        'org.vistrails.vistrails.spreadsheet'):
     from .viewer import _modules as viewer_modules
     _modules.append(viewer_modules)
 

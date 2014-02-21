@@ -1,6 +1,6 @@
 try:
     import numpy
-except ImportError:
+except ImportError: # pragma: no cover
     numpy = None
 
 from vistrails.core.modules.config import ModuleSettings

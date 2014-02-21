@@ -32,7 +32,7 @@ class JSONTable(TableObject):
         self.columns = len(self.names)
         self.rows = len(self.data)
 
-    def get_column(self, i, numeric=False): # pragma: no cover
+    def get_column(self, i, numeric=False):
         if numeric:
             return [float(r[i]) for r in self.data]
         return [r[i] for r in self.data]

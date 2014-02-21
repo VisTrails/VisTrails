@@ -3,7 +3,7 @@ from vistrails.core.modules.utils import make_modules_dict
 try:
     # read_numpy requires numpy
     import numpy
-except ImportError:
+except ImportError: # pragma: no cover
     numpy_modules = []
 else:
     from read_numpy import _modules as numpy_modules

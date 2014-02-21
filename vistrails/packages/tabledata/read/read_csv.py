@@ -1,7 +1,7 @@
 import csv
 try:
     import numpy
-except ImportError:
+except ImportError: # pragma: no cover
     numpy = None
 
 from ..common import TableObject, Table, InternalModuleError
