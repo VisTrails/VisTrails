@@ -34,6 +34,7 @@ class TableCellWidget(QCellWidget):
         table, = inputPorts
 
         self.table.setSortingEnabled(False)
+        self.table.clear()
         self.table.setColumnCount(table.columns)
         self.table.setRowCount(table.rows)
 
@@ -53,5 +54,6 @@ class TableCellWidget(QCellWidget):
         if table.names is not None:
             self.table.setHorizontalHeaderLabels(table.names)
         self.table.setSortingEnabled(True)
+        self.table.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
 _modules = [TableCell]
