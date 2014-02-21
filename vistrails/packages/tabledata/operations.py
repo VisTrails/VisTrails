@@ -5,6 +5,15 @@ from .common import TableObject, Table
 # FIXME use pandas?
 
 
+def utf8(obj):
+    if isinstance(obj, bytes):
+        return obj
+    elif isinstance(obj, unicode):
+        return obj.encode('utf-8')
+    else:
+        return bytes(obj)
+
+
 class JoinedTables(TableObject):
     def __init__(self, left_t, right_t, left_key_col, right_key_col,
                  case_sensitive=False, always_prefix=False):
@@ -17,7 +26,6 @@ class JoinedTables(TableObject):
 
         self.build_column_names()
 
-        self._rows = None
         self.row_map = None
         self.column_cache = {}
 
@@ -58,19 +66,17 @@ class JoinedTables(TableObject):
 
         result = []
         if index < self.left_t.columns:
-            column = self.left_t.get_column(index)
+            column = self.left_t.get_column(index, numeric)
             for i in xrange(self.left_t.rows):
                 if i in self.row_map:
                     result.append(column[i])
         else:
-            column = self.right_t.get_column(index - self.left_t.columns)
+            column = self.right_t.get_column(index - self.left_t.columns,
+                                             numeric)
             for i in xrange(self.left_t.rows):
                 if i in self.row_map:
                     j = self.row_map[i]
                     result.append(column[j])
-
-        if numeric:
-            result = [float(x) for x in result]
 
         self.column_cache[(index, numeric)] = result
         return result
@@ -78,12 +84,13 @@ class JoinedTables(TableObject):
     def compute_row_map(self):
         def build_key_dict(table, key_col):
             key_dict = {}
+            column = table.get_column(key_col)
             if self.case_sensitive:
-                key_dict = dict((val.strip(), i) for i, val in
-                                enumerate(table.get_column(key_col)))
+                key_dict = dict((utf8(val).strip(), i)
+                                for i, val in enumerate(column))
             else:
-                key_dict = dict((val.strip().upper(), i) for i, val in
-                                enumerate(table.get_column(key_col)))
+                key_dict = dict((utf8(val).strip().upper(), i)
+                                for i, val in enumerate(column))
             return key_dict
 
         right_keys = build_key_dict(self.right_t, self.right_key_col)
@@ -91,22 +98,29 @@ class JoinedTables(TableObject):
         self.row_map = {}
         for left_row_idx, key in enumerate(
                 self.left_t.get_column(self.left_key_col)):
-            if (self.case_sensitive and key.strip() in right_keys):
-                self.row_map[left_row_idx] = right_keys[key.strip()]
-            elif (not self.case_sensitive and key.strip().upper() in right_keys):
-                self.row_map[left_row_idx] = right_keys[key.strip().upper()]
+            key = utf8(key).strip()
+            if not self.case_sensitive:
+                key = key.upper()
+            if key in right_keys:
+                self.row_map[left_row_idx] = right_keys[key]
 
     @property
     def rows(self):
-        if self._rows is not None:
-            return self._rows
-        self.compute_row_map()
+        if self.row_map is None:
+            self.compute_row_map()
         return len(self.row_map)
 
 
 # FIXME : test coverage for JoinTables & JoinedTables
-# FIXME : doc for JoinTables
 class JoinTables(Table):
+    """Joins data from two tables using equality of a pair of columns.
+
+    This creates a table by combining the fields from the two tables. It will
+    match the values in the two selected columns (one from each table). If a
+    row from one of the table has a value for the selected field that doesn't
+    exist in the other table, that row will not appear in the result
+    (INNER JOIN semantics).
+    """
     _input_ports = [('left_table', 'Table'),
                     ('right_table', 'Table'),
                     ('left_column_idx', 'basic:Integer'),

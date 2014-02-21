@@ -62,5 +62,6 @@ class TableCellWidget(QCellWidget):
         self.table.setHorizontalHeaderLabels(['row' ] + names)
         self.table.setSortingEnabled(True)
         self.table.sortByColumn(0, QtCore.Qt.AscendingOrder)
+        self.table.resizeColumnsToContents()
 
 _modules = [TableCell]

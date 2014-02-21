@@ -21,6 +21,14 @@ class TableObject(object):
     name = None # a name for the table (useful for joins, etc.)
 
     def get_column(self, i, numeric=False): # pragma: no cover
+        """Gets a column from the table as a list or numpy array.
+
+        If numeric=False (the default), the data is returned 'as-is'. It might
+        either be bytes (=str), unicode or number (int, long, float).
+
+        If numeric=True, the data is returned as a numpy array if numpy is
+        available, or as a list of floats.
+        """
         raise NotImplementedError
 
 
