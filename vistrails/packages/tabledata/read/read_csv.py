@@ -14,9 +14,9 @@ def count_lines(fp):
     return lines
 
 
+# FIXME : test coverage for CSVTable
 class CSVTable(TableObject):
-
-    def __init__(self, csv_file, header_present, delimiter, 
+    def __init__(self, csv_file, header_present, delimiter,
                  skip_lines=0, dialect=None, use_sniffer=True):
         TableObject.__init__(self)
         self._rows = None
@@ -27,7 +27,7 @@ class CSVTable(TableObject):
         self.skip_lines = skip_lines
         self.dialect = dialect
 
-        (self.columns, self.names, self.delimiter, 
+        (self.columns, self.names, self.delimiter,
          self.header_present, self.dialect) = \
             self.read_file(csv_file, delimiter, header_present, skip_lines,
                            dialect, use_sniffer)
@@ -37,14 +37,14 @@ class CSVTable(TableObject):
         self.column_cache = {}
 
     @staticmethod
-    def read_file(filename, delimiter=None, header_present=True, 
+    def read_file(filename, delimiter=None, header_present=True,
                   skip_lines=0, dialect=None, use_sniffer=True):
         if delimiter is None and use_sniffer is False:
             raise InternalModuleError("Must set delimiter if not using sniffer")
 
         try:
             with open(filename, 'rb') as fp:
-                if use_sniffer:                    
+                if use_sniffer:
                     first_lines = ""
                     line = fp.readline()
                     for i in xrange(skip_lines):
@@ -85,7 +85,7 @@ class CSVTable(TableObject):
                     column_names = None
         except IOError:
             raise InternalModuleError("File does not exist")
-            
+
         return column_count, column_names, delimiter, header_present, dialect
 
     def get_column(self, index, numeric=False):
@@ -130,6 +130,13 @@ class CSVTable(TableObject):
 
 
 class CSVFile(Table):
+    """Reads a table from a CSV file.
+
+    This module uses Python's csv module to read a table from a file. It is
+    able to guess the actual format of the file in most cases, or you can use
+    the 'delimiter', 'header_present' and 'skip_lines' ports to force how the
+    file will be read.
+    """
     _input_ports = [
             ('file', '(org.vistrails.vistrails.basic:File)'),
             ('delimiter', '(org.vistrails.vistrails.basic:String)',
@@ -149,7 +156,7 @@ class CSVFile(Table):
 
     def compute(self):
         csv_file = self.get_input('file').name
-        header_present = self.get_input('header_present')
+        header_present = self.force_get_input('header_present', None)
         delimiter = self.force_get_input('delimiter', None)
         skip_lines = self.get_input('skip_lines')
         dialect = self.force_get_input('dialect', None)

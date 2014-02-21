@@ -4,7 +4,7 @@ from ..common import TableObject, Table, InternalModuleError
 
 # Currently works for dict-style table:
 #    {key1: {name1: val1, name2: val2, ...}, key2: {...}, ...}
-# TODO: need to add list-style table 
+# TODO: need to add list-style table
 #    [{name1: val1, name2: val2, ...}, {name1: val1, ...}, ...]
 
 class JSONTable(TableObject):
@@ -17,7 +17,7 @@ class JSONTable(TableObject):
     def read_file(self):
         with open(self.filename, 'rb') as fp:
             json_d = json.load(fp)
-        
+
             for k, k_dict in json_d.iteritems():
                 row_items = k_dict.items()
                 row_items.sort()
@@ -25,7 +25,7 @@ class JSONTable(TableObject):
                 if self.names is None:
                     self.names = new_header
                 elif self.names != new_header:
-                    raise InternalModuleError(self, 
+                    raise InternalModuleError(self,
                                               "JSON Headers do not match")
                 self.data.append([k,] + list(values))
         self.names = ['_key'] + list(self.names)
@@ -37,9 +37,12 @@ class JSONTable(TableObject):
             return [float(r[i]) for r in self.data]
         return [r[i] for r in self.data]
 
+
+# FIXME : test coverage for JSONFile
+# FIXME : doc for JSONFile
 class JSONFile(Table):
     _input_ports = [('file', '(org.vistrails.vistrails.basic:File)')]
-    _output_ports = [('value', 
+    _output_ports = [('value',
                       'org.vistrails.vistrails.tabledata:read|JSONFile)')]
 
     def compute(self):
@@ -51,5 +54,6 @@ class JSONFile(Table):
         self.set_output('column_count', table.columns)
         self.set_output('column_names', table.names)
         self.set_output('value', table)
+
 
 _modules = [JSONFile]

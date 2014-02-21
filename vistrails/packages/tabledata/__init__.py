@@ -26,9 +26,10 @@ from .identifiers import *
 
 def package_dependencies():
     pm = get_package_manager()
-    if pm.has_package('org.vistrails.vistrails.spreadsheet'):
-        return ['org.vistrails.vistrails.spreadsheet']
-    else:
+    spreadsheet_identifier = 'org.vistrails.vistrails.spreadsheet'
+    if pm.has_package(spreadsheet_identifier):
+        return [spreadsheet_identifier]
+    else: # pragma: no cover
         return []
 
 

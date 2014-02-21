@@ -104,6 +104,8 @@ class JoinedTables(TableObject):
         return len(self.row_map)
 
 
+# FIXME : test coverage for JoinTables & JoinedTables
+# FIXME : doc for JoinTables
 class JoinTables(Table):
     _input_ports = [('left_table', 'Table'),
                     ('right_table', 'Table'),
@@ -179,6 +181,8 @@ class ProjectedTable(TableObject):
         return self.table.rows
 
 
+# FIXME : test coverage for ProjectTable & ProjectedTable
+# FIXME : doc for ProjectTable
 class ProjectTable(Table):
     _input_ports = [("table", "Table"),
                     ("column_names", "basic:List"),
@@ -265,6 +269,8 @@ class SelectedTable(TableObject):
         return [col[i] for i in self.matched_rows]
 
 
+# FIXME : test coverage for SelectFromTable & SelectedTable
+# FIXME : doc for SelectFromTable
 class SelectFromTable(Table):
     _input_ports = [('table', 'Table'),
                     ('str_expr', 'basic:String,basic:String,basic:String',

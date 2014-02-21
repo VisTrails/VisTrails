@@ -8,8 +8,11 @@ from ..common import Table
 
 class WriteCSV(Module):
     """Writes a table to a CSV file.
-    """
 
+    You can use the 'delimiter' and 'write_header' ports to choose the format
+    you want. By default, the file will include a single-line header if the
+    table has column names, and will use semicolon separators (';').
+    """
     _input_ports = [
             ('table', Table),
             ('delimiter', '(org.vistrails.vistrails.basic:String',

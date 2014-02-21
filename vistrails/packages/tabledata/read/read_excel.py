@@ -1,6 +1,6 @@
 try:
     import numpy
-except ImportError:
+except ImportError: # pragma: no cover
     numpy = None
 
 from vistrails.core.bundles.pyimport import py_import
@@ -56,6 +56,11 @@ class ExcelTable(TableObject):
 
 
 class ExcelSpreadsheet(Table):
+    """Reads a table from a Microsoft Excel file.
+
+    This module uses xlrd from the python-excel.org project to read a XLS or
+    XLSX file.
+    """
     _input_ports = [
             ('file', '(org.vistrails.vistrails.basic:File)'),
             ('sheet_name', '(org.vistrails.vistrails.basic:String)',

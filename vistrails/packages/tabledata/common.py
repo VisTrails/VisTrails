@@ -6,11 +6,13 @@ except ImportError: # pragma: no cover
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
+
 class InternalModuleError(Exception):
     """Track ModuleError in subclasses."""
 
     def raise_module_error(self, module_obj):
         raise ModuleError(module_obj, self.message)
+
 
 class TableObject(object):
     columns = None # the number of columns in the table
@@ -32,7 +34,13 @@ class Table(Module):
                 value.name = self.force_get_input('name', None)
         Module.set_output(self, port_name, value)
 
+
 class ExtractColumn(Module):
+    """Gets a single column from a table, as a list.
+
+    Specifying one of 'column_name' or 'column_index' is sufficient; if you
+    provide both, the module will check that the column has the expected name.
+    """
     _input_ports = [
             ('table', Table),
             ('column_name', '(org.vistrails.vistrails.basic:String)',
@@ -98,6 +106,11 @@ class BuiltTable(TableObject):
 
 
 class BuildTable(Module):
+    """Builds a table by putting together columns from multiple sources.
+
+    Input can be a mix of lists, which will be used as single columns, and
+    whole tables, whose column names will be mangled.
+    """
     _settings = ModuleSettings(configure_widget=
             'vistrails.packages.tabledata.widgets:BuildTableWidget')
     _output_ports = [('value', Table)]
@@ -108,7 +121,7 @@ class BuildTable(Module):
 
     def compute(self):
         items = None
-        if self.input_ports_order:
+        if self.input_ports_order: # pragma: no branch
             items = [(p, self.get_input(p))
                      for p in self.input_ports_order]
         if not items:
