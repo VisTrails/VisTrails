@@ -165,7 +165,7 @@ class FoldWithModule(Fold):
             for connector in self.inputPorts.get('FunctionPort'):
                 module = copy.copy(connector.obj)
 
-                if not self.upToDate: # pragma: no partial
+                if not self.upToDate: # pragma: no branch
                     ## Type checking
                     if i == 0:
                         self.typeChecking(module, nameInput, inputList)
