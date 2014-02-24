@@ -1,6 +1,8 @@
+import re
+
 from vistrails.core.modules.vistrails_module import ModuleError
 
-from .common import TableObject, Table
+from .common import TableObject, Table, choose_column, choose_columns
 
 # FIXME use pandas?
 
@@ -25,9 +27,9 @@ class JoinedTables(TableObject):
         self.always_prefix = always_prefix
 
         self.build_column_names()
-
-        self.row_map = None
+        self.compute_row_map()
         self.column_cache = {}
+        self.rows = len(self.row_map)
 
     def build_column_names(self):
         left_name = self.left_t.name
@@ -60,9 +62,6 @@ class JoinedTables(TableObject):
     def get_column(self, index, numeric=False):
         if (index, numeric) in self.column_cache:
             return self.column_cache[(index, numeric)]
-
-        if self.row_map is None:
-            self.compute_row_map()
 
         result = []
         if index < self.left_t.columns:
@@ -104,12 +103,6 @@ class JoinedTables(TableObject):
             if key in right_keys:
                 self.row_map[left_row_idx] = right_keys[key]
 
-    @property
-    def rows(self):
-        if self.row_map is None:
-            self.compute_row_map()
-        return len(self.row_map)
-
 
 # FIXME : test coverage for JoinTables & JoinedTables
 class JoinTables(Table):
@@ -134,8 +127,6 @@ class JoinTables(Table):
     _output_ports = [('value', 'Table')]
 
     def compute(self):
-        Table.compute(self)
-
         left_t = self.get_input('left_table')
         right_t = self.get_input('right_table')
         case_sensitive = self.get_input('case_sensitive')
@@ -143,30 +134,14 @@ class JoinTables(Table):
 
         def get_column_idx(table, prefix):
             col_name_port = "%s_column_name" % prefix
-            col_idx = None
-            if self.has_input(col_name_port):
-                col_name = self.get_input(col_name_port)
-                try:
-                    if table.names is None:
-                        raise ValueError
-                    col_idx = table.names.index(col_name)
-                except ValueError:
-                    raise ModuleError(self, '%s_table does not contain column '
-                                      '"%s"' % (prefix, col_name))
             col_idx_port = '%s_column_idx' % prefix
-            if self.has_input(col_idx_port):
-                port_col_idx = self.get_input(col_idx_port)
-                if col_idx is not None and col_idx != port_col_idx:
-                    raise ModuleError(self,
-                                      "Both %s_column_name and "
-                                      "%s_column_index were "
-                                      "specified, and they don't agree" %
-                                      (prefix, prefix))
-                else:
-                    col_idx = port_col_idx
-            if col_idx is None:
-                raise ModuleError(self, "You must set one of %s_column_name "
-                                  "or %s_column_index" % (prefix, prefix))
+            try:
+                col_idx = choose_column(
+                        column_names=table.names,
+                        name=self.force_get_input(col_name_port, None),
+                        index=self.force_get_input(col_idx_port, None))
+            except ValueError, e:
+                raise ModuleError(self, e.message)
 
             return col_idx
 
@@ -179,12 +154,11 @@ class JoinTables(Table):
 
 
 class ProjectedTable(TableObject):
-    def __init__(self, table, col_idxs):
+    def __init__(self, table, col_idxs, col_names):
         self.table = table
         self.col_map = dict(enumerate(col_idxs))
         self.columns = len(self.col_map)
-        if self.table.names is not None:
-            self.names = [self.table.names[i] for i in col_idxs]
+        self.names = col_names
 
     def get_column(self, index, numeric=False):
         mapped_idx = self.col_map[index]
@@ -196,73 +170,66 @@ class ProjectedTable(TableObject):
 
 
 # FIXME : test coverage for ProjectTable & ProjectedTable
-# FIXME : doc for ProjectTable
 class ProjectTable(Table):
+    """Build a table from the columns of another table.
+
+    This allows you to restrict, reorder or rename the columns of a table. You
+    can also duplicate columns by mentioning them several times.
+    """
     _input_ports = [("table", "Table"),
                     ("column_names", "basic:List"),
-                    ("column_indexes", "basic:List")]
+                    ("column_indexes", "basic:List"),
+                    ("new_column_names", "basic:List",
+                     {"optional": True})]
     _output_ports = [("value", "Table")]
 
     def compute(self):
-        Table.compute(self)
-
         table = self.get_input("table")
-        if self.has_input('column_indexes'):
-            column_indexes = self.get_input('column_indexes')
-        if self.has_input('column_names'):
-            indexes = []
-            names = self.get_input('column_names')
-            for name in names:
-                if isinstance(name, unicode):
-                    name = name.encode('utf-8')
-                if table.names is None:
-                    raise ModuleError("Unable to get column by names: table "
-                                      "doesn't have column names")
-                try:
-                    index = table.names.index(name)
-                except ValueError:
-                    try:
-                        name = name.strip()
-                        index = table.column_names.index(name)
-                    except:
-                        raise ModuleError(self, "Column name was not found")
-                indexes.append(index)
-            if self.has_input('column_index'):
-                if column_indexes != indexes:
-                    raise ModuleError(self,
-                                      "Both column_names and column_indexes "
-                                      "were specified, and they don't agree")
-
-        elif self.has_input('column_indexes'):
-            indexes = column_indexes
+        indexes = choose_columns(
+                column_names=table.names,
+                names=self.force_get_input('column_names', None),
+                indexes=self.force_get_input('column_indexes', None))
+        if self.has_input('new_column_names'):
+            column_names = self.get_input('new_column_names')
+            if len(column_names) != len(indexes):
+                raise ModuleError(self,
+                                  "new_column_names was specified but doesn't "
+                                  "have the right number of names")
         else:
-            raise ModuleError(self,
-                              "You must set one of column_names or "
-                              "column_indexes")
+            column_names = [table.names[i]
+                            for i in indexes]
 
-        projected_table = ProjectedTable(table, indexes)
+        projected_table = ProjectedTable(table, indexes, column_names)
         self.set_output("value", projected_table)
 
 
 class SelectedTable(TableObject):
+    @staticmethod
+    def make_condition(comparand, comparer):
+        if isinstance(comparand, float):
+            with_cast = lambda f: lambda v: f(float(v))
+        else:
+            with_cast = lambda f: f
+        if comparer == '==':
+            return with_cast(lambda v: v == comparand)
+        elif comparer == '!=':
+            return with_cast(lambda v: v != comparand)
+        elif comparer == '<':
+            return with_cast(lambda v: v < comparand)
+        elif comparer == '>':
+            return with_cast(lambda v: v > comparand)
+        elif comparer == '<=':
+            return with_cast(lambda v: v <= comparand)
+        elif comparer == '>=':
+            return with_cast(lambda v: v >= comparand)
+        elif comparer == '=~':
+            regex = re.compile(comparand)
+            return regex.match
+        else:
+            raise ValueError("Invalid comparison operator %r" % comparer)
+
     def __init__(self, table, idx, comparer, comparand):
-        def do_compare(v1, v2, c):
-            if type(v2) == float:
-                v1 = float(v1)
-            if c == '==':
-                return v1 == v2
-            elif c == '!=':
-                return v1 != v2
-            elif c == '<':
-                return v1 < v2
-            elif c == '>':
-                return v1 > v2
-            elif c == '<=':
-                return v1 <= v2
-            elif c == '>=':
-                return v1 >= v2
-            elif c == '=~':
-                raise ModuleError(self, "=~ is not yet implemented.")
+        condition = self.make_condition(comparand, comparer)
 
         self.table = table
         self.matched_rows = []
@@ -271,7 +238,7 @@ class SelectedTable(TableObject):
             numeric = True
         column = self.table.get_column(idx, numeric)
         for i, col_val in enumerate(column):
-            if do_compare(col_val, comparand, comparer):
+            if condition(col_val):
                 self.matched_rows.append(i)
 
         self.rows = len(self.matched_rows)
@@ -284,8 +251,12 @@ class SelectedTable(TableObject):
 
 
 # FIXME : test coverage for SelectFromTable & SelectedTable
-# FIXME : doc for SelectFromTable
 class SelectFromTable(Table):
+    """Builds a table from the rows of another table.
+
+    This allows you to filter the records in a table according to a condition
+    on a specific field.
+    """
     _input_ports = [('table', 'Table'),
                     ('str_expr', 'basic:String,basic:String,basic:String',
                      {'entry_types': "['default','enum','default']",
@@ -293,13 +264,10 @@ class SelectFromTable(Table):
                     ('float_expr', 'basic:String,basic:String,basic:Float',
                      {'entry_types': "['default','enum','default']",
                       'values': "[[], ['==', '!=', '<', '>', '<=', '>='], []]"})]
-
-    # 'values': "[[], ['==', '!=', '<', '>', '<=', '>='], []]"
     _output_ports = [('value', 'Table')]
 
     def compute(self):
         table = self.get_input('table')
-        header = table.names
 
         if self.has_input('str_expr'):
             (col, comparer, val) = self.get_input('str_expr')
@@ -308,17 +276,13 @@ class SelectFromTable(Table):
         else:
             raise ModuleError(self, "Must have some expression")
 
-        idx = None
-        if header is not None:
+        try:
+            idx = int(col)
+        except ValueError:
             try:
-                idx = header.index(col)
+                idx = table.names.index(col)
             except ValueError:
-                pass
-        if idx is None:
-            try:
-                idx = int(col)
-            except ValueError:
-                raise ModuleError(self, 'Do not reognize columns "%s"' % col)
+                raise ModuleError(self, "No column %r" % col)
 
         selected_table = SelectedTable(table, idx, comparer, val)
         self.set_output('value', selected_table)

@@ -59,10 +59,9 @@ def choose_column(column_names=None, name=None, index=None):
             name_index = column_names.index(name)
         except ValueError:
             try:
-                name = name.strip()
-                name_index = column_names.index(name)
+                name_index = column_names.index(name.strip())
             except ValueError:
-                raise ValueError(self, "Column name was not found")
+                raise ValueError("Column name was not found: %r" % name)
         if index is not None:
             if name_index != index:
                 raise ValueError("Both a column name and index were "
@@ -72,6 +71,40 @@ def choose_column(column_names=None, name=None, index=None):
         return index
     else:
         raise ValueError("No column name nor index specified")
+
+
+def choose_columns(column_names=None, names=None, indexes=None):
+    """Selects a list of columns from a table.
+
+    If both the names and indexes lists are specified, the function will make
+    sure that they represent the same list of columns.
+    Columns may appear more than once.
+    """
+    if names is not None:
+        if column_names is None:
+            raise ValueError("Unable to get column by names: table "
+                             "doesn't have column names")
+        result = []
+        for name in names:
+            if isinstance(name, unicode):
+                name = name.encode('utf-8')
+            try:
+                idx = column_names.index(name)
+            except ValueError:
+                try:
+                    idx = column_names.index(name.strip())
+                except:
+                    raise ValueError("Column name was not found: %r" % name)
+            indexes.append(idx)
+        if indexes is not None:
+            if result != indexes:
+                raise ValueError("Both column names and indexes were "
+                                 "specified, and they don't agree")
+        return result
+    elif indexes is not None:
+        return indexes
+    else:
+        raise ValueError("No column names nor indexes specified")
 
 
 class ExtractColumn(Module):
