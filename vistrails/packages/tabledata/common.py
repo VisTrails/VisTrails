@@ -43,6 +43,37 @@ class Table(Module):
         Module.set_output(self, port_name, value)
 
 
+def choose_column(column_names=None, name=None, index=None):
+    """Selects a column in a table either by name or index.
+
+    If both are specified, the function will make sure that they represent the
+    same column.
+    """
+    if name is not None:
+        if isinstance(name, unicode):
+            name = name.encode('utf-8')
+        if column_names is None:
+            raise ValueError("Unable to get column by name: table doesn't "
+                             "have column names")
+        try:
+            name_index = column_names.index(name)
+        except ValueError:
+            try:
+                name = name.strip()
+                name_index = column_names.index(name)
+            except ValueError:
+                raise ValueError(self, "Column name was not found")
+        if index is not None:
+            if name_index != index:
+                raise ValueError("Both a column name and index were "
+                                 "specified, and they don't agree")
+        return name_index
+    elif index is not None:
+        return index
+    else:
+        raise ValueError("No column name nor index specified")
+
+
 class ExtractColumn(Module):
     """Gets a single column from a table, as a list.
 
@@ -62,40 +93,17 @@ class ExtractColumn(Module):
 
     def compute(self):
         table = self.get_input('table')
-        if self.has_input('column_index'):
-            column_index = self.get_input('column_index')
-        if self.has_input('column_name'):
-            name = self.get_input('column_name')
-            if isinstance(name, unicode):
-                name = name.encode('utf-8')
-            if table.names is None:
-                raise ModuleError("Unable to get column by names: table "
-                                  "doesn't have column names")
-            try:
-                index = table.names.index(name)
-            except ValueError:
-                try:
-                    name = name.strip()
-                    index = table.column_names.index(name)
-                except:
-                    raise ModuleError(self, "Column name was not found")
-            if self.has_input('column_index'):
-                if column_index != index:
-                    raise ModuleError(self,
-                                      "Both column_name and column_index were "
-                                      "specified, and they don't agree")
-        elif self.has_input('column_index'):
-            index = column_index
-        else:
-            raise ModuleError(self,
-                              "You must set one of column_name or "
-                              "column_index")
+        try:
+            column_idx = choose_column(
+                    column_names=table.names,
+                    name=self.force_get_input('column_name', None),
+                    index=self.force_get_input('column_index', None))
+        except ValueError, e:
+            raise ModuleError(self, e.message)
 
-        result = table.get_column(
-                index,
-                numeric=self.get_input('numeric', allow_default=True))
-
-        self.set_output('value', result)
+        self.set_output('value', table.get_column(
+                column_idx,
+                self.get_input('numeric', allow_default=True)))
 
 
 class BuiltTable(TableObject):
