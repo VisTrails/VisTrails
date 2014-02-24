@@ -104,7 +104,6 @@ class JoinedTables(TableObject):
                 self.row_map[left_row_idx] = right_keys[key]
 
 
-# FIXME : test coverage for JoinTables & JoinedTables
 class JoinTables(Table):
     """Joins data from two tables using equality of a pair of columns.
 
@@ -289,3 +288,102 @@ class SelectFromTable(Table):
 
 
 _modules = [JoinTables, ProjectTable, SelectFromTable]
+
+
+###############################################################################
+
+import unittest
+from vistrails.tests.utils import execute, intercept_result
+from .identifiers import identifier
+
+
+class TestJoin(unittest.TestCase):
+    def test_join(self):
+        """Test joining tables.
+        """
+        with intercept_result(JoinTables, 'value') as results:
+            self.assertFalse(execute([
+                    ('BuildTable', identifier, [
+                        ('id', [('List', repr([1, '2', 4, 5]))]),
+                        ('A_name', [('List',
+                            repr(['one', 2, 'four', 'five'])),
+                        ]),
+                    ]),
+                    ('BuildTable', identifier, [
+                        ('B_age', [('List',
+                            repr([14, 50, '12', 22])),
+                        ]),
+                        ('id', [('List', repr(['1', 2, 3, 5]))]),
+                    ]),
+                    ('JoinTables', identifier, [
+                        ('left_column_idx', [('Integer', '0')]),
+                        ('right_column_name', [('String', 'id')]),
+                        ('right_column_idx', [('Integer', '1')]),
+                    ]),
+                ],
+                [
+                    (0, 'value', 2, 'left_table'),
+                    (1, 'value', 2, 'right_table'),
+                ],
+                add_port_specs=[
+                    (0, 'input', 'id',
+                     'org.vistrails.vistrails.basic:List'),
+                    (0, 'input', 'A_name',
+                     'org.vistrails.vistrails.basic:List'),
+                    (1, 'input', 'B_age',
+                     'org.vistrails.vistrails.basic:List'),
+                    (1, 'input', 'id',
+                     'org.vistrails.vistrails.basic:List'),
+                ]))
+        self.assertEqual(len(results), 1)
+        table, = results
+
+        self.assertEqual(table.names, ['left.id', 'A_name',
+                                       'B_age', 'right.id'])
+
+        self.assertEqual(table.get_column(0, False), [1, '2', 5])
+        self.assertEqual(table.get_column(0, True), [1, 2, 5])
+        self.assertEqual(table.get_column(3, False), ['1', 2, 5])
+        self.assertEqual(table.get_column(3, True), [1, 2, 5])
+
+        self.assertEqual(table.get_column(1, False), ['one', 2, 'five'])
+        self.assertEqual(table.get_column(2, True), [14, 50, 22])
+
+    def test_noname(self):
+        with intercept_result(JoinTables, 'value') as results:
+            self.assertFalse(execute([
+                    ('WriteFile', 'org.vistrails.vistrails.basic', [
+                        ('in_value', [('String', '1;one\n2;2\n4;four\n'
+                                                 '5;five')]),
+                    ]),
+                    ('read|CSVFile', identifier, [
+                        ('delimiter', [('String', ';')]),
+                        ('header_present', [('Boolean', 'False')]),
+                        ('sniff_header', [('Boolean', 'False')]),
+                    ]),
+                    ('WriteFile', 'org.vistrails.vistrails.basic', [
+                        ('in_value', [('String', '14;1\n50;2\n12;3\n22;5\n')]),
+                    ]),
+                    ('read|CSVFile', identifier, [
+                        ('delimiter', [('String', ';')]),
+                        ('header_present', [('Boolean', 'False')]),
+                        ('sniff_header', [('Boolean', 'False')]),
+                    ]),
+                    ('JoinTables', identifier, [
+                        ('left_column_idx', [('Integer', '0')]),
+                        ('right_column_idx', [('Integer', '1')]),
+                    ]),
+                ],
+                [
+                    (0, 'out_value', 1, 'file'),
+                    (2, 'out_value', 3, 'file'),
+                    (1, 'value', 4, 'left_table'),
+                    (3, 'value', 4, 'right_table'),
+                ]))
+        self.assertEqual(len(results), 1)
+        table, = results
+
+        self.assertEqual(table.names, ['left.col 0', 'left.col 1',
+                                       'right.col 0', 'right.col 1'])
+        self.assertEqual(table.get_column(0, False), ['1', '2', '5'])
+        self.assertEqual(table.get_column(1, False), ['one', '2', 'five'])
