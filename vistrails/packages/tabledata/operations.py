@@ -242,7 +242,7 @@ class SelectedTable(TableObject):
             return with_cast(lambda v: v >= comparand)
         elif comparer == '=~':
             regex = re.compile(comparand)
-            return regex.match
+            return regex.search
         else:
             raise ValueError("Invalid comparison operator %r" % comparer)
 
@@ -265,10 +265,12 @@ class SelectedTable(TableObject):
 
     def get_column(self, index, numeric=False):
         col = self.table.get_column(index, numeric)
-        return [col[i] for i in self.matched_rows]
+        col = [col[i] for i in self.matched_rows]
+        if numeric and numpy is not None:
+            col = numpy.array(col, dtype=numpy.float32)
+        return col
 
 
-# FIXME : test coverage for SelectFromTable & SelectedTable
 class SelectFromTable(Table):
     """Builds a table from the rows of another table.
 
@@ -301,6 +303,11 @@ class SelectFromTable(Table):
                 idx = table.names.index(col)
             except ValueError:
                 raise ModuleError(self, "No column %r" % col)
+        else:
+            if idx < 0 or idx >= table.columns:
+                raise ModuleError(self,
+                                  "No column %d, table only has %d columns" % (
+                                  idx, table.columns))
 
         selected_table = SelectedTable(table, idx, comparer, val)
         self.set_output('value', selected_table)
@@ -504,3 +511,73 @@ class TestProjection(unittest.TestCase):
                                                  'letters']))]),
             ])
         self.assertEqual(result.names, ['letters', 'ordinals', 'letters_1'])
+
+
+class TestSelect(unittest.TestCase):
+    def do_select(self, select_functions, error=None):
+        with intercept_result(SelectFromTable, 'value') as results:
+            errors = execute([
+                    ('WriteFile', 'org.vistrails.vistrails.basic', [
+                        ('in_value', [('String', '22;a;T;abaab\n'
+                                                 '43;b;F;aabab\n'
+                                                 '-7;d;T;abbababb\n'
+                                                 '500;e;F;aba abacc')]),
+                    ]),
+                    ('read|CSVFile', identifier, [
+                        ('delimiter', [('String', ';')]),
+                        ('header_present', [('Boolean', 'False')]),
+                        ('sniff_header', [('Boolean', 'False')]),
+                    ]),
+                    ('SelectFromTable', identifier, select_functions),
+                ],
+                [
+                    (0, 'out_value', 1, 'file'),
+                    (1, 'value', 2, 'table'),
+                ])
+        if error is not None:
+            self.assertEqual([2], errors.keys())
+            self.assertIn(error, errors[2].message)
+            return None
+        else:
+            self.assertFalse(errors)
+            self.assertEqual(len(results), 1)
+            return results[0]
+
+    def test_numeric(self):
+        """Selects using the 'less-than' condition.
+        """
+        self.do_select([
+                ('float_expr', [('String', '6'),
+                                ('String', '<='),
+                                ('Float', '42.0')]),
+            ],
+            "table only has 4 columns")
+        table = self.do_select([
+                ('float_expr', [('String', '0'),
+                                ('String', '<='),
+                                ('Float', '42.0')]),
+            ])
+        l = table.get_column(0, True)
+        self.assertIsInstance(l, numpy.ndarray)
+        self.assertEqual(list(l), [22, -7])
+        self.assertEqual(table.get_column(1, False), ['a', 'd'])
+
+    def test_text(self):
+        """Selects using the 'equal' condition.
+        """
+        table = self.do_select([
+                ('str_expr', [('String', '2'),
+                              ('String', '=='),
+                              ('String', 'T')])
+            ])
+        self.assertEqual(table.get_column(0, False), ['22', '-7'])
+
+    def test_regex(self):
+        """Selects using the 'regex-match' condition.
+        """
+        table = self.do_select([
+                ('str_expr', [('String', '3'),
+                              ('String', '=~'),
+                              ('String', r'([ab])\1')]),
+            ])
+        self.assertEqual(table.get_column(0, False), ['22', '43', '-7'])
