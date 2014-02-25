@@ -175,7 +175,6 @@ class ProjectedTable(TableObject):
         return self.table.rows
 
 
-# FIXME : test coverage for ProjectTable & ProjectedTable
 class ProjectTable(Table):
     """Build a table from the columns of another table.
 
@@ -206,8 +205,17 @@ class ProjectTable(Table):
                                   "new_column_names was specified but doesn't "
                                   "have the right number of names")
         else:
-            column_names = [table.names[i]
-                            for i in indexes]
+            column_names = []
+            names = {}
+            for i in indexes:
+                name = table.names[i]
+                if name in names:
+                    nb = names[name]
+                    names[name] += 1
+                    name = '%s_%d' % (name, nb)
+                else:
+                    names[name] = 1
+                column_names.append(name)
 
         projected_table = ProjectedTable(table, indexes, column_names)
         self.set_output("value", projected_table)
@@ -404,3 +412,95 @@ class TestJoin(unittest.TestCase):
                                        'right.col 0', 'right.col 1'])
         self.assertEqual(table.get_column(0, False), ['1', '2', '5'])
         self.assertEqual(table.get_column(1, False), ['one', '2', 'five'])
+
+
+class TestProjection(unittest.TestCase):
+    def do_project(self, project_functions, error=None):
+        with intercept_result(ProjectTable, 'value') as results:
+            errors = execute([
+                    ('BuildTable', identifier, [
+                        ('letters', [('List', repr(['a', 'b', 'c', 'd']))]),
+                        ('numbers', [('List', repr([1, 2, 3, '4']))]),
+                        ('cardinals', [('List', repr(['one', 'two',
+                                                      'three', 'four']))]),
+                        ('ordinals', [('List', repr(['first', 'second',
+                                                     'third', 'fourth']))])
+                    ]),
+                    ('ProjectTable', identifier, project_functions),
+                ],
+                [
+                    (0, 'value', 1, 'table'),
+                ],
+                add_port_specs=[
+                    (0, 'input', 'letters',
+                     'org.vistrails.vistrails.basic:List'),
+                    (0, 'input', 'numbers',
+                     'org.vistrails.vistrails.basic:List'),
+                    (0, 'input', 'cardinals',
+                     'org.vistrails.vistrails.basic:List'),
+                    (0, 'input', 'ordinals',
+                     'org.vistrails.vistrails.basic:List'),
+                ])
+        if error is not None:
+            self.assertEqual([1], errors.keys())
+            self.assertIn(error, errors[1].message)
+            return None
+        else:
+            self.assertFalse(errors)
+            self.assertEqual(len(results), 1)
+            return results[0]
+
+    def test_column_numbers(self):
+        """Projects using column numbers.
+        """
+        self.do_project([
+                ('column_indexes', [('List', '[0, 4, 1, 0]')]),
+            ],
+            'table only has 4 columns')
+        result = self.do_project([
+                ('column_indexes', [('List', '[0, 3, 1, 0]')]),
+            ])
+        self.assertEqual(result.names, ['letters', 'ordinals',
+                                        'numbers', 'letters_1'])
+        self.assertEqual(result.get_column(0, False),
+                         ['a', 'b', 'c', 'd'])
+        self.assertEqual(list(result.get_column(2, True)),
+                         [1, 2, 3, 4])
+        self.assertEqual(result.get_column(3, False),
+                         ['a', 'b', 'c', 'd'])
+
+    def test_column_numbers_rename(self):
+        """Projects and rename columns, using column numbers.
+        """
+        self.do_project([
+                ('column_indexes', [('List', '[0, 3, 1, 0]')]),
+                ('new_column_names', [('List', '["a", "b", "c"]')])
+            ],
+            "doesn't have the right number of names")
+        result = self.do_project([
+                ('column_indexes', [('List', '[0, 3, 1, 0]')]),
+                ('new_column_names', [('List', '["a", "b", "c", "d"]')]),
+            ])
+        self.assertEqual(result.names, ['a', 'b', 'c', 'd'])
+
+    def test_column_names(self):
+        """Projects using column names.
+        """
+        self.do_project([
+                ('column_names', [('List', repr(['letters', 'crackers']))]),
+            ],
+            "not found: 'crackers'")
+        self.do_project([
+                ('column_names', [('List', repr(['letters', 'ordinals']))]),
+                ('column_indexes', [('List', '[0, 2]')]),
+            ],
+            "they don't agree")
+        self.do_project([
+                ('column_names', [('List', repr(['letters', 'ordinals']))]),
+                ('column_indexes', [('List', '[0, 3]')]),
+            ])
+        result = self.do_project([
+                ('column_names', [('List', repr(['letters', 'ordinals',
+                                                 'letters']))]),
+            ])
+        self.assertEqual(result.names, ['letters', 'ordinals', 'letters_1'])
