@@ -1274,7 +1274,7 @@ class TestPipeline(unittest.TestCase):
         # make sure pythonCalc is loaded
         from vistrails.core.packagemanager import get_package_manager
         pm = get_package_manager()
-        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no partial
+        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no branch
             pm.late_enable_package('pythonCalc')
 
     def create_default_pipeline(self, id_scope=None):
