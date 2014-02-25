@@ -10,6 +10,10 @@ def can_handle_identifier(identifier):
     return identifier.startswith("Java#")
 
 
+def package_dependencies():
+    return ['org.vistrails.vistrails.tabledata']
+
+
 def package_requirements():
     from .java_vm import get_java_vm
 

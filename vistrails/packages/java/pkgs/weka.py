@@ -5,6 +5,7 @@ from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.module_registry import get_module_registry
 
 from vistrails.packages.java.java_vm import get_java_vm, build_jarray
+from vistrails.packages.tabledata.common import TableObject
 
 
 _JAVA_VM = get_java_vm()
@@ -139,46 +140,16 @@ class EvaluationResultTable(Module):
     _input_ports = [
             ('statistics', '(edu.utah.sci.vistrails.basic:Dictionary)')]
     _output_ports = [
-            ('html', '(edu.utah.sci.vistrails.basic:File)')]
+            ('table', '(org.vistrails.vistrails.tabledata:Table)')]
+
+    FIELDS = ['classifier_name', 'correct_rate', 'error_rate',
+              'kappa_statistic', 'mean_abs_error', 'root_mean_sq_error',
+              'rel_abs_error', 'root_rel_sq_error']
 
     def compute(self):
         statistics = self.get_input_list('statistics')
-
-        tempfile = self.interpreter.filePool.create_file(suffix='.html')
-        output = open(str(tempfile.name), 'w')
-        output.write(r'''<!DOCTYPE html>
-<html>
-  <head>
-    <title>Results</title>
-    <style type="text/css">
-table, td, th { border: 1px solid silver; }
-h1 { font-size: 130%; }
-    </style>
-  </head>
-  <body>
-    <h2>Results</h2>
-    <h3>Statistics regarding each classification method are presented below.</h3>
-    <table border="1" cellspacing="5" cellpadding="5">
-      <tr>
-        <th>Method</th><th>Correct Rate</th><th>Error Rate</th>
-        <th>Kappa</th><th>Mean Absolute Error</th><th>Root Mean Squared Error</th>
-        <th>Relative Absolute Error</th><th>Root Relative Squared Error</th>
-      </tr>
-''')
-
-        for st in statistics:
-            output.write('      <tr>\n')
-            output.write('        <td>%s</td>\n' % st['classifier_name'])
-            for k in ['correct_rate', 'error_rate', 'kappa_statistic', 'mean_abs_error', 'root_mean_sq_error', 'rel_abs_error', 'root_rel_sq_error']:
-                output.write('        <td>%s</td>\n' % st[k])
-            output.write('      </tr>\n')
-
-        output.write('    </table>\n')
-        output.write('  </body>\n</html>\n')
-
-        output.close()
-
-        self.set_output('html', tempfile)
+        self.set_output('table',
+                        TableObject.from_dicts(statistics, self.FIELDS))
 
 
 _modules = [EvaluateClassifier, EvaluationResultTable]

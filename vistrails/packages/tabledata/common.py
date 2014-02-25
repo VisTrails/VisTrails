@@ -34,6 +34,30 @@ class TableObject(object):
         else:
             return self._columns[i]
 
+    @classmethod
+    def from_dicts(cls, dicts, keys=None):
+        iterator = iter(dicts)
+        try:
+            first = next(iterator)
+        except StopIteration:
+            if keys is None:
+                raise ValueError("No entry in sequence")
+            return cls([[]] * len(keys), 0, list(keys))
+        if keys is None:
+            keys = first.keys()
+        columns = [[first[key]] for key in keys]
+        count = 1
+        for dct in iterator:
+            for i, key in enumerate(keys):
+                try:
+                    v = dct[key]
+                except KeyError:
+                    raise ValueError("Entry %d has no key %r" % (count, key))
+                else:
+                    columns[i].append(v)
+            count += 1
+        return cls(columns, count, keys)
+
 
 class Table(Module):
     pass
