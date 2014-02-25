@@ -425,7 +425,7 @@ def reload_scripts(initial=False):
         location = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                 "CLTools")
         # make sure dir exist
-        if not os.path.isdir(location): # pragma: no cover # pragma: no partial
+        if not os.path.isdir(location): # pragma: no cover # pragma: no branch
             try:
                 debug.log("Creating CLTools directory...")
                 os.mkdir(location)
@@ -441,7 +441,7 @@ def reload_scripts(initial=False):
         reg = vistrails.core.modules.module_registry.get_module_registry()
         reg.add_module(CLTools, abstract=True)
     for path in os.listdir(location):
-        if path.endswith(SUFFIX): # pragma: no partial
+        if path.endswith(SUFFIX): # pragma: no branch
             try:
                 add_tool(os.path.join(location, path))
             except Exception as exc: # pragma: no cover
@@ -474,7 +474,7 @@ def menu_items():
         else:
             return
     lst = []
-    if "CLTools" == identifiers.name: # pragma: no partial
+    if "CLTools" == identifiers.name: # pragma: no branch
         def open_wizard():
             window = QCLToolsWizardWindow(reload_scripts=reload_scripts)
             wizards_list.append(window)
@@ -499,7 +499,7 @@ class TestCLTools(unittest.TestCase):
     def setUpClass(cls):
         # first make sure CLTools is loaded
         pm = get_package_manager()
-        if 'CLTools' not in pm._package_list: # pragma: no cover # pragma: no partial
+        if 'CLTools' not in pm._package_list: # pragma: no cover # pragma: no branch
             pm.late_enable_package('CLTools')
         remove_all_scripts()
         cls.testdir = os.path.join(packages_directory(), 'CLTools', 'test_files')
