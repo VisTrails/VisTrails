@@ -1,3 +1,7 @@
+try:
+    import numpy
+except ImportError: # pragma: no cover
+    numpy = None
 import re
 
 from vistrails.core.modules.vistrails_module import ModuleError
@@ -77,6 +81,8 @@ class JoinedTables(TableObject):
                     j = self.row_map[i]
                     result.append(column[j])
 
+        if numeric and numpy is not None:
+            result = numpy.array(result, dtype=numpy.float32)
         self.column_cache[(index, numeric)] = result
         return result
 
@@ -301,7 +307,7 @@ from .identifiers import identifier
 
 class TestJoin(unittest.TestCase):
     def test_join(self):
-        """Test joining tables.
+        """Test joining tables that have column names.
         """
         with intercept_result(JoinTables, 'value') as results:
             self.assertFalse(execute([
@@ -344,14 +350,20 @@ class TestJoin(unittest.TestCase):
                                        'B_age', 'right.id'])
 
         self.assertEqual(table.get_column(0, False), [1, '2', 5])
-        self.assertEqual(table.get_column(0, True), [1, 2, 5])
+        l = table.get_column(0, True)
+        self.assertIsInstance(l, numpy.ndarray)
+        self.assertEqual(list(l), [1, 2, 5])
         self.assertEqual(table.get_column(3, False), ['1', 2, 5])
-        self.assertEqual(table.get_column(3, True), [1, 2, 5])
+        l = table.get_column(3, True)
+        self.assertIsInstance(l, numpy.ndarray)
+        self.assertEqual(list(l), [1, 2, 5])
 
         self.assertEqual(table.get_column(1, False), ['one', 2, 'five'])
-        self.assertEqual(table.get_column(2, True), [14, 50, 22])
+        self.assertEqual(list(table.get_column(2, True)), [14, 50, 22])
 
     def test_noname(self):
+        """Tests joining tables that have no column names.
+        """
         with intercept_result(JoinTables, 'value') as results:
             self.assertFalse(execute([
                     ('WriteFile', 'org.vistrails.vistrails.basic', [
