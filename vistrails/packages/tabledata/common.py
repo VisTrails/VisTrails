@@ -43,7 +43,7 @@ class Table(Module):
         Module.set_output(self, port_name, value)
 
 
-def choose_column(column_names=None, name=None, index=None):
+def choose_column(nb_columns, column_names=None, name=None, index=None):
     """Selects a column in a table either by name or index.
 
     If both are specified, the function will make sure that they represent the
@@ -68,12 +68,15 @@ def choose_column(column_names=None, name=None, index=None):
                                  "specified, and they don't agree")
         return name_index
     elif index is not None:
+        if index < 0 or index >= nb_columns:
+            raise ValueError("No column %d, table only has %d columns" % (
+                             index, nb_columns))
         return index
     else:
         raise ValueError("No column name nor index specified")
 
 
-def choose_columns(column_names=None, names=None, indexes=None):
+def choose_columns(nb_columns, column_names=None, names=None, indexes=None):
     """Selects a list of columns from a table.
 
     If both the names and indexes lists are specified, the function will make
@@ -102,6 +105,10 @@ def choose_columns(column_names=None, names=None, indexes=None):
                                  "specified, and they don't agree")
         return result
     elif indexes is not None:
+        for index in indexes:
+            if index < 0 or index >= nb_columns:
+                raise ValueError("No column %d, table only has %d columns" % (
+                                 index, nb_columns))
         return indexes
     else:
         raise ValueError("No column names nor indexes specified")
@@ -128,6 +135,7 @@ class ExtractColumn(Module):
         table = self.get_input('table')
         try:
             column_idx = choose_column(
+                    table.columns,
                     column_names=table.names,
                     name=self.force_get_input('column_name', None),
                     index=self.force_get_input('column_index', None))

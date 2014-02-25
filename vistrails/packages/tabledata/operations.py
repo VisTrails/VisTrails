@@ -136,6 +136,7 @@ class JoinTables(Table):
             col_idx_port = '%s_column_idx' % prefix
             try:
                 col_idx = choose_column(
+                        table.columns,
                         column_names=table.names,
                         name=self.force_get_input(col_name_port, None),
                         index=self.force_get_input(col_idx_port, None))
@@ -185,6 +186,7 @@ class ProjectTable(Table):
     def compute(self):
         table = self.get_input("table")
         indexes = choose_columns(
+                table.columns,
                 column_names=table.names,
                 names=self.force_get_input('column_names', None),
                 indexes=self.force_get_input('column_indexes', None))
