@@ -191,11 +191,14 @@ class ProjectTable(Table):
 
     def compute(self):
         table = self.get_input("table")
-        indexes = choose_columns(
-                table.columns,
-                column_names=table.names,
-                names=self.force_get_input('column_names', None),
-                indexes=self.force_get_input('column_indexes', None))
+        try:
+            indexes = choose_columns(
+                    table.columns,
+                    column_names=table.names,
+                    names=self.force_get_input('column_names', None),
+                    indexes=self.force_get_input('column_indexes', None))
+        except ValueError, e:
+            raise ModuleError(self, e.message)
         if self.has_input('new_column_names'):
             column_names = self.get_input('new_column_names')
             if len(column_names) != len(indexes):

@@ -98,7 +98,7 @@ def choose_columns(nb_columns, column_names=None, names=None, indexes=None):
                     idx = column_names.index(name.strip())
                 except:
                     raise ValueError("Column name was not found: %r" % name)
-            indexes.append(idx)
+            result.append(idx)
         if indexes is not None:
             if result != indexes:
                 raise ValueError("Both column names and indexes were "
