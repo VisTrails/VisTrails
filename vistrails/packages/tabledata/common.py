@@ -20,6 +20,13 @@ class TableObject(object):
     names = None # the names of the columns
     name = None # a name for the table (useful for joins, etc.)
 
+    def __init__(self, columns, nb_rows, names):
+        self.columns = len(columns)
+        self.rows = nb_rows
+        self.names = names
+
+        self._columns = columns
+
     def get_column(self, i, numeric=False): # pragma: no cover
         """Gets a column from the table as a list or numpy array.
 
@@ -29,7 +36,10 @@ class TableObject(object):
         If numeric=True, the data is returned as a numpy array if numpy is
         available, or as a list of floats.
         """
-        raise NotImplementedError
+        if numeric and numpy is not None:
+            return numpy.array(self._columns[i], dtype=numpy.float32)
+        else:
+            return self._columns[i]
 
 
 class Table(Module):
@@ -147,21 +157,6 @@ class ExtractColumn(Module):
                 self.get_input('numeric', allow_default=True)))
 
 
-class BuiltTable(TableObject):
-    def __init__(self, columns, nb_rows, names):
-        self.columns = len(columns)
-        self.rows = nb_rows
-        self.names = names
-
-        self._columns = columns
-
-    def get_column(self, i, numeric=False):
-        if numeric and numpy is not None:
-            return numpy.array(self._columns[i], dtype=numpy.float32)
-        else:
-            return self._columns[i]
-
-
 class BuildTable(Module):
     """Builds a table by putting together columns from multiple sources.
 
@@ -216,7 +211,7 @@ class BuildTable(Module):
                 cols.append(item)
                 names.append(portname)
 
-        self.set_output('value', BuiltTable(cols, nb_rows, names))
+        self.set_output('value', TableObject(cols, nb_rows, names))
 
 
 _modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable]

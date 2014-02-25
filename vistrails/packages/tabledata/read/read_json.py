@@ -9,7 +9,6 @@ from ..common import TableObject, Table, InternalModuleError
 
 class JSONTable(TableObject):
     def __init__(self, json_file):
-        TableObject.__init__(self)
         self.filename = json_file
         self.data = []
         self.read_file()

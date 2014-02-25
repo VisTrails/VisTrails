@@ -18,7 +18,6 @@ def count_lines(fp):
 class CSVTable(TableObject):
     def __init__(self, csv_file, header_present, delimiter,
                  skip_lines=0, dialect=None, use_sniffer=True):
-        TableObject.__init__(self)
         self._rows = None
 
         self.header_present = header_present
