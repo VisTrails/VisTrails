@@ -115,7 +115,6 @@ def NewTextEditor(parent):
             """
             text = self.text()
             return text.replace('\r\n', '\n').replace('\r', '\n')
-    
 #        def focusOutEvent(self, event):
 #            if self.parent():
 #                QtCore.QCoreApplication.sendEvent(self.parent(), event)

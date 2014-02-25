@@ -197,7 +197,8 @@ def NewPythonEditor(parent):
             redirect to self.text()
             
             """
-            return self.text().replace('\r', '\n')
+            text = self.text()
+            return text.replace('\r\n', '\n').replace('\r', '\n')
     
 #        def focusOutEvent(self, event):
 #            if self.parent():
