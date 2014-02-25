@@ -24,7 +24,6 @@ class CSVTable(TableObject):
     _STANDARD_DELIMITERS = [';', ',', '\t', '|']
 
     def __init__(self, csv_file, header_present, delimiter):
-        TableObject.__init__(self)
         self._rows = None
 
         self.header_present = header_present

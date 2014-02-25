@@ -13,8 +13,26 @@ class TableObject(object):
 
     names = None
 
+    def __init__(self, columns, nb_rows, names):
+        self.columns = len(columns)
+        self.rows = nb_rows
+        self.names = names
+
+        self._columns = columns
+
     def get_column(self, i, numeric=False): # pragma: no cover
-        raise NotImplementedError
+        """Gets a column from the table as a list or numpy array.
+
+        If numeric=False (the default), the data is returned 'as-is'. It might
+        either be bytes (=str), unicode or number (int, long, float).
+
+        If numeric=True, the data is returned as a numpy array if numpy is
+        available, or as a list of floats.
+        """
+        if numeric and numpy is not None:
+            return numpy.array(self._columns[i], dtype=numpy.float32)
+        else:
+            return self._columns[i]
 
 
 class Table(Module):
@@ -71,21 +89,6 @@ class ExtractColumn(Module):
         self.set_output('value', result)
 
 
-class BuiltTable(TableObject):
-    def __init__(self, columns, nb_rows, names):
-        self.columns = len(columns)
-        self.rows = nb_rows
-        self.names = names
-
-        self._columns = columns
-
-    def get_column(self, i, numeric=False):
-        if numeric and numpy is not None:
-            return numpy.array(self._columns[i], dtype=numpy.float32)
-        else:
-            return self._columns[i]
-
-
 class BuildTable(Module):
     _settings = ModuleSettings(configure_widget=
             'vistrails.packages.tabledata.widgets:BuildTableWidget')
@@ -135,7 +138,7 @@ class BuildTable(Module):
                 cols.append(item)
                 names.append(portname)
 
-        self.set_output('value', BuiltTable(cols, nb_rows, names))
+        self.set_output('value', TableObject(cols, nb_rows, names))
 
 
 _modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable]
