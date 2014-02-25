@@ -221,7 +221,21 @@ class ProjectTable(Table):
         self.set_output("value", projected_table)
 
 
-class SelectedTable(TableObject):
+class SelectFromTable(Table):
+    """Builds a table from the rows of another table.
+
+    This allows you to filter the records in a table according to a condition
+    on a specific field.
+    """
+    _input_ports = [('table', 'Table'),
+                    ('str_expr', 'basic:String,basic:String,basic:String',
+                     {'entry_types': "['default','enum','default']",
+                      'values': "[[], ['==', '!=', '=~'], []]"}),
+                    ('float_expr', 'basic:String,basic:String,basic:Float',
+                     {'entry_types': "['default','enum','default']",
+                      'values': "[[], ['==', '!=', '<', '>', '<=', '>='], []]"})]
+    _output_ports = [('value', 'Table')]
+
     @staticmethod
     def make_condition(comparand, comparer):
         if isinstance(comparand, float):
@@ -246,53 +260,13 @@ class SelectedTable(TableObject):
         else:
             raise ValueError("Invalid comparison operator %r" % comparer)
 
-    def __init__(self, table, idx, comparer, comparand):
-        condition = self.make_condition(comparand, comparer)
-
-        self.table = table
-        self.matched_rows = []
-        numeric = False
-        if type(comparand) == float:
-            numeric = True
-        column = self.table.get_column(idx, numeric)
-        for i, col_val in enumerate(column):
-            if condition(col_val):
-                self.matched_rows.append(i)
-
-        self.rows = len(self.matched_rows)
-        self.names = self.table.names
-        self.columns = self.table.columns
-
-    def get_column(self, index, numeric=False):
-        col = self.table.get_column(index, numeric)
-        col = [col[i] for i in self.matched_rows]
-        if numeric and numpy is not None:
-            col = numpy.array(col, dtype=numpy.float32)
-        return col
-
-
-class SelectFromTable(Table):
-    """Builds a table from the rows of another table.
-
-    This allows you to filter the records in a table according to a condition
-    on a specific field.
-    """
-    _input_ports = [('table', 'Table'),
-                    ('str_expr', 'basic:String,basic:String,basic:String',
-                     {'entry_types': "['default','enum','default']",
-                      'values': "[[], ['==', '!=', '=~'], []]"}),
-                    ('float_expr', 'basic:String,basic:String,basic:Float',
-                     {'entry_types': "['default','enum','default']",
-                      'values': "[[], ['==', '!=', '<', '>', '<=', '>='], []]"})]
-    _output_ports = [('value', 'Table')]
-
     def compute(self):
         table = self.get_input('table')
 
         if self.has_input('str_expr'):
-            (col, comparer, val) = self.get_input('str_expr')
+            (col, comparer, comparand) = self.get_input('str_expr')
         elif self.has_input('float_expr'):
-            (col, comparer, val) = self.get_input('float_expr')
+            (col, comparer, comparand) = self.get_input('float_expr')
         else:
             raise ModuleError(self, "Must have some expression")
 
@@ -309,7 +283,17 @@ class SelectFromTable(Table):
                                   "No column %d, table only has %d columns" % (
                                   idx, table.columns))
 
-        selected_table = SelectedTable(table, idx, comparer, val)
+        condition = self.make_condition(comparand, comparer)
+        numeric = isinstance(comparand, float)
+        column = table.get_column(idx, numeric)
+        matched_rows = [i
+                        for i, col_val in enumerate(column)
+                        if condition(col_val)]
+        columns = []
+        for col in xrange(table.columns):
+            column = table.get_column(col)
+            columns.append([column[row] for row in matched_rows])
+        selected_table = TableObject(columns, table.rows, table.names)
         self.set_output('value', selected_table)
 
 
