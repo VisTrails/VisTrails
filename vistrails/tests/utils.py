@@ -104,8 +104,9 @@ def execute(modules, connections=[], add_port_specs=[], enable_pkg=True):
 
         for func_name, params in functions:
             param_list = []
-            for param_type, param_val in params:
-                param_list.append(ModuleParam(type=param_type,
+            for j, (param_type, param_val) in enumerate(params):
+                param_list.append(ModuleParam(pos=j,
+                                              type=param_type,
                                               val=param_val))
             function_list.append(ModuleFunction(name=func_name,
                                                 parameters=param_list))
