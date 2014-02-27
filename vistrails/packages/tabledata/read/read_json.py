@@ -10,12 +10,20 @@ from ..common import TableObject, Table, InternalModuleError
 
 class JSONTable(Table):
     _input_ports = [('file', '(org.vistrails.vistrails.basic:File)')]
+    _output_ports = [
+            ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
+            ('column_names', '(org.vistrails.vistrails.basic:List)'),
+            ('value', Table)]
 
     def compute(self):
         json_file = self.get_input('file').name
         with open(json_file, 'rb') as fp:
             obj = json.load(fp)
-        self.set_output('value', self.make_table(obj))
+        table = self.make_table(obj)
+        self.set_output('column_count', table.columns)
+        if table.names is not None:
+            self.set_output('column_names', table.names)
+        self.set_output('value', table)
 
     @staticmethod
     def add_list(columns, key, value):
@@ -116,7 +124,6 @@ class JSONObject(JSONTable):
         return TableObject(columns, count, names)
 
 
-# FIXME : test coverage for JSONList
 class JSONList(JSONTable):
     """Loads a JSON file and build a table from a list.
 
