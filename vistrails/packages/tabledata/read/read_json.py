@@ -173,7 +173,7 @@ _modules = [(JSONTable, {'abstract': True}), JSONObject, JSONList]
 ###############################################################################
 
 import unittest
-from vistrails.tests.utils import execute, intercept_result
+from vistrails.tests.utils import execute, intercept_results
 from ..identifiers import identifier
 
 
@@ -199,7 +199,8 @@ class TestJSON(unittest.TestCase):
             ]
 
         for json_file, has_names in json_files:
-            with intercept_result(JSONObject, 'value') as results:
+            with intercept_results(JSONObject, 'value', 'column_count',
+                                   'column_names') as results:
                 self.assertFalse(execute([
                         ('WriteFile', 'org.vistrails.vistrails.basic', [
                             ('in_value', [('String', json_file)]),
@@ -209,17 +210,20 @@ class TestJSON(unittest.TestCase):
                     [
                         (0, 'out_value', 1, 'file'),
                     ]))
-            self.assertEqual(len(results), 1)
-            table, = results
+            self.assertTrue(all((len(r) == 1) for r in results[:2]))
+            (table,), (count,), names = results
+            self.assertEqual(count, 4)
 
             import numpy
             if has_names:
+                self.assertEqual(names, [table.names])
                 self.assertEqual(table.names[0], 'key')
                 self.assertEqual(set(table.names[1:]),
                                  set(['lastname', 'age', 'city']))
                 f_city = table.names.index('city')
                 f_age = table.names.index('age')
             else:
+                self.assertEqual(names, [])
                 self.assertIsNone(table.names)
                 f_city = 3
                 f_age = 2
@@ -241,15 +245,15 @@ class TestJSON(unittest.TestCase):
             ]
             """,
             """
-            [[ 4, 14, 15,  1],
-             [ 9,  7,  6, 12],
-             [ 5, 11, 10,  8],
-             [16,  2,  3, 13]]
+            [[2, 7, 6],
+             [9, 5, 1],
+             [4, 3, 8]]
             """,
             ]
 
         for nb, json_file in enumerate(json_files):
-            with intercept_result(JSONList, 'value') as results:
+            with intercept_results(JSONList, 'value', 'column_count',
+                                   'column_names') as results:
                 self.assertFalse(execute([
                         ('WriteFile', 'org.vistrails.vistrails.basic', [
                             ('in_value', [('String', json_file)]),
@@ -259,11 +263,13 @@ class TestJSON(unittest.TestCase):
                     [
                         (0, 'out_value', 1, 'file'),
                     ]))
-            self.assertEqual(len(results), 1)
-            table, = results
+            self.assertTrue(all((len(r) == 1) for r in results[:2]))
+            (table,), (count,), names = results
+            self.assertEqual(count, 3)
 
             import numpy
             if nb == 0:
+                self.assertEqual(names, [table.names])
                 self.assertEqual(set(table.names),
                                  set(['firstname', 'lastname', 'age']))
                 f_first = table.names.index('firstname')
@@ -274,9 +280,9 @@ class TestJSON(unittest.TestCase):
                 self.assertIsInstance(l, numpy.ndarray)
                 self.assertEqual(set(l), set([21, 25, 78]))
             else:
+                self.assertEqual(names, [])
                 self.assertIsNone(table.names)
-                self.assertEqual([table.get_column(col) for col in xrange(4)],
-                                 [[ 4,  9,  5, 16],
-                                  [14,  7, 11,  2],
-                                  [15,  6, 10,  3],
-                                  [ 1, 12,  8, 13]])
+                self.assertEqual([table.get_column(col) for col in xrange(3)],
+                                 [[2, 9, 4],
+                                  [7, 5, 3],
+                                  [6, 1, 8]])
