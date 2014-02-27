@@ -151,7 +151,7 @@ class CSVFile(Table):
     _output_ports = [
             ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
             ('column_names', '(org.vistrails.vistrails.basic:List)'),
-            ('value', '(org.vistrails.vistrails.tabledata:read|CSVFile)')]
+            ('value', Table)]
 
     def compute(self):
         csv_file = self.get_input('file').name

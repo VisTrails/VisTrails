@@ -129,7 +129,7 @@ class JoinTables(Table):
                      {"optional": True, "defaults": str(["False"])}),
                     ('always_prefix', 'basic:Boolean',
                      {"optional": True, "defaults": str(["False"])})]
-    _output_ports = [('value', 'Table')]
+    _output_ports = [('value', Table)]
 
     def compute(self):
         left_t = self.get_input('left_table')
@@ -186,7 +186,7 @@ class ProjectTable(Table):
                     ("column_indexes", "basic:List"),
                     ("new_column_names", "basic:List",
                      {"optional": True})]
-    _output_ports = [("value", "Table")]
+    _output_ports = [("value", Table)]
 
     def compute(self):
         table = self.get_input("table")
@@ -234,7 +234,7 @@ class SelectFromTable(Table):
                     ('float_expr', 'basic:String,basic:String,basic:Float',
                      {'entry_types': "['default','enum','default']",
                       'values': "[[], ['==', '!=', '<', '>', '<=', '>='], []]"})]
-    _output_ports = [('value', 'Table')]
+    _output_ports = [('value', Table)]
 
     @staticmethod
     def make_condition(comparand, comparer):
