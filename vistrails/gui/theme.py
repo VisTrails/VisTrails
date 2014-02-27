@@ -624,6 +624,15 @@ class DefaultTheme(DefaultCoreTheme):
                 vistrails.core.system.vistrails_root_directory() +
                 '/gui/resources/images/multiline_string_icon.png'))
 
+        # icons for the port list combination modes
+        self.DOT_PRODUCT_ICON = QtGui.QIcon(QtGui.QPixmap(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/macro.png'))
+
+        self.CROSS_PRODUCT_ICON = QtGui.QIcon(QtGui.QPixmap(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/remove_param.png'))
+
         #### COLORS ####
         # Color for the PIP frame
         self.PIP_FRAME_COLOR = QtGui.QColor(

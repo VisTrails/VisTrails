@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 import copy
+import json
 import time
 from itertools import izip, product
 
@@ -399,12 +400,18 @@ class Module(Serializable):
     def set_iterated_ports(self):
         """ set_iterated_ports() -> None        
         Calculates which inputs needs to be iterated over
-        
+        This requires having the pipeline available
         """
         self.iterated_ports = {}
-        for iport, connectorList in self.inputPorts.items():
-            p_modules = self.moduleInfo['pipeline'].modules
-            p_module = p_modules[self.moduleInfo['moduleId']]
+        if not self.moduleInfo.get('pipeline', None):
+            return
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        # get sorted port list
+        ports = [spec.name for spec in p_module.destinationPorts()]
+        items = [(port, self.inputPorts[port]) for port in ports
+                 if port in self.inputPorts] 
+        for iport, connectorList in items:
             port_spec = p_module.get_port_spec(iport, 'input')
             for connector in connectorList:
                 depth = connector.depth() - port_spec.depth
@@ -496,6 +503,17 @@ class Module(Serializable):
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
+    def join_port_list_rec(self, value, inputs):
+        if isinstance(value, basestring):
+            return [{value:i} for i in inputs[value]]
+        values = [self.join_port_list_rec(i, inputs) for i in value[1:]]
+        if value[0] == 'pairwise':
+            elements = zip(*values)
+        elif value[0]=='cartesian':
+            elements = list(product(*values))
+        # join the dicts for each item
+        return [dict((k,v) for d in element for(k,v) in d.items()) for element in elements]
+
     def compute_all(self):
         """This method executes the module once for each module.
            Similarly to controlflows fold.
@@ -504,7 +522,7 @@ class Module(Serializable):
         from vistrails.core.modules.basic_modules import Iterator
         p_modules = self.moduleInfo['pipeline'].modules
         p_module = p_modules[self.moduleInfo['moduleId']]
-        type = 'pairwise'
+        type = 'cartesian'
         if p_module.has_annotation_with_key(LOOP_KEY):
             type = p_module.get_annotation_by_key(LOOP_KEY).value
 
@@ -526,9 +544,15 @@ class Module(Serializable):
             inputs[port] = value
         elements = []
         if type=='pairwise':
-            elements = zip(*[inputs[port] for port in ports])
-        if type=='cartesian':
-            elements = list(product(*[inputs[port] for port in ports]))
+            elements = self.join_port_list_rec(['pairwise'] + ports, inputs)
+            #elements = zip(*[inputs[port] for port in ports])
+        elif type=='cartesian':
+            elements = self.join_port_list_rec(['cartesian'] + ports, inputs)
+            #elements = list(product(*[inputs[port] for port in ports]))
+        else:
+            elements = self.join_port_list_rec(json.loads(type), inputs)
+        # convert port dict to list in correct port order
+        elements = [[element[port] for port in ports] for element in elements]
         num_inputs = len(elements)
         loop = self.logging.begin_loop_execution(self, num_inputs)
         ## Update everything for each value inside the list

@@ -1181,18 +1181,22 @@ class Pipeline(DBWorkflow):
         for module_id in self.graph.vertices_topological_sort():
             module = self.get_module_by_id(module_id)
             module.list_depth = 0
+            ports = []
             for module_from_id, conn_id in self.graph.edges_to(module_id):
                 prev_depth = self.get_module_by_id(module_from_id).list_depth
                 conn = self.get_connection_by_id(conn_id)
                 source_depth = conn.source.spec.depth or 0
                 dest_depth = conn.destination.spec.depth or 0
                 depth = prev_depth + source_depth - dest_depth
+                if depth > 0:
+                    ports.append(conn.destination.spec.name)
                 # if dest depth is greater the input will be wrapped in a
                 # list to match its depth
                 # if source depth is greater this module will be executed
                 # once for each input in the (possibly nested) list
                 module.list_depth = max(module.list_depth, depth)
             result.append((module_id, module.list_depth))
+            module.iterated_ports = ports
         return result
 
 

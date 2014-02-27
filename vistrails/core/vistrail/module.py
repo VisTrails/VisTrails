@@ -94,6 +94,7 @@ class Module(DBModule):
             self._descriptor_info = None
             self._module_descriptor = None
             self.list_depth = 0
+            self.iterated_ports = []
         else:
             self.portVisible = copy.copy(other.portVisible)
             self.visible_input_ports = copy.copy(other.visible_input_ports)
@@ -106,6 +107,7 @@ class Module(DBModule):
             self.is_watched = other.is_watched
             self._descriptor_info = None
             self.list_depth = other.list_depth
+            self.iterated_ports = other.iterated_ports
             self._module_descriptor = other._module_descriptor
         if not self.namespace:
             self.namespace = None
