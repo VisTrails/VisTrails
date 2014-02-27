@@ -32,194 +32,72 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.bundles import py_import
-from PyQt4 import QtCore, QtGui
+
+from sqlalchemy.engine import create_engine
+from sqlalchemy.engine.url import URL
 import urllib
 
-from vistrails.core import debug
-from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from vistrails.gui.modules.source_configure import SourceConfigurationWidget
-from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-from vistrails.core.utils import PortAlreadyExists
-from vistrails.gui.theme import CurrentTheme
+from vistrails.core.modules.config import ModuleSettings
+from vistrails.core.modules.vistrails_module import Module
 
-MySQLdb = py_import('MySQLdb', {
-        'pip': 'mysql-python',
-        'linux-debian': 'python-mysqldb',
-        'linux-ubuntu': 'python-mysqldb',
-        'linux-fedora': 'MySQL-python'})
+from vistrails.packages.tabledata.common import TableObject
 
-psycopg2 = py_import('psycopg2', {
-        'pip': 'psycopg2',
-        'linux-debian':'python-psycopg2',
-        'linux-ubuntu':'python-psycopg2',
-        'linux-fedora':'python-psycopg2'})
-
-
-class QPasswordEntry(QtGui.QDialog):
-    def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        self.setModal(True)
-        self.setWindowTitle("Enter Password:")
-        self.setLayout(QtGui.QVBoxLayout())
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel("Password:"))
-        self.line_edit = QtGui.QLineEdit()
-        self.line_edit.setEchoMode(QtGui.QLineEdit.Password)
-        hbox.addWidget(self.line_edit)
-        self.layout().addLayout(hbox)
-
-        bbox = QtGui.QHBoxLayout()
-        cancel = QtGui.QPushButton("Cancel")
-        ok = QtGui.QPushButton("OK")
-        ok.setDefault(True)
-        bbox.addWidget(cancel, 1, QtCore.Qt.AlignRight)
-        bbox.addWidget(ok, 0, QtCore.Qt.AlignRight)
-        self.layout().addLayout(bbox)
-        self.connect(ok, QtCore.SIGNAL("clicked(bool)"), self.accept)
-        self.connect(cancel, QtCore.SIGNAL("clicked(bool)"), self.reject)
-
-    def get_password(self):
-        return str(self.line_edit.text())
 
 class DBConnection(Module):
-    def __init__(self):
-         Module.__init__(self)
-         self.conn = None
-         self.protocol = 'mysql'
-    
-    def get_db_lib(self):
-        if self.protocol == 'mysql':
-            return MySQLdb
-        elif self.protocol == 'postgresql':
-            return psycopg2
-        else:
-            raise ModuleError(self, "Currently no support for '%s'" % protocol)
-        
-    def ping(self):
-        """ping() -> boolean 
-        It will ping the database to check if the connection is alive.
-        It returns True if it is, False otherwise. 
-        This can be used for preventing the "MySQL Server has gone away" error. 
-        """
-        result = False
-        if self.conn:
-            try:
-                self.conn.ping()
-                result = True
-            except self.get_db_lib().OperationalError, e:
-                result = False
-            except AttributeError, e:
-                #psycopg2 connections don't have a ping method
-                try:
-                    if self.conn.status == 1:
-                        result = True
-                except Exception, e:
-                    result = False
-        return result
-    
-    def open(self):        
-        retry = True
-        while retry:
-            config = {'host': self.host,
-                      'port': self.port,
-                      'user': self.user}
-            
-            # unfortunately keywords are not standard across libraries
-            if self.protocol == 'mysql':    
-                config['db'] = self.db_name
-                if self.password is not None:
-                    config['passwd'] = self.password
-            elif self.protocol == 'postgresql':
-                config['database'] = self.db_name
-                if self.password is not None:
-                    config['password'] = self.password
-            try:
-                self.conn = self.get_db_lib().connect(**config)
-                break
-            except self.get_db_lib().Error, e:
-                debug.warning("Got an error connecting to the database", e)
-                if (e[0] == 1045 or self.get_db_lib().OperationalError 
-                    and self.password is None):
-                    passwd_dlg = QPasswordEntry()
-                    if passwd_dlg.exec_():
-                        self.password = passwd_dlg.get_password()
-                    else:
-                        retry = False
-                else:
-                    raise ModuleError(self, debug.format_exception(e))
-             
+    """Connects to a database.
+
+    If the URI you enter uses a driver which is not currently installed,
+    VisTrails will try to set it up.
+    """
+    _input_ports = [('protocol', '(basic:String)'),
+                    ('user', '(basic:String)',
+                     {'optional': True}),
+                    ('password', '(basic:String)',
+                     {'optional': True}),
+                    ('host', '(basic:String)',
+                     {'optional': True}),
+                    ('port', '(basic:Integer)',
+                     {'optional': True}),
+                    ('db_name', '(basic:String)')]
+    _output_ports = [('connection', '(DBConnection)')]
+
     def compute(self):
-        self.check_input('db_name')
-        self.host = self.force_get_input('host', 'localhost')
-        self.port = self.force_get_input('port', 3306)
-        self.user = self.force_get_input('user', None)
-        self.db_name = self.get_input('db_name')
-        self.protocol = self.force_get_input('protocol', 'mysql')
-        if self.has_input('password'):
-            self.password = self.get_input('password')
-        else:
-            self.password = None
+        url = URL(drivername=self.get_input('protocol'),
+                  username=self.force_get_input('user', None),
+                  password=self.force_get_input('password', None),
+                  host=self.force_get_input('host', None),
+                  port=self.force_get_input('port', None),
+                  database=self.get_input('db_name'))
 
-        self.open()
+        self.set_output('connection', create_engine(url))
 
-    # nice to have enumeration constant type
-    _input_ports = [('host', '(basic:String)'),
-                    ('port', '(basic:Integer)'),
-                    ('user', '(basic:String)'),
-                    ('db_name', '(basic:String)'),
-                    ('protocol', '(basic:String)')]
-    _output_ports = [('self', '(DBConnection)')]
 
 class SQLSource(Module):
-    def __init__(self):
-        Module.__init__(self)
-        self.is_cacheable = self.cachedOff
-        
+    _settings = ModuleSettings(configure_widget=
+            'vistrails.packages.sql.widgets:SQLSourceConfigurationWidget')
+    _input_ports = [('connection', '(DBConnection)'),
+                    ('cacheResults', '(basic:Boolean)'),
+                    ('source', '(basic:String)')]
+    _output_ports = [('result', '(org.vistrails.vistrails.tabledata:Table)')]
+
+    def is_cacheable(self):
+        return False
+
     def compute(self):
         cached = False
         if self.has_input('cacheResults'):
             cached = self.get_input('cacheResults')
-        self.check_input('connection')
-        connection = self.get_input('connection')
-        inputs = [self.get_input(k) for k in self.inputPorts
-                  if k != 'source' and k != 'connection' and k!= 'cacheResults']
-        #print 'inputs:', inputs
-        s = urllib.unquote(str(self.force_get_input('source', '')))
-        if not connection.ping():
-            connection.open()
-        cur = connection.conn.cursor()
-        cur.execute(s, inputs)
-    
-        if cached:
-            self.is_cacheable = self.cachedOn
-        else:
-            self.is_cacheable = self.cachedOff
-            
-        self.set_output('resultSet', cur.fetchall())
+            self.is_cacheable = lambda: cached
+        engine = self.get_input('connection')
+        inputs = [self.get_input(k) for k in self.inputPorts.iterkeys()
+                  if k not in ('source', 'connection', 'cacheResults')]
+        s = urllib.unquote(str(self.get_input('source')))
 
-    def cachedOn(self):
-        return True
-    
-    def cachedOff(self):
-        return False
-    
-    _input_ports = [('connection', '(DBConnection)'),
-                    ('cacheResults', '(basic:Boolean)'),    
-                    ('source', '(basic:String)')]
-    _output_ports = \
-        [('resultSet', '(basic:List)')]
+        connection = engine.connect()
+        results = connection.execute(s, inputs)
+        table = TableObject.from_dicts((row for row in results), results.keys())
+        self.set_output('result', table)
+        connection.close()
 
-class SQLSourceConfigurationWidget(SourceConfigurationWidget):
-    def __init__(self, module, controller, parent=None):
-        SourceConfigurationWidget.__init__(self, module, controller, None,
-                                           True, False, parent)
-        
-_modules = [DBConnection,
-            (SQLSource, {'configureWidgetType': SQLSourceConfigurationWidget})]
 
-def handle_module_upgrade_request(controller, module_id, pipeline):
-    module_remap = {'SQLSource': [(None, '0.0.3', None, {})]}
-
-    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
-                                               module_remap)
+_modules = [DBConnection, SQLSource]
