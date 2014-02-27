@@ -35,10 +35,12 @@
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.url import URL
+from sqlalchemy.exc import NoSuchModuleError
 import urllib
 
+from vistrails.core.bundles.installbundle import install
 from vistrails.core.modules.config import ModuleSettings
-from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from vistrails.packages.tabledata.common import TableObject
 
@@ -69,7 +71,53 @@ class DBConnection(Module):
                   port=self.force_get_input('port', None),
                   database=self.get_input('db_name'))
 
-        self.set_output('connection', create_engine(url))
+        try:
+            self.set_output('connection', create_engine(url))
+        except ImportError, e:
+            driver = url.drivername
+            installed = False
+            if driver == 'sqlite':
+                raise ModuleError(self,
+                                  "Python was built without sqlite3 support")
+            elif (driver == 'mysql' or
+                    driver == 'drizzle'): # drizzle is a variant of MySQL
+                installed = install({
+                        'pip': 'mysql-python',
+                        'linux-debian': 'python-mysqldb',
+                        'linux-ubuntu': 'python-mysqldb',
+                        'linux-fedora': 'MySQL-python'})
+            elif (driver == 'postgresql' or
+                    driver == 'postgre'):   # deprecated alias
+                installed = install({
+                        'pip': 'psycopg2',
+                        'linux-debian':'python-psycopg2',
+                        'linux-ubuntu':'python-psycopg2',
+                        'linux-fedora':'python-psycopg2'})
+            elif driver == 'firebird':
+                installed = install({
+                        'pip': 'fdb',
+                        'linux-fedora':'python-fdb'})
+            elif driver == 'mssql' or driver == 'sybase':
+                installed = install({
+                        'pip': 'pyodbc',
+                        'linux-debian':'python-pyodbc',
+                        'linux-ubuntu':'python-pyodbc',
+                        'linux-fedora':'pyodbc'})
+            elif driver == 'oracle':
+                installed = install({
+                        'pip': 'cx_Oracle'})
+            else:
+                raise ModuleError(
+                        self,
+                        "SQLAlchemy couldn't connect: %s" % e.message)
+            if not installed:
+                raise ModuleError(self,
+                                  "Failed to install required driver")
+        except NoSuchModuleError:
+            raise ModuleError(
+                    self,
+                    "SQLAlchemy has no support for protocol %r -- are you "
+                    "sure you spelled that correctly?" % url.drivername)
 
 
 class SQLSource(Module):
