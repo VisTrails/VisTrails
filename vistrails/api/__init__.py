@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -366,6 +366,12 @@ class TestAPI(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(get_vistrails_application().builderWindow.qactions['saveFile'].isEnabled(),
                          view.has_changes())
         assert get_vistrails_application().builderWindow.qactions['saveFileAs'].isEnabled()
+
+    def test_detach_vistrail(self):
+        view = new_vistrail()
+        get_vistrails_application().builderWindow.detach_view(view)
+        get_vistrails_application().builderWindow.attach_view(view)
+        close_vistrail(view)
 
     
     

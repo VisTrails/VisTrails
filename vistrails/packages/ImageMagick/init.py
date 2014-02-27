@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -66,7 +66,9 @@ import os
 @parallelizable(thread=True)
 class ImageMagick(Module):
     """ImageMagick is the base Module for all Modules in the ImageMagick
-package. It simply defines some helper methods for subclasses."""
+    package. It simply defines some helper methods for subclasses.
+
+    """
 
     def compute(self):
         raise IncompleteImplementation
@@ -75,28 +77,34 @@ package. It simply defines some helper methods for subclasses."""
         """Returns a fully described name in the ImageMagick format.
 
         For example, a file stored in PNG format may be described by:
-        - 'graphic.png' indicates the filename 'graphic.png', using the PNG
-        file format.
-        - 'png:graphic' indicates the filename 'graphic', still using the PNG
-        file format."""
-        i = self.getInputFromPort("input")
-        if self.hasInputFromPort('inputFormat'):
-            return self.getInputFromPort('inputFormat') + ':' + i.name
+        - 'graphic.png' indicates the filename 'graphic.png', using
+        the PNG file format.
+        - 'png:graphic' indicates the filename 'graphic', still using
+        the PNG file format.
+
+        """
+        i = self.get_input("input")
+        if self.has_input('inputFormat'):
+            return self.get_input('inputFormat') + ':' + i.name
         else:
             return i.name
 
     def create_output_file(self):
-        """Creates a File with the output format given by the
-outputFormat port."""
-        if self.hasInputFromPort('outputFormat'):
-            s = '.' + self.getInputFromPort('outputFormat')
+        """Creates a File with the output format given by the outputFormat
+        port.
+
+        """
+        if self.has_input('outputFormat'):
+            s = '.' + self.get_input('outputFormat')
             return self.interpreter.filePool.create_file(suffix=s)
         else:
             return self.interpreter.filePool.create_file(suffix='.png')
 
     def run(self, *args):
         """run(*args), runs ImageMagick's 'convert' on a shell, passing all
-arguments to the program."""
+        arguments to the program.
+
+        """
         path = None
         if configuration.check('path'):
             path = configuration.path
@@ -122,7 +130,7 @@ a descriptive name of the operation it implements."""
         o = self.create_output_file()
         i = self.input_file_description()
         self.run(i, o.name)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class CombineRGBA(ImageMagick):
@@ -130,10 +138,10 @@ class CombineRGBA(ImageMagick):
 
     def compute(self):
         o = self.create_output_file()
-        r = self.getInputFromPort("r")
-        g = self.getInputFromPort("g")
-        b = self.getInputFromPort("b")
-        a = self.forceGetInputFromPort("a")
+        r = self.get_input("r")
+        g = self.get_input("g")
+        b = self.get_input("b")
+        a = self.force_get_input("a")
 
         if a is not None:
             self.run(r.name, g.name, b.name, a.name,
@@ -144,21 +152,24 @@ class CombineRGBA(ImageMagick):
                      '-channel', 'RGB',
                      '-combine', o.name)
 
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class Scale(Convert):
-    """Scale rescales the input image to the given geometry description."""
+    """Scale rescales the input image to the given geometry
+    description.
+
+    """
 
     def geometry_description(self):
         """returns a string with the description of the geometry as
 indicated by the appropriate ports (geometry or width and height)"""
         # if complete geometry is available, ignore rest
-        if self.hasInputFromPort("geometry"):
-            return self.getInputFromPort("geometry")
-        elif self.hasInputFromPort("width"):
-            w = self.getInputFromPort("width")
-            h = self.getInputFromPort("height")
+        if self.has_input("geometry"):
+            return self.get_input("geometry")
+        elif self.has_input("width"):
+            w = self.get_input("width")
+            h = self.get_input("height")
             return "'%sx%s'" % (w, h)
         else:
             raise ModuleError(self, "Needs geometry or width/height")
@@ -169,21 +180,23 @@ indicated by the appropriate ports (geometry or width and height)"""
                  "-scale",
                  self.geometry_description(),
                  o.name)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class GaussianBlur(Convert):
-    """GaussianBlur convolves the image with a Gaussian filter of given radius
-and standard deviation."""
+    """GaussianBlur convolves the image with a Gaussian filter of given
+    radius and standard deviation.
+
+    """
 
     def compute(self):
-        (radius, sigma) = self.getInputFromPort('radiusSigma')
+        (radius, sigma) = self.get_input('radiusSigma')
         o = self.create_output_file()
         self.run(self.input_file_description(),
                  "-blur",
                  "%sx%s" % (radius, sigma),
                  o.name)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 no_param_options = [("Negate", "-negate",
@@ -201,14 +214,16 @@ no_param_options = [("Negate", "-negate",
 
 def no_param_options_method_dict(optionName):
     """Creates a method dictionary for a module that takes no extra
-parameters. This dictionary will be used to dynamically create a
-VisTrails module."""
+    parameters. This dictionary will be used to dynamically create a
+    VisTrails module.
+
+    """
    
     def compute(self):
         o = self.create_output_file()
         i = self.input_file_description()
         self.run(i, optionName, o.name)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
     return {'compute': compute}
 
@@ -219,16 +234,18 @@ float_param_options = [("DetectEdges", "-edge", "radius", "filter radius"),
                        ("MedianFilter", "-median", "radius", "filter radius")]
 
 def float_param_options_method_dict(optionName, portName):
-    """Creates a method dictionary for a module that has one port
-taking a floating-point value. This dictionary will be used to
-dynamically create a VisTrails module."""
+    """Creates a method dictionary for a module that has one port taking a
+    floating-point value. This dictionary will be used to dynamically
+    create a VisTrails module.
+
+    """
 
     def compute(self):
         o = self.create_output_file()
-        optionValue = self.getInputFromPort(portName)
+        optionValue = self.get_input(portName)
         i = self.input_file_description()
         self.run(i, optionName, str(optionValue), o.name)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
     return {'compute': compute}
 

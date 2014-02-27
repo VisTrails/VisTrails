@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -77,18 +77,18 @@ class VTKCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the vtkRenderer to the actual rendering widget
         """
-        renderers = self.forceGetInputListFromPort('AddRenderer')
-        renderViews = self.forceGetInputListFromPort('SetRenderView')
+        renderers = self.force_get_input_list('AddRenderer')
+        renderViews = self.force_get_input_list('SetRenderView')
         if len(renderViews)>1:
             raise ModuleError(self, 'There can only be one vtkRenderView '
                               'per cell')
         if len(renderViews)==1 and len(renderers)>0:
             raise ModuleError(self, 'Cannot set both vtkRenderView '
                               'and vtkRenderer to a cell')
-        renderView = self.forceGetInputFromPort('SetRenderView')
-        iHandlers = self.forceGetInputListFromPort('InteractionHandler')
-        iStyle = self.forceGetInputFromPort('InteractorStyle')
-        picker = self.forceGetInputFromPort('AddPicker')
+        renderView = self.force_get_input('SetRenderView')
+        iHandlers = self.force_get_input_list('InteractionHandler')
+        iStyle = self.force_get_input('InteractorStyle')
+        picker = self.force_get_input('AddPicker')
         self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
@@ -1130,17 +1130,17 @@ def registerSelf():
     registry = get_module_registry()
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)
-    import vistrails.core.debug
+    from vistrails.core import debug
     for (port,module) in [("AddRenderer",'vtkRenderer'),
                           ("SetRenderView",'vtkRenderView'),
                           ("InteractionHandler",'vtkInteractionHandler'),
                           ("InteractorStyle", 'vtkInteractorStyle'),
                           ("AddPicker",'vtkAbstractPicker')]:
         try:
-            registry.add_input_port(VTKCell, port,'(%s:%s)' % \
-                                        (vtk_pkg_identifier,module))
-            
+            registry.add_input_port(VTKCell, port,
+                                    '(%s:%s)' % (vtk_pkg_identifier, module))
         except Exception, e:
-            vistrails.core.debug.warning(str(e))
+            debug.warning("Got an exception adding VTKCell's %s input "
+                          "port" % port, e)
 
     registry.add_output_port(VTKCell, "self", VTKCell)

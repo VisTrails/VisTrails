@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -137,32 +137,32 @@ class VtlFileCreator(NotCacheable, Module):
     def compute(self):
         self.get_locator_and_version()
         
-        if self.hasInputFromPort('execute'):
-            self.execute = self.getInputFromPort('execute')
+        if self.has_input('execute'):
+            self.execute = self.get_input('execute')
         
-        if self.hasInputFromPort('forceDB'):
-            self.forceDB = self.getInputFromPort('forceDB')
+        if self.has_input('forceDB'):
+            self.forceDB = self.get_input('forceDB')
         
-        if self.hasInputFromPort('showSpreadsheetOnly'):
-            self.showSpreadsheetOnly = self.getInputFromPort('showSpreadsheetOnly')
+        if self.has_input('showSpreadsheetOnly'):
+            self.showSpreadsheetOnly = self.get_input('showSpreadsheetOnly')
             
-        if self.hasInputFromPort('embedWorkflow'):
-            self.embedWorkflow = self.getInputFromPort('embedWorkflow')
+        if self.has_input('embedWorkflow'):
+            self.embedWorkflow = self.get_input('embedWorkflow')
         
         xmlstring = self.generate_vtl(self.locator,self.version,self.pipeline,
                                       self.execute,self.forceDB,
                                       self.showSpreadsheetOnly,self.embedWorkflow)
         
-        if self.hasInputFromPort('filename'):
-            filename = self.getInputFromPort('filename')
-            if self.hasInputFromPort('directory'):
-                directory = self.getInputFromPort('directory').name
+        if self.has_input('filename'):
+            filename = self.get_input('filename')
+            if self.has_input('directory'):
+                directory = self.get_input('directory').name
                 filename = os.path.join(directory,filename)
             file_ = open(filename,'w')
             file_.write(xmlstring)
             file_.close()
         
-        self.setResult("xmlstring", xmlstring)
+        self.set_output("xmlstring", xmlstring)
         
     _input_ports = [('execute', Boolean, True), 
                     ('showspreadsheetOnly', Boolean, True),

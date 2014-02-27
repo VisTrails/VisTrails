@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -48,7 +48,7 @@ class ExecuteInOrder(Module):
             callback = self.__update_one_port
         else:
             callback = self.on_upstream_ready
-        self.updateUpstream(callback, targets=connectors)
+        self.update_upstream(callback, targets=connectors)
 
     def update(self):
         self.logging.begin_update(self)

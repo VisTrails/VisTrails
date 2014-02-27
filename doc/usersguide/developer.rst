@@ -14,3 +14,4 @@ Developer's Guide
    example_itk
    controlflowdev
    cltools
+   api_documentation

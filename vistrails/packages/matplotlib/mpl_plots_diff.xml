@@ -24,11 +24,11 @@
   <changePortSpec attr="entry_types" code_ref="matplotlib.pyplot.hexbin" port="bins" type="input">
     <value>None</value>
   </changePortSpec>
-  <changePortSpec attr="values" code_ref="matplotlib.pyplot.hexbin" port="bins" type="input">
-    <value>None</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hexbin" port="bins" type="input">
     <value>basic:Integer</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.pyplot.hexbin" port="bins" type="input">
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hexbin" port="x" type="input">
     <value>basic:List</value>
@@ -59,11 +59,11 @@
       <inputPortSpec arg="v" arg_pos="1" in_args="True" name="v" port_type="basic:List" />
     </value>
   </addPortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.clabel" port="cs" type="input">
-    <value>True</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.clabel" port="cs" type="input">
     <value>MplContourSet</value>
+  </changePortSpec>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.clabel" port="cs" type="input">
+    <value>True</value>
   </changePortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.clabel" port="text" type="output">
     <value>
@@ -123,11 +123,11 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.fill_betweenx" port="x1" type="input">
     <value>An N-length array of the x data</value>
   </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.fill_betweenx" port="x1" type="input">
-    <value>True</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.fill_betweenx" port="x1" type="input">
     <value>basic:List</value>
+  </changePortSpec>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.fill_betweenx" port="x1" type="input">
+    <value>True</value>
   </changePortSpec>
   <addPortSpec altName="x1Scalar" code_ref="matplotlib.pyplot.fill_betweenx" port="x1" type="alternate">
     <value>
@@ -355,14 +355,14 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
       <inputPortSpec arg="X" arg_pos="0" in_args="True" name="X" port_type="basic:List" />
     </value>
   </addPortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.contour" port="Z" type="input">
-    <value>True</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.contour" port="Z" type="input">
     <value>basic:List</value>
   </changePortSpec>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.contour" port="Z" type="input">
     <value>2</value>
+  </changePortSpec>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.contour" port="Z" type="input">
+    <value>True</value>
   </changePortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.contour" port="N" type="input">
     <value>
@@ -440,11 +440,11 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
       <alternateSpec arg="width" name="widthSequence" port_type="basic:List" />
     </value>
   </addPortSpec>
-  <changePortSpec attr="required" code_ref="matplotlib.pyplot.bar" port="left" type="input">
-    <value>False</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.bar" port="left" type="input">
     <value>basic:List</value>
+  </changePortSpec>
+  <changePortSpec attr="required" code_ref="matplotlib.pyplot.bar" port="left" type="input">
+    <value>False</value>
   </changePortSpec>
   <addPortSpec altName="leftScalar" code_ref="matplotlib.pyplot.bar" port="left" type="alternate">
     <value>
@@ -554,9 +554,6 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.fill_between" port="y2" type="input">
     <value>basic:Float</value>
   </changePortSpec>
-  <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.fill_between" port="y2" type="input">
-    <value>['0.0']</value>
-  </changePortSpec>
   <addPortSpec altName="y2Sequence" code_ref="matplotlib.pyplot.fill_between" port="y2" type="alternate">
     <value>
       <alternateSpec arg="y2" name="y2Sequence" port_type="basic:List">
@@ -567,11 +564,11 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.fill_between" port="y1" type="input">
     <value>An N-length array of the y data</value>
   </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.fill_between" port="y1" type="input">
-    <value>True</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.fill_between" port="y1" type="input">
     <value>basic:List</value>
+  </changePortSpec>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.fill_between" port="y1" type="input">
+    <value>True</value>
   </changePortSpec>
   <addPortSpec altName="y1Scalar" code_ref="matplotlib.pyplot.fill_between" port="y1" type="alternate">
     <value>
@@ -600,14 +597,14 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changeModule attr="output_type" code_ref="matplotlib.pyplot.hlines">
     <value>object</value>
   </changeModule>
-  <changePortSpec attr="name" code_ref="matplotlib.pyplot.hlines" port="xmax" type="input">
-    <value>xmaxScalar</value>
-  </changePortSpec>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.hlines" port="xmax" type="input">
     <value>can be scalars or len(x) numpy arrays.  If they are scalars, then the respective values are constant, else the widths of the lines are determined by xmin and xmax.</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hlines" port="xmax" type="input">
     <value>basic:Float</value>
+  </changePortSpec>
+  <changePortSpec attr="name" code_ref="matplotlib.pyplot.hlines" port="xmax" type="input">
+    <value>xmaxScalar</value>
   </changePortSpec>
   <addPortSpec altName="xmaxSequence" code_ref="matplotlib.pyplot.hlines" port="xmax" type="alternate">
     <value>
@@ -633,44 +630,44 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="C" type="input">
     <value>None</value>
   </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="C" type="input">
-    <value>True</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.quiver" port="C" type="input">
     <value>basic:List</value>
   </changePortSpec>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.quiver" port="C" type="input">
     <value>4</value>
   </changePortSpec>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="C" type="input">
+    <value>True</value>
+  </changePortSpec>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="Y" type="input">
     <value>None</value>
-  </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="Y" type="input">
-    <value>True</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.quiver" port="Y" type="input">
     <value>basic:List</value>
   </changePortSpec>
-  <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.quiver" port="Y" type="input">
-    <value>None</value>
-  </changePortSpec>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.quiver" port="Y" type="input">
     <value>1</value>
+  </changePortSpec>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="Y" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.quiver" port="Y" type="input">
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="X" type="input">
     <value>None</value>
   </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="X" type="input">
-    <value>True</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.quiver" port="X" type="input">
     <value>basic:List</value>
   </changePortSpec>
-  <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.quiver" port="X" type="input">
-    <value>None</value>
-  </changePortSpec>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.quiver" port="X" type="input">
     <value>0</value>
+  </changePortSpec>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="X" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.quiver" port="X" type="input">
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="name" code_ref="matplotlib.pyplot.quiver" port="scale" type="input">
     <value>scale</value>
@@ -679,26 +676,35 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
     <value>None</value>
   </changePortSpec>
-  <changePortSpec attr="required" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
-    <value>True</value>
+  <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
+    <value>2</value>
   </changePortSpec>
   <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
     <value>True</value>
   </changePortSpec>
-  <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
-    <value>2</value>
+  <changePortSpec attr="required" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
+    <value>True</value>
   </changePortSpec>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
     <value>None</value>
   </changePortSpec>
-  <changePortSpec attr="required" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
-    <value>True</value>
+  <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
+    <value>3</value>
   </changePortSpec>
   <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
     <value>True</value>
   </changePortSpec>
-  <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
-    <value>3</value>
+  <changePortSpec attr="required" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec altName="colorScalar" attr="translations" code_ref="matplotlib.pyplot.quiver" port="color" type="alternate">
+    <value>translate_color</value>
+  </changePortSpec>
+  <changePortSpec altName="colorScalar" attr="entry_types" code_ref="matplotlib.pyplot.quiver" port="color" type="alternate">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec altName="colorScalar" attr="values" code_ref="matplotlib.pyplot.quiver" port="color" type="alternate">
+    <value>None</value>
   </changePortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.quiver" port="polyCollection" type="output">
     <value>
@@ -716,11 +722,11 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
       <alternateSpec arg="explode" name="explodeScalar" port_type="basic:String" />
     </value>
   </addPortSpec>
-  <changePortSpec attr="name" code_ref="matplotlib.pyplot.pie" port="colors" type="input">
-    <value>colors</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.pie" port="colors" type="input">
     <value>basic:Color</value>
+  </changePortSpec>
+  <changePortSpec attr="name" code_ref="matplotlib.pyplot.pie" port="colors" type="input">
+    <value>colors</value>
   </changePortSpec>
   <deletePortSpec altName="colorsScalar" code_ref="matplotlib.pyplot.pie" port="colors" type="alternate" />
   <addPortSpec code_ref="matplotlib.pyplot.pie" port="autotext" type="output">
@@ -770,11 +776,11 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</value>
   <changePortSpec attr="entry_types" code_ref="matplotlib.pyplot.errorbar" port="xerr" type="input">
     <value>None</value>
   </changePortSpec>
-  <changePortSpec attr="values" code_ref="matplotlib.pyplot.errorbar" port="xerr" type="input">
-    <value>None</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.errorbar" port="xerr" type="input">
     <value>basic:List</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.pyplot.errorbar" port="xerr" type="input">
+    <value>None</value>
   </changePortSpec>
   <addPortSpec altName="xerrScalar" code_ref="matplotlib.pyplot.errorbar" port="xerr" type="alternate">
     <value>
@@ -795,11 +801,11 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</value>
   <changePortSpec attr="entry_types" code_ref="matplotlib.pyplot.errorbar" port="yerr" type="input">
     <value>None</value>
   </changePortSpec>
-  <changePortSpec attr="values" code_ref="matplotlib.pyplot.errorbar" port="yerr" type="input">
-    <value>None</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.errorbar" port="yerr" type="input">
     <value>basic:List</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.pyplot.errorbar" port="yerr" type="input">
+    <value>None</value>
   </changePortSpec>
   <addPortSpec altName="yerrScalar" code_ref="matplotlib.pyplot.errorbar" port="yerr" type="alternate">
     <value>
@@ -838,14 +844,20 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</value>
   <changeModule attr="output_type" code_ref="matplotlib.pyplot.hist">
     <value>tuple</value>
   </changeModule>
-  <changePortSpec attr="name" code_ref="matplotlib.pyplot.hist" port="bins" type="input">
-    <value>bins</value>
+  <changePortSpec attr="translations" code_ref="matplotlib.pyplot.hist" port="color" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec altName="colorScalar" attr="translations" code_ref="matplotlib.pyplot.hist" port="color" type="alternate">
+    <value>translate_color</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.hist" port="bins" type="input">
     <value>basic:Integer</value>
   </changePortSpec>
+  <changePortSpec attr="name" code_ref="matplotlib.pyplot.hist" port="bins" type="input">
+    <value>bins</value>
+  </changePortSpec>
   <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.hist" port="bins" type="input">
-    <value>['10']</value>
+    <value>[10]</value>
   </changePortSpec>
   <deletePortSpec altName="binsScalar" code_ref="matplotlib.pyplot.hist" port="bins" type="alternate" />
   <addPortSpec altName="binsSequence" code_ref="matplotlib.pyplot.hist" port="bins" type="alternate">
@@ -910,17 +922,17 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</value>
   <changeModule attr="output_type" code_ref="matplotlib.pyplot.polar">
     <value>object</value>
   </changeModule>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.polar" port="theta" type="input">
-    <value>True</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.polar" port="theta" type="input">
     <value>basic:List</value>
   </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.polar" port="r" type="input">
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.polar" port="theta" type="input">
     <value>True</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.polar" port="r" type="input">
     <value>basic:List</value>
+  </changePortSpec>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.polar" port="r" type="input">
+    <value>True</value>
   </changePortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.polar" port="line" type="output">
     <value>
@@ -980,14 +992,14 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</value>
       <inputPortSpec arg="X" arg_pos="0" in_args="True" name="X" port_type="basic:List" />
     </value>
   </addPortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.contourf" port="Z" type="input">
-    <value>True</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.contourf" port="Z" type="input">
     <value>basic:List</value>
   </changePortSpec>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.contourf" port="Z" type="input">
     <value>2</value>
+  </changePortSpec>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.contourf" port="Z" type="input">
+    <value>True</value>
   </changePortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.contourf" port="contourSet" type="output">
     <value>
@@ -1144,14 +1156,14 @@ Example:</value>
   <changeModule attr="output_type" code_ref="matplotlib.pyplot.barbs">
     <value>object</value>
   </changeModule>
-  <changePortSpec attr="name" code_ref="matplotlib.pyplot.barbs" port="barbcolor" type="input">
-    <value>barbcolor</value>
-  </changePortSpec>
   <changePortSpec attr="translations" code_ref="matplotlib.pyplot.barbs" port="barbcolor" type="input">
     <value>translate_color</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.barbs" port="barbcolor" type="input">
     <value>basic:Color</value>
+  </changePortSpec>
+  <changePortSpec attr="name" code_ref="matplotlib.pyplot.barbs" port="barbcolor" type="input">
+    <value>barbcolor</value>
   </changePortSpec>
   <deletePortSpec altName="barbcolorScalar" code_ref="matplotlib.pyplot.barbs" port="barbcolor" type="alternate" />
   <addPortSpec altName="barbcolorSequence" code_ref="matplotlib.pyplot.barbs" port="barbcolor" type="alternate">
@@ -1159,14 +1171,14 @@ Example:</value>
       <alternateSpec arg="barbcolor" name="barbcolorSequence" port_type="basic:List" />
     </value>
   </addPortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="C" type="input">
-    <value>True</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.barbs" port="C" type="input">
     <value>basic:List</value>
   </changePortSpec>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.barbs" port="C" type="input">
     <value>4</value>
+  </changePortSpec>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="C" type="input">
+    <value>True</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.barbs" port="sizes" type="input">
     <value>basic:Dictionary</value>
@@ -1182,35 +1194,29 @@ Example:</value>
   <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.barbs" port="barb_increments" type="input">
     <value>None</value>
   </changePortSpec>
-  <changePortSpec attr="required" code_ref="matplotlib.pyplot.barbs" port="U" type="input">
-    <value>True</value>
-  </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="U" type="input">
-    <value>True</value>
-  </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.barbs" port="U" type="input">
     <value>basic:List</value>
   </changePortSpec>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.barbs" port="U" type="input">
     <value>2</value>
   </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="X" type="input">
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="U" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="required" code_ref="matplotlib.pyplot.barbs" port="U" type="input">
     <value>True</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.barbs" port="X" type="input">
     <value>basic:List</value>
   </changePortSpec>
-  <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.barbs" port="X" type="input">
-    <value>None</value>
-  </changePortSpec>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.barbs" port="X" type="input">
     <value>0</value>
   </changePortSpec>
-  <changePortSpec attr="required" code_ref="matplotlib.pyplot.barbs" port="V" type="input">
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="X" type="input">
     <value>True</value>
   </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="V" type="input">
-    <value>True</value>
+  <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.barbs" port="X" type="input">
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.barbs" port="V" type="input">
     <value>basic:List</value>
@@ -1218,26 +1224,32 @@ Example:</value>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.barbs" port="V" type="input">
     <value>3</value>
   </changePortSpec>
-  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="Y" type="input">
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="V" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="required" code_ref="matplotlib.pyplot.barbs" port="V" type="input">
     <value>True</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.barbs" port="Y" type="input">
     <value>basic:List</value>
   </changePortSpec>
-  <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.barbs" port="Y" type="input">
-    <value>None</value>
-  </changePortSpec>
   <changePortSpec attr="arg_pos" code_ref="matplotlib.pyplot.barbs" port="Y" type="input">
     <value>1</value>
   </changePortSpec>
-  <changePortSpec attr="name" code_ref="matplotlib.pyplot.barbs" port="flagcolor" type="input">
-    <value>flagcolor</value>
+  <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="Y" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.barbs" port="Y" type="input">
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="translations" code_ref="matplotlib.pyplot.barbs" port="flagcolor" type="input">
     <value>translate_color</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.barbs" port="flagcolor" type="input">
     <value>basic:Color</value>
+  </changePortSpec>
+  <changePortSpec attr="name" code_ref="matplotlib.pyplot.barbs" port="flagcolor" type="input">
+    <value>flagcolor</value>
   </changePortSpec>
   <deletePortSpec altName="flagcolorScalar" code_ref="matplotlib.pyplot.barbs" port="flagcolor" type="alternate" />
   <addPortSpec altName="flagcolorSequence" code_ref="matplotlib.pyplot.barbs" port="flagcolor" type="alternate">

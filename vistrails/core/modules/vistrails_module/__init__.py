@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +35,8 @@
 
 from itertools import izip
 
+from vistrails.core.modules.config import IPort, ModuleSettings, OPort
+
 from .errors import IncompleteImplementation, InvalidOutput, \
     ModuleBreakpoint, ModuleError, ModuleErrors, ModuleSuspended, \
     NeedsInputPort
@@ -68,6 +70,9 @@ class Converter(Module):
     Alternatively, you can override the classmethod can_convert() to provide
     a custom condition.
     """
+    _settings = ModuleSettings(abstract=True)
+    _input_ports = [IPort('in_value', Module)]
+    _output_ports = [OPort('out_value', Module)]
     @classmethod
     def can_convert(cls, sub_descs, super_descs):
         from vistrails.core.modules.module_registry import get_module_registry

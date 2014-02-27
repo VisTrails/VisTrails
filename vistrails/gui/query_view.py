@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,7 +46,7 @@ from vistrails.core.vistrail.vistrail import Vistrail
 
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.common_widgets import QSearchBox
-from vistrails.gui.modules import get_query_widget_class
+from vistrails.gui.modules.utils import get_query_widget_class
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.ports_pane import ParameterEntry
 from vistrails.gui.theme import CurrentTheme
@@ -372,7 +372,7 @@ class QQueryBox(QtGui.QWidget):
             #     search = CombinedSearch(s, 
             #     search = SearchCompiler(s).searchStmt
             # except SearchParseError, e:
-            #     debug.warning("Search Parse Error", str(e))
+            #     debug.warning("Search Parse Error", e)
             #     search = None
             # self.controller.set_search(search, s)
             # self.emit(QtCore.SIGNAL('textQueryChange(bool)'), s!='')

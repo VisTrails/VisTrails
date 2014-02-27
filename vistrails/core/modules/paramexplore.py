@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -172,7 +172,7 @@ class UserDefinedFunctionInterpolator(object):
                         return self._ptype.default_value
                     return v
                 except Exception, e:
-                    return str(e)
+                    return debug.format_exception(e)
             return [evaluate(i) for i in xrange(self._steps)]
         result = get()
 

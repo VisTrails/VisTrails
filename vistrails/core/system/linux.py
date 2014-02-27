@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -134,7 +134,8 @@ def get_libX11():
     ctypes = py_import('ctypes', {
             'pip': 'ctypes',
             'linux-debian': 'python-ctypes',
-            'linux-ubuntu': 'python-ctypes'})
+            'linux-ubuntu': 'python-ctypes',
+            'linux-fedora': 'python-ctypes'})
     c_void_p = ctypes.c_void_p
     CDLL = ctypes.CDLL
     return CDLL('libX11.so.6')
@@ -155,7 +156,8 @@ def XDestroyWindow(displayId, windowId):
     ctypes = py_import('ctypes', {
             'pip': 'ctypes',
             'linux-debian': 'python-ctypes',
-            'linux-ubuntu': 'python-ctypes'})
+            'linux-ubuntu': 'python-ctypes',
+            'linux-fedora': 'python-ctypes'})
     c_void_p = ctypes.c_void_p
     displayPtr = c_void_p(int(displayId[1:displayId.find('_void_p')], 16))
     windowPtr = c_void_p(int(windowId[1:windowId.find('_void_p')], 16))

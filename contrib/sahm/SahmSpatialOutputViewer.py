@@ -35,7 +35,7 @@ class SAHMSpatialOutputViewerCell(SpreadsheetCell):
 
     def compute(self):
         inputs = {}
-        inputs["model_workspace"] = self.forceGetInputFromPort('model_workspace').name
+        inputs["model_workspace"] = self.force_get_input('model_workspace').name
         inputs["model_dir"] = os.path.split(inputs["model_workspace"])[0]
 
         inputs["prob_map"] = os.path.join(inputs["model_dir"],
@@ -64,15 +64,15 @@ class SAHMSpatialOutputViewerCell(SpreadsheetCell):
 
         inputs["model_tag"] = os.path.split(inputs["model_dir"])[1]
 
-        if self.hasInputFromPort("row"):
+        if self.has_input("row"):
             if not self.location:
                 self.location = CellLocation()
-            self.location.row = self.getInputFromPort('row') - 1
+            self.location.row = self.get_input('row') - 1
         
-        if self.hasInputFromPort("column"):
+        if self.has_input("column"):
             if not self.location:
                 self.location = CellLocation()
-            self.location.col = self.getInputFromPort('column') - 1
+            self.location.col = self.get_input('column') - 1
 
         self.displayAndWait(SAHMSpatialOutputViewerCellWidget,
                             inputs)

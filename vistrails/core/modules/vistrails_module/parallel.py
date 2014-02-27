@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -65,8 +65,8 @@ def parallelizable(thread=True, process=False, remote=False, standalone=False,
       machines) or global variables (including imports! you should move them to
       the method's body).
       * standalone: means that no use is made of VisTrails's modules and
-      functions, and that only the methods accessing inputs and setResult() are
-      used on 'self' ('self' will be a pickled copy of a simplified Module
+      functions, and that only the methods accessing inputs and set_output()
+      are used on 'self' ('self' will be a pickled copy of a simplified Module
       instance).
 
     In addition, you may specify whether a specific system can be used by

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,8 +46,8 @@ from vistrails.core.modules.basic_modules import String, Boolean, Variant, \
     identifier as basic_pkg
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     new_module, ModuleError, ModuleSuspended
-from vistrails.core.modules.vistrails_module.parallel import RemoteExecution
 from vistrails.core.utils import VistrailsInternalError
+from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 import os.path
 
 try:
@@ -59,30 +59,107 @@ except ImportError:
 
 ##############################################################################
 
+def random_signature(pipeline, obj, chm):
+    hasher = sha_hash()
+    hasher.update(str(random.random()))
+    return hasher.digest()
+
+def input_port_signature(pipeline, obj, chm):
+    if hasattr(obj, '_input_port_signature') and \
+            obj._input_port_signature is not None:
+        return obj._input_port_signature
+    return random_signature(pipeline, obj, chm)
+
 class InputPort(Module):
-    
+    _settings = ModuleSettings(signature=input_port_signature)
+    _input_ports = [IPort("name", "String", optional=True),
+                    IPort("optional", "Boolean", optional=True),
+                    IPort("spec", "String"),
+                    IPort("ExternalPipe", "Variant", optional=True),
+                    IPort("Default", "Variant")]
+    _output_ports = [OPort("InternalPipe", "Variant")]
+                    
     def compute(self):
-        exPipe = self.forceGetInputFromPort('ExternalPipe')
+        exPipe = self.force_get_input('ExternalPipe')
         if exPipe is not None:
-            self.setResult('InternalPipe', exPipe)
+            self.set_output('InternalPipe', exPipe)
         else:
-            if self.hasInputFromPort('Default'):
-                self.setResult('InternalPipe',
-                               self.getInputFromPort('Default'))
+            if self.has_input('Default'):
+                self.set_output('InternalPipe',
+                               self.get_input('Default'))
             else:
-                self.setResult('InternalPipe', InvalidOutput)
+                self.set_output('InternalPipe', InvalidOutput)
 
 ###############################################################################
     
 class OutputPort(Module):
+    _input_ports = [IPort("name", "String", optional=True),
+                    IPort("optional", "Boolean", optional=True),
+                    IPort("spec", "String"),
+                    IPort("InternalPipe", "Variant")]
+    _output_ports = [OPort("ExternalPipe", "Variant", optional=True)]
     
     def compute(self):
-        inPipe = self.getInputFromPort('InternalPipe')
-        self.setResult('ExternalPipe', inPipe)
+        inPipe = self.get_input('InternalPipe')
+        self.set_output('ExternalPipe', inPipe)
 
 ###############################################################################
 
+def group_signature(pipeline, module, chm):
+    if module._port_specs is None:
+        module.make_port_specs()
+    input_conns = {}
+    input_functions = {}
+    for from_module, c_id in pipeline.graph.edges_to(module.id):
+        conn = pipeline.connections[c_id]
+        if conn.destination.name not in input_conns:
+            input_conns[conn.destination.name] = []
+        input_conns[conn.destination.name].append((from_module, conn))
+    for function in module.functions:
+        if function.name not in input_functions:
+            input_functions[function.name] = []
+        input_functions[function.name].append(function)
+    covered_modules = dict((k, False) for k in module._input_remap)
+    for input_port_name, conn_list in input_conns.iteritems():
+        covered_modules[input_port_name] = True
+        input_module = module._input_remap[input_port_name]
+        upstream_sigs = [(pipeline.subpipeline_signature(m) +
+                          Hasher.connection_signature(c))
+                         for (m, c) in conn_list]
+        module_sig = Hasher.module_signature(input_module, chm)
+        sig = Hasher.subpipeline_signature(module_sig, upstream_sigs)
+        if input_port_name in input_functions:
+            function_sig = hash_list(input_functions[input_port_name], 
+                                     Hasher.function_signature, chm)
+            sig = Hasher.compound_signature([sig, function_sig])
+        input_module._input_port_signature = sig
+    for input_port_name, done in covered_modules.iteritems():
+        if done:
+            continue
+        covered_modules[input_port_name] = True
+        input_module = module._input_remap[input_port_name]
+        if input_port_name in input_functions:
+            module_sig = Hasher.module_signature(input_module, chm)
+            function_sig = hash_list(input_functions[input_port_name], 
+                                     Hasher.function_signature, chm)
+            sig = Hasher.compound_signature([module_sig, function_sig])
+        else:
+            sig = Hasher.module_signature(input_module, chm)
+        input_module._input_port_signature = sig
+
+    module.pipeline.refresh_signatures()
+
+    sig_list = []
+    sig_list.append(Hasher.module_signature(module, chm))
+    for m_id in module.pipeline.graph.sinks():
+        sig_list.append(module.pipeline.subpipeline_signature(m_id))
+    return Hasher.compound_signature(sig_list)
+
 class Group(Module):
+    _settings = ModuleSettings(signature=group_signature,
+                               hide_descriptor=True)
+    _output_ports = [OPort("self", "Group", optional=True)]
+
     def __init__(self):
         Module.__init__(self)
         self.is_group = True
@@ -127,8 +204,8 @@ class Group(Module):
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
                 oport_obj = tmp_id_to_module_map[oport_module.id]
-                self.setResult(oport_name,
-                               oport_obj.get_output('ExternalPipe'))
+                self.set_output(oport_name,
+                                oport_obj.get_output('ExternalPipe'))
 
         self.interpreter.finalize_pipeline(self.pipeline, *res[:-1],
                                            reset_computed=False)
@@ -138,7 +215,7 @@ class Group(Module):
 
     def update(self):
         self.logging.begin_update(self)
-        self.updateUpstream(callback=self.setup_pipeline, priority=40)
+        self.update_upstream(callback=self.setup_pipeline, priority=40)
 
     def setup_pipeline(self, connectors):
         # Check required attributes
@@ -259,6 +336,9 @@ def get_port_spec_info(pipeline, module):
 ###############################################################################
 
 class Abstraction(Group):
+    _settings = ModuleSettings(name="SubWorkflow", 
+                               hide_descriptor=True)
+
     def __init__(self):
         Group.__init__(self)
 
@@ -426,67 +506,6 @@ def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1L):
             abstractions.append((m.name, m.namespace))
     return abstractions
 
-def random_signature(pipeline, obj, chm):
-    hasher = sha_hash()
-    hasher.update(str(random.random()))
-    return hasher.digest()
-
-def input_port_signature(pipeline, obj, chm):
-    if hasattr(obj, '_input_port_signature') and \
-            obj._input_port_signature is not None:
-        return obj._input_port_signature
-    return random_signature(pipeline, obj, chm)
-
-def group_signature(pipeline, module, chm):
-    if module._port_specs is None:
-        module.make_port_specs()
-    input_conns = {}
-    input_functions = {}
-    for from_module, c_id in pipeline.graph.edges_to(module.id):
-        conn = pipeline.connections[c_id]
-        if conn.destination.name not in input_conns:
-            input_conns[conn.destination.name] = []
-        input_conns[conn.destination.name].append((from_module, conn))
-    for function in module.functions:
-        if function.name not in input_functions:
-            input_functions[function.name] = []
-        input_functions[function.name].append(function)
-    covered_modules = dict((k, False) for k in module._input_remap)
-    for input_port_name, conn_list in input_conns.iteritems():
-        covered_modules[input_port_name] = True
-        input_module = module._input_remap[input_port_name]
-        upstream_sigs = [(pipeline.subpipeline_signature(m) +
-                          Hasher.connection_signature(c))
-                         for (m, c) in conn_list]
-        module_sig = Hasher.module_signature(input_module, chm)
-        sig = Hasher.subpipeline_signature(module_sig, upstream_sigs)
-        if input_port_name in input_functions:
-            function_sig = hash_list(input_functions[input_port_name], 
-                                     Hasher.function_signature, chm)
-            sig = Hasher.compound_signature([sig, function_sig])
-        input_module._input_port_signature = sig
-    for input_port_name, done in covered_modules.iteritems():
-        if done:
-            continue
-        covered_modules[input_port_name] = True
-        input_module = module._input_remap[input_port_name]
-        if input_port_name in input_functions:
-            module_sig = Hasher.module_signature(input_module, chm)
-            function_sig = hash_list(input_functions[input_port_name], 
-                                     Hasher.function_signature, chm)
-            sig = Hasher.compound_signature([module_sig, function_sig])
-        else:
-            sig = Hasher.module_signature(input_module, chm)
-        input_module._input_port_signature = sig
-
-    module.pipeline.refresh_signatures()
-
-    sig_list = []
-    sig_list.append(Hasher.module_signature(module, chm))
-    for m_id in module.pipeline.graph.sinks():
-        sig_list.append(module.pipeline.subpipeline_signature(m_id))
-    return Hasher.compound_signature(sig_list)
-
 def parse_abstraction_name(filename, get_all_parts=False):
     # assume only 1 possible prefix or suffix
     import re
@@ -507,27 +526,4 @@ def parse_abstraction_name(filename, get_all_parts=False):
 
 ###############################################################################
 
-def initialize(*args, **kwargs):
-    # These are all from sub_module.py!
-    reg = module_registry.get_module_registry()
-
-    reg.add_module(InputPort, signatureCallable=input_port_signature)
-    reg.add_input_port(InputPort, "name", String, True)
-    reg.add_input_port(InputPort, "optional", Boolean, True)
-    reg.add_input_port(InputPort, "spec", String)
-    reg.add_input_port(InputPort, "ExternalPipe", Variant, True)
-    reg.add_input_port(InputPort, "Default", Variant)
-    reg.add_output_port(InputPort, "InternalPipe", Variant)
-
-    reg.add_module(OutputPort)
-    reg.add_input_port(OutputPort, "name", String, True)
-    reg.add_input_port(OutputPort, "optional", Boolean, True)
-    reg.add_input_port(OutputPort, "spec", String)
-    reg.add_input_port(OutputPort, "InternalPipe", Variant)
-    reg.add_output_port(OutputPort, "ExternalPipe", Variant, True)
-
-    reg.add_module(Group, signatureCallable=group_signature,
-                   hide_descriptor=True)
-    reg.add_output_port(Group, "self", Group, True)
-
-    reg.add_module(Abstraction, name="SubWorkflow", hide_descriptor=True)
+_modules = [InputPort, OutputPort, Group, Abstraction]

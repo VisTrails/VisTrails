@@ -10,7 +10,7 @@ class TableCell(SpreadsheetCell):
     _input_ports = [('table', '(org.vistrails.vistrails.tabledata:Table)')]
 
     def compute(self):
-        table = self.getInputFromPort('table')
+        table = self.get_input('table')
         self.cellWidget = self.displayAndWait(TableCellWidget, (table,))
 
 

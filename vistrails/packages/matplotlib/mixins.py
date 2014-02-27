@@ -21,7 +21,7 @@ class MplBoxplotMixin(object):
 
 class MplContourBaseMixin(object):
     def compute_before():
-        if self.hasInputFromPort("N") and self.hasInputFromPort("V"):
+        if self.has_input("N") and self.has_input("V"):
             del args[-1]
 
 class MplContourMixin(MplContourBaseMixin):
@@ -41,12 +41,12 @@ class MplPieMixin(object):
 
 class MplAnnotateMixin(object):
     def compute_before():
-        if self.hasInputFromPort("fancyArrowProperties"):
+        if self.has_input("fancyArrowProperties"):
             kwargs['arrowprops'] = \
-                self.getInputFromPort("fancyArrowProperties").props
-        elif self.hasInputFromPort("arrowProperties"):
+                self.get_input("fancyArrowProperties").props
+        elif self.has_input("arrowProperties"):
             kwargs['arrowprops'] = \
-                self.getInputFromPort("arrowProperties").props
+                self.get_input("arrowProperties").props
 
 class MplSpyMixin(object):
     def compute_after():

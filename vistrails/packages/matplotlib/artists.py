@@ -75,53 +75,65 @@ class MplArtistProperties(MplProperties):
         MplProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplProperties.compute(self)
-        if self.hasInputFromPort('picker'):
-            self.props['picker'] = self.getInputFromPort('picker')
-        if self.hasInputFromPort('contains'):
-            self.props['contains'] = self.getInputFromPort('contains')
-        if self.hasInputFromPort('clip_on'):
-            self.props['clip_on'] = self.getInputFromPort('clip_on')
-        if self.hasInputFromPort('agg_filter'):
-            self.props['agg_filter'] = self.getInputFromPort('agg_filter')
-        if self.hasInputFromPort('visible'):
-            self.props['visible'] = self.getInputFromPort('visible')
-        if self.hasInputFromPort('url'):
-            self.props['url'] = self.getInputFromPort('url')
-        if self.hasInputFromPort('transform'):
-            self.props['transform'] = self.getInputFromPort('transform')
-        if self.hasInputFromPort('axes'):
-            self.props['axes'] = self.getInputFromPort('axes')
-        if self.hasInputFromPort('clip_box'):
-            self.props['clip_box'] = self.getInputFromPort('clip_box')
-        if self.hasInputFromPort('clip_path'):
-            self.props['clip_path'] = self.getInputFromPort('clip_path')
-        if self.hasInputFromPort('lod'):
-            self.props['lod'] = self.getInputFromPort('lod')
-        if self.hasInputFromPort('label'):
-            self.props['label'] = self.getInputFromPort('label')
-        if self.hasInputFromPort('rasterized'):
-            self.props['rasterized'] = self.getInputFromPort('rasterized')
-        if self.hasInputFromPort('gid'):
-            self.props['gid'] = self.getInputFromPort('gid')
-        if self.hasInputFromPort('zorder'):
-            self.props['zorder'] = self.getInputFromPort('zorder')
-        if self.hasInputFromPort('snap'):
-            self.props['snap'] = self.getInputFromPort('snap')
-        if self.hasInputFromPort('alpha'):
-            self.props['alpha'] = self.getInputFromPort('alpha')
-        if self.hasInputFromPort('animated'):
-            self.props['animated'] = self.getInputFromPort('animated')
-        if self.hasInputFromPort('figure'):
-            self.props['figure'] = self.getInputFromPort('figure')
+        if self.has_input('picker'):
+            self.props['picker'] = self.get_input('picker')
+        if self.has_input('contains'):
+            self.props['contains'] = self.get_input('contains')
+        if self.has_input('clip_on'):
+            self.props['clip_on'] = self.get_input('clip_on')
+        if self.has_input('agg_filter'):
+            self.props['agg_filter'] = self.get_input('agg_filter')
+        if self.has_input('visible'):
+            self.props['visible'] = self.get_input('visible')
+        if self.has_input('url'):
+            self.props['url'] = self.get_input('url')
+        if self.has_input('transform'):
+            self.props['transform'] = self.get_input('transform')
+        if self.has_input('axes'):
+            self.props['axes'] = self.get_input('axes')
+        if self.has_input('clip_box'):
+            self.props['clip_box'] = self.get_input('clip_box')
+        if self.has_input('clip_path'):
+            self.props['clip_path'] = self.get_input('clip_path')
+        if self.has_input('lod'):
+            self.props['lod'] = self.get_input('lod')
+        if self.has_input('label'):
+            self.props['label'] = self.get_input('label')
+        if self.has_input('rasterized'):
+            self.props['rasterized'] = self.get_input('rasterized')
+        if self.has_input('gid'):
+            self.props['gid'] = self.get_input('gid')
+        if self.has_input('zorder'):
+            self.props['zorder'] = self.get_input('zorder')
+        if self.has_input('snap'):
+            self.props['snap'] = self.get_input('snap')
+        if self.has_input('alpha'):
+            self.props['alpha'] = self.get_input('alpha')
+        if self.has_input('animated'):
+            self.props['animated'] = self.get_input('animated')
+        if self.has_input('figure'):
+            self.props['figure'] = self.get_input('figure')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -161,37 +173,49 @@ class Mpl_AxesImageBaseProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('origin'):
-            self.constructor_props['origin'] = self.getInputFromPort('origin')
-        if self.hasInputFromPort('resample'):
-            self.props['resample'] = self.getInputFromPort('resample')
-        if self.hasInputFromPort('norm'):
-            self.constructor_props['norm'] = self.getInputFromPort('norm')
-        if self.hasInputFromPort('cmap'):
-            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
-        if self.hasInputFromPort('filternorm'):
-            self.props['filternorm'] = self.getInputFromPort('filternorm')
-        if self.hasInputFromPort('ax'):
-            self.constructor_props['ax'] = self.getInputFromPort('ax')
-        if self.hasInputFromPort('alpha'):
-            self.props['alpha'] = self.getInputFromPort('alpha')
-        if self.hasInputFromPort('array'):
-            self.props['array'] = self.getInputFromPort('array')
-        if self.hasInputFromPort('data'):
-            self.props['data'] = self.getInputFromPort('data')
-        if self.hasInputFromPort('filterrad'):
-            self.props['filterrad'] = self.getInputFromPort('filterrad')
-        if self.hasInputFromPort('interpolation'):
-            self.props['interpolation'] = self.getInputFromPort('interpolation')
+        if self.has_input('origin'):
+            self.constructor_props['origin'] = self.get_input('origin')
+        if self.has_input('resample'):
+            self.props['resample'] = self.get_input('resample')
+        if self.has_input('norm'):
+            self.constructor_props['norm'] = self.get_input('norm')
+        if self.has_input('cmap'):
+            self.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('filternorm'):
+            self.props['filternorm'] = self.get_input('filternorm')
+        if self.has_input('ax'):
+            self.constructor_props['ax'] = self.get_input('ax')
+        if self.has_input('alpha'):
+            self.props['alpha'] = self.get_input('alpha')
+        if self.has_input('array'):
+            self.props['array'] = self.get_input('array')
+        if self.has_input('data'):
+            self.props['data'] = self.get_input('data')
+        if self.has_input('filterrad'):
+            self.props['filterrad'] = self.get_input('filterrad')
+        if self.has_input('interpolation'):
+            self.props['interpolation'] = self.get_input('interpolation')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -227,33 +251,45 @@ class MplAxesImageProperties(Mpl_AxesImageBaseProperties):
         Mpl_AxesImageBaseProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         Mpl_AxesImageBaseProperties.compute(self)
-        if self.hasInputFromPort('origin'):
-            self.constructor_props['origin'] = self.getInputFromPort('origin')
-        if self.hasInputFromPort('resample'):
-            self.constructor_props['resample'] = self.getInputFromPort('resample')
-        if self.hasInputFromPort('norm'):
-            self.constructor_props['norm'] = self.getInputFromPort('norm')
-        if self.hasInputFromPort('cmap'):
-            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
-        if self.hasInputFromPort('filterrad'):
-            self.constructor_props['filterrad'] = self.getInputFromPort('filterrad')
-        if self.hasInputFromPort('extent'):
-            self.props['extent'] = self.getInputFromPort('extent')
-        if self.hasInputFromPort('ax'):
-            self.constructor_props['ax'] = self.getInputFromPort('ax')
-        if self.hasInputFromPort('filternorm'):
-            self.constructor_props['filternorm'] = self.getInputFromPort('filternorm')
-        if self.hasInputFromPort('interpolation'):
-            self.constructor_props['interpolation'] = self.getInputFromPort('interpolation')
+        if self.has_input('origin'):
+            self.constructor_props['origin'] = self.get_input('origin')
+        if self.has_input('resample'):
+            self.constructor_props['resample'] = self.get_input('resample')
+        if self.has_input('norm'):
+            self.constructor_props['norm'] = self.get_input('norm')
+        if self.has_input('cmap'):
+            self.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('filterrad'):
+            self.constructor_props['filterrad'] = self.get_input('filterrad')
+        if self.has_input('extent'):
+            self.props['extent'] = self.get_input('extent')
+        if self.has_input('ax'):
+            self.constructor_props['ax'] = self.get_input('ax')
+        if self.has_input('filternorm'):
+            self.constructor_props['filternorm'] = self.get_input('filternorm')
+        if self.has_input('interpolation'):
+            self.constructor_props['interpolation'] = self.get_input('interpolation')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        Mpl_AxesImageBaseProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -287,31 +323,43 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
         MplAxesImageProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplAxesImageProperties.compute(self)
-        if self.hasInputFromPort('norm'):
-            self.props['norm'] = self.getInputFromPort('norm')
-        if self.hasInputFromPort('cmap'):
-            self.props['cmap'] = self.getInputFromPort('cmap')
-        if self.hasInputFromPort('filternorm'):
-            self.props['filternorm'] = self.getInputFromPort('filternorm')
-        if self.hasInputFromPort('ax'):
-            self.constructor_props['ax'] = self.getInputFromPort('ax')
-        if self.hasInputFromPort('array'):
-            self.props['array'] = self.getInputFromPort('array')
-        if self.hasInputFromPort('data'):
-            self.props['data'] = self.getInputFromPort('data')
-        if self.hasInputFromPort('filterrad'):
-            self.props['filterrad'] = self.getInputFromPort('filterrad')
-        if self.hasInputFromPort('interpolation'):
-            self.props['interpolation'] = self.getInputFromPort('interpolation')
+        if self.has_input('norm'):
+            self.props['norm'] = self.get_input('norm')
+        if self.has_input('cmap'):
+            self.props['cmap'] = self.get_input('cmap')
+        if self.has_input('filternorm'):
+            self.props['filternorm'] = self.get_input('filternorm')
+        if self.has_input('ax'):
+            self.constructor_props['ax'] = self.get_input('ax')
+        if self.has_input('array'):
+            self.props['array'] = self.get_input('array')
+        if self.has_input('data'):
+            self.props['data'] = self.get_input('data')
+        if self.has_input('filterrad'):
+            self.props['filterrad'] = self.get_input('filterrad')
+        if self.has_input('interpolation'):
+            self.props['interpolation'] = self.get_input('interpolation')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplAxesImageProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -347,33 +395,45 @@ class MplBboxImageProperties(Mpl_AxesImageBaseProperties):
         Mpl_AxesImageBaseProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         Mpl_AxesImageBaseProperties.compute(self)
-        if self.hasInputFromPort('origin'):
-            self.constructor_props['origin'] = self.getInputFromPort('origin')
-        if self.hasInputFromPort('interp_at_native'):
-            self.constructor_props['interp_at_native'] = self.getInputFromPort('interp_at_native')
-        if self.hasInputFromPort('resample'):
-            self.constructor_props['resample'] = self.getInputFromPort('resample')
-        if self.hasInputFromPort('cmap'):
-            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
-        if self.hasInputFromPort('filternorm'):
-            self.constructor_props['filternorm'] = self.getInputFromPort('filternorm')
-        if self.hasInputFromPort('norm'):
-            self.constructor_props['norm'] = self.getInputFromPort('norm')
-        if self.hasInputFromPort('interpolation'):
-            self.constructor_props['interpolation'] = self.getInputFromPort('interpolation')
-        if self.hasInputFromPort('filterrad'):
-            self.constructor_props['filterrad'] = self.getInputFromPort('filterrad')
-        if self.hasInputFromPort('bbox'):
-            self.constructor_props['bbox'] = self.getInputFromPort('bbox')
+        if self.has_input('origin'):
+            self.constructor_props['origin'] = self.get_input('origin')
+        if self.has_input('interp_at_native'):
+            self.constructor_props['interp_at_native'] = self.get_input('interp_at_native')
+        if self.has_input('resample'):
+            self.constructor_props['resample'] = self.get_input('resample')
+        if self.has_input('cmap'):
+            self.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('filternorm'):
+            self.constructor_props['filternorm'] = self.get_input('filternorm')
+        if self.has_input('norm'):
+            self.constructor_props['norm'] = self.get_input('norm')
+        if self.has_input('interpolation'):
+            self.constructor_props['interpolation'] = self.get_input('interpolation')
+        if self.has_input('filterrad'):
+            self.constructor_props['filterrad'] = self.get_input('filterrad')
+        if self.has_input('bbox'):
+            self.constructor_props['bbox'] = self.get_input('bbox')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        Mpl_AxesImageBaseProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -414,33 +474,45 @@ class MplPcolorImageProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('A'):
-            self.constructor_props['A'] = self.getInputFromPort('A')
-        if self.hasInputFromPort('ax'):
-            self.constructor_props['ax'] = self.getInputFromPort('ax')
-        if self.hasInputFromPort('cmap'):
-            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
-        if self.hasInputFromPort('x'):
-            self.constructor_props['x'] = self.getInputFromPort('x')
-        if self.hasInputFromPort('y'):
-            self.constructor_props['y'] = self.getInputFromPort('y')
-        if self.hasInputFromPort('alpha'):
-            self.props['alpha'] = self.getInputFromPort('alpha')
-        if self.hasInputFromPort('array'):
-            self.props['array'] = self.getInputFromPort('array')
-        if self.hasInputFromPort('data'):
-            self.props['data'] = self.getInputFromPort('data')
-        if self.hasInputFromPort('norm'):
-            self.constructor_props['norm'] = self.getInputFromPort('norm')
+        if self.has_input('A'):
+            self.constructor_props['A'] = self.get_input('A')
+        if self.has_input('ax'):
+            self.constructor_props['ax'] = self.get_input('ax')
+        if self.has_input('cmap'):
+            self.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('x'):
+            self.constructor_props['x'] = self.get_input('x')
+        if self.has_input('y'):
+            self.constructor_props['y'] = self.get_input('y')
+        if self.has_input('alpha'):
+            self.props['alpha'] = self.get_input('alpha')
+        if self.has_input('array'):
+            self.props['array'] = self.get_input('array')
+        if self.has_input('data'):
+            self.props['data'] = self.get_input('data')
+        if self.has_input('norm'):
+            self.constructor_props['norm'] = self.get_input('norm')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -474,31 +546,43 @@ class MplFigureImageProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('origin'):
-            self.constructor_props['origin'] = self.getInputFromPort('origin')
-        if self.hasInputFromPort('offsetx'):
-            self.constructor_props['offsetx'] = self.getInputFromPort('offsetx')
-        if self.hasInputFromPort('offsety'):
-            self.constructor_props['offsety'] = self.getInputFromPort('offsety')
-        if self.hasInputFromPort('cmap'):
-            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
-        if self.hasInputFromPort('fig'):
-            self.constructor_props['fig'] = self.getInputFromPort('fig')
-        if self.hasInputFromPort('array'):
-            self.props['array'] = self.getInputFromPort('array')
-        if self.hasInputFromPort('data'):
-            self.props['data'] = self.getInputFromPort('data')
-        if self.hasInputFromPort('norm'):
-            self.constructor_props['norm'] = self.getInputFromPort('norm')
+        if self.has_input('origin'):
+            self.constructor_props['origin'] = self.get_input('origin')
+        if self.has_input('offsetx'):
+            self.constructor_props['offsetx'] = self.get_input('offsetx')
+        if self.has_input('offsety'):
+            self.constructor_props['offsety'] = self.get_input('offsety')
+        if self.has_input('cmap'):
+            self.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('fig'):
+            self.constructor_props['fig'] = self.get_input('fig')
+        if self.has_input('array'):
+            self.props['array'] = self.get_input('array')
+        if self.has_input('data'):
+            self.props['data'] = self.get_input('data')
+        if self.has_input('norm'):
+            self.constructor_props['norm'] = self.get_input('norm')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -603,63 +687,75 @@ class MplCollectionProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('transOffset'):
-            self.constructor_props['transOffset'] = self.getInputFromPort('transOffset')
-        if self.hasInputFromPort('edgecolor'):
-            self.props['edgecolor'] = self.getInputFromPort('edgecolor')
-        if self.hasInputFromPort('offset_position'):
-            self.props['offset_position'] = self.getInputFromPort('offset_position')
-        if self.hasInputFromPort('edgecolors'):
-            self.constructor_props['edgecolors'] = self.getInputFromPort('edgecolors')
-        if self.hasInputFromPort('facecolor'):
-            self.props['facecolor'] = self.getInputFromPort('facecolor')
-        if self.hasInputFromPort('linestyles'):
-            self.constructor_props['linestyles'] = self.getInputFromPort('linestyles')
-        if self.hasInputFromPort('offsetsSequence'):
-            self.props['offsets'] = self.getInputFromPort('offsetsSequence')
-        elif self.hasInputFromPort('offsetsScalar'):
-            self.props['offsets'] = self.getInputFromPort('offsetsScalar')
-        if self.hasInputFromPort('color'):
-            self.props['color'] = self.getInputFromPort('color')
-        if self.hasInputFromPort('pickradius'):
-            self.props['pickradius'] = self.getInputFromPort('pickradius')
-        if self.hasInputFromPort('antialiaseds'):
-            self.constructor_props['antialiaseds'] = self.getInputFromPort('antialiaseds')
-        if self.hasInputFromPort('linewidths'):
-            self.constructor_props['linewidths'] = self.getInputFromPort('linewidths')
-        if self.hasInputFromPort('cmap'):
-            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
-        if self.hasInputFromPort('antialiasedSequence'):
-            self.props['antialiased'] = self.getInputFromPort('antialiasedSequence')
-        elif self.hasInputFromPort('antialiasedScalar'):
-            self.props['antialiased'] = self.getInputFromPort('antialiasedScalar')
-        if self.hasInputFromPort('urls'):
-            self.props['urls'] = self.getInputFromPort('urls')
-        if self.hasInputFromPort('hatch'):
-            self.props['hatch'] = self.getInputFromPort('hatch')
-        if self.hasInputFromPort('alpha'):
-            self.props['alpha'] = self.getInputFromPort('alpha')
-        if self.hasInputFromPort('paths'):
-            self.props['paths'] = self.getInputFromPort('paths')
-        if self.hasInputFromPort('linewidthSequence'):
-            self.props['linewidth'] = self.getInputFromPort('linewidthSequence')
-        elif self.hasInputFromPort('linewidthScalar'):
-            self.props['linewidth'] = self.getInputFromPort('linewidthScalar')
-        if self.hasInputFromPort('linestyle'):
-            self.props['linestyle'] = self.getInputFromPort('linestyle')
-        if self.hasInputFromPort('facecolors'):
-            self.constructor_props['facecolors'] = self.getInputFromPort('facecolors')
-        if self.hasInputFromPort('norm'):
-            self.constructor_props['norm'] = self.getInputFromPort('norm')
+        if self.has_input('transOffset'):
+            self.constructor_props['transOffset'] = self.get_input('transOffset')
+        if self.has_input('edgecolor'):
+            self.props['edgecolor'] = self.get_input('edgecolor')
+        if self.has_input('offset_position'):
+            self.props['offset_position'] = self.get_input('offset_position')
+        if self.has_input('edgecolors'):
+            self.constructor_props['edgecolors'] = self.get_input('edgecolors')
+        if self.has_input('facecolor'):
+            self.props['facecolor'] = self.get_input('facecolor')
+        if self.has_input('linestyles'):
+            self.constructor_props['linestyles'] = self.get_input('linestyles')
+        if self.has_input('offsetsSequence'):
+            self.props['offsets'] = self.get_input('offsetsSequence')
+        elif self.has_input('offsetsScalar'):
+            self.props['offsets'] = self.get_input('offsetsScalar')
+        if self.has_input('color'):
+            self.props['color'] = self.get_input('color')
+        if self.has_input('pickradius'):
+            self.props['pickradius'] = self.get_input('pickradius')
+        if self.has_input('antialiaseds'):
+            self.constructor_props['antialiaseds'] = self.get_input('antialiaseds')
+        if self.has_input('linewidths'):
+            self.constructor_props['linewidths'] = self.get_input('linewidths')
+        if self.has_input('cmap'):
+            self.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('antialiasedSequence'):
+            self.props['antialiased'] = self.get_input('antialiasedSequence')
+        elif self.has_input('antialiasedScalar'):
+            self.props['antialiased'] = self.get_input('antialiasedScalar')
+        if self.has_input('urls'):
+            self.props['urls'] = self.get_input('urls')
+        if self.has_input('hatch'):
+            self.props['hatch'] = self.get_input('hatch')
+        if self.has_input('alpha'):
+            self.props['alpha'] = self.get_input('alpha')
+        if self.has_input('paths'):
+            self.props['paths'] = self.get_input('paths')
+        if self.has_input('linewidthSequence'):
+            self.props['linewidth'] = self.get_input('linewidthSequence')
+        elif self.has_input('linewidthScalar'):
+            self.props['linewidth'] = self.get_input('linewidthScalar')
+        if self.has_input('linestyle'):
+            self.props['linestyle'] = self.get_input('linestyle')
+        if self.has_input('facecolors'):
+            self.constructor_props['facecolors'] = self.get_input('facecolors')
+        if self.has_input('norm'):
+            self.constructor_props['norm'] = self.get_input('norm')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -683,19 +779,31 @@ class MplPathCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
-        if self.hasInputFromPort('paths'):
-            self.props['paths'] = self.getInputFromPort('paths')
-        if self.hasInputFromPort('sizes'):
-            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
+        if self.has_input('paths'):
+            self.props['paths'] = self.get_input('paths')
+        if self.has_input('sizes'):
+            self.constructor_props['sizes'] = self.get_input('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -721,23 +829,35 @@ class MplPolyCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
-        if self.hasInputFromPort('paths'):
-            self.props['paths'] = self.getInputFromPort('paths')
-        if self.hasInputFromPort('verts'):
-            self.props['verts'] = self.getInputFromPort('verts')
-        if self.hasInputFromPort('closed'):
-            self.constructor_props['closed'] = self.getInputFromPort('closed')
-        if self.hasInputFromPort('sizes'):
-            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
+        if self.has_input('paths'):
+            self.props['paths'] = self.get_input('paths')
+        if self.has_input('verts'):
+            self.props['verts'] = self.get_input('verts')
+        if self.has_input('closed'):
+            self.constructor_props['closed'] = self.get_input('closed')
+        if self.has_input('sizes'):
+            self.constructor_props['sizes'] = self.get_input('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -762,19 +882,31 @@ class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
         MplPolyCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPolyCollectionProperties.compute(self)
-        if self.hasInputFromPort('xranges'):
-            self.constructor_props['xranges'] = self.getInputFromPort('xranges')
-        if self.hasInputFromPort('yrange'):
-            self.constructor_props['yrange'] = self.getInputFromPort('yrange')
+        if self.has_input('xranges'):
+            self.constructor_props['xranges'] = self.get_input('xranges')
+        if self.has_input('yrange'):
+            self.constructor_props['yrange'] = self.get_input('yrange')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPolyCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -798,21 +930,33 @@ class MplRegularPolyCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
-        if self.hasInputFromPort('numsides'):
-            self.constructor_props['numsides'] = self.getInputFromPort('numsides')
-        if self.hasInputFromPort('rotation'):
-            self.constructor_props['rotation'] = self.getInputFromPort('rotation')
-        if self.hasInputFromPort('sizes'):
-            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
+        if self.has_input('numsides'):
+            self.constructor_props['numsides'] = self.get_input('numsides')
+        if self.has_input('rotation'):
+            self.constructor_props['rotation'] = self.get_input('rotation')
+        if self.has_input('sizes'):
+            self.constructor_props['sizes'] = self.get_input('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -837,21 +981,33 @@ class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
         MplRegularPolyCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplRegularPolyCollectionProperties.compute(self)
-        if self.hasInputFromPort('numsides'):
-            self.constructor_props['numsides'] = self.getInputFromPort('numsides')
-        if self.hasInputFromPort('rotation'):
-            self.constructor_props['rotation'] = self.getInputFromPort('rotation')
-        if self.hasInputFromPort('sizes'):
-            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
+        if self.has_input('numsides'):
+            self.constructor_props['numsides'] = self.get_input('numsides')
+        if self.has_input('rotation'):
+            self.constructor_props['rotation'] = self.get_input('rotation')
+        if self.has_input('sizes'):
+            self.constructor_props['sizes'] = self.get_input('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplRegularPolyCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -876,21 +1032,33 @@ class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties)
         MplRegularPolyCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplRegularPolyCollectionProperties.compute(self)
-        if self.hasInputFromPort('numsides'):
-            self.constructor_props['numsides'] = self.getInputFromPort('numsides')
-        if self.hasInputFromPort('rotation'):
-            self.constructor_props['rotation'] = self.getInputFromPort('rotation')
-        if self.hasInputFromPort('sizes'):
-            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
+        if self.has_input('numsides'):
+            self.constructor_props['numsides'] = self.get_input('numsides')
+        if self.has_input('rotation'):
+            self.constructor_props['rotation'] = self.get_input('rotation')
+        if self.has_input('sizes'):
+            self.constructor_props['sizes'] = self.get_input('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplRegularPolyCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -943,41 +1111,53 @@ class MplLineCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
-        if self.hasInputFromPort('paths'):
-            self.props['paths'] = self.getInputFromPort('paths')
-        if self.hasInputFromPort('antialiaseds'):
-            self.constructor_props['antialiaseds'] = self.getInputFromPort('antialiaseds')
-        if self.hasInputFromPort('linestyles'):
-            self.constructor_props['linestyles'] = self.getInputFromPort('linestyles')
-        if self.hasInputFromPort('offsets'):
-            self.constructor_props['offsets'] = self.getInputFromPort('offsets')
-        if self.hasInputFromPort('color'):
-            self.props['color'] = self.getInputFromPort('color')
-        if self.hasInputFromPort('segments'):
-            self.props['segments'] = self.getInputFromPort('segments')
-        if self.hasInputFromPort('linewidths'):
-            self.constructor_props['linewidths'] = self.getInputFromPort('linewidths')
-        if self.hasInputFromPort('colors'):
-            self.constructor_props['colors'] = self.getInputFromPort('colors')
-        if self.hasInputFromPort('cmap'):
-            self.constructor_props['cmap'] = self.getInputFromPort('cmap')
-        if self.hasInputFromPort('transOffset'):
-            self.constructor_props['transOffset'] = self.getInputFromPort('transOffset')
-        if self.hasInputFromPort('verts'):
-            self.props['verts'] = self.getInputFromPort('verts')
-        if self.hasInputFromPort('pickradius'):
-            self.constructor_props['pickradius'] = self.getInputFromPort('pickradius')
-        if self.hasInputFromPort('norm'):
-            self.constructor_props['norm'] = self.getInputFromPort('norm')
+        if self.has_input('paths'):
+            self.props['paths'] = self.get_input('paths')
+        if self.has_input('antialiaseds'):
+            self.constructor_props['antialiaseds'] = self.get_input('antialiaseds')
+        if self.has_input('linestyles'):
+            self.constructor_props['linestyles'] = self.get_input('linestyles')
+        if self.has_input('offsets'):
+            self.constructor_props['offsets'] = self.get_input('offsets')
+        if self.has_input('color'):
+            self.props['color'] = self.get_input('color')
+        if self.has_input('segments'):
+            self.props['segments'] = self.get_input('segments')
+        if self.has_input('linewidths'):
+            self.constructor_props['linewidths'] = self.get_input('linewidths')
+        if self.has_input('colors'):
+            self.constructor_props['colors'] = self.get_input('colors')
+        if self.has_input('cmap'):
+            self.constructor_props['cmap'] = self.get_input('cmap')
+        if self.has_input('transOffset'):
+            self.constructor_props['transOffset'] = self.get_input('transOffset')
+        if self.has_input('verts'):
+            self.props['verts'] = self.get_input('verts')
+        if self.has_input('pickradius'):
+            self.constructor_props['pickradius'] = self.get_input('pickradius')
+        if self.has_input('norm'):
+            self.constructor_props['norm'] = self.get_input('norm')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -999,17 +1179,29 @@ class MplCircleCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
-        if self.hasInputFromPort('sizes'):
-            self.constructor_props['sizes'] = self.getInputFromPort('sizes')
+        if self.has_input('sizes'):
+            self.constructor_props['sizes'] = self.get_input('sizes')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1037,23 +1229,35 @@ class MplEllipseCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
-        if self.hasInputFromPort('units'):
-            self.constructor_props['units'] = self.getInputFromPort('units')
-        if self.hasInputFromPort('widths'):
-            self.constructor_props['widths'] = self.getInputFromPort('widths')
-        if self.hasInputFromPort('angles'):
-            self.constructor_props['angles'] = self.getInputFromPort('angles')
-        if self.hasInputFromPort('heights'):
-            self.constructor_props['heights'] = self.getInputFromPort('heights')
+        if self.has_input('units'):
+            self.constructor_props['units'] = self.get_input('units')
+        if self.has_input('widths'):
+            self.constructor_props['widths'] = self.get_input('widths')
+        if self.has_input('angles'):
+            self.constructor_props['angles'] = self.get_input('angles')
+        if self.has_input('heights'):
+            self.constructor_props['heights'] = self.get_input('heights')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1085,21 +1289,33 @@ class MplPatchCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
-        if self.hasInputFromPort('paths'):
-            self.props['paths'] = self.getInputFromPort('paths')
-        if self.hasInputFromPort('patches'):
-            self.constructor_props['patches'] = self.getInputFromPort('patches')
-        if self.hasInputFromPort('match_original'):
-            self.constructor_props['match_original'] = self.getInputFromPort('match_original')
+        if self.has_input('paths'):
+            self.props['paths'] = self.get_input('paths')
+        if self.has_input('patches'):
+            self.constructor_props['patches'] = self.get_input('patches')
+        if self.has_input('match_original'):
+            self.constructor_props['match_original'] = self.get_input('match_original')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1127,19 +1343,31 @@ class MplTriMeshProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
-        if self.hasInputFromPort('triangulation'):
-            self.constructor_props['triangulation'] = self.getInputFromPort('triangulation')
-        if self.hasInputFromPort('paths'):
-            self.props['paths'] = self.getInputFromPort('paths')
+        if self.has_input('triangulation'):
+            self.constructor_props['triangulation'] = self.get_input('triangulation')
+        if self.has_input('paths'):
+            self.props['paths'] = self.get_input('paths')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1198,27 +1426,39 @@ class MplQuadMeshProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplCollectionProperties.compute(self)
-        if self.hasInputFromPort('paths'):
-            self.props['paths'] = self.getInputFromPort('paths')
-        if self.hasInputFromPort('meshWidth'):
-            self.constructor_props['meshWidth'] = self.getInputFromPort('meshWidth')
-        if self.hasInputFromPort('coordinates'):
-            self.constructor_props['coordinates'] = self.getInputFromPort('coordinates')
-        if self.hasInputFromPort('antialiased'):
-            self.constructor_props['antialiased'] = self.getInputFromPort('antialiased')
-        if self.hasInputFromPort('shading'):
-            self.constructor_props['shading'] = self.getInputFromPort('shading')
-        if self.hasInputFromPort('meshHeight'):
-            self.constructor_props['meshHeight'] = self.getInputFromPort('meshHeight')
+        if self.has_input('paths'):
+            self.props['paths'] = self.get_input('paths')
+        if self.has_input('meshWidth'):
+            self.constructor_props['meshWidth'] = self.get_input('meshWidth')
+        if self.has_input('coordinates'):
+            self.constructor_props['coordinates'] = self.get_input('coordinates')
+        if self.has_input('antialiased'):
+            self.constructor_props['antialiased'] = self.get_input('antialiased')
+        if self.has_input('shading'):
+            self.constructor_props['shading'] = self.get_input('shading')
+        if self.has_input('meshHeight'):
+            self.constructor_props['meshHeight'] = self.get_input('meshHeight')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1261,38 +1501,50 @@ class MplPatchProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('edgecolor'):
-            self.props['edgecolor'] = self.getInputFromPort('edgecolor')
+        if self.has_input('edgecolor'):
+            self.props['edgecolor'] = self.get_input('edgecolor')
             self.props['edgecolor'] = translate_color(self.props['edgecolor'])
-        if self.hasInputFromPort('facecolor'):
-            self.props['facecolor'] = self.getInputFromPort('facecolor')
+        if self.has_input('facecolor'):
+            self.props['facecolor'] = self.get_input('facecolor')
             self.props['facecolor'] = translate_color(self.props['facecolor'])
-        if self.hasInputFromPort('path_effects'):
-            self.props['path_effects'] = self.getInputFromPort('path_effects')
-        if self.hasInputFromPort('color'):
-            self.props['color'] = self.getInputFromPort('color')
+        if self.has_input('path_effects'):
+            self.props['path_effects'] = self.get_input('path_effects')
+        if self.has_input('color'):
+            self.props['color'] = self.get_input('color')
             self.props['color'] = translate_color(self.props['color'])
-        if self.hasInputFromPort('antialiased'):
-            self.props['antialiased'] = self.getInputFromPort('antialiased')
-        if self.hasInputFromPort('hatch'):
-            self.props['hatch'] = self.getInputFromPort('hatch')
-        if self.hasInputFromPort('alpha'):
-            self.props['alpha'] = self.getInputFromPort('alpha')
-        if self.hasInputFromPort('linewidth'):
-            self.props['linewidth'] = self.getInputFromPort('linewidth')
-        if self.hasInputFromPort('linestyle'):
-            self.props['linestyle'] = self.getInputFromPort('linestyle')
-        if self.hasInputFromPort('fill'):
-            self.props['fill'] = self.getInputFromPort('fill')
+        if self.has_input('antialiased'):
+            self.props['antialiased'] = self.get_input('antialiased')
+        if self.has_input('hatch'):
+            self.props['hatch'] = self.get_input('hatch')
+        if self.has_input('alpha'):
+            self.props['alpha'] = self.get_input('alpha')
+        if self.has_input('linewidth'):
+            self.props['linewidth'] = self.get_input('linewidth')
+        if self.has_input('linestyle'):
+            self.props['linestyle'] = self.get_input('linestyle')
+        if self.has_input('fill'):
+            self.props['fill'] = self.get_input('fill')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1318,23 +1570,35 @@ class MplShadowProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('patch'):
-            self.constructor_props['patch'] = self.getInputFromPort('patch')
-        if self.hasInputFromPort('props'):
-            self.constructor_props['props'] = self.getInputFromPort('props')
-        if self.hasInputFromPort('oy'):
-            self.constructor_props['oy'] = self.getInputFromPort('oy')
-        if self.hasInputFromPort('ox'):
-            self.constructor_props['ox'] = self.getInputFromPort('ox')
+        if self.has_input('patch'):
+            self.constructor_props['patch'] = self.get_input('patch')
+        if self.has_input('props'):
+            self.constructor_props['props'] = self.get_input('props')
+        if self.has_input('oy'):
+            self.constructor_props['oy'] = self.get_input('oy')
+        if self.has_input('ox'):
+            self.constructor_props['ox'] = self.get_input('ox')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1367,27 +1631,39 @@ class MplRectangleProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('bounds'):
-            self.props['bounds'] = self.getInputFromPort('bounds')
-        if self.hasInputFromPort('height'):
-            self.props['height'] = self.getInputFromPort('height')
-        if self.hasInputFromPort('width'):
-            self.props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('xy'):
-            self.props['xy'] = self.getInputFromPort('xy')
-        if self.hasInputFromPort('y'):
-            self.props['y'] = self.getInputFromPort('y')
-        if self.hasInputFromPort('x'):
-            self.props['x'] = self.getInputFromPort('x')
+        if self.has_input('bounds'):
+            self.props['bounds'] = self.get_input('bounds')
+        if self.has_input('height'):
+            self.props['height'] = self.get_input('height')
+        if self.has_input('width'):
+            self.props['width'] = self.get_input('width')
+        if self.has_input('xy'):
+            self.props['xy'] = self.get_input('xy')
+        if self.has_input('y'):
+            self.props['y'] = self.get_input('y')
+        if self.has_input('x'):
+            self.props['x'] = self.get_input('x')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1415,23 +1691,35 @@ class MplRegularPolygonProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('xy'):
-            self.constructor_props['xy'] = self.getInputFromPort('xy')
-        if self.hasInputFromPort('radius'):
-            self.constructor_props['radius'] = self.getInputFromPort('radius')
-        if self.hasInputFromPort('orientation'):
-            self.constructor_props['orientation'] = self.getInputFromPort('orientation')
-        if self.hasInputFromPort('numVertices'):
-            self.constructor_props['numVertices'] = self.getInputFromPort('numVertices')
+        if self.has_input('xy'):
+            self.constructor_props['xy'] = self.get_input('xy')
+        if self.has_input('radius'):
+            self.constructor_props['radius'] = self.get_input('radius')
+        if self.has_input('orientation'):
+            self.constructor_props['orientation'] = self.get_input('orientation')
+        if self.has_input('numVertices'):
+            self.constructor_props['numVertices'] = self.get_input('numVertices')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1457,21 +1745,33 @@ class MplCirclePolygonProperties(MplRegularPolygonProperties):
         MplRegularPolygonProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplRegularPolygonProperties.compute(self)
-        if self.hasInputFromPort('radius'):
-            self.constructor_props['radius'] = self.getInputFromPort('radius')
-        if self.hasInputFromPort('xy'):
-            self.constructor_props['xy'] = self.getInputFromPort('xy')
-        if self.hasInputFromPort('resolution'):
-            self.constructor_props['resolution'] = self.getInputFromPort('resolution')
+        if self.has_input('radius'):
+            self.constructor_props['radius'] = self.get_input('radius')
+        if self.has_input('xy'):
+            self.constructor_props['xy'] = self.get_input('xy')
+        if self.has_input('resolution'):
+            self.constructor_props['resolution'] = self.get_input('resolution')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplRegularPolygonProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1493,17 +1793,29 @@ class MplPathPatchProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('path'):
-            self.constructor_props['path'] = self.getInputFromPort('path')
+        if self.has_input('path'):
+            self.constructor_props['path'] = self.get_input('path')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1527,19 +1839,31 @@ class MplPolygonProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('xy'):
-            self.props['xy'] = self.getInputFromPort('xy')
-        if self.hasInputFromPort('closed'):
-            self.props['closed'] = self.getInputFromPort('closed')
+        if self.has_input('xy'):
+            self.props['xy'] = self.get_input('xy')
+        if self.has_input('closed'):
+            self.props['closed'] = self.get_input('closed')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1581,37 +1905,49 @@ class MplFancyArrowProperties(MplPolygonProperties):
         MplPolygonProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPolygonProperties.compute(self)
-        if self.hasInputFromPort('length_includes_head'):
-            self.constructor_props['length_includes_head'] = self.getInputFromPort('length_includes_head')
-        if self.hasInputFromPort('head_length'):
-            self.constructor_props['head_length'] = self.getInputFromPort('head_length')
-        if self.hasInputFromPort('head_width'):
-            self.constructor_props['head_width'] = self.getInputFromPort('head_width')
-        if self.hasInputFromPort('width'):
-            self.constructor_props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('shape'):
-            self.constructor_props['shape'] = self.getInputFromPort('shape')
-        if self.hasInputFromPort('dx'):
-            self.constructor_props['dx'] = self.getInputFromPort('dx')
-        if self.hasInputFromPort('dy'):
-            self.constructor_props['dy'] = self.getInputFromPort('dy')
-        if self.hasInputFromPort('y'):
-            self.constructor_props['y'] = self.getInputFromPort('y')
-        if self.hasInputFromPort('x'):
-            self.constructor_props['x'] = self.getInputFromPort('x')
-        if self.hasInputFromPort('head_starts_at_zero'):
-            self.constructor_props['head_starts_at_zero'] = self.getInputFromPort('head_starts_at_zero')
-        if self.hasInputFromPort('overhang'):
-            self.constructor_props['overhang'] = self.getInputFromPort('overhang')
+        if self.has_input('length_includes_head'):
+            self.constructor_props['length_includes_head'] = self.get_input('length_includes_head')
+        if self.has_input('head_length'):
+            self.constructor_props['head_length'] = self.get_input('head_length')
+        if self.has_input('head_width'):
+            self.constructor_props['head_width'] = self.get_input('head_width')
+        if self.has_input('width'):
+            self.constructor_props['width'] = self.get_input('width')
+        if self.has_input('shape'):
+            self.constructor_props['shape'] = self.get_input('shape')
+        if self.has_input('dx'):
+            self.constructor_props['dx'] = self.get_input('dx')
+        if self.has_input('dy'):
+            self.constructor_props['dy'] = self.get_input('dy')
+        if self.has_input('y'):
+            self.constructor_props['y'] = self.get_input('y')
+        if self.has_input('x'):
+            self.constructor_props['x'] = self.get_input('x')
+        if self.has_input('head_starts_at_zero'):
+            self.constructor_props['head_starts_at_zero'] = self.get_input('head_starts_at_zero')
+        if self.has_input('overhang'):
+            self.constructor_props['overhang'] = self.get_input('overhang')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPolygonProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1641,25 +1977,37 @@ class MplWedgeProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('theta2'):
-            self.constructor_props['theta2'] = self.getInputFromPort('theta2')
-        if self.hasInputFromPort('width'):
-            self.constructor_props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('r'):
-            self.constructor_props['r'] = self.getInputFromPort('r')
-        if self.hasInputFromPort('theta1'):
-            self.constructor_props['theta1'] = self.getInputFromPort('theta1')
-        if self.hasInputFromPort('center'):
-            self.constructor_props['center'] = self.getInputFromPort('center')
+        if self.has_input('theta2'):
+            self.constructor_props['theta2'] = self.get_input('theta2')
+        if self.has_input('width'):
+            self.constructor_props['width'] = self.get_input('width')
+        if self.has_input('r'):
+            self.constructor_props['r'] = self.get_input('r')
+        if self.has_input('theta1'):
+            self.constructor_props['theta1'] = self.get_input('theta1')
+        if self.has_input('center'):
+            self.constructor_props['center'] = self.get_input('center')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1689,25 +2037,37 @@ class MplArrowProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('y'):
-            self.constructor_props['y'] = self.getInputFromPort('y')
-        if self.hasInputFromPort('x'):
-            self.constructor_props['x'] = self.getInputFromPort('x')
-        if self.hasInputFromPort('dy'):
-            self.constructor_props['dy'] = self.getInputFromPort('dy')
-        if self.hasInputFromPort('dx'):
-            self.constructor_props['dx'] = self.getInputFromPort('dx')
-        if self.hasInputFromPort('width'):
-            self.constructor_props['width'] = self.getInputFromPort('width')
+        if self.has_input('y'):
+            self.constructor_props['y'] = self.get_input('y')
+        if self.has_input('x'):
+            self.constructor_props['x'] = self.get_input('x')
+        if self.has_input('dy'):
+            self.constructor_props['dy'] = self.get_input('dy')
+        if self.has_input('dx'):
+            self.constructor_props['dx'] = self.get_input('dx')
+        if self.has_input('width'):
+            self.constructor_props['width'] = self.get_input('width')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1742,27 +2102,39 @@ class MplYAArrowProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('xytip'):
-            self.constructor_props['xytip'] = self.getInputFromPort('xytip')
-        if self.hasInputFromPort('headwidth'):
-            self.constructor_props['headwidth'] = self.getInputFromPort('headwidth')
-        if self.hasInputFromPort('frac'):
-            self.constructor_props['frac'] = self.getInputFromPort('frac')
-        if self.hasInputFromPort('figure'):
-            self.constructor_props['figure'] = self.getInputFromPort('figure')
-        if self.hasInputFromPort('xybase'):
-            self.constructor_props['xybase'] = self.getInputFromPort('xybase')
-        if self.hasInputFromPort('width'):
-            self.constructor_props['width'] = self.getInputFromPort('width')
+        if self.has_input('xytip'):
+            self.constructor_props['xytip'] = self.get_input('xytip')
+        if self.has_input('headwidth'):
+            self.constructor_props['headwidth'] = self.get_input('headwidth')
+        if self.has_input('frac'):
+            self.constructor_props['frac'] = self.get_input('frac')
+        if self.has_input('figure'):
+            self.constructor_props['figure'] = self.get_input('figure')
+        if self.has_input('xybase'):
+            self.constructor_props['xybase'] = self.get_input('xybase')
+        if self.has_input('width'):
+            self.constructor_props['width'] = self.get_input('width')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1790,23 +2162,35 @@ class MplEllipseProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('width'):
-            self.constructor_props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('xy'):
-            self.constructor_props['xy'] = self.getInputFromPort('xy')
-        if self.hasInputFromPort('angle'):
-            self.constructor_props['angle'] = self.getInputFromPort('angle')
-        if self.hasInputFromPort('height'):
-            self.constructor_props['height'] = self.getInputFromPort('height')
+        if self.has_input('width'):
+            self.constructor_props['width'] = self.get_input('width')
+        if self.has_input('xy'):
+            self.constructor_props['xy'] = self.get_input('xy')
+        if self.has_input('angle'):
+            self.constructor_props['angle'] = self.get_input('angle')
+        if self.has_input('height'):
+            self.constructor_props['height'] = self.get_input('height')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1830,19 +2214,31 @@ class MplCircleProperties(MplEllipseProperties):
         MplEllipseProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplEllipseProperties.compute(self)
-        if self.hasInputFromPort('xy'):
-            self.constructor_props['xy'] = self.getInputFromPort('xy')
-        if self.hasInputFromPort('radius'):
-            self.props['radius'] = self.getInputFromPort('radius')
+        if self.has_input('xy'):
+            self.constructor_props['xy'] = self.get_input('xy')
+        if self.has_input('radius'):
+            self.props['radius'] = self.get_input('radius')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplEllipseProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1881,27 +2277,39 @@ class MplArcProperties(MplEllipseProperties):
         MplEllipseProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplEllipseProperties.compute(self)
-        if self.hasInputFromPort('theta2'):
-            self.constructor_props['theta2'] = self.getInputFromPort('theta2')
-        if self.hasInputFromPort('theta1'):
-            self.constructor_props['theta1'] = self.getInputFromPort('theta1')
-        if self.hasInputFromPort('angle'):
-            self.constructor_props['angle'] = self.getInputFromPort('angle')
-        if self.hasInputFromPort('height'):
-            self.constructor_props['height'] = self.getInputFromPort('height')
-        if self.hasInputFromPort('width'):
-            self.constructor_props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('xy'):
-            self.constructor_props['xy'] = self.getInputFromPort('xy')
+        if self.has_input('theta2'):
+            self.constructor_props['theta2'] = self.get_input('theta2')
+        if self.has_input('theta1'):
+            self.constructor_props['theta1'] = self.get_input('theta1')
+        if self.has_input('angle'):
+            self.constructor_props['angle'] = self.get_input('angle')
+        if self.has_input('height'):
+            self.constructor_props['height'] = self.get_input('height')
+        if self.has_input('width'):
+            self.constructor_props['width'] = self.get_input('width')
+        if self.has_input('xy'):
+            self.constructor_props['xy'] = self.get_input('xy')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplEllipseProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1948,35 +2356,47 @@ class MplFancyBboxPatchProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('mutation_scale'):
-            self.props['mutation_scale'] = self.getInputFromPort('mutation_scale')
-        if self.hasInputFromPort('bbox_transmuter'):
-            self.constructor_props['bbox_transmuter'] = self.getInputFromPort('bbox_transmuter')
-        if self.hasInputFromPort('bounds'):
-            self.props['bounds'] = self.getInputFromPort('bounds')
-        if self.hasInputFromPort('height'):
-            self.props['height'] = self.getInputFromPort('height')
-        if self.hasInputFromPort('width'):
-            self.props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('xy'):
-            self.constructor_props['xy'] = self.getInputFromPort('xy')
-        if self.hasInputFromPort('boxstyle'):
-            self.props['boxstyle'] = self.getInputFromPort('boxstyle')
-        if self.hasInputFromPort('mutation_aspect'):
-            self.props['mutation_aspect'] = self.getInputFromPort('mutation_aspect')
-        if self.hasInputFromPort('y'):
-            self.props['y'] = self.getInputFromPort('y')
-        if self.hasInputFromPort('x'):
-            self.props['x'] = self.getInputFromPort('x')
+        if self.has_input('mutation_scale'):
+            self.props['mutation_scale'] = self.get_input('mutation_scale')
+        if self.has_input('bbox_transmuter'):
+            self.constructor_props['bbox_transmuter'] = self.get_input('bbox_transmuter')
+        if self.has_input('bounds'):
+            self.props['bounds'] = self.get_input('bounds')
+        if self.has_input('height'):
+            self.props['height'] = self.get_input('height')
+        if self.has_input('width'):
+            self.props['width'] = self.get_input('width')
+        if self.has_input('xy'):
+            self.constructor_props['xy'] = self.get_input('xy')
+        if self.has_input('boxstyle'):
+            self.props['boxstyle'] = self.get_input('boxstyle')
+        if self.has_input('mutation_aspect'):
+            self.props['mutation_aspect'] = self.get_input('mutation_aspect')
+        if self.has_input('y'):
+            self.props['y'] = self.get_input('y')
+        if self.has_input('x'):
+            self.props['x'] = self.get_input('x')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2026,45 +2446,57 @@ class MplFancyArrowPatchProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplPatchProperties.compute(self)
-        if self.hasInputFromPort('connectionstyle'):
-            self.props['connectionstyle'] = self.getInputFromPort('connectionstyle')
-        if self.hasInputFromPort('mutation_scale'):
-            self.props['mutation_scale'] = self.getInputFromPort('mutation_scale')
-        if self.hasInputFromPort('arrowstyle'):
-            self.props['arrowstyle'] = self.getInputFromPort('arrowstyle')
-        if self.hasInputFromPort('arrow_transmuter'):
-            self.constructor_props['arrow_transmuter'] = self.getInputFromPort('arrow_transmuter')
-        if self.hasInputFromPort('positions'):
-            self.props['positions'] = self.getInputFromPort('positions')
-        if self.hasInputFromPort('shrinkA'):
-            self.constructor_props['shrinkA'] = self.getInputFromPort('shrinkA')
-        if self.hasInputFromPort('posB'):
-            self.constructor_props['posB'] = self.getInputFromPort('posB')
-        if self.hasInputFromPort('dpi_cor'):
-            self.props['dpi_cor'] = self.getInputFromPort('dpi_cor')
-        if self.hasInputFromPort('connector'):
-            self.constructor_props['connector'] = self.getInputFromPort('connector')
-        if self.hasInputFromPort('path'):
-            self.constructor_props['path'] = self.getInputFromPort('path')
-        if self.hasInputFromPort('shrinkB'):
-            self.constructor_props['shrinkB'] = self.getInputFromPort('shrinkB')
-        if self.hasInputFromPort('mutation_aspect'):
-            self.props['mutation_aspect'] = self.getInputFromPort('mutation_aspect')
-        if self.hasInputFromPort('patchA'):
-            self.props['patchA'] = self.getInputFromPort('patchA')
-        if self.hasInputFromPort('patchB'):
-            self.props['patchB'] = self.getInputFromPort('patchB')
-        if self.hasInputFromPort('posA'):
-            self.constructor_props['posA'] = self.getInputFromPort('posA')
+        if self.has_input('connectionstyle'):
+            self.props['connectionstyle'] = self.get_input('connectionstyle')
+        if self.has_input('mutation_scale'):
+            self.props['mutation_scale'] = self.get_input('mutation_scale')
+        if self.has_input('arrowstyle'):
+            self.props['arrowstyle'] = self.get_input('arrowstyle')
+        if self.has_input('arrow_transmuter'):
+            self.constructor_props['arrow_transmuter'] = self.get_input('arrow_transmuter')
+        if self.has_input('positions'):
+            self.props['positions'] = self.get_input('positions')
+        if self.has_input('shrinkA'):
+            self.constructor_props['shrinkA'] = self.get_input('shrinkA')
+        if self.has_input('posB'):
+            self.constructor_props['posB'] = self.get_input('posB')
+        if self.has_input('dpi_cor'):
+            self.props['dpi_cor'] = self.get_input('dpi_cor')
+        if self.has_input('connector'):
+            self.constructor_props['connector'] = self.get_input('connector')
+        if self.has_input('path'):
+            self.constructor_props['path'] = self.get_input('path')
+        if self.has_input('shrinkB'):
+            self.constructor_props['shrinkB'] = self.get_input('shrinkB')
+        if self.has_input('mutation_aspect'):
+            self.props['mutation_aspect'] = self.get_input('mutation_aspect')
+        if self.has_input('patchA'):
+            self.props['patchA'] = self.get_input('patchA')
+        if self.has_input('patchB'):
+            self.props['patchB'] = self.get_input('patchB')
+        if self.has_input('posA'):
+            self.constructor_props['posA'] = self.get_input('posA')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2127,57 +2559,69 @@ class MplConnectionPatchProperties(MplFancyArrowPatchProperties):
         MplFancyArrowPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplFancyArrowPatchProperties.compute(self)
-        if self.hasInputFromPort('connectionstyle'):
-            self.constructor_props['connectionstyle'] = self.getInputFromPort('connectionstyle')
-        if self.hasInputFromPort('coordsA'):
-            self.constructor_props['coordsA'] = self.getInputFromPort('coordsA')
-        if self.hasInputFromPort('arrowstyle'):
-            self.constructor_props['arrowstyle'] = self.getInputFromPort('arrowstyle')
-        if self.hasInputFromPort('clip_on'):
-            self.constructor_props['clip_on'] = self.getInputFromPort('clip_on')
-        if self.hasInputFromPort('arrow_transmuter'):
-            self.constructor_props['arrow_transmuter'] = self.getInputFromPort('arrow_transmuter')
-        if self.hasInputFromPort('axesA'):
-            self.constructor_props['axesA'] = self.getInputFromPort('axesA')
-        if self.hasInputFromPort('axesB'):
-            self.constructor_props['axesB'] = self.getInputFromPort('axesB')
-        if self.hasInputFromPort('annotation_clip'):
-            self.props['annotation_clip'] = self.getInputFromPort('annotation_clip')
-        if self.hasInputFromPort('dpi_cor'):
-            self.constructor_props['dpi_cor'] = self.getInputFromPort('dpi_cor')
-        if self.hasInputFromPort('connector'):
-            self.constructor_props['connector'] = self.getInputFromPort('connector')
-        if self.hasInputFromPort('xyA'):
-            self.constructor_props['xyA'] = self.getInputFromPort('xyA')
-        if self.hasInputFromPort('xyB'):
-            self.constructor_props['xyB'] = self.getInputFromPort('xyB')
-        if self.hasInputFromPort('relpos'):
-            self.constructor_props['relpos'] = self.getInputFromPort('relpos')
-        if self.hasInputFromPort('shrinkB'):
-            self.constructor_props['shrinkB'] = self.getInputFromPort('shrinkB')
-        if self.hasInputFromPort('shrinkA'):
-            self.constructor_props['shrinkA'] = self.getInputFromPort('shrinkA')
-        if self.hasInputFromPort('mutation_aspect'):
-            self.constructor_props['mutation_aspect'] = self.getInputFromPort('mutation_aspect')
-        if self.hasInputFromPort('mutation_scale'):
-            self.constructor_props['mutation_scale'] = self.getInputFromPort('mutation_scale')
-        if self.hasInputFromPort('patchA'):
-            self.constructor_props['patchA'] = self.getInputFromPort('patchA')
-        if self.hasInputFromPort('patchB'):
-            self.constructor_props['patchB'] = self.getInputFromPort('patchB')
-        if self.hasInputFromPort('coordsB'):
-            self.constructor_props['coordsB'] = self.getInputFromPort('coordsB')
-        if self.hasInputFromPort('?'):
-            self.constructor_props['?'] = self.getInputFromPort('?')
+        if self.has_input('connectionstyle'):
+            self.constructor_props['connectionstyle'] = self.get_input('connectionstyle')
+        if self.has_input('coordsA'):
+            self.constructor_props['coordsA'] = self.get_input('coordsA')
+        if self.has_input('arrowstyle'):
+            self.constructor_props['arrowstyle'] = self.get_input('arrowstyle')
+        if self.has_input('clip_on'):
+            self.constructor_props['clip_on'] = self.get_input('clip_on')
+        if self.has_input('arrow_transmuter'):
+            self.constructor_props['arrow_transmuter'] = self.get_input('arrow_transmuter')
+        if self.has_input('axesA'):
+            self.constructor_props['axesA'] = self.get_input('axesA')
+        if self.has_input('axesB'):
+            self.constructor_props['axesB'] = self.get_input('axesB')
+        if self.has_input('annotation_clip'):
+            self.props['annotation_clip'] = self.get_input('annotation_clip')
+        if self.has_input('dpi_cor'):
+            self.constructor_props['dpi_cor'] = self.get_input('dpi_cor')
+        if self.has_input('connector'):
+            self.constructor_props['connector'] = self.get_input('connector')
+        if self.has_input('xyA'):
+            self.constructor_props['xyA'] = self.get_input('xyA')
+        if self.has_input('xyB'):
+            self.constructor_props['xyB'] = self.get_input('xyB')
+        if self.has_input('relpos'):
+            self.constructor_props['relpos'] = self.get_input('relpos')
+        if self.has_input('shrinkB'):
+            self.constructor_props['shrinkB'] = self.get_input('shrinkB')
+        if self.has_input('shrinkA'):
+            self.constructor_props['shrinkA'] = self.get_input('shrinkA')
+        if self.has_input('mutation_aspect'):
+            self.constructor_props['mutation_aspect'] = self.get_input('mutation_aspect')
+        if self.has_input('mutation_scale'):
+            self.constructor_props['mutation_scale'] = self.get_input('mutation_scale')
+        if self.has_input('patchA'):
+            self.constructor_props['patchA'] = self.get_input('patchA')
+        if self.has_input('patchB'):
+            self.constructor_props['patchB'] = self.get_input('patchB')
+        if self.has_input('coordsB'):
+            self.constructor_props['coordsB'] = self.get_input('coordsB')
+        if self.has_input('?'):
+            self.constructor_props['?'] = self.get_input('?')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplFancyArrowPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2252,71 +2696,83 @@ class MplLine2DProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('picker'):
-            self.props['picker'] = self.getInputFromPort('picker')
-        if self.hasInputFromPort('dash_capstyle'):
-            self.props['dash_capstyle'] = self.getInputFromPort('dash_capstyle')
-        if self.hasInputFromPort('color'):
-            self.props['color'] = self.getInputFromPort('color')
+        if self.has_input('picker'):
+            self.props['picker'] = self.get_input('picker')
+        if self.has_input('dash_capstyle'):
+            self.props['dash_capstyle'] = self.get_input('dash_capstyle')
+        if self.has_input('color'):
+            self.props['color'] = self.get_input('color')
             self.props['color'] = translate_color(self.props['color'])
-        if self.hasInputFromPort('markevery'):
-            self.props['markevery'] = self.getInputFromPort('markevery')
-        if self.hasInputFromPort('markeredgecolor'):
-            self.props['markeredgecolor'] = self.getInputFromPort('markeredgecolor')
+        if self.has_input('markevery'):
+            self.props['markevery'] = self.get_input('markevery')
+        if self.has_input('markeredgecolor'):
+            self.props['markeredgecolor'] = self.get_input('markeredgecolor')
             self.props['markeredgecolor'] = translate_color(self.props['markeredgecolor'])
-        if self.hasInputFromPort('marker'):
-            self.props['marker'] = self.getInputFromPort('marker')
+        if self.has_input('marker'):
+            self.props['marker'] = self.get_input('marker')
             self.props['marker'] = translate_MplLine2DProperties_marker(self.props['marker'])
-        if self.hasInputFromPort('markerfacecoloralt'):
-            self.props['markerfacecoloralt'] = self.getInputFromPort('markerfacecoloralt')
+        if self.has_input('markerfacecoloralt'):
+            self.props['markerfacecoloralt'] = self.get_input('markerfacecoloralt')
             self.props['markerfacecoloralt'] = translate_color(self.props['markerfacecoloralt'])
-        if self.hasInputFromPort('linewidth'):
-            self.props['linewidth'] = self.getInputFromPort('linewidth')
-        if self.hasInputFromPort('linestyle'):
-            self.props['linestyle'] = self.getInputFromPort('linestyle')
+        if self.has_input('linewidth'):
+            self.props['linewidth'] = self.get_input('linewidth')
+        if self.has_input('linestyle'):
+            self.props['linestyle'] = self.get_input('linestyle')
             self.props['linestyle'] = translate_MplLine2DProperties_linestyle(self.props['linestyle'])
-        if self.hasInputFromPort('solid_joinstyle'):
-            self.props['solid_joinstyle'] = self.getInputFromPort('solid_joinstyle')
-        if self.hasInputFromPort('markerfacecolor'):
-            self.props['markerfacecolor'] = self.getInputFromPort('markerfacecolor')
+        if self.has_input('solid_joinstyle'):
+            self.props['solid_joinstyle'] = self.get_input('solid_joinstyle')
+        if self.has_input('markerfacecolor'):
+            self.props['markerfacecolor'] = self.get_input('markerfacecolor')
             self.props['markerfacecolor'] = translate_color(self.props['markerfacecolor'])
-        if self.hasInputFromPort('axes'):
-            self.props['axes'] = self.getInputFromPort('axes')
-        if self.hasInputFromPort('transform'):
-            self.props['transform'] = self.getInputFromPort('transform')
-        if self.hasInputFromPort('fillstyle'):
-            self.props['fillstyle'] = self.getInputFromPort('fillstyle')
-        if self.hasInputFromPort('markeredgewidth'):
-            self.props['markeredgewidth'] = self.getInputFromPort('markeredgewidth')
-        if self.hasInputFromPort('solid_capstyle'):
-            self.props['solid_capstyle'] = self.getInputFromPort('solid_capstyle')
-        if self.hasInputFromPort('dashes'):
-            self.props['dashes'] = self.getInputFromPort('dashes')
-        if self.hasInputFromPort('markersize'):
-            self.props['markersize'] = self.getInputFromPort('markersize')
-        if self.hasInputFromPort('antialiased'):
-            self.props['antialiased'] = self.getInputFromPort('antialiased')
-        if self.hasInputFromPort('xdata'):
-            self.props['xdata'] = self.getInputFromPort('xdata')
-        if self.hasInputFromPort('drawstyle'):
-            self.props['drawstyle'] = self.getInputFromPort('drawstyle')
-        if self.hasInputFromPort('data'):
-            self.props['data'] = self.getInputFromPort('data')
-        if self.hasInputFromPort('dash_joinstyle'):
-            self.props['dash_joinstyle'] = self.getInputFromPort('dash_joinstyle')
-        if self.hasInputFromPort('pickradius'):
-            self.props['pickradius'] = self.getInputFromPort('pickradius')
-        if self.hasInputFromPort('ydata'):
-            self.props['ydata'] = self.getInputFromPort('ydata')
+        if self.has_input('axes'):
+            self.props['axes'] = self.get_input('axes')
+        if self.has_input('transform'):
+            self.props['transform'] = self.get_input('transform')
+        if self.has_input('fillstyle'):
+            self.props['fillstyle'] = self.get_input('fillstyle')
+        if self.has_input('markeredgewidth'):
+            self.props['markeredgewidth'] = self.get_input('markeredgewidth')
+        if self.has_input('solid_capstyle'):
+            self.props['solid_capstyle'] = self.get_input('solid_capstyle')
+        if self.has_input('dashes'):
+            self.props['dashes'] = self.get_input('dashes')
+        if self.has_input('markersize'):
+            self.props['markersize'] = self.get_input('markersize')
+        if self.has_input('antialiased'):
+            self.props['antialiased'] = self.get_input('antialiased')
+        if self.has_input('xdata'):
+            self.props['xdata'] = self.get_input('xdata')
+        if self.has_input('drawstyle'):
+            self.props['drawstyle'] = self.get_input('drawstyle')
+        if self.has_input('data'):
+            self.props['data'] = self.get_input('data')
+        if self.has_input('dash_joinstyle'):
+            self.props['dash_joinstyle'] = self.get_input('dash_joinstyle')
+        if self.has_input('pickradius'):
+            self.props['pickradius'] = self.get_input('pickradius')
+        if self.has_input('ydata'):
+            self.props['ydata'] = self.get_input('ydata')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2378,59 +2834,71 @@ class MplTextProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('rotation_mode'):
-            self.props['rotation_mode'] = self.getInputFromPort('rotation_mode')
-        if self.hasInputFromPort('style'):
-            self.props['style'] = self.getInputFromPort('style')
-        if self.hasInputFromPort('linespacing'):
-            self.props['linespacing'] = self.getInputFromPort('linespacing')
-        if self.hasInputFromPort('family'):
-            self.props['family'] = self.getInputFromPort('family')
-        if self.hasInputFromPort('x'):
-            self.props['x'] = self.getInputFromPort('x')
-        if self.hasInputFromPort('color'):
-            self.props['color'] = self.getInputFromPort('color')
+        if self.has_input('rotation_mode'):
+            self.props['rotation_mode'] = self.get_input('rotation_mode')
+        if self.has_input('style'):
+            self.props['style'] = self.get_input('style')
+        if self.has_input('linespacing'):
+            self.props['linespacing'] = self.get_input('linespacing')
+        if self.has_input('family'):
+            self.props['family'] = self.get_input('family')
+        if self.has_input('x'):
+            self.props['x'] = self.get_input('x')
+        if self.has_input('color'):
+            self.props['color'] = self.get_input('color')
             self.props['color'] = translate_color(self.props['color'])
-        if self.hasInputFromPort('text'):
-            self.props['text'] = self.getInputFromPort('text')
-        if self.hasInputFromPort('verticalalignment'):
-            self.props['verticalalignment'] = self.getInputFromPort('verticalalignment')
-        if self.hasInputFromPort('variant'):
-            self.props['variant'] = self.getInputFromPort('variant')
-        if self.hasInputFromPort('path_effects'):
-            self.props['path_effects'] = self.getInputFromPort('path_effects')
-        if self.hasInputFromPort('weight'):
-            self.props['weight'] = self.getInputFromPort('weight')
-        if self.hasInputFromPort('stretch'):
-            self.props['stretch'] = self.getInputFromPort('stretch')
-        if self.hasInputFromPort('fontproperties'):
-            self.props['fontproperties'] = self.getInputFromPort('fontproperties')
-        if self.hasInputFromPort('horizontalalignment'):
-            self.props['horizontalalignment'] = self.getInputFromPort('horizontalalignment')
-        if self.hasInputFromPort('bbox'):
-            self.props['bbox'] = self.getInputFromPort('bbox')
-        if self.hasInputFromPort('backgroundcolor'):
-            self.props['backgroundcolor'] = self.getInputFromPort('backgroundcolor')
+        if self.has_input('text'):
+            self.props['text'] = self.get_input('text')
+        if self.has_input('verticalalignment'):
+            self.props['verticalalignment'] = self.get_input('verticalalignment')
+        if self.has_input('variant'):
+            self.props['variant'] = self.get_input('variant')
+        if self.has_input('path_effects'):
+            self.props['path_effects'] = self.get_input('path_effects')
+        if self.has_input('weight'):
+            self.props['weight'] = self.get_input('weight')
+        if self.has_input('stretch'):
+            self.props['stretch'] = self.get_input('stretch')
+        if self.has_input('fontproperties'):
+            self.props['fontproperties'] = self.get_input('fontproperties')
+        if self.has_input('horizontalalignment'):
+            self.props['horizontalalignment'] = self.get_input('horizontalalignment')
+        if self.has_input('bbox'):
+            self.props['bbox'] = self.get_input('bbox')
+        if self.has_input('backgroundcolor'):
+            self.props['backgroundcolor'] = self.get_input('backgroundcolor')
             self.props['backgroundcolor'] = translate_color(self.props['backgroundcolor'])
-        if self.hasInputFromPort('position'):
-            self.props['position'] = self.getInputFromPort('position')
-        if self.hasInputFromPort('y'):
-            self.props['y'] = self.getInputFromPort('y')
-        if self.hasInputFromPort('multialignment'):
-            self.props['multialignment'] = self.getInputFromPort('multialignment')
-        if self.hasInputFromPort('rotation'):
-            self.props['rotation'] = self.getInputFromPort('rotation')
-        if self.hasInputFromPort('size'):
-            self.props['size'] = self.getInputFromPort('size')
+        if self.has_input('position'):
+            self.props['position'] = self.get_input('position')
+        if self.has_input('y'):
+            self.props['y'] = self.get_input('y')
+        if self.has_input('multialignment'):
+            self.props['multialignment'] = self.get_input('multialignment')
+        if self.has_input('rotation'):
+            self.props['rotation'] = self.get_input('rotation')
+        if self.has_input('size'):
+            self.props['size'] = self.get_input('size')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2536,51 +3004,63 @@ class MplTextWithDashProperties(MplTextProperties):
         MplTextProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplTextProperties.compute(self)
-        if self.hasInputFromPort('dashpush'):
-            self.props['dashpush'] = self.getInputFromPort('dashpush')
-        if self.hasInputFromPort('dashdirection'):
-            self.props['dashdirection'] = self.getInputFromPort('dashdirection')
-        if self.hasInputFromPort('linespacing'):
-            self.constructor_props['linespacing'] = self.getInputFromPort('linespacing')
-        if self.hasInputFromPort('figure'):
-            self.props['figure'] = self.getInputFromPort('figure')
-        if self.hasInputFromPort('color'):
-            self.constructor_props['color'] = self.getInputFromPort('color')
-        if self.hasInputFromPort('text'):
-            self.constructor_props['text'] = self.getInputFromPort('text')
-        if self.hasInputFromPort('verticalalignment'):
-            self.constructor_props['verticalalignment'] = self.getInputFromPort('verticalalignment')
-        if self.hasInputFromPort('dashpad'):
-            self.props['dashpad'] = self.getInputFromPort('dashpad')
-        if self.hasInputFromPort('dashrotation'):
-            self.props['dashrotation'] = self.getInputFromPort('dashrotation')
-        if self.hasInputFromPort('transform'):
-            self.props['transform'] = self.getInputFromPort('transform')
-        if self.hasInputFromPort('fontproperties'):
-            self.constructor_props['fontproperties'] = self.getInputFromPort('fontproperties')
-        if self.hasInputFromPort('multialignment'):
-            self.constructor_props['multialignment'] = self.getInputFromPort('multialignment')
-        if self.hasInputFromPort('x'):
-            self.props['x'] = self.getInputFromPort('x')
-        if self.hasInputFromPort('y'):
-            self.props['y'] = self.getInputFromPort('y')
-        if self.hasInputFromPort('position'):
-            self.props['position'] = self.getInputFromPort('position')
-        if self.hasInputFromPort('dashlength'):
-            self.props['dashlength'] = self.getInputFromPort('dashlength')
-        if self.hasInputFromPort('rotation'):
-            self.constructor_props['rotation'] = self.getInputFromPort('rotation')
-        if self.hasInputFromPort('horizontalalignment'):
-            self.constructor_props['horizontalalignment'] = self.getInputFromPort('horizontalalignment')
+        if self.has_input('dashpush'):
+            self.props['dashpush'] = self.get_input('dashpush')
+        if self.has_input('dashdirection'):
+            self.props['dashdirection'] = self.get_input('dashdirection')
+        if self.has_input('linespacing'):
+            self.constructor_props['linespacing'] = self.get_input('linespacing')
+        if self.has_input('figure'):
+            self.props['figure'] = self.get_input('figure')
+        if self.has_input('color'):
+            self.constructor_props['color'] = self.get_input('color')
+        if self.has_input('text'):
+            self.constructor_props['text'] = self.get_input('text')
+        if self.has_input('verticalalignment'):
+            self.constructor_props['verticalalignment'] = self.get_input('verticalalignment')
+        if self.has_input('dashpad'):
+            self.props['dashpad'] = self.get_input('dashpad')
+        if self.has_input('dashrotation'):
+            self.props['dashrotation'] = self.get_input('dashrotation')
+        if self.has_input('transform'):
+            self.props['transform'] = self.get_input('transform')
+        if self.has_input('fontproperties'):
+            self.constructor_props['fontproperties'] = self.get_input('fontproperties')
+        if self.has_input('multialignment'):
+            self.constructor_props['multialignment'] = self.get_input('multialignment')
+        if self.has_input('x'):
+            self.props['x'] = self.get_input('x')
+        if self.has_input('y'):
+            self.props['y'] = self.get_input('y')
+        if self.has_input('position'):
+            self.props['position'] = self.get_input('position')
+        if self.has_input('dashlength'):
+            self.props['dashlength'] = self.get_input('dashlength')
+        if self.has_input('rotation'):
+            self.constructor_props['rotation'] = self.get_input('rotation')
+        if self.has_input('horizontalalignment'):
+            self.constructor_props['horizontalalignment'] = self.get_input('horizontalalignment')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplTextProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2635,12 +3115,8 @@ class MplTickProperties(MplArtistProperties):
                 {'optional': True, 'defaults': "['True']"}),
               ("label2On", "basic:Boolean",
                 {'optional': True, 'defaults': "['False']"}),
-              ("color", "basic:String",
+              ("color", "basic:Color",
                 {'optional': True}),
-              ("label1", "basic:String",
-                {'optional': True, 'docstring': 'Set the text of ticklabel'}),
-              ("label2", "basic:String",
-                {'optional': True, 'docstring': 'Set the text of ticklabel2'}),
               ("axes", "basic:String",
                 {'optional': True}),
               ("clip_path", "basic:String",
@@ -2653,20 +3129,30 @@ class MplTickProperties(MplArtistProperties):
                 {'optional': True}),
               ("pad", "basic:Float",
                 {'optional': True, 'docstring': 'Set the tick label pad in points'}),
-              ("gridOn", "basic:String",
-                {'optional': True}),
+              ("gridOn", "basic:Boolean",
+                {'optional': True, 'docstring': 'a boolean which determines whether to draw the tickline'}),
               ("zorder", "basic:String",
                 {'optional': True}),
               ("tick2On", "basic:Boolean",
-                {'optional': True, 'defaults': "['True']"}),
+                {'optional': True, 'docstring': 'a boolean which determines whether to draw the 2nd tickline', 'defaults': "['True']"}),
               ("labelsize", "basic:String",
                 {'optional': True}),
               ("width", "basic:String",
                 {'optional': True}),
               ("tick1On", "basic:Boolean",
-                {'optional': True, 'defaults': "['True']"}),
+                {'optional': True, 'docstring': 'a boolean which determines whether to draw the 1st tickline', 'defaults': "['True']"}),
               ("size", "basic:String",
                 {'optional': True}),
+              ("label1Properties", "MplTextProperties",
+                {'docstring': 'Set the text of ticklabel'}),
+              ("label2Properties", "MplTextProperties",
+                {'docstring': 'Set the text of ticklabel2'}),
+              ("tick1lineProperties", "MplLine2DProperties",
+                {}),
+              ("tick2lineProperties", "MplLine2DProperties",
+                {}),
+              ("gridlineProperties", "MplLine2DProperties",
+                {}),
         ]
 
     # no output ports except self
@@ -2676,55 +3162,89 @@ class MplTickProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('label1On'):
-            self.constructor_props['label1On'] = self.getInputFromPort('label1On')
-        if self.hasInputFromPort('loc'):
-            self.constructor_props['loc'] = self.getInputFromPort('loc')
-        if self.hasInputFromPort('major'):
-            self.constructor_props['major'] = self.getInputFromPort('major')
-        if self.hasInputFromPort('label2On'):
-            self.constructor_props['label2On'] = self.getInputFromPort('label2On')
-        if self.hasInputFromPort('color'):
-            self.constructor_props['color'] = self.getInputFromPort('color')
-        if self.hasInputFromPort('label1'):
-            self.props['label1'] = self.getInputFromPort('label1')
-        if self.hasInputFromPort('label2'):
-            self.props['label2'] = self.getInputFromPort('label2')
-        if self.hasInputFromPort('axes'):
-            self.constructor_props['axes'] = self.getInputFromPort('axes')
-        if self.hasInputFromPort('clip_path'):
-            self.props['clip_path'] = self.getInputFromPort('clip_path')
-        if self.hasInputFromPort('label'):
-            self.props['label'] = self.getInputFromPort('label')
-        if self.hasInputFromPort('labelcolor'):
-            self.constructor_props['labelcolor'] = self.getInputFromPort('labelcolor')
-        if self.hasInputFromPort('tickdir'):
-            self.constructor_props['tickdir'] = self.getInputFromPort('tickdir')
-        if self.hasInputFromPort('pad'):
-            self.props['pad'] = self.getInputFromPort('pad')
-        if self.hasInputFromPort('gridOn'):
-            self.constructor_props['gridOn'] = self.getInputFromPort('gridOn')
-        if self.hasInputFromPort('zorder'):
-            self.constructor_props['zorder'] = self.getInputFromPort('zorder')
-        if self.hasInputFromPort('tick2On'):
-            self.constructor_props['tick2On'] = self.getInputFromPort('tick2On')
-        if self.hasInputFromPort('labelsize'):
-            self.constructor_props['labelsize'] = self.getInputFromPort('labelsize')
-        if self.hasInputFromPort('width'):
-            self.constructor_props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('tick1On'):
-            self.constructor_props['tick1On'] = self.getInputFromPort('tick1On')
-        if self.hasInputFromPort('size'):
-            self.constructor_props['size'] = self.getInputFromPort('size')
+        if self.has_input('label1On'):
+            self.not_setp_props['label1On'] = self.get_input('label1On')
+        if self.has_input('loc'):
+            self.constructor_props['loc'] = self.get_input('loc')
+        if self.has_input('major'):
+            self.constructor_props['major'] = self.get_input('major')
+        if self.has_input('label2On'):
+            self.not_setp_props['label2On'] = self.get_input('label2On')
+        if self.has_input('color'):
+            self.constructor_props['color'] = self.get_input('color')
+            self.constructor_props['color'] = translate_color(self.constructor_props['color'])
+        if self.has_input('axes'):
+            self.constructor_props['axes'] = self.get_input('axes')
+        if self.has_input('clip_path'):
+            self.props['clip_path'] = self.get_input('clip_path')
+        if self.has_input('label'):
+            self.props['label'] = self.get_input('label')
+        if self.has_input('labelcolor'):
+            self.constructor_props['labelcolor'] = self.get_input('labelcolor')
+        if self.has_input('tickdir'):
+            self.constructor_props['tickdir'] = self.get_input('tickdir')
+        if self.has_input('pad'):
+            self.props['pad'] = self.get_input('pad')
+        if self.has_input('gridOn'):
+            self.not_setp_props['gridOn'] = self.get_input('gridOn')
+        if self.has_input('zorder'):
+            self.constructor_props['zorder'] = self.get_input('zorder')
+        if self.has_input('tick2On'):
+            self.not_setp_props['tick2On'] = self.get_input('tick2On')
+        if self.has_input('labelsize'):
+            self.constructor_props['labelsize'] = self.get_input('labelsize')
+        if self.has_input('width'):
+            self.constructor_props['width'] = self.get_input('width')
+        if self.has_input('tick1On'):
+            self.not_setp_props['tick1On'] = self.get_input('tick1On')
+        if self.has_input('size'):
+            self.constructor_props['size'] = self.get_input('size')
+        if self.has_input('label1Properties'):
+            self.sub_props['label1'] = self.get_input('label1Properties')
+        if self.has_input('label2Properties'):
+            self.sub_props['label2'] = self.get_input('label2Properties')
+        if self.has_input('tick1lineProperties'):
+            self.sub_props['tick1line'] = self.get_input('tick1lineProperties')
+        if self.has_input('tick2lineProperties'):
+            self.sub_props['tick2line'] = self.get_input('tick2lineProperties')
+        if self.has_input('gridlineProperties'):
+            self.sub_props['gridline'] = self.get_input('gridlineProperties')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            if 'label1' in self.sub_props:
+                self.sub_props['label1'].update_props(obj.label1)
+            if 'label2' in self.sub_props:
+                self.sub_props['label2'].update_props(obj.label2)
+            if 'tick1line' in self.sub_props:
+                self.sub_props['tick1line'].update_props(obj.tick1line)
+            if 'tick2line' in self.sub_props:
+                self.sub_props['tick2line'].update_props(obj.tick2line)
+            if 'gridline' in self.sub_props:
+                self.sub_props['gridline'].update_props(obj.gridline)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2779,49 +3299,61 @@ class MplXTickProperties(MplTickProperties):
         MplTickProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplTickProperties.compute(self)
-        if self.hasInputFromPort('label1On'):
-            self.constructor_props['label1On'] = self.getInputFromPort('label1On')
-        if self.hasInputFromPort('loc'):
-            self.constructor_props['loc'] = self.getInputFromPort('loc')
-        if self.hasInputFromPort('major'):
-            self.constructor_props['major'] = self.getInputFromPort('major')
-        if self.hasInputFromPort('label2On'):
-            self.constructor_props['label2On'] = self.getInputFromPort('label2On')
-        if self.hasInputFromPort('color'):
-            self.constructor_props['color'] = self.getInputFromPort('color')
-        if self.hasInputFromPort('axes'):
-            self.constructor_props['axes'] = self.getInputFromPort('axes')
-        if self.hasInputFromPort('label'):
-            self.constructor_props['label'] = self.getInputFromPort('label')
-        if self.hasInputFromPort('labelcolor'):
-            self.constructor_props['labelcolor'] = self.getInputFromPort('labelcolor')
-        if self.hasInputFromPort('tickdir'):
-            self.constructor_props['tickdir'] = self.getInputFromPort('tickdir')
-        if self.hasInputFromPort('pad'):
-            self.constructor_props['pad'] = self.getInputFromPort('pad')
-        if self.hasInputFromPort('gridOn'):
-            self.constructor_props['gridOn'] = self.getInputFromPort('gridOn')
-        if self.hasInputFromPort('zorder'):
-            self.constructor_props['zorder'] = self.getInputFromPort('zorder')
-        if self.hasInputFromPort('tick2On'):
-            self.constructor_props['tick2On'] = self.getInputFromPort('tick2On')
-        if self.hasInputFromPort('labelsize'):
-            self.constructor_props['labelsize'] = self.getInputFromPort('labelsize')
-        if self.hasInputFromPort('width'):
-            self.constructor_props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('tick1On'):
-            self.constructor_props['tick1On'] = self.getInputFromPort('tick1On')
-        if self.hasInputFromPort('size'):
-            self.constructor_props['size'] = self.getInputFromPort('size')
+        if self.has_input('label1On'):
+            self.constructor_props['label1On'] = self.get_input('label1On')
+        if self.has_input('loc'):
+            self.constructor_props['loc'] = self.get_input('loc')
+        if self.has_input('major'):
+            self.constructor_props['major'] = self.get_input('major')
+        if self.has_input('label2On'):
+            self.constructor_props['label2On'] = self.get_input('label2On')
+        if self.has_input('color'):
+            self.constructor_props['color'] = self.get_input('color')
+        if self.has_input('axes'):
+            self.constructor_props['axes'] = self.get_input('axes')
+        if self.has_input('label'):
+            self.constructor_props['label'] = self.get_input('label')
+        if self.has_input('labelcolor'):
+            self.constructor_props['labelcolor'] = self.get_input('labelcolor')
+        if self.has_input('tickdir'):
+            self.constructor_props['tickdir'] = self.get_input('tickdir')
+        if self.has_input('pad'):
+            self.constructor_props['pad'] = self.get_input('pad')
+        if self.has_input('gridOn'):
+            self.constructor_props['gridOn'] = self.get_input('gridOn')
+        if self.has_input('zorder'):
+            self.constructor_props['zorder'] = self.get_input('zorder')
+        if self.has_input('tick2On'):
+            self.constructor_props['tick2On'] = self.get_input('tick2On')
+        if self.has_input('labelsize'):
+            self.constructor_props['labelsize'] = self.get_input('labelsize')
+        if self.has_input('width'):
+            self.constructor_props['width'] = self.get_input('width')
+        if self.has_input('tick1On'):
+            self.constructor_props['tick1On'] = self.get_input('tick1On')
+        if self.has_input('size'):
+            self.constructor_props['size'] = self.get_input('size')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplTickProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2876,49 +3408,61 @@ class MplYTickProperties(MplTickProperties):
         MplTickProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplTickProperties.compute(self)
-        if self.hasInputFromPort('label1On'):
-            self.constructor_props['label1On'] = self.getInputFromPort('label1On')
-        if self.hasInputFromPort('loc'):
-            self.constructor_props['loc'] = self.getInputFromPort('loc')
-        if self.hasInputFromPort('major'):
-            self.constructor_props['major'] = self.getInputFromPort('major')
-        if self.hasInputFromPort('label2On'):
-            self.constructor_props['label2On'] = self.getInputFromPort('label2On')
-        if self.hasInputFromPort('color'):
-            self.constructor_props['color'] = self.getInputFromPort('color')
-        if self.hasInputFromPort('axes'):
-            self.constructor_props['axes'] = self.getInputFromPort('axes')
-        if self.hasInputFromPort('label'):
-            self.constructor_props['label'] = self.getInputFromPort('label')
-        if self.hasInputFromPort('labelcolor'):
-            self.constructor_props['labelcolor'] = self.getInputFromPort('labelcolor')
-        if self.hasInputFromPort('tickdir'):
-            self.constructor_props['tickdir'] = self.getInputFromPort('tickdir')
-        if self.hasInputFromPort('pad'):
-            self.constructor_props['pad'] = self.getInputFromPort('pad')
-        if self.hasInputFromPort('gridOn'):
-            self.constructor_props['gridOn'] = self.getInputFromPort('gridOn')
-        if self.hasInputFromPort('zorder'):
-            self.constructor_props['zorder'] = self.getInputFromPort('zorder')
-        if self.hasInputFromPort('tick2On'):
-            self.constructor_props['tick2On'] = self.getInputFromPort('tick2On')
-        if self.hasInputFromPort('labelsize'):
-            self.constructor_props['labelsize'] = self.getInputFromPort('labelsize')
-        if self.hasInputFromPort('width'):
-            self.constructor_props['width'] = self.getInputFromPort('width')
-        if self.hasInputFromPort('tick1On'):
-            self.constructor_props['tick1On'] = self.getInputFromPort('tick1On')
-        if self.hasInputFromPort('size'):
-            self.constructor_props['size'] = self.getInputFromPort('size')
+        if self.has_input('label1On'):
+            self.constructor_props['label1On'] = self.get_input('label1On')
+        if self.has_input('loc'):
+            self.constructor_props['loc'] = self.get_input('loc')
+        if self.has_input('major'):
+            self.constructor_props['major'] = self.get_input('major')
+        if self.has_input('label2On'):
+            self.constructor_props['label2On'] = self.get_input('label2On')
+        if self.has_input('color'):
+            self.constructor_props['color'] = self.get_input('color')
+        if self.has_input('axes'):
+            self.constructor_props['axes'] = self.get_input('axes')
+        if self.has_input('label'):
+            self.constructor_props['label'] = self.get_input('label')
+        if self.has_input('labelcolor'):
+            self.constructor_props['labelcolor'] = self.get_input('labelcolor')
+        if self.has_input('tickdir'):
+            self.constructor_props['tickdir'] = self.get_input('tickdir')
+        if self.has_input('pad'):
+            self.constructor_props['pad'] = self.get_input('pad')
+        if self.has_input('gridOn'):
+            self.constructor_props['gridOn'] = self.get_input('gridOn')
+        if self.has_input('zorder'):
+            self.constructor_props['zorder'] = self.get_input('zorder')
+        if self.has_input('tick2On'):
+            self.constructor_props['tick2On'] = self.get_input('tick2On')
+        if self.has_input('labelsize'):
+            self.constructor_props['labelsize'] = self.get_input('labelsize')
+        if self.has_input('width'):
+            self.constructor_props['width'] = self.get_input('width')
+        if self.has_input('tick1On'):
+            self.constructor_props['tick1On'] = self.get_input('tick1On')
+        if self.has_input('size'):
+            self.constructor_props['size'] = self.get_input('size')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplTickProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2973,6 +3517,10 @@ class MplAxisProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'set the units for axis'}),
               ("tick_params", "basic:String",
                 {'optional': True, 'docstring': 'Set appearance parameters for ticks and ticklabels.\n\nFor documentation of keyword arguments, see :meth:`matplotlib.axes.Axes.tick_params`.'}),
+              ("majorTickProperties", "MplTickProperties",
+                {}),
+              ("minorTickProperties", "MplTickProperties",
+                {}),
         ]
 
     # no output ports except self
@@ -2982,55 +3530,80 @@ class MplAxisProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('pickradius'):
-            self.props['pickradius'] = self.getInputFromPort('pickradius')
-        if self.hasInputFromPort('minor_formatter'):
-            self.props['minor_formatter'] = self.getInputFromPort('minor_formatter')
-        if self.hasInputFromPort('smart_bounds'):
-            self.props['smart_bounds'] = self.getInputFromPort('smart_bounds')
-        if self.hasInputFromPort('ticksSequence'):
-            self.props['ticks'] = self.getInputFromPort('ticksSequence')
-        elif self.hasInputFromPort('ticksScalar'):
-            self.props['ticks'] = self.getInputFromPort('ticksScalar')
-        if self.hasInputFromPort('axes'):
-            self.constructor_props['axes'] = self.getInputFromPort('axes')
-        if self.hasInputFromPort('view_interval'):
-            self.props['view_interval'] = self.getInputFromPort('view_interval')
-        if self.hasInputFromPort('major_locator'):
-            self.props['major_locator'] = self.getInputFromPort('major_locator')
-        if self.hasInputFromPort('major_formatter'):
-            self.props['major_formatter'] = self.getInputFromPort('major_formatter')
-        if self.hasInputFromPort('ticklabelsSequence'):
-            self.props['ticklabels'] = self.getInputFromPort('ticklabelsSequence')
-        elif self.hasInputFromPort('ticklabelsScalar'):
-            self.props['ticklabels'] = self.getInputFromPort('ticklabelsScalar')
-        if self.hasInputFromPort('clip_path'):
-            self.props['clip_path'] = self.getInputFromPort('clip_path')
-        if self.hasInputFromPort('minor_locator'):
-            self.props['minor_locator'] = self.getInputFromPort('minor_locator')
-        if self.hasInputFromPort('default_intervals'):
-            self.props['default_intervals'] = self.getInputFromPort('default_intervals')
-        if self.hasInputFromPort('scale'):
-            self.props['scale'] = self.getInputFromPort('scale')
-        if self.hasInputFromPort('data_interval'):
-            self.props['data_interval'] = self.getInputFromPort('data_interval')
-        if self.hasInputFromPort('label_text'):
-            self.props['label_text'] = self.getInputFromPort('label_text')
-        if self.hasInputFromPort('label_coords'):
-            self.props['label_coords'] = self.getInputFromPort('label_coords')
-        if self.hasInputFromPort('units'):
-            self.props['units'] = self.getInputFromPort('units')
-        if self.hasInputFromPort('tick_params'):
-            self.props['tick_params'] = self.getInputFromPort('tick_params')
+        if self.has_input('pickradius'):
+            self.props['pickradius'] = self.get_input('pickradius')
+        if self.has_input('minor_formatter'):
+            self.props['minor_formatter'] = self.get_input('minor_formatter')
+        if self.has_input('smart_bounds'):
+            self.props['smart_bounds'] = self.get_input('smart_bounds')
+        if self.has_input('ticksSequence'):
+            self.props['ticks'] = self.get_input('ticksSequence')
+        elif self.has_input('ticksScalar'):
+            self.props['ticks'] = self.get_input('ticksScalar')
+        if self.has_input('axes'):
+            self.constructor_props['axes'] = self.get_input('axes')
+        if self.has_input('view_interval'):
+            self.props['view_interval'] = self.get_input('view_interval')
+        if self.has_input('major_locator'):
+            self.props['major_locator'] = self.get_input('major_locator')
+        if self.has_input('major_formatter'):
+            self.props['major_formatter'] = self.get_input('major_formatter')
+        if self.has_input('ticklabelsSequence'):
+            self.props['ticklabels'] = self.get_input('ticklabelsSequence')
+        elif self.has_input('ticklabelsScalar'):
+            self.props['ticklabels'] = self.get_input('ticklabelsScalar')
+        if self.has_input('clip_path'):
+            self.props['clip_path'] = self.get_input('clip_path')
+        if self.has_input('minor_locator'):
+            self.props['minor_locator'] = self.get_input('minor_locator')
+        if self.has_input('default_intervals'):
+            self.props['default_intervals'] = self.get_input('default_intervals')
+        if self.has_input('scale'):
+            self.props['scale'] = self.get_input('scale')
+        if self.has_input('data_interval'):
+            self.props['data_interval'] = self.get_input('data_interval')
+        if self.has_input('label_text'):
+            self.props['label_text'] = self.get_input('label_text')
+        if self.has_input('label_coords'):
+            self.props['label_coords'] = self.get_input('label_coords')
+        if self.has_input('units'):
+            self.props['units'] = self.get_input('units')
+        if self.has_input('tick_params'):
+            self.props['tick_params'] = self.get_input('tick_params')
+        if self.has_input('majorTickProperties'):
+            self.sub_props['major_ticks'] = self.get_input('majorTickProperties')
+        if self.has_input('minorTickProperties'):
+            self.sub_props['minor_ticks'] = self.get_input('minorTickProperties')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            if 'major_ticks' in self.sub_props:
+                self.sub_props['major_ticks'].update_props(obj.get_major_ticks())
+            if 'minor_ticks' in self.sub_props:
+                self.sub_props['minor_ticks'].update_props(obj.get_minor_ticks())
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3062,29 +3635,41 @@ class MplXAxisProperties(MplAxisProperties):
         MplAxisProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplAxisProperties.compute(self)
-        if self.hasInputFromPort('view_interval'):
-            self.props['view_interval'] = self.getInputFromPort('view_interval')
-        if self.hasInputFromPort('ticks_position'):
-            self.props['ticks_position'] = self.getInputFromPort('ticks_position')
-        if self.hasInputFromPort('axes'):
-            self.constructor_props['axes'] = self.getInputFromPort('axes')
-        if self.hasInputFromPort('label_position'):
-            self.props['label_position'] = self.getInputFromPort('label_position')
-        if self.hasInputFromPort('default_intervals'):
-            self.props['default_intervals'] = self.getInputFromPort('default_intervals')
-        if self.hasInputFromPort('data_interval'):
-            self.props['data_interval'] = self.getInputFromPort('data_interval')
-        if self.hasInputFromPort('pickradius'):
-            self.constructor_props['pickradius'] = self.getInputFromPort('pickradius')
+        if self.has_input('view_interval'):
+            self.props['view_interval'] = self.get_input('view_interval')
+        if self.has_input('ticks_position'):
+            self.props['ticks_position'] = self.get_input('ticks_position')
+        if self.has_input('axes'):
+            self.constructor_props['axes'] = self.get_input('axes')
+        if self.has_input('label_position'):
+            self.props['label_position'] = self.get_input('label_position')
+        if self.has_input('default_intervals'):
+            self.props['default_intervals'] = self.get_input('default_intervals')
+        if self.has_input('data_interval'):
+            self.props['data_interval'] = self.get_input('data_interval')
+        if self.has_input('pickradius'):
+            self.constructor_props['pickradius'] = self.get_input('pickradius')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplAxisProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3118,31 +3703,43 @@ class MplYAxisProperties(MplAxisProperties):
         MplAxisProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplAxisProperties.compute(self)
-        if self.hasInputFromPort('offset_position'):
-            self.props['offset_position'] = self.getInputFromPort('offset_position')
-        if self.hasInputFromPort('view_interval'):
-            self.props['view_interval'] = self.getInputFromPort('view_interval')
-        if self.hasInputFromPort('ticks_position'):
-            self.props['ticks_position'] = self.getInputFromPort('ticks_position')
-        if self.hasInputFromPort('axes'):
-            self.constructor_props['axes'] = self.getInputFromPort('axes')
-        if self.hasInputFromPort('label_position'):
-            self.props['label_position'] = self.getInputFromPort('label_position')
-        if self.hasInputFromPort('default_intervals'):
-            self.props['default_intervals'] = self.getInputFromPort('default_intervals')
-        if self.hasInputFromPort('data_interval'):
-            self.props['data_interval'] = self.getInputFromPort('data_interval')
-        if self.hasInputFromPort('pickradius'):
-            self.constructor_props['pickradius'] = self.getInputFromPort('pickradius')
+        if self.has_input('offset_position'):
+            self.props['offset_position'] = self.get_input('offset_position')
+        if self.has_input('view_interval'):
+            self.props['view_interval'] = self.get_input('view_interval')
+        if self.has_input('ticks_position'):
+            self.props['ticks_position'] = self.get_input('ticks_position')
+        if self.has_input('axes'):
+            self.constructor_props['axes'] = self.get_input('axes')
+        if self.has_input('label_position'):
+            self.props['label_position'] = self.get_input('label_position')
+        if self.has_input('default_intervals'):
+            self.props['default_intervals'] = self.get_input('default_intervals')
+        if self.has_input('data_interval'):
+            self.props['data_interval'] = self.get_input('data_interval')
+        if self.has_input('pickradius'):
+            self.constructor_props['pickradius'] = self.get_input('pickradius')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplAxisProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3248,81 +3845,93 @@ class MplLegendProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('fancybox'):
-            self.constructor_props['fancybox'] = self.getInputFromPort('fancybox')
-        if self.hasInputFromPort('handlelength'):
-            self.constructor_props['handlelength'] = self.getInputFromPort('handlelength')
-        if self.hasInputFromPort('labels'):
-            self.constructor_props['labels'] = self.getInputFromPort('labels')
-        if self.hasInputFromPort('labelspacing'):
-            self.constructor_props['labelspacing'] = self.getInputFromPort('labelspacing')
-        if self.hasInputFromPort('columnspacing'):
-            self.constructor_props['columnspacing'] = self.getInputFromPort('columnspacing')
-        if self.hasInputFromPort('handletextpad'):
-            self.constructor_props['handletextpad'] = self.getInputFromPort('handletextpad')
-        if self.hasInputFromPort('ncol'):
-            self.constructor_props['ncol'] = self.getInputFromPort('ncol')
-        if self.hasInputFromPort('borderaxespad'):
-            self.constructor_props['borderaxespad'] = self.getInputFromPort('borderaxespad')
-        if self.hasInputFromPort('loc'):
-            self.constructor_props['loc'] = self.getInputFromPort('loc')
-        if self.hasInputFromPort('bbox_to_anchor'):
-            self.props['bbox_to_anchor'] = self.getInputFromPort('bbox_to_anchor')
-        if self.hasInputFromPort('title'):
-            self.props['title'] = self.getInputFromPort('title')
-        if self.hasInputFromPort('handletextsep'):
-            self.constructor_props['handletextsep'] = self.getInputFromPort('handletextsep')
-        if self.hasInputFromPort('numpoints'):
-            self.constructor_props['numpoints'] = self.getInputFromPort('numpoints')
-        if self.hasInputFromPort('prop'):
-            self.constructor_props['prop'] = self.getInputFromPort('prop')
-        if self.hasInputFromPort('handles'):
-            self.constructor_props['handles'] = self.getInputFromPort('handles')
-        if self.hasInputFromPort('pad'):
-            self.constructor_props['pad'] = self.getInputFromPort('pad')
-        if self.hasInputFromPort('borderpad'):
-            self.constructor_props['borderpad'] = self.getInputFromPort('borderpad')
-        if self.hasInputFromPort('parent'):
-            self.constructor_props['parent'] = self.getInputFromPort('parent')
-        if self.hasInputFromPort('axespad'):
-            self.constructor_props['axespad'] = self.getInputFromPort('axespad')
-        if self.hasInputFromPort('labelsep'):
-            self.constructor_props['labelsep'] = self.getInputFromPort('labelsep')
-        if self.hasInputFromPort('frame_on'):
-            self.props['frame_on'] = self.getInputFromPort('frame_on')
-        if self.hasInputFromPort('scatterpoints'):
-            self.constructor_props['scatterpoints'] = self.getInputFromPort('scatterpoints')
-        if self.hasInputFromPort('fontsize'):
-            self.constructor_props['fontsize'] = self.getInputFromPort('fontsize')
-        if self.hasInputFromPort('shadow'):
-            self.constructor_props['shadow'] = self.getInputFromPort('shadow')
-        if self.hasInputFromPort('handler_map'):
-            self.constructor_props['handler_map'] = self.getInputFromPort('handler_map')
-        if self.hasInputFromPort('handleheight'):
-            self.constructor_props['handleheight'] = self.getInputFromPort('handleheight')
-        if self.hasInputFromPort('scatteryoffsets'):
-            self.constructor_props['scatteryoffsets'] = self.getInputFromPort('scatteryoffsets')
-        if self.hasInputFromPort('markerscale'):
-            self.constructor_props['markerscale'] = self.getInputFromPort('markerscale')
-        if self.hasInputFromPort('frameon'):
-            self.constructor_props['frameon'] = self.getInputFromPort('frameon')
-        if self.hasInputFromPort('mode'):
-            self.constructor_props['mode'] = self.getInputFromPort('mode')
-        if self.hasInputFromPort('handlelen'):
-            self.constructor_props['handlelen'] = self.getInputFromPort('handlelen')
-        if self.hasInputFromPort('default_handler_map'):
-            self.props['default_handler_map'] = self.getInputFromPort('default_handler_map')
-        if self.hasInputFromPort('bbox_transform'):
-            self.constructor_props['bbox_transform'] = self.getInputFromPort('bbox_transform')
+        if self.has_input('fancybox'):
+            self.constructor_props['fancybox'] = self.get_input('fancybox')
+        if self.has_input('handlelength'):
+            self.constructor_props['handlelength'] = self.get_input('handlelength')
+        if self.has_input('labels'):
+            self.constructor_props['labels'] = self.get_input('labels')
+        if self.has_input('labelspacing'):
+            self.constructor_props['labelspacing'] = self.get_input('labelspacing')
+        if self.has_input('columnspacing'):
+            self.constructor_props['columnspacing'] = self.get_input('columnspacing')
+        if self.has_input('handletextpad'):
+            self.constructor_props['handletextpad'] = self.get_input('handletextpad')
+        if self.has_input('ncol'):
+            self.constructor_props['ncol'] = self.get_input('ncol')
+        if self.has_input('borderaxespad'):
+            self.constructor_props['borderaxespad'] = self.get_input('borderaxespad')
+        if self.has_input('loc'):
+            self.constructor_props['loc'] = self.get_input('loc')
+        if self.has_input('bbox_to_anchor'):
+            self.props['bbox_to_anchor'] = self.get_input('bbox_to_anchor')
+        if self.has_input('title'):
+            self.props['title'] = self.get_input('title')
+        if self.has_input('handletextsep'):
+            self.constructor_props['handletextsep'] = self.get_input('handletextsep')
+        if self.has_input('numpoints'):
+            self.constructor_props['numpoints'] = self.get_input('numpoints')
+        if self.has_input('prop'):
+            self.constructor_props['prop'] = self.get_input('prop')
+        if self.has_input('handles'):
+            self.constructor_props['handles'] = self.get_input('handles')
+        if self.has_input('pad'):
+            self.constructor_props['pad'] = self.get_input('pad')
+        if self.has_input('borderpad'):
+            self.constructor_props['borderpad'] = self.get_input('borderpad')
+        if self.has_input('parent'):
+            self.constructor_props['parent'] = self.get_input('parent')
+        if self.has_input('axespad'):
+            self.constructor_props['axespad'] = self.get_input('axespad')
+        if self.has_input('labelsep'):
+            self.constructor_props['labelsep'] = self.get_input('labelsep')
+        if self.has_input('frame_on'):
+            self.props['frame_on'] = self.get_input('frame_on')
+        if self.has_input('scatterpoints'):
+            self.constructor_props['scatterpoints'] = self.get_input('scatterpoints')
+        if self.has_input('fontsize'):
+            self.constructor_props['fontsize'] = self.get_input('fontsize')
+        if self.has_input('shadow'):
+            self.constructor_props['shadow'] = self.get_input('shadow')
+        if self.has_input('handler_map'):
+            self.constructor_props['handler_map'] = self.get_input('handler_map')
+        if self.has_input('handleheight'):
+            self.constructor_props['handleheight'] = self.get_input('handleheight')
+        if self.has_input('scatteryoffsets'):
+            self.constructor_props['scatteryoffsets'] = self.get_input('scatteryoffsets')
+        if self.has_input('markerscale'):
+            self.constructor_props['markerscale'] = self.get_input('markerscale')
+        if self.has_input('frameon'):
+            self.constructor_props['frameon'] = self.get_input('frameon')
+        if self.has_input('mode'):
+            self.constructor_props['mode'] = self.get_input('mode')
+        if self.has_input('handlelen'):
+            self.constructor_props['handlelen'] = self.get_input('handlelen')
+        if self.has_input('default_handler_map'):
+            self.props['default_handler_map'] = self.get_input('default_handler_map')
+        if self.has_input('bbox_transform'):
+            self.constructor_props['bbox_transform'] = self.get_input('bbox_transform')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3375,10 +3984,8 @@ class MplAxesProperties(MplArtistProperties):
                 {'optional': True}),
               ("label", "basic:String",
                 {'optional': True, 'defaults': "['']"}),
-              ("xticksSequence", "basic:List",
+              ("xticks", "basic:List",
                 {'optional': True, 'docstring': 'Set the x ticks with list of ticks'}),
-              ("xticksScalar", "basic:Float",
-               {'docstring': 'Set the x ticks with list of ticks', 'optional': True}),
               ("fig", "basic:String",
                 {'optional': True}),
               ("ylabel", "basic:String",
@@ -3423,10 +4030,8 @@ class MplAxesProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'Call signature:\n\nset_xlabel(xlabel, fontdict=None, labelpad=None, **kwargs)\n\nSet the label for the xaxis.\n\nlabelpad is the spacing in points between the label and the x-axis'}),
               ("xbound", "basic:String",
                 {'optional': True, 'docstring': 'Set the lower and upper numerical bounds of the x-axis. This method will honor axes inversion regardless of parameter order. It will not change the _autoscaleXon attribute.'}),
-              ("yticksSequence", "basic:List",
+              ("yticks", "basic:List",
                 {'optional': True, 'docstring': 'Set the y ticks with list of ticks Keyword arguments:'}),
-              ("yticksScalar", "basic:Float",
-               {'docstring': 'Set the y ticks with list of ticks Keyword arguments:', 'optional': True}),
               ("ymargin", "basic:Float",
                 {'optional': True, 'docstring': 'Set padding of Y data limits prior to autoscaling.\n\nm times the data interval will be added to each end of that interval before it is used in autoscaling.'}),
               ("position", "basic:String",
@@ -3439,6 +4044,10 @@ class MplAxesProperties(MplArtistProperties):
                {'docstring': "Call signature:\n\nset_xticklabels(labels, fontdict=None, minor=False, **kwargs)\n\nSet the xtick labels with list of strings labels. Return a list of axis text instances.\n\nkwargs set the :class:`~matplotlib.text.Text` properties. Valid properties are\n\nagg_filter: unknown alpha: float (0.0 transparent through 1.0 opaque) animated: [True | False] axes: an :class:`~matplotlib.axes.Axes` instance backgroundcolor: any matplotlib color bbox: rectangle prop dict clip_box: a :class:`matplotlib.transforms.Bbox` instance clip_on: [True | False] clip_path: [ (:class:`~matplotlib.path.Path`,         :class:`~matplotlib.transforms.Transform`) |         :class:`~matplotlib.patches.Patch` | None ] color: any matplotlib color contains: a callable function family or fontfamily or fontname or name: [ FONTNAME | 'serif' | 'sans-serif' | 'cursive' | 'fantasy' | 'monospace' ] figure: a :class:`matplotlib.figure.Figure` instance fontproperties or font_properties: a :class:`matplotlib.font_manager.FontProperties` instance gid: an id string horizontalalignment or ha: [ 'center' | 'right' | 'left' ] label: string or anything printable with '%s' conversion. linespacing: float (multiple of font size) lod: [True | False] multialignment: ['left' | 'right' | 'center' ] path_effects: unknown picker: [None|float|boolean|callable] position: (x,y) rasterized: [True | False | None] rotation: [ angle in degrees | 'vertical' | 'horizontal' ] rotation_mode: unknown size or fontsize: [ size in points | 'xx-small' | 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'xx-large' ] snap: unknown stretch or fontstretch: [ a numeric value in range 0-1000 | 'ultra-condensed' | 'extra-condensed' | 'condensed' | 'semi-condensed' | 'normal' | 'semi-expanded' | 'expanded' | 'extra-expanded' | 'ultra-expanded' ] style or fontstyle: [ 'normal' | 'italic' | 'oblique'] text: string or anything printable with '%s' conversion. transform: :class:`~matplotlib.transforms.Transform` instance url: a url string variant or fontvariant: [ 'normal' | 'small-caps' ] verticalalignment or va or ma: [ 'center' | 'top' | 'bottom' | 'baseline' ] visible: [True | False] weight or fontweight: [ a numeric value in range 0-1000 | 'ultralight' | 'light' | 'normal' | 'regular' | 'book' | 'medium' | 'roman' | 'semibold' | 'demibold' | 'demi' | 'bold' | 'heavy' | 'extra bold' | 'black' ] x: float y: float zorder: any number", 'optional': True}),
               ("titleProperties", "MplTextProperties",
                 {}),
+              ("xaxisProperties", "MplXAxisProperties",
+                {}),
+              ("yaxisProperties", "MplYAxisProperties",
+                {}),
         ]
 
     # no output ports except self
@@ -3448,121 +4057,137 @@ class MplAxesProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('adjustable'):
-            self.props['adjustable'] = self.getInputFromPort('adjustable')
-        if self.hasInputFromPort('cursor_props'):
-            self.props['cursor_props'] = self.getInputFromPort('cursor_props')
-        if self.hasInputFromPort('figure'):
-            self.props['figure'] = self.getInputFromPort('figure')
-        if self.hasInputFromPort('yscale'):
-            self.props['yscale'] = self.getInputFromPort('yscale')
-        if self.hasInputFromPort('navigate'):
-            self.props['navigate'] = self.getInputFromPort('navigate')
-        if self.hasInputFromPort('aspect'):
-            self.props['aspect'] = self.getInputFromPort('aspect')
-        if self.hasInputFromPort('axis_bgcolor'):
-            self.props['axis_bgcolor'] = self.getInputFromPort('axis_bgcolor')
+        if self.has_input('adjustable'):
+            self.props['adjustable'] = self.get_input('adjustable')
+        if self.has_input('cursor_props'):
+            self.props['cursor_props'] = self.get_input('cursor_props')
+        if self.has_input('figure'):
+            self.props['figure'] = self.get_input('figure')
+        if self.has_input('yscale'):
+            self.props['yscale'] = self.get_input('yscale')
+        if self.has_input('navigate'):
+            self.props['navigate'] = self.get_input('navigate')
+        if self.has_input('aspect'):
+            self.props['aspect'] = self.get_input('aspect')
+        if self.has_input('axis_bgcolor'):
+            self.props['axis_bgcolor'] = self.get_input('axis_bgcolor')
             self.props['axis_bgcolor'] = translate_color(self.props['axis_bgcolor'])
-        if self.hasInputFromPort('ylimSequence'):
-            self.props['ylim'] = self.getInputFromPort('ylimSequence')
-        elif self.hasInputFromPort('ylimScalar'):
-            self.props['ylim'] = self.getInputFromPort('ylimScalar')
-        if self.hasInputFromPort('sharey'):
-            self.constructor_props['sharey'] = self.getInputFromPort('sharey')
-        if self.hasInputFromPort('xlimSequence'):
-            self.props['xlim'] = self.getInputFromPort('xlimSequence')
-        elif self.hasInputFromPort('xlimScalar'):
-            self.props['xlim'] = self.getInputFromPort('xlimScalar')
-        if self.hasInputFromPort('axis_on'):
-            self.props['axis_on'] = self.getInputFromPort('axis_on')
-        if self.hasInputFromPort('title'):
-            self.props['title'] = self.getInputFromPort('title')
-        if self.hasInputFromPort('axisbg'):
-            self.constructor_props['axisbg'] = self.getInputFromPort('axisbg')
-        if self.hasInputFromPort('label'):
-            self.constructor_props['label'] = self.getInputFromPort('label')
-        if self.hasInputFromPort('xticksSequence'):
-            self.props['xticks'] = self.getInputFromPort('xticksSequence')
-        elif self.hasInputFromPort('xticksScalar'):
-            self.props['xticks'] = self.getInputFromPort('xticksScalar')
-        if self.hasInputFromPort('fig'):
-            self.constructor_props['fig'] = self.getInputFromPort('fig')
-        if self.hasInputFromPort('ylabel'):
-            self.props['ylabel'] = self.getInputFromPort('ylabel')
-        if self.hasInputFromPort('autoscalex_on'):
-            self.props['autoscalex_on'] = self.getInputFromPort('autoscalex_on')
-        if self.hasInputFromPort('rasterization_zorder'):
-            self.props['rasterization_zorder'] = self.getInputFromPort('rasterization_zorder')
-        if self.hasInputFromPort('axes_locator'):
-            self.props['axes_locator'] = self.getInputFromPort('axes_locator')
-        if self.hasInputFromPort('axisbelow'):
-            self.props['axisbelow'] = self.getInputFromPort('axisbelow')
-        if self.hasInputFromPort('frame_on'):
-            self.props['frame_on'] = self.getInputFromPort('frame_on')
-        if self.hasInputFromPort('navigate_mode'):
-            self.props['navigate_mode'] = self.getInputFromPort('navigate_mode')
-        if self.hasInputFromPort('xscale'):
-            self.props['xscale'] = self.getInputFromPort('xscale')
-        if self.hasInputFromPort('axis_off'):
-            self.props['axis_off'] = self.getInputFromPort('axis_off')
-        if self.hasInputFromPort('autoscale_on'):
-            self.props['autoscale_on'] = self.getInputFromPort('autoscale_on')
-        if self.hasInputFromPort('ybound'):
-            self.props['ybound'] = self.getInputFromPort('ybound')
-        if self.hasInputFromPort('rect'):
-            self.constructor_props['rect'] = self.getInputFromPort('rect')
-        if self.hasInputFromPort('sharex'):
-            self.constructor_props['sharex'] = self.getInputFromPort('sharex')
-        if self.hasInputFromPort('yticklabelsSequence'):
-            self.props['yticklabels'] = self.getInputFromPort('yticklabelsSequence')
-        elif self.hasInputFromPort('yticklabelsScalar'):
-            self.props['yticklabels'] = self.getInputFromPort('yticklabelsScalar')
-        if self.hasInputFromPort('autoscaley_on'):
-            self.props['autoscaley_on'] = self.getInputFromPort('autoscaley_on')
-        if self.hasInputFromPort('xmargin'):
-            self.props['xmargin'] = self.getInputFromPort('xmargin')
-        if self.hasInputFromPort('color_cycle'):
-            self.props['color_cycle'] = self.getInputFromPort('color_cycle')
+        if self.has_input('ylimSequence'):
+            self.props['ylim'] = self.get_input('ylimSequence')
+        elif self.has_input('ylimScalar'):
+            self.props['ylim'] = self.get_input('ylimScalar')
+        if self.has_input('sharey'):
+            self.constructor_props['sharey'] = self.get_input('sharey')
+        if self.has_input('xlimSequence'):
+            self.props['xlim'] = self.get_input('xlimSequence')
+        elif self.has_input('xlimScalar'):
+            self.props['xlim'] = self.get_input('xlimScalar')
+        if self.has_input('axis_on'):
+            self.props['axis_on'] = self.get_input('axis_on')
+        if self.has_input('title'):
+            self.props['title'] = self.get_input('title')
+        if self.has_input('axisbg'):
+            self.constructor_props['axisbg'] = self.get_input('axisbg')
+        if self.has_input('label'):
+            self.constructor_props['label'] = self.get_input('label')
+        if self.has_input('xticks'):
+            self.props['xticks'] = self.get_input('xticks')
+        if self.has_input('fig'):
+            self.constructor_props['fig'] = self.get_input('fig')
+        if self.has_input('ylabel'):
+            self.props['ylabel'] = self.get_input('ylabel')
+        if self.has_input('autoscalex_on'):
+            self.props['autoscalex_on'] = self.get_input('autoscalex_on')
+        if self.has_input('rasterization_zorder'):
+            self.props['rasterization_zorder'] = self.get_input('rasterization_zorder')
+        if self.has_input('axes_locator'):
+            self.props['axes_locator'] = self.get_input('axes_locator')
+        if self.has_input('axisbelow'):
+            self.props['axisbelow'] = self.get_input('axisbelow')
+        if self.has_input('frame_on'):
+            self.props['frame_on'] = self.get_input('frame_on')
+        if self.has_input('navigate_mode'):
+            self.props['navigate_mode'] = self.get_input('navigate_mode')
+        if self.has_input('xscale'):
+            self.props['xscale'] = self.get_input('xscale')
+        if self.has_input('axis_off'):
+            self.props['axis_off'] = self.get_input('axis_off')
+        if self.has_input('autoscale_on'):
+            self.props['autoscale_on'] = self.get_input('autoscale_on')
+        if self.has_input('ybound'):
+            self.props['ybound'] = self.get_input('ybound')
+        if self.has_input('rect'):
+            self.constructor_props['rect'] = self.get_input('rect')
+        if self.has_input('sharex'):
+            self.constructor_props['sharex'] = self.get_input('sharex')
+        if self.has_input('yticklabelsSequence'):
+            self.props['yticklabels'] = self.get_input('yticklabelsSequence')
+        elif self.has_input('yticklabelsScalar'):
+            self.props['yticklabels'] = self.get_input('yticklabelsScalar')
+        if self.has_input('autoscaley_on'):
+            self.props['autoscaley_on'] = self.get_input('autoscaley_on')
+        if self.has_input('xmargin'):
+            self.props['xmargin'] = self.get_input('xmargin')
+        if self.has_input('color_cycle'):
+            self.props['color_cycle'] = self.get_input('color_cycle')
             self.props['color_cycle'] = translate_color(self.props['color_cycle'])
-        if self.hasInputFromPort('frameon'):
-            self.constructor_props['frameon'] = self.getInputFromPort('frameon')
-        if self.hasInputFromPort('xlabel'):
-            self.props['xlabel'] = self.getInputFromPort('xlabel')
-        if self.hasInputFromPort('xbound'):
-            self.props['xbound'] = self.getInputFromPort('xbound')
-        if self.hasInputFromPort('yticksSequence'):
-            self.props['yticks'] = self.getInputFromPort('yticksSequence')
-        elif self.hasInputFromPort('yticksScalar'):
-            self.props['yticks'] = self.getInputFromPort('yticksScalar')
-        if self.hasInputFromPort('ymargin'):
-            self.props['ymargin'] = self.getInputFromPort('ymargin')
-        if self.hasInputFromPort('position'):
-            self.props['position'] = self.getInputFromPort('position')
-        if self.hasInputFromPort('anchor'):
-            self.props['anchor'] = self.getInputFromPort('anchor')
+        if self.has_input('frameon'):
+            self.constructor_props['frameon'] = self.get_input('frameon')
+        if self.has_input('xlabel'):
+            self.props['xlabel'] = self.get_input('xlabel')
+        if self.has_input('xbound'):
+            self.props['xbound'] = self.get_input('xbound')
+        if self.has_input('yticks'):
+            self.props['yticks'] = self.get_input('yticks')
+        if self.has_input('ymargin'):
+            self.props['ymargin'] = self.get_input('ymargin')
+        if self.has_input('position'):
+            self.props['position'] = self.get_input('position')
+        if self.has_input('anchor'):
+            self.props['anchor'] = self.get_input('anchor')
             self.props['anchor'] = translate_MplAxesProperties_anchor(self.props['anchor'])
-        if self.hasInputFromPort('xticklabelsSequence'):
-            self.props['xticklabels'] = self.getInputFromPort('xticklabelsSequence')
-        elif self.hasInputFromPort('xticklabelsScalar'):
-            self.props['xticklabels'] = self.getInputFromPort('xticklabelsScalar')
-        if self.hasInputFromPort('titleProperties'):
-            self.sub_props['title'] = self.getInputFromPort('titleProperties')
+        if self.has_input('xticklabelsSequence'):
+            self.props['xticklabels'] = self.get_input('xticklabelsSequence')
+        elif self.has_input('xticklabelsScalar'):
+            self.props['xticklabels'] = self.get_input('xticklabelsScalar')
+        if self.has_input('titleProperties'):
+            self.sub_props['title'] = self.get_input('titleProperties')
+        if self.has_input('xaxisProperties'):
+            self.sub_props['xaxis'] = self.get_input('xaxisProperties')
+        if self.has_input('yaxisProperties'):
+            self.sub_props['yaxis'] = self.get_input('yaxisProperties')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
         if not matplotlib.cbook.iterable(objs):
-            objs = [objs]
+            objs_iter = [objs]
         else:
-            objs = matplotlib.cbook.flatten(objs)
-        for obj in objs:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
+
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
             if 'title' in self.sub_props:
                 self.sub_props['title'].update_props(obj.title)
-
+            if 'xaxis' in self.sub_props:
+                self.sub_props['xaxis'].update_props(obj.xaxis)
+            if 'yaxis' in self.sub_props:
+                self.sub_props['yaxis'].update_props(obj.yaxis)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3582,17 +4207,29 @@ class MplAxesSubplotProperties(MplAxesProperties):
         MplAxesProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplAxesProperties.compute(self)
-        if self.hasInputFromPort('fig'):
-            self.constructor_props['fig'] = self.getInputFromPort('fig')
+        if self.has_input('fig'):
+            self.constructor_props['fig'] = self.get_input('fig')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplAxesProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3650,41 +4287,53 @@ class MplFigureProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
-        if self.hasInputFromPort('edgecolor'):
-            self.props['edgecolor'] = self.getInputFromPort('edgecolor')
+        if self.has_input('edgecolor'):
+            self.props['edgecolor'] = self.get_input('edgecolor')
             self.props['edgecolor'] = translate_color(self.props['edgecolor'])
-        if self.hasInputFromPort('canvas'):
-            self.props['canvas'] = self.getInputFromPort('canvas')
-        if self.hasInputFromPort('facecolor'):
-            self.props['facecolor'] = self.getInputFromPort('facecolor')
+        if self.has_input('canvas'):
+            self.props['canvas'] = self.get_input('canvas')
+        if self.has_input('facecolor'):
+            self.props['facecolor'] = self.get_input('facecolor')
             self.props['facecolor'] = translate_color(self.props['facecolor'])
-        if self.hasInputFromPort('size_inches'):
-            self.props['size_inches'] = self.getInputFromPort('size_inches')
-        if self.hasInputFromPort('figwidth'):
-            self.props['figwidth'] = self.getInputFromPort('figwidth')
-        if self.hasInputFromPort('frameon'):
-            self.props['frameon'] = self.getInputFromPort('frameon')
-        if self.hasInputFromPort('subplotpars'):
-            self.constructor_props['subplotpars'] = self.getInputFromPort('subplotpars')
-        if self.hasInputFromPort('figheight'):
-            self.props['figheight'] = self.getInputFromPort('figheight')
-        if self.hasInputFromPort('figsize'):
-            self.constructor_props['figsize'] = self.getInputFromPort('figsize')
-        if self.hasInputFromPort('linewidth'):
-            self.constructor_props['linewidth'] = self.getInputFromPort('linewidth')
-        if self.hasInputFromPort('tight_layout'):
-            self.props['tight_layout'] = self.getInputFromPort('tight_layout')
-        if self.hasInputFromPort('dpi'):
-            self.props['dpi'] = self.getInputFromPort('dpi')
+        if self.has_input('size_inches'):
+            self.props['size_inches'] = self.get_input('size_inches')
+        if self.has_input('figwidth'):
+            self.props['figwidth'] = self.get_input('figwidth')
+        if self.has_input('frameon'):
+            self.props['frameon'] = self.get_input('frameon')
+        if self.has_input('subplotpars'):
+            self.constructor_props['subplotpars'] = self.get_input('subplotpars')
+        if self.has_input('figheight'):
+            self.props['figheight'] = self.get_input('figheight')
+        if self.has_input('figsize'):
+            self.constructor_props['figsize'] = self.get_input('figsize')
+        if self.has_input('linewidth'):
+            self.constructor_props['linewidth'] = self.get_input('linewidth')
+        if self.has_input('tight_layout'):
+            self.props['tight_layout'] = self.get_input('tight_layout')
+        if self.has_input('dpi'):
+            self.props['dpi'] = self.get_input('dpi')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3723,31 +4372,43 @@ class MplAnnotationProperties(MplTextProperties):
         MplTextProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplTextProperties.compute(self)
-        if self.hasInputFromPort('xycoords'):
-            self.constructor_props['xycoords'] = self.getInputFromPort('xycoords')
-        if self.hasInputFromPort('figure'):
-            self.props['figure'] = self.getInputFromPort('figure')
-        if self.hasInputFromPort('annotation_clip'):
-            self.constructor_props['annotation_clip'] = self.getInputFromPort('annotation_clip')
-        if self.hasInputFromPort('xytext'):
-            self.constructor_props['xytext'] = self.getInputFromPort('xytext')
-        if self.hasInputFromPort('s'):
-            self.constructor_props['s'] = self.getInputFromPort('s')
-        if self.hasInputFromPort('xy'):
-            self.constructor_props['xy'] = self.getInputFromPort('xy')
-        if self.hasInputFromPort('textcoords'):
-            self.constructor_props['textcoords'] = self.getInputFromPort('textcoords')
-        if self.hasInputFromPort('arrowprops'):
-            self.constructor_props['arrowprops'] = self.getInputFromPort('arrowprops')
+        if self.has_input('xycoords'):
+            self.constructor_props['xycoords'] = self.get_input('xycoords')
+        if self.has_input('figure'):
+            self.props['figure'] = self.get_input('figure')
+        if self.has_input('annotation_clip'):
+            self.constructor_props['annotation_clip'] = self.get_input('annotation_clip')
+        if self.has_input('xytext'):
+            self.constructor_props['xytext'] = self.get_input('xytext')
+        if self.has_input('s'):
+            self.constructor_props['s'] = self.get_input('s')
+        if self.has_input('xy'):
+            self.constructor_props['xy'] = self.get_input('xy')
+        if self.has_input('textcoords'):
+            self.constructor_props['textcoords'] = self.get_input('textcoords')
+        if self.has_input('arrowprops'):
+            self.constructor_props['arrowprops'] = self.get_input('arrowprops')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplTextProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)

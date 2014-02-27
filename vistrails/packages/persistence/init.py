@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -202,15 +202,15 @@ class PersistentPath(Module):
     def set_result(self, path):
         persistent_path = Path()
         persistent_path.name = path
-        persistent_path.setResult('value', self)
+        persistent_path.set_output('value', self)
         persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        self.set_output("value", persistent_path)
 
-    def updateUpstream(self, is_input=None, path_type=None):
+    def update_upstream(self, is_input=None, path_type=None):
         global db_access
 
         if is_input is None:
-            if not self.hasInputFromPort('value'):
+            if not self.has_input('value'):
                 is_input = True
             else:
                 # FIXME: check if the signature is the signature of
@@ -220,28 +220,28 @@ class PersistentPath(Module):
         self.persistent_ref = None
         self.persistent_path = None
         if is_input:
-            return super(PersistentPath, self).updateUpstream()
+            return super(PersistentPath, self).update_upstream()
 
-        # can check updateUpstream
+        # can check update_upstream
         if not hasattr(self, 'signature'):
             raise ModuleError(self, 'Module has no signature')
-        if not self.hasInputFromPort('ref'):
+        if not self.has_input('ref'):
             self.got_ref()
         else:
             # update single port
-            super(PersistentPath, self).updateUpstream(
+            super(PersistentPath, self).update_upstream(
                     self.got_ref,
                     ['ref'],
                     self.COMPUTE_BACKGROUND_PRIORITY)
 
     def got_ref(self, _unused_connectors=None):
         ref_exists = False
-        if not self.hasInputFromPort('ref'):
+        if not self.has_input('ref'):
             # create new reference with no name or tags
             ref = PersistentRef()
             ref.signature = self.signature
         else:
-            ref = self.getInputFromPort('ref')
+            ref = self.get_input('ref')
             if db_access.ref_exists(ref.id, ref.version):
                 ref_exists = True
                 if ref.version is None:
@@ -283,22 +283,22 @@ class PersistentPath(Module):
 
         if self.persistent_ref is None or self.persistent_path is None:
             debug_print("NOT FOUND persistent path")
-            super(PersistentPath, self).updateUpstream()
+            super(PersistentPath, self).update_upstream()
         else:
-            super(PersistentPath, self).updateUpstream(targets=[])
+            super(PersistentPath, self).update_upstream(targets=[])
 
     def compute(self, is_input=None, path_type=None):
         global db_access
-        if not self.hasInputFromPort('value') and \
-                not self.hasInputFromPort('ref'):
+        if not self.has_input('value') and \
+                not self.has_input('ref'):
             raise ModuleError(self, "Need to specify path or reference")
 
         if self.persistent_path is not None:
             debug_print('using persistent path')
             ref = self.persistent_ref
             path = self.persistent_path
-        elif self.hasInputFromPort('ref'):
-            ref = self.getInputFromPort('ref')
+        elif self.has_input('ref'):
+            ref = self.get_input('ref')
             if ref.id is None:
                 ref.id = str(uuid.uuid1())
         else:
@@ -306,16 +306,16 @@ class PersistentPath(Module):
             ref = PersistentRef()
             ref.id = str(uuid.uuid1())
 
-        if self.hasInputFromPort('localPath'):
-            ref.local_path = self.getInputFromPort('localPath').name
-            if self.hasInputFromPort('readLocal'):
-                ref.local_read = self.getInputFromPort('readLocal')
-            if self.hasInputFromPort('writeLocal'):
-                ref.local_writeback = self.getInputFromPort('writeLocal')
+        if self.has_input('localPath'):
+            ref.local_path = self.get_input('localPath').name
+            if self.has_input('readLocal'):
+                ref.local_read = self.get_input('readLocal')
+            if self.has_input('writeLocal'):
+                ref.local_writeback = self.get_input('writeLocal')
 
         if is_input is None:
             is_input = False
-            if not self.hasInputFromPort('value'):
+            if not self.has_input('value'):
                 is_input = True
             else:
                 if ref.local_path and ref.local_read:
@@ -326,7 +326,7 @@ class PersistentPath(Module):
 
         # if just reference, pull path from repository (get latest
         # version unless specified as specific version)
-        if self.persistent_path is None and not self.hasInputFromPort('value') \
+        if self.persistent_path is None and not self.has_input('value') \
                 and is_input and not (ref.local_path and ref.local_read):
             _, suffix = os.path.splitext(ref.name)
             if not db_access.ref_exists(ref.id, ref.version):
@@ -345,7 +345,7 @@ class PersistentPath(Module):
                 debug_print('using local_path')
                 path = ref.local_path
             else:
-                path = self.getInputFromPort('value').name
+                path = self.get_input('value').name
             # this is a static method so we need to add module ourselves
             try:
                 new_hash = repo.get_current_repo().compute_hash(path)
@@ -438,8 +438,8 @@ class PersistentFile(PersistentPath):
                     ('localPath', '(basic:File)')]
     _output_ports = [('value', '(basic:File)')]
 
-    def updateUpstream(self, is_input=None):
-        PersistentPath.updateUpstream(self, is_input, 'blob')
+    def update_upstream(self, is_input=None):
+        PersistentPath.update_upstream(self, is_input, 'blob')
 
     def compute(self, is_input=None):
         PersistentPath.compute(self, is_input, 'blob')
@@ -447,17 +447,17 @@ class PersistentFile(PersistentPath):
     def set_result(self, path):
         persistent_path = File()
         persistent_path.name = path
-        persistent_path.setResult('value', self)
+        persistent_path.set_output('value', self)
         persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        self.set_output("value", persistent_path)
 
 class PersistentDir(PersistentPath):
     _input_ports = [('value', '(basic:Directory)'),
                     ('localPath', '(basic:Directory)')]
     _output_ports = [('value', '(basic:Directory)')]
 
-    def updateUpstream(self, is_input=None):
-        PersistentPath.updateUpstream(self, is_input, 'tree')
+    def update_upstream(self, is_input=None):
+        PersistentPath.update_upstream(self, is_input, 'tree')
 
     def compute(self, is_input=None):
         PersistentPath.compute(self, is_input, 'tree')
@@ -465,22 +465,22 @@ class PersistentDir(PersistentPath):
     def set_result(self, path):
         persistent_path = Directory()
         persistent_path.name = path
-        persistent_path.setResult('value', self)
+        persistent_path.set_output('value', self)
         persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        self.set_output("value", persistent_path)
 
 class PersistentInputDir(PersistentDir):
     _input_ports = [('value', '(basic:Directory)', True)]
 
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, True)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, True)
 
     def compute(self):
         PersistentDir.compute(self, True)
         
 class PersistentIntermediateDir(PersistentDir):
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, False)
 
     def compute(self):
         PersistentDir.compute(self, False)
@@ -488,8 +488,8 @@ class PersistentIntermediateDir(PersistentDir):
 class PersistentOutputDir(PersistentDir):
     _output_ports = [('value', '(basic:Directory)', True)]
 
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, False)
 
     def compute(self):
         PersistentDir.compute(self, False)
@@ -497,15 +497,15 @@ class PersistentOutputDir(PersistentDir):
 class PersistentInputFile(PersistentFile):
     _input_ports = [('value', '(basic:File)', True)]
 
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, True)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, True)
 
     def compute(self):
         PersistentFile.compute(self, True)
     
 class PersistentIntermediateFile(PersistentFile):
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, False)
 
     def compute(self):
         PersistentFile.compute(self, False)
@@ -513,8 +513,8 @@ class PersistentIntermediateFile(PersistentFile):
 class PersistentOutputFile(PersistentFile):
     _output_ports = [('value', '(basic:File)', True)]
 
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, False)
 
     def compute(self):
         PersistentFile.compute(self, False)

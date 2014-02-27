@@ -34,6 +34,7 @@ Learning VisTrails By Example
    merging
    querying
    spreadsheet
+   tabledata
    analogies
    parameter_exploration
    provenance

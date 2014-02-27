@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -47,20 +47,20 @@ class If(Module):
 
     def update(self):
         self.logging.begin_update(self)
-        self.updateUpstream(
+        self.update_upstream(
                 self.condition_ready,
-                [self.getInputConnector('Condition')])
+                [self.get_input_connector('Condition')])
 
     def condition_ready(self, connectors):
-        if self.getInputFromPort('Condition'):
+        if self.get_input('Condition'):
             mod_port_name = 'TruePort'
             self.__ports_port_name = 'TrueOutputPorts'
         else:
             mod_port_name = 'FalsePort'
             self.__ports_port_name = 'FalseOutputPorts'
-        self.updateUpstream(
+        self.update_upstream(
                 self.input_ready,
-                [self.getInputConnector(mod_port_name)],
+                [self.get_input_connector(mod_port_name)],
                 priority=50)
         # This module does nothing, it just forwards the value we get from
         # upstream, so we might as well give it a higher priority
@@ -70,15 +70,15 @@ class If(Module):
         self.logging.begin_compute(self)
         module, = connectors
         module = module.obj
-        if self.hasInputFromPort(self.__ports_port_name):
-            output_ports = self.getInputFromPort(self.__ports_port_name)
+        if self.has_input(self.__ports_port_name):
+            output_ports = self.get_input(self.__ports_port_name)
             result = []
             for output_port in output_ports:
                 result.append(module.get_output(output_port))
             if len(output_ports) == 1:
-                self.setResult('Result', result[0])
+                self.set_output('Result', result[0])
             else:
-                self.setResult('Result', result)
+                self.set_output('Result', result)
         self.upToDate = True
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
@@ -99,27 +99,27 @@ class Default(Module):
     Default port won't be executed (short-circuit).
     """
 
-    def updateUpstream(self, targets=None):
-        super(Default, self).updateUpstream(
+    def update_upstream(self, targets=None):
+        super(Default, self).update_upstream(
                 None,
                 ['Input'],
                 priority=self.UPDATE_UPSTREAM_PRIORITY)
 
     def on_upstream_ready(self, connectors):
-        if self.hasInputFromPort('Input'):
+        if self.has_input('Input'):
             # Normally we should change priority to COMPUTE_PRIORITY but there
             # is no need here since we don't actually perform computations
             super(Default, self).on_upstream_ready(connectors)
         else:
-            super(Default, self).updateUpstream(
+            super(Default, self).update_upstream(
                     targets=['Default'],
                     callback=super(Default, self).on_upstream_ready)
 
     def compute(self):
-        if self.hasInputFromPort('Input'):
-            self.setResult('Result', self.getInputFromPort('Input'))
+        if self.has_input('Input'):
+            self.set_output('Result', self.get_input('Input'))
         else:
-            self.setResult('Result', self.getInputFromPort('Default'))
+            self.set_output('Result', self.get_input('Default'))
 
 
 ###############################################################################

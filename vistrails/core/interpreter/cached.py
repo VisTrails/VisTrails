@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,10 +41,11 @@ import cPickle as pickle
 
 from vistrails.core.common import InstanceObject, VistrailsInternalError
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
+from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.log.controller import DummyLogController
-from vistrails.core import modules
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
@@ -101,7 +102,7 @@ class ViewUpdatingLogController(object):
         i = self.remap_id(obj.id)
         self.view.set_module_computing(i)
 
-        reg = modules.module_registry.get_module_registry()
+        reg = get_module_registry()
         module_name = reg.get_descriptor(obj.__class__).name
 
         self.log.start_execution(obj, i, module_name)
@@ -115,6 +116,26 @@ class ViewUpdatingLogController(object):
                 self.log.start_loop_execution(obj, total_iterations),
                 self.view)
 
+    def _handle_suspended(self, obj, error):
+        """ _handle_suspended(obj: VistrailsModule, error: ModuleSuspended
+            ) -> None
+            Report module as suspended
+        """
+        # update job monitor because this may be an oldStyle job
+        jm = JobMonitor.getInstance()
+        reg = get_module_registry()
+        name = reg.get_descriptor(obj.__class__).name
+        i = "%s" % self.remap_id(obj.id)
+        if error.loop_iteration is not None:
+            name = name + '/' + str(error.loop_iteration)
+            i = i + '/' + str(error.loop_iteration)
+        # add to parent list for computing the module tree later
+        error.name = name
+        # if signature is not set we use the module identifier
+        if not error.signature:
+            error.signature = i
+        jm.addParent(error)
+
     def end_update(self, obj, error=None, errorTrace=None,
             was_suspended=False):
         try:
@@ -126,6 +147,7 @@ class ViewUpdatingLogController(object):
             # execute_pipeline() call
             return
         if was_suspended:
+            self._handle_suspended(obj, error)
             self.suspended[obj.id] = error
             self.view.set_module_suspended(i, error)
             if error.children:
@@ -149,7 +171,7 @@ class ViewUpdatingLogController(object):
         self.cached[obj.id] = True
         i = self.remap_id(obj.id)
 
-        reg = modules.module_registry.get_module_registry()
+        reg = get_module_registry()
         module_name = reg.get_descriptor(obj.__class__).name
 
         self.log.start_execution(obj, i, module_name,
@@ -266,7 +288,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
 
-        reg = modules.module_registry.get_module_registry()
+        reg = get_module_registry()
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -343,14 +365,13 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                     try:
                         constant = create_constant(p, module)
                         connector = ModuleConnector(constant, 'value')
-                    except ValueError, e:
-                        err = ModuleError(self, 'Cannot convert parameter '
-                                          'value "%s"\n' % p.strValue + str(e))
-                        errors[i] = err
-                        to_delete.append(obj.id)
                     except Exception, e:
-                        err = ModuleError(self, 'Uncaught exception: "%s"' % \
-                                              p.strValue + str(e))
+                        err = ModuleError(
+                                self,
+                                "Uncaught exception creating Constant from "
+                                "%r: %s" % (
+                                p.strValue,
+                                debug.format_exception(e)))
                         errors[i] = err
                         to_delete.append(obj.id)
                 else:
@@ -361,15 +382,13 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                             constant = create_constant(p, module)
                             connector = ModuleConnector(constant, 'value')
                             tupleModule.set_input_port(j, connector)
-                        except ValueError, e:
-                            err = ModuleError(self, "Cannot convert parameter "
-                                              "value '%s'\n" % p.strValue + \
-                                                  str(e))
-                            errors[i] = err
-                            to_delete.append(obj.id)
                         except Exception, e:
-                            err = ModuleError(self, 'Uncaught exception: '
-                                              '"%s"' % p.strValue + str(e))
+                            err = ModuleError(
+                                    self,
+                                    "Uncaught exception creating Constant "
+                                    "from %r: %s" % (
+                                    p.strValue,
+                                    debug.format_exception(e)))
                             errors[i] = err
                             to_delete.append(obj.id)
                     connector = ModuleConnector(tupleModule, 'value')

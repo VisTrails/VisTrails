@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -70,19 +70,23 @@ class ModuleBreakpoint(Exception):
         in_ports = self.module.__dict__["inputPorts"]
         inputs = {}
         for p in in_ports:
-            inputs[p] = self.module.getInputListFromPort(p)
+            inputs[p] = self.module.get_input_list(p)
 
         return inputs
 
 class ModuleError(Exception):
 
     """Exception representing a VisTrails module runtime error. This
-exception is recognized by the interpreter and allows meaningful error
-reporting to the user and to the logging mechanism."""
+    exception is recognized by the interpreter and allows meaningful error
+    reporting to the user and to the logging mechanism.
+
+    """
 
     def __init__(self, module, errormsg, abort=False):
         """ModuleError should be passed the module instance that signaled the
-error and the error message as a string."""
+        error and the error message as a string.
+
+        """
         Exception.__init__(self, errormsg)
         self.abort = abort # force abort even if stopOnError is False
         self.module = module
@@ -106,15 +110,20 @@ class ModuleSuspended(ModuleError):
 
     """
 
-    def __init__(self, module, errormsg, queue=None, children=None):
+    def __init__(self, module, errormsg, queue=None, children=None, job_id=None):
         self.queue = queue
         self.children = children
+        self.signature = job_id
+        self.name = None
+        self.loop_iteration = None
         ModuleError.__init__(self, module, errormsg)
 
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.
     This exception is recognized by the interpreter and allows meaningful
-    error reporting to the user and to the logging mechanism."""
+    error reporting to the user and to the logging mechanism.
+
+    """
     def __init__(self, module_errors):
         """ModuleErrors should be passed a list of ModuleError objects"""
         Exception.__init__(self, str(tuple(me.msg for me in module_errors)))

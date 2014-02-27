@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -53,6 +53,8 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
                      self.exploreChange)
 
     def set_controller(self, controller):
+        if self.controller == controller:
+            return
         self.controller = controller
         self.set_exploration()
         

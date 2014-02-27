@@ -6,15 +6,14 @@ wiki page
 """
 from datetime import date
 #Release version
-VT_VERSION = "2.1 beta2"
-VT_REVISION = "99faabb791a0"
+VT_VERSION = "2.1.1"
+VT_REVISION = "90975fc00211"
 
 #Sourceforge information
 SF_ROOT_URL = "http://downloads.sourceforge.net/project/vistrails/vistrails/"
-SF_FOLDER_NAME = "v2.1"
+SF_FOLDER_NAME = "v2.1.1"
 SF_DOWNLOAD_URL = "%s%s"%(SF_ROOT_URL,SF_FOLDER_NAME)
 #binaries names
-MAC_105_BIN = "vistrails-mac-10.5-intel-%s-%s.dmg"%(VT_VERSION, VT_REVISION)
 MAC_64_BIN = "vistrails-mac-10.6-intel-%s-%s.dmg"%(VT_VERSION, VT_REVISION)
 WIN_32_BIN = "vistrails-setup-%s-%s.zip"%(VT_VERSION, VT_REVISION)
 WIN_64_BIN = "vistrails-x64-setup-%s-%s.zip"%(VT_VERSION, VT_REVISION)
@@ -23,7 +22,6 @@ ALL_PLAT_SRC = "vistrails-src-%s-%s.tar.gz"%(VT_VERSION, VT_REVISION)
 USERSGUIDE = "VisTrails.pdf"
 
 #sizes
-MAC_105_SIZE = "198.8 MB"
 MAC_64_SIZE = "182.3 MB"
 WIN_32_SIZE = "125.3 MB"
 WIN_64_SIZE = "150 MB"
@@ -57,16 +55,6 @@ def create_text():
 |.zip (64-bit Windows)
 |-
 """%(SF_DOWNLOAD_URL, WIN_64_BIN, WIN_64_BIN, WIN_64_SIZE)
-
-    text += """|
-* {{dmg
-  |link=%s/%s
-  |text=%s}}
-|%s
-|Mac OS X 10.5+ x86
-|.dmg (Mac bundle)
-|-
-"""%(SF_DOWNLOAD_URL, MAC_105_BIN, MAC_105_BIN, MAC_105_SIZE)
 
     text += """|
 * {{dmg

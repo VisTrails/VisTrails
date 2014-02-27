@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -138,8 +138,9 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                         self.disconnect(self.mshpController.vtController,
                                         QtCore.SIGNAL('vistrailChanged()'),
                                         self.mshpControllerVistrailChanged)
-                except Exception, e:
-                    print str(e)
+                except Exception:
+                    import traceback
+                    traceback.print_exc()
             self.controller.flush_delayed_actions()
             self.vtversion = self.controller.current_version
             self.mshpController = self.manager.createMashupController(self.controller,
@@ -273,10 +274,11 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         (pid, pname) = self.mshpController.findFirstTaggedParent(self.mshpController.currentVersion)
         if pid >= 1:
             res = show_question("VisTrails::Mashups", 
-                """You've decided to keep a modified version of '%s'.
-Would you like to update it (this will move the tag to the current version)?
-Click on No to create a new tag.""" %pname,
-                [CANCEL_BUTTON, YES_BUTTON, NO_BUTTON], 0)
+                                "You've decided to keep a modified version "
+                                "of '%s'. Would you like to update it (this "
+                                "will move the tag to the current version)? "
+                                "Click on No to create a new tag." % pname,
+                                [CANCEL_BUTTON, YES_BUTTON, NO_BUTTON], 0)
             if res == YES_BUTTON:
                 #move tag
                 self.mshpController.moveTag(pid, 

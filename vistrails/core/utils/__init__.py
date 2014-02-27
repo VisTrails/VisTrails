@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -47,9 +47,11 @@ from vistrails.core.utils.color import ColorByName
 import copy
 from distutils.version import LooseVersion
 import errno
+import functools
 import itertools
 import os
 import sys
+import warnings
 import weakref
 
 
@@ -59,10 +61,13 @@ import tempfile
 ################################################################################
 
 def invert(d):
-    """invert(dict) -> dict. Returns an inverted dictionary by
-    switching key-value pairs. If you use this repeatedly,
-    consider switching the underlying data structure to a
-    core.data_structures.bijectivedict.Bidict instead."""
+    """invert(dict) -> dict. 
+
+    Returns an inverted dictionary by switching key-value pairs. If
+    you use this repeatedly, consider switching the underlying data
+    structure to a core.data_structures.bijectivedict.Bidict instead.
+
+    """
     return dict([[v,k] for k,v in d.items()])
 
 ################################################################################
@@ -81,38 +86,69 @@ class VistrailsWarning(Warning):
 class VistrailsDeprecation(VistrailsWarning):
     pass
 
+def deprecated(*args):
+    new_name = None
+    def _deprecated(func):
+        @functools.wraps(func)
+        def new_func(*args, **kwargs):
+            if new_name is not None:
+                warnings.warn("Call to deprecated function %s "
+                              "replaced by %s" % (
+                                  func.__name__, new_name),
+                              category=VistrailsDeprecation,
+                              stacklevel=2)
+            else:
+                warnings.warn("Call to deprecated function %s" % func.__name__,
+                              category=VistrailsDeprecation,
+                              stacklevel=2)
+            return func(*args, **kwargs)
+        return new_func
+    if len(args) == 1 and callable(args[0]):
+        return _deprecated(args[0])
+    else:
+        new_name = args[0]
+        return _deprecated
+
 ################################################################################
 
 class NoMakeConnection(Exception):
-    """NoMakeConnection is raised when a VisConnection doesn't know
-    how to create a live version of itself. This is an internal error
-    that should never be seen by a user. Please report a bug if you
-    see this."""
+    """NoMakeConnection is raised when a VisConnection doesn't know how to
+    create a live version of itself. This is an internal error that
+    should never be seen by a user. Please report a bug if you see
+    this.
+
+    """
     def __init__(self, conn):
         self.conn = conn
     def __str__(self):
         return "Connection %s has no makeConnection method" % self.conn
 
 class NoSummon(Exception):
-    """NoSummon is raised when a VisObject doesn't know how to create
-    a live version of itself. This is an internal error that should
-    never be seen by a user. Please report a bug if you see this."""
+    """NoSummon is raised when a VisObject doesn't know how to create a
+    live version of itself. This is an internal error that should
+    never be seen by a user. Please report a bug if you see this.
+
+    """
     def __init__(self, obj):
         self.obj = obj
     def __str__(self):
         return "Module %s has no summon method" % self.obj
 
 class UnimplementedException(Exception):
-    """UnimplementedException is raised when some interface hasn't
-    been implemented yet. This is an internal error that should never
-    be seen by a user. Please report a bug if you see this."""
+    """UnimplementedException is raised when some interface hasn't been
+    implemented yet. This is an internal error that should never be
+    seen by a user. Please report a bug if you see this.
+
+    """
     def __str__(self):
         return "Object is Unimplemented"
 
 class AbstractException(Exception):
     """AbstractException is raised when an abstract method is called.
     This is an internal error that should never be seen by a
-    user. Please report a bug if you see this."""
+    user. Please report a bug if you see this.
+
+    """
     def __str__(self):
         return "Abstract Method was called"
 
@@ -120,15 +156,19 @@ class VistrailsInternalError(Exception):
     """VistrailsInternalError is raised when an unexpected internal
     inconsistency happens. This is (clearly) an internal error that
     should never be seen by a user. Please report a bug if you see
-    this."""
+    this.
+
+    """
     def __init__(self, msg):
         self.emsg = msg
     def __str__(self):
         return "Vistrails Internal Error: " + str(self.emsg)
 
 class VersionTooLow(Exception):
-    """VersionTooLow is raised when you're running an outdated version
-    of some necessary software or package."""
+    """VersionTooLow is raised when you're running an outdated version of
+    some necessary software or package.
+
+    """
     def __init__(self, sw, required_version):
         self.sw = sw
         self.required_version = required_version
@@ -140,8 +180,10 @@ class VersionTooLow(Exception):
                 " or later")
 
 class InvalidModuleClass(Exception):
-    """InvalidModuleClass is raised when there's something wrong with
-a class that's being registered as a module within VisTrails."""
+    """InvalidModuleClass is raised when there's something wrong with a
+    class that's being registered as a module within VisTrails.
+
+    """
 
     def __init__(self, klass):
         self.klass = klass
@@ -653,3 +695,61 @@ class TestCommon(unittest.TestCase):
         
         self.assertRaises(Exception, raise_exception)
         self.assertEquals(os.getcwd(), currentpath)
+
+    def test_deprecated(self):
+        import re
+        def canon_path(path):
+            path = os.path.realpath(path)
+            p, f = os.path.dirname(path), os.path.basename(path)
+            f = re.split(r'[$.]', f)[0]
+            return os.path.join(p, f)
+        def check_warning(msg, f):
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter('always')
+                f(1, 2)
+            self.assertEqual(len(w), 1)
+            w, = w
+            self.assertEqual(w.message.message, msg)
+            self.assertEqual(w.category, VistrailsDeprecation)
+            self.assertTrue(canon_path(w.filename),
+                            canon_path(__file__))
+
+        @deprecated('repl1')
+        def func1(a, b):
+            self.assertEqual((a, b), (1, 2))
+        @deprecated
+        def func2(a, b):
+            self.assertEqual((a, b), (1, 2))
+        check_warning('Call to deprecated function func1 replaced by repl1',
+                      func1)
+        check_warning('Call to deprecated function func2', func2)
+
+        foo = None
+        class Foo(object):
+            @deprecated('repl1')
+            def meth1(s, a, b):
+                self.assertEqual((s, a, b), (foo, 1, 2))
+            @deprecated
+            def meth2(s, a, b):
+                self.assertEqual((s, a, b), (foo, 1, 2))
+            @staticmethod
+            @deprecated('repl3')
+            def meth3(a, b):
+                self.assertEqual((a, b), (1, 2))
+            @staticmethod
+            @deprecated
+            def meth4(a, b):
+                self.assertEqual((a, b), (1, 2))
+        foo = Foo()
+        check_warning('Call to deprecated function meth1 replaced by repl1',
+                      foo.meth1)
+        check_warning('Call to deprecated function meth2',
+                      foo.meth2)
+        check_warning('Call to deprecated function meth3 replaced by repl3',
+                      foo.meth3)
+        check_warning('Call to deprecated function meth4',
+                      foo.meth4)
+
+
+if __name__ == '__main__':
+    unittest.main()

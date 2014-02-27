@@ -129,8 +129,8 @@ class CDATAction:
     def write_module_definition(self, lines, ident='', compute_method=None):
         def write_compute_method(self,lines, ident):
             lines.append(ident + "def compute(self):\n")
-            lines.append(ident + "    if self.hasInputFromPort('canvas'):\n")
-            lines.append(ident + "        canvas = self.getInputFromPort('canvas')\n")
+            lines.append(ident + "    if self.has_input('canvas'):\n")
+            lines.append(ident + "        canvas = self.get_input('canvas')\n")
             lines.append(ident + "    else:\n")
             lines.append(ident + "        canvas = vcs.init()\n")
             lines.append(ident + "    args = []\n")
@@ -138,12 +138,12 @@ class CDATAction:
                 lines.append(ident + "    %s = None\n"%inp._name)
                 for inst in inp._valid_instances:
                     if inp._valid_instances.index(inst) == 0:
-                        lines.append(ident + "    if self.hasInputFromPort('%s'):\n" % inst)
-                        lines.append(ident + "        %s = self.getInputFromPort('%s')\n" % (inp._name, inst))
+                        lines.append(ident + "    if self.has_input('%s'):\n" % inst)
+                        lines.append(ident + "        %s = self.get_input('%s')\n" % (inp._name, inst))
                         lines.append(ident + "        args.append(%s)\n"%inp._name)
                     else:
-                        lines.append(ident + "    elif self.hasInputFromPort('%s'):\n" % inst)
-                        lines.append(ident + "        %s = self.getInputFromPort('%s')\n" % (inp._name, inst))
+                        lines.append(ident + "    elif self.has_input('%s'):\n" % inst)
+                        lines.append(ident + "        %s = self.get_input('%s')\n" % (inp._name, inst))
                         lines.append(ident + "        args.append(%s)\n"%inp._name)
                 if inp._required:
                     lines.append("\n"+ ident +"    # %s is a required port\n" % inp._name)
@@ -156,17 +156,17 @@ class CDATAction:
             for opt in self._options:
                 for inst in opt._valid_instances:
                     if opt._valid_instances.index(inst) == 0:
-                        lines.append(ident +"    if self.hasInputFromPort('%s'):\n" % inst)
-                        lines.append(ident +"        kwargs['%s'] = self.getInputFromPort('%s')\n" % (opt._name, inst))
+                        lines.append(ident +"    if self.has_input('%s'):\n" % inst)
+                        lines.append(ident +"        kwargs['%s'] = self.get_input('%s')\n" % (opt._name, inst))
                     else:
-                        lines.append(ident +"    elif self.hasInputFromPort('%s'):\n" % inst)
-                        lines.append(ident +"        kwargs['%s'] = self.getInputFromPort('%s')\n" % (opt._name, inst))
+                        lines.append(ident +"    elif self.has_input('%s'):\n" % inst)
+                        lines.append(ident +"        kwargs['%s'] = self.get_input('%s')\n" % (opt._name, inst))
 
             lines.append(ident + "    #force images to be created in the background\n")
             lines.append(ident + "    kwargs['bg'] = 1\n")
             lines.append(ident + "    res = canvas.%s(*args,**kwargs)\n"%self._name)
-            lines.append(ident + "    self.setResult('%s',res)\n"%(self._outputs[0]._name))
-            lines.append(ident + "    self.setResult('canvas',canvas)\n")
+            lines.append(ident + "    self.set_output('%s',res)\n"%(self._outputs[0]._name))
+            lines.append(ident + "    self.set_output('canvas',canvas)\n")
             lines.append("\n")
         if self._name in do_not_cache_me:
             lines.append(ident + "class %s(Module,NotCacheable):\n" % self._name)

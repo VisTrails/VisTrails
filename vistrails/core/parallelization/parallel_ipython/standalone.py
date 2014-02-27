@@ -23,7 +23,7 @@ def make_fake_module_and_execute(compute_code, inputs):
                 self.inputPorts = i
                 self.outputPorts = {}
 
-            def getInputFromPort(self, inputPort, allowDefault=True):
+            def get_input(self, inputPort, allowDefault=True):
                 try:
                     value, is_default = self.inputPorts[inputPort]
                     if allowDefault or not is_default:
@@ -32,18 +32,18 @@ def make_fake_module_and_execute(compute_code, inputs):
                     pass
                 raise ValueError("Missing value from port %s" % inputPort)
 
-            def hasInputFromPort(self, inputPort):
+            def has_input(self, inputPort):
                 try:
                     value, is_default = self.inputPorts[inputPort]
                     return not is_default
                 except KeyError:
                     return False
 
-            def checkInputFromPort(self, inputPort):
-                if not self.hasInputFromPort(inputPort):
+            def check_input(self, inputPort):
+                if not self.has_input(inputPort):
                     raise ValueError("'%s' is a mandatory port" % inputPort)
 
-            def forceGetInputFromPort(self, inputPort, defaultValue=None):
+            def force_get_input(self, inputPort, defaultValue=None):
                 try:
                     value, is_default = self.inputPorts[inputPort]
                     if not is_default:
@@ -52,7 +52,7 @@ def make_fake_module_and_execute(compute_code, inputs):
                     pass
                 return defaultValue
 
-            def getInputListFromPort(self, inputPort):
+            def get_input_list(self, inputPort):
                 try:
                     value, is_default = self.inputPorts[inputPort]
                     if not is_default:
@@ -61,7 +61,7 @@ def make_fake_module_and_execute(compute_code, inputs):
                     pass
                 raise ValueError("Missing value from port %s" % inputPort)
 
-            def forceGetInputListFromPort(self, inputPort):
+            def force_get_input_list(self, inputPort):
                 try:
                     value, is_default = self.inputPorts[inputPort]
                     if not is_default:
@@ -70,8 +70,16 @@ def make_fake_module_and_execute(compute_code, inputs):
                     pass
                 return []
 
-            def setResult(self, port, value):
+            def set_output(self, port, value):
                 self.outputPorts[port] = value
+
+            getInputFromPort = get_input
+            hasInputFromPort = has_input
+            checkInputPort = check_input
+            forceGetInputFromPort = force_get_input
+            getInputListFromPort = get_input_list
+            forceGetInputListFromPort = force_get_input_list
+            setResult = set_output
 
     IPythonFakeModule.compute = FunctionType(compute_code, globals(), 'compute')
 

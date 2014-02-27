@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -157,11 +157,11 @@ def webServiceTypesDict(WBobj):
         #Check if it is an enumeration
         if WBobj.typeobj == 'Enumeration':
             nameport = str(WBobj.ports[0][0])
-            if self.hasInputFromPort(nameport):
-                inputport = self.getInputFromPort(nameport)
+            if self.has_input(nameport):
+                inputport = self.get_input(nameport)
                 self.holder = inputport
-                self.setResult(WBobj.name,self)
-                self.setResult('self',self)
+                self.set_output(WBobj.name,self)
+                self.set_output('self',self)
         else:
             #Check if it is a request type
             modbyname = reg.get_module_by_name(identifier = identifier, name = WBobj.name, namespace = WBobj.namespace)
@@ -187,9 +187,9 @@ def webServiceTypesDict(WBobj):
                 #Set the values of the input ports in the resquest object
                 for types in WBobj.ports:
                     nameport = str(types[0])
-                    if self.hasInputFromPort(nameport):
+                    if self.has_input(nameport):
                         #We need to distinguish between simple and complex types.
-                        inputport = self.getInputFromPort(nameport)
+                        inputport = self.get_input(nameport)
                         try:
                             Type = str(types[1])
                             if isArray(Type):
@@ -218,8 +218,8 @@ def webServiceTypesDict(WBobj):
                 if WBobj.hasAttributes:
                     for types in WBobj.attributes:
                         nameport = str(types[0])
-                        if self.hasInputFromPort(nameport):
-                            inputport = self.getInputFromPort(nameport)
+                        if self.has_input(nameport):
+                            inputport = self.get_input(nameport)
                             Type = wsdlTypesDict[str(types[1])]
                             nameattrib = "attribute_typecode_dict[" + nameport + "].pname"
                             setattr(req, nameattrib,inputport)
@@ -236,8 +236,8 @@ def webServiceTypesDict(WBobj):
                         if str(WBobj.name.strip()) == str(attributes[0].strip()):
                             nameport = WBobj.vistrailsname
                             break
-                self.setResult(nameport,req)
-                self.setResult('self',req)
+                self.set_output(nameport,req)
+                self.set_output('self',req)
             else:
                 nameport = str(WBobj.name)
                 for ports in WBobj.ports:
@@ -249,36 +249,36 @@ def webServiceTypesDict(WBobj):
                         if str(WBobj.name.strip()) == str(attributes[0].strip()):
                             nameport = WBobj.vistrailsname
                             break
-                if self.hasInputFromPort(nameport):
+                if self.has_input(nameport):
                     #Output modules
-                    inputport = self.getInputFromPort(nameport)
+                    inputport = self.get_input(nameport)
                     for nameport in WBobj.ports:
                         nameattrib = nameport[0][0].upper() + nameport[0][1:]
                         sentence = "inputport" + "." + nameattrib
                         outputport = eval(sentence)
-                        self.setResult(nameport[0],outputport)
+                        self.set_output(nameport[0],outputport)
                     if WBobj.hasAttributes:
                         for attributes in WBobj.attributes:
                             nameattrib = attributes[0][0].upper() + attributes[0][1:]
                             sentence = "inputport" + "." + nameattrib
                             outputport = eval(sentence)
-                            self.setResult(attributes[0],outputport)
-                elif self.hasInputFromPort('self'):
+                            self.set_output(attributes[0],outputport)
+                elif self.has_input('self'):
                     #Now we use the 'self' input port name
                     #we keep the old for backwards compatibility
                     #Output modules
-                    inputport = self.getInputFromPort('self')
+                    inputport = self.get_input('self')
                     for nameport in WBobj.ports:
                         nameattrib = nameport[0][0].upper() + nameport[0][1:]
                         sentence = "inputport" + "." + nameattrib
                         outputport = eval(sentence)
-                        self.setResult(nameport[0],outputport)
+                        self.set_output(nameport[0],outputport)
                     if WBobj.hasAttributes:
                         for attributes in WBobj.attributes:
                             nameattrib = attributes[0][0].upper() + attributes[0][1:]
                             sentence = "inputport" + "." + nameattrib
                             outputport = eval(sentence)
-                            self.setResult(attributes[0],outputport)
+                            self.set_output(attributes[0],outputport)
                 else:    
                     #Set the values in the input ports
                     #Input modules
@@ -286,8 +286,8 @@ def webServiceTypesDict(WBobj):
                         nameport = str(types[0])
                         nameattrib = str(nameport)
                         nameattrib = nameattrib[0].upper() + nameattrib[1:]
-                        if self.hasInputFromPort(nameport):
-                            inputport = self.getInputFromPort(nameport)
+                        if self.has_input(nameport):
+                            inputport = self.get_input(nameport)
                             setattr(self,nameattrib,inputport)
                         else:
                             setattr(self,nameattrib,None)
@@ -296,8 +296,8 @@ def webServiceTypesDict(WBobj):
                             nameport = str(types[0])
                             nameattrib = str(nameport)
                             nameattrib = nameattrib[0].upper() + nameattrib[1:]
-                            if self.hasInputFromPort(nameport):
-                                inputport = self.getInputFromPort(nameport)
+                            if self.has_input(nameport):
+                                inputport = self.get_input(nameport)
                                 setattr(self,nameattrib,inputport)
                             else:
                                 setattr(self,nameattrib,None)
@@ -313,8 +313,8 @@ def webServiceTypesDict(WBobj):
                             if str(WBobj.name.strip()) == str(attributes[0].strip()):
                                 nameport = WBobj.vistrailsname
                                 break
-                    self.setResult(nameport,self)
-                    self.setResult('self',self)
+                    self.set_output(nameport,self)
+                    self.set_output('self',self)
 
     return {'compute':compute}
 
@@ -440,8 +440,8 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                 print "sys.exc_value: ", sys.exc_value
             for inparam in inparams:
                 #Now set all attributes for the request object
-                if self.hasInputFromPort(inparam.name):
-                    inputport = self.getInputFromPort(inparam.name)
+                if self.has_input(inparam.name):
+                    inputport = self.get_input(inparam.name)
                     namemethod = "set_element_" + inparam.name
                     try:
                         getattr(req, namemethod)(inputport)
@@ -461,12 +461,12 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                 namemethod = outparams[0].name
                 sentence = "resp" + "." + namemethod
                 result = eval(sentence)
-            self.setResult(outparams[0].name,result)
+            self.set_output(outparams[0].name,result)
         except KeyError:
             #This part is for the complex types methods parameters
             inparam = str(inparams[0].name)
-            if self.hasInputFromPort(inparam):
-                request = self.getInputFromPort(inparam)
+            if self.has_input(inparam):
+                request = self.get_input(inparam)
                 try:
                     resp = getattr(port,name)(request)
                 except:
@@ -483,7 +483,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                                                   namespace=obj.namespace)
                 visobj = visclass()
                 wrapResponseobj(self,resp, visobj)
-                self.setResult(outparams[0].name,visobj)
+                self.set_output(outparams[0].name,visobj)
 
     return {'compute':compute}
 

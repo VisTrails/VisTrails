@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -163,10 +163,10 @@ def matrix_conv(v):
     create_matrix(v_list)
 
 def matrix_compute(self):
-    if self.hasInputFromPort('rvector'):
-        rvector = self.getInputFromPort('rvector')
-        nrows = self.getInputFromPort('nrows')
-        self.setResult('value', robjects.r.matrix(rvector, nrow=nrows))
+    if self.has_input('rvector'):
+        rvector = self.get_input('rvector')
+        nrows = self.get_input('nrows')
+        self.set_output('value', robjects.r.matrix(rvector, nrow=nrows))
     else:
         RArray.compute(self)
 
@@ -224,63 +224,63 @@ class RVectorFromList(Module):
     _output_ports = [('rvector', '(Types|RVector)')]
 
     def compute(self):
-        ilist = self.getInputFromPort('list')
+        ilist = self.get_input('list')
         rvector = create_vector(ilist)
-        self.setResult('rvector', rvector)
+        self.set_output('rvector', rvector)
 
 class ListFromRVector(Module):
     _input_ports = [('rvector', '(Types|RVector)')]
     _output_ports = [('list', '(basic:List)')]
 
     def compute(self):
-        rvector = self.getInputFromPort('rvector')
+        rvector = self.get_input('rvector')
         olist = list(rvector)
-        self.setResult('list', olist)
+        self.set_output('list', olist)
 
 class RMatrixFromNestedList(Module):
     _input_ports = [('list', '(basic:List)')]
     _output_ports = [('rmatrix', '(Types|RMatrix)')]
 
     def compute(self):
-        ilist = self.getInputFromPort('list')
+        ilist = self.get_input('list')
         rmatrix = create_matrix(ilist)
-        self.setResult('rmatrix', rmatrix)
+        self.set_output('rmatrix', rmatrix)
 
 class NestedListFromRMatrix(Module):
     _input_ports = [('rmatrix', '(Types|RMatrix)')]
     _output_ports = [('list', '(basic:List)')]
     
     def compute(self):
-        rmatrix = self.getInputFromPort('rmatrix')
+        rmatrix = self.get_input('rmatrix')
         mlist = list(rmatrix)
         nrows = rmatrix.nrow
         ncols = len(mlist) / nrows
         olist = [] 
         for row in xrange(nrows):
             olist.append(mlist[row*ncols:(row+1)*ncols])
-        self.setResult('list', olist)
+        self.set_output('list', olist)
 
 class RDataFrameFromDict(Module):
     _input_ports = [('dict', '(basic:Dictionary)')]
     _output_ports = [('rdataframe', '(Types|RDataFrame)')]
     
     def compute(self):
-        idict = self.getInputFromPort('dict')
+        idict = self.get_input('dict')
         rdataframe = create_data_frame(idict)
-        self.setResult('rdataframe', rdataframe)
+        self.set_output('rdataframe', rdataframe)
 
 class DictFromRDataFrame(Module):
     _input_ports = [('rdataframe','(Types|RDataFrame)')]
     _output_ports = [('dict', '(basic:Dictionary)')]
 
     def compute(self):
-        rdataframe = self.getInputFromPort('rdataframe')
+        rdataframe = self.get_input('rdataframe')
         colnames = list(rdataframe.colnames())
         odict = {}
         for i in xrange(len(rdataframe)):
             # FIXME !!! just assume that each row can be converted to a list!!!
             odict[colnames[i]] = list(rdataframe[i])
-        self.setResult('dict', odict)
+        self.set_output('dict', odict)
 
 class RListFromDict(Module):
     # _input_ports = [('dict', '(basic:Dictionary)')]
@@ -288,9 +288,9 @@ class RListFromDict(Module):
     _output_ports = [('rlist', '(Types|RList)')]
     
     def compute(self):
-        idict = self.getInputFromPort('dict')
+        idict = self.get_input('dict')
         rlist = create_list(idict)
-        self.setResult('rlist', rlist)
+        self.set_output('rlist', rlist)
 
 class DictFromRList(Module):
     _input_ports = [('rlist', '(Types|RList)')]
@@ -298,14 +298,14 @@ class DictFromRList(Module):
     _output_ports = [('dict', '(basic:Module)')]
 
     def compute(self):
-        rlist = self.getInputFromPort('rlist')
+        rlist = self.get_input('rlist')
         colnames = list(rlist.names)
         odict = {}
         for i in xrange(len(rlist)):
             # FIXME !!! just assume that each row can be converted to a list!!!
             # FIXME this may need to be a list of lists
             odict[colnames[i]] = list(rlist[i])
-        self.setResult('dict', odict)
+        self.set_output('dict', odict)
 
 class RRead(Module):
     _input_ports = [('file', '(basic:File)'),
@@ -318,13 +318,13 @@ class RRead(Module):
     _output_ports = [('rdataframe', '(Types|RDataFrame)')]
 
     def do_read(self, read_cmd):
-        fname = self.getInputFromPort('file').name
+        fname = self.get_input('file').name
         options_dict = {}
         for port in RRead._input_ports:
-            if port[0] != 'file' and self.hasInputFromPort(port):
-                options_dict[port] = self.getInputFromPort(port)
+            if port[0] != 'file' and self.has_input(port):
+                options_dict[port] = self.get_input(port)
         rdataframe = robjects.r[read_cmd](fname, **options_dict)
-        self.setResult('rdataframe', rdataframe)
+        self.set_output('rdataframe', rdataframe)
 
 class RReadTable(RRead):
     def compute(self):
@@ -364,7 +364,7 @@ class RSource(Module):
         def cache_this():
             self.is_cacheable = lambda *args, **kwargs: True
         if use_input:
-            inputDict = dict([(k, self.getInputFromPort(k))
+            inputDict = dict([(k, self.get_input(k))
                               for k in self.inputPorts
                               if k not in excluded_inputs])
             for k,v in inputDict.iteritems():
@@ -373,7 +373,7 @@ class RSource(Module):
         if use_output:
             for k in self.outputPorts:
                 if k not in excluded_outputs and k in robjects.globalEnv:
-                    self.setResult(k, robjects.globalEnv[k])
+                    self.set_output(k, robjects.globalEnv[k])
 
     def run_file(self, fname, excluded_inputs=set(['source']), 
                  excluded_outputs=set()):
@@ -395,7 +395,7 @@ class RSource(Module):
         robjects.r('setwd("%s")' % dir)
 
     def compute(self):
-        code_str = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        code_str = urllib.unquote(str(self.force_get_input('source', '')))
         self.run_code(code_str, use_input=True, use_output=True,
                       excluded_inputs=set(['source']))
 
@@ -412,7 +412,7 @@ class RFigure(RSource):
         image_file = File()
         image_file.name = fname
         image_file.upToDate = True
-        self.setResult('imageFile', image_file)
+        self.set_output('imageFile', image_file)
 
     def run_figure_file(self, fname, graphics_dev, width, height, 
                         excluded_inputs=set(['source'])):
@@ -424,19 +424,19 @@ class RFigure(RSource):
 class RSVGFigure(RFigure):
     def compute(self):
         code_str = \
-            urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+            urllib.unquote(str(self.force_get_input('source', '')))
         RFigure.run_figure(self, code_str, 'svg', 4, 3)
 
 class RPNGFigure(RFigure):
     def compute(self):
         code_str = \
-            urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+            urllib.unquote(str(self.force_get_input('source', '')))
         RFigure.run_figure(self, code_str, 'png', 640, 480)
 
 class RPDFFigure(RFigure):
     def compute(self):
         code_str = \
-            urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+            urllib.unquote(str(self.force_get_input('source', '')))
         RFigure.run_figure(self, code_str, 'pdf', 4, 3)
 
 class RFactor(Module):

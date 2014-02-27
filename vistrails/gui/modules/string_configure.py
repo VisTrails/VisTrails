@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -114,8 +114,7 @@ def NewTextEditor(parent):
             
             """
             text = self.text()
-            return text.replace('\r', '\n')
-    
+            return text.replace('\r\n', '\n').replace('\r', '\n')
 #        def focusOutEvent(self, event):
 #            if self.parent():
 #                QtCore.QCoreApplication.sendEvent(self.parent(), event)

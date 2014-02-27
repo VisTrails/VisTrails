@@ -22,7 +22,7 @@ class While(Module):
             raise ModuleError(self,
                               "%s module should have exactly one connection "
                               "on its FunctionPort" % self.__class__.__name__)
-        self.updateUpstream(
+        self.update_upstream(
                 self.other_ports_ready,
                 [n for n in self.inputPorts.iterkeys() if n != 'FunctionPort'])
 
@@ -34,17 +34,17 @@ class While(Module):
                 for connector in connectorList:
                     mod, port = connector.obj, connector.port
                     if mod.get_output(port) is InvalidOutput:
-                        self.removeInputConnector(port_name, connector)
+                        self.remove_input_connector(port_name, connector)
 
-        self.name_output = self.getInputFromPort('OutputPort')
-        self.name_condition = self.forceGetInputFromPort('ConditionPort')
-        self.name_state_input = self.forceGetInputFromPort('StateInputPorts')
-        self.name_state_output = self.forceGetInputFromPort('StateOutputPorts')
-        self.max_iterations = self.getInputFromPort('MaxIterations')
-        self.delay = self.forceGetInputFromPort('Delay')
+        self.name_output = self.get_input('OutputPort')
+        self.name_condition = self.force_get_input('ConditionPort')
+        self.name_state_input = self.force_get_input('StateInputPorts')
+        self.name_state_output = self.force_get_input('StateOutputPorts')
+        self.max_iterations = self.get_input('MaxIterations')
+        self.delay = self.force_get_input('Delay')
 
         if (self.name_condition is None and
-                not self.hasInputFromPort('MaxIterations')):
+                not self.has_input('MaxIterations')):
             raise ModuleError(self,
                               "Please set MaxIterations or use ConditionPort")
 
@@ -145,7 +145,7 @@ class While(Module):
             raise ModuleError(self.orig_module,
                               "Invalid output port: %s" % self.name_output)
         result = module.get_output(self.name_output)
-        self.setResult('Result', result)
+        self.set_output('Result', result)
 
         self.loop_logging.end_loop_execution()
         self.logging.end_update(self)
@@ -179,12 +179,12 @@ class For(Module):
                 for connector in connectorList:
                     mod, port = connector.obj, connector.port
                     if mod.get_output(port) is InvalidOutput: # pragma: no cover
-                        self.removeInputConnector(port_name, connector)
+                        self.remove_input_connector(port_name, connector)
 
-        self.name_output = self.forceGetInputFromPort('OutputPort') # or None
-        name_input = self.forceGetInputFromPort('InputPort') # or None
-        lower_bound = self.getInputFromPort('LowerBound') # or 0
-        higher_bound = self.getInputFromPort('HigherBound') # required
+        self.name_output = self.force_get_input('OutputPort') # or None
+        name_input = self.force_get_input('InputPort') # or None
+        lower_bound = self.get_input('LowerBound') # or 0
+        higher_bound = self.get_input('HigherBound') # required
 
         connector, = self.inputPorts.get('FunctionPort')
 
@@ -239,7 +239,7 @@ class For(Module):
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
         if self.name_output is not None:
-            self.setResult('Result', outputs)
+            self.set_output('Result', outputs)
 
 
 ###############################################################################

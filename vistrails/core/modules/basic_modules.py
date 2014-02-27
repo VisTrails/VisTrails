@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,9 +35,13 @@
 """basic_modules defines basic VisTrails Modules that are used in most
 pipelines."""
 import vistrails.core.cache.hasher
+from vistrails.core.debug import format_exception
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, new_module, \
      Converter, NotCacheable, ModuleError
+from vistrails.core.modules.config import ConstantWidgetConfig, \
+    QueryWidgetConfig, ParamExpWidgetConfig, ModuleSettings, IPort, OPort, \
+    CIPort, COPort
 from vistrails.core.modules.vistrails_module.parallel import RemoteExecution
 import vistrails.core.system
 from vistrails.core.utils import InstanceObject
@@ -65,6 +69,10 @@ version = '2.1'
 name = 'Basic Modules'
 identifier = 'org.vistrails.vistrails.basic'
 old_identifiers = ['edu.utah.sci.vistrails.basic']
+
+constant_config_path = "vistrails.gui.modules.constant_configuration"
+query_config_path = "vistrails.gui.modules.query_configuration"
+paramexp_config_path = "vistrails.gui.modules.paramexplore"
 
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
@@ -100,21 +108,21 @@ class Constant(Module):
     See core/modules/constant_configuration.py for details.
     
     """
-    def __init__(self):
-        Module.__init__(self)
-        
+    _settings = ModuleSettings(abstract=True)
+    _output_ports = [OPort("value_as_string", "String")]
+
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
         input value."""
-        v = self.getInputFromPort("value")
+        v = self.get_input("value")
         b = self.validate(v)
         if not b:
             raise ModuleError(self, "Internal Error: Constant failed validation")
-        self.setResult("value", v)
-        self.setResult("value_as_string", self.translate_to_string(v))
+        self.set_output("value", v)
+        self.set_output("value_as_string", self.translate_to_string(v))
 
     def setValue(self, v):
-        self.setResult("value", self.translate_to_python(v))
+        self.set_output("value", self.translate_to_python(v))
         self.upToDate = True
         
     def serialize(self):
@@ -133,14 +141,6 @@ class Constant(Module):
         return None
 
     @staticmethod
-    def get_query_widget_class():
-        return None
-
-    @staticmethod
-    def get_param_explore_widget_list():
-        return []
-
-    @staticmethod
     def query_compute(value_a, value_b, query_method):
         if query_method == '==' or query_method is None:
             return (value_a == value_b)
@@ -151,9 +151,7 @@ class Constant(Module):
 def new_constant(name, py_conversion=None, default_value=None, validation=None,
                  widget_type=None,
                  str_conversion=None, base_class=Constant,
-                 compute=None, query_widget_type=None,
-                 query_compute=None,
-                 param_explore_widget_list=None):
+                 compute=None, query_compute=None):
     """new_constant(name: str, 
                     py_conversion: callable,
                     default_value: python_type,
@@ -162,10 +160,7 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
                     str_conversion: callable,
                     base_class: class,
                     compute: callable,
-                    query_widget_type: (path, name) tuple or QWidget type,
-                    query_compute: static callable,
-                    param_explore_widget_list: 
-                        list((path, name) tuple or QWidget type)) -> Module
+                    query_compute: static callable) -> Module
 
     new_constant dynamically creates a new Module derived from
     Constant with given py_conversion and str_conversion functions, a
@@ -174,13 +169,8 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
     the type that the class should hold. str_conversion does the reverse.
 
     This is the quickest way to create new Constant Modules."""
-    
-    def create_init(base_class):
-        def __init__(self):
-            base_class.__init__(self)
-        return __init__
 
-    d = {'__init__': create_init(base_class)}
+    d = {}
 
     if py_conversion is not None:
         d["translate_to_python"] = py_conversion
@@ -211,17 +201,7 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
         @staticmethod
         def get_widget_class():
             return widget_type
-        d['get_widget_class'] = get_widget_class
-    if query_widget_type is not None:
-        @staticmethod
-        def get_query_widget_class():
-            return query_widget_type
-        d['get_query_widget_class'] = get_query_widget_class
-    if param_explore_widget_list is not None:
-        @staticmethod
-        def get_param_explore_widget_list():
-            return param_explore_widget_list
-        d['get_param_explore_widget_list'] = get_param_explore_widget_list
+        d['get_widget_class'] = get_widget_class            
 
     m = new_module(base_class, name, d)
     m._input_ports = [('value', m)]
@@ -274,44 +254,52 @@ def string_compare(value_a, value_b, query_method):
     return False
 
 Boolean = new_constant('Boolean' , staticmethod(bool_conv),
-                       False, staticmethod(lambda x: isinstance(x, bool)),
-                       widget_type=('vistrails.gui.modules.constant_configuration', 
-                                    'BooleanWidget'))
+                       False, staticmethod(lambda x: isinstance(x, bool)))
+Boolean._settings = ModuleSettings(constant_widget=('%s:BooleanWidget' % \
+                                                    constant_config_path))
 Float   = new_constant('Float'   , staticmethod(float), 0.0, 
                        staticmethod(lambda x: isinstance(x, (int, long, float))),
-                       query_widget_type=('vistrails.gui.modules.query_configuration',
-                                          'NumericQueryWidget'),
-                       query_compute=numeric_compare,
-                       param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
-                                                   'FloatExploreWidget')])
+                       query_compute=numeric_compare)
+Float._settings = ModuleSettings(constant_widgets=[
+    QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
+    ParamExpWidgetConfig('%s:FloatExploreWidget' % paramexp_config_path)])
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
                        staticmethod(lambda x: isinstance(x, (int, long))),
                        base_class=Float,
-                       query_widget_type=('vistrails.gui.modules.query_configuration',
-                                          'NumericQueryWidget'),
-                       query_compute=numeric_compare,
-                       param_explore_widget_list=[('vistrails.gui.modules.paramexplore',
-                                                   'IntegerExploreWidget')])
+                       query_compute=numeric_compare)
+Integer._settings = ModuleSettings(constant_widgets=[
+    QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
+    ParamExpWidgetConfig('%s:IntegerExploreWidget' % paramexp_config_path)])
+
 String  = new_constant('String'  , staticmethod(str), "", 
                        staticmethod(lambda x: isinstance(x, str)),
-                       query_widget_type=('vistrails.gui.modules.query_configuration',
-                                          'StringQueryWidget'),
-                       query_compute=string_compare,
-                       widget_type=('vistrails.gui.modules.constant_configuration',
-                                    'StringWidget'))
-
+                       query_compute=string_compare)
+String._settings = ModuleSettings(configure_widget=
+            "vistrails.gui.modules.string_configure:TextConfigurationWidget",
+                                  constant_widgets=[
+                        ConstantWidgetConfig('%s:MultiLineStringWidget' % \
+                                             constant_config_path, 
+                                             widget_type='multiline'),
+                        QueryWidgetConfig('%s:StringQueryWidget' % \
+                                          query_config_path)])
+String._output_ports.append(OPort("value_as_string", "String", optional=True))
+    
 ##############################################################################
 
 class Path(Constant):
-    def __init__(self):
-        Constant.__init__(self)
-        self.name = ""
-    
+    _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" % \
+                                                constant_config_path))
+    _input_ports = [IPort("value", "Path"),
+                    IPort("name", "String", optional=True)]
+    _output_ports = [OPort("value", "Path")]
+
+    name = ""
+
     @staticmethod
     def translate_to_python(x):
         result = Path()
         result.name = x
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
 
     @staticmethod
@@ -326,87 +314,106 @@ class Path(Constant):
 
     def get_name(self):
         n = None
-        if self.hasInputFromPort("value"):
-            n = self.getInputFromPort("value").name
+        if self.has_input("value"):
+            n = self.get_input("value").name
         if n is None:
-            self.checkInputPort("name")
-            n = self.getInputFromPort("name")
+            self.check_input("name")
+            n = self.get_input("name")
         return n
-        
+
     def set_results(self, n):
         self.name = n
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.set_output("value", self)
+        self.set_output("value_as_string", self.translate_to_string(self))
 
     def compute(self):
         n = self.get_name()
         self.set_results(n)
-#         self.setResult("exists", os.path.exists(n))
-#         self.setResult("isfile", os.path.isfile(n))
-#         self.setResult("isdir", os.path.isdir(n))
-        
-    @staticmethod
-    def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
-                "PathChooserWidget")
 
 Path.default_value = Path()
+
+def path_parameter_hasher(p):
+    def get_mtime(path):
+        v_list = [int(os.path.getmtime(path))]
+        if os.path.isdir(path):
+            for subpath in os.listdir(path):
+                subpath = os.path.join(path, subpath)
+                if os.path.isdir(subpath):
+                    v_list.extend(get_mtime(subpath))
+        return v_list
+
+    h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
+    try:
+        # FIXME: This will break with aliases - I don't really care that much
+        v_list = get_mtime(p.strValue)
+    except OSError:
+        return h
+    hasher = sha_hash()
+    hasher.update(h)
+    for v in v_list:
+        hasher.update(str(v))
+    return hasher.digest()
 
 class File(Path):
     """File is a VisTrails Module that represents a file stored on a
     file system local to the machine where VisTrails is running."""
-    def __init__(self):
-        Path.__init__(self)
-        
+
+    _settings = ModuleSettings(constant_signature=path_parameter_hasher,
+                               constant_widget=("%s:FileChooserWidget" % \
+                                                constant_config_path))
+    _input_ports = [IPort("value", "File"),
+                    IPort("create_file", "Boolean", optional=True)]
+    _output_ports = [OPort("value", "File"),
+                     OPort("self", "File", optional=True),
+                     OPort("local_filename", "String", optional=True)]
+
     @staticmethod
     def translate_to_python(x):
         result = File()
         result.name = x
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
 
     def compute(self):
         n = self.get_name()
-        if (self.hasInputFromPort("create_file") and
-            self.getInputFromPort("create_file")):
+        if (self.has_input("create_file") and self.get_input("create_file")):
             vistrails.core.system.touch(n)
         if not os.path.isfile(n):
-            raise ModuleError(self, 'File "%s" does not exist' % n)
+            raise ModuleError(self, 'File %r does not exist' % n)
         self.set_results(n)
-        self.setResult("local_filename", n)
-        self.setResult("self", self)
-
-    @staticmethod
-    def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
-                "FileChooserWidget")
+        self.set_output("local_filename", n)
 
 File.default_value = File()
     
 class Directory(Path):
-    def __init__(self):
-        Path.__init__(self)
-        Directory.default_value = self
-        
+
+    _settings = ModuleSettings(constant_signature=path_parameter_hasher,
+                               constant_widget=("%s:DirectoryChooserWidget" % \
+                                                constant_config_path))
+    _input_ports = [IPort("value", "Directory"),
+                    IPort("create_directory", "Boolean", optional=True)]
+    _output_ports = [OPort("value", "Directory"),
+                     OPort("itemList", "List")]
+
     @staticmethod
     def translate_to_python(x):
         result = Directory()
         result.name = x
-        result.setResult("value", result)
+        result.set_output("value", result)
         return result
 
     def compute(self):
         n = self.get_name()
-        if (self.hasInputFromPort("create_directory") and
-            self.getInputFromPort("create_directory")):
+        if (self.has_input("create_directory") and 
+                self.get_input("create_directory")):
             try:
                 vistrails.core.system.mkdir(n)
             except Exception, e:
-                raise ModuleError(self, 'mkdir: ' + str(e))
+                raise ModuleError(self, 'mkdir: %s' % format_exception(e))
         if not os.path.isdir(n):
             raise ModuleError(self, 'Directory "%s" does not exist' % n)
         self.set_results(n)
-        
+
         dir_list = os.listdir(n)
         output_list = []
         for item in dir_list:
@@ -421,64 +428,35 @@ class Directory(Path):
                 dir_item.name = full_path
                 dir_item.upToDate = True
                 output_list.append(dir_item)
-        self.setResult('itemList', output_list)
+        self.set_output('itemList', output_list)
             
-    @staticmethod
-    def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
-                "DirectoryChooserWidget")
-
 Directory.default_value = Directory()
-
-def path_parameter_hasher(p):
-    def get_mtime(path):
-        v_list = [int(os.path.getmtime(path))]
-        if os.path.isdir(path):
-            for subpath in os.listdir(path):
-                subpath = os.path.join(path, subpath)
-                if os.path.isdir(subpath):
-                    v_list.extend(get_mtime(subpath))
-        return v_list
-
-    h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
-    hasher = sha_hash()
-    try:
-        # FIXME: This will break with aliases - I don't really care that much
-        v_list = get_mtime(p.strValue)
-    except OSError:
-        return h
-    hasher = sha_hash()
-    hasher.update(h)
-    for v in v_list:
-        hasher.update(str(v))
-    return hasher.digest()
 
 ##############################################################################
 
 class OutputPath(Path):
+    _settings = ModuleSettings(constant_widget=("%s:OutputPathChooserWidget" % \
+                                                constant_config_path))
+    _output_ports = [OPort("value", "OutputPath")]
+
     def get_name(self):
         n = None
-        if self.hasInputFromPort("value"):
-            n = self.getInputFromPort("value").name
+        if self.has_input("value"):
+            n = self.get_input("value").name
         if n is None:
-            self.checkInputPort("name")
-            n = self.getInputFromPort("name")
+            self.check_input("name")
+            n = self.get_input("name")
         return n
         
     def set_results(self, n):
         self.name = n
-        self.setResult("value", self)
-        self.setResult("value_as_string", self.translate_to_string(self))
+        self.set_output("value", self)
+        self.set_output("value_as_string", self.translate_to_string(self))
 
     def compute(self):
         n = self.get_name()
         self.set_results(n)
         
-    @staticmethod
-    def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", 
-                "OutputPathChooserWidget")
-
 OutputPath.default_value = OutputPath()
 
 class FileSink(NotCacheable, Module):
@@ -487,30 +465,39 @@ class FileSink(NotCacheable, Module):
     specified by the outputPath.  The overwrite flag allows users to
     specify whether an existing path should be overwritten."""
 
+    _input_ports = [IPort("file", File),
+                    IPort("outputPath", OutputPath),
+                    IPort("overwrite", Boolean, optional=True, 
+                          default=True),
+                    IPort("publishFile", Boolean, optional=True)]
+    
     def compute(self):
-        input_file = self.getInputFromPort("file")
-        output_path = self.getInputFromPort("outputPath")
+        input_file = self.get_input("file")
+        output_path = self.get_input("outputPath")
         full_path = output_path.name
+
+        if os.path.isfile(full_path):
+            if self.get_input('overwrite'):
+                try:
+                    os.remove(full_path)
+                except OSError, e:
+                    msg = ('Could not delete existing path "%s" '
+                           '(overwrite on)' % full_path)
+                    raise ModuleError(self, msg)
+            else:
+                raise ModuleError(self,
+                                  "Could not copy file to '%s': file already "
+                                  "exists")
 
         try:
             vistrails.core.system.link_or_copy(input_file.name, full_path)
         except OSError, e:
-            if self.hasInputFromPort("overwrite") and \
-                    self.getInputFromPort("overwrite"):
-                try:
-                    os.unlink(full_path)
-                    vistrails.core.system.link_or_copy(input_file.name, full_path)
-                except OSError:
-                    msg = "(override true) Could not create file '%s'" % \
-                        full_path
-                    raise ModuleError(self, msg)
-            else:
-                msg = "Could not create file '%s': %s" % (full_path, e)
-                raise ModuleError(self, msg)
-            
-        if (self.hasInputFromPort("publishFile") and
-            self.getInputFromPort("publishFile") or 
-            not self.hasInputFromPort("publishFile")):
+            msg = "Could not create file '%s': %s" % (full_path, e)
+            raise ModuleError(self, msg)
+
+        if (self.has_input("publishFile") and
+            self.get_input("publishFile") or 
+            not self.has_input("publishFile")):
             if self.moduleInfo.has_key('extra_info'):
                 if self.moduleInfo['extra_info'].has_key('pathDumpCells'):
                     folder = self.moduleInfo['extra_info']['pathDumpCells']
@@ -540,14 +527,17 @@ class DirectorySink(NotCacheable, Module):
     flag allows users to specify whether an existing path should be
     overwritten."""
 
+    _input_ports = [IPort("dir", Directory),
+                    IPort("outputPath", OutputPath),
+                    IPort("overwrite", Boolean, optional=True, default="True")]
+
     def compute(self):
-        input_dir = self.getInputFromPort("dir")
-        output_path = self.getInputFromPort("outputPath")
+        input_dir = self.get_input("dir")
+        output_path = self.get_input("outputPath")
         full_path = output_path.name
 
         if os.path.exists(full_path):
-            if (self.hasInputFromPort("overwrite") and 
-                self.getInputFromPort("overwrite")):
+            if self.get_input("overwrite"):
                 try:
                     if os.path.isfile(full_path):
                         os.remove(full_path)
@@ -556,7 +546,9 @@ class DirectorySink(NotCacheable, Module):
                 except OSError, e:
                     msg = ('Could not delete existing path "%s" '
                            '(overwrite on)' % full_path)
-                    raise ModuleError(self, msg + '\n' + str(e))
+                    raise ModuleError(
+                            self,
+                            '%s\n%s' % (msg, format_exception(e)))
             else:
                 msg = ('Could not write to existing path "%s" '
                        '(overwrite off)' % full_path)
@@ -567,20 +559,24 @@ class DirectorySink(NotCacheable, Module):
         except OSError, e:
             msg = 'Could not copy path from "%s" to "%s"' % \
                 (input_dir.name, full_path)
-            raise ModuleError(self, msg + '\n' + str(e))
+            raise ModuleError(self, '%s\n%s' % (msg, format_exception(e)))
 
 ##############################################################################
 
 class WriteFile(Converter):
     """Writes a String to a temporary File.
     """
+    _input_ports = [IPort('in_value', String),
+                    IPort('suffix', String, optional=True, default="")]
+    _output_ports = [OPort('out_value', File)]
+
     def compute(self):
-        contents = self.getInputFromPort('in_value')
-        suffix = self.forceGetInputFromPort('suffix', '')
+        contents = self.get_input('in_value')
+        suffix = self.force_get_input('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
         with open(result.name, 'wb') as fp:
             fp.write(contents)
-        self.setResult('out_value', result)
+        self.set_output('out_value', result)
 
 ##############################################################################
 
@@ -589,11 +585,24 @@ class Color(Constant):
     # contains a tuple because a tuple would be interpreted as a
     # type(tuple) which messes with the interpreter
 
-    def __init__(self):
-        Constant.__init__(self)
-    
+    _settings = ModuleSettings(constant_widgets=[
+        '%s:ColorWidget' % constant_config_path, 
+        ConstantWidgetConfig('%s:ColorEnumWidget' % \
+                             constant_config_path, 
+                             widget_type='enum'),
+        QueryWidgetConfig('%s:ColorQueryWidget' % \
+                          query_config_path),
+        ParamExpWidgetConfig('%s:RGBExploreWidget' % \
+                             paramexp_config_path,
+                             widget_type='rgb'),
+        ParamExpWidgetConfig('%s:HSVExploreWidget' % \
+                             paramexp_config_path,
+                             widget_type='hsv')])
+    _input_ports = [IPort("value", "Color")]
+    _output_ports = [OPort("value", "Color")]
+
     default_value = InstanceObject(tuple=(1,1,1))
-        
+
     @staticmethod
     def translate_to_python(x):
         return InstanceObject(
@@ -609,20 +618,7 @@ class Color(Constant):
 
     @staticmethod
     def to_string(r, g, b):
-        return "%s,%s,%s" % (r,g,b)
-
-    @staticmethod
-    def get_widget_class():
-        return ("vistrails.gui.modules.constant_configuration", "ColorWidget")
-        
-    @staticmethod
-    def get_query_widget_class():
-        return ("vistrails.gui.modules.query_configuration", "ColorQueryWidget")
-
-    @staticmethod
-    def get_param_explore_widget_list():
-        return [('vistrails.gui.modules.paramexplore', 'RGBExploreWidget'),
-                ('vistrails.gui.modules.paramexplore', 'HSVExploreWidget')]
+        return "%s,%s,%s" % (r,g,b)        
 
     @staticmethod
     def query_compute(value_a, value_b, query_method):
@@ -701,9 +697,11 @@ class StandardOutput(NotCacheable, Module):
     """StandardOutput is a VisTrails Module that simply prints the
     value connected on its port to standard output. It is intended
     mostly as a debugging device."""
+
+    _input_ports = [IPort("value", Module)]
     
     def compute(self):
-        v = self.getInputFromPort("value")
+        v = self.get_input("value")
         print v
 
 ##############################################################################
@@ -716,34 +714,41 @@ class Tuple(Module):
     integrated with the rest of VisTrails, so don't use it unless
     you know what you're doing."""
 
+    _settings = ModuleSettings(configure_widget=
+        "vistrails.gui.modules.tuple_configuration:TupleConfigurationWidget")
+
     def __init__(self):
         Module.__init__(self)
         self.input_ports_order = []
         self.values = tuple()
 
     def compute(self):
-        values = tuple([self.getInputFromPort(p)
+        values = tuple([self.get_input(p)
                         for p in self.input_ports_order])
         self.values = values
-        self.setResult("value", values)
+        self.set_output("value", values)
 
 class Untuple(Module):
     """Untuple takes a tuple and returns the individual values.  It
     reverses the actions of Tuple.
 
     """
+
+    _settings = ModuleSettings(configure_widget=
+        "vistrails.gui.modules.tuple_configuration:UntupleConfigurationWidget")
+
     def __init__(self):
         Module.__init__(self)
         self.output_ports_order = []
 
     def compute(self):
-        if self.hasInputFromPort("tuple"):
-            tuple = self.getInputFromPort("tuple")
+        if self.has_input("tuple"):
+            tuple = self.get_input("tuple")
             values = tuple.values
         else:
-            values = self.getInputFromPort("value")
+            values = self.get_input("value")
         for p, value in izip(self.output_ports_order, values):
-            self.setResult(p, value)
+            self.set_output(p, value)
 
 ##############################################################################
 
@@ -757,26 +762,31 @@ class ConcatenateString(Module):
     future."""
 
     fieldCount = 4
+    _input_ports = [IPort("str%d" % (i+1), "String") 
+                    for i in xrange(fieldCount)]
+    _output_ports = [OPort("value", "String")]
 
     def compute(self):
         result = ""
         for i in xrange(self.fieldCount):
             v = i+1
             port = "str%s" % v
-            if self.hasInputFromPort(port):
-                inp = self.getInputFromPort(port)
+            if self.has_input(port):
+                inp = self.get_input(port)
                 result += inp
-        self.setResult("value", result)
+        self.set_output("value", result)
 
 ##############################################################################
 
 class Not(Module):
     """Not inverts a Boolean.
     """
+    _input_ports = [IPort('input', 'Boolean')]
+    _output_ports = [OPort('value', 'Boolean')]
 
     def compute(self):
-        value = self.getInputFromPort('input')
-        self.setResult('value', not value)
+        value = self.get_input('input')
+        self.set_output('value', not value)
 
 ##############################################################################
 # List
@@ -794,6 +804,13 @@ else:
     ListType.register(numpy.ndarray)
 
 class List(Constant):
+    _settings = ModuleSettings(configure_widget=
+        "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
+    _input_ports = [IPort("value", "List"),
+                    IPort("head", "Module"),
+                    IPort("tail", "List")]
+    _output_ports = [OPort("value", "List")]
+
     default_value = []
 
     def __init__(self):
@@ -826,28 +843,25 @@ class List(Constant):
         head, middle, items, tail = [], [], [], []
         got_value = False
 
-        if self.hasInputFromPort('value'):
+        if self.has_input('value'):
             # run the regular compute here
             Constant.compute(self)
             middle = self.outputPorts['value']
             got_value = True
-        if self.hasInputFromPort('head'):
-            head = self.getInputListFromPort('head')
+        if self.has_input('head'):
+            head = self.get_input_list('head')
             got_value = True
         if self.input_ports_order:
-            items = [self.getInputFromPort(p)
+            items = [self.get_input(p)
                      for p in self.input_ports_order]
             got_value = True
-        if self.hasInputFromPort('tail'):
-            tail = self.getInputFromPort('tail')
+        if self.has_input('tail'):
+            tail = self.get_input('tail')
             got_value = True
 
         if not got_value:
-            self.getInputFromPort('value')
-        self.setResult('value', head + middle + items + tail)
-
-List._input_ports = [('value', List)]
-List._output_ports = [('value', List)]
+            self.get_input('value')
+        self.set_output('value', head + middle + items + tail)
 
 ##############################################################################
 # Dictionary
@@ -858,38 +872,45 @@ def dict_conv(v):
 
 def dict_compute(self):
     d = {}
-    if self.hasInputFromPort('value'):
+    if self.has_input('value'):
         Constant.compute(self)
         d.update(self.outputPorts['value'])
-    if self.hasInputFromPort('addPair'):
-        pairs_list = self.getInputListFromPort('addPair')
+    if self.has_input('addPair'):
+        pairs_list = self.get_input_list('addPair')
         d.update(pairs_list)
-    if self.hasInputFromPort('addPairs'):
-        d.update(self.getInputFromPort('addPairs'))
+    if self.has_input('addPairs'):
+        d.update(self.get_input('addPairs'))
         
-    self.setResult("value", d)
+    self.set_output("value", d)
         
 Dictionary = new_constant('Dictionary', staticmethod(dict_conv),
                           {}, staticmethod(lambda x: isinstance(x, dict)),
                           compute=dict_compute)
+Dictionary._input_ports.extend([CIPort("addPair", "Module, Module"),
+                                IPort("addPairs", "List")])
 
 ##############################################################################
 
 # TODO: Null should be a subclass of Constant?
 class Null(Module):
     """Null is the class of None values."""
-    
+    _settings = ModuleSettings(hide_descriptor=True)
+
     def compute(self):
-        self.setResult("value", None)
+        self.set_output("value", None)
 
 ##############################################################################
 
 class Unpickle(Module):
     """Unpickles a string.
     """
+    _settings = ModuleSettings(hide_descriptor=True)
+    _input_ports = [IPort('input', 'String')]
+    _output_ports = [OPort('result', 'Variant')]
+
     def compute(self):
-        value = self.getInputFromPort('input')
-        self.setResult('result', pickle.loads(value))
+        value = self.get_input('input')
+        self.set_output('result', pickle.loads(value))
 
 ##############################################################################
 
@@ -913,7 +934,7 @@ class CodeRunnerMixin(object):
         locals_ = locals()
         if use_input:
             for k in self.inputPorts:
-                locals_[k] = self.getInputFromPort(k)
+                locals_[k] = self.get_input(k)
         if use_output:
             for output_portname in self.output_ports_order:
                 locals_[output_portname] = None
@@ -930,7 +951,7 @@ class CodeRunnerMixin(object):
         if use_output:
             for k in self.output_ports_order:
                 if locals_.get(k) != None:
-                    self.setResult(k, locals_[k])
+                    self.set_output(k, locals_[k])
 
 ##############################################################################
 
@@ -947,15 +968,21 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     If you want a PythonSource execution to be cached, call
     cache_this().
     """
+    _settings = ModuleSettings(
+        configure_widget=("vistrails.gui.modules.python_source_configure:"
+                             "PythonSourceConfigurationWidget"))
+    _input_ports = [IPort('source', 'String', optional=True, default=""),
+                    IPort('execution_targets', 'List')]
+    _output_pors = [OPort('self', 'Module')]
 
     def compute(self):
-        s = urllib.unquote(str(self.getInputFromPort('source')))
+        s = urllib.unquote(str(self.get_input('source')))
         self.run_code(s, use_input=True, use_output=True)
 
     def update(self):
         self.logging.begin_update(self)
-        self.updateUpstream(self.execution_target_ready, ['execution_targets'],
-                            Module.UPDATE_UPSTREAM_PRIORITY)
+        self.update_upstream(self.execution_target_ready, ['execution_targets'],
+                             Module.UPDATE_UPSTREAM_PRIORITY)
 
     def execution_target_ready(self, connectors):
         if connectors:
@@ -972,11 +999,15 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
         for port, connectorList in self.inputPorts.iteritems():
             if port != 'execution_targets':
                 other_connectors.extend(connectorList)
-        self.updateUpstream(targets=other_connectors)
+        self.update_upstream(targets=other_connectors)
 
 ##############################################################################
 
 class SmartSource(NotCacheable, Module):
+    _settings = ModuleSettings(
+        configure_widget=("vistrails.gui.modules.python_source_configure:"
+                             "PythonSourceConfigurationWidget"))
+    _input_ports = [IPort('source', 'String', optional=True, default="")]
 
     def run_code(self, code_str,
                  use_input=False,
@@ -989,7 +1020,7 @@ class SmartSource(NotCacheable, Module):
         locals_ = locals()
 
         def smart_input_entry(k):
-            v = self.getInputFromPort(k)
+            v = self.get_input(k)
             if isinstance(v, Module) and hasattr(v, 'get_source'):
                 v = v.get_source()
             return (k, v)
@@ -1049,10 +1080,10 @@ class SmartSource(NotCacheable, Module):
                             vt_instance = vt_class()
                             vt_instance.set_source(v)
                             v = vt_instance
-                    self.setResult(k, v)
+                    self.set_output(k, v)
 
     def compute(self):
-        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        s = urllib.unquote(str(self.force_get_input('source', '')))
         self.run_code(s, use_input=True, use_output=True)
 
 ##############################################################################
@@ -1074,15 +1105,17 @@ def zip_extract_all_files(archive, output_path):
                     archive,
                     '-d', output_path]))
 
-
 class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
+    _input_ports = [IPort('archive_file', 'File'),
+                    IPort('filename_in_archive', 'String')]
+    _output_ports = [OPort('file', 'File')]
 
     def compute(self):
-        self.checkInputPort("archive_file")
-        self.checkInputPort("filename_in_archive")
-        filename_in_archive = self.getInputFromPort("filename_in_archive")
-        archive_file = self.getInputFromPort("archive_file")
+        self.check_input("archive_file")
+        self.check_input("filename_in_archive")
+        filename_in_archive = self.get_input("filename_in_archive")
+        archive_file = self.get_input("archive_file")
         if not os.path.isfile(archive_file.name):
             raise ModuleError(self, "archive file does not exist")
         suffix = self.interpreter.filePool.guess_suffix(filename_in_archive)
@@ -1092,15 +1125,17 @@ class Unzip(Module):
                              output.name)
         if s != 0:
             raise ModuleError(self, "unzip command failed with status %d" % s)
-        self.setResult("file", output)
+        self.set_output("file", output)
 
 
 class UnzipDirectory(Module):
     """UnzipDirectory extracts every file from a ZIP archive."""
+    _input_ports = [IPort('archive_file', 'File')]
+    _output_ports = [OPort('directory', 'Directory')]
 
     def compute(self):
-        self.checkInputPort("archive_file")
-        archive_file = self.getInputFromPort("archive_file")
+        self.check_input("archive_file")
+        archive_file = self.get_input("archive_file")
         if not os.path.isfile(archive_file.name):
             raise ModuleError(self, "archive file does not exist")
         output = self.interpreter.filePool.create_directory()
@@ -1108,26 +1143,35 @@ class UnzipDirectory(Module):
                                   output.name)
         if s != 0:
             raise ModuleError(self, "unzip command failed with status %d" % s)
-        self.setResult("directory", output)
+        self.set_output("directory", output)
 
 ##############################################################################
 
 class Round(Converter):
     """Turns a Float into an Integer.
     """
+    _settings = ModuleSettings(hide_descriptor=True)
+    _input_ports = [IPort('in_value', 'Float'),
+                    IPort('floor', 'Boolean', optional=True, default="True")]
+    _output_ports = [OPort('out_value', 'Integer')]
+
     def compute(self):
-        fl = self.getInputFromPort('in_value')
-        floor = self.getInputFromPort('floor')
+        fl = self.get_input('in_value')
+        floor = self.get_input('floor')
         if floor:
             integ = int(fl)         # just strip the decimals
         else:
             integ = int(fl + 0.5)   # nearest
-        self.setResult('out_value', integ)
+        self.set_output('out_value', integ)
 
 
 class TupleToList(Converter):
     """Turns a Tuple into a List.
     """
+    _settings = ModuleSettings(hide_descriptor=True)
+    _input_ports = [IPort('in_value', 'Variant')]
+    _output_ports = [OPort('out_value', 'List')]
+    
     @classmethod
     def can_convert(cls, sub_descs, super_descs):
         if len(sub_descs) <= 1:
@@ -1136,10 +1180,10 @@ class TupleToList(Converter):
         return super_descs == [reg.get_descriptor(List)]
 
     def compute(self):
-        tu = self.getInputFromPort('in_value')
+        tu = self.get_input('in_value')
         if not isinstance(tu, tuple):
             raise ModuleError(self, "Input is not a tuple")
-        self.setResult('out_value', list(tu))
+        self.set_output('out_value', list(tu))
 
 ##############################################################################
     
@@ -1149,7 +1193,7 @@ class Variant(Module):
     output port. For input port, Module type should be used
     
     """
-    pass
+    _settings = ModuleSettings(abstract=True)
 
 ##############################################################################
 
@@ -1157,8 +1201,10 @@ class Assert(Module):
     """
     Assert is a simple module that conditionally stops the execution.
     """
+    _input_ports = [IPort('condition', 'Boolean')]
+
     def compute(self):
-        condition = self.getInputFromPort('condition')
+        condition = self.get_input('condition')
         if not condition:
             raise ModuleError(self, "Assert: condition is False",
                               abort=True)
@@ -1170,12 +1216,60 @@ class AssertEqual(Module):
 
     It is provided for convenience.
     """
+
+    _input_ports = [IPort('value1', 'Module'),
+                    IPort('value2', 'Module')]
+
     def compute(self):
-        values = (self.getInputFromPort('value1'),
-                  self.getInputFromPort('value2'))
+        values = (self.get_input('value1'),
+                  self.get_input('value2'))
         if values[0] != values[1]:
             raise ModuleError(self, "AssertEqual: values are different",
                               abort=True)
+
+##############################################################################
+
+class StringFormat(Module):
+    """
+    Builds a string from objects using Python's str.format().
+    """
+    _settings = ModuleSettings(configure_widget=
+        'vistrails.gui.modules.stringformat_configuration:'
+            'StringFormatConfigurationWidget')
+    _input_ports = [IPort('format', String)]
+    _output_ports = [OPort('value', String)]
+
+    @staticmethod
+    def list_placeholders(fmt):
+        placeholders = set()
+        nb = 0
+        i = 0
+        n = len(fmt)
+        while i < n:
+            if fmt[i] == '{':
+                i += 1
+                if fmt[i] == '}': # KeyError
+                    nb += 1
+                elif fmt[i] != '{': # KeyError
+                    e = fmt.index('}', i + 1) # KeyError
+                    f = e
+                    for c in (':', '!', '[', '.'):
+                        c = fmt.find(c, i + 1)
+                        if c != -1:
+                            f = min(f, c)
+                    placeholders.add(fmt[i:f])
+                    i = e
+            i += 1
+        return nb, placeholders
+
+    def compute(self):
+        fmt = self.get_input('format')
+        args, kwargs = StringFormat.list_placeholders(fmt)
+        f_args = [self.get_input('_%d' % n)
+                  for n in xrange(args)]
+        f_kwargs = dict((n, self.get_input(n))
+                        for n in kwargs)
+        self.set_output('value', fmt.format(*f_args, **f_kwargs))
 
 ##############################################################################
 
@@ -1185,155 +1279,14 @@ def init_constant(m):
     reg.add_module(m)
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
-    
+
+_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual, StringFormat]
+
 def initialize(*args, **kwargs):
-    reg = get_module_registry()
-
-    # !!! is_root should only be set for Module !!!
-    reg.add_module(Module, is_root=True, abstract=True)
-    reg.add_output_port(Module, "self", Module, optional=True)
-
-    reg.add_module(Converter, abstract=True)
-    reg.add_input_port(Converter, 'in_value', Module)
-    reg.add_output_port(Converter, 'out_value', Module)
-
-    reg.add_module(Constant, abstract=True)
-
-    reg.add_module(Boolean)
-    reg.add_module(Float)
-    reg.add_module(Integer)
-    reg.add_module(String,
-                   configureWidgetType=("vistrails.gui.modules.string_configure",
-                                        "TextConfigurationWidget"))
-    
-    reg.add_output_port(Constant, "value_as_string", String)
-    reg.add_output_port(String, "value_as_string", String, True)
-
-    reg.add_module(List,
-                   configureWidgetType=(
-                           "vistrails.gui.modules.list_configuration",
-                           "ListConfigurationWidget"))
-    reg.add_input_port(List, "head", Module)
-    reg.add_input_port(List, "tail", List)
-
-    reg.add_module(Path)
-    reg.add_input_port(Path, "value", Path)
-    reg.add_output_port(Path, "value", Path)
-    reg.add_input_port(Path, "name", String, True)
-
-    reg.add_module(File, constantSignatureCallable=path_parameter_hasher)
-    reg.add_input_port(File, "value", File)
-    reg.add_output_port(File, "value", File)
-    reg.add_output_port(File, "self", File, True)
-    reg.add_input_port(File, "create_file", Boolean, True)
-    reg.add_output_port(File, "local_filename", String, True)
-
-    reg.add_module(Directory, constantSignatureCallable=path_parameter_hasher)
-    reg.add_input_port(Directory, "value", Directory)
-    reg.add_output_port(Directory, "value", Directory)
-    reg.add_output_port(Directory, "itemList", List)
-    reg.add_input_port(Directory, "create_directory", Boolean, True)
-
-    reg.add_module(OutputPath)
-    reg.add_output_port(OutputPath, "value", OutputPath)
-
-    reg.add_module(FileSink)
-    reg.add_input_port(FileSink, "file", File)
-    reg.add_input_port(FileSink, "outputPath", OutputPath)
-    reg.add_input_port(FileSink, "overwrite", Boolean, True, 
-                       defaults="('True',)")
-    reg.add_input_port(FileSink,  "publishFile", Boolean, True)
-    
-    reg.add_module(DirectorySink)
-    reg.add_input_port(DirectorySink, "dir", Directory)
-    reg.add_input_port(DirectorySink, "outputPath", OutputPath)
-    reg.add_input_port(DirectorySink, "overwrite", Boolean, True, 
-                       defaults="('True',)")
-
-    reg.add_module(WriteFile)
-    reg.add_input_port(WriteFile, 'in_value', String)
-    reg.add_input_port(WriteFile, 'suffix', String, True, defaults='[""]')
-    reg.add_output_port(WriteFile, 'out_value', File)
-
-    reg.add_module(Color)
-    reg.add_input_port(Color, "value", Color)
-    reg.add_output_port(Color, "value", Color)
-
-    reg.add_module(StandardOutput)
-    reg.add_input_port(StandardOutput, "value", Module)
-
-    reg.add_module(Tuple, 
-                   configureWidgetType=("vistrails.gui.modules.tuple_configuration",
-                                        "TupleConfigurationWidget"))
-
-    reg.add_module(Untuple, 
-                   configureWidgetType=("vistrails.gui.modules.tuple_configuration",
-                                        "UntupleConfigurationWidget"))
-
-    reg.add_module(ConcatenateString)
-    for i in xrange(ConcatenateString.fieldCount):
-        j = i+1
-        port = "str%s" % j
-        reg.add_input_port(ConcatenateString, port, String)
-    reg.add_output_port(ConcatenateString, "value", String)
-
-    reg.add_module(Not)
-    reg.add_input_port(Not, 'input', Boolean)
-    reg.add_output_port(Not, 'value', Boolean)
-
-    reg.add_module(Dictionary)
-    reg.add_input_port(Dictionary, "addPair", [Module, Module])
-    reg.add_input_port(Dictionary, "addPairs", List)
-
-    reg.add_module(Null, hide_descriptor=True)
-
-    reg.add_module(Variant, abstract=True)
-
-    reg.add_module(Assert)
-    reg.add_input_port(Assert, 'condition', Boolean)
-
-    reg.add_module(AssertEqual)
-    reg.add_input_port(AssertEqual, 'value1', Module)
-    reg.add_input_port(AssertEqual, 'value2', Module)
-
-    reg.add_module(Unpickle, hide_descriptor=True)
-    reg.add_input_port(Unpickle, 'input', String)
-    reg.add_output_port(Unpickle, 'result', Variant)
-
-    reg.add_module(PythonSource,
-                   configureWidgetType=("vistrails.gui.modules.python_source_configure",
-                                        "PythonSourceConfigurationWidget"))
-    reg.add_input_port(PythonSource, 'source', String, True, defaults=str(['']))
-    reg.add_input_port(PythonSource, 'execution_targets', List)
-    reg.add_output_port(PythonSource, 'self', Module)
-
-    reg.add_module(SmartSource,
-                   configureWidgetType=("vistrails.gui.modules.python_source_configure",
-                                        "PythonSourceConfigurationWidget"))
-    reg.add_input_port(SmartSource, 'source', String, True, defaults=str(['']))
-
-    reg.add_module(Unzip)
-    reg.add_input_port(Unzip, 'archive_file', File)
-    reg.add_input_port(Unzip, 'filename_in_archive', String)
-    reg.add_output_port(Unzip, 'file', File)
-
-    reg.add_module(UnzipDirectory)
-    reg.add_input_port(UnzipDirectory, 'archive_file', File)
-    reg.add_output_port(UnzipDirectory, 'directory', Directory)
-
-    reg.add_module(Round, hide_descriptor=True)
-    reg.add_input_port(Round, 'in_value', Float)
-    reg.add_output_port(Round, 'out_value', Integer)
-    reg.add_input_port(Round, 'floor', Boolean, optional=True,
-                       defaults="('True',)")
-
-    reg.add_module(TupleToList, hide_descriptor=True)
-    reg.add_input_port(TupleToList, 'in_value', Variant)
-    reg.add_output_port(TupleToList, 'out_value', List)
-
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
-    vistrails.core.modules.sub_module.initialize(*args, **kwargs)
+    global _modules
+    _modules.extend(vistrails.core.modules.sub_module._modules)
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
@@ -1395,6 +1348,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
 ###############################################################################
 
+import sys
 import unittest
 
 class TestConcatenateString(unittest.TestCase):
@@ -1757,3 +1711,40 @@ class TestTypechecking(unittest.TestCase):
                 (1, 'output', 'r',
                  'org.vistrails.vistrails.basic:String'),
             ])
+
+
+class TestStringFormat(unittest.TestCase):
+    def test_list_placeholders(self):
+        fmt = 'a {} b}} {c!s} {{d e}} {}f'
+        self.assertEqual(StringFormat.list_placeholders(fmt),
+                         (2, set(['c'])))
+
+    def run_format(self, fmt, expected, **kwargs):
+        from vistrails.tests.utils import execute, intercept_result
+        functions = [('format', [('String', fmt)])]
+        functions.extend((n, [(t, v)])
+                         for n, (t, v) in kwargs.iteritems())
+        with intercept_result(StringFormat, 'value') as results:
+            self.assertFalse(execute([
+                    ('StringFormat', 'org.vistrails.vistrails.basic',
+                     functions),
+                ],
+                add_port_specs=[
+                    (0, 'input', n, t)
+                    for n, (t, v) in kwargs.iteritems()
+                ]))
+        self.assertEqual(results, [expected])
+
+    def test_format(self):
+        self.run_format('{{ {a} }} b {c!s}', '{ 42 } b 12',
+                        a=('Integer', '42'),
+                        c=('Integer', '12'))
+
+    # Python 2.6 doesn't support {}
+    @unittest.skipIf(sys.version_info < (2, 7), "No {} support on 2.6")
+    def test_format_27(self):
+        self.run_format('{} {}', 'a b',
+                        _0=('String', 'a'), _1=('String', 'b'))
+        self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',
+                        a=('Integer', '42'), _0=('String', 'b'),
+                        b=('Integer', '12'))

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -66,11 +66,11 @@ class Fold(Module):
         self.partialResult = self.initialValue
         self.elementResult = None
 
-        for element in self.getInputFromPort('InputList'):
+        for element in self.get_input('InputList'):
             self.element = element
             self.operation()
 
-        self.setResult('Result', self.partialResult)
+        self.set_output('Result', self.partialResult)
 
     def setInitialValue(self): # pragma: no cover
         """This method defines the initial value of the Fold structure. It must
@@ -115,14 +115,14 @@ class FoldWithModule(Fold):
                 for connector in connectorList:
                     mod, port = connector.obj, connector.port
                     if mod.get_output(port) is InvalidOutput: # pragma: no cover
-                        self.removeInputConnector(port_name, connector)
+                        self.remove_input_connector(port_name, connector)
 
         self.setInitialValue()
         self.partialResult = self.initialValue
         self.elementResult = None
 
-        input_port = self.getInputFromPort('InputPort')
-        input_list = self.getInputFromPort('InputList')
+        input_port = self.get_input('InputPort')
+        input_list = self.get_input('InputList')
 
         if len(input_port) == 1:
             input_list = [[element] for element in input_list]
@@ -151,7 +151,7 @@ class FoldWithModule(Fold):
                 module.computed = False
                 self.setInputValues(module, input_port, element)
                 module.serialized_outputports = [
-                        self.getInputFromPort('OutputPort')]
+                        self.get_input('OutputPort')]
 
                 self.loop_logging.begin_iteration(module, i)
 
@@ -166,7 +166,7 @@ class FoldWithModule(Fold):
 
     def functions_ready(self):
         self.done()
-        output_port = self.getInputFromPort('OutputPort')
+        output_port = self.get_input('OutputPort')
 
         for module, element in self.modules_to_run:
             self.loop_logging.end_iteration(module)
@@ -188,7 +188,7 @@ class FoldWithModule(Fold):
             self.elementResult = module.get_output(output_port)
             self.operation()
 
-        self.setResult('Result', self.partialResult)
+        self.set_output('Result', self.partialResult)
 
         self.upToDate = True
         self.loop_logging.end_loop_execution()
@@ -266,7 +266,7 @@ class NewConstant(Constant):
     A new Constant module to be used inside the FoldWithModule module.
     """
     def setValue(self, v):
-        self.setResult("value", v)
+        self.set_output("value", v)
         self.upToDate = True
 
 def create_constant(value):

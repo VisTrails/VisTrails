@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -198,6 +198,10 @@ The builder window can be accessed by a spreadsheet menu option.")
             dest='installBundles',
             help=("Do not try to install missing Python packages "
                   "automatically"))
+        add("--runJob", action="store",
+            help=("Run job with specified id."))
+        add("--listJobs", action="store_true",
+            help=("List all jobs."))
         add('--spawned-mode', '--spawned', action='store_true',
             dest='spawned',
             help=("Do not use the .vistrails directory, and load packages "
@@ -279,6 +283,9 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.useCache = bool(get('cache'))
         if get('verbose')!=None:
             self.temp_configuration.verbosenessLevel = get('verbose')
+            dbg = debug.DebugPrint.getInstance()
+            levels = [dbg.WARNING, dbg.INFO, dbg.DEBUG]
+            dbg.set_message_level(levels[get('verbose')])
         if get('fixedcells') != None:
             self.temp_configuration.fixedSpreadsheetCells = str(get('fixedcells'))
         if get('noninteractive')!=None:
@@ -327,6 +334,10 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.singleInstance = not bool(get('noSingleInstance'))
         if get('installBundles')!=None:
             self.temp_configuration.installBundles = bool(get('installBundles'))
+        if get('runJob')!=None:
+            self.temp_configuration.jobRun = get('runJob')
+        if get('listJobs')!=None:
+            self.temp_configuration.jobList = bool(get('listJobs'))
         self.input = command_line.CommandLineParser().positional_arguments()
 
     def init(self, optionsDict=None, args=None):
@@ -427,9 +438,11 @@ The builder window can be accessed by a spreadsheet menu option.")
         require_executable('unzip')
 
     def get_python_environment(self):
-        """get_python_environment(): returns an environment that
-includes local definitions from startup.py. Should only be called
-after self.init()"""
+        """get_python_environment(): returns an environment that includes
+        local definitions from startup.py. Should only be called after
+        self.init()
+
+        """
         return self._python_environment
 
     def destroy(self):
@@ -533,6 +546,8 @@ after self.init()"""
                         mashuptrail = locator._mshptrail
                     if hasattr(locator, '_mshpversion'):
                         mashupversion = locator._mshpversion
+                        if mashupversion:
+                            execute = True
                     if not self.temp_configuration.showSpreadsheetOnly:
                         self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
@@ -686,10 +701,11 @@ after self.init()"""
                 collection.commit()
             except VistrailsDBException, e:
                 import traceback
-                debug.critical(str(e), traceback.format_exc())
+                debug.critical("Exception from the database",
+                               traceback.format_exc())
                 return None
             except Exception, e:
-                # debug.critical('An error has occurred', str(e))
+                #debug.critical('An error has occurred', e)
                 #print "An error has occurred", str(e)
                 raise
 
@@ -698,6 +714,8 @@ after self.init()"""
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
+        # flush in case version was upgraded
+        controller.flush_delayed_actions()
         return True
         
     def open_workflow(self, locator):
@@ -724,10 +742,11 @@ after self.init()"""
                 controller = self.add_vistrail(vistrail, locator)
         except VistrailsDBException, e:
             import traceback
-            debug.critical(str(e), traceback.format_exc())
+            debug.critical("Exception from the database",
+                           traceback.format_exc())
             return None
         except Exception, e:
-            # debug.critical('An error has occurred', str(e))
+            #debug.critical('An error has occurred', e)
             raise
 
         controller.select_latest_version()
@@ -750,10 +769,9 @@ after self.init()"""
 
         try:
             controller.write_vistrail(locator, export=export)
-        except Exception, e:
+        except Exception:
             import traceback
-            debug.critical('Failed to save vistrail: %s' % str(e),
-                           traceback.format_exc())
+            debug.critical("Failed to save vistrail", traceback.format_exc())
             raise
         if export:
             return controller.locator

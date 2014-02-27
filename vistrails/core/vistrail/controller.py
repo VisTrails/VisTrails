@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,6 +46,7 @@ import vistrails.core.db.locator
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.interpreter.job import JobMonitor
 from vistrails.core.layout.workflow_layout import WorkflowLayout, \
     Pipeline as LayoutPipeline, Defaults as LayoutDefaults
 from vistrails.core.log.controller import LogController, DummyLogController
@@ -241,8 +242,7 @@ class VistrailController(object):
         if not self.vistrail.is_abstraction:
             self.unload_abstractions()
         if locator is not None:
-            if isinstance(locator, vistrails.core.db.locator.XMLFileLocator):
-                locator.clean_temporaries()
+            locator.clean_temporaries()
             locator.close()
 
     def cleanup(self):
@@ -1282,6 +1282,8 @@ class VistrailController(object):
         op_list.append(('add', group))
         op_list.extend(('add', c) for c in connections)
         action = vistrails.core.db.action.create_action(op_list)
+        self.set_action_annotation(action, Action.ANNOTATION_DESCRIPTION,
+                                   "Grouped modules")
         self.add_new_action(action)
 #         for op in action.operations:
 #             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
@@ -1348,6 +1350,8 @@ class VistrailController(object):
         op_list.extend(('add', m) for m in modules)
         op_list.extend(('add', c) for c in connections)
         action = vistrails.core.db.action.create_action(op_list)
+        self.set_action_annotation(action, Action.ANNOTATION_DESCRIPTION,
+                                   "Ungrouped modules")
         self.add_new_action(action)
         res = self.perform_action(action)
         self.validate(self.current_pipeline, False)
@@ -2256,15 +2260,23 @@ class VistrailController(object):
                                 abstractions[key] = []
                             abstractions[key].append(abstraction)
         if recurse:
-            for abstraction_list in abstractions.itervalues():
-                for abstraction in abstraction_list:
+            for abstraction_list in abstractions.values():
+                for abstraction in abstraction_list[:]:
                     try:
                         vistrail = abstraction.vistrail
                     except MissingPackageVersion, e:
-                        reg = vistrails.core.modules.module_registry.get_module_registry()
-                        abstraction._module_descriptor = \
-                            reg.get_similar_descriptor(*abstraction.descriptor_info)
-                        vistrail = abstraction.vistrail
+                        try:
+                            reg = vistrails.core.modules.module_registry.get_module_registry()
+                            abstraction._module_descriptor = \
+                                reg.get_similar_descriptor(
+                                                 *abstraction.descriptor_info)
+                            vistrail = abstraction.vistrail
+                        except Exception, e:
+                            # ignore because there will be a load attempt later 
+                            continue
+                    except Exception, e:
+                        # ignore because there will be a load attempt later 
+                        continue
                     r_abstractions = self.find_abstractions(vistrail, recurse)
                     for k,v in r_abstractions.iteritems():
                         if k not in abstractions:
@@ -2347,13 +2359,16 @@ class VistrailController(object):
         abstractions = self.find_abstractions(vistrail)
         for descriptor_info, abstraction_list in abstractions.iteritems():
             # print 'checking for abstraction "' + str(abstraction.name) + '"'
-            descriptor = self.check_abstraction(descriptor_info,
-                                                lookup)
-            for abstraction in abstraction_list:
-                abstraction.module_descriptor = descriptor
-            
-    def build_ungroup(self, full_pipeline, module_id):
+            try:
+                descriptor = self.check_abstraction(descriptor_info,
+                                                    lookup)
+                for abstraction in abstraction_list:
+                    abstraction.module_descriptor = descriptor
+            except InvalidPipeline, e:
+                debug.critical("Error loading abstraction '%s'" %
+                               descriptor_info[1], e)
 
+    def build_ungroup(self, full_pipeline, module_id):
         group = full_pipeline.modules[module_id]
         if group.vtType == Group.vtType:
             pipeline = group.pipeline
@@ -2362,57 +2377,55 @@ class VistrailController(object):
         else:
             print 'not a group or abstraction?'
             return
-      
+
         pipeline.ensure_connection_specs()
 
+        # First, we copy all the modules from inside the group pipeline to the
+        # outer pipeline.
+        # We skip the InputPort and OutputPort modules, which we add to
+        # port_modules instead.
+        port_modules = set()
         modules = []
         connections = []
         id_remap = {}
         for module in pipeline.module_list:
-            # FIXME have better checks for this
-            if module.package != basic_pkg or (module.name != 'InputPort' and
-                                               module.name != 'OutputPort'):
+            if module.package == basic_pkg and (module.name == 'InputPort' or
+                                                module.name == 'OutputPort'):
+                if module.name == 'InputPort':
+                    port_modules.add((module, 'input'))
+                else:
+                    port_modules.add((module, 'output'))
+            else:
                 modules.append(module.do_copy(True, self.id_scope, id_remap))
-        self.translate_modules(modules, -group.location.x, -group.location.y)
         module_index = dict([(m.id, m) for m in modules])
 
+        # If the connection was to/from an OutputPort/InputPort module, we
+        # store the association in open_ports so we can reconnect these to the
+        # outside later.
+        # We also add them to the unconnected_port_modules dictionary.
         open_ports = {}
-        for connection in pipeline.connection_list:
-            all_inside = True
-            all_outside = True
-            for port in connection.ports:
-                if (Module.vtType, port.moduleId) not in id_remap:
-                    all_inside = False
-                else:
-                    all_outside = False
-            
-            if all_inside:
-                connections.append(connection.do_copy(True, self.id_scope, 
-                                                      id_remap))
-            else:
-                if (Module.vtType, connection.source.moduleId) not in id_remap:
-                    port_module = \
-                        pipeline.modules[connection.source.moduleId]
-                    port_type = 'input'
-                elif (Module.vtType, connection.destination.moduleId) \
-                        not in id_remap:
-                    port_module = \
-                        pipeline.modules[connection.destination.moduleId]
-                    port_type = 'output'
-                else:
-                    continue
+        unconnected_port_modules = {}
+        for port_module, port_type in port_modules:
+            (port_name, _, _, neighbors) = \
+                group.get_port_spec_info(port_module)
+            new_neighbors = \
+                [(module_index[id_remap[(Module.vtType, m.id)]], n)
+                 for (m, n) in neighbors
+                 if (Module.vtType, m.id) in id_remap]
+            open_ports[(port_name, port_type)] = new_neighbors
+            unconnected_port_modules[(port_name, port_type)] = port_module
 
-                (port_name, _, _, neighbors) = \
-                    group.get_port_spec_info(port_module)
-                new_neighbors = \
-                    [(module_index[id_remap[(Module.vtType, m.id)]], n)
-                     for (m, n) in neighbors
-                     if (Module.vtType, m.id) in id_remap]
-                open_ports[(port_name, port_type)] = new_neighbors        
-
+        # Now iterate over the outer connections
+        # If the connection was between the outside and the group module, we
+        # connect to the actual destination instead, using the open_ports dict.
+        # We also remove the corresponding port from unconnected_port_modules.
         for connection in full_pipeline.connection_list:
             if connection.source.moduleId == group.id:
                 key = (connection.source.name, 'output')
+                try:
+                    del unconnected_port_modules[key]
+                except KeyError:
+                    pass
                 if key not in open_ports:
                     continue
                 neighbors = open_ports[key]
@@ -2426,6 +2439,10 @@ class VistrailController(object):
                                                               input_port))
             elif connection.destination.moduleId == group.id:
                 key = (connection.destination.name, 'input')
+                try:
+                    del unconnected_port_modules[key]
+                except KeyError:
+                    pass
                 if key not in open_ports:
                     continue
                 neighbors = open_ports[key]
@@ -2437,7 +2454,26 @@ class VistrailController(object):
                                                               output_port,
                                                               input_module, 
                                                               input_port))
-        # end for
+
+        # We are now left with unconnected_port_modules, a dictionary of
+        # InputPort and OutputPort modules for ports that are not connected
+        # to anything.
+        # We copy these modules over so that re-grouping will keep these ports.
+        for key, port_module in unconnected_port_modules.iteritems():
+            modules.append(port_module.do_copy(True, self.id_scope, id_remap))
+
+        # Center the group's modules on the old group's location
+        self.translate_modules(modules, -group.location.x, -group.location.y)
+
+        # Now copy the inner connections
+        # If the connection is between two modules that come from the group
+        # (all_inside is True), we copy it.
+        for connection in pipeline.connection_list:
+            all_inside = all((Module.vtType, port.moduleId) in id_remap
+                             for port in connection.ports)
+            if all_inside:
+                connections.append(connection.do_copy(True, self.id_scope,
+                                                      id_remap))
 
         return (modules, connections)
 
@@ -3029,7 +3065,8 @@ class VistrailController(object):
                 except MissingPackage:
                     # cannot get the package we need
                     continue
-                details = '\n'.join(str(e) for e in err_list)
+                details = '\n'.join(debug.format_exception(e)
+                                    for e in err_list)
                 debug.log('Processing upgrades in package "%s"' %
                           identifier, details)
                 if pkg.can_handle_all_errors():
@@ -3145,8 +3182,12 @@ class VistrailController(object):
                     # FIXME: we should move the remapping to the db layer
                     # But we need to fix the schema by making functions/params
                     # foreign keys
-                    mashup = mashup.do_copy(True, self.id_scope, mfp_remap)
-                    mashup.id = uuid.uuid1()
+
+                    #mashup = mashup.do_copy(True, self.id_scope, mfp_remap)
+                    #mashup.id = uuid.uuid1()
+                    # we move it to the new version so that references still work
+                    self._mashups.remove(mashup)
+                    
                     for action in mashup.actions:
                         for alias in action.mashup.aliases:
                             c = alias.component
@@ -3163,8 +3204,8 @@ class VistrailController(object):
                     
                     new_mashups.append(mashup)
                 else:
-                    debug.warning("Cannot translate old parameter "
-                                  "explorations through upgrade.")
+                    debug.warning("Cannot translate old mashup "
+                                  "through upgrade.")
             
             if get_vistrails_configuration().check('upgradeDelay') and not force_no_delay:
                 self._delayed_actions.append(upgrade_action)
@@ -3206,9 +3247,10 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
-            details = '\n'.join(set(str(e) for e in left_exceptions + \
-                                    new_exceptions))
-            # debug.critical("Some exceptions could not be handled", details)
+            #details = '\n'.join(set(debug.format_exception(e)
+            #                        for e in left_exceptions + new_exceptions))
+            #debug.critical("Some exceptions could not be handled",
+            #               *(left_exceptions + new_exceptions))
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)
         return (new_version, cur_pipeline)
@@ -3439,7 +3481,7 @@ class VistrailController(object):
                 process_err(e._exception_set.__iter__().next())
         except Exception, e:
             import traceback
-            debug.critical(str(e), traceback.format_exc())
+            debug.critical("Unhandled exception", traceback.format_exc())
 
     def write_temporary(self):
         if self.vistrail and self.changed:
@@ -3586,11 +3628,11 @@ class VistrailController(object):
                     # Load all abstractions from new namespaces
                     self.ensure_abstractions_loaded(new_vistrail, 
                                                     save_bundle.abstractions) 
+                    JobMonitor.getInstance().updateUrl(locator.to_url(),
+                                                       old_locator.to_url())
                     self.set_file_name(locator.name)
                     if old_locator and not export:
-                        if isinstance(old_locator,
-                                    vistrails.core.db.locator.XMLFileLocator):
-                            old_locator.clean_temporaries()
+                        old_locator.clean_temporaries()
                         old_locator.close()
                     self.flush_pipeline_cache()
                     self.change_selected_version(new_vistrail.db_currentVersion, 
@@ -3629,8 +3671,7 @@ class VistrailController(object):
                 if self.log:
                     self.log.delete_all_workflow_execs()
                 self.set_changed(False)
-                if isinstance(locator, vistrails.core.db.locator.XMLFileLocator):
-                    locator.clean_temporaries()
+                locator.clean_temporaries()
 
             # delete any temporary subworkflows
                 try:
@@ -3639,8 +3680,9 @@ class VistrailController(object):
                             os.remove(os.path.join(root, name))
                     os.rmdir(abs_save_dir)
                 except OSError, e:
-                    raise VistrailsDBException("Can't remove %s: %s" % \
-                                                   (abs_save_dir, str(e)))
+                    raise VistrailsDBException("Can't remove %s: %s" % (
+                                               abs_save_dir,
+                                               debug.format_exception(e)))
             return result
 
 
