@@ -35,7 +35,7 @@
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.url import URL
-from sqlalchemy.exc import NoSuchModuleError
+from sqlalchemy.exc import NoSuchModuleError, SQLAlchemyError
 import urllib
 
 from vistrails.core.bundles.installbundle import install
@@ -126,7 +126,7 @@ class DBConnection(Module):
                     "SQLAlchemy has no support for protocol %r -- are you "
                     "sure you spelled that correctly?" % url.drivername)
 
-        self.set_output('connection', engine)
+        self.set_output('connection', engine.connect())
 
 
 class SQLSource(Module):
@@ -145,16 +145,19 @@ class SQLSource(Module):
         if self.has_input('cacheResults'):
             cached = self.get_input('cacheResults')
             self.is_cacheable = lambda: cached
-        engine = self.get_input('connection')
+        connection = self.get_input('connection')
         inputs = [self.get_input(k) for k in self.inputPorts.iterkeys()
                   if k not in ('source', 'connection', 'cacheResults')]
         s = urllib.unquote(str(self.get_input('source')))
 
-        connection = engine.connect()
-        results = connection.execute(s, inputs)
-        table = TableObject.from_dicts((row for row in results), results.keys())
-        self.set_output('result', table)
-        connection.close()
+        try:
+            transaction = connection.begin()
+            results = connection.execute(s, inputs)
+            table = TableObject.from_dicts((row for row in results), results.keys())
+            self.set_output('result', table)
+            transaction.commit()
+        except SQLAlchemyError, e:
+            raise ModuleError(self, debug.format_exception(e))
 
 
 _modules = [DBConnection, SQLSource]
