@@ -35,7 +35,7 @@
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.url import URL
-from sqlalchemy.exc import NoSuchModuleError, SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 import urllib
 
 from vistrails.core.bundles.installbundle import install
@@ -121,7 +121,9 @@ class DBConnection(Module):
                 raise ModuleError(self,
                                   "Couldn't connect to the database: %s" %
                                   debug.format_exception(e))
-        except NoSuchModuleError:
+        except SQLAlchemyError:
+            # This is NoSuchModuleError in newer versions of SQLAlchemy but we
+            # want compatibility here
             raise ModuleError(
                     self,
                     "SQLAlchemy has no support for protocol %r -- are you "
