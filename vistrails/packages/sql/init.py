@@ -194,3 +194,72 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                                module_id,
                                                pipeline,
                                                module_remap)
+
+
+###############################################################################
+
+import unittest
+
+
+class TestSQL(unittest.TestCase):
+    def test_query_sqlite3(self):
+        """Queries a SQLite3 database.
+        """
+        import os
+        import sqlite3
+        import tempfile
+        import urllib2
+        from vistrails.tests.utils import execute, intercept_results
+        identifier = 'org.vistrails.vistrails.sql'
+
+        test_db_fd, test_db = tempfile.mkstemp(suffix='.sqlite3')
+        os.close(test_db_fd)
+        try:
+            conn = sqlite3.connect(test_db)
+            cur = conn.cursor()
+            cur.execute('''
+                    CREATE TABLE test(name VARCHAR(24) PRIMARY KEY,
+                                      lastname VARCHAR(32) NOT NULL,
+                                      age INTEGER NOT NULL)
+                    ''')
+            cur.executemany('''
+                    INSERT INTO test(name, lastname, age)
+                    VALUES(:name, :lastname, :age)
+                    ''',
+                    [{'name': 'John', 'lastname': 'Smith', 'age': 25},
+                     {'name': 'Lara', 'lastname': 'Croft', 'age': 21},
+                     {'name': 'Michael', 'lastname': 'Buck', 'age': 78}])
+            conn.commit()
+            conn.close()
+
+            source = "SELECT name, lastname, age FROM test WHERE age > :age"
+
+            with intercept_results(DBConnection, 'connection', SQLSource, 'result') as (connection, table):
+                self.assertFalse(execute([
+                        ('DBConnection', identifier, [
+                            ('protocol', [('String', 'sqlite')]),
+                            ('db_name', [('String', test_db)]),
+                        ]),
+                        ('SQLSource', identifier, [
+                            ('source', [('String', urllib2.quote(source))]),
+                            ('age', [('Integer', '22')]),
+                        ]),
+                    ],
+                    [
+                        (0, 'connection', 1, 'connection'),
+                    ],
+                    add_port_specs=[
+                        (1, 'input', 'age',
+                         'org.vistrails.vistrails.basic:Integer'),
+                    ]))
+
+            self.assertEqual(len(connection), 1)
+            connection[0].close()
+            self.assertEqual(len(table), 1)
+            table, = table
+            self.assertEqual(table.names, ['name', 'lastname', 'age'])
+            self.assertEqual((table.rows, table.columns), (2, 3))
+            self.assertEqual(set(table.get_column(1)),
+                             set(['Smith', 'Buck']))
+        finally:
+            os.remove(test_db)
