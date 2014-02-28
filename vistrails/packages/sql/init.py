@@ -39,6 +39,7 @@ from sqlalchemy.exc import NoSuchModuleError
 import urllib
 
 from vistrails.core.bundles.installbundle import install
+from vistrails.core import debug
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
@@ -72,7 +73,7 @@ class DBConnection(Module):
                   database=self.get_input('db_name'))
 
         try:
-            self.set_output('connection', create_engine(url))
+            engine = create_engine(url)
         except ImportError, e:
             driver = url.drivername
             installed = False
@@ -107,17 +108,25 @@ class DBConnection(Module):
                 installed = install({
                         'pip': 'cx_Oracle'})
             else:
-                raise ModuleError(
-                        self,
-                        "SQLAlchemy couldn't connect: %s" % e.message)
+                raise ModuleError(self,
+                                  "SQLAlchemy couldn't connect: %s" %
+                                  debug.format_exception(e))
             if not installed:
                 raise ModuleError(self,
                                   "Failed to install required driver")
+            try:
+                engine = create_engine(url)
+            except Exception, e:
+                raise ModuleError(self,
+                                  "Couldn't connect to the database: %s" %
+                                  debug.format_exception(e))
         except NoSuchModuleError:
             raise ModuleError(
                     self,
                     "SQLAlchemy has no support for protocol %r -- are you "
                     "sure you spelled that correctly?" % url.drivername)
+
+        self.set_output('connection', engine)
 
 
 class SQLSource(Module):
