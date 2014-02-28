@@ -42,6 +42,7 @@ from vistrails.core.bundles.installbundle import install
 from vistrails.core import debug
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 
 from vistrails.packages.tabledata.common import TableObject
 
@@ -161,3 +162,33 @@ class SQLSource(Module):
 
 
 _modules = [DBConnection, SQLSource]
+
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    # Before 0.0.3, SQLSource's resultSet output was type ListOfElements (which
+    #   doesn't exist anymore)
+    # In 0.0.3, SQLSource's resultSet output was type List
+    # In 0.1.0, SQLSource's output was renamed to result and is now a Table;
+    #   this is totally incompatible and thus no upgrade code is provided there
+
+    # Up to 0.0.3, DBConnection would ask for a password if one was necessary;
+    #   this behavior has not been kept. There is now a password input port, to
+    #   which you can connect a PasswordDialog from package dialogs if needed
+
+    module_remap = {
+            'DBConnection' :[
+                (None, '0.1.0', None, {
+                    # Renamed 'self' output port to 'connection'
+                    # This upgrade might break in some cases (like, if you
+                    # actually needed the Module, e.g. for controlflow) but
+                    # should generally be what we want
+                    'src_port_remap': {
+                        'self': 'connection'},
+                }),
+            ],
+        }
+
+    return UpgradeWorkflowHandler.remap_module(controller,
+                                               module_id,
+                                               pipeline,
+                                               module_remap)
