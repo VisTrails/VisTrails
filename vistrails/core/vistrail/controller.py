@@ -2416,7 +2416,7 @@ class VistrailController(object):
                 else:
                     continue
 
-                (port_name, _, _, neighbors) = \
+                (port_name, _, _, _, neighbors) = \
                     group.get_port_spec_info(port_module)
                 new_neighbors = \
                     [(module_index[id_remap[(Module.vtType, m.id)]], n)

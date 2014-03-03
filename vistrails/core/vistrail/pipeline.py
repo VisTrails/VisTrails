@@ -1185,8 +1185,10 @@ class Pipeline(DBWorkflow):
             for module_from_id, conn_id in self.graph.edges_to(module_id):
                 prev_depth = self.get_module_by_id(module_from_id).list_depth
                 conn = self.get_connection_by_id(conn_id)
-                source_depth = conn.source.spec.depth or 0
-                dest_depth = conn.destination.spec.depth or 0
+                source_depth = (conn.source.spec and
+                                conn.source.spec.depth) or 0
+                dest_depth = (conn.destination.spec and
+                              conn.destination.spec.depth) or 0
                 depth = prev_depth + source_depth - dest_depth
                 if depth > 0:
                     ports.append(conn.destination.spec.name)

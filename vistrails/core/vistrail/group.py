@@ -235,20 +235,20 @@ class Group(DBGroup, Module):
         registry = get_module_registry()
         for module in self.pipeline.module_list:
             if module.name == 'OutputPort' and module.package == basic_pkg:
-                (port_name, sigstring, optional, _) = \
+                (port_name, sigstring, optional, depth, _) = \
                     self.get_port_spec_info(module)
                 port_spec = registry.create_port_spec(port_name, 'output',
                                                       None, sigstring,
-                                                      optional)
+                                                      optional, depth=depth)
                 self._port_specs[(port_name, 'output')] = port_spec
                 self._output_port_specs.append(port_spec)
                 self._output_remap[port_name] = module
             elif module.name == 'InputPort' and module.package == basic_pkg:
-                (port_name, sigstring, optional, _) = \
+                (port_name, sigstring, optional, depth, _) = \
                     self.get_port_spec_info(module)
                 port_spec = registry.create_port_spec(port_name, 'input',
                                                       None, sigstring,
-                                                      optional)
+                                                      optional, depth=depth)
                 self._port_specs[(port_name, 'input')] = port_spec
                 self._input_port_specs.append(port_spec)
                 self._input_remap[port_name] = module

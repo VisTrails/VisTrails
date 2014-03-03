@@ -236,6 +236,7 @@ def coalesce_port_specs(neighbors, type):
     from vistrails.core.modules.basic_modules import identifier as basic_pkg
     reg = module_registry.get_module_registry()
     cur_descs = None
+    cur_depth = 0
     if type == 'input':
         find_common = reg.find_descriptor_subclass
         common_desc = reg.get_descriptor_by_name(basic_pkg, 'Variant')
@@ -249,13 +250,19 @@ def coalesce_port_specs(neighbors, type):
         if cur_descs is None:
             port_spec = module.get_port_spec(port_name, type)
             cur_descs = port_spec.descriptors()
+            cur_depth = port_spec.depth
         else:
             next_port_spec = module.get_port_spec(port_name, type)
             next_descs = next_port_spec.descriptors()
+            next_depth = next_port_spec.depth
             if len(cur_descs) != len(next_descs):
                 raise VistrailsInternalError("Cannot have single port "
                                              "connect to incompatible "
                                              "types")
+            if cur_depth != next_depth:
+                raise VistrailsInternalError("Cannot have single port "
+                                             "connect to types with "
+                                             "different list depth")
             descs = []
             for cur_desc, next_desc in izip(cur_descs, next_descs):
                 new_desc = find_common(cur_desc, next_desc)
@@ -263,11 +270,12 @@ def coalesce_port_specs(neighbors, type):
                     new_desc = common_desc
                 descs.append(new_desc)
             cur_descs = descs
+            
     if cur_descs:
         sigstring = '(' + ','.join(d.sigstring for d in cur_descs) + ')'
     else:
         sigstring = None
-    return sigstring
+    return (sigstring, cur_depth)
 
 def get_port_spec_info(pipeline, module):
     type_map = {'OutputPort': 'output', 'InputPort': 'input'}
@@ -292,7 +300,7 @@ def get_port_spec_info(pipeline, module):
     neighbors = [(pipeline.modules[m_id], get_port_name(c_id))
                  for (m_id, c_id) in get_edges(module.id)]
     port_name = neighbors[0][1]
-    sigstring = coalesce_port_specs(neighbors, type)
+    sigstring, depth = coalesce_port_specs(neighbors, type)
     old_name = port_name
     # sigstring = neighbor.get_port_spec(port_name, type).sigstring
 
@@ -304,7 +312,7 @@ def get_port_spec_info(pipeline, module):
         if function.name == 'optional':
             port_optional = function.params[0].strValue == 'True'
 #     print 'psi:', port_name, old_name, sigstring
-    return (port_name, sigstring, port_optional, neighbors)
+    return (port_name, sigstring, port_optional, depth, neighbors)
 
 ###############################################################################
 
@@ -425,19 +433,19 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     input_remap = {}
     output_remap = {}
     for module in input_modules:
-        (port_name, sigstring, optional, _) = \
+        (port_name, sigstring, optional, depth, _) = \
             get_port_spec_info(pipeline, module)
-        input_ports.append((port_name, sigstring, optional))
+        input_ports.append((port_name, sigstring, optional, depth))
         input_remap[port_name] = module
     for module in output_modules:
-        (port_name, sigstring, optional, _) = \
+        (port_name, sigstring, optional, depth, _) = \
             get_port_spec_info(pipeline, module)
-        output_ports.append((port_name, sigstring, optional))
+        output_ports.append((port_name, sigstring, optional, depth))
         output_remap[port_name] = module
 
     # necessary for group
-    d['_input_ports'] = input_ports
-    d['_output_ports'] = output_ports
+    d['_input_ports'] = [IPort(*p[:3], depth=p[3]) for p in input_ports] 
+    d['_output_ports'] = [OPort(*p[:3], depth=p[3]) for p in output_ports] 
     d['input_remap'] = input_remap
     d['output_remap'] = output_remap
     d['pipeline'] = pipeline
