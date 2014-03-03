@@ -106,12 +106,8 @@ class While(Module):
 
             loop.begin_iteration(module, i)
 
-            try:
-                module.update() # might raise ModuleError, ModuleSuspended,
-                                # ModuleHadError, ModuleWasSuspended
-            except ModuleSuspended, e:
-                e.loop_iteration = i
-                raise
+            module.update() # might raise ModuleError, ModuleSuspended,
+                            # ModuleHadError, ModuleWasSuspended
 
             loop.end_iteration(module)
 
@@ -221,7 +217,6 @@ class For(Module):
             try:
                 module.update()
             except ModuleSuspended, e:
-                e.loop_iteration = i
                 suspended.append(e)
                 loop.end_iteration(module)
                 continue

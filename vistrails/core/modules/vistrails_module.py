@@ -130,7 +130,6 @@ class ModuleSuspended(ModuleError):
         self.children = children
         self.signature = job_id
         self.name = None
-        self.loop_iteration = None
         ModuleError.__init__(self, module, errormsg)
 
 class ModuleErrors(Exception):
