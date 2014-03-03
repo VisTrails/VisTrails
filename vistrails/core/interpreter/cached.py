@@ -126,9 +126,10 @@ class ViewUpdatingLogController(object):
         reg = get_module_registry()
         name = reg.get_descriptor(obj.__class__).name
         i = "%s" % self.remap_id(obj.id)
-        if error.loop_iteration is not None:
-            name = name + '/' + str(error.loop_iteration)
-            i = i + '/' + str(error.loop_iteration)
+        iteration = self.log.get_iteration_from_module(obj)
+        if iteration is not None:
+            name = name + '/' + str(iteration)
+            i = i + '/' + str(iteration)
         # add to parent list for computing the module tree later
         error.name = name
         # if signature is not set we use the module identifier
