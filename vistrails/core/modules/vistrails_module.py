@@ -1286,6 +1286,69 @@ class Module(Serializable):
                   " with identifier " + str(ident) + " and namespace " + ns
             raise ModuleError(self, msg)
 
+    def set_streaming(self, UserGenerator):
+        """creates a generator object that computes when the next input is received.
+        """
+        # use the below tag if calling from a PythonSource
+        #STREAMING - This tag is magic, do not change.
+        from vistrails.core.modules.basic_modules import Iterator
+        
+        ports = self.streamed_ports.keys()
+        num_inputs = self.streamed_ports[ports[0]].size
+        module = copy.copy(self)
+        module.list_depth = self.list_depth-1
+        module.had_error = False
+        module.upToDate = False
+        module.computed = False
+        
+        if num_inputs:
+            milestones = [i*num_inputs/10 for i in xrange(1,11)]
+
+        def Generator(self):
+            self.logging.begin_compute(module)
+            i = 0
+            # <initialize here>
+            #intsum = 0
+            userGenerator = UserGenerator(module)
+            while 1:
+                elements = [self.streamed_ports[port].next() for port in ports]
+                if None in elements:
+                    self.logging.update_progress(self, 1.0)
+                    self.logging.end_update(module)
+                    for name_output in module.outputPorts:
+                        module.set_output(name_output, None)
+                    yield None
+                ## Type checking
+                module.typeChecking(module, ports, [elements])
+                print "EE!", elements
+                module.setInputValues(module, ports, elements)
+        
+                userGenerator.next()
+                # <compute here>
+                #intsum += dict(zip(ports, elements))['integerStream']
+                #print "Sum so far:", intsum
+        
+                # <set output here if any>
+                #module.set_output(name_output, intsum)
+                if num_inputs:
+                    if i in milestones:
+                        self.logging.update_progress(self,float(i)/num_inputs)
+                else:
+                    self.logging.update_progress(self, 0.5)
+                i += 1
+                yield True
+        
+        generator = Generator(self)
+        # sets streaming outputs for downstream modules
+        for name_output in self.outputPorts:
+            print name_output
+            iterator = Iterator(size=num_inputs,
+                                module=module,
+                                generator=generator,
+                                port=name_output)
+        
+            self.set_output(name_output, iterator)
+
     def set_streaming_output(self, port, generator, size=0):
         """This method is used to set a streaming output port.
 
