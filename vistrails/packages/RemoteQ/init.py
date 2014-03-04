@@ -225,7 +225,8 @@ class PBSJob(RQModule):
                 if comment:
                     status += ': ' + comment[10:]
             end_machine()
-            raise ModuleSuspended(self, '%s' % status, queue=job)
+            # The PBS class provides the BaseMonitor interface, i.e. finished()
+            raise ModuleSuspended(self, '%s' % status, monitor=job)
         self.is_cacheable = lambda *args, **kwargs: True
         # copies the created files to the client
         get_result = TransferFiles("local", input_directory, working_directory,
