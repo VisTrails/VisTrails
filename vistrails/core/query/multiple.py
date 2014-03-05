@@ -37,10 +37,12 @@ from combined import CombinedSearch
 
 class MultipleSearch(Query):
     # vistrails_to_check { Vistrail: set(version_ids) }
-    def __init__(self, search_str=None, pipeline=None, entities_to_check={}):
+    def __init__(self, search_str=None, pipeline=None, entities_to_check={},
+                 use_regex=False):
         self.entities_to_check = entities_to_check
         self.queryPipeline = pipeline
         self.search_str = search_str
+        self.use_regex = use_regex
         self.queries = {}
         self.queries_by_vistrail = {}
         self.cur_vistrail = None
@@ -51,7 +53,7 @@ class MultipleSearch(Query):
     def run(self):
         for entity, versions_to_check in self.entities_to_check.iteritems():
             query = CombinedSearch(self.search_str, self.queryPipeline, 
-                                   versions_to_check)
+                                   versions_to_check, self.use_regex)
             query.run(entity.vistrail, '')
             self.queries[entity] = query
             self.queries_by_vistrail[entity.vistrail] = query
