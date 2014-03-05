@@ -156,8 +156,11 @@ class SQLSource(Module):
         try:
             transaction = connection.begin()
             results = connection.execute(s, inputs)
-            table = TableObject.from_dicts((row for row in results), results.keys())
-            self.set_output('result', table)
+            if results.returns_rows:
+                table = TableObject.from_dicts((row for row in results), results.keys())
+                self.set_output('result', table)
+            else:
+                self.set_output('result', None)
             transaction.commit()
         except SQLAlchemyError, e:
             raise ModuleError(self, debug.format_exception(e))
