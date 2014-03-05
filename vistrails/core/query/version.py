@@ -563,7 +563,7 @@ class SearchCompiler(object):
         except SearchParseError, e:
             if 'Expected a date' in e.args[0]:
                 try:
-                    return self.parseAny(old_tokstream)
+                    return self.parseAny(old_tokstream, use_regex)
                 except SearchParseError, e2:
                     print "Another exception...", e2.args[0]
                     raise e
