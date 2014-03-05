@@ -265,4 +265,7 @@ class TestSQL(unittest.TestCase):
             self.assertEqual(set(table.get_column(1)),
                              set(['Smith', 'Buck']))
         finally:
-            os.remove(test_db)
+            try:
+                os.remove(test_db)
+            except OSError:
+                pass # Oops, we are leaking the file here...
