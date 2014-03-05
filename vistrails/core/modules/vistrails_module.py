@@ -1320,7 +1320,6 @@ class Module(Serializable):
                     yield None
                 ## Type checking
                 module.typeChecking(module, ports, [elements])
-                print "EE!", elements
                 module.setInputValues(module, ports, elements)
         
                 userGenerator.next()
@@ -1341,7 +1340,6 @@ class Module(Serializable):
         generator = Generator(self)
         # sets streaming outputs for downstream modules
         for name_output in self.outputPorts:
-            print name_output
             iterator = Iterator(size=num_inputs,
                                 module=module,
                                 generator=generator,
@@ -1666,7 +1664,6 @@ class TestImplicitLooping(unittest.TestCase):
             try:
                 errs = []
                 filename = os.path.join(resources, vtfile)
-                print filename
                 locator = FileLocator(os.path.abspath(filename))
                 (v, _, _, _) = load_vistrail(locator)
                 w_list = []
