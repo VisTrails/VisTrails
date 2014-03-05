@@ -138,7 +138,8 @@ class SQLSource(Module):
     _input_ports = [('connection', '(DBConnection)'),
                     ('cacheResults', '(basic:Boolean)'),
                     ('source', '(basic:String)')]
-    _output_ports = [('result', '(org.vistrails.vistrails.tabledata:Table)')]
+    _output_ports = [('result', '(org.vistrails.vistrails.tabledata:Table)'),
+                     ('resultSet', '(basic:List)')]
 
     def is_cacheable(self):
         return False
@@ -157,10 +158,13 @@ class SQLSource(Module):
             transaction = connection.begin()
             results = connection.execute(s, inputs)
             if results.returns_rows:
-                table = TableObject.from_dicts((row for row in results), results.keys())
+                rows = list(results)
+                table = TableObject.from_dicts(rows, results.keys())
                 self.set_output('result', table)
+                self.set_output('resultSet', rows)
             else:
                 self.set_output('result', None)
+                self.set_output('resultSet', None)
             transaction.commit()
         except SQLAlchemyError, e:
             raise ModuleError(self, debug.format_exception(e))
