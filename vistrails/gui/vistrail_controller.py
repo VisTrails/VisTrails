@@ -388,7 +388,8 @@ class VistrailController(QtCore.QObject, BaseController):
         msg = "VisTrails needs to enable package '%s'." % identifier
         if len(deps) > 0:
             msg += (" This will also enable the dependencies: %s." 
-                    " Do you want to enable these packages?") % str(deps)
+                    " Do you want to enable these packages?" % (
+                    ", ".join(deps),))
         else:
             msg += " Do you want to enable this package?"
         res = show_question('Enable package?',
