@@ -38,11 +38,14 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy.exc import SQLAlchemyError
 import urllib
 
+from vistrails.core.db.action import create_action
 from vistrails.core.bundles.installbundle import install
 from vistrails.core import debug
 from vistrails.core.modules.config import ModuleSettings
+from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.utils import versions_increasing
 
 from vistrails.packages.tabledata.common import TableObject
 
@@ -178,29 +181,45 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     #   doesn't exist anymore)
     # In 0.0.3, SQLSource's resultSet output was type List
     # In 0.1.0, SQLSource's output was renamed to result and is now a Table;
-    #   this is totally incompatible and thus no upgrade code is provided there
+    #   this is totally incompatible and no upgrade code is possible
+    #   the resultSet is kept for now for compatibility
 
-    # Up to 0.0.3, DBConnection would ask for a password if one was necessary;
+    # Up to 0.0.4, DBConnection would ask for a password if one was necessary;
     #   this behavior has not been kept. There is now a password input port, to
     #   which you can connect a PasswordDialog from package dialogs if needed
 
-    module_remap = {
-            'DBConnection' :[
-                (None, '0.1.0', None, {
-                    # Renamed 'self' output port to 'connection'
-                    # This upgrade might break in some cases (like, if you
-                    # actually needed the Module, e.g. for controlflow) but
-                    # should generally be what we want
-                    'src_port_remap': {
-                        'self': 'connection'},
-                }),
-            ],
-        }
+    old_module = pipeline.modules[module_id]
+    # DBConnection module from before 0.1.0: automatically add the password
+    # prompt module
+    if (old_module.name == 'DBConnection' and
+            versions_increasing(old_module.version, '0.1.0')):
+        reg = get_module_registry()
+        # Creates the new module
+        new_module = controller.create_module_from_descriptor(
+                reg.get_descriptor(DBConnection))
+        # Create the password module
+        mod_desc = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.dialogs', 'PasswordDialog')
+        mod = controller.create_module_from_descriptor(mod_desc)
+        # Adds a 'label' function to the password module
+        ops = [('add', mod)]
+        ops.extend(controller.update_function_ops(mod,
+                                                  'label', ['Server password']))
+        # Connects the password module to the new module
+        conn = controller.create_connection(mod, 'result',
+                                            new_module, 'password')
+        ops.append(('add', conn))
+        # Replaces the old module with the new one
+        upgrade_actions = UpgradeWorkflowHandler.replace_generic(
+                controller, pipeline,
+                old_module, new_module,
+                src_port_remap={'self': 'connection'})
+        password_fix_action = create_action(ops)
+        return upgrade_actions + [password_fix_action]
 
-    return UpgradeWorkflowHandler.remap_module(controller,
-                                               module_id,
-                                               pipeline,
-                                               module_remap)
+    return UpgradeWorkflowHandler.attempt_automatic_upgrade(
+            controller, pipeline,
+            module_id)
 
 
 ###############################################################################
