@@ -1452,7 +1452,7 @@ class QVistrailList(QtGui.QTreeWidget):
         item.paramExplorationsItem.setHidden(
                              not item.paramExplorationsItem.childCount())
         self.make_tree(item) if self.isTreeView else self.make_list(item)
-        self.setSelected(vistrail_window)
+        self.item_changed(item, None)
         self.updateHideExecutions()
 
     def remove_vt_window(self, vistrail_window):
