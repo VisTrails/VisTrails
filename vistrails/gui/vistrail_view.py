@@ -597,12 +597,12 @@ class QVistrailView(QtGui.QWidget):
 
     def view_changed(self):
         from vistrails.gui.vistrails_window import _app
-        _app.closeNotPinPalettes()
         #view = self.stack.currentWidget()
         view = self.get_current_outer_tab()
         #print "changing tab from: ",self.current_tab, " to ", view
         #print self.tab_to_stack_idx
         if view != self.current_tab:
+            _app.closeNotPinPalettes()
             #print "!!unset_action_links of ", self.current_tab
             _app.unset_action_links(self.current_tab)
             self.current_tab = view
@@ -616,10 +616,10 @@ class QVistrailView(QtGui.QWidget):
             #print "\n!!set_action_links of ", self.current_tab 
             _app.set_action_links(self.current_tab.action_links, self.current_tab,
                                   self)
+            self.showCurrentViewPalettes()
 
         #else:
            # print "tabs the same. do nothing"
-        self.showCurrentViewPalettes()
         if isinstance(view, QQueryView):
             _app.notify("controller_changed", view.p_controller)
             _app.notify("entry_klass_changed", QueryEntry)
