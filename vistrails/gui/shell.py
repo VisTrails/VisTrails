@@ -854,6 +854,7 @@ def getIPythonDialog():
         VisTrails environment"""
         def __init__(self, parent=None):
             RichIPythonWidget.__init__(self, parent)
+            self.running_workflow = False
             self.kernel_manager = km
             self.kernel_client = kernel_client
             self.exit_requested.connect(stop)
@@ -937,7 +938,25 @@ def getIPythonDialog():
             Simulate stdin, stdout, and stderr.
             
             """
+            self.input_buffer = ''
+            if not self.running_workflow:
+                self.running_workflow = True
+                # make text blue
+                self._append_plain_text("\n\x1b[34m<STANDARD OUTPUT>\x1b[0m\n", True)
             self._append_plain_text(text, True)
+            self._prompt_pos = self._get_end_cursor().position()
+            self._control.ensureCursorVisible()
+            self._control.moveCursor(QtGui.QTextCursor.End)
+
+
+        def eventFilter(self, obj, event):
+            """ Reimplemented to ensure a console-like behavior in the underlying
+                text widgets.
+            """
+            etype = event.type()
+            if etype == QtCore.QEvent.KeyPress:
+                self.running_workflow = False
+            return RichIPythonWidget.eventFilter(self, obj, event)
 
     return IPythonDialog
 
