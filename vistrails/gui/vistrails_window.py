@@ -1376,11 +1376,11 @@ class QVistrailsWindow(QVistrailViewWindow):
     def change_view(self, view):
         #print 'changing view', id(view), view
         if isinstance(view, QVistrailView) or view is None:
+            self.view_changed(view)
             if view and view not in self.windows:
                 if self.stack.currentWidget() != view:
                     self.stack.setCurrentWidget(view)
                     view.reset_tab_state()
-            self.view_changed(view)
             if view and get_vistrails_configuration().detachHistoryView:
                 self.history_view.stack.setCurrentIndex(view.version_index)
                 self.history_view.view = view.controller
