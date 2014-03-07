@@ -38,10 +38,19 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError, \
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
     Float, Constant, List
 from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.utils import xor, long2bytes
 from vistrails.core.vistrail.port_spec import PortSpec
 
+from base64 import b16encode, b16decode
 import copy
 from itertools import izip
+
+try:
+    import hashlib
+    sha1_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha1_hash = sha.new
 
 ###############################################################################
 ## Fold Operator
@@ -173,7 +182,7 @@ class FoldWithModule(Fold):
                     module.upToDate = False
                     module.computed = False
 
-                    self.setInputValues(module, nameInput, element)
+                    self.setInputValues(module, nameInput, element, i)
 
                 loop.begin_iteration(module, i)
 
@@ -205,7 +214,7 @@ class FoldWithModule(Fold):
                     children=suspended)
         loop.end_loop_execution()
 
-    def setInputValues(self, module, inputPorts, elementList):
+    def setInputValues(self, module, inputPorts, elementList, iteration):
         """
         Function used to set a value inside 'module', given the input port(s).
         """
@@ -215,6 +224,20 @@ class FoldWithModule(Fold):
                 del module.inputPorts[inputPort]
             new_connector = ModuleConnector(create_constant(element), 'value')
             module.set_input_port(inputPort, new_connector)
+            # Affix a fake signature on the module
+            # Ultimately, we might want to give it the signature it would have
+            # with its current functions if it had a connection to the upstream
+            # of our InputList port through a Getter module?
+            # This structure with the Getter is unlikely to actually happen
+            # anywhere though...
+            # The fake signature is
+            # XOR(signature(loop module), iteration, hash(inputPort))
+            inputPort_hash = sha1_hash()
+            inputPort_hash.update(inputPort)
+            module.signature = b16encode(xor(
+                    b16decode(self.signature.upper()),
+                    long2bytes(iteration, 20),
+                    inputPort_hash.digest()))
 
     def typeChecking(self, module, inputPorts, inputList):
         """
