@@ -39,7 +39,8 @@
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import current_dot_vistrails
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.vistrails_module import ModuleSuspended, NotCacheable
+from vistrails.core.modules.vistrails_module import NotCacheable, \
+    ModuleError, ModuleSuspended
 
 from uuid import uuid1
 
@@ -69,37 +70,40 @@ class JobMixin(NotCacheable):
     The package developer needs to implement the sub methods readInputs(),
     getId(), setResults(), startJob(), getMonitor() and finishJob().
     """
+    cache = None
+    params = None
+
     def compute(self):
-        params = self.readInputs()
-        signature = self.getId(params)
-        jm = JobMonitor.getInstance()
-        # use cached job if it exist
-        cache = jm.getCache(signature)
-        if cache:
-            self.setResults(cache.parameters)
-            return
-        # check if job is running
-        job = jm.getJob(signature)
-        if job:
-            params = job.parameters
+        if self.cache is not None:
+            # Result is available and cached
+            self.setResults(self.cache.parameters)
         else:
-            # start job
+            # Start new job
+            params = self.readInputs()
             params = self.startJob(params)
-            # set visible name
-            # check custom name
-            m = self.interpreter._persistent_pipeline.modules[self.id]
-            if '__desc__' in m.db_annotations_key_index:
-                name = m.get_annotation_by_key('__desc__').value.strip()
-            else:
-                reg = get_module_registry()
-                name = reg.get_descriptor(self.__class__).name
-            jm.addJob(signature, params, name)
-        # call method to check job
-        jm.checkJob(self, signature, self.getMonitor(params))
-        # job is finished, set outputs
-        params = self.finishJob(params)
-        self.setResults(params)
-        cache = jm.setCache(signature, params)
+            jm = JobMonitor.getInstance()
+            jm.addJob(self.signature, params, "name-TODO")
+
+    def update_upstream(self):
+        if not hasattr(self, 'signature'):
+            raise ModuleError(self, "Module has no signature")
+        jm = JobMonitor.getInstance()
+        self.cache = jm.getCache(self.signature)
+        if self.cache is not None:
+            return # compute() will use self.cache
+        job = jm.getJob(self.signature)
+        if job is not None:
+            params = job.parameters
+            # Might raise ModuleSuspended
+            jm.checkJob(self, self.signature, self.getMonitor(params))
+            # Didn't raise: job is finished
+            params = self.finishJob(params)
+            jm.setCache(self.signature, params)
+            self.cache = jm.getCache(self.signature)
+            # compute() will set results
+        # We need to submit a new job
+        # Update upstream, compute() will need it
+        super(JobMixin, self).update_upstream()
 
     def readInputs(self):
         """ readInputs() -> None
