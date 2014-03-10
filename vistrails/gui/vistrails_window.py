@@ -1821,6 +1821,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         if current_view:
             locator = current_view.controller.locator
 
+        SAVE_BUTTON, DISCARD_BUTTON, CANCEL_BUTTON = 0, 1, 2
+
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
             name = current_view.controller.name
@@ -1841,15 +1843,15 @@ class QVistrailsWindow(QVistrailViewWindow):
             # Check if any unsaved workflow contains jobs
             vistrail = current_view.controller.vistrail
             from vistrails.core.interpreter.job import JobMonitor
-            if res == 1:
-                res2 = 0
+            if res == DISCARD_BUTTON:
+                res2 = SAVE_BUTTON
                 for workflow in JobMonitor.getInstance()._running_workflows.values():
                     if workflow.vistrail != locator.to_url():
                         continue
                     action = vistrail.db_get_action_by_id(workflow.version)
                     if not action.is_dirty:
                         continue
-                    if res2 == 1:
+                    if res2 == DISCARD_BUTTON:
                         JobMonitor.getInstance().deleteWorkflow(workflow.id)
                         continue
                     text = ('Vistrail ' +
@@ -1864,17 +1866,17 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                         'Cancel',
                                                         0,
                                                         2)
-                    if res2 == 0:
-                        res = 0
+                    if res2 == SAVE_BUTTON:
+                        res = SAVE_BUTTON
                         break
-                    elif res2 == 1:
+                    elif res2 == DISCARD_BUTTON:
                         JobMonitor.getInstance().deleteWorkflow(workflow.id)
-                    elif res2 == 2:
+                    elif res2 == CANCEL_BUTTON:
                         return False
         else:
-            res = 1
+            res = DISCARD_BUTTON
         
-        if res == 0:
+        if res == SAVE_BUTTON:
             if locator is None or locator.is_untitled():
                 class_ = FileLocator()
             else:
@@ -1882,7 +1884,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             locator = current_view.save_vistrail(class_)
             if not locator:
                 return False
-        elif res == 2:
+        elif res == CANCEL_BUTTON:
             return False
         
         if locator is not None:
