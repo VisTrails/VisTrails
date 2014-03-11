@@ -301,6 +301,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         self.deleteVistrailVar(var_uuid)
         self.controller.disconnect_vistrail_vars(to_delete_modules,
                                                  to_delete_conns)
+        self.setInvalid(False)
         
 
     def removeAllVars(self):
@@ -1930,8 +1931,14 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if srcModule.module.is_vistrail_var():
             connectionItem.hide()
             var_uuid = srcModule.module.get_vistrail_var()
-            dstPortItem.addVistrailVar(
-                self.controller.get_vistrail_variable_by_uuid(var_uuid))
+            if self.controller.has_vistrail_variable_with_uuid(var_uuid):
+                vv = self.controller.get_vistrail_variable_by_uuid(var_uuid)
+            else:
+                # create temporary variable
+                from vistrails.core.vistrail.vistrailvariable import VistrailVariable
+                vv = VistrailVariable('<missing>', var_uuid)
+                dstPortItem.setInvalid(True)
+            dstPortItem.addVistrailVar(vv)
         return connectionItem
 
     def selected_subgraph(self):

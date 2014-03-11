@@ -1122,7 +1122,8 @@ class Pipeline(DBWorkflow):
                 value_set = False
                 for func in module.functions:
                     if func.name == 'value':
-                        if func.params[0].strValue:
+                        value = func.params[0].strValue
+                        if value and value != "None":
                             value_set = True
                             continue
                 if value_set:

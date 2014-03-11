@@ -568,8 +568,8 @@ class VistrailController(object):
                                      self.current_session)
             if description is not None:
                 self.vistrail.change_description(description, action.id)
-            self.set_changed(True)
             self.current_version = action.db_id
+            self.set_changed(True)
             self.recompute_terse_graph()
             
     def create_module_from_descriptor(self, *args, **kwargs):
@@ -739,7 +739,8 @@ class VistrailController(object):
     def create_function_static(id_scope, module, function_name, 
                                param_values=[], aliases=[], query_methods=[]):
         port_spec = module.get_port_spec(function_name, 'input')
-        if len(param_values) <= 0 and port_spec.defaults is not None:
+        if len(param_values) <= 0 and port_spec.defaults is not None and \
+                                      port_spec.defaults != [None]:
             param_values = port_spec.defaults
 
         f_id = id_scope.getNewId(ModuleFunction.vtType)
