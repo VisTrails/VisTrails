@@ -299,7 +299,12 @@ class VistrailController(object):
         if self.vistrail:
             return self.vistrail.get_vistrail_var(name)
         return None
-   
+
+    def has_vistrail_variable_with_uuid(self, uuid):
+        if self.vistrail:
+            return self.vistrail.db_has_vistrailVariable_with_uuid(uuid)
+        return None
+
     def get_vistrail_variable_by_uuid(self, uuid):
         if self.vistrail:
             return self.vistrail.db_get_vistrailVariable_by_uuid(uuid)
@@ -311,12 +316,6 @@ class VistrailController(object):
         if self.vistrail:
             return self.vistrail.vistrail_vars
         return []
-    
-    def get_vistrail_variable_name_by_uuid(self, uuid):
-        """def get_vistrail_variable_name_by_uuid(uuid: str) -> dict
-        Returns the var name for vistrail variable with uuid """
-        if self.vistrail and self.vistrail.db_has_vistrailVariable_with_uuid(uuid):
-            return self.vistrail.db_get_vistrailVariable_by_uuid(uuid).name
     
     def find_vistrail_var_module(self, var_uuid):
         for m in self.current_pipeline.modules.itervalues():
@@ -423,6 +422,35 @@ class VistrailController(object):
         #     self.vistrail.change_description("Disconnected Vistrail Variables",
         #                                      action.id)
         return (to_delete_modules, to_delete_conns)
+
+    def get_connected_vistrail_vars(self, module_ids, to_delete=False):
+        """get_connected_vistrail_vars(module_ids: list, to_delete: bool)->list
+
+        Returns the vistrail variables connected to the specified module_id:s
+        If to_delete is true we exclude modules that have connections to
+        modules not in the module_ids list
+
+        """
+        vv_modules = {}
+        connections = self.get_connections_to(self.current_pipeline, 
+                                              module_ids)
+        pipeline = self.current_pipeline
+        final_connections = []
+        for connection in connections:
+            m = pipeline.modules[connection.source.moduleId]
+            if m.is_vistrail_var():
+                if m.id not in vv_modules:
+                    vv_modules[m.id] = []
+                vv_modules[m.id].append(connection)
+                final_connections.append(connection.id)
+        if to_delete:
+            for module_id, connections in vv_modules.items():
+                total_conns = self.get_connections_from(self.current_pipeline,
+                                                        [module_id])
+                if len(total_conns) != len(connections):
+                    # there are connections to other modules so don't delete
+                    del vv_modules[module_id]
+        return vv_modules.keys(), final_connections
 
     def getParameterExplorationById(self, id):
         """ getParameterExplorationById(self, id) -> ParameterExploration
