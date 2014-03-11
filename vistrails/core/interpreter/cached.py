@@ -671,6 +671,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             res = self.execute_pipeline(pipeline, *(res[:2]), **new_kwargs)
         else:
             res = (to_delete, res[0], errors, {}, {}, {}, [])
+            for (i, error) in errors.iteritems():
+                view.set_module_error(i, error)
         self.finalize_pipeline(pipeline, *(res[:-1]), **new_kwargs)
 
         result = InstanceObject(objects=res[1],
