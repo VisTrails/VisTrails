@@ -50,7 +50,6 @@ import unittest
 ElementTree = get_elementtree_library()
 
 from .identifiers import identifier as vtk_pkg_identifier
-from .wrapper import VTKInstanceWrapper
 
 ################################################################################
 # etc
