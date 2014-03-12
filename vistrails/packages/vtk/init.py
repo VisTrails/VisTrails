@@ -1353,7 +1353,7 @@ def build_remap(module_name=None):
                 if 'function_remap' not in my_remap_dict:
                     my_remap_dict['function_remap'] = {}
                 my_remap_dict['function_remap'][port_prefix] = remap
-        if port_type == 'output':
+        if port_type == 'output' and issubclass(desc.module, vtkBaseModule):
             my_remap_dict.setdefault('src_port_remap', {})['self'] = 'Instance'
 
     pkg = reg.get_package_by_name(identifier)
@@ -1362,11 +1362,12 @@ def build_remap(module_name=None):
         desc = reg.get_descriptor_by_name(identifier, module_name)
         process_ports(desc, 'input')
         process_ports(desc, 'output')
-        _remap.setdefault(desc.name, []).append(('0.9.3', '0.9.5', None, {
-                'src_port_remap': {
-                    'self': 'Instance',
-                }
-            }))
+        if issubclass(desc.module, vtkBaseModule):
+            _remap.setdefault(desc.name, []).append(('0.9.3', '0.9.5', None, {
+                    'src_port_remap': {
+                        'self': 'Instance',
+                    }
+                }))
     else:
         # print 'building entire remap'
         # FIXME do this by descriptor first, then build the hierarchies for each
@@ -1374,11 +1375,12 @@ def build_remap(module_name=None):
         for desc in pkg.descriptor_list:
             process_ports(desc, 'input')
             process_ports(desc, 'output')
-            _remap.setdefault(desc.name, []).append(('0.9.3', '0.9.5', None, {
-                    'src_port_remap': {
-                        'self': 'Instance',
-                    }
-                }))
+            if issubclass(desc.module, vtkBaseModule):
+                _remap.setdefault(desc.name, []).append(('0.9.3', '0.9.5', None, {
+                        'src_port_remap': {
+                            'self': 'Instance',
+                        }
+                    }))
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     global _remap, _controller, _pipeline
