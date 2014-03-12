@@ -35,20 +35,19 @@
 ################################################################################
 # Spreadsheet Package for VisTrails
 ################################################################################
+import os
+import sys
+
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core import debug
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.system import vistrails_root_directory
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+
 from spreadsheet_controller import spreadsheetController
 from spreadsheet_registry import spreadsheetRegistry
-from spreadsheet_window import SpreadsheetWindow
-import os
-import string
-import sys
-from spreadsheet_config import configuration
-import vistrails.core
 
 # This must be here because of VisTrails protocol
 
@@ -153,8 +152,6 @@ def finalize():
     spreadsheetWindow.deleteLater()
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-    reg = get_module_registry()
-
     module_remap = {
             'CellLocation': [
                 (None, '0.9.3', None, {
@@ -175,3 +172,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 }),
             ],
         }
+
+    return UpgradeWorkflowHandler.remap_module(controller,
+                                               module_id,
+                                               pipeline,
+                                               module_remap)
