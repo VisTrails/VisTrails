@@ -351,7 +351,7 @@ class ModuleDescriptor(DBModuleDescriptor):
                 "version=%s, base_descriptor_id=%s)" % \
                     (self.id, self.package, self.name, self.namespace,
                      self.version, self.base_descriptor_id))
- 
+
     ##########################################################################
     # Abstract module detection support
 
