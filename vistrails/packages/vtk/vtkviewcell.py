@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -76,7 +76,7 @@ class VTKViewCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the vtkRenderer to the actual rendering widget
         """
-        renderView = self.forceGetInputFromPort('SetRenderView')
+        renderView = self.force_get_input('SetRenderView')
         if renderView==None:
             raise ModuleError(self, 'A vtkRenderView input is required.')
         self.cellWidget = self.displayAndWait(QVTKViewWidget, (renderView,))
@@ -971,9 +971,9 @@ class QVTKViewWidgetSaveCamera(QtGui.QAction):
                 ops.append(('add', camera))
 
                 # Connect camera to renderer
-                camera_conn = controller.create_connection(camera, 'self',
-                                                           renderer, 
-                                                           'SetActiveCamera')
+                camera_conn = controller.create_connection(
+                        camera, 'Instance',
+                        renderer, 'SetActiveCamera')
                 ops.append(('add', camera_conn))
             # update functions
             def convert_to_str(arglist):
@@ -1033,13 +1033,11 @@ def registerSelf():
     registry = get_module_registry()
     registry.add_module(VTKViewCell)
     registry.add_input_port(VTKViewCell, "Location", CellLocation)
-    import vistrails.core.debug
+    from vistrails.core import debug
     for (port,module) in [("SetRenderView",'vtkRenderView')]:
         try:
-            registry.add_input_port(VTKViewCell, port,'(%s:%s)'% \
-                                        (vtk_pkg_identifier, module))
- 
+            registry.add_input_port(VTKViewCell, port,
+                                    '(%s:%s)' % (vtk_pkg_identifier, module))
         except Exception, e:
-            vistrails.core.debug.warning(str(e))
-
-    registry.add_output_port(VTKViewCell, "self", VTKViewCell)
+            debug.warning("Got an exception adding VTKViewCell's %s input "
+                          "port" % port, e)

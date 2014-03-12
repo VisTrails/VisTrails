@@ -99,7 +99,8 @@ def execute_wf(wf, output_port):
             errors.append("Module log not found")
             return dict(errors=errors)
         else:
-            machine = controller.log.machine_list[0]
+            machine = controller.log.workflow_execs[0].machines[
+                    module_log.machine_id]
             xml_log = serialize(module_log)
             machine_log = serialize(machine)
 
@@ -149,15 +150,15 @@ class Map(Module):
     def __init__(self):
         Module.__init__(self)
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update_upstream(self):
+        """A modified version of the update_upstream method."""
 
         # everything is the same except that we don't update anything
         # upstream of FunctionPort
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    connector.obj.update_upstream()
             else:
                 for connector in connector_list:
                     connector.obj.update()
@@ -166,7 +167,7 @@ class Map(Module):
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
                             InvalidOutput:
-                        self.removeInputConnector(port_name, connector)
+                        self.remove_input_connector(port_name, connector)
 
     @staticmethod
     def print_compositeerror(e):
@@ -191,9 +192,9 @@ class Map(Module):
         updates the module connected to the FunctionPort port, executing it in
         parallel.
         """
-        nameInput = self.getInputFromPort('InputPort')
-        nameOutput = self.getInputFromPort('OutputPort')
-        rawInputList = self.getInputFromPort('InputList')
+        nameInput = self.get_input('InputPort')
+        nameOutput = self.get_input('OutputPort')
+        rawInputList = self.get_input('InputList')
 
         # Create inputList to always have iterable elements
         # to simplify code
@@ -419,19 +420,17 @@ class Map(Module):
 
             # before adding the execution log, we need to get the machine information
             machine = unserialize(map_result[engine]['machine_log'], Machine)
-            machine.id = self.logging.log.log.id_scope.getNewId(Machine.vtType) #assigning new id
-            self.logging.log.log.add_machine(machine)
+            machine_id = self.logging.add_machine(machine)
 
             # recursively add machine information to execution items
             def add_machine_recursive(exec_):
-                for i in range(len(exec_.item_execs)):
-                    if hasattr(exec_.item_execs[i], 'machine_id'):
-                        exec_.item_execs[i].machine_id = machine.id
-                        vt_type = exec_.item_execs[i].vtType
-                        if (vt_type == 'abstraction') or (vt_type == 'group'):
-                            add_machine_recursive(exec_.item_execs[i])
+                for item in exec_.item_execs:
+                    if hasattr(item, 'machine_id'):
+                        item.machine_id = machine_id
+                        if item.vtType in ('abstraction', 'group'):
+                            add_machine_recursive(item)
 
-            exec_.machine_id = machine.id
+            exec_.machine_id = machine_id
             if (vtType == 'abstraction') or (vtType == 'group'):
                 add_machine_recursive(exec_)
 
@@ -530,7 +529,7 @@ class Map(Module):
         self.result = None
         self.updateFunctionPort()
 
-        self.setResult('Result', self.result)
+        self.set_output('Result', self.result)
 
 ###############################################################################
 
@@ -539,7 +538,7 @@ class NewConstant(Constant):
     A new Constant module to be used inside the Map module.
     """
     def setValue(self, v):
-        self.setResult("value", v)
+        self.set_output("value", v)
         self.upToDate = True
 
 def create_constant(value):

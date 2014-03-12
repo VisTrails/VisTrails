@@ -32,11 +32,12 @@
 ##
 ###############################################################################
 
+import matplotlib
 import pylab
 import urllib
 
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
-from vistrails.core.modules.vistrails_module import Module, NotCacheable
+from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 
 ################################################################################
 
@@ -44,9 +45,25 @@ class MplProperties(Module):
     def compute(self, artist):
         pass
 
+    def update_sub_props(self, objs):
+        # must implement in subclass
+        pass
+
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
-    pass
+    def __init__(self):
+        Module.__init__(self)
+        self.figInstance = None
+
+    def set_figure(self, fig):
+        if self.figInstance is None:
+            self.figInstance = fig
+        else:
+            raise ModuleError(self,
+                              "matplotlib plots can only be in one figure")
+
+    def compute(self):
+        matplotlib.pyplot.figure(self.figInstance.number)
 
 class MplSource(CodeRunnerMixin, MplPlot):
     """
@@ -63,9 +80,10 @@ class MplSource(CodeRunnerMixin, MplPlot):
     def compute(self):
         """ compute() -> None
         """
-        source = self.getInputFromPort('source')
-        s = ('from pylab import *\n' +
+        source = self.get_input('source')
+        s = ('from pylab import *\n'
              'from numpy import *\n' +
+             'figure(%d)\n' % self.figInstance.number +
              urllib.unquote(source))
 
         self.run_code(s, use_input=True, use_output=True)
@@ -83,128 +101,37 @@ class MplFigure(Module):
         Module.__init__(self)
         self.figInstance = None
 
-    def updateUpstream(self):
+    def update_upstream(self):
+        # Create a figure
         if self.figInstance is None:
             self.figInstance = pylab.figure()
         pylab.hold(True)
-        Module.updateUpstream(self)
+
+        # Set it on the plots
+        connectorList = self.inputPorts.get('addPlot', [])
+        connectorList.extend(self.inputPorts.get('setLegend', []))
+        for connector in connectorList:
+            connector.obj.set_figure(self.figInstance)
+
+        # Now we can run upstream modules
+        super(MplFigure, self).update_upstream()
 
     def compute(self):
-        plots = self.getInputListFromPort("addPlot")
+        plots = self.get_input_list("addPlot")
 
-        if self.hasInputFromPort("figureProperties"):
-            figure_props = self.getInputFromPort("figureProperties")
+        if self.has_input("figureProperties"):
+            figure_props = self.get_input("figureProperties")
             figure_props.update_props(self.figInstance)
-        if self.hasInputFromPort("axesProperties"):
-            axes_props = self.getInputFromPort("axesProperties")
+        if self.has_input("axesProperties"):
+            axes_props = self.get_input("axesProperties")
             axes_props.update_props(self.figInstance.gca())
-        if self.hasInputFromPort("setLegend"):
-            legend = self.getInputFromPort("setLegend")
+        if self.has_input("setLegend"):
+            legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 
         #FIXME write file out if File port is attached!
 
-        # if num_rows > 1 or num_cols > 1:
-        #     # need to reconstruct plot...
-        #     self.figInstance = pylab.figure()
-        # else:
-        #     self.figInstance = plots[0].figInstance
-
-        # for plot in plots:
-        #     p_axes = plot.get_fig().gca()
-        #     print "DPI:", plot.get_fig().dpi
-        #     for c in p_axes.collections:
-        #         print "TRANSFORM:", c._transform
-        #         print "DATALIM:", c.get_datalim(p_axes.transData)
-        #         print "PREPARE POINTS:", c._prepare_points()
-
-        # self.figInstance = pylab.figure()
-        # axes = self.figInstance.gca()
-        # x0 = None
-        # x1 = None
-        # y0 = None
-        # y1 = None
-        # dataLim = None
-        # for plot in plots:
-        #     p_axes = plot.get_fig().gca()
-        #     dataLim = p_axes.dataLim.frozen()
-        #     p_x0, p_x1 = p_axes.get_xlim()
-        #     if x0 is None or p_x0 < x0:
-        #         x0 = p_x0
-        #     if x1 is None or p_x1 > x1:
-        #         x1 = p_x1
-        #     p_y0, p_y1 = p_axes.get_ylim()
-        #     if y0 is None or p_y0 < y0:
-        #         y0 = p_y0
-        #     if y1 is None or p_y1 > y1:
-        #         y1 = p_y1
-
-        # print x0, x1, y0, y1
-        # axes.set_xlim(x0, x1, emit=False, auto=None)
-        # axes.set_ylim(y0, y1, emit=False, auto=None)
-
-        # # axes.dataLim = dataLim
-        # # axes.ignore_existing_data_limits = False
-        # # axes.autoscale_view()
-
-        # for plot in plots:
-        #     p_axes = plot.get_fig().gca()
-        #     # axes.lines.extend(p_axes.lines)
-        #     for line in p_axes.lines:
-        #         print "adding line!"
-        #         line = copy.copy(line)
-        #         line._transformSet = False
-        #         axes.add_line(line)
-        #     # axes.patches.extend(p_axes.patches)
-        #     for patch in p_axes.patches:
-        #         print "adding patch!"
-        #         patch = copy.copy(patch)
-        #         patch._transformSet = False
-        #         axes.add_patch(patch)
-        #     axes.texts.extend(p_axes.texts)
-        #     # axes.tables.extend(p_axes.tables)
-        #     for table in p_axes.tables:
-        #         table = copy.copy(table)
-        #         table._transformSet = False
-        #         axes.add_table(table)
-        #     # axes.artists.extend(p_axes.artists)
-        #     for artist in p_axes.artists:
-        #         artist = copy.copy(artist)
-        #         artist._transformSet = False
-        #         axes.add_artist(artist)
-        #     axes.images.extend(p_axes.images)
-        #     # axes.collections.extend(p_axes.collections)
-        #     for collection in p_axes.collections:
-        #         print "adding collection!"
-        #         # print "collection:", collection.__class__.__name__
-        #         # print "datalim:", p_axes.dataLim
-        #         # transOffset = axes.transData
-        #         collection = copy.copy(collection)
-        #         # collection._transformSet = False
-        #         # print dir(mtransforms)
-        #         collection.set_transform(mtransforms.IdentityTransform())
-        #         collection._transOffset = axes.transData
-        #         # collection._transformSet = False
-        #         collection._label = None
-        #         collection._clippath = None
-        #         axes.add_collection(collection)
-        #         # collection.set_transform(mtransforms.IdentityTransform())
-        #         # axes.collections.append(collection)
-        #     # axes.containers.extend(p_axes.containers)
-        # print "transFigure start:", self.figInstance.transFigure
-        # # axes.dataLim = dataLim
-        # # axes.ignore_existing_data_limits = False
-        # # print "datalim after:", axes.dataLim
-
-
-        # # print "DPI:", self.figInstance.dpi
-        # # for c in axes.collections:
-        # #     print "TRANSFORM:", c._transform
-        # #     print "DATALIM:", c.get_datalim(p_axes.transData)
-        # #     print "PREPARE POINTS:", c._prepare_points()
-
-
-        self.setResult("self", self)
+        self.set_output("self", self)
 
 class MplContourSet(Module):
     pass

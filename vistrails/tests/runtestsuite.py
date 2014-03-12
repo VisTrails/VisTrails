@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -56,11 +56,13 @@ import unittest
 import atexit
 from distutils.version import LooseVersion
 #import doctest
+import locale
 import os
 import traceback
 import os.path
 import optparse
 from optparse import OptionParser
+import platform
 import shutil
 import tempfile
 
@@ -101,13 +103,15 @@ import vistrails.tests
 import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
+from vistrails.core import debug
 import vistrails.gui.application
-from vistrails.core.system import vistrails_root_directory
+from vistrails.core.system import vistrails_root_directory, \
+                                  vistrails_examples_directory
 
 ###############################################################################
 # Testing Examples
 
-EXAMPLES_PATH = os.path.join(_this_dir, '..', '..', 'examples')
+EXAMPLES_PATH = vistrails_examples_directory()
 #dictionary of examples that will be run with the workflows that will be ignored
 VT_EXAMPLES = { 'EMBOSS_webservices.vt': ["ProphetOutput"],
                 'KEGGPathway.vt': [],
@@ -164,11 +168,15 @@ parser.add_option("--installbundles", action='store_true',
 parser.add_option("-S", "--startup", action="store", type="str", default=None,
                   dest="dotVistrails",
                   help="Set startup file (default is temporary directory)")
+parser.add_option('-L', '--locale', action='store', type='str', default='',
+                  dest='locale',
+                  help="set locale to this string")
 
 (options, args) = parser.parse_args()
 # remove empty strings
 args = filter(len, args)
 verbose = options.verbose
+locale.setlocale(locale.LC_ALL, options.locale or '')
 test_examples = options.examples
 test_images = options.images
 installbundles = options.installbundles
@@ -220,6 +228,28 @@ app.builderWindow.auto_view = False
 app.builderWindow.close_all_vistrails(True)
 
 print "Test Suite for VisTrails"
+print "Locale settings: %s" % ', '.join('%s: %s' % (s, locale.setlocale(getattr(locale, s), None)) for s in ('LC_ALL', 'LC_TIME'))
+print "Running on %s" % ', '.join(platform.uname())
+print "Python is %s" % sys.version
+try:
+    from PyQt4 import QtCore
+    print "Using PyQt4 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion())
+except ImportError:
+    print "PyQt4 not available"
+for pkg in ('numpy', 'scipy', 'matplotlib'):
+    try:
+        ipkg = __import__(pkg, globals(), locals(), [], -1)
+        print "Using %s %s" % (pkg, ipkg.__version__)
+    except ImportError:
+        print "%s not available" % pkg
+try:
+    import vtk
+    print "Using vtk %s" % vtk.vtkVersion().GetVTKVersion()
+except ImportError:
+    print "vtk not available"
+
+
+print ""
 
 tests_passed = True
 
@@ -384,7 +414,7 @@ def image_test_generator(vtfile, version):
                     print("   *** Error in %s:%s:%s -- %s" % err)
                     self.fail(str(err))
         except Exception, e:
-            self.fail(str(e))
+            self.fail(debug.format_exception(e))
     return test
 
 class TestVistrailImages(unittest.TestCase):
@@ -400,7 +430,15 @@ if test_images:
 
 ############## RUN TEST SUITE ####################
 
-result = unittest.TextTestRunner(verbosity=max(verbose, 1)).run(main_test_suite)
+class TestResult(unittest.TextTestResult):
+    def addSkip(self, test, reason):
+        self.stream.writeln("skipped '{0}': {1}".format(str(test), reason))
+        super(TestResult, self).addSkip(test, reason)
+
+runner = unittest.TextTestRunner(
+        verbosity=max(verbose, 1),
+        resultclass=TestResult)
+result = runner.run(main_test_suite)
 
 if not result.wasSuccessful():
     tests_passed = False
@@ -430,7 +468,7 @@ if test_examples:
                 errs = vistrails.core.console_mode.run(w_list, update_vistrail=False)
                 summary[vtfile] = errs
         except Exception, e:
-            errs.append((vtfile,"None", "None", str(e)))
+            errs.append((vtfile,"None", "None", debug.format_exception(e)))
             summary[vtfile] = errs
         nvtfiles += 1
 

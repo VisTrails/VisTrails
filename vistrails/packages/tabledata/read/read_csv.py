@@ -1,9 +1,12 @@
 import csv
 from itertools import izip
-import numpy
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 from vistrails.core.modules.vistrails_module import ModuleError
-from ..common import Table
+from ..common import TableObject, Table
 
 
 def count_lines(fp):
@@ -13,23 +16,26 @@ def count_lines(fp):
     return lines
 
 
-class CSVFile(Table):
-    _input_ports = [
-            ('file', '(org.vistrails.vistrails.basic:File)'),
-            ('delimiter', '(org.vistrails.vistrails.basic:String)',
-             {'optional': True}),
-            ('header_present', '(org.vistrails.vistrails.basic:Boolean)',
-             {'optional': True, 'defaults': "['True']"})]
-    _output_ports = [
-            ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
-            ('column_names', '(org.vistrails.vistrails.basic:List)'),
-            ('self', '(org.vistrails.vistrails.tabledata:read|csv|CSVFile)')]
+class ReadError(Exception):
+    pass
 
+
+class CSVTable(TableObject):
     _STANDARD_DELIMITERS = [';', ',', '\t', '|']
 
-    def __init__(self):
-        Table.__init__(self)
+    def __init__(self, csv_file, header_present, delimiter):
         self._rows = None
+
+        self.header_present = header_present
+        self.delimiter = delimiter
+        self.filename = csv_file
+
+        self.columns, self.names, self.delimiter = self.read_file(
+                csv_file,
+                delimiter,
+                header_present) # Might raise ReadError
+
+        self.column_cache = {}
 
     @staticmethod
     def read_file(filename, delimiter=None, header_present=True):
@@ -38,13 +44,12 @@ class CSVFile(Table):
                 first_line = fp.readline()
             if delimiter is None:
                 counts = [first_line.count(d)
-                          for d in CSVFile._STANDARD_DELIMITERS]
+                          for d in CSVTable._STANDARD_DELIMITERS]
                 read_delimiter, count = max(
-                        izip(CSVFile._STANDARD_DELIMITERS, counts),
+                        izip(CSVTable._STANDARD_DELIMITERS, counts),
                         key=lambda (delim, count): count)
                 if count == 0:
-                    raise ModuleError(self,
-                                      "Couldn't guess the field delimiter")
+                    raise ReadError("Couldn't guess the field delimiter")
                 else:
                     delimiter = read_delimiter
             else:
@@ -59,34 +64,15 @@ class CSVFile(Table):
             else:
                 column_names = None
         except IOError:
-            raise ModuleError(self, "File does not exist")
+            raise ReadError("File does not exist")
 
         return column_count, column_names, delimiter
 
-    def compute(self):
-        csv_file = self.getInputFromPort('file').name
-        self.header_present = self.getInputFromPort('header_present',
-                                                    allowDefault=True)
-        if self.hasInputFromPort('delimiter'):
-            self.delimiter = self.getInputFromPort('delimiter')
-        else:
-            self.delimiter = None
-
-        self.filename = csv_file
-
-        self.columns, self.names, self.delimiter = \
-                self.read_file(csv_file, self.delimiter, self.header_present)
-
-        self.column_cache = {}
-
-        self.setResult('column_count', self.columns)
-        self.setResult('column_names', self.names)
-
     def get_column(self, index, numeric=False):
-        if index in self.column_cache:
-            return self.column_cache[index]
+        if (index, numeric) in self.column_cache:
+            return self.column_cache[(index, numeric)]
 
-        if numeric:
+        if numeric and numpy is not None:
             result = numpy.loadtxt(
                     self.filename,
                     dtype=numpy.float32,
@@ -101,8 +87,10 @@ class CSVFile(Table):
                         fp,
                         delimiter=self.delimiter)
                 result = [row[index] for row in reader]
+            if numeric:
+                result = [float(e) for e in result]
 
-        self.column_cache[index] = result
+        self.column_cache[(index, numeric)] = result
         return result
 
     @property
@@ -116,7 +104,34 @@ class CSVFile(Table):
         return self._rows
 
 
-_modules = {'csv': [CSVFile]}
+class CSVFile(Table):
+    _input_ports = [
+            ('file', '(org.vistrails.vistrails.basic:File)'),
+            ('delimiter', '(org.vistrails.vistrails.basic:String)',
+             {'optional': True}),
+            ('header_present', '(org.vistrails.vistrails.basic:Boolean)',
+             {'optional': True, 'defaults': "['True']"})]
+    _output_ports = [
+            ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
+            ('column_names', '(org.vistrails.vistrails.basic:List)'),
+            ('value', '(org.vistrails.vistrails.tabledata:read|CSVFile)')]
+
+    def compute(self):
+        csv_file = self.get_input('file').name
+        header_present = self.get_input('header_present')
+        delimiter = self.force_get_input('delimiter', None)
+
+        try:
+            table = CSVTable(csv_file, header_present, delimiter)
+        except ReadError, e:
+            raise ModuleError(self, *e.args)
+
+        self.set_output('column_count', table.columns)
+        self.set_output('column_names', table.names)
+        self.set_output('value', table)
+
+
+_modules = [CSVFile]
 
 
 ###############################################################################
@@ -143,7 +158,7 @@ class CSVTestCase(unittest.TestCase):
         with intercept_result(ExtractColumn, 'value') as results:
             with intercept_result(CSVFile, 'column_count') as columns:
                 self.assertFalse(execute([
-                        ('read|csv|CSVFile', identifier, [
+                        ('read|CSVFile', identifier, [
                             ('file', [('File', self._test_dir + '/test.csv')]),
                         ]),
                         ('ExtractColumn', identifier, [
@@ -156,7 +171,7 @@ class CSVTestCase(unittest.TestCase):
                         ]),
                     ],
                     [
-                        (0, 'self', 1, 'table'),
+                        (0, 'value', 1, 'table'),
                         (1, 'value', 2, 'l'),
                     ],
                     add_port_specs=[
@@ -173,7 +188,7 @@ class CSVTestCase(unittest.TestCase):
         """Uses CSVFile and ExtractColumn with mismatching columns.
         """
         self.assertTrue(execute([
-                ('read|csv|CSVFile', identifier, [
+                ('read|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
                 ('ExtractColumn', identifier, [
@@ -182,14 +197,14 @@ class CSVTestCase(unittest.TestCase):
                 ]),
             ],
             [
-                (0, 'self', 1, 'table'),
+                (0, 'value', 1, 'table'),
             ]))
 
     def test_csv_missing(self):
         """Uses CSVFile and ExtractColumn with a nonexisting column.
         """
         self.assertTrue(execute([
-                ('read|csv|CSVFile', identifier, [
+                ('read|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
                 ('ExtractColumn', identifier, [
@@ -197,7 +212,7 @@ class CSVTestCase(unittest.TestCase):
                 ]),
             ],
             [
-                (0, 'self', 1, 'table'),
+                (0, 'value', 1, 'table'),
             ]))
 
     def test_csv_nonnumeric(self):
@@ -205,7 +220,7 @@ class CSVTestCase(unittest.TestCase):
         """
         with intercept_result(ExtractColumn, 'value') as results:
             self.assertFalse(execute([
-                    ('read|csv|CSVFile', identifier, [
+                    ('read|CSVFile', identifier, [
                         ('file', [('File', self._test_dir + '/test.csv')]),
                         ('header_present', [('Boolean', 'False')]),
                     ]),
@@ -215,7 +230,7 @@ class CSVTestCase(unittest.TestCase):
                     ]),
                 ],
                 [
-                    (0, 'self', 1, 'table'),
+                    (0, 'value', 1, 'table'),
                 ]))
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0],

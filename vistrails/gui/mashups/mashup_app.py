@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +35,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal
 
+from vistrails.core import debug
 from vistrails.gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
                                          QAliasNumericStepperWidget)
 from vistrails.gui.utils import show_warning, TestVisTrailsGUI
@@ -235,7 +236,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 cellEvents = spreadsheetController.getEchoCellEvents()
         except Exception, e:
             import traceback
-            print "Executing pipeline failed:", str(e), traceback.format_exc()
+            print "Executing pipeline failed:", debug.format_exception(e), traceback.format_exc()
         finally:
             spreadsheetController.setEchoMode(False)
             
@@ -618,5 +619,7 @@ class TestMashupApp(TestVisTrailsGUI):
                     '/tests/resources/spx_loop.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
         id = "d5026457-de6c-11e2-b074-3c07543dba07"
-        view.open_mashup_from_mashuptrail_id(id, "loop")
-        view.open_mashup_from_mashuptrail_id(id, "no loop")
+        mashup = view.get_mashup_from_mashuptrail_id(id, "loop")
+        view.open_mashup(mashup)
+        mashup = view.get_mashup_from_mashuptrail_id(id, "no loop")
+        view.open_mashup(mashup)

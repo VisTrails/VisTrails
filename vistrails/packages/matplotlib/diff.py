@@ -61,7 +61,7 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
         for attr in attr_list:
             in_val = getattr(in_ps, attr) 
             out_val = getattr(out_ps, attr)
-            if in_val != out_val
+            if in_val != out_val:
                 print "C %s.%s.%s.%s %s" % (code_ref, qualifier, arg, attr, 
                                             out_val)
                 elt = ET.Element("changePortSpec")

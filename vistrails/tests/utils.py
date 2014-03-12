@@ -1,9 +1,16 @@
 import contextlib
+import sys
+
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
 
 from vistrails.core.modules.vistrails_module import Module
 
 
-def execute(modules, connections=[], add_port_specs=[], enable_pkg=True):
+def execute(modules, connections=[], add_port_specs=[],
+            enable_pkg=True, full_results=False):
     """Build a pipeline and execute it.
 
     This is useful to simply build a pipeline in a test case, and run it. When
@@ -104,8 +111,9 @@ def execute(modules, connections=[], add_port_specs=[], enable_pkg=True):
 
         for func_name, params in functions:
             param_list = []
-            for param_type, param_val in params:
-                param_list.append(ModuleParam(type=param_type,
+            for j, (param_type, param_val) in enumerate(params):
+                param_list.append(ModuleParam(pos=j,
+                                              type=param_type,
                                               val=param_val))
             function_list.append(ModuleFunction(name=func_name,
                                                 parameters=param_list))
@@ -150,7 +158,11 @@ def execute(modules, connections=[], add_port_specs=[], enable_pkg=True):
             locator=XMLFileLocator('foo.xml'),
             current_version=1,
             view=DummyView())
-    return result.errors
+    if full_results:
+        return result
+    else:
+        # Allows to do self.assertFalse(execute(...))
+        return result.errors
 
 
 @contextlib.contextmanager
@@ -160,14 +172,14 @@ def intercept_result(module, output_name):
     It is used as a context manager, for instance:
     class MyModule(Module):
         def compute(self):
-            self.setResult('res', 42)
+            self.set_output('res', 42)
         ...
     with intercept_result(MyModule, 'res') as results:
         self.assertFalse(execute(...))
     self.assertEqual(results, [42])
     """
-    actual_setResult = module.setResult
-    old_setResult = module.__dict__.get('setResult', None)
+    actual_setResult = module.set_output
+    old_setResult = module.__dict__.get('set_output', None)
     results = []
     modules_index = {}  # Maps a Module to an index in the list, so a module
             # can change its result
@@ -179,14 +191,14 @@ def intercept_result(module, output_name):
                 modules_index[self] = len(results)
                 results.append(value)
         actual_setResult(self, name, value)
-    module.setResult = new_setResult
+    module.set_output = new_setResult
     try:
         yield results
     finally:
         if old_setResult is not None:
-            module.setResult = old_setResult
+            module.set_output = old_setResult
         else:
-            del module.setResult
+            del module.set_output
 
 
 def intercept_results(*args):
@@ -210,3 +222,16 @@ def intercept_results(*args):
         else:
             raise TypeError
     return contextlib.nested(*ctx)
+
+
+@contextlib.contextmanager
+def capture_stdout():
+    lines = []
+    old_stdout = sys.stdout
+    sio = StringIO.StringIO()
+    sys.stdout = sio
+    yield lines
+    sys.stdout = old_stdout
+    lines.extend(sio.getvalue().split('\n'))
+    if lines and not lines[-1]:
+        del lines[-1]

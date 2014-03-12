@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,6 +37,7 @@
 # Installs a package through APT, showing progress.
 import apt
 import apt_pkg
+import locale
 import sys
 import time
 
@@ -53,6 +54,12 @@ if __name__ != '__main__':
 package_name = sys.argv[1]
 
 ##############################################################################
+
+def smart_decode(msg):
+    if isinstance(msg, bytes):
+        encoding = locale.getpreferredencoding() or 'utf-8'
+        msg = msg.decode(encoding, 'replace').replace(u'\xFFFD', '?')
+    return msg
 
 class GuiOpProgress(OpProgress):
     def __init__(self, pbar):
@@ -80,12 +87,12 @@ class GUIAcquireProgress(AcquireProgress):
             current_item = self.total_items
         if self.current_cps > 0:
             text = (_("Downloading file %(current)li of %(total)li with "
-                      "%(speed)s/s") % \
+                      "%(speed)s/s") %
                       {"current": current_item,
                        "total": self.total_items,
                        "speed": apt_pkg.size_to_str(self.current_cps)})
         else:
-            text = (_("Downloading file %(current)li of %(total)li") % \
+            text = (_("Downloading file %(current)li of %(total)li") %
                       {"current": current_item,
                        "total": self.total_items})
         self.status_label.setText(text)
@@ -130,7 +137,7 @@ class GUIInstallProgress(InstallProgress):
     def status_change(self, pkg, percent, status):
         if self.last >= percent:
             return
-        self.status_label.setText(status)
+        self.status_label.setText(smart_decode(status))
         self.pbar.setValue(int(percent))
         self.last = percent
         QtGui.qApp.processEvents()

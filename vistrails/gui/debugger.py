@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -216,7 +216,7 @@ class QObjectInspector(QtGui.QTreeWidget):
         inputs_item.setText(1, "")
         for port_name in m.inputPorts:
             try:
-                port_val = m.getInputListFromPort(port_name)
+                port_val = m.get_input_list(port_name)
                 if len(port_val) == 1:
                     port_val = port_val[0]
             except ModuleError:

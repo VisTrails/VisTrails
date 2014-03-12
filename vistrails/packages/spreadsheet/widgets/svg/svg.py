@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -56,9 +56,9 @@ class SVGCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch SVG file into the spreadshet for display
         """
-        if self.hasInputFromPort("File"):
+        if self.has_input("File"):
             window = spreadsheetController.findSpreadsheetWindow()
-            file_to_display = self.getInputFromPort("File")
+            file_to_display = self.get_input("File")
             fileValue = window.file_pool.make_local_copy(file_to_display.name)
         else:
             fileValue = None
@@ -120,8 +120,8 @@ class SVGSplitter(Module):
         Use BatchDisplayCellEvent to display a serie of SVG files
         
         """
-        if self.hasInputFromPort("File"):
-            fileValue = self.getInputFromPort("File")
+        if self.has_input("File"):
+            fileValue = self.get_input("File")
         else:
             fileValue = None
         if fileValue:
@@ -137,7 +137,7 @@ class SVGSplitter(Module):
                 if len(comps)==2:
                     e = DisplayCellEvent()        
                     e.sheetReference = StandardSingleCellSheetReference()
-                    e.sheetReference.sheetName = comps[1]                    
+                    e.sheetReference.sheetName = comps[1]
                     e.cellType = SVGCellWidget
                     from os.path import abspath, basename, dirname, join
                     F = PathObject(join(dirname(abspath(fileValue.name)),

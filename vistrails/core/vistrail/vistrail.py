@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -889,8 +889,10 @@ class Vistrail(DBVistrail):
         Compute the description of a version
         
         """
-        description = ""
-        if version_number in self.actionMap:
+        description = "Other action"
+        if not version_number:
+            description = "" # Root node
+        elif version_number in self.actionMap:
             action = self.actionMap[version_number]
             # if a description has been manually set, return that value
             if action.description is not None:
@@ -943,7 +945,7 @@ class Vistrail(DBVistrail):
                         deleted_parameters+=1
                     elif op.what == 'annotation':
                         deleted_annotations+=1
-                    elif op.what == 'port':
+                    elif op.what == 'portSpec':
                         deleted_ports += 1
                 else:
                     raise TypeError("Unknown operation type '%s'" % op.vtType)
@@ -1028,7 +1030,6 @@ class Vistrail(DBVistrail):
 
     def getDate(self):
         """ getDate() -> str - Returns the current date and time. """
-    #    return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
         return datetime.datetime.now()
     
     def getUser(self):

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,7 +46,7 @@ from vistrails.core.modules.vistrails_module import Module
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 from vistrails.core import debug
-from vistrails.core.system import current_dot_vistrails
+from vistrails.core.system import current_dot_vistrails, strptime
 import vistrails.gui.repository
 
 import datetime
@@ -61,8 +61,6 @@ import urllib2
 from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
 
-from vistrails.core.utils import DummyView
-
 from http_directory import download_directory
 
 # special file uploaders used to push files to repository
@@ -75,14 +73,14 @@ class HTTPFile(Module):
     """ Downloads file from URL """
 
     def compute(self):
-        self.checkInputPort('url')
-        url = self.getInputFromPort("url")
+        self.check_input('url')
+        url = self.get_input("url")
         (result, downloaded_file, local_filename) = self.download(url)
-        self.setResult("local_filename", local_filename)
+        self.set_output("local_filename", local_filename)
         if result == 2:
             raise ModuleError(self, downloaded_file)
         else:
-            self.setResult("file", downloaded_file)
+            self.set_output("file", downloaded_file)
 
     def download(self, url):
         """download(url:string) -> (result: int, downloaded_file: File,
@@ -138,7 +136,7 @@ class HTTPFile(Module):
                 result = vistrails.core.modules.basic_modules.PathObject(local_filename)
                 return (1, result, local_filename)
             else:
-                return (2, (str(e)), local_filename)
+                return (2, (debug.format_exception(e)), local_filename)
         else:
             try:
                 mod_header = f1.headers['last-modified']
@@ -149,7 +147,7 @@ class HTTPFile(Module):
                 if not size_header:
                     raise ValueError
                 size_header = int(size_header)
-            except ValueError:
+            except (KeyError, ValueError):
                 size_header = None
 
             result = vistrails.core.modules.basic_modules.PathObject(local_filename)
@@ -208,12 +206,10 @@ class HTTPFile(Module):
         local_time = \
                 datetime.datetime.utcfromtimestamp(os.path.getmtime(localFile))
         try:
-            remote_time = datetime.datetime.strptime(remoteHeader,
-                                                     "%a, %d %b %Y %H:%M:%S %Z")
+            remote_time = strptime(remoteHeader, "%a, %d %b %Y %H:%M:%S %Z")
         except ValueError:
             try:
-                remote_time = datetime.datetime.strptime(remoteHeader,
-                                                         "%a, %d %B %Y %H:%M:%S %Z")
+                remote_time = strptime(remoteHeader, "%a, %d %B %Y %H:%M:%S %Z")
             except ValueError:
                 # unable to parse last-modified header, download file again
                 debug.warning("Unable to parse Last-Modified header"
@@ -233,12 +229,12 @@ class HTTPDirectory(Module):
     """
 
     def compute(self):
-        self.checkInputPort('url')
-        url = self.getInputFromPort('url')
+        self.check_input('url')
+        url = self.get_input('url')
         local_path = self.download(url)
-        self.setResult('local_path', local_path)
+        self.set_output('local_path', local_path)
         local_dir = vistrails.core.modules.basic_modules.PathObject(local_path)
-        self.setResult('directory', local_dir)
+        self.set_output('directory', local_dir)
 
     def download(self, url):
         local_path = self.interpreter.filePool.create_directory(
@@ -348,11 +344,11 @@ class RepoSync(Module):
                 self.is_cacheable = self.invalidate_cache
 
             # use local data
-            self.setResult("file", self.in_file)
+            self.set_output("file", self.in_file)
         else:
             # file on repository mirrors local file, so use local file
             if self.up_to_date and os.path.isfile(self.in_file.name):
-                self.setResult("file", self.in_file)
+                self.set_output("file", self.in_file)
             else:
                 # local file not present or out of date, download or used cached
                 self.url = "%s/datasets/download/%s" % (self.base_url,
@@ -367,14 +363,14 @@ class RepoSync(Module):
                         raise ModuleError(self, ("Invalid URL: %s" % e))
                 out_file = vistrails.core.modules.basic_modules.PathObject(local_filename)
                 debug.warning('RepoSync is using repository data')
-                self.setResult("file", out_file)
+                self.set_output("file", out_file)
 
 
     def compute(self):
         # if server, grab local file using checksum id
         if self.is_server:
-            self.checkInputPort('checksum')
-            self.checksum = self.getInputFromPort("checksum")
+            self.check_input('checksum')
+            self.checksum = self.get_input("checksum")
             # get file path
             path_url = "%s/datasets/path/%s/"%(self.base_url, self.checksum)
             try:
@@ -385,17 +381,17 @@ class RepoSync(Module):
 
             if os.path.isfile(dataset_path):
                 out_file = vistrails.core.modules.basic_modules.File(dataset_path)
-                self.setResult("file", out_file)
+                self.set_output("file", out_file)
         else: # is client
-            self.checkInputPort('file')
-            self.in_file = self.getInputFromPort("file")
+            self.check_input('file')
+            self.in_file = self.get_input("file")
             if os.path.isfile(self.in_file.name):
                 # do size check
                 size = os.path.getsize(self.in_file.name)
                 if size > 26214400:
                     show_warning("File is too large", ("file is larger than 25MB, "
                                  "unable to sync with web repository"))
-                    self.setResult("file", self.in_file)
+                    self.set_output("file", self.in_file)
                 else:
                     # compute checksum
                     f = open(self.in_file.name, 'r')
@@ -411,13 +407,13 @@ class RepoSync(Module):
                     self.data_sync()
 
                     # set checksum param in module
-                    if not self.hasInputFromPort('checksum'):
+                    if not self.has_input('checksum'):
                         self.change_parameter('checksum', [self.checksum])
 
             else:
                 # local file not present
-                if self.hasInputFromPort('checksum'):
-                    self.checksum = self.getInputFromPort("checksum")
+                if self.has_input('checksum'):
+                    self.checksum = self.get_input("checksum")
 
                     # download file
                     self.data_sync()

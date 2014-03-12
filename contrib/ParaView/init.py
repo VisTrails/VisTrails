@@ -43,7 +43,7 @@ class PVServerPythonSource(PVBase.PVModule):
         for k in self.inputPorts:
             if k=='Script':
                 continue
-            value = self.getInputFromPort(k)
+            value = self.get_input(k)
             if type(value)==str:
                 inputDefs += '%s = "%s"\n' % (k, value.replace('"', '\\"'))
             elif type(value)==int:
@@ -56,7 +56,7 @@ nPartitions = proc.GetNumberOfLocalPartitions()
 partitionId = proc.GetPartitionId()
 result = ''
 """
-        source = self.forceGetInputFromPort('Script', '')
+        source = self.force_get_input('Script', '')
         suffix = """
 if len(result)>0:
     import vtk
@@ -74,7 +74,7 @@ if len(result)>0:
         self.pvInstance.Script = inputDefs + prefix + source + suffix
         self.pvInstance.UpdatePipeline()
 
-        self.setResult('Output', self)
+        self.set_output('Output', self)
 
 
 class PVClientFetch(PythonSource):
@@ -85,7 +85,7 @@ import paraview.servermanager as sm
 import paraview.vtk.dataset_adapter as DA
 proc = sm.vtkProcessModule.GetProcessModule()
 nPartitions = proc.GetNumberOfPartitions(sm.ActiveConnection.ID)
-module = self.getInputFromPort('ServerModule')
+module = self.get_input('ServerModule')
 results = []
 for i in xrange(nPartitions):
     data = sm.Fetch(module.pvInstance, i)
@@ -95,7 +95,7 @@ for i in xrange(nPartitions):
     result = narray.tostring()
     results.append(result)
 """
-        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        s = urllib.unquote(str(self.force_get_input('source', '')))
         self.run_code(prefix + s, use_input=True, use_output=True)
         
         

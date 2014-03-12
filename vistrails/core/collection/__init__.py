@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -87,8 +87,7 @@ class Collection(object):
                 [cur.execute(s) for s in schema]
                 self.conn.commit()
             except Exception, e:
-                debug.critical("Could not create vistrail index schema",
-                               str(e))
+                debug.critical("Could not create vistrail index schema", e)
         else:
             self.conn = sqlite3.connect(self.database)
         self.load_entities()

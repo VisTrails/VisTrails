@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -58,7 +58,7 @@ from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
 import vistrails.core.vistrail.action
-from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
+from vistrails.core.utils import profile, InvalidPipeline
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
@@ -1122,7 +1122,8 @@ class Pipeline(DBWorkflow):
                 value_set = False
                 for func in module.functions:
                     if func.name == 'value':
-                        if func.params[0].strValue:
+                        value = func.params[0].strValue
+                        if value and value != "None":
                             value_set = True
                             continue
                 if value_set:
@@ -1274,7 +1275,7 @@ class TestPipeline(unittest.TestCase):
         # make sure pythonCalc is loaded
         from vistrails.core.packagemanager import get_package_manager
         pm = get_package_manager()
-        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no partial
+        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no branch
             pm.late_enable_package('pythonCalc')
 
     def create_default_pipeline(self, id_scope=None):

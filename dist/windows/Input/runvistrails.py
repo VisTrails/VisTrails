@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 import os
+import subprocess
 import sys
 
 #1st argument is path to python executable
@@ -46,12 +47,10 @@ if len(args) > 3:
     python = args[1]
     pyfile = args[2]
     path = args[3]
-    filenames = ""
+    filenames = []
     if len(args) > 4:
-        filenames = " ".join(args[4:])
+        filenames = [os.path.abspath(a) for a in args[4:]]
     os.chdir(path)
-    cmdline = '"%s" "%s" "%s"' % (python, pyfile, filenames)
-    cmdline = "\"%s" % cmdline
     path += os.getenv('PATH')
     os.putenv('PATH', path)
-    os.system(cmdline)
+    subprocess.call([python, pyfile] + filenames)

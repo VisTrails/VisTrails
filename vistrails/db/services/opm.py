@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -46,8 +46,6 @@ from vistrails.db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBConnection, DBGroup, DBPortSpec, DBOpmWasTriggeredBy, DBFunction, \
     DBParameter
 from vistrails.db.services.vistrail import materializeWorkflow
-
-sys.path.append('/vistrails/src/trunk/vistrails')
 
 def create_process(item_exec, account, id_scope):
     return DBOpmProcess(id='p' + str(id_scope.getNewId(DBOpmProcess.vtType)),

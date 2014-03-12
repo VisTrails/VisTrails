@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -51,7 +51,7 @@ from vistrails.core.modules.module_registry import ModuleRegistry, \
                                          MissingPackage, MissingPackageVersion
 from vistrails.core.modules.package import Package
 from vistrails.core.utils import VistrailsInternalError, InstanceObject, \
-    versions_increasing
+    versions_increasing, VistrailsDeprecation
 import vistrails.packages
 ##############################################################################
 
@@ -256,8 +256,10 @@ class PackageManager(object):
         return self._orig_import(name, globals, locals, fromlist, level)
 
     def finalize_packages(self):
-        """Finalizes all installed packages. Call this only prior to
-exiting VisTrails."""
+        """Finalizes all installed packages. Call this only prior to exiting
+        VisTrails.
+
+        """
         for package in self._package_list.itervalues():
             package.finalize()
         self._package_list = {}
@@ -275,8 +277,10 @@ exiting VisTrails."""
         return pkg
 
     def add_package(self, codepath, add_to_package_list=True):
-        """Adds a new package to the manager. This does not initialize it.
-To do so, call initialize_packages()"""
+        """Adds a new package to the manager. This does not initialize it.  To
+        do so, call initialize_packages()
+
+        """
         package = self.get_available_package(codepath)
         if add_to_package_list:
             self.add_to_package_list(codepath, package)
@@ -323,8 +327,10 @@ To do so, call initialize_packages()"""
         app.send_notification("package_removed", codepath)
 
     def has_package(self, identifier, version=None):
-        """has_package(identifer: string) -> Boolean.
-Returns true if given package identifier is present."""
+        """has_package(identifer: string) -> Boolean.  
+        Returns true if given package identifier is present.
+
+        """
 
         # check if it's an old identifier
         identifier = self._old_identifier_map.get(identifier, identifier)
@@ -381,7 +387,7 @@ Returns true if given package identifier is present."""
         warnings.warn(
                 "You should use get_package instead of "
                 "get_package_by_identifier",
-                DeprecationWarning,
+                VistrailsDeprecation,
                 stacklevel=2)
         return self.get_package(identifier)
 
@@ -576,7 +582,7 @@ Returns true if given package identifier is present."""
                 package.load(prefix_dictionary.get(package.codepath, None))
             except Package.LoadFailed, e:
                 debug.critical("Package %s failed to load and will be "
-                               "disabled" % package.name, str(e))
+                               "disabled" % package.name, e)
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list
@@ -584,8 +590,9 @@ Returns true if given package identifier is present."""
                 failed.append(package)
             except Package.InitializationFailed, e:
                 debug.critical("Initialization of package <codepath %s> "
-                               "failed and will be disabled" % \
-                                   package.codepath, str(e))
+                               "failed and will be disabled" %
+                               package.codepath,
+                               e)
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list
@@ -620,11 +627,12 @@ Returns true if given package identifier is present."""
                 self.add_dependencies(package)
             except Package.MissingDependency, e:
                 debug.critical("Dependencies of package %s are missing "
-                               "so it will be disabled" % package.name, str(e))
+                               "so it will be disabled" % package.name,
+                               e)
             except Exception, e:
                 debug.critical("Got an exception while getting dependencies "
                                "of %s so it will be disabled" % package.name,
-                               str(e))
+                               e)
             else:
                 continue
             package.remove_own_dom_element()
@@ -655,8 +663,9 @@ Returns true if given package identifier is present."""
                     self._registry.initialize_package(pkg)
                 except Package.InitializationFailed, e:
                     debug.critical("Initialization of package <codepath %s> "
-                                   "failed and will be disabled" % \
-                                       pkg.codepath, str(e))
+                                   "failed and will be disabled" %
+                                   pkg.codepath,
+                                   e)
                     # We disable the package manually to skip over things
                     # we know will not be necessary - the only thing needed is
                     # the reference in the package list

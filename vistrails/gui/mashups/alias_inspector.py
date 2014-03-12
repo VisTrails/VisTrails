@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -51,7 +51,7 @@ from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.mashup.alias import Alias
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import get_vistrails_basic_pkg_id
-from vistrails.gui.modules import get_widget_class
+from vistrails.gui.modules.utils import get_widget_class
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning
@@ -268,14 +268,14 @@ class QAliasDetailsWidget(QtGui.QWidget):
             return
         if new_alias in self.table.aliases.keys():
             show_warning("Mashup",
-                         """Label name %s already exists. 
-Please type a different name. """ % new_alias)
+                         "Label name %s already exists. "
+                         "Please type a different name." % new_alias)
             self.name_edit.setText(old_alias)
             self.name_edit.setFocus()
         elif new_alias == '':
             show_warning("Mashup",
-                         """Variables with empty name are not allowed. 
-Please type a unique name. """ % new_alias)
+                         "Variables with empty name are not allowed. "
+                         "Please type a unique name.")
             self.name_edit.setText(old_alias)
             self.name_edit.setFocus()
         else:

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -52,11 +52,11 @@ class WebViewCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the URL to the spreadsheet
         """
-        if self.hasInputFromPort("url"):
-            urlValue = self.getInputFromPort("url")
+        if self.has_input("url"):
+            urlValue = self.get_input("url")
             fileValue = None
-        elif self.hasInputFromPort("file"):
-            fileValue = self.getInputFromPort("file")
+        elif self.has_input("file"):
+            fileValue = self.get_input("file")
             urlValue = None
         else:
             fileValue = None

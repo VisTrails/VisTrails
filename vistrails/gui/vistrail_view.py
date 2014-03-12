@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -356,7 +356,7 @@ class QVistrailView(QtGui.QWidget):
             self.mashup_view.updateView()
             self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
         except Exception, e:
-            print "EXCEPTION: ", str(e)
+            print "EXCEPTION: ", debug.format_exception(e)
     def mashup_unselected(self):
         #print "MASHUP UN"
         self.stack.setCurrentIndex(
@@ -597,12 +597,12 @@ class QVistrailView(QtGui.QWidget):
 
     def view_changed(self):
         from vistrails.gui.vistrails_window import _app
-        _app.closeNotPinPalettes()
         #view = self.stack.currentWidget()
         view = self.get_current_outer_tab()
         #print "changing tab from: ",self.current_tab, " to ", view
         #print self.tab_to_stack_idx
         if view != self.current_tab:
+            _app.closeNotPinPalettes()
             #print "!!unset_action_links of ", self.current_tab
             _app.unset_action_links(self.current_tab)
             self.current_tab = view
@@ -616,10 +616,10 @@ class QVistrailView(QtGui.QWidget):
             #print "\n!!set_action_links of ", self.current_tab 
             _app.set_action_links(self.current_tab.action_links, self.current_tab,
                                   self)
+            self.showCurrentViewPalettes()
 
         #else:
            # print "tabs the same. do nothing"
-        self.showCurrentViewPalettes()
         if isinstance(view, QQueryView):
             _app.notify("controller_changed", view.p_controller)
             _app.notify("entry_klass_changed", QueryEntry)
@@ -891,14 +891,9 @@ class QVistrailView(QtGui.QWidget):
         self.flush_changes()
         gui_get = locator_class.save_from_gui
         # get a locator to write to
+        if not locator or locator.is_untitled():
+            force_choose_locator = True
         if force_choose_locator:
-            locator = gui_get(self, Vistrail.vtType,
-                              self.controller.locator)
-        else:
-            locator = (self.controller.locator or
-                       gui_get(self, Vistrail.vtType,
-                               self.controller.locator))
-        if locator is not None and locator.is_untitled():
             locator = gui_get(self, Vistrail.vtType,
                               self.controller.locator)
         # if couldn't get one, ignore the request
@@ -908,12 +903,16 @@ class QVistrailView(QtGui.QWidget):
             self.controller.write_vistrail(locator, export=export)
         except Exception, e:
             import traceback
-            debug.critical('Failed to save vistrail: %s' % str(e),
-                           traceback.format_exc())
+            debug.critical('Failed to save vistrail', traceback.format_exc())
             raise
-            return False
         if export:
             return self.controller.locator
+        
+        if not force_choose_locator:
+            from vistrails.gui.vistrails_window import _app
+            _app.view_changed(self)
+            _app.notify("vistrail_saved")
+            return locator
         # update collection
         try:
             thumb_cache = ThumbnailCache.getInstance()
@@ -1100,19 +1099,22 @@ class QVistrailView(QtGui.QWidget):
         if hasattr(view, 'publish_to_paper'):
             view.publish_to_paper()
 
-    def open_mashup_from_mashuptrail_id(self, mashuptrail_id, mashupVersion):
-        """open_mashup_from_mashuptrail_id(mashuptrail_id: int,
+    def get_mashup_from_mashuptrail_id(self, mashuptrail_id, mashupVersion):
+        """get_mashup_from_mashuptrail_id(mashuptrail_id: int,
                                            mashupVersion: int/str) -> None
-        It will find the matching mashuptrail and run the mashup
+        It will find the matching mashuptrail and return the mashup
         mashupVersion can be either version number or version tag
-        and run the mashup """
+
+        """
         for mashuptrail in self.controller._mashups:
             if str(mashuptrail.id) == mashuptrail_id:
-                if type(mashupVersion) != int:
+                try:
+                    mashupVersion = int(mashupVersion)
+                except ValueError:
                     mashupVersion = mashuptrail.getTagMap()[mashupVersion]
                 mashup = mashuptrail.getMashup(mashupVersion)
-                self.open_mashup(mashup)
-                break
+                return mashup
+        return None
 
     def open_mashup(self, mashup):
         """open_mashup(mashup: Mashup) -> None
