@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -692,7 +692,7 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         try:
             search = SearchCompiler(s).searchStmt
         except SearchParseError, e:
-            debug.warning("Search Parse Error", str(e))
+            debug.warning("Search Parse Error", e)
             search = None
 
         self.browser.run_search(search)
@@ -777,7 +777,7 @@ class QExplorerDialog(QToolWindow, QToolWindowInterface):
         try:
             search = SearchCompiler(s).searchStmt
         except SearchParseError, e:
-            debug.warning("Search Parse Error", str(e))
+            debug.warning("Search Parse Error", e)
             search = None
 
         self.browser.run_search(search)
@@ -1285,12 +1285,12 @@ class QVistrailList(QtGui.QTreeWidget):
         
         (new_entity, was_updated) = \
             entity.update_vistrail(view.controller.vistrail)
-        if new_entity:
-            Collection.getInstance().create_vistrail_entity(
-                view.controller.vistrail)
-            self.add_vt_window(view)
-            return
-        elif was_updated:
+        #if new_entity:
+        #    Collection.getInstance().create_vistrail_entity(
+        #        view.controller.vistrail)
+        #    self.add_vt_window(view)
+        #    return
+        if was_updated:
             item.setText(0, entity.name)
         (added_wfs, deleted_wfs) = entity.update_workflows()
         (more_added_wfs, added_wf_execs) = entity.update_log()
@@ -1420,6 +1420,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 old_item.current_item = item.current_item
                 old_item.workflowsItem = item.workflowsItem
                 old_item.mashupsItem = item.mashupsItem
+                old_item.paramExplorationsItem = item.paramExplorationsItem
                 old_item.tag_to_item = item.tag_to_item
                 old_item.mshp_to_item = item.mshp_to_item
                 old_item.pe_to_item = item.pe_to_item
@@ -1451,7 +1452,7 @@ class QVistrailList(QtGui.QTreeWidget):
         item.paramExplorationsItem.setHidden(
                              not item.paramExplorationsItem.childCount())
         self.make_tree(item) if self.isTreeView else self.make_list(item)
-        self.setSelected(vistrail_window)
+        self.item_changed(item, None)
         self.updateHideExecutions()
 
     def remove_vt_window(self, vistrail_window):

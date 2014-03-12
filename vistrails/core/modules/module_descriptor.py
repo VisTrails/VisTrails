@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -306,8 +306,9 @@ class ModuleDescriptor(DBModuleDescriptor):
             try:
                 doc = self.module.get_documentation(doc, module)
             except Exception, e:
-                import traceback
-                debug.critical(str(e), traceback.format_exc())
+                debug.critical("Exception calling get_documentation on %r" %
+                               self.module,
+                               e)
                 doc = doc or "(Error getting documentation)"
         doc = doc or "(No documentation available)"
         return doc
@@ -350,7 +351,7 @@ class ModuleDescriptor(DBModuleDescriptor):
                 "version=%s, base_descriptor_id=%s)" % \
                     (self.id, self.package, self.name, self.namespace,
                      self.version, self.base_descriptor_id))
- 
+
     ##########################################################################
     # Abstract module detection support
 

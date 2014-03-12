@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -52,8 +52,8 @@ from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.package import Package
 import vistrails.core.modules.utils
 from vistrails.core.utils import VistrailsInternalError, memo_method, \
-     InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
-     all, profile, versions_increasing, InvalidPipeline
+    InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
+    all, profile, versions_increasing, InvalidPipeline
 from vistrails.core.system import vistrails_root_directory, vistrails_version, \
     get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.port_spec import PortSpec
@@ -979,7 +979,7 @@ class ModuleRegistry(DBRegistry):
         return descriptor
 
     def convert_port_val(self, val, sig=None, cls=None):
-        from vistrails.core.modules.basic_modules import identifier as basic_pkg
+        basic_pkg = get_vistrails_basic_pkg_id()
         if sig is None and cls is None:
             raise ValueError("One of sig or cls must be set")
         try:
@@ -1086,7 +1086,7 @@ class ModuleRegistry(DBRegistry):
                         debug.critical('Failed to add port "%s" to '
                                        'module "%s"' % (port_name, 
                                                         module.__name__),
-                                       str(e))
+                                       e)
                         raise
                         
     def auto_add_module(self, module):
@@ -1308,7 +1308,7 @@ class ModuleRegistry(DBRegistry):
         else:
             name = _parse_abstraction_name(vt_fname)
             kwargs['name'] = name
- 
+
         package = self.package_versions[(identifier, package_version)]
         if not os.path.isabs(vt_fname):
             vt_fname = os.path.join(package.package_dir, vt_fname)
@@ -1429,6 +1429,9 @@ class ModuleRegistry(DBRegistry):
                 new_defaults = []
                 if isinstance(defaults, basestring):
                     defaults = ast.literal_eval(defaults)
+                if not isinstance(defaults, list):
+                    raise ValueError('Defaults for port "%s" must be a list' %
+                                     name)
                 for i, default_val in enumerate(defaults):
                     if default_val is not None:
                         default_conv = self.convert_port_val(default_val,
@@ -1445,8 +1448,16 @@ class ModuleRegistry(DBRegistry):
                 new_values = []
                 if isinstance(values, basestring):
                     values = ast.literal_eval(values)
+                if not isinstance(values, list):
+                    raise ValueError('Values for port "%s" must be a list '
+                                     'of lists' % name)
                 for i, values_list in enumerate(values):
+                    if isinstance(values_list, basestring):
+                        values_list = ast.literal_eval(values_list)
                     if values_list is not None:
+                        if not isinstance(values_list, list):
+                            raise ValueError('Values for port "%s" must be '
+                                             'a list of lists' % name)
                         new_values_list = []
                         for val in values_list:
                             if val is not None:

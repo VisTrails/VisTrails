@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -136,7 +136,7 @@ class HTTPFile(Module):
                 result = vistrails.core.modules.basic_modules.PathObject(local_filename)
                 return (1, result, local_filename)
             else:
-                return (2, (str(e)), local_filename)
+                return (2, (debug.format_exception(e)), local_filename)
         else:
             try:
                 mod_header = f1.headers['last-modified']
@@ -147,7 +147,7 @@ class HTTPFile(Module):
                 if not size_header:
                     raise ValueError
                 size_header = int(size_header)
-            except ValueError:
+            except (KeyError, ValueError):
                 size_header = None
 
             result = vistrails.core.modules.basic_modules.PathObject(local_filename)

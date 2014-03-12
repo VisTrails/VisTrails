@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -454,9 +454,6 @@ class VistrailController(QtCore.QObject, BaseController):
                             [YES_BUTTON, NO_BUTTON], 
                             YES_BUTTON)
         if res == NO_BUTTON:
-#             QtGui.QMessageBox.warning(get_vistrails_application().builderWindow,
-#                                       'Missing modules',
-#                                       'Some necessary modules will be missing.')
             return False
         return True
 
@@ -544,11 +541,11 @@ class VistrailController(QtCore.QObject, BaseController):
 #                                           "construct this workflow.")
 #                msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
 #                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
-#                msg_box.setDetailedText(str(e))
+#                msg_box.setDetailedText(debug.format_exception(e))
 #                msg_box.exec_()
                 # text = "The current workflow could not be validated."
-                # debug.critical('%s\n%s' % (text, str(e)))
-                debug.critical(str(e))
+                # debug.critical(text, e)
+                debug.critical("Error changing version", e)
 
 #                 print 'got to exception set'
 #                 # Process all errors as usual
@@ -561,7 +558,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
         except Exception, e:
             import traceback
-            debug.critical('Unexpected Exception\n%s' % str(e), 
+            debug.critical('Unexpected Exception',
                            traceback.format_exc())
         
         # FIXME: this code breaks undo/redo, and seems to be ok with normal

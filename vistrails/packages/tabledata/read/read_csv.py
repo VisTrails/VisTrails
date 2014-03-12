@@ -16,19 +16,24 @@ def count_lines(fp):
     return lines
 
 
+class ReadError(Exception):
+    pass
+
+
 class CSVTable(TableObject):
     _STANDARD_DELIMITERS = [';', ',', '\t', '|']
 
     def __init__(self, csv_file, header_present, delimiter):
-        TableObject.__init__(self)
         self._rows = None
 
         self.header_present = header_present
         self.delimiter = delimiter
         self.filename = csv_file
 
-        self.columns, self.names, self.delimiter = \
-                self.read_file(csv_file, delimiter, header_present)
+        self.columns, self.names, self.delimiter = self.read_file(
+                csv_file,
+                delimiter,
+                header_present) # Might raise ReadError
 
         self.column_cache = {}
 
@@ -44,8 +49,7 @@ class CSVTable(TableObject):
                         izip(CSVTable._STANDARD_DELIMITERS, counts),
                         key=lambda (delim, count): count)
                 if count == 0:
-                    raise ModuleError(self,
-                                      "Couldn't guess the field delimiter")
+                    raise ReadError("Couldn't guess the field delimiter")
                 else:
                     delimiter = read_delimiter
             else:
@@ -60,7 +64,7 @@ class CSVTable(TableObject):
             else:
                 column_names = None
         except IOError:
-            raise ModuleError(self, "File does not exist")
+            raise ReadError("File does not exist")
 
         return column_count, column_names, delimiter
 
@@ -117,7 +121,10 @@ class CSVFile(Table):
         header_present = self.get_input('header_present')
         delimiter = self.force_get_input('delimiter', None)
 
-        table = CSVTable(csv_file, header_present, delimiter)
+        try:
+            table = CSVTable(csv_file, header_present, delimiter)
+        except ReadError, e:
+            raise ModuleError(self, *e.args)
 
         self.set_output('column_count', table.columns)
         self.set_output('column_names', table.names)

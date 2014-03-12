@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -208,7 +208,7 @@ class BaseInterpreter(object):
                     param = pipeline.db_get_object(vttype,oId)
                     param.strValue = str(strval)
                 except Exception, e:
-                    debug.debug("Problem when updating params: %s"%str(e))
+                    debug.debug("Problem when updating params", e)
 
     def resolve_variables(self, vistrail_variables, pipeline):
         for m in pipeline.module_list:

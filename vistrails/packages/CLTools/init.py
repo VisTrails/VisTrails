@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -136,7 +136,7 @@ def add_tool(path):
                         else:
                             # use name as flag
                             value = name
-                    elif 'file' == klass:
+                    elif klass in ('file', 'directory', 'path'):
                         value = value.name
                     # check for flag and append file name
                     if not 'flag' == klass and 'flag' in options:
@@ -171,8 +171,9 @@ def add_tool(path):
                 try:
                     shutil.copyfile(value.name, outfile.name)
                 except IOError, e: # pragma: no cover
-                    raise ModuleError("Error copying file '%s': %s" %
-                                      (value.name, e))
+                    raise ModuleError(self,
+                                      "Error copying file '%s': %s" %
+                                      (value.name, debug.format_exception(e)))
                 value = '%s%s' % (options.get('prefix', ''), outfile.name)
                 # check for flag and append file name
                 if 'flag' in options:
@@ -242,10 +243,7 @@ def add_tool(path):
             else:
                 kwargs['stderr'] = subprocess.PIPE
 
-        if "return_code" in self.conf:
-            return_code = self.force_get_input(name)
-        else:
-            return_code = None
+        return_code = self.conf.get('return_code', None)
 
         env = {}
         # 0. add defaults
@@ -261,7 +259,9 @@ def add_tool(path):
                     if key:
                         env[key] = value
             except Exception, e: # pragma: no cover
-                raise ModuleError('Error parsing configuration env: %s' % e)
+                raise ModuleError(self,
+                                  "Error parsing configuration env: %s" % (
+                                  debug.format_exception(e)))
 
         if 'options' in self.conf and 'env' in self.conf['options']:
             try:
@@ -272,7 +272,9 @@ def add_tool(path):
                     if key:
                         env[key] = value
             except Exception, e: # pragma: no cover
-                raise ModuleError('Error parsing module env: %s' % e)
+                raise ModuleError(self,
+                                  "Error parsing module env: %s" % (
+                                  debug.format_exception(e)))
             
         if 'options' in self.conf and 'env_port' in self.conf['options']:
             for e in self.force_get_input_list('env'):
@@ -286,7 +288,9 @@ def add_tool(path):
                         if key:
                             env[key] = value
                 except Exception, e: # pragma: no cover
-                    raise ModuleError('Error parsing env port: %s' % e)
+                    raise ModuleError(self,
+                                      "Error parsing env port: %s" % (
+                                      debug.format_exception(e)))
 
         if env:
             kwargs['env'] = dict(os.environ)
@@ -313,7 +317,7 @@ def add_tool(path):
 
         if return_code is not None:
             if process.returncode != return_code:
-                raise ModuleError("Command returned %d (!= %d)" % (
+                raise ModuleError(self, "Command returned %d (!= %d)" % (
                                   process.returncode, return_code))
         self.set_output('return_code', process.returncode)
 
@@ -371,7 +375,8 @@ def add_tool(path):
     def to_vt_type(s):
         # add recognized types here - default is String
         return '(basic:%s)' % \
-          {'file':'File', 'flag':'Boolean', 'list':'List',
+          {'file':'File', 'path':'Path', 'directory': 'Directory',
+           'flag':'Boolean', 'list':'List',
            'float':'Float','integer':'Integer'
           }.get(s.lower(), 'String')
     # add module ports
@@ -420,7 +425,7 @@ def reload_scripts(initial=False):
         location = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                 "CLTools")
         # make sure dir exist
-        if not os.path.isdir(location): # pragma: no cover # pragma: no partial
+        if not os.path.isdir(location): # pragma: no cover # pragma: no branch
             try:
                 debug.log("Creating CLTools directory...")
                 os.mkdir(location)
@@ -436,7 +441,7 @@ def reload_scripts(initial=False):
         reg = vistrails.core.modules.module_registry.get_module_registry()
         reg.add_module(CLTools, abstract=True)
     for path in os.listdir(location):
-        if path.endswith(SUFFIX): # pragma: no partial
+        if path.endswith(SUFFIX): # pragma: no branch
             try:
                 add_tool(os.path.join(location, path))
             except Exception as exc: # pragma: no cover
@@ -469,7 +474,7 @@ def menu_items():
         else:
             return
     lst = []
-    if "CLTools" == identifiers.name: # pragma: no partial
+    if "CLTools" == identifiers.name: # pragma: no branch
         def open_wizard():
             window = QCLToolsWizardWindow(reload_scripts=reload_scripts)
             wizards_list.append(window)
@@ -494,7 +499,7 @@ class TestCLTools(unittest.TestCase):
     def setUpClass(cls):
         # first make sure CLTools is loaded
         pm = get_package_manager()
-        if 'CLTools' not in pm._package_list: # pragma: no cover # pragma: no partial
+        if 'CLTools' not in pm._package_list: # pragma: no cover # pragma: no branch
             pm.late_enable_package('CLTools')
         remove_all_scripts()
         cls.testdir = os.path.join(packages_directory(), 'CLTools', 'test_files')

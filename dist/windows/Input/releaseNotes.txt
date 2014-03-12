@@ -1,6 +1,14 @@
 RELEASE NOTES
 -------------
-Release Name: v2.1 build 179c82045907 from v2.1 branch
+Release Name: v2.1.1 build 90975fc00211 from v2.1 branch
+
+Bug fixes: 
+ - Ticket 816: Saved vistrail doesn't appear in 'my vistrails' (784414a617d2)
+ - Ticket 814: Parameter Exploration Broken (13da70d0b35f)
+ - Ticket Fix font issue for OS X 10.9. (22c0f0cca937)
+ - Fixes early gui import in application_server (3b2f6186cea9)
+
+From Release: v2.1 build 179c82045907 from v2.1 branch
 
 Enhancements: 
  - Ticket 292: Add XSL support to RichTextCell (ae0126167aa8)
@@ -48,7 +56,7 @@ Bug fixes:
  - Spreadsheet history file path was set incorrectly (1789513a3afd)
  - Fixes slot bug in PyQt 4.7.3 (17230667d58e)
 
-From Release: v2.1 beta2 build 7fd4888b0ea2 from v2.1 branch
+From Release: v2.1 beta2 build 99faabb791a0 from v2.1 branch
 
 Bug fixes: 
  - Ticket #735: Windows dulwich install via pip fails (14d362a695df)

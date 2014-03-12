@@ -120,7 +120,7 @@ from ..common import ExtractColumn
 class ExcelTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if get_xlrd() is None:
+        if get_xlrd() is None: # pragma: no cover
             raise unittest.SkipTest("xlrd not available")
         import os
         cls._test_dir = os.path.join(

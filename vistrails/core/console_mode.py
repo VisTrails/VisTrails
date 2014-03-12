@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -198,7 +198,7 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
                         controller.current_pipeline_scene.saveToPNG(filename)
                     result.append((True, ""))
             except Exception, e:
-                result.append((False, str(e)))
+                result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save pipeline figure when not " \
             "running in gui mode"
@@ -237,7 +237,7 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
                         del version_view
                         result.append((True, ""))
             except Exception, e:
-                result.append((False, str(e)))
+                result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save version tree figure when not " \
             "running in gui mode"
@@ -289,7 +289,8 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
                                                    showProgress=False)
         except Exception, e:
             import traceback
-            return (locator, pe_id, str(e), traceback.format_exc())
+            return (locator, pe_id,
+                    debug.format_exception(e), traceback.format_exc())
 
 def run_parameter_explorations(w_list, extra_info = {},
                        reason="Console Mode Parameter Exploration Execution"):

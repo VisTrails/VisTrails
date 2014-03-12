@@ -1365,8 +1365,9 @@ Until numpy release 1.5, the underlying numpy histogram function was incorrect w
     <inputPortSpec arg="bottom" arg_pos="6" name="bottom" />
     <inputPortSpec arg="color" arg_pos="12" name="colorSequence" port_type="basic:List">
       <docstring>Color spec or sequence of color specs, one per dataset.  Default (None) uses the standard line color sequence.</docstring>
-      <translations>translate_color</translations>
-      <alternateSpec arg="color" name="colorScalar" port_type="basic:Color" />
+      <alternateSpec arg="color" name="colorScalar" port_type="basic:Color">
+	<translations>translate_color</translations>
+      </alternateSpec>
     </inputPortSpec>
     <inputPortSpec arg="histtype" arg_pos="7" name="histtype" port_type="basic:String">
       <docstring>The type of histogram to draw.
@@ -2055,8 +2056,7 @@ If scale_units is 'x' then the vector will be 0.5 x-axis units.  To plot vectors
     <inputPortSpec arg="color" name="colorSequence" port_type="basic:List">
       <docstring>This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.</docstring>
       <alternateSpec arg="color" name="colorScalar" port_type="basic:String">
-        <entry_types>['enum']</entry_types>
-        <values>[['color']]</values>
+	<translations>translate_color</translations>
       </alternateSpec>
     </inputPortSpec>
     <outputPortSpec arg="polyCollection" compute_name="polyCollection" name="polyCollectionProperties" port_type="__property__" property_key="0" property_type="matplotlib.collections.PolyCollection" />

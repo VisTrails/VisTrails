@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -85,7 +85,7 @@ class FilePool(object):
         except OSError, e:
             raise VistrailsInternalError("Can't remove %s: %s" %
                                          (self.directory,
-                                          str(e)))
+                                          debug.format_exception(e)))
 
     def create_file(self, suffix = '', prefix = 'vt_tmp'):
         """create_file(suffix='', prefix='vt_tmp') -> PathObject.
