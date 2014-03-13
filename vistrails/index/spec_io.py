@@ -42,7 +42,7 @@ DBUSER = 'specuser'
 DBPASS = 'specpass'
 DBDB   = 'wfspec'
 
-class Spec:
+class Spec(object):
     def __init__(self):
         self.db = None
         try:

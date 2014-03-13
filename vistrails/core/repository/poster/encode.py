@@ -366,7 +366,7 @@ def get_headers(params, boundary):
     headers['Content-Length'] = str(get_body_size(params, boundary))
     return headers
 
-class multipart_yielder:
+class multipart_yielder(object):
     def __init__(self, params, boundary, cb):
         self.params = params
         self.boundary = boundary

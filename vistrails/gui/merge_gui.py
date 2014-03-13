@@ -290,7 +290,7 @@ class resolve_thumbs(QtGui.QWidget):
         self.value = CHOICE_OWN_ALL
         self.close()
 
-class MergeGUI:
+class MergeGUI(object):
     @staticmethod
     def resolveTags(a, b, text):
         exm = resolve_tags(a, b, text)

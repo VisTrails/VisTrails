@@ -791,7 +791,7 @@ class Not(Module):
 # List
 
 # If numpy is available, we consider numpy arrays to be lists as well
-class ListType:
+class ListType(object):
     __metaclass__ = ABCMeta
 
 ListType.register(list)

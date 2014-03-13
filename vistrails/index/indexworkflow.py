@@ -50,7 +50,7 @@ lvm = initVM(CLASSPATH, maxheap='512m')
 
 location = "/server/index"
 
-class WorkflowIndexer:
+class WorkflowIndexer(object):
     store = None
     writer = None
     def __init__(self):
