@@ -160,14 +160,18 @@ class SQLSource(Module):
         try:
             transaction = connection.begin()
             results = connection.execute(s, inputs)
-            if results.returns_rows:
-                rows = list(results)
+            try:
+                rows = results.fetchall()
+            except Exception:
+                self.set_output('result', None)
+                self.set_output('resultSet', None)
+            else:
+                # results.returns_rows is True
+                # We don't use 'if return_rows' because this attribute didn't
+                # use to exist
                 table = TableObject.from_dicts(rows, results.keys())
                 self.set_output('result', table)
                 self.set_output('resultSet', rows)
-            else:
-                self.set_output('result', None)
-                self.set_output('resultSet', None)
             transaction.commit()
         except SQLAlchemyError, e:
             raise ModuleError(self, debug.format_exception(e))
