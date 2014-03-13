@@ -41,6 +41,22 @@ class TableObject(object):
         else:
             return self._columns[i]
 
+    def get_column_by_name(self, name, numeric=False):
+        """Gets a column from its name.
+
+        This convenience methods looks up the right column index if names are
+        available and calls get_column().
+
+        You shouldn't need to override this method, get_column() should be
+        sufficient.
+        """
+        try:
+            col = self.names.index(name)
+        except ValueError:
+            raise KeyError(name)
+        else:
+            return self.get_column(col, numeric)
+
     @classmethod
     def from_dicts(cls, dicts, keys=None):
         iterator = iter(dicts)

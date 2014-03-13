@@ -272,11 +272,9 @@ class TestJSON(unittest.TestCase):
                 self.assertEqual(names, [table.names])
                 self.assertEqual(set(table.names),
                                  set(['firstname', 'lastname', 'age']))
-                f_first = table.names.index('firstname')
-                f_age = table.names.index('age')
-                self.assertEqual(set(table.get_column(f_first)),
+                self.assertEqual(set(table.get_column_by_name('firstname')),
                                  set(["John", "Lara", "Michael"]))
-                l = table.get_column(f_age, True)
+                l = table.get_column_by_name('age', True)
                 self.assertIsInstance(l, numpy.ndarray)
                 self.assertEqual(set(l), set([21, 25, 78]))
             else:
