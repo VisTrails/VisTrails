@@ -733,7 +733,7 @@ class VistrailController(object):
                              query_methods=[]):
         params = []
         for i in xrange(len(port_spec.descriptors())):
-            if i < len(values):
+            if i < len(values) and values[i] is not None:
                 value = str(values[i])
             else:
                 value = None
@@ -759,8 +759,8 @@ class VistrailController(object):
                                param_values=[], aliases=[], query_methods=[]):
         if isinstance(port_spec, basestring):
             port_spec = module.get_port_spec(port_spec, 'input')
-        if len(param_values) <= 0 and port_spec.defaults is not None and \
-                                      port_spec.defaults != [None]:
+        if (len(param_values) <= 0 and port_spec.defaults is not None and
+            any(d is not None for d in port_spec.defaults)):
             param_values = port_spec.defaults
 
         f_id = id_scope.getNewId(ModuleFunction.vtType)
