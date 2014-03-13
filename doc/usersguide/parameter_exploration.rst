@@ -53,15 +53,6 @@ the workflow to be explored and helps resolve ambiguities for parameter
 settings, and the ``Spreadsheet Virtual Cell`` aids users in
 laying out exploration results in the spreadsheet.
 
-.. %(shown in Figure :ref:`fig-fig6_1})
-.. %(See Figure :ref:`fig-paramexp-panels` for a close-up view of each of these panels.)
-.. %.. figure::[h]
-.. %   :align: center
-.. %   :width=0.7\linewidth,clip=false]{fig6_1.png}}
-.. %   Parameter Exploration View}
-.. %.. _fig-fig6_1}
-.. %  
-
 .. index::
    pair: parameter exploration; adding parameters
 

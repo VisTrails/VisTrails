@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,10 +34,12 @@
 ###############################################################################
 import copy
 from itertools import izip
+import warnings
 
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
-from vistrails.core.utils import VistrailsInternalError, deprecated
+from vistrails.core.utils import VistrailsDeprecation, deprecated
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -117,19 +119,29 @@ class ModuleSuspended(ModuleError):
     This is useful when executing external jobs where you do not want to block
     vistrails while waiting for the execution to finish.
 
-    'queue' is a class instance that should provide a finished() method for
+    'monitor' is a class instance that should provide a finished() method for
     checking if the job has finished
 
     'children' is a list of ModuleSuspended instances that is used for nested
     modules
     """
 
-    def __init__(self, module, errormsg, queue=None, children=None, job_id=None):
-        self.queue = queue
+    def __init__(self, module, errormsg, monitor=None, children=None, job_id=None, queue=None):
+        self.monitor = monitor
+        if monitor is None and queue is not None:
+            warnings.warn("Use of deprecated argument 'queue' replaced by "
+                          "'monitor'",
+                          category=VistrailsDeprecation,
+                          stacklevel=2)
+            self.monitor = queue
         self.children = children
         self.signature = job_id
         self.name = None
         ModuleError.__init__(self, module, errormsg)
+
+    @property
+    def queue(self):
+        return self.monitor
 
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.
@@ -425,8 +437,11 @@ class Module(Serializable):
             raise
         except Exception, e: 
             import traceback
-            traceback.print_exc()
-            raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
+            raise ModuleError(
+                    self,
+                    "Uncaught exception: %s\n%s" % (
+                    debug.format_exception(e),
+                    traceback.format_exc()))
         if self.annotate_output:
             self.annotate_output_values()
         self.upToDate = True

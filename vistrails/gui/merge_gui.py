@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -290,7 +290,7 @@ class resolve_thumbs(QtGui.QWidget):
         self.value = CHOICE_OWN_ALL
         self.close()
 
-class MergeGUI:
+class MergeGUI(object):
     @staticmethod
     def resolveTags(a, b, text):
         exm = resolve_tags(a, b, text)

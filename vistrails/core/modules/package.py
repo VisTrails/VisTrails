@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -735,7 +735,7 @@ class Package(DBPackage):
         (dom, element) = self.find_own_dom_element()
 
         configuration = enter_named_element(element, 'configuration')
-        if configuration:
+        if configuration and self.configuration is not None:
             self.configuration.set_from_dom_node(configuration)
         dom.unlink()
 

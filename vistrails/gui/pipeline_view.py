@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -301,6 +301,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         self.deleteVistrailVar(var_uuid)
         self.controller.disconnect_vistrail_vars(to_delete_modules,
                                                  to_delete_conns)
+        self.setInvalid(False)
         
 
     def removeAllVars(self):
@@ -1930,8 +1931,14 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if srcModule.module.is_vistrail_var():
             connectionItem.hide()
             var_uuid = srcModule.module.get_vistrail_var()
-            dstPortItem.addVistrailVar(
-                self.controller.get_vistrail_variable_by_uuid(var_uuid))
+            if self.controller.has_vistrail_variable_with_uuid(var_uuid):
+                vv = self.controller.get_vistrail_variable_by_uuid(var_uuid)
+            else:
+                # create temporary variable
+                from vistrails.core.vistrail.vistrailvariable import VistrailVariable
+                vv = VistrailVariable('<missing>', var_uuid)
+                dstPortItem.setInvalid(True)
+            dstPortItem.addVistrailVar(vv)
         return connectionItem
 
     def selected_subgraph(self):
@@ -2604,6 +2611,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 elif isinstance(it, QGraphicsConnectionItem):
                     connection_ids.append(it.id)
             if len(modules)>0:
+                # add connected vistrail variables
+                vvms, vvcs = \
+                 self.controller.get_connected_vistrail_vars(module_ids, True)
+                for vvm in vvms:
+                    if vvm not in module_ids:
+                        modules.append(self.modules[vvm])
+                        module_ids.append(vvm)
+                for vvc in vvcs:
+                    if vvc not in connection_ids:
+                        connection_ids.append(vvc)
                 self.noUpdate = True
                 dep_connection_ids = set()
                 for m in modules:
@@ -2678,6 +2695,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
         for item in selectedItems:
             if isinstance(item, QGraphicsModuleItem):
                 module_ids[item.module.id] = 1
+                # Add connected vistrail variables
+                vvms, vvcs = \
+                 self.controller.get_connected_vistrail_vars(module_ids)
+                for vvm in vvms:
+                    module_ids[vvm] = 1
+                for vvc in vvcs:
+                    connection_ids[vvc] = 1
         for item in selectedItems:
             if isinstance(item, QGraphicsModuleItem):
                 for connItem in item.dependingConnectionItems().itervalues():

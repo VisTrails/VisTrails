@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -197,7 +197,7 @@ def default():
         'installBundles': True,
         'installBundlesWithPip': False,
         'interactiveMode': True,
-        'jobCheckInterval': 10,
+        'jobCheckInterval': 600,
         'jobAutorun': False,
         'jobRun': (None, str),
         'jobList': False,

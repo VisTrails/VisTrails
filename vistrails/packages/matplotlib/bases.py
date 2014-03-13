@@ -48,6 +48,9 @@ class MplProperties(Module):
         # must implement in subclass
         pass
         
+    def update_sub_props(self, objs):
+        # must implement in subclass
+        pass
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
@@ -121,6 +124,7 @@ class MplFigure(Module):
 
         # Set it on the plots
         connectorList = self.inputPorts.get('addPlot', [])
+        connectorList.extend(self.inputPorts.get('setLegend', []))
         for connector in connectorList:
             connector.obj.set_figure(self.figInstance)
 

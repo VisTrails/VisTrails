@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -299,7 +299,12 @@ class VistrailController(object):
         if self.vistrail:
             return self.vistrail.get_vistrail_var(name)
         return None
-   
+
+    def has_vistrail_variable_with_uuid(self, uuid):
+        if self.vistrail:
+            return self.vistrail.db_has_vistrailVariable_with_uuid(uuid)
+        return None
+
     def get_vistrail_variable_by_uuid(self, uuid):
         if self.vistrail:
             return self.vistrail.db_get_vistrailVariable_by_uuid(uuid)
@@ -311,12 +316,6 @@ class VistrailController(object):
         if self.vistrail:
             return self.vistrail.vistrail_vars
         return []
-    
-    def get_vistrail_variable_name_by_uuid(self, uuid):
-        """def get_vistrail_variable_name_by_uuid(uuid: str) -> dict
-        Returns the var name for vistrail variable with uuid """
-        if self.vistrail and self.vistrail.db_has_vistrailVariable_with_uuid(uuid):
-            return self.vistrail.db_get_vistrailVariable_by_uuid(uuid).name
     
     def find_vistrail_var_module(self, var_uuid):
         for m in self.current_pipeline.modules.itervalues():
@@ -423,6 +422,35 @@ class VistrailController(object):
         #     self.vistrail.change_description("Disconnected Vistrail Variables",
         #                                      action.id)
         return (to_delete_modules, to_delete_conns)
+
+    def get_connected_vistrail_vars(self, module_ids, to_delete=False):
+        """get_connected_vistrail_vars(module_ids: list, to_delete: bool)->list
+
+        Returns the vistrail variables connected to the specified module_id:s
+        If to_delete is true we exclude modules that have connections to
+        modules not in the module_ids list
+
+        """
+        vv_modules = {}
+        connections = self.get_connections_to(self.current_pipeline, 
+                                              module_ids)
+        pipeline = self.current_pipeline
+        final_connections = []
+        for connection in connections:
+            m = pipeline.modules[connection.source.moduleId]
+            if m.is_vistrail_var():
+                if m.id not in vv_modules:
+                    vv_modules[m.id] = []
+                vv_modules[m.id].append(connection)
+                final_connections.append(connection.id)
+        if to_delete:
+            for module_id, connections in vv_modules.items():
+                total_conns = self.get_connections_from(self.current_pipeline,
+                                                        [module_id])
+                if len(total_conns) != len(connections):
+                    # there are connections to other modules so don't delete
+                    del vv_modules[module_id]
+        return vv_modules.keys(), final_connections
 
     def getParameterExplorationById(self, id):
         """ getParameterExplorationById(self, id) -> ParameterExploration
@@ -540,8 +568,8 @@ class VistrailController(object):
                                      self.current_session)
             if description is not None:
                 self.vistrail.change_description(description, action.id)
-            self.set_changed(True)
             self.current_version = action.db_id
+            self.set_changed(True)
             self.recompute_terse_graph()
             
     def create_module_from_descriptor(self, *args, **kwargs):
@@ -727,17 +755,17 @@ class VistrailController(object):
         return self.create_function_static(self.id_scope, *args, **kwargs)
 
     @staticmethod
-    def create_function_static(id_scope, module, port_spec, 
+    def create_function_static(id_scope, module, function_name,
                                param_values=[], aliases=[], query_methods=[]):
-        if isinstance(port_spec, basestring):
-            port_spec = module.get_port_spec(port_spec, 'input')
-        if len(param_values) <= 0 and port_spec.defaults is not None:
+        port_spec = module.get_port_spec(function_name, 'input')
+        if len(param_values) <= 0 and port_spec.defaults is not None and \
+                                      port_spec.defaults != [None]:
             param_values = port_spec.defaults
 
         f_id = id_scope.getNewId(ModuleFunction.vtType)
         new_function = ModuleFunction(id=f_id,
                                       pos=module.getNumFunctions(),
-                                      name=port_spec.name,
+                                      name=function_name,
                                       )
         new_function.is_valid = True
         new_params = \
@@ -1302,6 +1330,8 @@ class VistrailController(object):
         op_list.append(('add', group))
         op_list.extend(('add', c) for c in connections)
         action = vistrails.core.db.action.create_action(op_list)
+        self.set_action_annotation(action, Action.ANNOTATION_DESCRIPTION,
+                                   "Grouped modules")
         self.add_new_action(action)
 #         for op in action.operations:
 #             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
@@ -1368,6 +1398,8 @@ class VistrailController(object):
         op_list.extend(('add', m) for m in modules)
         op_list.extend(('add', c) for c in connections)
         action = vistrails.core.db.action.create_action(op_list)
+        self.set_action_annotation(action, Action.ANNOTATION_DESCRIPTION,
+                                   "Ungrouped modules")
         self.add_new_action(action)
         res = self.perform_action(action)
         self.validate(self.current_pipeline, False)
@@ -2381,11 +2413,10 @@ class VistrailController(object):
                 for abstraction in abstraction_list:
                     abstraction.module_descriptor = descriptor
             except InvalidPipeline, e:
-                debug.critical("Error loading abstraction '%s'" % \
-                               descriptor_info[1], str(e))
-            
-    def build_ungroup(self, full_pipeline, module_id):
+                debug.critical("Error loading abstraction '%s'" %
+                               descriptor_info[1], e)
 
+    def build_ungroup(self, full_pipeline, module_id):
         group = full_pipeline.modules[module_id]
         if group.vtType == Group.vtType:
             pipeline = group.pipeline
@@ -2394,57 +2425,55 @@ class VistrailController(object):
         else:
             print 'not a group or abstraction?'
             return
-      
+
         pipeline.ensure_connection_specs()
 
+        # First, we copy all the modules from inside the group pipeline to the
+        # outer pipeline.
+        # We skip the InputPort and OutputPort modules, which we add to
+        # port_modules instead.
+        port_modules = set()
         modules = []
         connections = []
         id_remap = {}
         for module in pipeline.module_list:
-            # FIXME have better checks for this
-            if module.package != basic_pkg or (module.name != 'InputPort' and
-                                               module.name != 'OutputPort'):
+            if module.package == basic_pkg and (module.name == 'InputPort' or
+                                                module.name == 'OutputPort'):
+                if module.name == 'InputPort':
+                    port_modules.add((module, 'input'))
+                else:
+                    port_modules.add((module, 'output'))
+            else:
                 modules.append(module.do_copy(True, self.id_scope, id_remap))
-        self.translate_modules(modules, -group.location.x, -group.location.y)
         module_index = dict([(m.id, m) for m in modules])
 
+        # If the connection was to/from an OutputPort/InputPort module, we
+        # store the association in open_ports so we can reconnect these to the
+        # outside later.
+        # We also add them to the unconnected_port_modules dictionary.
         open_ports = {}
-        for connection in pipeline.connection_list:
-            all_inside = True
-            all_outside = True
-            for port in connection.ports:
-                if (Module.vtType, port.moduleId) not in id_remap:
-                    all_inside = False
-                else:
-                    all_outside = False
-            
-            if all_inside:
-                connections.append(connection.do_copy(True, self.id_scope, 
-                                                      id_remap))
-            else:
-                if (Module.vtType, connection.source.moduleId) not in id_remap:
-                    port_module = \
-                        pipeline.modules[connection.source.moduleId]
-                    port_type = 'input'
-                elif (Module.vtType, connection.destination.moduleId) \
-                        not in id_remap:
-                    port_module = \
-                        pipeline.modules[connection.destination.moduleId]
-                    port_type = 'output'
-                else:
-                    continue
+        unconnected_port_modules = {}
+        for port_module, port_type in port_modules:
+            (port_name, _, _, neighbors) = \
+                group.get_port_spec_info(port_module)
+            new_neighbors = \
+                [(module_index[id_remap[(Module.vtType, m.id)]], n)
+                 for (m, n) in neighbors
+                 if (Module.vtType, m.id) in id_remap]
+            open_ports[(port_name, port_type)] = new_neighbors
+            unconnected_port_modules[(port_name, port_type)] = port_module
 
-                (port_name, _, _, neighbors) = \
-                    group.get_port_spec_info(port_module)
-                new_neighbors = \
-                    [(module_index[id_remap[(Module.vtType, m.id)]], n)
-                     for (m, n) in neighbors
-                     if (Module.vtType, m.id) in id_remap]
-                open_ports[(port_name, port_type)] = new_neighbors        
-
+        # Now iterate over the outer connections
+        # If the connection was between the outside and the group module, we
+        # connect to the actual destination instead, using the open_ports dict.
+        # We also remove the corresponding port from unconnected_port_modules.
         for connection in full_pipeline.connection_list:
             if connection.source.moduleId == group.id:
                 key = (connection.source.name, 'output')
+                try:
+                    del unconnected_port_modules[key]
+                except KeyError:
+                    pass
                 if key not in open_ports:
                     continue
                 neighbors = open_ports[key]
@@ -2458,6 +2487,10 @@ class VistrailController(object):
                                                               input_port))
             elif connection.destination.moduleId == group.id:
                 key = (connection.destination.name, 'input')
+                try:
+                    del unconnected_port_modules[key]
+                except KeyError:
+                    pass
                 if key not in open_ports:
                     continue
                 neighbors = open_ports[key]
@@ -2469,7 +2502,26 @@ class VistrailController(object):
                                                               output_port,
                                                               input_module, 
                                                               input_port))
-        # end for
+
+        # We are now left with unconnected_port_modules, a dictionary of
+        # InputPort and OutputPort modules for ports that are not connected
+        # to anything.
+        # We copy these modules over so that re-grouping will keep these ports.
+        for key, port_module in unconnected_port_modules.iteritems():
+            modules.append(port_module.do_copy(True, self.id_scope, id_remap))
+
+        # Center the group's modules on the old group's location
+        self.translate_modules(modules, -group.location.x, -group.location.y)
+
+        # Now copy the inner connections
+        # If the connection is between two modules that come from the group
+        # (all_inside is True), we copy it.
+        for connection in pipeline.connection_list:
+            all_inside = all((Module.vtType, port.moduleId) in id_remap
+                             for port in connection.ports)
+            if all_inside:
+                connections.append(connection.do_copy(True, self.id_scope,
+                                                      id_remap))
 
         return (modules, connections)
 
@@ -2779,7 +2831,7 @@ class VistrailController(object):
         """callback for try_to_enable_package"""
         return True
        
-    def try_to_enable_package(self, identifier, dep_graph, confirmed=False):
+    def try_to_enable_package(self, identifier, confirmed=False):
         """try_to_enable_package(identifier: str,
                                  dep_graph: Graph,
                                  confirmed: boolean)
@@ -2792,15 +2844,29 @@ class VistrailController(object):
 
         pm = get_package_manager()
         pkg = pm.identifier_is_available(identifier)
+        if pkg is None or pm.has_package(pkg.identifier):
+            return False
+
+        dep_graph = pm.build_dependency_graph([identifier])
+        deps = pm.get_ordered_dependencies(dep_graph)
+        other_deps = filter(lambda i: i != identifier, deps)
+        if pkg.identifier in self._asked_packages:
+            return False
+        if not confirmed and \
+                not self.enable_missing_package(pkg.identifier, other_deps):
+            self._asked_packages.add(pkg.identifier)
+            return False
+        # Ok, user wants to late-enable it. Let's give it a shot
+        for pkg_id in deps:
+            if not self.do_enable_package(pkg_id):
+                return False
+
+        return True
+
+    def do_enable_package(self, identifier):
+        pm = get_package_manager()
+        pkg = pm.identifier_is_available(identifier)
         if pkg and not pm.has_package(pkg.identifier):
-            deps = pm.all_dependencies(identifier, dep_graph)[:-1]
-            if pkg.identifier in self._asked_packages:
-                return False
-            if not confirmed and \
-                    not self.enable_missing_package(pkg.identifier, deps):
-                self._asked_packages.add(pkg.identifier)
-                return False
-            # Ok, user wants to late-enable it. Let's give it a shot
             try:
                 pm.late_enable_package(pkg.codepath)
                 pkg = pm.get_package_by_codepath(pkg.codepath)
@@ -2813,10 +2879,7 @@ class VistrailController(object):
             except pkg.MissingDependency, e:
                 for dependency in e.dependencies:
                     print 'MISSING DEPENDENCY:', dependency
-                    if not self.try_to_enable_package(dependency[0], dep_graph,
-                                                      True):
-                        return False
-                return self.try_to_enable_package(pkg.identifier, dep_graph, True)
+                return False
             except pkg.InitializationFailed:
                 self._asked_packages.add(pkg.identifier)
                 raise
@@ -2838,7 +2901,7 @@ class VistrailController(object):
             codepath = rep.find_package(identifier)
             if codepath and self.install_missing_package(identifier):
                 rep.install_package(codepath)
-                return self.try_to_enable_package(identifier, dep_graph, True)
+                return self.try_to_enable_package(identifier, True)
         self._asked_packages.add(identifier)
         return False
 
@@ -2947,15 +3010,28 @@ class VistrailController(object):
 
         process_missing_packages(root_exceptions)
         new_exceptions = []
-        
+
+        # Full dependency graph from all the packages detected as missing
         dep_graph = pm.build_dependency_graph(missing_packages.keys())
+        deps = pm.get_ordered_dependencies(dep_graph)
+        missing = set(missing_packages.iterkeys())
+        # This orders the list of packages detected as missing according to
+        # the order in which they'll be enabled
+        # This is so that if pkgA is a dependency of pkgB and both are in
+        # missing_packages.keys(), we enable pkgB before (since that will
+        # enable pkgA)
+        # This is to minimize the number of user prompts
+        enable_pkgs = reversed([pkg_id
+                                for pkg_id in deps
+                                if pkg_id in missing])
+
         # for identifier, err_list in missing_packages.iteritems():
-        for identifier in pm.get_ordered_dependencies(dep_graph):
+        for identifier in enable_pkgs:
             # print 'testing identifier', identifier
             if not pm.has_package(identifier):
                 try:
                     # print 'trying to enable package'
-                    if not self.try_to_enable_package(identifier, dep_graph):
+                    if not self.try_to_enable_package(identifier):
                         pass
                         # print 'failed to enable package'
                         # if not report_all_errors:
@@ -3061,7 +3137,8 @@ class VistrailController(object):
                 except MissingPackage:
                     # cannot get the package we need
                     continue
-                details = '\n'.join(str(e) for e in err_list)
+                details = '\n'.join(debug.format_exception(e)
+                                    for e in err_list)
                 debug.log('Processing upgrades in package "%s"' %
                           identifier, details)
                 if pkg.can_handle_all_errors():
@@ -3242,9 +3319,10 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
-            details = '\n'.join(set(str(e) for e in left_exceptions + \
-                                    new_exceptions))
-            # debug.critical("Some exceptions could not be handled", details)
+            #details = '\n'.join(set(debug.format_exception(e)
+            #                        for e in left_exceptions + new_exceptions))
+            #debug.critical("Some exceptions could not be handled",
+            #               *(left_exceptions + new_exceptions))
             raise InvalidPipeline(left_exceptions + new_exceptions, 
                                   cur_pipeline, new_version)
         return (new_version, cur_pipeline)
@@ -3475,7 +3553,7 @@ class VistrailController(object):
                 process_err(e._exception_set.__iter__().next())
         except Exception, e:
             import traceback
-            debug.critical(str(e), traceback.format_exc())
+            debug.critical("Unhandled exception", traceback.format_exc())
 
     def write_temporary(self):
         if self.vistrail and self.changed:
@@ -3674,8 +3752,9 @@ class VistrailController(object):
                             os.remove(os.path.join(root, name))
                     os.rmdir(abs_save_dir)
                 except OSError, e:
-                    raise VistrailsDBException("Can't remove %s: %s" % \
-                                                   (abs_save_dir, str(e)))
+                    raise VistrailsDBException("Can't remove %s: %s" % (
+                                               abs_save_dir,
+                                               debug.format_exception(e)))
             return result
 
 

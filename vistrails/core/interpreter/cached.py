@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,6 +40,7 @@ import cPickle as pickle
 
 from vistrails.core.common import InstanceObject, VistrailsInternalError
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.job import JobMonitor
@@ -116,7 +117,7 @@ class ViewUpdatingLogController(object):
                 self.view)
 
     def _handle_suspended(self, obj, error):
-        """ end_suspended(obj: VistrailsModule, error: ModuleSuspended
+        """ _handle_suspended(obj: VistrailsModule, error: ModuleSuspended
             ) -> None
             Report module as suspended
         """
@@ -125,6 +126,10 @@ class ViewUpdatingLogController(object):
         reg = get_module_registry()
         name = reg.get_descriptor(obj.__class__).name
         i = "%s" % self.remap_id(obj.id)
+        iteration = self.log.get_iteration_from_module(obj)
+        if iteration is not None:
+            name = name + '/' + str(iteration)
+            i = i + '/' + str(iteration)
         # add to parent list for computing the module tree later
         error.name = name
         # if signature is not set we use the module identifier
@@ -356,14 +361,12 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                     try:
                         constant = create_constant(p, module)
                         connector = ModuleConnector(constant, 'value')
-                    except ValueError, e:
-                        err = ModuleError(self, 'Cannot convert parameter '
-                                          'value "%s"\n' % p.strValue + str(e))
-                        errors[i] = err
-                        to_delete.append(obj.id)
                     except Exception, e:
-                        err = ModuleError(self, 'Uncaught exception: "%s"' % \
-                                              p.strValue + str(e))
+                        err = VistrailsInternalError(
+                                "Uncaught exception creating Constant from "
+                                "%r: %s" % (
+                                p.strValue,
+                                debug.format_exception(e)))
                         errors[i] = err
                         to_delete.append(obj.id)
                 else:
@@ -375,15 +378,12 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                             constant.update()
                             connector = ModuleConnector(constant, 'value')
                             tupleModule.set_input_port(j, connector)
-                        except ValueError, e:
-                            err = ModuleError(self, "Cannot convert parameter "
-                                              "value '%s'\n" % p.strValue + \
-                                                  str(e))
-                            errors[i] = err
-                            to_delete.append(obj.id)
                         except Exception, e:
-                            err = ModuleError(self, 'Uncaught exception: '
-                                              '"%s"' % p.strValue + str(e))
+                            err = VistrailsInternalError(
+                                    "Uncaught exception creating Constant "
+                                    "from %r: %s" % (
+                                    p.strValue,
+                                    debug.format_exception(e)))
                             errors[i] = err
                             to_delete.append(obj.id)
                     connector = ModuleConnector(tupleModule, 'value')
@@ -671,6 +671,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             res = self.execute_pipeline(pipeline, *(res[:2]), **new_kwargs)
         else:
             res = (to_delete, res[0], errors, {}, {}, {}, [])
+            for (i, error) in errors.iteritems():
+                view.set_module_error(i, error)
         self.finalize_pipeline(pipeline, *(res[:-1]), **new_kwargs)
 
         result = InstanceObject(objects=res[1],

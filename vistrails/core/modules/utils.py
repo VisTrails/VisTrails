@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,7 +33,8 @@
 ##
 ###############################################################################
 import vistrails.core
-from vistrails.core.system import get_vistrails_default_pkg_prefix
+from vistrails.core.system import get_vistrails_default_pkg_prefix, \
+    get_vistrails_basic_pkg_id, get_module_registry
 
 def load_cls(cls_item, prefix=None):
     path = None
@@ -94,14 +95,11 @@ def parse_descriptor_string(d_string, cur_package=None):
     else:
         qual_name = d_string
         if cur_package is None:
-            from vistrails.core.modules.module_registry import get_module_registry
             reg = get_module_registry()
             if reg._current_package is not None:
                 package = reg._current_package.identifier
             else:
-                import vistrails.core.modules.basic_modules
-                basic_pkg = vistrails.core.modules.basic_modules.identifier
-                package = basic_pkg
+                package = get_vistrails_basic_pkg_id()
         else:
             package = cur_package
     qual_parts = qual_name.rsplit('|', 1)

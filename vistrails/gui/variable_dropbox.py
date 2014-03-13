@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -338,7 +338,7 @@ class QVariableInputForm(QtGui.QGroupBox):
         p = ModuleParam(type=descriptor.name, identifier=descriptor.identifier,
                         namespace=descriptor.namespace)
         p.strValue = var_strValue
-        widget_type = get_widget_class(descriptor.module)
+        widget_type = get_widget_class(descriptor)
         self.widget = widget_type(p, self)
         self.label = QDragVariableLabel(p.type)
         self.layout().addWidget(self.label, 0, 0)

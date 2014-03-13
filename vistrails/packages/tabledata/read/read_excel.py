@@ -1,10 +1,11 @@
 try:
     import numpy
-except ImportError:
+except ImportError: # pragma: no cover
     numpy = None
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
+from vistrails.packages.tabledata.common import TableObject
 
 from ..common import Table
 
@@ -20,7 +21,46 @@ def get_xlrd():
         return None
 
 
+class ExcelTable(TableObject):
+    def __init__(self, sheet, header_present):
+        self.sheet = sheet
+
+        self.header_present = header_present
+        if self.header_present:
+            self.names = [c.value for c in self.sheet.row(0)]
+        else:
+            self.names = None
+
+        self.rows = self.sheet.nrows
+        if self.header_present:
+            self.rows -= 1
+
+        self.columns = self.sheet.ncols
+
+        self.column_cache = {}
+
+    def get_column(self, index, numeric=False):
+        if (index, numeric) in self.column_cache:
+            return self.column_cache[(index, numeric)]
+
+        result = [c.value for c in self.sheet.col(index)]
+        if self.header_present:
+            result = result[1:]
+        if numeric and numpy is not None:
+            result = numpy.array(result, dtype=numpy.float32)
+        elif numeric:
+            result = [float(e) for e in result]
+
+        self.column_cache[(index, numeric)] = result
+        return result
+
+
 class ExcelSpreadsheet(Table):
+    """Reads a table from a Microsoft Excel file.
+
+    This module uses xlrd from the python-excel.org project to read a XLS or
+    XLSX file.
+    """
     _input_ports = [
             ('file', '(org.vistrails.vistrails.basic:File)'),
             ('sheet_name', '(org.vistrails.vistrails.basic:String)',
@@ -32,8 +72,7 @@ class ExcelSpreadsheet(Table):
     _output_ports = [
             ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
             ('column_names', '(org.vistrails.vistrails.basic:String)'),
-            ('self', '(org.vistrails.vistrails.tabledata:'
-             'read|ExcelSpreadsheet)')]
+            ('value', Table)]
 
     def compute(self):
         xlrd = get_xlrd()
@@ -60,38 +99,14 @@ class ExcelSpreadsheet(Table):
             index = sheet_index
         else:
             index = 0
-        self.sheet = workbook.sheet_by_index(index)
+        sheet = workbook.sheet_by_index(index)
+        header_present = self.get_input('header_present')
+        table = ExcelTable(sheet, header_present)
+        self.set_output('value', table)
 
-        self.header_present = self.get_input('header_present')
-        if self.header_present:
-            self.names = [c.value for c in self.sheet.row(0)]
-            self.set_output('column_names', self.names)
-        else:
-            self.names = None
-
-        self.rows = self.sheet.nrows
-        if self.header_present:
-            self.rows -= 1
-
-        self.columns = self.sheet.ncols
-        self.set_output('column_count', self.columns)
-
-        self.column_cache = {}
-
-    def get_column(self, index, numeric=False):
-        if (index, numeric) in self.column_cache:
-            return self.column_cache[(index, numeric)]
-
-        result = [c.value for c in self.sheet.col(index)]
-        if self.header_present:
-            result = result[1:]
-        if numeric and numpy is not None:
-            result = numpy.array(result, dtype=numpy.float32)
-        elif numeric:
-            result = [float(e) for e in result]
-
-        self.column_cache[(index, numeric)] = result
-        return result
+        if table.names is not None:
+            self.set_output('column_names', table.names)
+        self.set_output('column_count', table.columns)
 
 
 _modules = [ExcelSpreadsheet]
@@ -109,7 +124,7 @@ from ..common import ExtractColumn
 class ExcelTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if get_xlrd() is None:
+        if get_xlrd() is None: # pragma: no cover
             raise unittest.SkipTest("xlrd not available")
         import os
         cls._test_dir = os.path.join(
@@ -139,7 +154,7 @@ class ExcelTestCase(unittest.TestCase):
                         ]),
                     ],
                     [
-                        (0, 'self', 1, 'table'),
+                        (0, 'value', 1, 'table'),
                     ]))
         self.assertEqual(cols, [1])
         self.assertEqual(len(results), 1)
@@ -191,7 +206,7 @@ class ExcelTestCase(unittest.TestCase):
                         ]),
                     ],
                     [
-                        (0, 'self', 1, 'table'),
+                        (0, 'value', 1, 'table'),
                     ]))
         self.assertEqual(cols, [2])
         self.assertEqual(len(results), 1)
@@ -214,7 +229,7 @@ class ExcelTestCase(unittest.TestCase):
                         ]),
                     ],
                     [
-                        (0, 'self', 1, 'table'),
+                        (0, 'value', 1, 'table'),
                     ]))
         self.assertEqual(cols, [2])
         self.assertEqual(len(results), 1)

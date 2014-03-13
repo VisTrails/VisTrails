@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,9 +35,10 @@
 """basic_modules defines basic VisTrails Modules that are used in most
 pipelines."""
 import vistrails.core.cache.hasher
+from vistrails.core.debug import format_exception
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, new_module, \
-     Converter, NotCacheable, ModuleError
+    Converter, NotCacheable, ModuleError
 from vistrails.core.modules.config import ConstantWidgetConfig, \
     QueryWidgetConfig, ParamExpWidgetConfig, ModuleSettings, IPort, OPort, \
     CIPort, COPort
@@ -407,7 +408,7 @@ class Directory(Path):
             try:
                 vistrails.core.system.mkdir(n)
             except Exception, e:
-                raise ModuleError(self, 'mkdir: ' + str(e))
+                raise ModuleError(self, 'mkdir: %s' % format_exception(e))
         if not os.path.isdir(n):
             raise ModuleError(self, 'Directory "%s" does not exist' % n)
         self.set_results(n)
@@ -474,22 +475,25 @@ class FileSink(NotCacheable, Module):
         output_path = self.get_input("outputPath")
         full_path = output_path.name
 
+        if os.path.isfile(full_path):
+            if self.get_input('overwrite'):
+                try:
+                    os.remove(full_path)
+                except OSError, e:
+                    msg = ('Could not delete existing path "%s" '
+                           '(overwrite on)' % full_path)
+                    raise ModuleError(self, msg)
+            else:
+                raise ModuleError(self,
+                                  "Could not copy file to '%s': file already "
+                                  "exists")
+
         try:
             vistrails.core.system.link_or_copy(input_file.name, full_path)
         except OSError, e:
-            if self.has_input("overwrite") and \
-                    self.get_input("overwrite"):
-                try:
-                    os.unlink(full_path)
-                    vistrails.core.system.link_or_copy(input_file.name, full_path)
-                except OSError:
-                    msg = "(override true) Could not create file '%s'" % \
-                        full_path
-                    raise ModuleError(self, msg)
-            else:
-                msg = "Could not create file '%s': %s" % (full_path, e)
-                raise ModuleError(self, msg)
-            
+            msg = "Could not create file '%s': %s" % (full_path, e)
+            raise ModuleError(self, msg)
+
         if (self.has_input("publishFile") and
             self.get_input("publishFile") or 
             not self.has_input("publishFile")):
@@ -532,8 +536,7 @@ class DirectorySink(NotCacheable, Module):
         full_path = output_path.name
 
         if os.path.exists(full_path):
-            if (self.has_input("overwrite") and 
-                self.get_input("overwrite")):
+            if self.get_input("overwrite"):
                 try:
                     if os.path.isfile(full_path):
                         os.remove(full_path)
@@ -542,7 +545,9 @@ class DirectorySink(NotCacheable, Module):
                 except OSError, e:
                     msg = ('Could not delete existing path "%s" '
                            '(overwrite on)' % full_path)
-                    raise ModuleError(self, msg + '\n' + str(e))
+                    raise ModuleError(
+                            self,
+                            '%s\n%s' % (msg, format_exception(e)))
             else:
                 msg = ('Could not write to existing path "%s" '
                        '(overwrite off)' % full_path)
@@ -553,7 +558,7 @@ class DirectorySink(NotCacheable, Module):
         except OSError, e:
             msg = 'Could not copy path from "%s" to "%s"' % \
                 (input_dir.name, full_path)
-            raise ModuleError(self, msg + '\n' + str(e))
+            raise ModuleError(self, '%s\n%s' % (msg, format_exception(e)))
 
 ##############################################################################
 
@@ -786,7 +791,7 @@ class Not(Module):
 # List
 
 # If numpy is available, we consider numpy arrays to be lists as well
-class ListType:
+class ListType(object):
     __metaclass__ = ABCMeta
 
 ListType.register(list)
@@ -1200,6 +1205,50 @@ class AssertEqual(Module):
 
 ##############################################################################
 
+class StringFormat(Module):
+    """
+    Builds a string from objects using Python's str.format().
+    """
+    _settings = ModuleSettings(configure_widget=
+        'vistrails.gui.modules.stringformat_configuration:'
+            'StringFormatConfigurationWidget')
+    _input_ports = [IPort('format', String)]
+    _output_ports = [OPort('value', String)]
+
+    @staticmethod
+    def list_placeholders(fmt):
+        placeholders = set()
+        nb = 0
+        i = 0
+        n = len(fmt)
+        while i < n:
+            if fmt[i] == '{':
+                i += 1
+                if fmt[i] == '}': # KeyError
+                    nb += 1
+                elif fmt[i] != '{': # KeyError
+                    e = fmt.index('}', i + 1) # KeyError
+                    f = e
+                    for c in (':', '!', '[', '.'):
+                        c = fmt.find(c, i + 1)
+                        if c != -1:
+                            f = min(f, c)
+                    placeholders.add(fmt[i:f])
+                    i = e
+            i += 1
+        return nb, placeholders
+
+    def compute(self):
+        fmt = self.get_input('format')
+        args, kwargs = StringFormat.list_placeholders(fmt)
+        f_args = [self.get_input('_%d' % n)
+                  for n in xrange(args)]
+        f_kwargs = dict((n, self.get_input(n))
+                        for n in kwargs)
+        self.set_output('value', fmt.format(*f_args, **f_kwargs))
+
+##############################################################################
+
 def init_constant(m):
     reg = get_module_registry()
 
@@ -1207,7 +1256,7 @@ def init_constant(m):
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
 
-_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual]
+_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual, StringFormat]
 
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
@@ -1217,64 +1266,65 @@ def initialize(*args, **kwargs):
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-   from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-   reg = get_module_registry()
+    from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+    reg = get_module_registry()
 
-   def outputName_remap(old_conn, new_module):
-       ops = []
-       old_src_module = pipeline.modules[old_conn.source.moduleId]
-       op_desc = reg.get_descriptor(OutputPath)
-       new_x = (old_src_module.location.x + new_module.location.x) / 2.0
-       new_y = (old_src_module.location.y + new_module.location.y) / 2.0
-       op_module = \
-           controller.create_module_from_descriptor(op_desc, new_x, new_y)
-       ops.append(('add', op_module))
-       create_new_connection = UpgradeWorkflowHandler.create_new_connection
-       new_conn_1 = create_new_connection(controller,
-                                          old_src_module,
-                                          old_conn.source,
-                                          op_module,
-                                          "name")
-       ops.append(('add', new_conn_1))
-       new_conn_2 = create_new_connection(controller,
-                                          op_module,
-                                          "value",
-                                          new_module,
-                                          "outputPath")
-       ops.append(('add', new_conn_2))
-       return ops
+    def outputName_remap(old_conn, new_module):
+        ops = []
+        old_src_module = pipeline.modules[old_conn.source.moduleId]
+        op_desc = reg.get_descriptor(OutputPath)
+        new_x = (old_src_module.location.x + new_module.location.x) / 2.0
+        new_y = (old_src_module.location.y + new_module.location.y) / 2.0
+        op_module = \
+            controller.create_module_from_descriptor(op_desc, new_x, new_y)
+        ops.append(('add', op_module))
+        create_new_connection = UpgradeWorkflowHandler.create_new_connection
+        new_conn_1 = create_new_connection(controller,
+                                           old_src_module,
+                                           old_conn.source,
+                                           op_module,
+                                           "name")
+        ops.append(('add', new_conn_1))
+        new_conn_2 = create_new_connection(controller,
+                                           op_module,
+                                           "value",
+                                           new_module,
+                                           "outputPath")
+        ops.append(('add', new_conn_2))
+        return ops
 
-   module_remap = {'FileSink':
-                       [(None, '1.6', None,
-                         {'dst_port_remap':
-                              {'overrideFile': 'overwrite',
-                               'outputName': outputName_remap},
-                          'function_remap':
-                              {'overrideFile': 'overwrite',
-                               'outputName': 'outputPath'}})],
-                   'GetItemsFromDirectory':
-                       [(None, '1.6', 'Directory',
-                         {'dst_port_remap':
-                              {'dir': 'value'},
-                          'src_port_remap':
-                              {'itemlist': 'itemList'},
-                          })],
-                   'InputPort':
-                       [(None, '1.6', None,
-                         {'dst_port_remap': {'old_name': None}})],
-                   'OutputPort':
-                       [(None, '1.6', None,
-                         {'dst_port_remap': {'old_name': None}})],
-                   'PythonSource':
-                       [(None, '1.6', None, {})],
-                   }
+    module_remap = {'FileSink':
+    [(None, '1.6', None,
+                          {'dst_port_remap':
+                               {'overrideFile': 'overwrite',
+                                'outputName': outputName_remap},
+                           'function_remap':
+                               {'overrideFile': 'overwrite',
+                                'outputName': 'outputPath'}})],
+                    'GetItemsFromDirectory':
+                        [(None, '1.6', 'Directory',
+                          {'dst_port_remap':
+                               {'dir': 'value'},
+                           'src_port_remap':
+                               {'itemlist': 'itemList'},
+                           })],
+                    'InputPort':
+                        [(None, '1.6', None,
+                          {'dst_port_remap': {'old_name': None}})],
+                    'OutputPort':
+                        [(None, '1.6', None,
+                          {'dst_port_remap': {'old_name': None}})],
+                    'PythonSource':
+                        [(None, '1.6', None, {})],
+                    }
 
-   return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
-                                              module_remap)
+    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
+                                               module_remap)
 
 
 ###############################################################################
 
+import sys
 import unittest
 
 class TestConcatenateString(unittest.TestCase):
@@ -1637,3 +1687,40 @@ class TestTypechecking(unittest.TestCase):
                 (1, 'output', 'r',
                  'org.vistrails.vistrails.basic:String'),
             ])
+
+
+class TestStringFormat(unittest.TestCase):
+    def test_list_placeholders(self):
+        fmt = 'a {} b}} {c!s} {{d e}} {}f'
+        self.assertEqual(StringFormat.list_placeholders(fmt),
+                         (2, set(['c'])))
+
+    def run_format(self, fmt, expected, **kwargs):
+        from vistrails.tests.utils import execute, intercept_result
+        functions = [('format', [('String', fmt)])]
+        functions.extend((n, [(t, v)])
+                         for n, (t, v) in kwargs.iteritems())
+        with intercept_result(StringFormat, 'value') as results:
+            self.assertFalse(execute([
+                    ('StringFormat', 'org.vistrails.vistrails.basic',
+                     functions),
+                ],
+                add_port_specs=[
+                    (0, 'input', n, t)
+                    for n, (t, v) in kwargs.iteritems()
+                ]))
+        self.assertEqual(results, [expected])
+
+    def test_format(self):
+        self.run_format('{{ {a} }} b {c!s}', '{ 42 } b 12',
+                        a=('Integer', '42'),
+                        c=('Integer', '12'))
+
+    # Python 2.6 doesn't support {}
+    @unittest.skipIf(sys.version_info < (2, 7), "No {} support on 2.6")
+    def test_format_27(self):
+        self.run_format('{} {}', 'a b',
+                        _0=('String', 'a'), _1=('String', 'b'))
+        self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',
+                        a=('Integer', '42'), _0=('String', 'b'),
+                        b=('Integer', '12'))

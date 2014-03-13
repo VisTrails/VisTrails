@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -90,7 +90,7 @@ __all__ = ['StreamingHTTPConnection', 'StreamingHTTPRedirectHandler',
 if hasattr(httplib, 'HTTPS'):
     __all__.extend(['StreamingHTTPSHandler', 'StreamingHTTPSConnection'])
 
-class _StreamingHTTPMixin:
+class _StreamingHTTPMixin(object):
     """Mixin class for HTTP and HTTPS connections that implements a streaming
     send method."""
     def send(self, value):

@@ -1293,7 +1293,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
               ("vmin", "basic:Float",
                {'optional': True, 'docstring': 'If not None, either or both of these values will be supplied to the :class:`matplotlib.colors.Normalize` instance, overriding the default color scaling based on levels.'}),
               ("nchunk", "basic:Integer",
-               {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': "[[0]]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': '[[0]]', 'optional': True}),
               ("hatches", "basic:List",
                {'optional': True, 'docstring': 'A list of cross hatch patterns to use on the filled areas. If None, no hatching will be added to the contour. Hatching is supported in the PostScript, PDF, SVG and Agg backends only.'}),
               ("levelsSequence", "basic:List",
@@ -1504,7 +1504,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
               ("vmin", "basic:Float",
                {'optional': True, 'docstring': 'If not None, either or both of these values will be supplied to the :class:`matplotlib.colors.Normalize` instance, overriding the default color scaling based on levels.'}),
               ("nchunk", "basic:Integer",
-               {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': "[[0]]", 'optional': True}),
+               {'entry_types': "['enum']", 'docstring': 'If 0, no subdivision of the domain. Specify a positive integer to divide the domain into subdomains of roughly nchunk by nchunk points. This may never actually be advantageous, so this option may be removed. Chunking introduces artifacts at the chunk boundaries unless antialiased is False.', 'values': "[['0']]", 'optional': True}),
               ("hatches", "basic:List",
                {'optional': True, 'docstring': 'A list of cross hatch patterns to use on the filled areas. If None, no hatching will be added to the contour. Hatching is supported in the PostScript, PDF, SVG and Agg backends only.'}),
               ("levelsSequence", "basic:List",
@@ -2360,10 +2360,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             kwargs['bottom'] = val
         if self.has_input('colorSequence'):
             val = self.get_input('colorSequence')
-            val = translate_color(val)
             kwargs['color'] = val
         elif self.has_input('colorScalar'):
             val = self.get_input('colorScalar')
+            val = translate_color(val)
             kwargs['color'] = val
         if self.has_input('histtype'):
             val = self.get_input('histtype')
@@ -3416,7 +3416,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
               ("colorSequence", "basic:List",
                {'optional': True, 'docstring': 'This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.'}),
               ("colorScalar", "basic:String",
-               {'entry_types': "['enum']", 'docstring': 'This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.', 'values': "[['color']]", 'optional': True}),
+               {'docstring': 'This is a synonym for the :class:`~matplotlib.collections.PolyCollection` facecolor kwarg. If C has been set, color has no effect.', 'optional': True}),
               ("polyCollectionProperties", "MplPolyCollectionProperties",
                {}),
         ]
@@ -3484,6 +3484,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
             kwargs['color'] = val
         elif self.has_input('colorScalar'):
             val = self.get_input('colorScalar')
+            val = translate_color(val)
             kwargs['color'] = val
 
         polyCollection = matplotlib.pyplot.quiver(*args, **kwargs)
@@ -3631,7 +3632,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
               ("vmin", "basic:String",
                {'optional': True, 'docstring': 'vmin and vmax are used in conjunction with norm to normalize luminance data.  If either are None, the min and max of the color array C is used.  Note if you pass a norm instance, your settings for vmin and vmax will be ignored.'}),
               ("faceted", "basic:Boolean",
-               {'optional': True, 'defaults': "['True']"}),
+               {'optional': True, 'defaults': '[True]'}),
               ("linewidths", "basic:List",
                {'optional': True, 'docstring': 'If None, defaults to (lines.linewidth,).  Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.'}),
               ("marker", "basic:String",
@@ -5177,7 +5178,7 @@ Example:
               ("columnspacing", "basic:String",
                {'optional': True, 'docstring': 'the spacing between columns'}),
               ("ncol", "basic:Integer",
-               {'optional': True, 'docstring': 'number of columns. default is 1', 'defaults': "['1']"}),
+               {'optional': True, 'docstring': 'number of columns. default is 1', 'defaults': '[1]'}),
               ("handletextpad", "basic:String",
                {'optional': True, 'docstring': 'the pad between the legend handle and text'}),
               ("scatteroffsetsSequence", "basic:List",

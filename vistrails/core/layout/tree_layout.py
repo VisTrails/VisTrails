@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -52,7 +52,7 @@ The original paper is:
 
 """
 
-class TreeLW:
+class TreeLW(object):
     """
     The input to the algorithm must be a tree
     in this format.
@@ -131,7 +131,7 @@ class TreeLW:
             nodes.append(t.addNode(parent,width,height,i))
         return t            
 
-class KeepBoundingBox:
+class KeepBoundingBox(object):
     def __init__(self):
         self.minx = None
         self.miny = None
@@ -153,7 +153,7 @@ class KeepBoundingBox:
     def getBoundingBox(self):
         return [self.minx, self.miny, self.maxx-self.minx, self.maxy - self.miny]
 
-class NodeLW:
+class NodeLW(object):
     """
     Node of the tree with all the auxiliar
     variables needed to the LW algorithm.
@@ -225,7 +225,7 @@ class NodeLW:
     def isSiblingOf(self, v):
         return self.parent == v.parent and self.parent != None
 
-class TreeLayoutLW:
+class TreeLayoutLW(object):
 
     """
     TreeLayoutLW: the LW stands for Linear Walker.

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -89,6 +89,10 @@ class QToolWindow(QtGui.QDockWidget):
         self.mwindow.addToolBar(self.toolbar)
                    
     def setDefaultPinStatus(self, topLevel):
+        # Fixes QTBUG-30276
+        if self.acceptDrops():
+            self.setAcceptDrops(False)
+            self.setAcceptDrops(True)
         if topLevel:
             self.setPinStatus(False)
             self.pinButton.setEnabled(False)

@@ -75,6 +75,7 @@ class MplArtistProperties(MplProperties):
         MplProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -121,7 +122,18 @@ class MplArtistProperties(MplProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -161,6 +173,7 @@ class Mpl_AxesImageBaseProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -191,7 +204,18 @@ class Mpl_AxesImageBaseProperties(MplArtistProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -227,6 +251,7 @@ class MplAxesImageProperties(Mpl_AxesImageBaseProperties):
         Mpl_AxesImageBaseProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -253,7 +278,18 @@ class MplAxesImageProperties(Mpl_AxesImageBaseProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        Mpl_AxesImageBaseProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -287,6 +323,7 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
         MplAxesImageProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -311,7 +348,18 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplAxesImageProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -347,6 +395,7 @@ class MplBboxImageProperties(Mpl_AxesImageBaseProperties):
         Mpl_AxesImageBaseProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -373,7 +422,18 @@ class MplBboxImageProperties(Mpl_AxesImageBaseProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        Mpl_AxesImageBaseProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -414,6 +474,7 @@ class MplPcolorImageProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -440,7 +501,18 @@ class MplPcolorImageProperties(MplArtistProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -474,6 +546,7 @@ class MplFigureImageProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -498,7 +571,18 @@ class MplFigureImageProperties(MplArtistProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -603,6 +687,7 @@ class MplCollectionProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -659,7 +744,18 @@ class MplCollectionProperties(MplArtistProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -683,6 +779,7 @@ class MplPathCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -695,7 +792,18 @@ class MplPathCollectionProperties(MplCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -721,6 +829,7 @@ class MplPolyCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -737,7 +846,18 @@ class MplPolyCollectionProperties(MplCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -762,6 +882,7 @@ class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
         MplPolyCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -774,7 +895,18 @@ class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPolyCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -798,6 +930,7 @@ class MplRegularPolyCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -812,7 +945,18 @@ class MplRegularPolyCollectionProperties(MplCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -837,6 +981,7 @@ class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
         MplRegularPolyCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -851,7 +996,18 @@ class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplRegularPolyCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -876,6 +1032,7 @@ class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties)
         MplRegularPolyCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -890,7 +1047,18 @@ class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties)
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplRegularPolyCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -943,6 +1111,7 @@ class MplLineCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -977,7 +1146,18 @@ class MplLineCollectionProperties(MplCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -999,6 +1179,7 @@ class MplCircleCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1009,7 +1190,18 @@ class MplCircleCollectionProperties(MplCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1037,6 +1229,7 @@ class MplEllipseCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1053,7 +1246,18 @@ class MplEllipseCollectionProperties(MplCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1085,6 +1289,7 @@ class MplPatchCollectionProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1099,7 +1304,18 @@ class MplPatchCollectionProperties(MplCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1127,6 +1343,7 @@ class MplTriMeshProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1139,7 +1356,18 @@ class MplTriMeshProperties(MplCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1198,6 +1426,7 @@ class MplQuadMeshProperties(MplCollectionProperties):
         MplCollectionProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1218,7 +1447,18 @@ class MplQuadMeshProperties(MplCollectionProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplCollectionProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1261,6 +1501,7 @@ class MplPatchProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1292,7 +1533,18 @@ class MplPatchProperties(MplArtistProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1318,6 +1570,7 @@ class MplShadowProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1334,7 +1587,18 @@ class MplShadowProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1367,6 +1631,7 @@ class MplRectangleProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1387,7 +1652,18 @@ class MplRectangleProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1415,6 +1691,7 @@ class MplRegularPolygonProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1431,7 +1708,18 @@ class MplRegularPolygonProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1457,6 +1745,7 @@ class MplCirclePolygonProperties(MplRegularPolygonProperties):
         MplRegularPolygonProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1471,7 +1760,18 @@ class MplCirclePolygonProperties(MplRegularPolygonProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplRegularPolygonProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1493,6 +1793,7 @@ class MplPathPatchProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1503,7 +1804,18 @@ class MplPathPatchProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1527,6 +1839,7 @@ class MplPolygonProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1539,7 +1852,18 @@ class MplPolygonProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1581,6 +1905,7 @@ class MplFancyArrowProperties(MplPolygonProperties):
         MplPolygonProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1611,7 +1936,18 @@ class MplFancyArrowProperties(MplPolygonProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPolygonProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1641,6 +1977,7 @@ class MplWedgeProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1659,7 +1996,18 @@ class MplWedgeProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1689,6 +2037,7 @@ class MplArrowProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1707,7 +2056,18 @@ class MplArrowProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1742,6 +2102,7 @@ class MplYAArrowProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1762,7 +2123,18 @@ class MplYAArrowProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1790,6 +2162,7 @@ class MplEllipseProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1806,7 +2179,18 @@ class MplEllipseProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1830,6 +2214,7 @@ class MplCircleProperties(MplEllipseProperties):
         MplEllipseProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1842,7 +2227,18 @@ class MplCircleProperties(MplEllipseProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplEllipseProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1881,6 +2277,7 @@ class MplArcProperties(MplEllipseProperties):
         MplEllipseProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1901,7 +2298,18 @@ class MplArcProperties(MplEllipseProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplEllipseProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -1948,6 +2356,7 @@ class MplFancyBboxPatchProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -1976,7 +2385,18 @@ class MplFancyBboxPatchProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2026,6 +2446,7 @@ class MplFancyArrowPatchProperties(MplPatchProperties):
         MplPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -2064,7 +2485,18 @@ class MplFancyArrowPatchProperties(MplPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2127,6 +2559,7 @@ class MplConnectionPatchProperties(MplFancyArrowPatchProperties):
         MplFancyArrowPatchProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -2177,7 +2610,18 @@ class MplConnectionPatchProperties(MplFancyArrowPatchProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplFancyArrowPatchProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2252,6 +2696,7 @@ class MplLine2DProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -2316,7 +2761,18 @@ class MplLine2DProperties(MplArtistProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2378,6 +2834,7 @@ class MplTextProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -2430,7 +2887,18 @@ class MplTextProperties(MplArtistProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2536,6 +3004,7 @@ class MplTextWithDashProperties(MplTextProperties):
         MplTextProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -2580,7 +3049,18 @@ class MplTextWithDashProperties(MplTextProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplTextProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2635,12 +3115,8 @@ class MplTickProperties(MplArtistProperties):
                 {'optional': True, 'defaults': "['True']"}),
               ("label2On", "basic:Boolean",
                 {'optional': True, 'defaults': "['False']"}),
-              ("color", "basic:String",
+              ("color", "basic:Color",
                 {'optional': True}),
-              ("label1", "basic:String",
-                {'optional': True, 'docstring': 'Set the text of ticklabel'}),
-              ("label2", "basic:String",
-                {'optional': True, 'docstring': 'Set the text of ticklabel2'}),
               ("axes", "basic:String",
                 {'optional': True}),
               ("clip_path", "basic:String",
@@ -2653,20 +3129,30 @@ class MplTickProperties(MplArtistProperties):
                 {'optional': True}),
               ("pad", "basic:Float",
                 {'optional': True, 'docstring': 'Set the tick label pad in points'}),
-              ("gridOn", "basic:String",
-                {'optional': True}),
+              ("gridOn", "basic:Boolean",
+                {'optional': True, 'docstring': 'a boolean which determines whether to draw the tickline'}),
               ("zorder", "basic:String",
                 {'optional': True}),
               ("tick2On", "basic:Boolean",
-                {'optional': True, 'defaults': "['True']"}),
+                {'optional': True, 'docstring': 'a boolean which determines whether to draw the 2nd tickline', 'defaults': "['True']"}),
               ("labelsize", "basic:String",
                 {'optional': True}),
               ("width", "basic:String",
                 {'optional': True}),
               ("tick1On", "basic:Boolean",
-                {'optional': True, 'defaults': "['True']"}),
+                {'optional': True, 'docstring': 'a boolean which determines whether to draw the 1st tickline', 'defaults': "['True']"}),
               ("size", "basic:String",
                 {'optional': True}),
+              ("label1Properties", "MplTextProperties",
+                {'docstring': 'Set the text of ticklabel'}),
+              ("label2Properties", "MplTextProperties",
+                {'docstring': 'Set the text of ticklabel2'}),
+              ("tick1lineProperties", "MplLine2DProperties",
+                {}),
+              ("tick2lineProperties", "MplLine2DProperties",
+                {}),
+              ("gridlineProperties", "MplLine2DProperties",
+                {}),
         ]
 
     # no output ports except self
@@ -2676,24 +3162,22 @@ class MplTickProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
         MplArtistProperties.compute(self)
         if self.has_input('label1On'):
-            self.constructor_props['label1On'] = self.get_input('label1On')
+            self.not_setp_props['label1On'] = self.get_input('label1On')
         if self.has_input('loc'):
             self.constructor_props['loc'] = self.get_input('loc')
         if self.has_input('major'):
             self.constructor_props['major'] = self.get_input('major')
         if self.has_input('label2On'):
-            self.constructor_props['label2On'] = self.get_input('label2On')
+            self.not_setp_props['label2On'] = self.get_input('label2On')
         if self.has_input('color'):
             self.constructor_props['color'] = self.get_input('color')
-        if self.has_input('label1'):
-            self.props['label1'] = self.get_input('label1')
-        if self.has_input('label2'):
-            self.props['label2'] = self.get_input('label2')
+            self.constructor_props['color'] = translate_color(self.constructor_props['color'])
         if self.has_input('axes'):
             self.constructor_props['axes'] = self.get_input('axes')
         if self.has_input('clip_path'):
@@ -2707,24 +3191,60 @@ class MplTickProperties(MplArtistProperties):
         if self.has_input('pad'):
             self.props['pad'] = self.get_input('pad')
         if self.has_input('gridOn'):
-            self.constructor_props['gridOn'] = self.get_input('gridOn')
+            self.not_setp_props['gridOn'] = self.get_input('gridOn')
         if self.has_input('zorder'):
             self.constructor_props['zorder'] = self.get_input('zorder')
         if self.has_input('tick2On'):
-            self.constructor_props['tick2On'] = self.get_input('tick2On')
+            self.not_setp_props['tick2On'] = self.get_input('tick2On')
         if self.has_input('labelsize'):
             self.constructor_props['labelsize'] = self.get_input('labelsize')
         if self.has_input('width'):
             self.constructor_props['width'] = self.get_input('width')
         if self.has_input('tick1On'):
-            self.constructor_props['tick1On'] = self.get_input('tick1On')
+            self.not_setp_props['tick1On'] = self.get_input('tick1On')
         if self.has_input('size'):
             self.constructor_props['size'] = self.get_input('size')
+        if self.has_input('label1Properties'):
+            self.sub_props['label1'] = self.get_input('label1Properties')
+        if self.has_input('label2Properties'):
+            self.sub_props['label2'] = self.get_input('label2Properties')
+        if self.has_input('tick1lineProperties'):
+            self.sub_props['tick1line'] = self.get_input('tick1lineProperties')
+        if self.has_input('tick2lineProperties'):
+            self.sub_props['tick2line'] = self.get_input('tick2lineProperties')
+        if self.has_input('gridlineProperties'):
+            self.sub_props['gridline'] = self.get_input('gridlineProperties')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            if 'label1' in self.sub_props:
+                self.sub_props['label1'].update_props(obj.label1)
+            if 'label2' in self.sub_props:
+                self.sub_props['label2'].update_props(obj.label2)
+            if 'tick1line' in self.sub_props:
+                self.sub_props['tick1line'].update_props(obj.tick1line)
+            if 'tick2line' in self.sub_props:
+                self.sub_props['tick2line'].update_props(obj.tick2line)
+            if 'gridline' in self.sub_props:
+                self.sub_props['gridline'].update_props(obj.gridline)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2779,6 +3299,7 @@ class MplXTickProperties(MplTickProperties):
         MplTickProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -2821,7 +3342,18 @@ class MplXTickProperties(MplTickProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplTickProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2876,6 +3408,7 @@ class MplYTickProperties(MplTickProperties):
         MplTickProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -2918,7 +3451,18 @@ class MplYTickProperties(MplTickProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplTickProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -2973,6 +3517,10 @@ class MplAxisProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'set the units for axis'}),
               ("tick_params", "basic:String",
                 {'optional': True, 'docstring': 'Set appearance parameters for ticks and ticklabels.\n\nFor documentation of keyword arguments, see :meth:`matplotlib.axes.Axes.tick_params`.'}),
+              ("majorTickProperties", "MplTickProperties",
+                {}),
+              ("minorTickProperties", "MplTickProperties",
+                {}),
         ]
 
     # no output ports except self
@@ -2982,6 +3530,7 @@ class MplAxisProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -3026,11 +3575,35 @@ class MplAxisProperties(MplArtistProperties):
             self.props['units'] = self.get_input('units')
         if self.has_input('tick_params'):
             self.props['tick_params'] = self.get_input('tick_params')
+        if self.has_input('majorTickProperties'):
+            self.sub_props['major_ticks'] = self.get_input('majorTickProperties')
+        if self.has_input('minorTickProperties'):
+            self.sub_props['minor_ticks'] = self.get_input('minorTickProperties')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            if 'major_ticks' in self.sub_props:
+                self.sub_props['major_ticks'].update_props(obj.get_major_ticks())
+            if 'minor_ticks' in self.sub_props:
+                self.sub_props['minor_ticks'].update_props(obj.get_minor_ticks())
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3062,6 +3635,7 @@ class MplXAxisProperties(MplAxisProperties):
         MplAxisProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -3084,7 +3658,18 @@ class MplXAxisProperties(MplAxisProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplAxisProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3118,6 +3703,7 @@ class MplYAxisProperties(MplAxisProperties):
         MplAxisProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -3142,7 +3728,18 @@ class MplYAxisProperties(MplAxisProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplAxisProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3248,6 +3845,7 @@ class MplLegendProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -3322,7 +3920,18 @@ class MplLegendProperties(MplArtistProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3375,10 +3984,8 @@ class MplAxesProperties(MplArtistProperties):
                 {'optional': True}),
               ("label", "basic:String",
                 {'optional': True, 'defaults': "['']"}),
-              ("xticksSequence", "basic:List",
+              ("xticks", "basic:List",
                 {'optional': True, 'docstring': 'Set the x ticks with list of ticks'}),
-              ("xticksScalar", "basic:Float",
-               {'docstring': 'Set the x ticks with list of ticks', 'optional': True}),
               ("fig", "basic:String",
                 {'optional': True}),
               ("ylabel", "basic:String",
@@ -3423,10 +4030,8 @@ class MplAxesProperties(MplArtistProperties):
                 {'optional': True, 'docstring': 'Call signature:\n\nset_xlabel(xlabel, fontdict=None, labelpad=None, **kwargs)\n\nSet the label for the xaxis.\n\nlabelpad is the spacing in points between the label and the x-axis'}),
               ("xbound", "basic:String",
                 {'optional': True, 'docstring': 'Set the lower and upper numerical bounds of the x-axis. This method will honor axes inversion regardless of parameter order. It will not change the _autoscaleXon attribute.'}),
-              ("yticksSequence", "basic:List",
+              ("yticks", "basic:List",
                 {'optional': True, 'docstring': 'Set the y ticks with list of ticks Keyword arguments:'}),
-              ("yticksScalar", "basic:Float",
-               {'docstring': 'Set the y ticks with list of ticks Keyword arguments:', 'optional': True}),
               ("ymargin", "basic:Float",
                 {'optional': True, 'docstring': 'Set padding of Y data limits prior to autoscaling.\n\nm times the data interval will be added to each end of that interval before it is used in autoscaling.'}),
               ("position", "basic:String",
@@ -3439,6 +4044,10 @@ class MplAxesProperties(MplArtistProperties):
                {'docstring': "Call signature:\n\nset_xticklabels(labels, fontdict=None, minor=False, **kwargs)\n\nSet the xtick labels with list of strings labels. Return a list of axis text instances.\n\nkwargs set the :class:`~matplotlib.text.Text` properties. Valid properties are\n\nagg_filter: unknown alpha: float (0.0 transparent through 1.0 opaque) animated: [True | False] axes: an :class:`~matplotlib.axes.Axes` instance backgroundcolor: any matplotlib color bbox: rectangle prop dict clip_box: a :class:`matplotlib.transforms.Bbox` instance clip_on: [True | False] clip_path: [ (:class:`~matplotlib.path.Path`,         :class:`~matplotlib.transforms.Transform`) |         :class:`~matplotlib.patches.Patch` | None ] color: any matplotlib color contains: a callable function family or fontfamily or fontname or name: [ FONTNAME | 'serif' | 'sans-serif' | 'cursive' | 'fantasy' | 'monospace' ] figure: a :class:`matplotlib.figure.Figure` instance fontproperties or font_properties: a :class:`matplotlib.font_manager.FontProperties` instance gid: an id string horizontalalignment or ha: [ 'center' | 'right' | 'left' ] label: string or anything printable with '%s' conversion. linespacing: float (multiple of font size) lod: [True | False] multialignment: ['left' | 'right' | 'center' ] path_effects: unknown picker: [None|float|boolean|callable] position: (x,y) rasterized: [True | False | None] rotation: [ angle in degrees | 'vertical' | 'horizontal' ] rotation_mode: unknown size or fontsize: [ size in points | 'xx-small' | 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'xx-large' ] snap: unknown stretch or fontstretch: [ a numeric value in range 0-1000 | 'ultra-condensed' | 'extra-condensed' | 'condensed' | 'semi-condensed' | 'normal' | 'semi-expanded' | 'expanded' | 'extra-expanded' | 'ultra-expanded' ] style or fontstyle: [ 'normal' | 'italic' | 'oblique'] text: string or anything printable with '%s' conversion. transform: :class:`~matplotlib.transforms.Transform` instance url: a url string variant or fontvariant: [ 'normal' | 'small-caps' ] verticalalignment or va or ma: [ 'center' | 'top' | 'bottom' | 'baseline' ] visible: [True | False] weight or fontweight: [ a numeric value in range 0-1000 | 'ultralight' | 'light' | 'normal' | 'regular' | 'book' | 'medium' | 'roman' | 'semibold' | 'demibold' | 'demi' | 'bold' | 'heavy' | 'extra bold' | 'black' ] x: float y: float zorder: any number", 'optional': True}),
               ("titleProperties", "MplTextProperties",
                 {}),
+              ("xaxisProperties", "MplXAxisProperties",
+                {}),
+              ("yaxisProperties", "MplYAxisProperties",
+                {}),
         ]
 
     # no output ports except self
@@ -3448,6 +4057,7 @@ class MplAxesProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -3485,10 +4095,8 @@ class MplAxesProperties(MplArtistProperties):
             self.constructor_props['axisbg'] = self.get_input('axisbg')
         if self.has_input('label'):
             self.constructor_props['label'] = self.get_input('label')
-        if self.has_input('xticksSequence'):
-            self.props['xticks'] = self.get_input('xticksSequence')
-        elif self.has_input('xticksScalar'):
-            self.props['xticks'] = self.get_input('xticksScalar')
+        if self.has_input('xticks'):
+            self.props['xticks'] = self.get_input('xticks')
         if self.has_input('fig'):
             self.constructor_props['fig'] = self.get_input('fig')
         if self.has_input('ylabel'):
@@ -3534,10 +4142,8 @@ class MplAxesProperties(MplArtistProperties):
             self.props['xlabel'] = self.get_input('xlabel')
         if self.has_input('xbound'):
             self.props['xbound'] = self.get_input('xbound')
-        if self.has_input('yticksSequence'):
-            self.props['yticks'] = self.get_input('yticksSequence')
-        elif self.has_input('yticksScalar'):
-            self.props['yticks'] = self.get_input('yticksScalar')
+        if self.has_input('yticks'):
+            self.props['yticks'] = self.get_input('yticks')
         if self.has_input('ymargin'):
             self.props['ymargin'] = self.get_input('ymargin')
         if self.has_input('position'):
@@ -3551,18 +4157,37 @@ class MplAxesProperties(MplArtistProperties):
             self.props['xticklabels'] = self.get_input('xticklabelsScalar')
         if self.has_input('titleProperties'):
             self.sub_props['title'] = self.get_input('titleProperties')
+        if self.has_input('xaxisProperties'):
+            self.sub_props['xaxis'] = self.get_input('xaxisProperties')
+        if self.has_input('yaxisProperties'):
+            self.sub_props['yaxis'] = self.get_input('yaxisProperties')
 
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
         if not matplotlib.cbook.iterable(objs):
-            objs = [objs]
+            objs_iter = [objs]
         else:
-            objs = matplotlib.cbook.flatten(objs)
-        for obj in objs:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
+
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
             if 'title' in self.sub_props:
                 self.sub_props['title'].update_props(obj.title)
-
+            if 'xaxis' in self.sub_props:
+                self.sub_props['xaxis'].update_props(obj.xaxis)
+            if 'yaxis' in self.sub_props:
+                self.sub_props['yaxis'].update_props(obj.yaxis)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3582,6 +4207,7 @@ class MplAxesSubplotProperties(MplAxesProperties):
         MplAxesProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -3592,7 +4218,18 @@ class MplAxesSubplotProperties(MplAxesProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplAxesProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3650,6 +4287,7 @@ class MplFigureProperties(MplArtistProperties):
         MplArtistProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -3684,7 +4322,18 @@ class MplFigureProperties(MplArtistProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplArtistProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)
@@ -3723,6 +4372,7 @@ class MplAnnotationProperties(MplTextProperties):
         MplTextProperties.__init__(self)
         self.props = {}
         self.constructor_props = {}
+        self.not_setp_props = {}
         self.sub_props = {}
 
     def compute(self):
@@ -3747,7 +4397,18 @@ class MplAnnotationProperties(MplTextProperties):
         
     def update_props(self, objs):
         matplotlib.artist.setp(objs, **self.props)
+        if not matplotlib.cbook.iterable(objs):
+            objs_iter = [objs]
+        else:
+            objs_iter = matplotlib.cbook.flatten(objs)
+        for obj in objs_iter:
+            for attr_name, attr_val in self.not_setp_props.iteritems():
+                setattr(obj, attr_name, attr_val)
+        self.update_sub_props(objs)
 
+    def update_sub_props(self, objs):
+        MplTextProperties.update_sub_props(self, objs)
+        
     def update_kwargs(self, kwargs):
         kwargs.update(self.constructor_props)
         kwargs.update(self.props)

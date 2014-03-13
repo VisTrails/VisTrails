@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,7 +37,7 @@ import os
 from xml.dom import minidom, Node
 from auto_gen_objects import Object, Property, Choice
 
-class AutoGenParser:
+class AutoGenParser(object):
     def __init__(self):
         pass
 

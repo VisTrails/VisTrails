@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -478,7 +478,7 @@ class VistrailsStartup(object):
                 debug.critical(msg)
                 verbose = 2
             dbg = debug.DebugPrint.getInstance()
-            levels = [dbg.Critical, dbg.Warning, dbg.Log]
+            levels = [dbg.WARNING, dbg.INFO, dbg.DEBUG]
             dbg.set_message_level(levels[verbose])
             debug.log("Set verboseness level to %s" % verbose)
         

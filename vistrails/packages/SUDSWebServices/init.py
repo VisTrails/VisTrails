@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -175,7 +175,7 @@ def finalize():
         if s.package:
             reg.remove_package(s.package)
 
-class WSMethod:
+class WSMethod(object):
     """ A WSDL method
     """
     def __init__(self, qname=('','')):
@@ -184,7 +184,7 @@ class WSMethod:
         self.inputs = {}
         self.outputs = {}
 
-class WSElement:
+class WSElement(object):
     """ A part of a WSDL type
     """
     def __init__(self, name='', type=('',''), optional=False, min=0,
@@ -196,7 +196,7 @@ class WSElement:
         self.max = max
         self.enum = enum
 
-class WSType:
+class WSType(object):
     """ A WSDL type definition
     """
     def __init__(self, qname=('',''), enum=False):
@@ -205,7 +205,7 @@ class WSType:
         "name: WSElement"
         self.parts = {}
  
-class Service:
+class Service(object):
     def __init__(self, address):
         """ Process WSDL and add all Types and Methods
         """
@@ -229,20 +229,20 @@ class Service:
         try:
             self.service = suds.client.Client(address, **options)
             self.backUpCache()
-        except Exception, e:
+        except Exception:
             self.service = None
             # We may be offline and the cache may have expired,
             # try to use backup
             if self.restoreFromBackup():
                 try:
                     self.service = suds.client.Client(address, **options)
-                except Exception, e:
+                except Exception:
                     self.service = None
                     debug.critical("Could not load WSDL: %s" % address,
-                           str(e) + '\n' + str(traceback.format_exc()))
+                                   traceback.format_exc())
             else:
                 debug.critical("Could not load WSDL: %s" % address,
-                       str(e) + '\n' + str(traceback.format_exc()))
+                               traceback.format_exc())
         if self.service:
             try:
                 self.createPackage()
@@ -250,9 +250,9 @@ class Service:
                 self.setMethods()
                 self.createTypeClasses()
                 self.createMethodClasses()
-            except Exception, e:
+            except Exception:
                 debug.critical("Could not create Web Service: %s" % address,
-                               str(e) + '\n' + str(traceback.format_exc()))
+                               traceback.format_exc())
                 self.service = None
         if self.wsdlHash == '-1':
             # create empty package so that it can be reloaded/deleted
@@ -605,7 +605,8 @@ It is a WSDL type with signature:
                     #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
                 except Exception, e:
-                    raise ModuleError(self, "Error invoking method %s: %s"%(name, str(e)))
+                    raise ModuleError(self, "Error invoking method %s: %s" % (
+                            name, debug.format_exception(e)))
                 for name, qtype in self.wsmethod.outputs.iteritems():
                     if isinstance(result, list):
                         # if result is a list just set the output
@@ -626,7 +627,7 @@ It is a WSDL type with signature:
                         self.set_output(name, getattr(result, name))
                     else:
                         # nothing matches - assume it is an attribute of the correct class
-                        class UberClass:
+                        class UberClass(object):
                             def __init__(self, value):
                                 self.value = value
                         self.set_output(name, UberClass(result))
@@ -851,9 +852,10 @@ def callContextMenu(signature):
         s = Service(wsdl)
         if s.service:
             webServicesDict[wsdl] = s
-            wsdlList = configuration.wsdlList.split(";")
-            wsdlList.append(wsdl)
-            configuration.wsdlList = ';'.join(wsdlList)
+            if configuration.wsdlList:
+                configuration.wsdlList += ';' + wsdl
+            else:
+                configuration.wsdlList = wsdl
     elif signature.startswith('SUDS#'):
         address = toAddress(signature)
         from PyQt4 import QtGui 
