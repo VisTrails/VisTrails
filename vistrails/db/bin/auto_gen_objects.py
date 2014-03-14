@@ -40,7 +40,7 @@ def capitalizeOne(str):
         result += a_str[0].upper() + a_str[1:]
     return result
 
-class Field:
+class Field(object):
     def __init__(self, params):
         self.params = params
 
@@ -294,7 +294,7 @@ class Property(Field):
     def isChoice(self):
         return False
 
-class Object:
+class Object(object):
     def __init__(self, params, properties, layouts, choices):
         self.params = params
         self.properties = properties

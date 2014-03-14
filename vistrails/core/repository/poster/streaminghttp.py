@@ -90,7 +90,7 @@ __all__ = ['StreamingHTTPConnection', 'StreamingHTTPRedirectHandler',
 if hasattr(httplib, 'HTTPS'):
     __all__.extend(['StreamingHTTPSHandler', 'StreamingHTTPSConnection'])
 
-class _StreamingHTTPMixin:
+class _StreamingHTTPMixin(object):
     """Mixin class for HTTP and HTTPS connections that implements a streaming
     send method."""
     def send(self, value):

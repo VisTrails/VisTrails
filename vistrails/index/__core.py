@@ -47,7 +47,7 @@ This file implements:
  Service
 """
 
-class Annotation:
+class Annotation(object):
     """
     annotation
     """
@@ -59,7 +59,7 @@ class Annotation:
         """ equal if keys are equal """
         return self.key == other.key
 
-class Parameter:
+class Parameter(object):
     """
     module parameter
     """
@@ -69,7 +69,7 @@ class Parameter:
         self.type = type      # value type type/class (actually redundant)
         self.annotations = [] # list of annotations
 
-class Module:
+class Module(object):
     """
     workflow module
     """
@@ -84,7 +84,7 @@ class Module:
         self.up = []           # input  modules (redundant)
         self.down = []         # output modules (redundant)
 
-class Connection:
+class Connection(object):
     """
     A connection between modules
     """
@@ -96,7 +96,7 @@ class Connection:
             self.endPort = endPort
             self.annotations = []           # list of annotations
 
-class Pipeline:
+class Pipeline(object):
     """
     A representation of a pipeline 
     """
@@ -111,7 +111,7 @@ class Pipeline:
 
 outPort = False
 inPort = True
-class Port:
+class Port(object):
     """
     module port
     """
@@ -121,7 +121,7 @@ class Port:
         self.kind = kind      # inPort/outPort
         self.annotations = [] # list of annotations
 
-class Operation:
+class Operation(object):
     """
     An operation
     """
@@ -130,7 +130,7 @@ class Operation:
         self.ports = []       # list of ports
         self.annotations = [] # list of annotations
 
-class Service:
+class Service(object):
     """
     A service representation
     """

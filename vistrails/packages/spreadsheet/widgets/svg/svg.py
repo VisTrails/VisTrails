@@ -84,6 +84,8 @@ class SVGCellWidget(QCellWidget):
         self.controlBarType = None
         self.fileSrc = None
 
+        self.toolBarType = SVGToolBar
+
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
         Updates the contents of the SVG widget with a new file name
@@ -169,16 +171,23 @@ class SVGSaveAction(QtGui.QAction):
         
         """
         cellWidget = self.toolBar.getSnappedWidget()
-        
-        fn = QtGui.QFileDialog.getSaveFileName(None, "Save svg as...",
-                                               "screenshot.png",
-                                               "SVG (*.svg);;PDF files (*.pdf)")
+
+        fn = QtGui.QFileDialog.getSaveFileName(
+                None, "Save svg as...",
+                "screenshot.png",
+                "SVG (*.svg);;PDF files (*.pdf);;Images (*.png *.xpm *.jpg)")
         if fn:
             if fn.lower().endswith("svg"):
                 cellWidget.dumpToFile(fn)
             elif fn.lower().endswith("pdf"):
                 cellWidget.saveToPDF(fn)
-        
+            elif fn[-3:].lower() in ('png', 'xpm', 'jpg'):
+                cellWidget.grabWindowPixmap().save(fn)
+            else:
+                QtGui.QMessageBox.critical(cellWidget,
+                                           "Save cell",
+                                           "Unknown file extension")
+
 class SVGToolBar(QCellToolBar):
     """
     ImageViewerToolBar derives from CellToolBar to give the ImageViewerCellWidget

@@ -830,7 +830,7 @@ class PackageManager(object):
         except vistrails.core.data_structures.graph.Graph.GraphContainsCycles, e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
-        return sorted_packages
+        return list(reversed(sorted_packages))
         
     def get_all_dependencies(self, identifier, reverse=False, dep_graph=None):
         if dep_graph is None:

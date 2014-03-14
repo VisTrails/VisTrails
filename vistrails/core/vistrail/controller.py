@@ -579,9 +579,14 @@ class VistrailController(object):
     @staticmethod
     def create_module_from_descriptor_static(id_scope, descriptor, 
                                              x=0.0, y=0.0, 
-                                             internal_version=-1):
+                                             internal_version=-1,
+                                             use_desc_pkg_version=False):
         reg = vistrails.core.modules.module_registry.get_module_registry()
-        package = reg.get_package_by_name(descriptor.identifier)
+        if not use_desc_pkg_version:
+            package = reg.get_package_by_name(descriptor.identifier)
+            pkg_version = package.version
+        else:
+            pkg_version = descriptor.package_version
         loc_id = id_scope.getNewId(Location.vtType)
         location = Location(id=loc_id,
                             x=x, 
@@ -589,7 +594,7 @@ class VistrailController(object):
                             )
         if internal_version > -1:
             # only get the current namespace if this is a local subworkflow
-            if package == abstraction_pkg:
+            if descriptor.identifier == abstraction_pkg:
                 namespace = get_cur_abs_namespace(descriptor.module.vistrail)
             else:
                 namespace = descriptor.namespace
@@ -598,7 +603,7 @@ class VistrailController(object):
                                  name=descriptor.name,
                                  package=descriptor.identifier,
                                  namespace=namespace,
-                                 version=package.version,
+                                 version=pkg_version,
                                  location=location,
                                  internal_version=internal_version,
                                  )
@@ -609,7 +614,7 @@ class VistrailController(object):
                            name=descriptor.name,
                            package=descriptor.identifier,
                            namespace=descriptor.namespace,
-                           version=package.version,
+                           version=pkg_version,
                            location=location,
                            )
         else:
@@ -618,7 +623,7 @@ class VistrailController(object):
                             name=descriptor.name,
                             package=descriptor.identifier,
                             namespace=descriptor.namespace,
-                            version=package.version,
+                            version=pkg_version,
                             location=location,
                             )
         module.is_valid = True
@@ -634,6 +639,20 @@ class VistrailController(object):
         d = reg.get_descriptor_by_name(identifier, name, namespace)
         static_call = VistrailController.create_module_from_descriptor_static
         return static_call(id_scope, d, x, y, internal_version)
+
+    def create_old_module(self, *args, **kwargs):
+        return self.create_old_module_static(self.id_scope, *args, **kwargs)
+
+    @staticmethod
+    def create_old_module_static(id_scope, identifier, name, namespace='', 
+                                 version='', x=0.0, y=0.0, internal_version=-1):
+        dummy_d = ModuleDescriptor(name=name, 
+                                   package=identifier, 
+                                   namespace=namespace, 
+                                   package_version=version, 
+                                   internal_version=internal_version)
+        return VistrailController.create_module_from_descriptor_static(
+            id_scope, dummy_d, x, y, internal_version, True)
 
     def create_connection_from_ids(self, output_id, output_port_spec,
                                        input_id, input_port_spec):
@@ -714,7 +733,7 @@ class VistrailController(object):
                              query_methods=[]):
         params = []
         for i in xrange(len(port_spec.descriptors())):
-            if i < len(values):
+            if i < len(values) and values[i] is not None:
                 value = str(values[i])
             else:
                 value = None
@@ -736,17 +755,18 @@ class VistrailController(object):
         return self.create_function_static(self.id_scope, *args, **kwargs)
 
     @staticmethod
-    def create_function_static(id_scope, module, function_name, 
+    def create_function_static(id_scope, module, port_spec,
                                param_values=[], aliases=[], query_methods=[]):
-        port_spec = module.get_port_spec(function_name, 'input')
-        if len(param_values) <= 0 and port_spec.defaults is not None and \
-                                      port_spec.defaults != [None]:
+        if isinstance(port_spec, basestring):
+            port_spec = module.get_port_spec(port_spec, 'input')
+        if (len(param_values) <= 0 and port_spec.defaults is not None and
+            any(d is not None for d in port_spec.defaults)):
             param_values = port_spec.defaults
 
         f_id = id_scope.getNewId(ModuleFunction.vtType)
         new_function = ModuleFunction(id=f_id,
                                       pos=module.getNumFunctions(),
-                                      name=function_name,
+                                      name=port_spec.name,
                                       )
         new_function.is_valid = True
         new_params = \
@@ -2812,7 +2832,7 @@ class VistrailController(object):
         """callback for try_to_enable_package"""
         return True
        
-    def try_to_enable_package(self, identifier, dep_graph, confirmed=False):
+    def try_to_enable_package(self, identifier, confirmed=False):
         """try_to_enable_package(identifier: str,
                                  dep_graph: Graph,
                                  confirmed: boolean)
@@ -2825,15 +2845,29 @@ class VistrailController(object):
 
         pm = get_package_manager()
         pkg = pm.identifier_is_available(identifier)
+        if pkg is None or pm.has_package(pkg.identifier):
+            return False
+
+        dep_graph = pm.build_dependency_graph([identifier])
+        deps = pm.get_ordered_dependencies(dep_graph)
+        other_deps = filter(lambda i: i != identifier, deps)
+        if pkg.identifier in self._asked_packages:
+            return False
+        if not confirmed and \
+                not self.enable_missing_package(pkg.identifier, other_deps):
+            self._asked_packages.add(pkg.identifier)
+            return False
+        # Ok, user wants to late-enable it. Let's give it a shot
+        for pkg_id in deps:
+            if not self.do_enable_package(pkg_id):
+                return False
+
+        return True
+
+    def do_enable_package(self, identifier):
+        pm = get_package_manager()
+        pkg = pm.identifier_is_available(identifier)
         if pkg and not pm.has_package(pkg.identifier):
-            deps = pm.all_dependencies(identifier, dep_graph)[:-1]
-            if pkg.identifier in self._asked_packages:
-                return False
-            if not confirmed and \
-                    not self.enable_missing_package(pkg.identifier, deps):
-                self._asked_packages.add(pkg.identifier)
-                return False
-            # Ok, user wants to late-enable it. Let's give it a shot
             try:
                 pm.late_enable_package(pkg.codepath)
                 pkg = pm.get_package_by_codepath(pkg.codepath)
@@ -2846,10 +2880,7 @@ class VistrailController(object):
             except pkg.MissingDependency, e:
                 for dependency in e.dependencies:
                     print 'MISSING DEPENDENCY:', dependency
-                    if not self.try_to_enable_package(dependency[0], dep_graph,
-                                                      True):
-                        return False
-                return self.try_to_enable_package(pkg.identifier, dep_graph, True)
+                return False
             except pkg.InitializationFailed:
                 self._asked_packages.add(pkg.identifier)
                 raise
@@ -2871,7 +2902,7 @@ class VistrailController(object):
             codepath = rep.find_package(identifier)
             if codepath and self.install_missing_package(identifier):
                 rep.install_package(codepath)
-                return self.try_to_enable_package(identifier, dep_graph, True)
+                return self.try_to_enable_package(identifier, True)
         self._asked_packages.add(identifier)
         return False
 
@@ -2980,15 +3011,28 @@ class VistrailController(object):
 
         process_missing_packages(root_exceptions)
         new_exceptions = []
-        
+
+        # Full dependency graph from all the packages detected as missing
         dep_graph = pm.build_dependency_graph(missing_packages.keys())
+        deps = pm.get_ordered_dependencies(dep_graph)
+        missing = set(missing_packages.iterkeys())
+        # This orders the list of packages detected as missing according to
+        # the order in which they'll be enabled
+        # This is so that if pkgA is a dependency of pkgB and both are in
+        # missing_packages.keys(), we enable pkgB before (since that will
+        # enable pkgA)
+        # This is to minimize the number of user prompts
+        enable_pkgs = reversed([pkg_id
+                                for pkg_id in deps
+                                if pkg_id in missing])
+
         # for identifier, err_list in missing_packages.iteritems():
-        for identifier in pm.get_ordered_dependencies(dep_graph):
+        for identifier in enable_pkgs:
             # print 'testing identifier', identifier
             if not pm.has_package(identifier):
                 try:
                     # print 'trying to enable package'
-                    if not self.try_to_enable_package(identifier, dep_graph):
+                    if not self.try_to_enable_package(identifier):
                         pass
                         # print 'failed to enable package'
                         # if not report_all_errors:
