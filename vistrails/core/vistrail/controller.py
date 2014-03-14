@@ -2627,14 +2627,12 @@ class VistrailController(object):
                 if 'compare_thumbnails' in extra_info:
                     # check thumbnail difference
                     prev = None
-                    thumb_version = version
-                    # the thumb can be in a previous upgrade
-                    while not self.vistrail.has_thumbnail(version) and \
-                        thumb_version in self.vistrail.actionMap and \
-                        self.vistrail.has_upgrade(self.vistrail.actionMap[thumb_version].parent):
-                        thumb_version = self.vistrail.actionMap[thumb_version].parent
-                    if self.vistrail.has_thumbnail(thumb_version):
+                    if self.vistrail.has_thumbnail(version):
                         prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(version))
+                    elif version in self.vistrail.actionMap and \
+                        int(self.vistrail.get_upgrade(self.vistrail.actionMap[version].parent)) == version and \
+                        self.vistrail.has_thumbnail(self.vistrail.actionMap[version].parent):
+                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(self.vistrail.actionMap[version].parent))
                     else:
                         error = CompareThumbnailsError("No thumbnail exist for version %s" % version)
                     if prev:
