@@ -99,7 +99,7 @@ class ImageViewerCellWidget(QCellWidget):
             img = QtGui.QImage()
             if img.load(fileValue.name):
                 self.originalPix = QtGui.QPixmap.fromImage(img)
-                self.label.setPixmap(self.originalPix.scaled(len(self.label),
+                self.label.setPixmap(self.originalPix.scaled(self.label.size(),
                                                          QtCore.Qt.KeepAspectRatio,
                                                          QtCore.Qt.SmoothTransformation))
             else:
