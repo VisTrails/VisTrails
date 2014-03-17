@@ -33,12 +33,9 @@
 ##
 ###############################################################################
 from vistrails.core.modules.vistrails_module import Module, ModuleError
-import vistrails.core.modules
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
-import vistrails.core.system
-import vistrails.gui.application
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 
 ##############################################################################
 
@@ -46,7 +43,8 @@ class Dialog(Module):
     pass
 
 class TextDialog(Dialog):
-    password = False
+    label = ''
+    mode =  QtGui.QLineEdit.Normal
 
     def __init__(self, *args, **kwargs):
         super(TextDialog,self).__init__(*args, **kwargs)
@@ -63,9 +61,7 @@ class TextDialog(Dialog):
         if self.has_input('label'):
             label = self.get_input('label')
         else:
-            label = ''
-            if self.password:
-                label = 'Password'
+            label = self.label
 
         if self.has_input('default'):
             default = self.get_input('default')
@@ -77,12 +73,8 @@ class TextDialog(Dialog):
         else:
             self.cacheable_dialog = False
 
-        mode =  QtGui.QLineEdit.Normal
-        if self.password:
-            mode = QtGui.QLineEdit.Password
-
         (result, ok) = QtGui.QInputDialog.getText(None, title, label,
-                                                  mode,
+                                                  self.mode,
                                                   default)
         if not ok:
             raise ModuleError(self, "Canceled")
@@ -90,7 +82,8 @@ class TextDialog(Dialog):
 
 
 class PasswordDialog(TextDialog):
-    password = True
+    label = 'Password'
+    mode = QtGui.QLineEdit.Password
 
 
 ##############################################################################

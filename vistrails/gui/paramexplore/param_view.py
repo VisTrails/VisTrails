@@ -202,8 +202,12 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     continue
                 port_spec_items = port_spec.port_spec_items
 
+                if not controller.has_vistrail_variable_with_uuid(
+                                        module.get_vistrail_var()):
+                    continue
                 vv = controller.get_vistrail_variable_by_uuid(
                                         module.get_vistrail_var())
+
 
                 label = ['%s = %s' % (vv.name, vv.value)]
                 pList = [ParameterInfo(module_id=mId,

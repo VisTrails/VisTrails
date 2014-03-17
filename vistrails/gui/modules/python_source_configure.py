@@ -142,7 +142,6 @@ def NewPythonEditor(parent):
             # conventionally, margin 0 is for line numbers
             self.setMarginWidth(0, fm.width( "0000" ) + 4)
             self.setMarginLineNumbers(0, True)
-
             self.setAutoIndent(True)
 
             ## Edge Mode shows a red vetical bar at 80 chars
@@ -198,7 +197,8 @@ def NewPythonEditor(parent):
             redirect to self.text()
             
             """
-            return self.text()
+            text = self.text()
+            return text.replace('\r\n', '\n').replace('\r', '\n')
     
 #        def focusOutEvent(self, event):
 #            if self.parent():

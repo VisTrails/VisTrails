@@ -197,7 +197,7 @@ def default():
         'installBundles': True,
         'installBundlesWithPip': False,
         'interactiveMode': True,
-        'jobCheckInterval': 10,
+        'jobCheckInterval': 600,
         'jobAutorun': False,
         'jobRun': (None, str),
         'jobList': False,

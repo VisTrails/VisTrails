@@ -7,6 +7,11 @@ from ..read.read_numpy import NumPyArray
 
 class WriteNumPy(Module):
     """Writes a list as a Numpy file.
+
+    NumPy can use one of two schemes: either 'plain' binary arrays, i.e. just
+    the binary representation of the data format (in this case you must specify
+    the exact format to get the original data back), or the NPY format, i.e.
+    .npy files that know what the actual structure of the array is.
     """
     _input_ports = [
             ('array', '(org.vistrails.vistrails.basic:List)'),

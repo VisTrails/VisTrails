@@ -65,6 +65,7 @@ class DummyLogController(object):
     def insert_module_annotations(self, *args, **kwargs): pass
     def insert_workflow_exec_annotations(self, *args, **kwargs): pass
     def add_machine(self, *args, **kwargs): return -1
+    def get_iteration_from_module(self, *args, **kwargs): return None
     def __call__(self): return self
 
 
@@ -169,7 +170,7 @@ class LogLoopController(object):
     def finish_iteration(self, looped_module):
         """Signals that the iteration is done.
         """
-        loop_iteration = self.controller.parent_execs.pop(looped_module)
+        loop_iteration = self.controller.parent_execs.get(looped_module)
         assert loop_iteration is not None
 
         loop_iteration.ts_end = vistrails.core.system.current_time()
@@ -213,6 +214,17 @@ class LogWorkflowController(LogController):
             parent_exec = self.module_execs[parent_exec]
         return LogWorkflowController(self.log, self.machine, parent_exec,
                                      self.workflow_exec)
+
+    def get_iteration_from_module(self, module):
+        """If executing this module as part of a loop, gets the iteration;
+
+        Else returns None. Used by the interpreter to know what failed when
+        getting an exception from a module.
+        """
+        try:
+            return self.parent_execs[module].iteration
+        except KeyError:
+            return None
 
     def start_execution(self, module, module_id, module_name, cached=0):
         """Signals the start of the execution of a module (before compute).

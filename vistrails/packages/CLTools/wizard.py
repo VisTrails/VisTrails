@@ -788,7 +788,8 @@ class QCLToolsWizard(QtGui.QWidget):
 class QArgWidget(QtGui.QWidget):
     """ Widget for configuring an argument """
     KLASSES = {
-            'input': ['flag', 'file', 'string', 'integer', 'float', 'list'],
+            'input': ['flag', 'file', 'path', 'directory',
+                      'string', 'integer', 'float', 'list'],
             'output': ['file', 'string'],
             'inputoutput': ['file'],
             'stdin': ['file', 'string'],
@@ -801,6 +802,8 @@ class QArgWidget(QtGui.QWidget):
             'integer': 'Integer',
             'float': 'Float',
             'file': 'File',
+            'path': 'Path',
+            'directory': 'Directory',
             'list': 'List',
         }
 
@@ -866,7 +869,7 @@ class QArgWidget(QtGui.QWidget):
             self.klassDict[n] = i
         self.klassList.setCurrentIndex(self.klassDict.get(self.klass, 0))
         #label = QtGui.QLabel('Class:')
-        tt = 'Port Type. Can be String, Integer, Float, File or Boolean Flag. List means an input list of one of the other types. Only File and String should be used for output ports.'
+        tt = 'Port Type. Can be String, Integer, Float, File/Directory/Path or Boolean Flag. List means an input list of one of the other types. Only File and String should be used for output ports.'
         self.klassList.setToolTip(tt)
         #label.setToolTip(tt)
         #layout1.addWidget(label)
@@ -911,7 +914,7 @@ class QArgWidget(QtGui.QWidget):
         layout2.addWidget(self.required)
         
         # subtype
-        self.subList = ['String', 'Integer', 'Float', 'File']
+        self.subList = ['String', 'Integer', 'Float', 'File', 'Directory', 'Path']
         self.subDict = dict(zip(self.subList, xrange(len(self.subList))))
         self.subDict.update(dict(zip([s.lower() for s in self.subList], xrange(len(self.subList)))))
         self.subtype = QtGui.QComboBox()
@@ -1043,9 +1046,15 @@ class QArgWidget(QtGui.QWidget):
 
     def guess(self, name, count=0):
         """ add argument by guessing what the arg might be """
-        if '.' in name or '/' in name or '\\' in name: # guess file
-            self.fromList(['Input', 'file%s' % count, 'File',
-                           {'desc':'"%s" guessed to be an Input file' % name}])
+        if '.' in name or '/' in name or '\\' in name: # guess path
+            if os.path.isfile(name):
+                guessed, type_ = 'file', 'File'
+            elif os.path.isdir(name):
+                guessed, type_ = 'directory', 'Directory'
+            else:
+                guessed, type_ = 'path', 'Path'
+            self.fromList(['Input', '%s%d' % (guessed, count), type_,
+                           {'desc':'"%s" guessed to be an Input %s' % (name, guessed)}])
         elif name.startswith('-'): # guess flag
             self.fromList(['Input', 'flag%s' % name, 'Flag',
                            {'desc':'"%s" guessed to be a flag' % name,

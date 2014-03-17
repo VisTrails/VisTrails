@@ -110,7 +110,7 @@ class EmitWarnings(logging.Handler):
 
 ################################################################################
 
-class DebugPrint:
+class DebugPrint(object):
     """ Class to be used for debugging information.
 
     Verboseness can be set in the following way:

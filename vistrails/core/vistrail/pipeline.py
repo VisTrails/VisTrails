@@ -1124,7 +1124,8 @@ class Pipeline(DBWorkflow):
                 value_set = False
                 for func in module.functions:
                     if func.name == 'value':
-                        if func.params[0].strValue:
+                        value = func.params[0].strValue
+                        if value and value != "None":
                             value_set = True
                             continue
                 if value_set:
@@ -1309,7 +1310,7 @@ class TestPipeline(unittest.TestCase):
         # make sure pythonCalc is loaded
         from vistrails.core.packagemanager import get_package_manager
         pm = get_package_manager()
-        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no partial
+        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no branch
             pm.late_enable_package('pythonCalc')
 
     def create_default_pipeline(self, id_scope=None):

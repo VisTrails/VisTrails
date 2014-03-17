@@ -331,7 +331,7 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "820aab05a685"
+        release = "90975fc00211"
         import vistrails.core.requirements
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []
@@ -342,6 +342,15 @@ def vistrails_revision():
                 if result == 0:
                     release = lines[0].strip(" \n")
     return release
+
+
+_registry = None
+def get_module_registry():
+    global _registry
+    if _registry is None:
+        from vistrails.core.modules.module_registry import get_module_registry
+        _registry = get_module_registry()
+    return _registry
 
 def short_about_string():
     return """VisTrails version %s.%s -- contact@vistrails.org""" % \

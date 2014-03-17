@@ -175,7 +175,7 @@ def finalize():
         if s.package:
             reg.remove_package(s.package)
 
-class WSMethod:
+class WSMethod(object):
     """ A WSDL method
     """
     def __init__(self, qname=('','')):
@@ -184,7 +184,7 @@ class WSMethod:
         self.inputs = {}
         self.outputs = {}
 
-class WSElement:
+class WSElement(object):
     """ A part of a WSDL type
     """
     def __init__(self, name='', type=('',''), optional=False, min=0,
@@ -196,7 +196,7 @@ class WSElement:
         self.max = max
         self.enum = enum
 
-class WSType:
+class WSType(object):
     """ A WSDL type definition
     """
     def __init__(self, qname=('',''), enum=False):
@@ -205,7 +205,7 @@ class WSType:
         "name: WSElement"
         self.parts = {}
  
-class Service:
+class Service(object):
     def __init__(self, address):
         """ Process WSDL and add all Types and Methods
         """
@@ -627,7 +627,7 @@ It is a WSDL type with signature:
                         self.set_output(name, getattr(result, name))
                     else:
                         # nothing matches - assume it is an attribute of the correct class
-                        class UberClass:
+                        class UberClass(object):
                             def __init__(self, value):
                                 self.value = value
                         self.set_output(name, UberClass(result))
@@ -852,9 +852,10 @@ def callContextMenu(signature):
         s = Service(wsdl)
         if s.service:
             webServicesDict[wsdl] = s
-            wsdlList = configuration.wsdlList.split(";")
-            wsdlList.append(wsdl)
-            configuration.wsdlList = ';'.join(wsdlList)
+            if configuration.wsdlList:
+                configuration.wsdlList += ';' + wsdl
+            else:
+                configuration.wsdlList = wsdl
     elif signature.startswith('SUDS#'):
         address = toAddress(signature)
         from PyQt4 import QtGui 

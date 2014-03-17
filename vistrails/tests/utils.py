@@ -104,15 +104,19 @@ def execute(modules, connections=[], add_port_specs=[],
         except MissingPackage:
             if not enable_pkg:
                 raise
-            pkg = pm.identifier_is_available(identifier)
-            if pkg:
+            dep_graph = pm.build_dependency_graph([identifier])
+            for pkg_id in pm.get_ordered_dependencies(dep_graph):
+                pkg = pm.identifier_is_available(pkg_id)
+                if pkg is None:
+                    raise
                 pm.late_enable_package(pkg.codepath)
-                pkg = pm.get_package(identifier)
+            pkg = pm.get_package(identifier)
 
         for func_name, params in functions:
             param_list = []
-            for param_type, param_val in params:
-                param_list.append(ModuleParam(type=param_type,
+            for j, (param_type, param_val) in enumerate(params):
+                param_list.append(ModuleParam(pos=j,
+                                              type=param_type,
                                               val=param_val))
             function_list.append(ModuleFunction(name=func_name,
                                                 parameters=param_list))

@@ -227,8 +227,12 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         painter.setBrush(self.brush())
         self.draw(painter, option, widget)
 
-    def addVistrailVar(self, vistrail_var):
-        self.vistrail_vars[vistrail_var.uuid] = vistrail_var
+    def addVistrailVar(self, uuid, name=None):
+        if name is None:
+            name = self.getVistrailVarName(uuid)
+        self.vistrail_vars[uuid] = name
+        if not self.controller.has_vistrail_variable_with_uuid(uuid):
+            self.setInvalid(True)
         self.updateActions()
         self.updateToolTip()
         
@@ -242,13 +246,18 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         self.updateActions()
         self.updateToolTip()
 
+    def getVistrailVarName(self, uuid):
+        if self.controller.has_vistrail_variable_with_uuid(uuid):
+            return self.controller.get_vistrail_variable_by_uuid(uuid).name
+        return '<missing>'
+
     def updateToolTip(self):
         tooltip = ""
         if (self.port is not None and self.port.is_valid and
             hasattr(self.port, 'toolTip')):
             tooltip = self.port.toolTip()
         for vistrail_var in self.vistrail_vars.itervalues():
-            tooltip += '\nConnected to vistrail var "%s"' % vistrail_var.name
+            tooltip += '\nConnected to vistrail var "%s"' % vistrail_var
         self.setToolTip(tooltip)
         
     def contextMenuEvent(self, event):
@@ -277,14 +286,16 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             QtCore.QObject.connect(removeAllVarsAct, 
                                    QtCore.SIGNAL("triggered()"),
                                    self.removeAllVars)
-            self.removeVarActions.append((removeAllVarsAct, self.removeAllVars))
-        for vistrail_var in sorted(self.vistrail_vars.itervalues(),
-                                   key=lambda x: x.name):
+            self.removeVarActions.append((removeAllVarsAct,
+                                          self.removeAllVars))
+        for vistrail_var_uuid in sorted(self.vistrail_vars,
+                                    key=lambda x: self.getVistrailVarName(x)):
+            vistrail_var_name = self.getVistrailVarName(vistrail_var_uuid)
             removeVarAction = QtGui.QAction('Disconnect vistrail var "%s"' % \
-                                                vistrail_var.name, self.scene())
+                                              vistrail_var_name, self.scene())
             removeVarAction.setStatusTip('Disconnects vistrail variable "%s"'
-                                         ' from the port' % vistrail_var.name)
-            callback = gen_action(vistrail_var.uuid)
+                                         ' from the port' % vistrail_var_name)
+            callback = gen_action(vistrail_var_uuid)
             QtCore.QObject.connect(removeVarAction,
                                    QtCore.SIGNAL("triggered()"),
                                    callback)
@@ -301,6 +312,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         self.deleteVistrailVar(var_uuid)
         self.controller.disconnect_vistrail_vars(to_delete_modules,
                                                  to_delete_conns)
+        self.setInvalid(False)
         
 
     def removeAllVars(self):
@@ -1965,6 +1977,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             var_uuid = srcModule.module.get_vistrail_var()
             dstPortItem.addVistrailVar(
                 self.controller.get_vistrail_variable_by_uuid(var_uuid))
+            dstPortItem.addVistrailVar(var_uuid)
         self.update_connections()
         return connectionItem
 
@@ -2651,6 +2664,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 elif isinstance(it, QGraphicsConnectionItem):
                     connection_ids.append(it.id)
             if len(modules)>0:
+                # add connected vistrail variables
+                vvms, vvcs = \
+                 self.controller.get_connected_vistrail_vars(module_ids, True)
+                for vvm in vvms:
+                    if vvm not in module_ids:
+                        modules.append(self.modules[vvm])
+                        module_ids.append(vvm)
+                for vvc in vvcs:
+                    if vvc not in connection_ids:
+                        connection_ids.append(vvc)
                 self.noUpdate = True
                 dep_connection_ids = set()
                 for m in modules:
@@ -2725,6 +2748,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
         for item in selectedItems:
             if isinstance(item, QGraphicsModuleItem):
                 module_ids[item.module.id] = 1
+                # Add connected vistrail variables
+                vvms, vvcs = \
+                 self.controller.get_connected_vistrail_vars(module_ids)
+                for vvm in vvms:
+                    module_ids[vvm] = 1
+                for vvc in vvcs:
+                    connection_ids[vvc] = 1
         for item in selectedItems:
             if isinstance(item, QGraphicsModuleItem):
                 for connItem in item.dependingConnectionItems().itervalues():

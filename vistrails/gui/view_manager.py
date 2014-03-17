@@ -678,6 +678,7 @@ class QViewManager(QtGui.QTabWidget):
         vistrailView.flush_changes()
 
         if vistrailView:
+            SAVE_BUTTON, DISCARD_BUTTON, CANCEL_BUTTON = 0, 1, 2
             if not quiet and vistrailView.controller.changed:
                 text = vistrailView.controller.name
                 if text=='':
@@ -695,9 +696,9 @@ class QViewManager(QtGui.QTabWidget):
                                                     0,
                                                     2)
             else:
-                res = 1
+                res = DISCARD_BUTTON
             locator = vistrailView.controller.locator
-            if res == 0:
+            if res == SAVE_BUTTON:
                 if locator is None:
                     class_ = FileLocator()
                 else:
@@ -705,7 +706,7 @@ class QViewManager(QtGui.QTabWidget):
                 locator = self.save_vistrail(class_)
                 if not locator:
                     return False
-            elif res == 2:
+            elif res == CANCEL_BUTTON:
                 return False
  
             vistrailView.controller.close_vistrail(locator)
