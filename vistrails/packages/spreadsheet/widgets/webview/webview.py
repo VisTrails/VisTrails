@@ -36,10 +36,11 @@
 ############################################################################
 # web browser view implementation
 ############################################################################
-from vistrails.core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui, QtWebKit
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
+    QCellToolBar
+import os
 import shutil
 ############################################################################
 
@@ -79,7 +80,7 @@ class WebViewCellWidget(QCellWidget):
         self.layout().addWidget(self.browser)
         self.browser.setMouseTracking(True)
         self.urlSrc = None
-        # self.browser.controlBarType = None
+        self.toolBarType = WebViewToolBar
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
@@ -100,11 +101,28 @@ class WebViewCellWidget(QCellWidget):
             self.browser.setHtml("No HTML file is specified!")
 
     def dumpToFile(self, filename):
-        if self.urlSrc is not None:
-            shutil.copyfile(str(self.urlSrc.toLocalFile()), filename)
-            
+        if os.path.splitext(filename)[1].lower() in ('.html', '.htm'):
+            if self.urlSrc is not None:
+                shutil.copyfile(self.urlSrc.toLocalFile(), filename)
+        else:
+            super(WebViewCellWidget, self).dumpToFile(filename)
+
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         self.browser.print_(printer)
+
+class WebViewToolBar(QCellToolBar):
+    """
+    ImageViewerToolBar derives from CellToolBar to give the ImageViewerCellWidget
+    a customizable toolbar
+
+    """
+    def saveAsImageTriggered(self, checked=False):
+        cell = self.sheet.getCell(self.row, self.col)
+        filename = QtGui.QFileDialog.getSaveFileName(
+                self, "Select a File to Export the Sheet", ".",
+                "Images (*.png *.xpm *.jpg);;HTML files (*.html)")
+        if filename:
+            cell.dumpToFile(filename)
