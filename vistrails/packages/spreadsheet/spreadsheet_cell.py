@@ -222,8 +222,11 @@ class QCellWidget(QtGui.QWidget):
         """ dumpToFile(filename: str, dump_as_pdf: bool) -> None
         Dumps itself as an image to a file, calling grabWindowPixmap """
         pixmap = self.grabWindowPixmap()
-        pixmap.save(filename,"PNG")
-            
+        if not os.path.splitext(filename)[1]:
+            pixmap.save(filename, 'PNG')
+        else:
+            pixmap.save(filename)
+
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
 
