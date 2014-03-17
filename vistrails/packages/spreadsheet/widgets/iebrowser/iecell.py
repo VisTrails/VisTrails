@@ -36,10 +36,11 @@
 ############################################################################
 # web browser view implementation
 ############################################################################
-from vistrails.core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui, QAxContainer
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
+    QCellToolBar
+import os
 import shutil
 ############################################################################
 
@@ -82,6 +83,7 @@ class IECellWidget(QCellWidget):
         self.browser.setControl("{8856F961-340A-11D0-A96B-00C04FD705A2}")
         vbox.addWidget(self.browser)
         self.urlSrc = None
+        self.toolBarType = IECellToolBar
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
@@ -100,11 +102,23 @@ class IECellWidget(QCellWidget):
             self.browser.dynamicCall('Navigate(const QString&)', 'about:blank')
 
     def dumpToFile(self, filename):
-        if self.urlSrc is not None:
-            shutil.copyfile(str(self.urlSrc.toLocalFile()), filename)
-            
+        if os.path.splitext(filename)[1].lower() in ('.html', '.htm'):
+            if self.urlSrc is not None:
+                shutil.copyfile(str(self.urlSrc.toLocalFile()), filename)
+        else:
+            super(IECellWidget, self).dumpToFile(filename)
+
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         self.browser.print_(printer)
+
+class IECellToolBar(QCellToolBar):
+    def saveAsImageTriggered(self, checked=False):
+        cell = self.sheet.getCell(self.row, self.col)
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self, "Select a File to Export the Sheet",
+            ".", "Images (*.png *.xpm *.jpg);;HTML files (*.html)")
+        if filename:
+            cell.dumpToFile(filename)
