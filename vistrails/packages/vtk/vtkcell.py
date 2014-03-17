@@ -932,7 +932,7 @@ class QVTKWidget(QCellWidget):
         """ saveToPNG(filename: str) -> filename or vtkUnsignedCharArray
         
         Save the current widget contents to an image file. If
-        str==None, then it returns the vtkUnsignedCharArray containing
+        filename is None, then it returns the vtkUnsignedCharArray containing
         the PNG image. Otherwise, the filename is returned.
         
         """
@@ -954,7 +954,7 @@ class QVTKWidget(QCellWidget):
         else:
             writer.WriteToMemoryOn()
         writer.Write()
-        if filename:
+        if filename is not None:
             return filename
         else:
             return writer.GetResult()
