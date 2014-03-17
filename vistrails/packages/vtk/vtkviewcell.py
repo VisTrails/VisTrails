@@ -865,18 +865,6 @@ class QVTKViewWidget(QCellWidget):
         else:
             return writer.GetResult()
 
-    def captureWindow(self):
-        """ captureWindow() -> None        
-        Capture the window contents to file
-        
-        """
-        fn = QtGui.QFileDialog.getSaveFileName(None,
-                                               "Save file as...",
-                                               "screenshot.png",
-                                               "Images (*.png)")
-        if fn:
-            self.saveToPNG(fn)
-        
     def grabWindowPixmap(self):
         """ grabWindowImage() -> QPixmap
         Widget special grabbing function
@@ -901,31 +889,6 @@ class QVTKViewWidget(QCellWidget):
         Dumps itself as an image to a file, calling saveToPNG
         """
         self.saveToPNG(filename)
-
-class QVTKViewWidgetCapture(QtGui.QAction):
-    """
-    QVTKViewWidgetCapture is the action to capture the vtk rendering
-    window to an image
-    
-    """
-    def __init__(self, parent=None):
-        """ QVTKViewWidgetCapture(parent: QWidget) -> QVTKViewWidgetCapture
-        Setup the image, status tip, etc. of the action
-        
-        """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/camera.png"),
-                               "&Capture image to file",
-                               parent)
-        self.setStatusTip("Capture the rendered image to a file")
-
-    def triggeredSlot(self, checked=False):
-        """ toggledSlot(checked: boolean) -> None
-        Execute the action when the button is clicked
-        
-        """
-        cellWidget = self.toolBar.getSnappedWidget()
-        cellWidget.captureWindow()
 
 class QVTKViewWidgetSaveCamera(QtGui.QAction):
     """
@@ -1022,9 +985,16 @@ class QVTKViewWidgetToolBar(QCellToolBar):
         This will get call initiallly to add customizable widgets
         
         """
-        self.appendAction(QVTKViewWidgetCapture(self))
         self.addAnimationButtons()
         self.appendAction(QVTKViewWidgetSaveCamera(self))
+
+    def saveAsImageTriggered(self, checked=False):
+        cell = self.sheet.getCell(self.row, self.col)
+        filename = QtGui.QFileDialog.getSaveFileName(
+                self, "Select a File to Export the Sheet", ".",
+                "PNG image (*.png)")
+        if filename:
+            cell.dumpToFile(filename)
 
 def registerSelf():
     """ registerSelf() -> None
