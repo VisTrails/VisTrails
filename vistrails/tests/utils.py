@@ -1,4 +1,5 @@
 import contextlib
+import logging
 import sys
 
 try:
@@ -238,3 +239,44 @@ def capture_stdout():
     lines.extend(sio.getvalue().split('\n'))
     if lines and not lines[-1]:
         del lines[-1]
+
+
+class MockLogHandler(logging.Handler):
+    """Mock logging handler to check for expected logs.
+    """
+    def __init__(self, mock_logger, *args, **kwargs):
+        self._mock_logger = mock_logger
+        self.reset()
+        logging.Handler.__init__(self, *args, **kwargs)
+
+    def emit(self, record):
+        self.messages[record.levelname.lower()].append(record.getMessage())
+
+    def reset(self):
+        self.messages = {
+            'debug': [],
+            'info': [],
+            'warning': [],
+            'error': [],
+            'critical': [],
+        }
+
+    def __enter__(self):
+        if hasattr(logging, '_acquireLock'):
+            logging._acquireLock()
+        try:
+            self._orig_handlers = self._mock_logger.handlers
+            self._mock_logger.handlers = [self]
+        finally:
+            if hasattr(logging, '_acquireLock'):
+                logging._releaseLock()
+        return self
+
+    def __exit__(self, etype, evalue, etraceback):
+        if hasattr(logging, '_acquireLock'):
+            logging._acquireLock()
+        try:
+            self._mock_logger.handlers = self._orig_handlers
+        finally:
+            if hasattr(logging, '_acquireLock'):
+                logging._releaseLock()
