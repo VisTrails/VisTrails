@@ -102,8 +102,8 @@ class WebViewCellWidget(QCellWidget):
 
     def dumpToFile(self, filename):
         if os.path.splitext(filename)[1].lower() in ('.html', '.htm'):
-            if self.urlSrc is not None:
-                shutil.copyfile(self.urlSrc.toLocalFile(), filename)
+            with open(filename, 'wb') as fp:
+                fp.write(self.browser.page().mainFrame().toHtml())
         else:
             super(WebViewCellWidget, self).dumpToFile(filename)
 
