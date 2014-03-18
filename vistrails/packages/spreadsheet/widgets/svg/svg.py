@@ -72,6 +72,9 @@ class SVGCellWidget(QCellWidget):
     received SVG file from the SVGCell
     
     """
+    save_formats = (QCellWidget.save_formats +
+                    ["Scalable Vector Graphics (*.svg)"])
+
     def __init__(self, parent=None):
         """ SVGCellWidget(parent: QWidget) -> SVGCellWidget
         Create a SVGCellWidget without any toolbar
@@ -84,8 +87,6 @@ class SVGCellWidget(QCellWidget):
         
         self.controlBarType = None
         self.fileSrc = None
-
-        self.toolBarType = SVGToolBar
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
@@ -154,17 +155,3 @@ class SVGSplitter(Module):
                     batchDisplayEvent.displayEvents.append(e)
             f.close()
             spreadsheetController.postEventToSpreadsheet(batchDisplayEvent)
-
-class SVGToolBar(QCellToolBar):
-    """
-    ImageViewerToolBar derives from CellToolBar to give the ImageViewerCellWidget
-    a customizable toolbar
-
-    """
-    def saveAsImageTriggered(self, checked=False):
-        cell = self.sheet.getCell(self.row, self.col)
-        filename = QtGui.QFileDialog.getSaveFileName(
-                self, "Select a File to Export the Sheet", ".",
-                "Images (*.png *.xpm *.jpg);;Scalable Vector Graphics (*.svg)")
-        if filename:
-            cell.dumpToFile(filename)

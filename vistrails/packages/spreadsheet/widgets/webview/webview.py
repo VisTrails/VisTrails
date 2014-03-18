@@ -69,6 +69,8 @@ class WebViewCellWidget(QCellWidget):
     WebViewCellWidget has a QTextBrowser to display HTML files
     
     """
+    save_formats = QCellWidget.save_formats + ["HTML files (*.html)"]
+
     def __init__(self, parent=None):
         """ WebViewCellWidget(parent: QWidget) -> WebViewCellWidget
         Create a rich text cell without a toolbar
@@ -80,7 +82,6 @@ class WebViewCellWidget(QCellWidget):
         self.layout().addWidget(self.browser)
         self.browser.setMouseTracking(True)
         self.urlSrc = None
-        self.toolBarType = WebViewToolBar
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
@@ -112,17 +113,3 @@ class WebViewCellWidget(QCellWidget):
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         self.browser.print_(printer)
-
-class WebViewToolBar(QCellToolBar):
-    """
-    ImageViewerToolBar derives from CellToolBar to give the ImageViewerCellWidget
-    a customizable toolbar
-
-    """
-    def saveAsImageTriggered(self, checked=False):
-        cell = self.sheet.getCell(self.row, self.col)
-        filename = QtGui.QFileDialog.getSaveFileName(
-                self, "Select a File to Export the Sheet", ".",
-                "Images (*.png *.xpm *.jpg);;HTML files (*.html)")
-        if filename:
-            cell.dumpToFile(filename)

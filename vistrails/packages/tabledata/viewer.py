@@ -2,8 +2,7 @@ import os
 from PyQt4 import QtCore, QtGui
 
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellToolBar, \
-    QCellWidget
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 
 
 class TableCell(SpreadsheetCell):
@@ -17,6 +16,8 @@ class TableCell(SpreadsheetCell):
 
 
 class TableCellWidget(QCellWidget):
+    save_formats = QCellWidget.save_formats + ["HTML files (*.html)"]
+
     def __init__(self, parent=None):
         QCellWidget.__init__(self, parent)
 
@@ -31,8 +32,6 @@ class TableCellWidget(QCellWidget):
         layout.addWidget(scrollarea)
 
         self.setLayout(layout)
-
-        self.toolBarType = TableCellToolBar
 
     def updateContents(self, inputPorts):
         table, = inputPorts
@@ -118,16 +117,6 @@ class TableCellWidget(QCellWidget):
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         document.print_(printer)
-
-
-class TableCellToolBar(QCellToolBar):
-    def saveAsImageTriggered(self, checked=False):
-        cell = self.sheet.getCell(self.row, self.col)
-        filename = QtGui.QFileDialog.getSaveFileName(
-                self, "Select a File to Export the Sheet", ".",
-                "Images (*.png *.xpm *.jpg);;HTML files (*.html)")
-        if filename:
-            cell.dumpToFile(filename)
 
 
 _modules = [TableCell]

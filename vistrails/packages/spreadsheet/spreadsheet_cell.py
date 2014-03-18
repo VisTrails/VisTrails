@@ -58,6 +58,7 @@ class QCellWidget(QtGui.QWidget):
     should inherit from this.
     
     """
+    save_formats = ["Images (*.png *.xpm *.jpg)"]
 
     def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
         """ QCellWidget(parent: QWidget) -> QCellWidget
@@ -306,7 +307,7 @@ class QCellToolBar(QtGui.QToolBar):
         cell = self.sheet.getCell(self.row, self.col)
         filename = QtGui.QFileDialog.getSaveFileName(
             self, "Select a File to Export the Sheet",
-            ".", "Images (*.png *.xpm *.jpg)")
+            ".", ';;'.join(cell.save_formats))
         if filename:
             cell.dumpToFile(filename)
 

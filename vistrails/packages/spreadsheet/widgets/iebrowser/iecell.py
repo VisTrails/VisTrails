@@ -69,6 +69,8 @@ class IECellWidget(QCellWidget):
     IECellWidget has a QAxContainer to display supported documents
     
     """
+    save_formats = QCellWidget.save_formats + ["HTML files (*.html)"]
+
     def __init__(self, parent=None):
         """ IECellWidget(parent: QWidget) -> IECellWidget
         Create a ActiveX Container pointing to the IE Cell
@@ -83,7 +85,6 @@ class IECellWidget(QCellWidget):
         self.browser.setControl("{8856F961-340A-11D0-A96B-00C04FD705A2}")
         vbox.addWidget(self.browser)
         self.urlSrc = None
-        self.toolBarType = IECellToolBar
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
@@ -113,12 +114,3 @@ class IECellWidget(QCellWidget):
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
         self.browser.print_(printer)
-
-class IECellToolBar(QCellToolBar):
-    def saveAsImageTriggered(self, checked=False):
-        cell = self.sheet.getCell(self.row, self.col)
-        filename = QtGui.QFileDialog.getSaveFileName(
-            self, "Select a File to Export the Sheet",
-            ".", "Images (*.png *.xpm *.jpg);;HTML files (*.html)")
-        if filename:
-            cell.dumpToFile(filename)

@@ -104,6 +104,8 @@ class RichTextCellWidget(QCellWidget):
     RichTextCellWidget has a QTextBrowser to display HTML files
 
     """
+    save_formats = QCellWidget.save_formats + ["HTML files (*.html)"]
+
     def __init__(self, parent=None):
         """ RichTextCellWidget(parent: QWidget) -> RichTextCellWidget
         Create a rich text cell without a toolbar
