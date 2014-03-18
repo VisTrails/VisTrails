@@ -283,7 +283,10 @@ class QCellToolBar(QtGui.QToolBar):
 
     def addSaveCellAction(self):
         if not hasattr(self, 'saveActionVar'):
-            self.saveActionVar = QCellToolBarSelectedCell("Save cell", self)
+            self.saveActionVar = QCellToolBarSelectedCell(
+                    QtGui.QIcon(":/images/camera.png"),
+                    "Save cell",
+                    self)
             self.saveActionVar.setStatusTip("Export this cell only")
 
             saveMenu = QtGui.QMenu(self)
