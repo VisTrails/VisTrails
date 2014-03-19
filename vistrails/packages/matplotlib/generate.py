@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from mako.template import Template
 import sys
 from specs import SpecList

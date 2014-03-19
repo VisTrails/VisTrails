@@ -1,3 +1,5 @@
+# pragma: no testimport
+
 import sys
 
 
