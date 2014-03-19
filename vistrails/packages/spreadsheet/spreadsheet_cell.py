@@ -58,7 +58,7 @@ class QCellWidget(QtGui.QWidget):
     should inherit from this.
     
     """
-    save_formats = ["Images (*.png *.xpm *.jpg)"]
+    save_formats = ["Images (*.png *.xpm *.jpg)", "PDF files (*.pdf)"]
 
     def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
         """ QCellWidget(parent: QWidget) -> QCellWidget
@@ -223,8 +223,11 @@ class QCellWidget(QtGui.QWidget):
         """ dumpToFile(filename: str, dump_as_pdf: bool) -> None
         Dumps itself as an image to a file, calling grabWindowPixmap """
         pixmap = self.grabWindowPixmap()
-        if not os.path.splitext(filename)[1]:
+        ext = os.path.splitext(filename)[1].lower()
+        if not ext:
             pixmap.save(filename, 'PNG')
+        elif ext == '.pdf':
+            self.saveToPDF(filename)
         else:
             pixmap.save(filename)
 
@@ -290,34 +293,17 @@ class QCellToolBar(QtGui.QToolBar):
                     self)
             self.saveActionVar.setStatusTip("Export this cell only")
 
-            saveMenu = QtGui.QMenu(self)
-            saveImage = saveMenu.addAction("As an image")
-            savePDF = saveMenu.addAction("As PDF")
-            self.saveActionVar.setMenu(saveMenu)
-
             self.connect(self.saveActionVar, QtCore.SIGNAL('triggered(bool)'),
-                         self.saveAsImageTriggered)
-            self.connect(saveImage, QtCore.SIGNAL('triggered(bool)'),
-                         self.saveAsImageTriggered)
-            self.connect(savePDF, QtCore.SIGNAL('triggered(bool)'),
-                         self.saveAsPDFTriggered)
+                         self.exportCell)
         self.appendAction(self.saveActionVar)
 
-    def saveAsImageTriggered(self, checked=False):
+    def exportCell(self, checked=False):
         cell = self.sheet.getCell(self.row, self.col)
         filename = QtGui.QFileDialog.getSaveFileName(
             self, "Select a File to Export the Sheet",
             ".", ';;'.join(cell.save_formats))
         if filename:
             cell.dumpToFile(filename)
-
-    def saveAsPDFTriggered(self, checked=False):
-        cell = self.sheet.getCell(self.row, self.col)
-        filename = QtGui.QFileDialog.getSaveFileName(
-            self, "Select a File to Export the Sheet",
-            ".", "PDF files (*.pdf)")
-        if filename:
-            cell.saveToPDF(filename)
 
     def createToolBar(self):
         """ createToolBar() -> None

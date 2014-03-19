@@ -138,7 +138,7 @@ class QVTKWidget(QCellWidget):
     vtkRenderer inside a Qt QWidget
     
     """
-    save_formats = ["PNG image (*.png)"]
+    save_formats = ["PNG image (*.png)", "PDF files (*.pdf)"]
 
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         """ QVTKWidget(parent: QWidget, f: WindowFlags) -> QVTKWidget
