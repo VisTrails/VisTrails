@@ -44,7 +44,6 @@ from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
-import vtkcell_rc
 import gc
 from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
