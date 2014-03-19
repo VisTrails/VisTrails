@@ -132,9 +132,9 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
                                                 reason=reason)
         new_version = controller.current_version
         if new_version != version:
-            debug.warning("Version '%s' (%s) was upgraded. The actual "
-                          "version executed was %s" % \
-                              (workflow, version, new_version))
+            debug.log("Version '%s' (%s) was upgraded. The actual "
+                      "version executed was %s" % (
+                      workflow, version, new_version))
         run = results[0]
         run.workflow_info = (locator.name, new_version)
         run.pipeline = controller.current_pipeline
