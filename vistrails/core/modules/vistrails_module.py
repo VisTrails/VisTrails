@@ -1096,7 +1096,7 @@ class Module(Serializable):
                                                 " depth %s, expected %s." %
                                                 (port_name, i-1, depth))
 
-            if not depth or (depth and root):
+            if depth and root:
                 self.typeChecking(self, [port_name],
                                   [[r] for r in root] if depth else [[root]])
             ports.append(value)
