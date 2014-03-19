@@ -51,7 +51,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 ('0.1.1', '0.1.2', None, {
                     'src_port_remap': {
                         'self': 'value'},
-                })
+                }),
+                ('0.1.3', '0.1.4', None, {})
             ],
             'read|NumPyArray': [
                 ('0.1.1', '0.1.2', None, {
@@ -63,7 +64,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 ('0.1.1', '0.1.2', None, {
                     'src_port_remap': {
                         'self': 'value'},
-                })
+                }),
+                ('0.1.3', '0.1.4', None, {})
             ],
         }
 
