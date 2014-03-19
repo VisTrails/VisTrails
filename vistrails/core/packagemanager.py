@@ -875,6 +875,8 @@ import unittest
 
 class TestImports(unittest.TestCase):
     def test_package(self):
+        from vistrails.tests.utils import MockLogHandler
+
         # Hacks PackageManager so that it temporarily uses our test package
         # instead of userpackages
         pm = get_package_manager()
@@ -897,7 +899,9 @@ class TestImports(unittest.TestCase):
 
             # Import __init__ and check metadata
             pkg = pm.look_at_available_package('test_import_pkg')
-            pkg.load('vistrails.tests.resources.import_pkg.')
+            with MockLogHandler(debug.DebugPrint.getInstance().logger) as log:
+                pkg.load('vistrails.tests.resources.import_pkg.')
+            self.assertEqual(len(log.messages['warning']), 1)
             self.assertEqual(pkg.identifier,
                              'org.vistrails.tests.test_import_pkg')
             self.assertEqual(pkg.version,
