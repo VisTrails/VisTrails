@@ -56,9 +56,10 @@ class QCellWidget(QtGui.QWidget):
     """
     QCellWidget is the base cell class. All types of spreadsheet cells
     should inherit from this.
-    
+
     """
-    save_formats = ["Images (*.png *.xpm *.jpg)", "PDF files (*.pdf)"]
+    save_formats = ["Images (*.png *.xpm *.jpg)",
+                    "Portable Document Format (*.pdf)"]
 
     def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
         """ QCellWidget(parent: QWidget) -> QCellWidget
