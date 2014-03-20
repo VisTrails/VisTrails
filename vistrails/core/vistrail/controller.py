@@ -3228,9 +3228,9 @@ class VistrailController(object):
                     pe.action_id = new_version
                     self.vistrail.db_add_parameter_exploration(pe)
                 for mashup in new_mashups:
-                    mashup.vtVersion = self.current_version
+                    mashup.vtVersion = new_version
                     for action in mashup.actions:
-                        action.mashup.version = self.current_version
+                        action.mashup.version = new_version
                     self._mashups.append(mashup)
 
                 self.set_changed(True)
