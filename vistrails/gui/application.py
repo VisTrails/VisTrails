@@ -182,14 +182,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             debug.critical("Main instance reports: %s" % res)
             return False
 
-    def init(self, optionsDict=None):
+    def init(self, optionsDict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
         
         """
         vistrails.gui.theme.initializeCurrentTheme()
-        VistrailsApplicationInterface.init(self, optionsDict)
+        VistrailsApplicationInterface.init(self, optionsDict, args)
         
         if self.temp_configuration.check('jobRun') or \
            self.temp_configuration.check('jobList'):
@@ -883,7 +883,7 @@ MimeType=application/x-vistrails
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
-def start_application(optionsDict=None):
+def start_application(optionsDict=None, args=None):
     """Initializes the application singleton."""
     VistrailsApplication = get_vistrails_application()
     if VistrailsApplication:
@@ -891,7 +891,7 @@ def start_application(optionsDict=None):
         return
     VistrailsApplication = VistrailsApplicationSingleton()
     set_vistrails_application(VistrailsApplication)
-    x = VistrailsApplication.init(optionsDict)
+    x = VistrailsApplication.init(optionsDict, args)
     return x
 
 def stop_application():
