@@ -357,7 +357,7 @@ class VisTrailsAPI(object):
     def execute(self, custom_aliases=None, custom_params=None,
                  extra_info=None, reason='API Pipeline Execution'):
         return self.controller.execute_current_workflow(custom_aliases, custom_params,
-                                                  extra_info, reason)
+                                                        extra_info, reason)
 
     def get_packages(self):
         if self._packages is None:
