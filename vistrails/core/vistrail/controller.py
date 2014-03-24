@@ -122,6 +122,9 @@ class CompareThumbnailsError(Exception):
         return "Comparing thumbnails failed.\n%s\n%s\n%s" % \
             (self._msg, self._first, self._second)
 
+def dot_escape(s):
+    return '"%s"' % s.replace('\\', '\\\\').replace('"', '\\"')
+
 class VistrailController(object):
     def __init__(self, vistrail=None, locator=None, abstractions=None, 
                  thumbnails=None, mashups=None, id_scope=None, 
@@ -2753,11 +2756,12 @@ class VistrailController(object):
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
 
-    def save_version_graph(self, filename, tersed=False):
+    def save_version_graph(self, filename, tersed=True):
         if tersed:
             graph = copy.copy(self._current_terse_graph)
         else:
             graph = copy.copy(self._current_full_graph)
+        tm = self.vistrail.get_tagMap()
         vs = graph.vertices.keys()
         vs.sort()
         al = [(vfrom, vto, edgeid)
@@ -2767,11 +2771,13 @@ class VistrailController(object):
 
         with open(filename, 'wb') as fp:
             fp.write('digraph G {\n')
-            for s in vs:
-                fp.write('    %s;\n' % s)
+            for v in vs:
+                descr = tm.get(v, None) or self.vistrail.get_description(v)
+                fp.write('    %s [label=%s];\n' % (v, dot_escape(descr)))
             fp.write('\n')
             for s in al:
-                fp.write('    %s -> %s [label="%s"];\n' % s)
+                vfrom, vto, vdata = s
+                fp.write('    %s -> %s;\n' % (vfrom, vto))
             fp.write('}\n')
 
     def get_latest_version_in_graph(self):
