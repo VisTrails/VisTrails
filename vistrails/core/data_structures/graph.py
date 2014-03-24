@@ -91,7 +91,7 @@ class Graph(object):
         """
         result = Graph()
         if vertex_map is None:
-            vertex_map = dict((v, v) for v in self.vertices)
+            vertex_map = dict((v, v) for v in graph.vertices)
         if edge_map is None:
             edge_map = {}
             for vfrom, lto in graph.adjacency_list.iteritems():
@@ -682,7 +682,7 @@ class Graph(object):
         for i in [map(lambda (t, i): (f, t, i), l)
                   for (f, l) in self.adjacency_list.items()]:
             al.extend(i)
-        al.sort(edge_cmp)
+        al.sort()
         return "digraph G { " \
                + ";".join([str(s) for s in vs]) + ";" \
                + ";".join(["%s -> %s [label=\"%s\"]" % s for s in al]) + "}"
@@ -748,26 +748,6 @@ class Graph(object):
                     result.add_edge(v, k, eid)
                     eid = eid + 1
         return result
-
-def edge_cmp(v1, v2):
-    """ edge_cmp(v1: id type, v2:id type) -> int
-    Defines how the comparison must be done between edges  and return a boolean
-
-    Keyword arguments:
-    v1 -- 'sequence' edge information
-    v2 -- 'sequence' other edge information
-    
-    """
-    (from1, to1, id1) = v1
-    (from2, to2, id2) = v2
-    c1 = cmp(from1, from2)
-    if c1:
-        return c1
-    c2 = cmp(to1, to2)
-    if c2:
-        return c2
-    else:
-        return cmp(id1, id2)
 
 ################################################################################
 # Unit testing
