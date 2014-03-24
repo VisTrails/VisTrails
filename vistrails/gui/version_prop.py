@@ -78,7 +78,7 @@ class ColorChooserButton(QtGui.QPushButton):
             self.color_selected.emit(self.color)
 
     def sizeHint(self):
-        return QtCore.QSize(24, 24)
+        return QtCore.QSize(20, 20)
 
     def changeColor(self):
         if self.color is not None:
@@ -217,7 +217,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                     custom_color = QtGui.QColor(*custom_color)
                 except ValueError, e:
                     debug.warning("Version %r has invalid color annotation "
-                                  "(%s)" % e)
+                                  "(%s)" % (versionNumber, e))
                     custom_color = None
             self.customColor.setColor(custom_color)
 

@@ -477,7 +477,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                 self._versionPen = self._versionPenNormal
             self.updatePainterState()
 
-    def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted):
+    def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted,
+                     new_customcolor):
         """ update_color(isThisUs: bool,
                          new_rank, new_max_rank: int) -> None
 
@@ -487,10 +488,12 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         NOTE: if username changes during execution, this might break.
         """
         if (new_rank == self.rank and new_max_rank == self.max_rank and
-            new_ghosted == self.ghosted):
+            new_ghosted == self.ghosted and
+            new_customcolor == self.custom_color):
             # nothing changed
             return
         self.setGhosted(new_ghosted)
+        self.custom_color = new_customcolor
         self.rank = new_rank
         self.max_rank = new_max_rank
         if not self.ghosted:
@@ -511,6 +514,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                 newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
                 brush.setColor(QtGui.QColor.fromHsvF(*newHsv))
             self.versionBrush = brush
+        self.update()
 
     def setSaturation(self, isThisUser, sat):
         """ setSaturation(isThisUser: bool, sat: float) -> None        
@@ -542,7 +546,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.setRect(r)
         self.update()
 
-    def setupVersion(self, node, action, tag, description, custom_color=None):
+    def setupVersion(self, node, action, tag, description):
         """ setupPort(node: DotNode,
                       action: DBAction,
                       tag: str,
@@ -582,8 +586,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             textToDraw=self.label
         else:
             textToDraw=self.descriptionLabel
-
-        self.custom_color = custom_color
 
         if (ThumbnailCache.getInstance().conf.mouseHover and
             action and action.thumbnail is not None):
@@ -798,7 +800,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.connect(self, QtCore.SIGNAL("selectionChanged()"),
                      self.selectionChanged)
 
-    def addVersion(self, node, action, tag, description, custom_color=None):
+    def addVersion(self, node, action, tag, description):
         """ addModule(node, action: DBAction, tag: str, description: str,
                 custom_color: (int, int, int))
                 -> None
@@ -806,7 +808,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         """
         versionShape = QGraphicsVersionItem(None)
-        versionShape.setupVersion(node, action, tag, description, custom_color)
+        versionShape.setupVersion(node, action, tag, description)
         self.addItem(versionShape)
         self.versions[node.id] = versionShape
 
@@ -883,9 +885,20 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             else:
                 max_rank = otherMaxRank
 #             max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
+            custom_color = controller.vistrail.get_action_annotation(
+                nodeId,
+                custom_color_key)
+            if custom_color is not None:
+                try:
+                    custom_color = parse_custom_color(custom_color.value)
+                except ValueError, e:
+                    debug.warning("Version %r has invalid color annotation "
+                                  "(%s)" % (v, e))
+                    custom_color = None
+            ####
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],
-                              max_rank, ghosted)
+                              max_rank, ghosted, custom_color)
         for (version_from, version_to), link in self.edges.iteritems():
             if self.versions[version_from].ghosted and \
                     self.versions[version_to].ghosted:
@@ -997,22 +1010,13 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             tag = tm.get(v, None)
             action = am.get(v, None)
             description = vistrail.get_description(v)
-            custom_color = vistrail.get_action_annotation(v, custom_color_key)
-            if custom_color is not None:
-                try:
-                    custom_color = parse_custom_color(custom_color.value)
-                except ValueError, e:
-                    debug.warning("Version %r has invalid color annotation "
-                                  "(%s)" % e)
-                    custom_color = None
 
             # if the version gui object already exists...
             if v in self.versions:
                 versionShape = self.versions[v]
-                versionShape.setupVersion(node, action, tag, description,
-                                          custom_color)
+                versionShape.setupVersion(node, action, tag, description)
             else:
-                self.addVersion(node, action, tag, description, custom_color)
+                self.addVersion(node, action, tag, description)
             if select_node:
                 self.versions[v].setSelected(v == controller.current_version)
 
