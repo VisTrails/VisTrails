@@ -2752,19 +2752,27 @@ class VistrailController(object):
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
-        
-    # def refine_graph(self, step=1.0):
-    #     """ refine_graph(step: float in [0,1]) -> (Graph, Graph)
-    #     Refine the graph of the current vistrail based the search
-    #     status of the controller. It also return the full graph as a
-    #     reference
-                     
-    #     """
-        
-    #     if self._current_full_graph is None:
-    #         self.recompute_terse_graph()
-    #     return (self._current_terse_graph, self._current_full_graph,
-    #             self._current_graph_layout)
+
+    def save_version_graph(self, filename, tersed=False):
+        if tersed:
+            graph = copy.copy(self._current_terse_graph)
+        else:
+            graph = copy.copy(self._current_full_graph)
+        vs = graph.vertices.keys()
+        vs.sort()
+        al = [(vfrom, vto, edgeid)
+              for vfrom, lto in graph.adjacency_list.iteritems()
+              for vto, edgeid in lto]
+        al.sort()
+
+        with open(filename, 'wb') as fp:
+            fp.write('digraph G {\n')
+            for s in vs:
+                fp.write('    %s;\n' % s)
+            fp.write('\n')
+            for s in al:
+                fp.write('    %s -> %s [label="%s"];\n' % s)
+            fp.write('}\n')
 
     def get_latest_version_in_graph(self):
         if not self._current_terse_graph:
