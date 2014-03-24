@@ -45,20 +45,19 @@ QVersionTreeScene
 QVersionTreeView
 """
 from PyQt4 import QtCore, QtGui
+from vistrails.core import debug
 from vistrails.core.system import systemType
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
-                               QGraphicsItemInterface,
-                               QGraphicsRubberBandItem)
+                               QGraphicsItemInterface)
 from vistrails.gui.qt import qt_super
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.version_prop import QVersionPropOverlay
-from vistrails.gui.vis_diff import QVisualDiff
 from vistrails.gui.collection.workspace import QParamExplorationEntityItem
 import vistrails.gui.utils
-import math
+import re
 
 
 ################################################################################
@@ -494,14 +493,20 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.rank = new_rank
         self.max_rank = new_max_rank
         if not self.ghosted:
-            if isThisUs:
-                brush = CurrentTheme.VERSION_USER_BRUSH
+            if self.custom_color is not None:
+                sat_from_rank, color = self.custom_color
+                brush = QtGui.QBrush(QtGui.QColor.fromRgb(*color))
             else:
-                brush = CurrentTheme.VERSION_OTHER_BRUSH
-            sat = float(new_rank+1) / new_max_rank
-            (h, s, v, a) = brush.color().getHsvF()
-            newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
-            brush.setColor(QtGui.QColor.fromHsvF(*newHsv))
+                if isThisUs:
+                    brush = CurrentTheme.VERSION_USER_BRUSH
+                else:
+                    brush = CurrentTheme.VERSION_OTHER_BRUSH
+                sat_from_rank = True
+            if sat_from_rank:
+                sat = float(new_rank+1) / new_max_rank
+                (h, s, v, a) = brush.color().getHsvF()
+                newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
+                brush.setColor(QtGui.QColor.fromHsvF(*newHsv))
             self.versionBrush = brush
 
     def setSaturation(self, isThisUser, sat):
@@ -534,7 +539,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.setRect(r)
         self.update()
 
-    def setupVersion(self, node, action, tag, description):
+    def setupVersion(self, node, action, tag, description, custom_color=None):
         """ setupPort(node: DotNode,
                       action: DBAction,
                       tag: str,
@@ -574,7 +579,9 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             textToDraw=self.label
         else:
             textToDraw=self.descriptionLabel
-        
+
+        self.custom_color = custom_color
+
         if (ThumbnailCache.getInstance().conf.mouseHover and
             action and action.thumbnail is not None):
             fname = ThumbnailCache.getInstance().get_abs_name_entry(action.thumbnail)
@@ -750,6 +757,17 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.scene().double_click(self.id)
 
 
+custom_color_key = '__color__'
+
+custom_color_fmt = re.compile(r'^(1|0); *([0-9]+) *, *([0-9]+) *, *([0-9]+)$')
+
+def parse_custom_color(color):
+    m = custom_color_fmt.match(color)
+    if not m:
+        raise ValueError("Color annotation doesn't match format")
+    return m.group(1) == '1', tuple(int(m.group(i)) for i in xrange(2, 5))
+
+
 class QVersionTreeScene(QInteractiveGraphicsScene):
     """
     QVersionTree inherits from QInteractiveGraphicsScene to keep track
@@ -776,15 +794,16 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.select_by_click = True
         self.connect(self, QtCore.SIGNAL("selectionChanged()"),
                      self.selectionChanged)
-   
-    def addVersion(self, node, action, tag, description):
-        """ addModule(node, action: DBAction, tag: str, description: str) 
+
+    def addVersion(self, node, action, tag, description, custom_color=None):
+        """ addModule(node, action: DBAction, tag: str, description: str,
+                custom_color: (bool, (int, int, int))))
                 -> None
         Add a module to the scene.
-        
+
         """
         versionShape = QGraphicsVersionItem(None)
-        versionShape.setupVersion(node, action, tag, description)
+        versionShape.setupVersion(node, action, tag, description, custom_color)
         self.addItem(versionShape)
         self.versions[node.id] = versionShape
 
@@ -975,13 +994,22 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             tag = tm.get(v, None)
             action = am.get(v, None)
             description = vistrail.get_description(v)
+            custom_color = vistrail.get_action_annotation(v, custom_color_key)
+            if custom_color is not None:
+                try:
+                    custom_color = parse_custom_color(custom_color.value)
+                except ValueError, e:
+                    debug.warning("Version %r has invalid color annotation "
+                                  "(%s)" % e)
+                    custom_color = None
 
             # if the version gui object already exists...
             if v in self.versions:
                 versionShape = self.versions[v]
-                versionShape.setupVersion(node, action, tag, description)
+                versionShape.setupVersion(node, action, tag, description,
+                                          custom_color)
             else:
-                self.addVersion(node, action, tag, description)
+                self.addVersion(node, action, tag, description, custom_color)
             if select_node:
                 self.versions[v].setSelected(v == controller.current_version)
 
