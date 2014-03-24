@@ -722,33 +722,6 @@ class Graph(object):
     def __ne__(self, other):
         return not (self == other)
 
-    ##########################################################################
-    # Etc
-
-    @staticmethod
-    def from_random(size):
-        """ from_random(size:int) -> Graph
-        Create a DAG with approximately size/e vertices and 3*|vertex| edges
-        and return a Graph
-
-        Keyword arguments:
-        size -- the estimated size of the graph to generate
-
-        """
-        result = Graph()
-        verts = filter(lambda x: x>0, peckcheck.a_list(peckcheck.an_int)(size))
-        for v in verts:
-            result.add_vertex(v)
-        k = size / math.e
-        p = (6*k) / ((k+1)*(k+2))
-        eid = 0
-        for v in verts:
-            for k in verts:
-                if v < k and random.random() > p:
-                    result.add_edge(v, k, eid)
-                    eid = eid + 1
-        return result
-
 ################################################################################
 # Unit testing
 
