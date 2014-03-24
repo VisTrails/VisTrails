@@ -45,6 +45,7 @@ QVersionTreeScene
 QVersionTreeView
 """
 from PyQt4 import QtCore, QtGui
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.system import systemType
 from vistrails.core.thumbnails import ThumbnailCache
@@ -494,8 +495,10 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.max_rank = new_max_rank
         if not self.ghosted:
             if self.custom_color is not None:
-                sat_from_rank, color = self.custom_color
-                brush = QtGui.QBrush(QtGui.QColor.fromRgb(*color))
+                configuration = get_vistrails_configuration()
+                sat_from_rank = not configuration.check(
+                        'fixedCustomVersionColorSaturation')
+                brush = QtGui.QBrush(QtGui.QColor.fromRgb(*self.custom_color))
             else:
                 if isThisUs:
                     brush = CurrentTheme.VERSION_USER_BRUSH
@@ -759,13 +762,13 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
 
 custom_color_key = '__color__'
 
-custom_color_fmt = re.compile(r'^(1|0); *([0-9]+) *, *([0-9]+) *, *([0-9]+)$')
+custom_color_fmt = re.compile(r'^([0-9]+) *, *([0-9]+) *, *([0-9]+)$')
 
 def parse_custom_color(color):
     m = custom_color_fmt.match(color)
     if not m:
         raise ValueError("Color annotation doesn't match format")
-    return m.group(1) == '1', tuple(int(m.group(i)) for i in xrange(2, 5))
+    return tuple(int(m.group(i)) for i in xrange(1, 4))
 
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
@@ -797,7 +800,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
     def addVersion(self, node, action, tag, description, custom_color=None):
         """ addModule(node, action: DBAction, tag: str, description: str,
-                custom_color: (bool, (int, int, int))))
+                custom_color: (int, int, int))
                 -> None
         Add a module to the scene.
 
