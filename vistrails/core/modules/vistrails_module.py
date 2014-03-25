@@ -43,12 +43,13 @@ from vistrails.core import debug
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.utils import VistrailsDeprecation, deprecated
 
-LOOP_KEY = '__loop_type__'
-WHILE_COND_KEY = '__while_cond__'
-WHILE_INPUT_KEY = '__while_input__'
-WHILE_OUTPUT_KEY = '__while_output__'
-WHILE_MAX_KEY = '__while_max__'
-WHILE_DELAY_KEY = '__while_delay__'
+# Valid control parameters should be put here
+LOOP_KEY = 'loop_type'
+WHILE_COND_KEY = 'while_cond'
+WHILE_INPUT_KEY = 'while_input'
+WHILE_OUTPUT_KEY = 'while_output'
+WHILE_MAX_KEY = 'while_max'
+WHILE_DELAY_KEY = 'while_delay'
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -477,8 +478,10 @@ class Module(Serializable):
                 p_module = p_modules and \
                            p_modules[self.moduleInfo['moduleId']]
                 if p_module and not self.is_while and \
-                          (p_module.has_annotation_with_key(WHILE_COND_KEY) or
-                           p_module.has_annotation_with_key(WHILE_MAX_KEY)):
+                          (p_module.has_control_parameter_with_name(
+                                                            WHILE_COND_KEY) or
+                           p_module.has_control_parameter_with_name(
+                                                              WHILE_MAX_KEY)):
                     self.is_while = True
                     self.compute_while()
                 else:
@@ -539,12 +542,12 @@ class Module(Serializable):
         p_modules = self.moduleInfo['pipeline'].modules
         p_module = p_modules[self.moduleInfo['moduleId']]
         type = 'cartesian'
-        if p_module.has_annotation_with_key(LOOP_KEY):
-            type = p_module.get_annotation_by_key(LOOP_KEY).value
+        if p_module.has_control_parameter_with_name(LOOP_KEY):
+            type = p_module.get_control_parameter_by_name(LOOP_KEY).value
 
         suspended = []
 
-        # only iterate the max depth and leave the others for the next iteration
+        # only iterate max depth and leave the others for the next iteration
         ports = [port for port, depth, value in self.iterated_ports
                  if depth == self.list_depth]
         inputs = {}
@@ -649,8 +652,8 @@ class Module(Serializable):
         p_modules = self.moduleInfo['pipeline'].modules
         p_module = p_modules[self.moduleInfo['moduleId']]
         type = 'pairwise'
-        if p_module.has_annotation_with_key(LOOP_KEY):
-            type = p_module.get_annotation_by_key(LOOP_KEY).value
+        if p_module.has_control_parameter_with_name(LOOP_KEY):
+            type = p_module.get_control_parameter_by_name(LOOP_KEY).value
         if type == 'cartesian':
             raise ModuleError(self,
                               'Cannot use cartesian product while streaming!')
@@ -853,25 +856,26 @@ class Module(Serializable):
         p_modules = self.moduleInfo['pipeline'].modules
         p_module = p_modules[self.moduleInfo['moduleId']]
         name_condition = None
-        if p_module.has_annotation_with_key(WHILE_COND_KEY):
-            name_condition = p_module.get_annotation_by_key(WHILE_COND_KEY).value
+        if p_module.has_control_parameter_with_name(WHILE_COND_KEY):
+            name_condition = p_module.get_control_parameter_by_name(
+                                                         WHILE_COND_KEY).value
         max_iterations = 20
-        if p_module.has_annotation_with_key(WHILE_MAX_KEY):
-            max_iterations = int(p_module.get_annotation_by_key(WHILE_MAX_KEY
-                                                                ).value)
+        if p_module.has_control_parameter_with_name(WHILE_MAX_KEY):
+            max_iterations = int(p_module.get_control_parameter_by_name(
+                                                         WHILE_MAX_KEY).value)
         delay = 0.0
-        if p_module.has_annotation_with_key(WHILE_DELAY_KEY):
-            delay = float(p_module.get_annotation_by_key(WHILE_DELAY_KEY
-                                                                ).value)
+        if p_module.has_control_parameter_with_name(WHILE_DELAY_KEY):
+            delay = float(p_module.get_control_parameter_by_name(
+                                                       WHILE_DELAY_KEY).value)
         # todo only one state port supported right now
         name_state_input = None
-        if p_module.has_annotation_with_key(WHILE_INPUT_KEY):
-            name_state_input = [p_module.get_annotation_by_key(WHILE_INPUT_KEY
-                                                              ).value]
+        if p_module.has_control_parameter_with_name(WHILE_INPUT_KEY):
+            name_state_input = [p_module.get_control_parameter_by_name(
+                                                       WHILE_INPUT_KEY).value]
         name_state_output = None
-        if p_module.has_annotation_with_key(WHILE_OUTPUT_KEY):
-            name_state_output = [\
-                       p_module.get_annotation_by_key(WHILE_OUTPUT_KEY).value]
+        if p_module.has_control_parameter_with_name(WHILE_OUTPUT_KEY):
+            name_state_output = [p_module.get_control_parameter_by_name(
+                                                      WHILE_OUTPUT_KEY).value]
 
         from vistrails.core.modules.basic_modules import create_constant
 
@@ -885,8 +889,8 @@ class Module(Serializable):
                 raise ModuleError(self,
                                   "StateInputPorts and StateOutputPorts need "
                                   "to have the same number of ports "
-                                  "(got %d and %d)" % (len(name_state_input),
-                                                       len(name_state_output)))
+                                  "(got %d and %d)" %(len(name_state_input),
+                                                      len(name_state_output)))
 
         module = copy.copy(self)
         module.had_error = False

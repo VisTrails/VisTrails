@@ -41,7 +41,6 @@ from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import LOOP_KEY, \
     WHILE_COND_KEY, WHILE_INPUT_KEY, WHILE_OUTPUT_KEY, WHILE_MAX_KEY, \
     WHILE_DELAY_KEY
-from vistrails.core.modules.module_registry import ModuleRegistryException
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -319,33 +318,33 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         self.feedOutputLabel.setVisible(False)
         self.portCombiner.setVisible(False)
         self.portCombiner.setDefault(module)
-        if module.has_annotation_with_key(LOOP_KEY):
-            type = module.get_annotation_by_key(LOOP_KEY).value
+        if module.has_control_parameter_with_name(LOOP_KEY):
+            type = module.get_control_parameter_by_name(LOOP_KEY).value
             self.pairwiseButton.setChecked(type=='pairwise')
             self.cartesianButton.setChecked(type=='cartesian')
             self.customButton.setChecked(type not in ['pairwise', 'cartesian'])
             self.portCombiner.setVisible(type not in ['pairwise', 'cartesian'])
             if type not in ['pairwise', 'cartesian']:
                 self.portCombiner.setValue(type)
-        if module.has_annotation_with_key(WHILE_COND_KEY) or \
-           module.has_annotation_with_key(WHILE_MAX_KEY):
+        if module.has_control_parameter_with_name(WHILE_COND_KEY) or \
+           module.has_control_parameter_with_name(WHILE_MAX_KEY):
             self.whileButton.setChecked(True)
-        if module.has_annotation_with_key(WHILE_COND_KEY):
-            cond = module.get_annotation_by_key(WHILE_COND_KEY).value
+        if module.has_control_parameter_with_name(WHILE_COND_KEY):
+            cond = module.get_control_parameter_by_name(WHILE_COND_KEY).value
             self.condEdit.setText(cond)
-        if module.has_annotation_with_key(WHILE_MAX_KEY):
-            max = module.get_annotation_by_key(WHILE_MAX_KEY).value
+        if module.has_control_parameter_with_name(WHILE_MAX_KEY):
+            max = module.get_control_parameter_by_name(WHILE_MAX_KEY).value
             self.maxEdit.setText(max)
-        if module.has_annotation_with_key(WHILE_DELAY_KEY):
-            delay = module.get_annotation_by_key(WHILE_DELAY_KEY).value
+        if module.has_control_parameter_with_name(WHILE_DELAY_KEY):
+            delay = module.get_control_parameter_by_name(WHILE_DELAY_KEY).value
             self.delayEdit.setText(delay)
-        if module.has_annotation_with_key(WHILE_INPUT_KEY):
-            input = module.get_annotation_by_key(WHILE_INPUT_KEY).value
+        if module.has_control_parameter_with_name(WHILE_INPUT_KEY):
+            input = module.get_control_parameter_by_name(WHILE_INPUT_KEY).value
             self.feedInputEdit.setText(input)
-        if module.has_annotation_with_key(WHILE_OUTPUT_KEY):
-            output = module.get_annotation_by_key(WHILE_OUTPUT_KEY).value
+        if module.has_control_parameter_with_name(WHILE_OUTPUT_KEY):
+            output = module.get_control_parameter_by_name(WHILE_OUTPUT_KEY).value
             self.feedOutputEdit.setText(output)
-            
+
     def updateVistrail(self):
         values = []
         if self.pairwiseButton.isChecked():
@@ -361,16 +360,18 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         values.append((WHILE_DELAY_KEY, _while and self.delayEdit.text()))
         values.append((WHILE_INPUT_KEY, _while and self.feedInputEdit.text()))
         values.append((WHILE_OUTPUT_KEY,_while and self.feedOutputEdit.text()))
-        for key, value in values:                
+        for name, value in values:
             if value:
-                if not self.module.has_annotation_with_key(key) or \
-                        value != self.module.get_annotation_by_key(key).value:
-                    if self.module.has_annotation_with_key(key):
-                        self.controller.delete_annotation(key, self.module.id)
-                    self.controller.add_annotation((key, value),
+                if not self.module.has_control_parameter_with_name(name) or \
+                        value != \
+                        self.module.get_control_parameter_by_name(name).value:
+                    if self.module.has_control_parameter_with_name(name):
+                        self.controller.delete_control_parameter(name,
+                                                               self.module.id)
+                    self.controller.add_control_parameter((name, value),
                                                    self.module.id)
-            elif self.module.has_annotation_with_key(key):
-                self.controller.delete_annotation(key, self.module.id)
+            elif self.module.has_control_parameter_with_name(name):
+                self.controller.delete_control_parameter(name, self.module.id)
         return True
 
     def activate(self):
