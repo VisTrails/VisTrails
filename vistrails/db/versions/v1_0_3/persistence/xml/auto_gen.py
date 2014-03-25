@@ -536,6 +536,7 @@ class DBModuleXMLDAOBase(XMLDAO):
         location = None
         functions = []
         annotations = []
+        controlParameters = []
         portSpecs = []
         
         # read children
@@ -553,6 +554,9 @@ class DBModuleXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                controlParameters.append(_data)
             elif child_tag == 'portSpec':
                 _data = self.getDao('portSpec').fromXML(child)
                 portSpecs.append(_data)
@@ -570,6 +574,7 @@ class DBModuleXMLDAOBase(XMLDAO):
                        location=location,
                        functions=functions,
                        annotations=annotations,
+                       controlParameters=controlParameters,
                        portSpecs=portSpecs)
         obj.is_dirty = False
         return obj
@@ -602,6 +607,11 @@ class DBModuleXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
+        controlParameters = module.db_controlParameters
+        for controlParameter in controlParameters:
+            if (controlParameters is not None) and (controlParameters != ""):
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(controlParameter, childNode)
         portSpecs = module.db_portSpecs
         for portSpec in portSpecs:
             if (portSpecs is not None) and (portSpecs != ""):
@@ -1867,6 +1877,9 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 data = _data
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                data = _data
             elif child_tag == 'function':
                 _data = self.getDao('function').fromXML(child)
                 data = _data
@@ -1931,6 +1944,9 @@ class DBAddXMLDAOBase(XMLDAO):
             elif data.vtType == 'annotation':
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(data, childNode)
+            elif data.vtType == 'controlParameter':
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(data, childNode)
             elif data.vtType == 'function':
                 childNode = ElementTree.SubElement(node, 'function')
                 self.getDao('function').toXML(data, childNode)
@@ -3914,6 +3930,9 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 data = _data
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                data = _data
             elif child_tag == 'function':
                 _data = self.getDao('function').fromXML(child)
                 data = _data
@@ -3980,6 +3999,9 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif data.vtType == 'annotation':
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(data, childNode)
+            elif data.vtType == 'controlParameter':
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(data, childNode)
             elif data.vtType == 'function':
                 childNode = ElementTree.SubElement(node, 'function')
                 self.getDao('function').toXML(data, childNode)
@@ -4881,6 +4903,47 @@ class DBOpmWasTriggeredByXMLDAOBase(XMLDAO):
         
         return node
 
+class DBControlParameterXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'controlParameter':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('name', None)
+        name = self.convertFromStr(data, 'str')
+        data = node.get('value', None)
+        value = self.convertFromStr(data, 'str')
+        
+        obj = DBControlParameter(id=id,
+                                 name=name,
+                                 value=value)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, controlParameter, node=None):
+        if node is None:
+            node = ElementTree.Element('controlParameter')
+        
+        # set attributes
+        node.set('id',self.convertToStr(controlParameter.db_id, 'long'))
+        node.set('name',self.convertToStr(controlParameter.db_name, 'str'))
+        node.set('value',self.convertToStr(controlParameter.db_value, 'str'))
+        
+        return node
+
 class DBMashupActionAnnotationXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -5536,6 +5599,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
         actions = []
         tags = []
         annotations = []
+        controlParameters = []
         vistrailVariables = []
         parameter_explorations = []
         actionAnnotations = []
@@ -5555,6 +5619,9 @@ class DBVistrailXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                controlParameters.append(_data)
             elif child_tag == 'vistrailVariable':
                 _data = self.getDao('vistrailVariable').fromXML(child)
                 vistrailVariables.append(_data)
@@ -5575,6 +5642,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
                          actions=actions,
                          tags=tags,
                          annotations=annotations,
+                         controlParameters=controlParameters,
                          vistrailVariables=vistrailVariables,
                          parameter_explorations=parameter_explorations,
                          actionAnnotations=actionAnnotations)
@@ -5606,6 +5674,11 @@ class DBVistrailXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
+        controlParameters = vistrail.db_controlParameters
+        for controlParameter in controlParameters:
+            if (controlParameters is not None) and (controlParameters != ""):
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(controlParameter, childNode)
         vistrailVariables = vistrail.db_vistrailVariables
         for vistrailVariable in vistrailVariables:
             if (vistrailVariables is not None) and (vistrailVariables != ""):
@@ -5867,6 +5940,8 @@ class XMLDAOListBase(dict):
             self['loop_exec'] = DBLoopExecXMLDAOBase(self)
         if 'opm_was_triggered_by' not in self:
             self['opm_was_triggered_by'] = DBOpmWasTriggeredByXMLDAOBase(self)
+        if 'controlParameter' not in self:
+            self['controlParameter'] = DBControlParameterXMLDAOBase(self)
         if 'mashup_actionAnnotation' not in self:
             self['mashup_actionAnnotation'] = DBMashupActionAnnotationXMLDAOBase(self)
         if 'connection' not in self:

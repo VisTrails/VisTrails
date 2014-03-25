@@ -482,13 +482,13 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             cellWidget = event.cellType(self.centralWidget())
             if event.cellType.__name__ == 'QVTKWidget':
                 vtkCells.append(cellWidget)
-            cellWidget.updateContents(event.inputPorts)
             cellWidget.show()
             cellWidget.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                       QtGui.QSizePolicy.Expanding)
             cellWidget.setMinimumSize(300, 100)
             cellLayout.addWidget(cellWidget)
             self.cellWidgets.append(cellWidget)
+            cellWidget.updateContents(event.inputPorts)
         def getSelectedCellWidgets():
             return vtkCells
         for cellWidget in self.vtkCells:
@@ -620,6 +620,8 @@ class TestMashupApp(TestVisTrailsGUI):
         view = vistrails.api.open_vistrail_from_file(filename)
         id = "d5026457-de6c-11e2-b074-3c07543dba07"
         mashup = view.get_mashup_from_mashuptrail_id(id, "loop")
+        self.assert_(mashup)
         view.open_mashup(mashup)
         mashup = view.get_mashup_from_mashuptrail_id(id, "no loop")
+        self.assert_(mashup)
         view.open_mashup(mashup)
