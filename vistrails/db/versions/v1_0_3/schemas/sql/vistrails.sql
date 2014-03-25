@@ -458,6 +458,16 @@ CREATE TABLE loop_exec(
     parent_id int
 ) engine=InnoDB;
 
+CREATE TABLE control_parameter(
+    id int,
+    name varchar(255),
+    value mediumtext,
+    parent_type char(32),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
 CREATE TABLE mashup_action_annotation(
     id int,
     akey varchar(255),

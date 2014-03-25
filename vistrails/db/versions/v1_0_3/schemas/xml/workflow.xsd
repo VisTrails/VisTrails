@@ -91,6 +91,7 @@
         <xs:element ref="location" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="function" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="annotation" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="controlParameter" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="portSpec" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="id" type="xs:int"/>
@@ -158,6 +159,13 @@
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="pos" type="xs:int"/>
       <xs:attribute name="name" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="controlParameter">
+    <xs:complexType>
+      <xs:attribute name="id" type="xs:int"/>
+      <xs:attribute name="name" type="xs:string"/>
+      <xs:attribute name="value" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="portSpec">

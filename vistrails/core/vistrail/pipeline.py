@@ -51,6 +51,7 @@ from vistrails.core.vistrail.abstraction import Abstraction
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.plugin_data import PluginData
@@ -1315,11 +1316,18 @@ class TestPipeline(unittest.TestCase):
                 param.strValue = '4.0'
                 f.params.append(param)
                 return f
+            def cp1():
+                f = ModuleControlParam()
+                f.id = id_scope.getNewId(ModuleControlParam.vtType)
+                f.name = 'cpname1'
+                f.value = 'cpvalue[]'
+                return f
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
             m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
             m.functions.append(f1())
+            m.control_parameters.append(cp1())
             return m
         
         def module2(p):

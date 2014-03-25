@@ -40,19 +40,16 @@ from itertools import izip
 import weakref
 
 from vistrails.db.domain import DBModule
-from vistrails.core.data_structures.point import Point
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
-from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
-from vistrails.core.utils import NoSummon, VistrailsInternalError, report_stack
-from vistrails.core.modules.module_descriptor import OverloadedPort
-from vistrails.core.modules.module_registry import get_module_registry, ModuleRegistry
+from vistrails.core.utils import NoSummon
+from vistrails.core.modules.module_registry import get_module_registry
 
 import unittest
-import vistrails.core
 
 ################################################################################
 
@@ -142,6 +139,8 @@ class Module(DBModule):
             ModuleFunction.convert(_function)
         for _annotation in _module.db_get_annotations():
             Annotation.convert(_annotation)
+        for _control_parameter in _module.db_get_controlParameters():
+            ModuleControlParam.convert(_control_parameter)
         _module.set_defaults()
 
     ##########################################################################
@@ -154,6 +153,7 @@ class Module(DBModule):
     id = DBModule.db_id
     cache = DBModule.db_cache
     annotations = DBModule.db_annotations
+    control_parameters = DBModule.db_controlParameters
     location = DBModule.db_location
     center = DBModule.db_location
     name = DBModule.db_name
@@ -187,6 +187,14 @@ class Module(DBModule):
         return self.db_has_annotation_with_key(key)
     def get_annotation_by_key(self, key):
         return self.db_get_annotation_by_key(key)        
+    def add_control_parameter(self, controlParameter):
+        self.db_add_controlParameter(controlParameter)
+    def delete_control_parameter(self, controlParameter):
+        self.db_delete_controlParameter(controlParameter)
+    def has_control_parameter_with_name(self, name):
+        return self.db_has_controlParameter_with_name(name)
+    def get_control_parameter_by_name(self, name):
+        return self.db_get_controlParameter_by_name(name)        
     def toggle_breakpoint(self):
         self.is_breakpoint = not self.is_breakpoint
     def toggle_watched(self):
@@ -356,13 +364,14 @@ class Module(DBModule):
             if self.namespace:
                 return self.namespace + '|' + self.name
             return self.name
-        return ("(Module '%s:%s' id=%s functions:%s port_specs:%s annotations:%s)@%X" %
+        return ("(Module '%s:%s' id=%s functions:%s port_specs:%s annotations:%s control_parameters:%s)@%X" %
                 (self.package,
                  get_name(),
                  self.id,
                  [str(f) for f in self.functions],
                  [str(port_spec) for port_spec in self.db_portSpecs],
                  [str(a) for a in self.annotations],
+                 [str(c) for c in self.control_parameters],
                  id(self)))
 
     def __eq__(self, other):
@@ -387,10 +396,15 @@ class Module(DBModule):
             return False
         if len(self.annotations) != len(other.annotations):
             return False
+        if len(self.control_parameters) != len(other.control_parameters):
+            return False
         for f, g in izip(self.functions, other.functions):
             if f != g:
                 return False
         for f, g in izip(self.annotations, other.annotations):
+            if f != g:
+                return False
+        for f, g in izip(self.control_parameters, other.control_parameters):
             if f != g:
                 return False
         return True
@@ -420,10 +434,14 @@ class TestModule(unittest.TestCase):
         functions = [ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
                                     name='value',
                                     parameters=params)]
+        control_parameters = [ModuleControlParam(id=id_scope.getNewId(ModuleControlParam.vtType),
+                                  name='combiner',
+                                  value='pairwise')]
         module = Module(id=id_scope.getNewId(Module.vtType),
                         name='Float',
                         package=basic_pkg,
-                        functions=functions)
+                        functions=functions,
+                        controlParameters=control_parameters)
         return module
 
     def test_copy(self):
