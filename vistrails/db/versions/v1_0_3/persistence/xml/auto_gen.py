@@ -1234,6 +1234,7 @@ class DBGroupXMLDAOBase(XMLDAO):
         location = None
         functions = []
         annotations = []
+        controlParameters = []
         
         # read children
         for child in node.getchildren():
@@ -1253,6 +1254,9 @@ class DBGroupXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                controlParameters.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -1267,7 +1271,8 @@ class DBGroupXMLDAOBase(XMLDAO):
                       version=version,
                       location=location,
                       functions=functions,
-                      annotations=annotations)
+                      annotations=annotations,
+                      controlParameters=controlParameters)
         obj.is_dirty = False
         return obj
     
@@ -1304,6 +1309,11 @@ class DBGroupXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
+        controlParameters = group.db_controlParameters
+        for controlParameter in controlParameters:
+            if (controlParameters is not None) and (controlParameters != ""):
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(controlParameter, childNode)
         
         return node
 
@@ -2577,6 +2587,7 @@ class DBAbstractionXMLDAOBase(XMLDAO):
         location = None
         functions = []
         annotations = []
+        controlParameters = []
         
         # read children
         for child in node.getchildren():
@@ -2593,6 +2604,9 @@ class DBAbstractionXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                controlParameters.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -2607,7 +2621,8 @@ class DBAbstractionXMLDAOBase(XMLDAO):
                             internal_version=internal_version,
                             location=location,
                             functions=functions,
-                            annotations=annotations)
+                            annotations=annotations,
+                            controlParameters=controlParameters)
         obj.is_dirty = False
         return obj
     
@@ -2640,6 +2655,11 @@ class DBAbstractionXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
+        controlParameters = abstraction.db_controlParameters
+        for controlParameter in controlParameters:
+            if (controlParameters is not None) and (controlParameters != ""):
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(controlParameter, childNode)
         
         return node
 

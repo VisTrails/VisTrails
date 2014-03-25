@@ -92,7 +92,12 @@
 	      index="key">
       <xml nodeType="xs:element"/>
     </property>
-
+    
+    <property ref="true" object="controlParameter" type="list" mapping="one-to-many"
+	          index="name">
+      <xml nodeType="xs:element"/>
+    </property>
+    
     <property name="parentType" type="str" inverse="true">
       <sql column="parent_type" type="char(32)"/>
     </property>
@@ -474,7 +479,6 @@
 	<sql column="parent_id" type="int"/>
       </property>
 
-<!--
       <property ref="true" object="abstraction">
 	<sql column="parent_id" type="int"/>
       </property>
@@ -482,7 +486,7 @@
       <property ref="true" object="group">
 	<sql column="parent_id" type="int"/>
       </property>
--->
+
     </choice>
     <property name="entity_id" type="long" inverse="true">
       <sql type="int"/>
@@ -864,7 +868,12 @@
 	      index="key">
       <xml nodeType="xs:element"/>
     </property>
-
+    
+    <property ref="true" object="controlParameter" type="list" mapping="one-to-many"
+	          index="name">
+      <xml nodeType="xs:element"/>
+    </property>
+    
     <property name="parentType" type="str" inverse="true">
       <sql column="parent_type" type="char(32)"/>
     </property>

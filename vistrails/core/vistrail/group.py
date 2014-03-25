@@ -38,6 +38,7 @@ from itertools import izip
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
 from vistrails.db.domain import DBGroup
@@ -108,6 +109,8 @@ class Group(DBGroup, Module):
             ModuleFunction.convert(_function)
         for _annotation in _group.db_get_annotations():
             Annotation.convert(_annotation)
+        for _control_parameter in _group.db_get_controlParameters():
+            ModuleControlParam.convert(_control_parameter)
         _group.set_defaults()
 
     ##########################################################################
@@ -117,6 +120,7 @@ class Group(DBGroup, Module):
     id = DBGroup.db_id
     cache = DBGroup.db_cache
     annotations = DBGroup.db_annotations
+    control_parameters = DBGroup.db_controlParameters
     location = DBGroup.db_location
     center = DBGroup.db_location
     # version = DBGroup.db_version

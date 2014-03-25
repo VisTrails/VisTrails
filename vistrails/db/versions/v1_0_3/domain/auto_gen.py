@@ -3585,7 +3585,7 @@ class DBGroup(object):
 
     vtType = 'group'
 
-    def __init__(self, id=None, workflow=None, cache=None, name=None, namespace=None, package=None, version=None, location=None, functions=None, annotations=None):
+    def __init__(self, id=None, workflow=None, cache=None, name=None, namespace=None, package=None, version=None, location=None, functions=None, annotations=None, controlParameters=None):
         self._db_id = id
         self.db_deleted_workflow = []
         self._db_workflow = workflow
@@ -3614,6 +3614,16 @@ class DBGroup(object):
             for v in self._db_annotations:
                 self.db_annotations_id_index[v.db_id] = v
                 self.db_annotations_key_index[v.db_key] = v
+        self.db_deleted_controlParameters = []
+        self.db_controlParameters_id_index = {}
+        self.db_controlParameters_name_index = {}
+        if controlParameters is None:
+            self._db_controlParameters = []
+        else:
+            self._db_controlParameters = controlParameters
+            for v in self._db_controlParameters:
+                self.db_controlParameters_id_index[v.db_id] = v
+                self.db_controlParameters_name_index[v.db_name] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -3639,6 +3649,10 @@ class DBGroup(object):
             cp._db_annotations = []
         else:
             cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+        if self._db_controlParameters is None:
+            cp._db_controlParameters = []
+        else:
+            cp._db_controlParameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
         
         # set new ids
         if new_ids:
@@ -3653,6 +3667,8 @@ class DBGroup(object):
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
+        cp.db_controlParameters_id_index = dict((v.db_id, v) for v in cp._db_controlParameters)
+        cp.db_controlParameters_name_index = dict((v.db_name, v) for v in cp._db_controlParameters)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -3737,6 +3753,17 @@ class DBGroup(object):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
                 new_obj.db_deleted_annotations.append(n_obj)
+        if 'controlParameters' in class_dict:
+            res = class_dict['controlParameters'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_controlParameter(obj)
+        elif hasattr(old_obj, 'db_controlParameters') and old_obj.db_controlParameters is not None:
+            for obj in old_obj.db_controlParameters:
+                new_obj.db_add_controlParameter(DBControlParameter.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_controlParameters') and hasattr(new_obj, 'db_deleted_controlParameters'):
+            for obj in old_obj.db_deleted_controlParameters:
+                n_obj = DBControlParameter.update_version(obj, trans_dict)
+                new_obj.db_deleted_controlParameters.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -3761,6 +3788,13 @@ class DBGroup(object):
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
+        to_del = []
+        for child in self.db_controlParameters:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_controlParameter(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
@@ -3769,11 +3803,13 @@ class DBGroup(object):
         children.extend(self.db_deleted_location)
         children.extend(self.db_deleted_functions)
         children.extend(self.db_deleted_annotations)
+        children.extend(self.db_deleted_controlParameters)
         if remove:
             self.db_deleted_workflow = []
             self.db_deleted_location = []
             self.db_deleted_functions = []
             self.db_deleted_annotations = []
+            self.db_deleted_controlParameters = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -3786,6 +3822,9 @@ class DBGroup(object):
             if child.has_changes():
                 return True
         for child in self._db_annotations:
+            if child.has_changes():
+                return True
+        for child in self._db_controlParameters:
             if child.has_changes():
                 return True
         return False
@@ -3987,6 +4026,55 @@ class DBGroup(object):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
+    
+    def __get_db_controlParameters(self):
+        return self._db_controlParameters
+    def __set_db_controlParameters(self, controlParameters):
+        self._db_controlParameters = controlParameters
+        self.is_dirty = True
+    db_controlParameters = property(__get_db_controlParameters, __set_db_controlParameters)
+    def db_get_controlParameters(self):
+        return self._db_controlParameters
+    def db_add_controlParameter(self, controlParameter):
+        self.is_dirty = True
+        self._db_controlParameters.append(controlParameter)
+        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+    def db_change_controlParameter(self, controlParameter):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_controlParameters)):
+            if self._db_controlParameters[i].db_id == controlParameter.db_id:
+                self._db_controlParameters[i] = controlParameter
+                found = True
+                break
+        if not found:
+            self._db_controlParameters.append(controlParameter)
+        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+    def db_delete_controlParameter(self, controlParameter):
+        self.is_dirty = True
+        for i in xrange(len(self._db_controlParameters)):
+            if self._db_controlParameters[i].db_id == controlParameter.db_id:
+                if not self._db_controlParameters[i].is_new:
+                    self.db_deleted_controlParameters.append(self._db_controlParameters[i])
+                del self._db_controlParameters[i]
+                break
+        del self.db_controlParameters_id_index[controlParameter.db_id]
+        del self.db_controlParameters_name_index[controlParameter.db_name]
+    def db_get_controlParameter(self, key):
+        for i in xrange(len(self._db_controlParameters)):
+            if self._db_controlParameters[i].db_id == key:
+                return self._db_controlParameters[i]
+        return None
+    def db_get_controlParameter_by_id(self, key):
+        return self.db_controlParameters_id_index[key]
+    def db_has_controlParameter_with_id(self, key):
+        return key in self.db_controlParameters_id_index
+    def db_get_controlParameter_by_name(self, key):
+        return self.db_controlParameters_name_index[key]
+    def db_has_controlParameter_with_name(self, key):
+        return key in self.db_controlParameters_name_index
     
     def getPrimaryKey(self):
         return self._db_id
@@ -7322,7 +7410,7 @@ class DBAbstraction(object):
 
     vtType = 'abstraction'
 
-    def __init__(self, id=None, cache=None, name=None, namespace=None, package=None, version=None, internal_version=None, location=None, functions=None, annotations=None):
+    def __init__(self, id=None, cache=None, name=None, namespace=None, package=None, version=None, internal_version=None, location=None, functions=None, annotations=None, controlParameters=None):
         self._db_id = id
         self._db_cache = cache
         self._db_name = name
@@ -7350,6 +7438,16 @@ class DBAbstraction(object):
             for v in self._db_annotations:
                 self.db_annotations_id_index[v.db_id] = v
                 self.db_annotations_key_index[v.db_key] = v
+        self.db_deleted_controlParameters = []
+        self.db_controlParameters_id_index = {}
+        self.db_controlParameters_name_index = {}
+        if controlParameters is None:
+            self._db_controlParameters = []
+        else:
+            self._db_controlParameters = controlParameters
+            for v in self._db_controlParameters:
+                self.db_controlParameters_id_index[v.db_id] = v
+                self.db_controlParameters_name_index[v.db_name] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -7374,6 +7472,10 @@ class DBAbstraction(object):
             cp._db_annotations = []
         else:
             cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+        if self._db_controlParameters is None:
+            cp._db_controlParameters = []
+        else:
+            cp._db_controlParameters = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_controlParameters]
         
         # set new ids
         if new_ids:
@@ -7388,6 +7490,8 @@ class DBAbstraction(object):
         cp.db_functions_id_index = dict((v.db_id, v) for v in cp._db_functions)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
+        cp.db_controlParameters_id_index = dict((v.db_id, v) for v in cp._db_controlParameters)
+        cp.db_controlParameters_name_index = dict((v.db_name, v) for v in cp._db_controlParameters)
         if not new_ids:
             cp.is_dirty = self.is_dirty
             cp.is_new = self.is_new
@@ -7467,6 +7571,17 @@ class DBAbstraction(object):
             for obj in old_obj.db_deleted_annotations:
                 n_obj = DBAnnotation.update_version(obj, trans_dict)
                 new_obj.db_deleted_annotations.append(n_obj)
+        if 'controlParameters' in class_dict:
+            res = class_dict['controlParameters'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_controlParameter(obj)
+        elif hasattr(old_obj, 'db_controlParameters') and old_obj.db_controlParameters is not None:
+            for obj in old_obj.db_controlParameters:
+                new_obj.db_add_controlParameter(DBControlParameter.update_version(obj, trans_dict))
+        if hasattr(old_obj, 'db_deleted_controlParameters') and hasattr(new_obj, 'db_deleted_controlParameters'):
+            for obj in old_obj.db_deleted_controlParameters:
+                n_obj = DBControlParameter.update_version(obj, trans_dict)
+                new_obj.db_deleted_controlParameters.append(n_obj)
         new_obj.is_new = old_obj.is_new
         new_obj.is_dirty = old_obj.is_dirty
         return new_obj
@@ -7491,6 +7606,13 @@ class DBAbstraction(object):
                 to_del.append(child)
         for child in to_del:
             self.db_delete_annotation(child)
+        to_del = []
+        for child in self.db_controlParameters:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan, for_action))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_controlParameter(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
@@ -7498,10 +7620,12 @@ class DBAbstraction(object):
         children.extend(self.db_deleted_location)
         children.extend(self.db_deleted_functions)
         children.extend(self.db_deleted_annotations)
+        children.extend(self.db_deleted_controlParameters)
         if remove:
             self.db_deleted_location = []
             self.db_deleted_functions = []
             self.db_deleted_annotations = []
+            self.db_deleted_controlParameters = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -7512,6 +7636,9 @@ class DBAbstraction(object):
             if child.has_changes():
                 return True
         for child in self._db_annotations:
+            if child.has_changes():
+                return True
+        for child in self._db_controlParameters:
             if child.has_changes():
                 return True
         return False
@@ -7711,6 +7838,55 @@ class DBAbstraction(object):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
         return key in self.db_annotations_key_index
+    
+    def __get_db_controlParameters(self):
+        return self._db_controlParameters
+    def __set_db_controlParameters(self, controlParameters):
+        self._db_controlParameters = controlParameters
+        self.is_dirty = True
+    db_controlParameters = property(__get_db_controlParameters, __set_db_controlParameters)
+    def db_get_controlParameters(self):
+        return self._db_controlParameters
+    def db_add_controlParameter(self, controlParameter):
+        self.is_dirty = True
+        self._db_controlParameters.append(controlParameter)
+        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+    def db_change_controlParameter(self, controlParameter):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_controlParameters)):
+            if self._db_controlParameters[i].db_id == controlParameter.db_id:
+                self._db_controlParameters[i] = controlParameter
+                found = True
+                break
+        if not found:
+            self._db_controlParameters.append(controlParameter)
+        self.db_controlParameters_id_index[controlParameter.db_id] = controlParameter
+        self.db_controlParameters_name_index[controlParameter.db_name] = controlParameter
+    def db_delete_controlParameter(self, controlParameter):
+        self.is_dirty = True
+        for i in xrange(len(self._db_controlParameters)):
+            if self._db_controlParameters[i].db_id == controlParameter.db_id:
+                if not self._db_controlParameters[i].is_new:
+                    self.db_deleted_controlParameters.append(self._db_controlParameters[i])
+                del self._db_controlParameters[i]
+                break
+        del self.db_controlParameters_id_index[controlParameter.db_id]
+        del self.db_controlParameters_name_index[controlParameter.db_name]
+    def db_get_controlParameter(self, key):
+        for i in xrange(len(self._db_controlParameters)):
+            if self._db_controlParameters[i].db_id == key:
+                return self._db_controlParameters[i]
+        return None
+    def db_get_controlParameter_by_id(self, key):
+        return self.db_controlParameters_id_index[key]
+    def db_has_controlParameter_with_id(self, key):
+        return key in self.db_controlParameters_id_index
+    def db_get_controlParameter_by_name(self, key):
+        return self.db_controlParameters_name_index[key]
+    def db_has_controlParameter_with_name(self, key):
+        return key in self.db_controlParameters_name_index
     
     def getPrimaryKey(self):
         return self._db_id
