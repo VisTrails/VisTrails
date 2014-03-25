@@ -1430,6 +1430,9 @@ class DBGroupSQLDAOBase(SQLDAO):
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
+        for child in obj.db_controlParameters:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'group_tbl'
@@ -4102,6 +4105,9 @@ class DBAbstractionSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         for child in obj.db_annotations:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        for child in obj.db_controlParameters:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         
@@ -6847,6 +6853,12 @@ class DBControlParameterSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'change':
             p = all_objects[('change', obj.db_parent)]
             p.db_add_data(obj)
+        elif obj.db_parentType == 'abstraction':
+            p = all_objects[('abstraction', obj.db_parent)]
+            p.db_add_controlParameter(obj)
+        elif obj.db_parentType == 'group':
+            p = all_objects[('group', obj.db_parent)]
+            p.db_add_controlParameter(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
