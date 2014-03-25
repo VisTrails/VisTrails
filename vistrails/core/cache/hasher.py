@@ -75,6 +75,14 @@ class Hasher(object):
         return hasher.digest()
 
     @staticmethod
+    def annotation_signature(annotation, constant_hasher_map={}):
+        hasher = sha_hash()
+        u = hasher.update
+        u(annotation.key)
+        u(annotation.value)
+        return hasher.digest()
+
+    @staticmethod
     def connection_signature(c):
         hasher = sha_hash()
         u = hasher.update
@@ -105,6 +113,7 @@ class Hasher(object):
         u(obj.module_descriptor.package_version or '')
         u(obj.module_descriptor.version or '')
         u(hash_list(obj.functions, Hasher.function_signature, constant_hasher_map))
+        u(hash_list(obj.annotations, Hasher.annotation_signature, constant_hasher_map))
         return hasher.digest()
 
     @staticmethod
