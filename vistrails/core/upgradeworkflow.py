@@ -507,7 +507,6 @@ class UpgradeWorkflowHandler(object):
                 function_port_spec = PortSpec(name=function_name,
                                               items=[mk_psi(i) 
                                                      for i in xrange(n_items)])
-                                                                 
             new_function = controller.create_function(new_module, 
                                                       function_port_spec,
                                                       new_param_vals,
@@ -698,12 +697,12 @@ class UpgradeWorkflowHandler(object):
                   reg.get_package_by_name(new_module_t[0]).version == new_pkg_version):
                 # upgrading to the current version
                 try:
-                    new_module_desc = reg.get_descriptor_by_name(*old_module_t)
+                    new_module_desc = reg.get_descriptor_by_name(*new_module_t)
                 except MissingModule, e:
                     # if the replacement is an abstraction,
                     # and it has been upgraded, we use that
-                    if reg.has_abs_upgrade(*old_module_t):
-                        new_module_desc = reg.get_abs_upgrade(*old_module_t)
+                    if reg.has_abs_upgrade(*new_module_t):
+                        new_module_desc = reg.get_abs_upgrade(*new_module_t)
                     else:
                         raise e
                 use_registry = True
@@ -723,7 +722,7 @@ class UpgradeWorkflowHandler(object):
                 old_version = new_pkg_version
                 next_module_remap = pkg_remap.get_module_upgrade(old_desc_str,
                                                             old_version)
-                
+                old_module_t = new_module_t
             replace_module = UpgradeWorkflowHandler.replace_module
             actions = replace_module(controller, 
                                      tmp_pipeline,
@@ -862,6 +861,16 @@ class TestUpgradePackageRemap(unittest.TestCase):
                                       ('0.9', '1.0', None,
                                        {"function_remap": {'aa': 'aaa'},
                                         "src_port_remap": {'zz': 'zzz'}})]}
+        self.run_multi_upgrade_test(pkg_remap)
+
+    def test_multi_upgrade_rename(self):
+        pkg_remap = {"TestUpgradeA": 
+                     [UpgradeModuleRemap('0.8', '0.9', '0.9', "TestUpgradeB",
+                                         dst_port_remap={'a': 'b'},
+                                         src_port_remap={'z': 'zz'})],
+                     "TestUpgradeB":
+                     [UpgradeModuleRemap('0.9', '1.0', '1.0', None,
+                                         src_port_remap={'zz': None})]}
         self.run_multi_upgrade_test(pkg_remap)
 
     def test_external_upgrade(self):
