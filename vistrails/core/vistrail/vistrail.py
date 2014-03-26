@@ -903,15 +903,18 @@ class Vistrail(DBVistrail):
             added_parameters = 0
             added_connections = 0
             added_annotations = 0
+            added_control_parameters = 0
             added_ports = 0
             moved_modules = 0
             changed_parameters = 0
             changed_annotations = 0
+            changed_control_parameters = 0
             deleted_modules = 0
             deleted_connections = 0
             deleted_parameters = 0
             deleted_functions = 0
             deleted_annotations = 0
+            deleted_control_parameters = 0
             deleted_ports = 0
             for op in ops:
                 if op.vtType == 'add':
@@ -923,6 +926,8 @@ class Vistrail(DBVistrail):
                         added_functions+=1
                     elif op.what == 'parameter':
                         added_parameters+=1
+                    elif op.what == 'controlParameter':
+                        added_control_parameters+=1
                     elif op.what == 'annotation':
                         added_annotations+=1
                     elif op.what == 'portSpec':
@@ -934,6 +939,8 @@ class Vistrail(DBVistrail):
                         moved_modules+=1
                     elif op.what == 'annotation':
                         changed_annotations+=1
+                    elif op.what == 'controlParameter':
+                        changed_control_parameters+=1
                 elif op.vtType == 'delete':
                     if op.what == 'module':
                         deleted_modules+=1
@@ -945,6 +952,8 @@ class Vistrail(DBVistrail):
                         deleted_parameters+=1
                     elif op.what == 'annotation':
                         deleted_annotations+=1
+                    elif op.what == 'controlParameter':
+                        deleted_control_parameters+=1
                     elif op.what == 'portSpec':
                         deleted_ports += 1
                 else:
@@ -962,6 +971,10 @@ class Vistrail(DBVistrail):
                 description = "Added parameter"
                 if added_functions > 1 or added_parameters > 1:
                     description += "s"
+            elif added_control_parameters:
+                description = "Added control parameter"
+                if added_control_parameters > 1:
+                    description += "s"
             elif added_annotations:
                 description = "Added annotation"
                 if added_annotations > 1:
@@ -973,6 +986,10 @@ class Vistrail(DBVistrail):
             elif changed_parameters:
                 description = "Changed parameter"
                 if changed_parameters > 1:
+                    description += "s"
+            elif changed_control_parameters:
+                description = "Changed control parameter"
+                if changed_control_parameters > 1:
                     description += "s"
             elif moved_modules:
                 description = "Moved module"
@@ -993,6 +1010,10 @@ class Vistrail(DBVistrail):
             elif deleted_parameters or deleted_functions:
                 description = "Deleted parameter"
                 if deleted_parameters > 1 or deleted_functions > 1:
+                    description += "s"
+            elif deleted_control_parameters:
+                description = "Deleted control parameter"
+                if deleted_control_parameters > 1:
                     description += "s"
             elif deleted_annotations:
                 description = "Deleted annotation"
