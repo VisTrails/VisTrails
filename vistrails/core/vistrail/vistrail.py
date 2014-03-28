@@ -456,6 +456,8 @@ class Vistrail(DBVistrail):
                     [v1 not v2 modules],
                     [v2 not v1 modules],
                     [parameter-changed modules (see-below)],
+                    [controlParameter-changed modules (see-below)],
+                    [annotation-changed modules (see-below)],
                     [shared connections (id in v1, id in v2) ...],
                     [shared connections [heuristic] (id in v1, id in v2)],
                     [c1 not in v2 connections],
@@ -463,6 +465,12 @@ class Vistrail(DBVistrail):
 
         parameter-changed modules = [((module id in v1, module id in v2),
                                       [(function in v1, function in v2)...]),
+                                      ...]
+        controlParameter-changed modules = [((module id in v1, module id in v2),
+                                             [(cparam in v1, cparam in v2)...]),
+                                             ...]
+        annotation-changed modules = [((module id in v1, module id in v2),
+                                      [(annotation in v1, annotation in v2)...]),
                                       ...]
         
         """
@@ -485,11 +493,20 @@ class Vistrail(DBVistrail):
                     [shared modules [heuristic match] (id in v1, id in v2)],
                     [v1 not v2 modules],
                     [v2 not v1 modules],
-                    [parameter-changed modules (see-below)])
+                    [parameter-changed modules (see-below)],
+                    [controlParameter-changed modules (see-below)],
+                    [annotation-changed modules (see-below)])
 
         parameter-changed modules = [((module id in v1, module id in v2),
                                       [(function in v1, function in v2)...]),
                                       ...]
+        controlParameter-changed modules = [((module id in v1, module id in v2),
+                                             [(cparam in v1, cparam in v2)...]),
+                                             ...]
+        annotation-changed modules = [((module id in v1, module id in v2),
+                                       [(annotation in v1, annotation in v2)...]),
+                                       ...]
+
         
         """
         return vistrails.core.db.io.get_workflow_diff((self, v1), (self, v2))
@@ -1256,7 +1273,6 @@ class TestVistrail(unittest.TestCase):
         # FIXME add checks for equality
 
     def test1(self):
-        import vistrails.core.vistrail
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
@@ -1279,7 +1295,6 @@ class TestVistrail(unittest.TestCase):
             self.fail("vistrails tree is not single rooted.")
 
     def test2(self):
-        import vistrails.core.vistrail
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
@@ -1290,6 +1305,8 @@ class TestVistrail(unittest.TestCase):
         v3 = 22
         v.get_pipeline_diff(v1,v2)
         v.get_pipeline_diff(v1,v3)
+        v.get_pipeline_diff_with_connections(v1,v2)
+        v.get_pipeline_diff_with_connections(v1,v3)
 
     def test_empty_action_chain(self):
         """Tests calling action chain on empty version."""
