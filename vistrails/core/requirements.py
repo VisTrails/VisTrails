@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -45,8 +45,9 @@ import vistrails.core.system
 
 def python_module_exists(module_name):
     """python_module_exists(module_name): Boolean.
-Returns if python module of given name can be safely imported."""
-    
+    Returns if python module of given name can be safely imported.
+
+    """
     try:
         sys.modules[module_name]
         return True
@@ -61,7 +62,9 @@ Returns if python module of given name can be safely imported."""
 
 def executable_file_exists(filename):
     """executable_file_exists(filename): Boolean.
-Returns if certain file is in current path and is executable."""
+    Returns if certain file is in current path and is executable.
+    
+    """
     result = vistrails.core.system.executable_is_in_path(filename)
     if not result:
         result = vistrails.core.system.executable_is_in_path(filename)

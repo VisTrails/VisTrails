@@ -1,6 +1,6 @@
 ##############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -1167,10 +1167,11 @@ class ConfigurationObject(DBConfiguration):
 
 def add_specific_config(base_dir):
      """add_specific_config() -> dict
-    Returns a dict with other specific configuration
-    to the current platform added to base_dir
-    
-    """
+
+     Returns a dict with other specific configuration to the current
+     platform added to base_dir
+
+     """
      newdir = dict(base_dir)
      if system.systemType == 'Darwin':
          newdir['useMacBrushedMetalStyle'] = True

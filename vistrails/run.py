@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -139,9 +139,10 @@ if __name__ == '__main__':
         app = vistrails.gui.application.get_vistrails_application()
         if app:
             app.finishSession()
-        print "Uncaught exception on initialization: %s" % e
         import traceback
-        traceback.print_exc()
+        print >>sys.stderr, "Uncaught exception on initialization: %s" % (
+                traceback._format_final_exc_line(type(e).__name__, e))
+        traceback.print_exc(sys.stderr)
         sys.exit(255)
     if (not app.temp_configuration.batch and
         not app.temp_configuration.check('outputDirectory')):

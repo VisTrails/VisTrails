@@ -5,7 +5,7 @@ import re
 import os
 
 OLD_EMAIL = "Copyright (C) 2011-2012, NYU-Poly"
-NEW_EMAIL = "Copyright (C) 2011-2013, NYU-Poly"
+NEW_EMAIL = "Copyright (C) 2011-2014, NYU-Poly"
 EXTENSIONS = [".py", ".xml", ".xsd", ".php", ".sql", ".sh", ".rst", ".tex",
               ".txt", "LICENSE", ".iss", ".sty", ".mako"]
 IGNORE_LIST = ["update_email_contact.py"]

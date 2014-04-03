@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -228,7 +228,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             ("Error checking user projects (server side issues)")
                     debug.critical("Error checking user projects (server side issues)")
                 else:
-                    debug.critical(str(e))
+                    debug.critical("Exception checking user projects", e)
 
                 self._push_button.setEnabled(False)
                 self.update_push_information()
@@ -277,7 +277,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             ("Error when checking dependencies (server side issues)")
                     debug.critical("Error when checking dependencies (server side issues)")
                 else:
-                    debug.critical(str(e))
+                    debug.critical("Exception checking dependencies", e)
 
                 self._push_button.setEnabled(False)
                 self.update_push_information()
@@ -530,7 +530,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             "Update to repository was successful"
 
         except Exception, e:
-            debug.critical("An error occurred", str(e))
+            debug.critical("An error occurred", e)
             self._repository_status['details'] = "An error occurred"
         self.update_push_information()
 

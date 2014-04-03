@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -257,34 +257,39 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             singleAction = exportMenu.addAction('As a Single Image')
             multiAction = exportMenu.addAction('Separately')
             self.exportSheetToImageVar.setMenu(exportMenu)
-            
+
             self.connect(self.exportSheetToImageVar,
                          QtCore.SIGNAL('triggered(bool)'),
-                         self.exportSheetToImageActionTriggered)
-            
-            self.connect(exportMenu,
-                         QtCore.SIGNAL('triggered(QAction*)'),
-                         self.exportSheetToImageActionTriggered)
+                         self.exportSheetToSingleImageActionTriggered)
+
+            self.connect(singleAction,
+                         QtCore.SIGNAL('triggered()'),
+                         self.exportSheetToSingleImageActionTriggered)
+            self.connect(multiAction,
+                         QtCore.SIGNAL('triggered()'),
+                         self.exportSheetToSeparateImagesActionTriggered)
         return self.exportSheetToImageVar
 
-    def exportSheetToImageActionTriggered(self, action=None):
-        """ exportSheetToImageActionTriggered(checked: boolean) -> None
-        Actual code to create export an image
-        
+    def exportSheetToSingleImageActionTriggered(self, action=None):
+        """ exportSheetToSingleImageActionTriggered() -> None
+        Exports the sheet as a big image
         """
-        if not isinstance(action, bool) and action.text() == 'Separately':
-            dir = QtGui.QFileDialog.getExistingDirectory(
-                self, 'Select a Directory to Export Images', ".",
-                QtGui.QFileDialog.ShowDirsOnly)
-            if dir:
-                self.currentWidget().exportSheetToImages(dir)
-        else:
-            file = QtGui.QFileDialog.getSaveFileName(
-                self, "Select a File to Export the Sheet",
-                ".", "Images (*.png *.xpm *.jpg)")
-            if file:
-                self.currentWidget().exportSheetToImage(str(file))
-        
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self, "Select a File to Export the Sheet",
+            ".", "Images (*.png *.xpm *.jpg)")
+        if filename:
+            self.currentWidget().exportSheetToImage(filename)
+
+    def exportSheetToSeparateImagesActionTriggered(self, action=None):
+        """ exportSheetToSeparateImagesActionTriggered() -> None
+        Exports the cells as separate images
+        """
+        dirname = QtGui.QFileDialog.getExistingDirectory(
+            self, 'Select a Directory to Export Images', ".",
+            QtGui.QFileDialog.ShowDirsOnly)
+        if dirname:
+            self.currentWidget().exportSheetToImages(dirname)
+
     def newSheetActionTriggered(self, checked=False):
         """ newSheetActionTriggered(checked: boolean) -> None
         Actual code to create a new sheet

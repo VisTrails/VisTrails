@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -54,9 +54,9 @@ class ImageViewerCell(SpreadsheetCell):
         Dispatch the display event to the spreadsheet with images and labels
         
         """
-        if self.hasInputFromPort("File"):
+        if self.has_input("File"):
             window = spreadsheetController.findSpreadsheetWindow()
-            file_to_display = self.getInputFromPort("File")
+            file_to_display = self.get_input("File")
             fileValue = window.file_pool.make_local_copy(file_to_display.name)
         else:
             fileValue = None
@@ -99,7 +99,7 @@ class ImageViewerCellWidget(QCellWidget):
             img = QtGui.QImage()
             if img.load(fileValue.name):
                 self.originalPix = QtGui.QPixmap.fromImage(img)
-                self.label.setPixmap(self.originalPix.scaled(len(self.label),
+                self.label.setPixmap(self.originalPix.scaled(self.label.size(),
                                                          QtCore.Qt.KeepAspectRatio,
                                                          QtCore.Qt.SmoothTransformation))
             else:

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,12 +33,9 @@
 ##
 ###############################################################################
 from vistrails.core.modules.vistrails_module import Module, ModuleError
-import vistrails.core.modules
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
-import vistrails.core.system
-import vistrails.gui.application
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 
 ##############################################################################
 
@@ -46,7 +43,8 @@ class Dialog(Module):
     pass
 
 class TextDialog(Dialog):
-    password = False
+    label = ''
+    mode =  QtGui.QLineEdit.Normal
 
     def __init__(self, *args, **kwargs):
         super(TextDialog,self).__init__(*args, **kwargs)
@@ -56,41 +54,36 @@ class TextDialog(Dialog):
         return self.cacheable_dialog
 
     def compute(self):
-        if self.hasInputFromPort('title'):
-            title = self.getInputFromPort('title')
+        if self.has_input('title'):
+            title = self.get_input('title')
         else:
             title = 'VisTrails Dialog'
-        if self.hasInputFromPort('label'):
-            label = self.getInputFromPort('label')
+        if self.has_input('label'):
+            label = self.get_input('label')
         else:
-            label = ''
-            if self.password:
-                label = 'Password'
+            label = self.label
 
-        if self.hasInputFromPort('default'):
-            default = self.getInputFromPort('default')
+        if self.has_input('default'):
+            default = self.get_input('default')
         else:
             default = ''
             
-        if self.hasInputFromPort('cacheable') and self.getInputFromPort('cacheable'):
+        if self.has_input('cacheable') and self.get_input('cacheable'):
             self.cacheable_dialog = True
         else:
             self.cacheable_dialog = False
 
-        mode =  QtGui.QLineEdit.Normal
-        if self.password:
-            mode = QtGui.QLineEdit.Password
-
         (result, ok) = QtGui.QInputDialog.getText(None, title, label,
-                                                  mode,
+                                                  self.mode,
                                                   default)
         if not ok:
             raise ModuleError(self, "Canceled")
-        self.setResult('result', str(result))
+        self.set_output('result', str(result))
 
 
 class PasswordDialog(TextDialog):
-    password = True
+    label = 'Password'
+    mode = QtGui.QLineEdit.Password
 
 
 ##############################################################################

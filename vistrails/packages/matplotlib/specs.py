@@ -179,7 +179,7 @@ class PortSpec(object):
              "required": (False, False, True),
              "show_port": (False, False, True),
              "hide": (False, False, True),
-             "property_type": ""}
+             "property_type": "",}
 
     def __init__(self, arg, **kwargs):
         self.arg = arg
@@ -350,6 +350,7 @@ class InputPortSpec(PortSpec):
              "in_kwargs": (True, False, True),
              "in_args": (False, False, True),
              "constructor_arg": (False, False, True),
+             "not_setp": (False, False, True),
              "arg_pos": (-1, False, True),
              }
     attrs.update(PortSpec.attrs)

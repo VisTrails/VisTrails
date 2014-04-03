@@ -10,7 +10,7 @@ class TableCell(SpreadsheetCell):
     _input_ports = [('table', '(org.vistrails.vistrails.tabledata:Table)')]
 
     def compute(self):
-        table = self.getInputFromPort('table')
+        table = self.get_input('table')
         self.cellWidget = self.displayAndWait(TableCellWidget, (table,))
 
 
@@ -19,6 +19,7 @@ class TableCellWidget(QCellWidget):
         QCellWidget.__init__(self, parent)
 
         layout = QtGui.QVBoxLayout()
+        layout.setContentsMargins(0,0,0,0)
 
         self.table = QtGui.QTableWidget()
 
@@ -32,7 +33,9 @@ class TableCellWidget(QCellWidget):
     def updateContents(self, inputPorts):
         table, = inputPorts
 
-        self.table.setColumnCount(table.columns)
+        self.table.setSortingEnabled(False)
+        self.table.clear()
+        self.table.setColumnCount(table.columns + 1)
         self.table.setRowCount(table.rows)
 
         for col in xrange(table.columns):
@@ -46,10 +49,19 @@ class TableCellWidget(QCellWidget):
                 item = QtGui.QTableWidgetItem(elem)
                 item.setFlags(QtCore.Qt.ItemIsEnabled |
                               QtCore.Qt.ItemIsSelectable)
-                self.table.setItem(row, col, item)
+                self.table.setItem(row, col + 1, item)
+        for row in xrange(table.rows):
+            item = QtGui.QTableWidgetItem('%d' % row)
+            item.setFlags(QtCore.Qt.NoItemFlags)
+            self.table.setItem(row, 0, item)
 
         if table.names is not None:
-            self.table.setHorizontalHeaderLabels(table.names)
-
+            names = table.names
+        else:
+            names = ['col %d' % n for n in xrange(table.columns)]
+        self.table.setHorizontalHeaderLabels(['row' ] + names)
+        self.table.setSortingEnabled(True)
+        self.table.sortByColumn(0, QtCore.Qt.AscendingOrder)
+        self.table.resizeColumnsToContents()
 
 _modules = [TableCell]

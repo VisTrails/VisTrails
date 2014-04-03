@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -76,6 +76,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return self
 
     def __init__(self):
+        # font bugfix for Qt 4.8 and OS X 10.9
+        import platform
+        if platform.system()=='Darwin':
+            release = platform.mac_ver()[0].split('.')
+            if len(release)>=2 and int(release[0])*100+int(release[1])>=1009:
+                QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
@@ -116,8 +122,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     try:
                         os.remove(self._unique_key)
                     except OSError, e:
-                        debug.critical("Couldn't remove socket: %s (%s)" % (
-                                       self._unique_key, e))
+                        debug.critical("Couldn't remove socket: %s" %
+                                       self._unique_key, e)
 
                 else:
                     if self.found_another_instance_running(local_socket):
@@ -176,14 +182,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             debug.critical("Main instance reports: %s" % res)
             return False
 
-    def init(self, optionsDict=None):
+    def init(self, optionsDict=None, args=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
         
         """
         vistrails.gui.theme.initializeCurrentTheme()
-        VistrailsApplicationInterface.init(self, optionsDict)
+        VistrailsApplicationInterface.init(self, optionsDict, args)
         
         if self.temp_configuration.check('jobRun') or \
            self.temp_configuration.check('jobList'):
@@ -673,7 +679,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout = old_stdout
             except Exception, e:
                 import traceback
-                debug.critical("Unknown error: %s" % str(e))
+                debug.critical("Unknown error", e)
                 result = traceback.format_exc()
             if None == result:
                 result = True
@@ -879,7 +885,7 @@ MimeType=application/x-vistrails
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
-def start_application(optionsDict=None):
+def start_application(optionsDict=None, args=None):
     """Initializes the application singleton."""
     VistrailsApplication = get_vistrails_application()
     if VistrailsApplication:
@@ -887,7 +893,7 @@ def start_application(optionsDict=None):
         return
     VistrailsApplication = VistrailsApplicationSingleton()
     set_vistrails_application(VistrailsApplication)
-    x = VistrailsApplication.init(optionsDict)
+    x = VistrailsApplication.init(optionsDict, args)
     return x
 
 def stop_application():

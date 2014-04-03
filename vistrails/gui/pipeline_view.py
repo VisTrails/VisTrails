@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -227,8 +227,12 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         painter.setBrush(self.brush())
         self.draw(painter, option, widget)
 
-    def addVistrailVar(self, vistrail_var):
-        self.vistrail_vars[vistrail_var.uuid] = vistrail_var
+    def addVistrailVar(self, uuid, name=None):
+        if name is None:
+            name = self.getVistrailVarName(uuid)
+        self.vistrail_vars[uuid] = name
+        if not self.controller.has_vistrail_variable_with_uuid(uuid):
+            self.setInvalid(True)
         self.updateActions()
         self.updateToolTip()
         
@@ -242,13 +246,18 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         self.updateActions()
         self.updateToolTip()
 
+    def getVistrailVarName(self, uuid):
+        if self.controller.has_vistrail_variable_with_uuid(uuid):
+            return self.controller.get_vistrail_variable_by_uuid(uuid).name
+        return '<missing>'
+
     def updateToolTip(self):
         tooltip = ""
         if (self.port is not None and self.port.is_valid and
             hasattr(self.port, 'toolTip')):
             tooltip = self.port.toolTip()
         for vistrail_var in self.vistrail_vars.itervalues():
-            tooltip += '\nConnected to vistrail var "%s"' % vistrail_var.name
+            tooltip += '\nConnected to vistrail var "%s"' % vistrail_var
         self.setToolTip(tooltip)
         
     def contextMenuEvent(self, event):
@@ -277,14 +286,16 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             QtCore.QObject.connect(removeAllVarsAct, 
                                    QtCore.SIGNAL("triggered()"),
                                    self.removeAllVars)
-            self.removeVarActions.append((removeAllVarsAct, self.removeAllVars))
-        for vistrail_var in sorted(self.vistrail_vars.itervalues(),
-                                   key=lambda x: x.name):
+            self.removeVarActions.append((removeAllVarsAct,
+                                          self.removeAllVars))
+        for vistrail_var_uuid in sorted(self.vistrail_vars,
+                                    key=lambda x: self.getVistrailVarName(x)):
+            vistrail_var_name = self.getVistrailVarName(vistrail_var_uuid)
             removeVarAction = QtGui.QAction('Disconnect vistrail var "%s"' % \
-                                                vistrail_var.name, self.scene())
+                                              vistrail_var_name, self.scene())
             removeVarAction.setStatusTip('Disconnects vistrail variable "%s"'
-                                         ' from the port' % vistrail_var.name)
-            callback = gen_action(vistrail_var.uuid)
+                                         ' from the port' % vistrail_var_name)
+            callback = gen_action(vistrail_var_uuid)
             QtCore.QObject.connect(removeVarAction,
                                    QtCore.SIGNAL("triggered()"),
                                    callback)
@@ -301,6 +312,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         self.deleteVistrailVar(var_uuid)
         self.controller.disconnect_vistrail_vars(to_delete_modules,
                                                  to_delete_conns)
+        self.setInvalid(False)
         
 
     def removeAllVars(self):
@@ -489,7 +501,8 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
         for p in points:
             if p[0] is None:
                 x = rect.x() + rect.width()
-            elif p[0] != 0 and p[0] != 1 and p[0] > 0 and p[0] < 1:
+            # can't do +1 (2+ is fine)
+            elif p[0] != 0 and p[0] > 0 and p[0] < 1.0001:
                 x = rect.x() + rect.width() * p[0]
             elif p[0] < 0:
                 x = rect.x() + rect.width() + p[0]
@@ -497,7 +510,7 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
                 x = rect.x() + p[0]
             if p[1] is None:
                 y = rect.y() + rect.height()
-            elif p[1] != 0 and p[1] != 1 and p[1] > 0 and p[1] < 1:
+            elif p[1] != 0 and p[1] > 0 and p[1] < 1.0001:
                 y = rect.y() + rect.height() * p[1]
             elif p[1] < 0:
                 y = rect.y() + rect.height() + p[1]
@@ -507,6 +520,7 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
             print "adding point", x, y
             if x < rect.x():
                 x = rect.x()
+            # can't do +1 (2+ is fine)
             elif x > (rect.x() + rect.width()):
                 x = rect.x() + rect.width()
             if y < rect.y():
@@ -1928,8 +1942,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if srcModule.module.is_vistrail_var():
             connectionItem.hide()
             var_uuid = srcModule.module.get_vistrail_var()
-            dstPortItem.addVistrailVar(
-                self.controller.get_vistrail_variable_by_uuid(var_uuid))
+            dstPortItem.addVistrailVar(var_uuid)
         return connectionItem
 
     def selected_subgraph(self):
@@ -2602,6 +2615,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 elif isinstance(it, QGraphicsConnectionItem):
                     connection_ids.append(it.id)
             if len(modules)>0:
+                # add connected vistrail variables
+                vvms, vvcs = \
+                 self.controller.get_connected_vistrail_vars(module_ids, True)
+                for vvm in vvms:
+                    if vvm not in module_ids:
+                        modules.append(self.modules[vvm])
+                        module_ids.append(vvm)
+                for vvc in vvcs:
+                    if vvc not in connection_ids:
+                        connection_ids.append(vvc)
                 self.noUpdate = True
                 dep_connection_ids = set()
                 for m in modules:
@@ -2676,6 +2699,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
         for item in selectedItems:
             if isinstance(item, QGraphicsModuleItem):
                 module_ids[item.module.id] = 1
+                # Add connected vistrail variables
+                vvms, vvcs = \
+                 self.controller.get_connected_vistrail_vars(module_ids)
+                for vvm in vvms:
+                    module_ids[vvm] = 1
+                for vvc in vvcs:
+                    connection_ids[vvc] = 1
         for item in selectedItems:
             if isinstance(item, QGraphicsModuleItem):
                 for connItem in item.dependingConnectionItems().itervalues():
@@ -2908,7 +2938,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     ##########################################################################
     # Execution reporting API
 
-    def cancel_progress(self):
+    def check_progress_canceled(self):
         """Checks if the user have canceled the execution and takes
            appropriate action
         """
@@ -2943,7 +2973,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 1, error,
+                                     QModuleStatusEvent(moduleId, 1, error.msg,
                                                         errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
 
@@ -2971,9 +3001,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         p = self.controller.progress
-        if p:
-            self.cancel_progress()
-            p.setValue(p.value() + 1)
+        if p is not None:
+            self.check_progress_canceled()
             pipeline = self.controller.current_pipeline
             module = pipeline.get_module_by_id(moduleId)
             p.setLabelText(module.name)
@@ -2987,9 +3016,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         p = self.controller.progress
-        if p:
+        if p is not None:
             try:
-                self.cancel_progress()
+                self.check_progress_canceled()
             except AbortExecution:
                 p._progress_canceled = True
                 raise
@@ -3013,6 +3042,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 7, status))
         QtCore.QCoreApplication.processEvents()
+
+    def set_execution_progress(self, progress):
+        p = self.controller.progress
+        if p is not None:
+            p.setValue(int(progress * 100))
 
     def reset_module_colors(self):
         for module in self.modules.itervalues():

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -50,7 +50,7 @@ lvm = initVM(CLASSPATH, maxheap='512m')
 
 location = "/server/index"
 
-class WorkflowIndexer:
+class WorkflowIndexer(object):
     store = None
     writer = None
     def __init__(self):

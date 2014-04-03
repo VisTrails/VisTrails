@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -65,7 +65,7 @@ def moduleConnection(conn):
 
         iport = conn.destination.name
         oport = conn.source.name
-        src.enableOutputPort(oport)
+        src.enable_output_port(oport)
         conf = get_vistrails_configuration()
         error_on_others = getattr(conf, 'showConnectionErrors')
         error_on_variant = (error_on_others or

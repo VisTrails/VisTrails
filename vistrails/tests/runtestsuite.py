@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -103,13 +103,15 @@ import vistrails.tests
 import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
+from vistrails.core import debug
 import vistrails.gui.application
-from vistrails.core.system import vistrails_root_directory
+from vistrails.core.system import vistrails_root_directory, \
+                                  vistrails_examples_directory
 
 ###############################################################################
 # Testing Examples
 
-EXAMPLES_PATH = os.path.join(_this_dir, '..', '..', 'examples')
+EXAMPLES_PATH = vistrails_examples_directory()
 #dictionary of examples that will be run with the workflows that will be ignored
 VT_EXAMPLES = { 'EMBOSS_webservices.vt': ["ProphetOutput"],
                 'KEGGPathway.vt': [],
@@ -412,7 +414,7 @@ def image_test_generator(vtfile, version):
                     print("   *** Error in %s:%s:%s -- %s" % err)
                     self.fail(str(err))
         except Exception, e:
-            self.fail(str(e))
+            self.fail(debug.format_exception(e))
     return test
 
 class TestVistrailImages(unittest.TestCase):
@@ -466,7 +468,7 @@ if test_examples:
                 errs = vistrails.core.console_mode.run(w_list, update_vistrail=False)
                 summary[vtfile] = errs
         except Exception, e:
-            errs.append((vtfile,"None", "None", str(e)))
+            errs.append((vtfile,"None", "None", debug.format_exception(e)))
             summary[vtfile] = errs
         nvtfiles += 1
 

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -122,7 +122,7 @@ def add_tool(path):
                         args.append('%s%s' % (options.get('prefix', ''), name))
             elif "input" == type:
                 # handle multiple inputs
-                values = self.forceGetInputListFromPort(name)
+                values = self.force_get_input_list(name)
                 if values and 'list' == klass:
                     values = values[0]
                     klass = options['type'].lower() \
@@ -136,7 +136,7 @@ def add_tool(path):
                         else:
                             # use name as flag
                             value = name
-                    elif 'file' == klass:
+                    elif klass in ('file', 'directory', 'path'):
                         value = value.name
                     # check for flag and append file name
                     if not 'flag' == klass and 'flag' in options:
@@ -156,14 +156,14 @@ def add_tool(path):
                     args.append(options['flag'])
                 args.append(fname)
                 if "file" == klass:
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == klass:
                     setOutput.append((name, file))
                 else:
                     raise ValueError
             elif "inputoutput" == type:
                 # handle single file that is both input and output
-                value = self.getInputFromPort(name)
+                value = self.get_input(name)
 
                 # create copy of infile to operate on
                 outfile = self.interpreter.filePool.create_file(
@@ -171,19 +171,20 @@ def add_tool(path):
                 try:
                     shutil.copyfile(value.name, outfile.name)
                 except IOError, e: # pragma: no cover
-                    raise ModuleError("Error copying file '%s': %s" %
-                                      (value.name, e))
+                    raise ModuleError(self,
+                                      "Error copying file '%s': %s" %
+                                      (value.name, debug.format_exception(e)))
                 value = '%s%s' % (options.get('prefix', ''), outfile.name)
                 # check for flag and append file name
                 if 'flag' in options:
                     args.append(options['flag'])
                 args.append(value)
-                self.setResult(name, outfile)
+                self.set_output(name, outfile)
         if "stdin" in self.conf:
             name, type, options = self.conf["stdin"]
             type = type.lower()
-            if self.hasInputFromPort(name):
-                value = self.getInputFromPort(name)
+            if self.has_input(name):
+                value = self.get_input(name)
                 if "file" == type:
                     if file_std:
                         f = open(value.name, 'rb')
@@ -214,7 +215,7 @@ def add_tool(path):
                 file = self.interpreter.filePool.create_file(
                         suffix=DEFAULTFILESUFFIX)
                 if "file" == type:
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
                     setOutput.append((name, file))
                 else: # pragma: no cover
@@ -231,7 +232,7 @@ def add_tool(path):
                 file = self.interpreter.filePool.create_file(
                         suffix=DEFAULTFILESUFFIX)
                 if "file" == type:
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
                     setOutput.append((name, file))
                 else: # pragma: no cover
@@ -242,10 +243,7 @@ def add_tool(path):
             else:
                 kwargs['stderr'] = subprocess.PIPE
 
-        if "return_code" in self.conf:
-            return_code = self.forceGetInputFromPort(name)
-        else:
-            return_code = None
+        return_code = self.conf.get('return_code', None)
 
         env = {}
         # 0. add defaults
@@ -261,7 +259,9 @@ def add_tool(path):
                     if key:
                         env[key] = value
             except Exception, e: # pragma: no cover
-                raise ModuleError('Error parsing configuration env: %s' % e)
+                raise ModuleError(self,
+                                  "Error parsing configuration env: %s" % (
+                                  debug.format_exception(e)))
 
         if 'options' in self.conf and 'env' in self.conf['options']:
             try:
@@ -272,10 +272,12 @@ def add_tool(path):
                     if key:
                         env[key] = value
             except Exception, e: # pragma: no cover
-                raise ModuleError('Error parsing module env: %s' % e)
+                raise ModuleError(self,
+                                  "Error parsing module env: %s" % (
+                                  debug.format_exception(e)))
             
         if 'options' in self.conf and 'env_port' in self.conf['options']:
-            for e in self.forceGetInputListFromPort('env'):
+            for e in self.force_get_input_list('env'):
                 try:
                     for var in e.split(';'):
                         if not var:
@@ -286,7 +288,9 @@ def add_tool(path):
                         if key:
                             env[key] = value
                 except Exception, e: # pragma: no cover
-                    raise ModuleError('Error parsing env port: %s' % e)
+                    raise ModuleError(self,
+                                      "Error parsing env port: %s" % (
+                                      debug.format_exception(e)))
 
         if env:
             kwargs['env'] = dict(os.environ)
@@ -313,16 +317,16 @@ def add_tool(path):
 
         if return_code is not None:
             if process.returncode != return_code:
-                raise ModuleError("Command returned %d (!= %d)" % (
+                raise ModuleError(self, "Command returned %d (!= %d)" % (
                                   process.returncode, return_code))
-        self.setResult('return_code', process.returncode)
+        self.set_output('return_code', process.returncode)
 
         for f in open_files:
             f.close()
 
         for name, file in setOutput:
             f = open(file.name, 'rb')
-            self.setResult(name, f.read())
+            self.set_output(name, f.read())
             f.close()
 
         if not file_std:
@@ -335,9 +339,9 @@ def add_tool(path):
                     f = open(file.name, 'wb')
                     f.write(stdout)
                     f.close()
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
-                    self.setResult(name, stdout)
+                    self.set_output(name, stdout)
                 else: # pragma: no cover
                     raise ValueError
             if stderr and "stderr" in self.conf:
@@ -349,9 +353,9 @@ def add_tool(path):
                     f = open(file.name, 'wb')
                     f.write(stderr)
                     f.close()
-                    self.setResult(name, file)
+                    self.set_output(name, file)
                 elif "string" == type:
-                    self.setResult(name, stderr)
+                    self.set_output(name, stderr)
                 else: # pragma: no cover
                     raise ValueError
 
@@ -371,7 +375,8 @@ def add_tool(path):
     def to_vt_type(s):
         # add recognized types here - default is String
         return '(basic:%s)' % \
-          {'file':'File', 'flag':'Boolean', 'list':'List',
+          {'file':'File', 'path':'Path', 'directory': 'Directory',
+           'flag':'Boolean', 'list':'List',
            'float':'Float','integer':'Integer'
           }.get(s.lower(), 'String')
     # add module ports
@@ -420,7 +425,7 @@ def reload_scripts(initial=False):
         location = os.path.join(vistrails.core.system.current_dot_vistrails(),
                                 "CLTools")
         # make sure dir exist
-        if not os.path.isdir(location): # pragma: no cover # pragma: no partial
+        if not os.path.isdir(location): # pragma: no cover # pragma: no branch
             try:
                 debug.log("Creating CLTools directory...")
                 os.mkdir(location)
@@ -436,7 +441,7 @@ def reload_scripts(initial=False):
         reg = vistrails.core.modules.module_registry.get_module_registry()
         reg.add_module(CLTools, abstract=True)
     for path in os.listdir(location):
-        if path.endswith(SUFFIX): # pragma: no partial
+        if path.endswith(SUFFIX): # pragma: no branch
             try:
                 add_tool(os.path.join(location, path))
             except Exception as exc: # pragma: no cover
@@ -469,7 +474,7 @@ def menu_items():
         else:
             return
     lst = []
-    if "CLTools" == identifiers.name: # pragma: no partial
+    if "CLTools" == identifiers.name: # pragma: no branch
         def open_wizard():
             window = QCLToolsWizardWindow(reload_scripts=reload_scripts)
             wizards_list.append(window)
@@ -494,7 +499,7 @@ class TestCLTools(unittest.TestCase):
     def setUpClass(cls):
         # first make sure CLTools is loaded
         pm = get_package_manager()
-        if 'CLTools' not in pm._package_list: # pragma: no cover # pragma: no partial
+        if 'CLTools' not in pm._package_list: # pragma: no cover # pragma: no branch
             pm.late_enable_package('CLTools')
         remove_all_scripts()
         cls.testdir = os.path.join(packages_directory(), 'CLTools', 'test_files')

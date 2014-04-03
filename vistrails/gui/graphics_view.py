@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -213,7 +213,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             pixmap.save(filename)
             self.setBackgroundBrush(brush)
         except Exception, e:
-            debug.critical("Exception: %s"%str(e))
+            debug.critical("Exception saving to PNG", e)
 
 class QInteractiveGraphicsView(QtGui.QGraphicsView):
     """

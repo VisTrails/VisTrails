@@ -48,11 +48,11 @@ class tetrahedralize(Module):
 
     def compute(self):
         switches = None
-        if self.hasInputFromPort("switches") :
-            switches = self.getInputFromPort("switches")
+        if self.has_input("switches") :
+            switches = self.get_input("switches")
             print switches
-        if self.hasInputFromPort("tgio in") :
-            tgio_in = self.getInputFromPort("tgio in").data
+        if self.has_input("tgio in") :
+            tgio_in = self.get_input("tgio in").data
 
         print "input has %d nodes!" % tgio_in.numberofpoints
         tgio_in.save_nodes("/tmp/tgIN.vt")
@@ -61,7 +61,7 @@ class tetrahedralize(Module):
         TetGen.tetrahedralize(switches, tgio_in, out.data)
         print "Done making tets"
 
-        self.setResult("tgio out", out)
+        self.set_output("tgio out", out)
 
       
 

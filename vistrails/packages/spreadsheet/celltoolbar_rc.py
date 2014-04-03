@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,12 +33,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-# -*- coding: utf-8 -*-
 
 # Resource object code
 #
-# Created: Mon Jul 19 16:02:46 2010
-#      by: The Resource Compiler for PyQt (Qt v4.6.3)
+# Created: Thu Mar 20 11:36:50 2014
+#      by: The Resource Compiler for PyQt (Qt v4.8.5)
 #
 # WARNING! All changes made in this file will be lost!
 

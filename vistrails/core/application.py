@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -391,9 +391,9 @@ class VistrailsApplicationInterface(object):
         vistrails.core.requirements.require_executable('unzip')
 
     def get_python_environment(self):
-        """get_python_environment(): returns an environment that
-        includes local definitions from startup.py. Should only be called
-        after self.init()
+        """get_python_environment(): returns an environment that includes
+        local definitions from startup.py. Should only be called after
+        self.init()
 
         """
         return self._python_environment
@@ -500,6 +500,8 @@ class VistrailsApplicationInterface(object):
                         mashuptrail = locator._mshptrail
                     if hasattr(locator, '_mshpversion'):
                         mashupversion = locator._mshpversion
+                        if mashupversion:
+                            execute = True
                     if self.temp_configuration.showWindow:
                         self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
@@ -642,10 +644,11 @@ class VistrailsApplicationInterface(object):
                 collection.commit()
             except VistrailsDBException, e:
                 import traceback
-                debug.critical(str(e), traceback.format_exc())
+                debug.critical("Exception from the database",
+                               traceback.format_exc())
                 return None
             except Exception, e:
-                # debug.critical('An error has occurred', str(e))
+                #debug.critical('An error has occurred', e)
                 #print "An error has occurred", str(e)
                 raise
 
@@ -680,10 +683,11 @@ class VistrailsApplicationInterface(object):
                 controller = self.add_vistrail(vistrail, locator)
         except VistrailsDBException, e:
             import traceback
-            debug.critical(str(e), traceback.format_exc())
+            debug.critical("Exception from the database",
+                           traceback.format_exc())
             return None
         except Exception, e:
-            # debug.critical('An error has occurred', str(e))
+            #debug.critical('An error has occurred', e)
             raise
 
         controller.select_latest_version()
@@ -706,10 +710,9 @@ class VistrailsApplicationInterface(object):
 
         try:
             controller.write_vistrail(locator, export=export)
-        except Exception, e:
+        except Exception:
             import traceback
-            debug.critical('Failed to save vistrail: %s' % str(e),
-                           traceback.format_exc())
+            debug.critical("Failed to save vistrail", traceback.format_exc())
             raise
         if export:
             return controller.locator

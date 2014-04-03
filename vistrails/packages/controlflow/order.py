@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -47,19 +47,19 @@ class ExecuteInOrder(Module):
     modules.
     """
 
-    def updateUpstream(self):
+    def update_upstream(self):
         # don't do update until compute!
         pass
 
     def compute(self):
-        # do updateUpstream as compute, but sort by key
+        # do update_upstream as compute, but sort by key
         for _, connectorList in sorted(self.inputPorts.iteritems()):
             for connector in connectorList:
                 connector.obj.update()
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(iport, connector)
+                    self.remove_input_connector(iport, connector)
 
 
 ###############################################################################

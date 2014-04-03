@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,7 +41,6 @@ import sys
 import logging
 import logging.handlers
 import os
-import os.path
 import re
 import shutil
 import subprocess
@@ -54,17 +53,16 @@ import ConfigParser
 
 from PyQt4 import QtGui, QtCore
 import SocketServer
-from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
+from SimpleXMLRPCServer import SimpleXMLRPCServer
 from datetime import date, datetime
 
 from vistrails.core.configuration import get_vistrails_configuration
-from vistrails.gui.application import VistrailsApplicationInterface
+from vistrails.core.application import VistrailsApplicationInterface
 import vistrails.gui.theme
 import vistrails.core.application
 from vistrails.gui import qt
 from vistrails.core.db.locator import DBLocator, ZIPFileLocator, FileLocator
 from vistrails.core.db import io
-from vistrails.core import debug
 import vistrails.core.db.action
 
 from vistrails.core.utils import InstanceObject
@@ -74,7 +72,6 @@ from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry as module_registry
 from vistrails.core import interpreter
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.gui.vistrail_controller import VistrailController
 import vistrails.db.services.io
 import gc
 
@@ -329,7 +326,6 @@ class RequestHandler(object):
                         pkg_manager.late_enable_package(codepath)
                         message = "Successfully enabled package '%s'" % codepath
                     except Exception, e:
-                        import traceback
                         message = "Could not enable package '%s': %s %s" % \
                                          (codepath, str(e), traceback.format_exc())
                 else:
@@ -686,7 +682,6 @@ class RequestHandler(object):
                                     self.server_logger.info("renaming files")
                                     for root, dirs, file_names in os.walk(extra_info['pathDumpCells']):
                                         break
-                                    n = len(file_names)
                                     s = []
                                     for f in file_names:
                                         if f.lower().endswith(".png"):
@@ -1100,6 +1095,8 @@ class RequestHandler(object):
                 os.mkdir(filepath)
 
             if not os.path.exists(filename):
+                from vistrails.gui.vistrail_controller import VistrailController
+
                 locator = DBLocator(host=host,
                                     port=int(port),
                                     database=db_name,
@@ -1183,6 +1180,8 @@ class RequestHandler(object):
                 os.mkdir(filepath)
 
             if not os.path.exists(filename):
+                from vistrails.gui.vistrail_controller import VistrailController
+
                 locator = DBLocator(host=host,
                                     port=port,
                                     database=db_name,
@@ -1282,6 +1281,8 @@ class RequestHandler(object):
                 (os.path.exists(filepath) and not os.path.exists(filename)) or
                  self._is_image_stale(filename, host, port, db_name, vt_id)):
 
+                from vistrails.gui.vistrail_controller import VistrailController
+
                 if os.path.exists(filepath):
                     shutil.rmtree(filepath)
 
@@ -1369,6 +1370,8 @@ class RequestHandler(object):
             if (not os.path.exists(filepath) or
                 (os.path.exists(filepath) and not os.path.exists(filename)) or
                  self._is_image_stale(filename, host, port, db_name, vt_id)):
+
+                from vistrails.gui.vistrail_controller import VistrailController
 
                 if os.path.exists(filepath):
                     shutil.rmtree(filepath)
@@ -2079,8 +2082,8 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         port = self.temp_xml_rpc_options.port
         virt_disp = int(virtual_display)
         for x in xrange(number):
-            port += 1 # each instance needs one port space for now
-                      #later we might need 2 (normal requests and status requests)
+            port += 1   # each instance needs one port space for now
+                        #later we might need 2 (normal requests and status requests)
             virt_disp += 1
             args = [script_file,":%s"%virt_disp,host,str(port),'0', '0']
             try:
@@ -2208,13 +2211,6 @@ def start_server(optionsDict=None):
     VistrailsServer = VistrailsServerSingleton()
     vistrails.gui.theme.initializeCurrentTheme()
     vistrails.core.application.set_vistrails_application(VistrailsServer)
-    try:
-        vistrails.core.requirements.check_all_vistrails_requirements()
-    except vistrails.core.requirements.MissingRequirement, e:
-        msg = ("VisTrails requires %s to properly run.\n" %
-               e.requirement)
-        print msg
-        sys.exit(1)
     x = VistrailsServer.init(optionsDict)
     if x == True:
         return 0

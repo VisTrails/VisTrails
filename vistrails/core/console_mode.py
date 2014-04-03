@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -126,15 +126,18 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
                 current_workflow = JobWorkflow(locator.to_url(), version)
                 jobMonitor.getInstance().startWorkflow(current_workflow)
 
-        (results, _) = \
+        try:
+            (results, _) = \
             controller.execute_current_workflow(custom_aliases=aliases,
                                                 extra_info=extra_info,
                                                 reason=reason)
+        finally:
+            jobMonitor.finishWorkflow()
         new_version = controller.current_version
         if new_version != version:
-            debug.warning("Version '%s' (%s) was upgraded. The actual "
-                          "version executed was %s" % \
-                              (workflow, version, new_version))
+            debug.log("Version '%s' (%s) was upgraded. The actual "
+                      "version executed was %s" % (
+                      workflow, version, new_version))
         run = results[0]
         run.workflow_info = (locator.name, new_version)
         run.pipeline = controller.current_pipeline
@@ -142,7 +145,6 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
-        jobMonitor.finishWorkflow()
         if current_workflow.modules:
             if current_workflow.completed():
                 run.job = "COMPLETED"
@@ -198,7 +200,7 @@ def get_wf_graph(w_list, output_dir=None, pdf=False):
                         controller.current_pipeline_scene.saveToPNG(filename)
                     result.append((True, ""))
             except Exception, e:
-                result.append((False, str(e)))
+                result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save pipeline figure when not " \
             "running in gui mode"
@@ -237,7 +239,7 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
                         del version_view
                         result.append((True, ""))
             except Exception, e:
-                result.append((False, str(e)))
+                result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save version tree figure when not " \
             "running in gui mode"
@@ -289,7 +291,8 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
                                                    showProgress=False)
         except Exception, e:
             import traceback
-            return (locator, pe_id, str(e), traceback.format_exc())
+            return (locator, pe_id,
+                    debug.format_exception(e), traceback.format_exc())
 
 def run_parameter_explorations(w_list, extra_info = {},
                        reason="Console Mode Parameter Exploration Execution"):
@@ -334,7 +337,7 @@ class TestConsoleMode(unittest.TestCase):
         from vistrails.core.modules.basic_modules import StandardOutput
         values = []
         def mycompute(s):
-            v = s.getInputFromPort('value')
+            v = s.get_input('value')
             values.append(v)
         orig_compute = StandardOutput.compute
         StandardOutput.compute = mycompute

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -384,7 +384,9 @@ class VistrailsStartup(DBStartup):
 
     def get_python_environment(self):
         """get_python_environment(): returns the python environment generated
-by startup.py. This should only be called after init()."""
+        by startup.py. This should only be called after init().
+
+        """
         return self._python_environment
 
     def create_dot_vistrails_if_necessary(self):
@@ -825,7 +827,7 @@ by startup.py. This should only be called after init()."""
                 debug.critical(msg)
                 verbose = 2
             dbg = debug.DebugPrint.getInstance()
-            levels = [dbg.Critical, dbg.Warning, dbg.Log]
+            levels = [dbg.WARNING, dbg.INFO, dbg.DEBUG]
             dbg.set_message_level(levels[verbose])
             debug.log("Set verboseness level to %s" % verbose)
         
