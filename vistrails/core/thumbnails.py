@@ -69,6 +69,11 @@ class ThumbnailCache(object):
             ThumbnailCache._instance = obj
         return ThumbnailCache._instance
 
+    @staticmethod
+    def clearInstance():
+        if ThumbnailCache._instance is not None:
+            ThumbnailCache._instance.destroy()
+
     def __init__(self):
         self._temp_directory = None
         self.elements = {}

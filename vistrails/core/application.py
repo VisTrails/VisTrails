@@ -406,7 +406,7 @@ class VistrailsApplicationInterface(object):
         if hasattr(self, 'package_manager'):
             self.package_manager.finalize_packages()
         Collection.clearInstance()
-        ThumbnailCache.getInstance().destroy()
+        ThumbnailCache.clearInstance()
 
     def __del__(self):
         """ __del__() -> None
