@@ -51,8 +51,7 @@ from vistrails.core.modules.basic_modules import Constant
 from vistrails.core.vistrail.vistrailvariable import VistrailVariable
 from vistrails.gui.common_widgets import QPromptWidget
 from vistrails.gui.modules.utils import get_widget_class
-from vistrails.gui.modules.constant_configuration import StandardConstantWidget, \
-    FileChooserToolButton
+from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.gui.module_palette import QModuleTreeWidget
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_question, YES_BUTTON, NO_BUTTON

@@ -878,9 +878,9 @@ class TestUpgradePackageRemap(unittest.TestCase):
         from vistrails.core.application import get_vistrails_application
 
         app = get_vistrails_application()
-        default_upgrade_on = app.temp_configuration.upgradeOn
+        default_upgrades = app.temp_configuration.upgrades
         default_upgrade_delay = app.temp_configuration.upgradeDelay
-        app.temp_configuration.upgradeOn = True
+        app.temp_configuration.upgrades = True
         app.temp_configuration.upgradeDelay = False
 
         try:
@@ -912,7 +912,7 @@ class TestUpgradePackageRemap(unittest.TestCase):
             except MissingPackage:
                 pass
             app.close_vistrail()
-            app.temp_configuration.upgradeOn = default_upgrade_on
+            app.temp_configuration.upgrades = default_upgrades
             app.temp_configuration.upgradeDelay = default_upgrade_delay
 
 if __name__ == '__main__':
