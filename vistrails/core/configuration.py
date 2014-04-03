@@ -138,7 +138,7 @@ fixedSpreadsheetCells: Boolean
 
 installBundles: Boolean
 
-    Whether to try to install missing Python dependencies
+    Automatically try to install missing Python dependencies
 
 installBundlesWithPip: Boolean
 
@@ -308,7 +308,7 @@ thumbs.tagsOnly: Boolean
     If True, only stores thumbnails for tagged versions.  Otherwise,
     stores thumbnails for all versions.
 
-upgradeOn: Boolean
+upgrades: Boolean
 
     Whether to upgrade old workflows so they work with newer packages
 
@@ -604,7 +604,7 @@ class VisTrailsHelpFormatter(argparse.HelpFormatter):
         argparse.HelpFormatter.add_usage(self, usage, new_actions, groups,
                                          prefix)
 
-def build_command_line_parser(d, parser=None, prefix=""):
+def build_command_line_parser(d, parser=None, prefix="", **parser_args):
     global _usage_args
 
     # if k is not a command-line-option, skip
@@ -621,8 +621,7 @@ def build_command_line_parser(d, parser=None, prefix=""):
         
     if parser is None:
         parser = argparse.ArgumentParser(prog='vistrails',
-                                         formatter_class=VisTrailsHelpFormatter,
-                                         argument_default=argparse.SUPPRESS)
+                                         **parser_args)
         parser._my_arg_groups = {}
         parser.add_argument('vistrails', metavar='vistrail', type=file, nargs='*',
                         help="Vistrail to open")
@@ -649,7 +648,8 @@ def build_command_line_parser(d, parser=None, prefix=""):
             if isinstance(field, ConfigFieldParent):
                 build_command_line_parser({category: field.sub_fields},
                                           parser, 
-                                          '%s%s.' % (prefix, field.name))
+                                          '%s%s.' % (prefix, field.name),
+                                          **parser_args)
                 continue
             k_dashes = camel_to_dashes(field.name)
             help_str = find_help('%s%s' % (prefix, field.name))
@@ -714,6 +714,11 @@ def build_command_line_parser(d, parser=None, prefix=""):
     return parser
 
 def build_default_parser():
+    parser_args = {"formatter_class": VisTrailsHelpFormatter,
+                   "argument_default": argparse.SUPPRESS}
+    return build_command_line_parser(base_config, **parser_args)
+
+def build_sphinx_parser():
     return build_command_line_parser(base_config)
 
 class ConfigValue(object):
