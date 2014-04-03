@@ -512,7 +512,7 @@ base_config = {
      ConfigField('handlerDontAsk', False, bool, ConfigType.INTERNAL),
      ConfigField('spawned', False, bool, ConfigType.INTERNAL)],
     "Jobs":
-    [ConfigField('jobCheckInterval', 10, int),
+    [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),
      ConfigField('jobRun', None, str),
      ConfigField('jobList', False, bool)],
