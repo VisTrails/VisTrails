@@ -48,9 +48,11 @@ import re
 from PyQt4 import QtCore, QtGui
 from vistrails.core import debug
 from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.utils import all
+from vistrails.core.vistrail.controller import custom_color_key, \
+    parse_custom_color
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-from vistrails.core.utils import all
 
 ################################################################################
 
@@ -207,8 +209,6 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.versionThumbs.updateVersion(versionNumber)
         self.versionMashups.updateVersion(versionNumber)
         if self.controller:
-            from vistrails.gui.version_view import custom_color_key, \
-                parse_custom_color
             custom_color = self.controller.vistrail.get_action_annotation(
                     versionNumber, custom_color_key)
             if custom_color is not None:
@@ -266,7 +266,6 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.tagFinished()
 
     def custom_color_selected(self, color):
-        from vistrails.gui.version_view import custom_color_key
         if color is not None:
             self.controller.vistrail.set_action_annotation(
                     self.controller.current_version, custom_color_key,

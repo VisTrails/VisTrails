@@ -49,6 +49,8 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.system import systemType
 from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.vistrail.controller import custom_color_key, \
+    parse_custom_color
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
@@ -58,7 +60,6 @@ from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.version_prop import QVersionPropOverlay
 from vistrails.gui.collection.workspace import QParamExplorationEntityItem
 import vistrails.gui.utils
-import re
 
 
 ################################################################################
@@ -760,17 +761,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         # QtGui.QGraphicsEllipseItem.mouseDoubleClickEvent(self, event)
         event.accept()
         self.scene().double_click(self.id)
-
-
-custom_color_key = '__color__'
-
-custom_color_fmt = re.compile(r'^([0-9]+) *, *([0-9]+) *, *([0-9]+)$')
-
-def parse_custom_color(color):
-    m = custom_color_fmt.match(color)
-    if not m:
-        raise ValueError("Color annotation doesn't match format")
-    return tuple(int(m.group(i)) for i in xrange(1, 4))
 
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
