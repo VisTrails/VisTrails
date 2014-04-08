@@ -300,6 +300,11 @@ class QCellToolBar(QtGui.QToolBar):
 
     def exportCell(self, checked=False):
         cell = self.sheet.getCell(self.row, self.col)
+        if not cell.save_formats:
+            QtGui.QMessageBox.information(
+                    self, "Export cell",
+                    "This cell type doesn't provide any export option")
+            return
         filename = QtGui.QFileDialog.getSaveFileName(
             self, "Select a File to Export the Sheet",
             ".", ';;'.join(cell.save_formats))
