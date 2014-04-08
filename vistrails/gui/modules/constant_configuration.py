@@ -45,6 +45,8 @@ from vistrails.core.utils import any, expression, versions_increasing
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme
 
+import os
+
 ############################################################################
 
 def setPlaceholderTextCompat(self, value):
@@ -503,12 +505,18 @@ class PathChooserToolButton(QtGui.QToolButton):
     
     def openChooser(self):
         text = self.lineEdit.text() or system.vistrails_data_directory()
-        return QtGui.QFileDialog.getOpenFileName(self,
-                                                 'Use Filename '
-                                                 'as Value...',
-                                                 text,
-                                                 'All files '
-                                                 '(*.*)')
+        fileName = QtGui.QFileDialog.getOpenFileName(self,
+                                                     'Use Filename '
+                                                     'as Value...',
+                                                     text,
+                                                     'All files '
+                                                     '(*.*)')
+        if not fileName:
+            return None
+        filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
+        dirName = os.path.dirname(filename)
+        system.set_vistrails_data_directory(dirName)
+        return filename
 
     def runDialog(self):
         path = self.openChooser()
@@ -583,12 +591,19 @@ class FileChooserToolButton(PathChooserToolButton):
         
     def openChooser(self):
         text = self.lineEdit.text() or system.vistrails_data_directory()
-        return QtGui.QFileDialog.getOpenFileName(self,
-                                                 'Use Filename '
-                                                 'as Value...',
-                                                 text,
-                                                 'All files '
-                                                 '(*.*)')
+        fileName = QtGui.QFileDialog.getOpenFileName(self,
+                                                     'Use Filename '
+                                                     'as Value...',
+                                                     text,
+                                                     'All files '
+                                                     '(*.*)')
+        if not fileName:
+            return None
+        filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
+        dirName = os.path.dirname(filename)
+        system.set_vistrails_data_directory(dirName)
+        return filename
+
 
 class FileChooserWidget(PathChooserWidget):
     def create_browse_button(self):
@@ -602,10 +617,17 @@ class DirectoryChooserToolButton(PathChooserToolButton):
 
     def openChooser(self):
         text = self.lineEdit.text() or system.vistrails_data_directory()
-        return QtGui.QFileDialog.getExistingDirectory(self,
-                                                      'Use Directory '
-                                                      'as Value...',
-                                                      text)
+        fileName = QtGui.QFileDialog.getExistingDirectory(self,
+                                                          'Use Directory '
+                                                          'as Value...',
+                                                          text)
+        if not fileName:
+            return None
+        filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
+        dirName = os.path.dirname(filename)
+        system.set_vistrails_data_directory(dirName)
+        return filename
+
 
 class DirectoryChooserWidget(PathChooserWidget):
     def create_browse_button(self):
@@ -618,10 +640,16 @@ class OutputPathChooserToolButton(PathChooserToolButton):
     
     def openChooser(self):
         text = self.lineEdit.text() or system.vistrails_data_directory()
-        return QtGui.QFileDialog.getSaveFileName(self,
-                                                 'Save Path',
-                                                 text,
-                                                 'All files (*.*)')
+        fileName = QtGui.QFileDialog.getSaveFileName(self,
+                                                     'Save Path',
+                                                     text,
+                                                     'All files (*.*)')
+        if not fileName:
+            return None
+        filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
+        dirName = os.path.dirname(filename)
+        system.set_vistrails_data_directory(dirName)
+        return filename
 
 class OutputPathChooserWidget(PathChooserWidget):
     def create_browse_button(self):
