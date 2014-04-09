@@ -2780,12 +2780,19 @@ class VistrailController(object):
               for vto, edgeid in lto]
         al.sort()
 
+        configuration = get_vistrails_configuration()
+        use_custom_colors = configuration.check('enableCustomVersionColors')
+
         with open(filename, 'wb') as fp:
             fp.write('digraph G {\n')
             for v in vs:
                 descr = tm.get(v, None) or self.vistrail.get_description(v)
-                color = self.vistrail.get_action_annotation(v,
-                                                            custom_color_key)
+                if use_custom_colors:
+                    color = self.vistrail.get_action_annotation(
+                            v,
+                            custom_color_key)
+                else:
+                    color = None
                 if color:
                     color = '#%s%s%s' % tuple(
                             '%02x' % c
