@@ -885,16 +885,20 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             else:
                 max_rank = otherMaxRank
 #             max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
-            custom_color = controller.vistrail.get_action_annotation(
-                nodeId,
-                custom_color_key)
-            if custom_color is not None:
-                try:
-                    custom_color = parse_custom_color(custom_color.value)
-                except ValueError, e:
-                    debug.warning("Version %r has invalid color annotation "
-                                  "(%s)" % (v, e))
-                    custom_color = None
+            configuration = get_vistrails_configuration()
+            if configuration.check('enableCustomVersionColors'):
+                custom_color = controller.vistrail.get_action_annotation(
+                    nodeId,
+                    custom_color_key)
+                if custom_color is not None:
+                    try:
+                        custom_color = parse_custom_color(custom_color.value)
+                    except ValueError, e:
+                        debug.warning("Version %r has invalid color annotation "
+                                      "(%s)" % (v, e))
+                        custom_color = None
+            else:
+                custom_color = None
             ####
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],

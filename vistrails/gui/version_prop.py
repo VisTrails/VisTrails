@@ -46,6 +46,7 @@ QVersionMashups
 """
 import re
 from PyQt4 import QtCore, QtGui
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.gui.theme import CurrentTheme
@@ -139,9 +140,13 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.tagReset.setEnabled(False)
         editLayout.addWidget(self.tagReset)
 
-        self.customColor = ColorChooserButton(self)
-        editLayout.addWidget(self.customColor)
-        self.customColor.color_selected.connect(self.custom_color_selected)
+        configuration = get_vistrails_configuration()
+        self.use_custom_colors = configuration.check('enableCustomVersionColors')
+
+        if self.use_custom_colors:
+            self.customColor = ColorChooserButton(self)
+            editLayout.addWidget(self.customColor)
+            self.customColor.color_selected.connect(self.custom_color_selected)
 
         gLayout.addLayout(editLayout, 0, 2, 1, 1)
 
@@ -207,19 +212,20 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.versionThumbs.updateVersion(versionNumber)
         self.versionMashups.updateVersion(versionNumber)
         if self.controller:
-            from vistrails.gui.version_view import custom_color_key, \
-                parse_custom_color
-            custom_color = self.controller.vistrail.get_action_annotation(
-                    versionNumber, custom_color_key)
-            if custom_color is not None:
-                try:
-                    custom_color = parse_custom_color(custom_color.value)
-                    custom_color = QtGui.QColor(*custom_color)
-                except ValueError, e:
-                    debug.warning("Version %r has invalid color annotation "
-                                  "(%s)" % (versionNumber, e))
-                    custom_color = None
-            self.customColor.setColor(custom_color)
+            if self.use_custom_colors:
+                from vistrails.gui.version_view import custom_color_key, \
+                    parse_custom_color
+                custom_color = self.controller.vistrail.get_action_annotation(
+                        versionNumber, custom_color_key)
+                if custom_color is not None:
+                    try:
+                        custom_color = parse_custom_color(custom_color.value)
+                        custom_color = QtGui.QColor(*custom_color)
+                    except ValueError, e:
+                        debug.warning("Version %r has invalid color "
+                                      "annotation (%s)" % (versionNumber, e))
+                        custom_color = None
+                self.customColor.setColor(custom_color)
 
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 action = self.controller.vistrail.actionMap[versionNumber]
