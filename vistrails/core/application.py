@@ -83,7 +83,7 @@ def is_running_gui():
     app = get_vistrails_application()
     return app.is_running_gui()
 
-def init(options_dict={}, args=None):
+def init(options_dict={}, args=[]):
     app = VistrailsCoreApplication()
     set_vistrails_application(app)
     app.init(optionsDict=options_dict, args=args)
@@ -94,7 +94,7 @@ class VistrailsApplicationInterface(object):
         self._initialized = False
         self.notifications = {}
 
-    def setupOptions(self, args=None):
+    def setupOptions(self, args=[]):
         """ setupOptions() -> None
         Check and store all command-line arguments
         
@@ -203,10 +203,7 @@ The builder window can be accessed by a spreadsheet menu option.")
             help=("Do not use the .vistrails directory, and load packages "
                   "automatically when needed"))
 
-        if args != None:
-            command_line.CommandLineParser.parse_options(args=args)
-        else:
-            command_line.CommandLineParser.parse_options()
+        command_line.CommandLineParser.parse_options(args=args)
 
     def printVersion(self):
         """ printVersion() -> None
@@ -336,7 +333,7 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.jobList = bool(get('listJobs'))
         self.input = command_line.CommandLineParser().positional_arguments()
 
-    def init(self, optionsDict=None, args=None):
+    def init(self, optionsDict=None, args=[]):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
@@ -799,8 +796,9 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
         self._controllers = {}
         self._cur_controller = None
 
-    def init(self, optionsDict=None, args=None):
-        VistrailsApplicationInterface.init(self, optionsDict=optionsDict, args=args)
+    def init(self, optionsDict=None, args=[]):
+        VistrailsApplicationInterface.init(self, optionsDict=optionsDict,
+                                           args=args)
         self.vistrailsStartup.init()
 
     def is_running_gui(self):

@@ -182,7 +182,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             debug.critical("Main instance reports: %s" % res)
             return False
 
-    def init(self, optionsDict=None, args=None):
+    def init(self, optionsDict=None, args=[]):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
@@ -883,7 +883,7 @@ MimeType=application/x-vistrails
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
-def start_application(optionsDict=None, args=None):
+def start_application(optionsDict=None, args=[]):
     """Initializes the application singleton."""
     VistrailsApplication = get_vistrails_application()
     if VistrailsApplication:

@@ -119,11 +119,10 @@ if __name__ == '__main__':
     from vistrails.gui.requirements import require_pyqt4_api2
     require_pyqt4_api2()
 
-    from PyQt4 import QtGui
     import vistrails.gui.application
     from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
     try:
-        v = vistrails.gui.application.start_application()
+        v = vistrails.gui.application.start_application(args=sys.argv[1:])
         if v != APP_SUCCESS:
             app = vistrails.gui.application.get_vistrails_application()
             if app:
