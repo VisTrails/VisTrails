@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pragma: no testimport
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -45,10 +46,6 @@ from apt_pkg import gettext as _
 from apt.progress.base import InstallProgress, OpProgress, AcquireProgress
 
 from PyQt4 import QtCore, QtGui
-
-if __name__ != '__main__':
-    import vistrails.tests
-    raise vistrails.tests.NotModule('This should not be imported as a module')
 
 
 package_name = sys.argv[1]
