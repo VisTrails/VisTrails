@@ -104,6 +104,8 @@ class RichTextCellWidget(QCellWidget):
     RichTextCellWidget has a QTextBrowser to display HTML files
 
     """
+    save_formats = QCellWidget.save_formats + ["HTML files (*.html)"]
+
     def __init__(self, parent=None):
         """ RichTextCellWidget(parent: QWidget) -> RichTextCellWidget
         Create a rich text cell without a toolbar
@@ -132,21 +134,21 @@ class RichTextCellWidget(QCellWidget):
 
     def dumpToFile(self, filename):
         """ dumpToFile(filename) -> None
-        It will generate a screenshot of the cell contents and dump to filename.
-        It will also create a copy of the original text file used with
-        filename's basename and the original extension.
+        It will generate a screenshot of the cell contents, or a copy of the
+        original document, depending on the given filename.
         """
         if self.html is not None:
-            basename, ext = os.path.splitext(filename)
-            with open(basename + '.html', 'wb') as fp:
-                if isinstance(self.html, bytes):
-                    fp.write(self.html)
-                else:
-                    codec = QtCore.QTextCodec.codecForHtml(
-                            self.html.encode('utf-8'),
-                            QtCore.QTextCodec.codecForName('UTF-8'))
-                    fp.write(codec.fromUnicode(self.html))
-        QCellWidget.dumpToFile(self,filename)
+            if os.path.splitext(filename)[1].lower() in ('.html', '.html'):
+                with open(filename, 'wb') as fp:
+                    if isinstance(self.html, bytes):
+                        fp.write(self.html)
+                    else:
+                        codec = QtCore.QTextCodec.codecForHtml(
+                                self.html.encode('utf-8'),
+                                QtCore.QTextCodec.codecForName('UTF-8'))
+                        fp.write(codec.fromUnicode(self.html))
+            else:
+                super(RichTextCellWidget, self).dumpToFile(filename)
 
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()

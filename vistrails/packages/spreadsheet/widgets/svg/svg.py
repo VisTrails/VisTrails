@@ -44,6 +44,7 @@ from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetCon
 from vistrails.packages.spreadsheet.spreadsheet_event import (DisplayCellEvent,
                                                     BatchDisplayCellEvent)
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+import os
 import shutil
 ################################################################################
 
@@ -71,6 +72,9 @@ class SVGCellWidget(QCellWidget):
     received SVG file from the SVGCell
     
     """
+    save_formats = (QCellWidget.save_formats +
+                    ["Scalable Vector Graphics (*.svg)"])
+
     def __init__(self, parent=None):
         """ SVGCellWidget(parent: QWidget) -> SVGCellWidget
         Create a SVGCellWidget without any toolbar
@@ -84,8 +88,6 @@ class SVGCellWidget(QCellWidget):
         self.controlBarType = None
         self.fileSrc = None
 
-        self.toolBarType = SVGToolBar
-
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
         Updates the contents of the SVG widget with a new file name
@@ -94,10 +96,14 @@ class SVGCellWidget(QCellWidget):
         (fileValue,) = inputPorts
         self.svgWidget.load(fileValue.name)
         self.fileSrc = fileValue.name
-        
+
     def dumpToFile(self, filename):
-        if self.fileSrc is not None:
-            shutil.copyfile(self.fileSrc, filename)
+        ext = os.path.splitext(filename)[1].lower()
+        if ext == '.svg':
+            if self.fileSrc is not None:
+                shutil.copyfile(self.fileSrc, filename)
+        else:
+            super(SVGCellWidget, self).dumpToFile(filename)
 
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
@@ -149,55 +155,3 @@ class SVGSplitter(Module):
                     batchDisplayEvent.displayEvents.append(e)
             f.close()
             spreadsheetController.postEventToSpreadsheet(batchDisplayEvent)
-                    
-class SVGSaveAction(QtGui.QAction):
-    """
-    ImageViewerSaveAction is the action to save the image to file
-    
-    """
-    def __init__(self, parent=None):
-        """ ImageViewerSaveAction(parent: QWidget) -> ImageViewerSaveAction
-        Setup the image, status tip, etc. of the action
-        
-        """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/save.png"),
-                               "&Save svg as...",
-                               parent)
-        self.setStatusTip("Save svg to file")
-        
-    def triggeredSlot(self, checked=False):
-        """ toggledSlot(checked: boolean) -> None
-        Execute the action when the button is clicked
-        
-        """
-        cellWidget = self.toolBar.getSnappedWidget()
-
-        fn = QtGui.QFileDialog.getSaveFileName(
-                None, "Save svg as...",
-                "screenshot.png",
-                "SVG (*.svg);;PDF files (*.pdf);;Images (*.png *.xpm *.jpg)")
-        if fn:
-            if fn.lower().endswith("svg"):
-                cellWidget.dumpToFile(fn)
-            elif fn.lower().endswith("pdf"):
-                cellWidget.saveToPDF(fn)
-            elif fn[-3:].lower() in ('png', 'xpm', 'jpg'):
-                cellWidget.grabWindowPixmap().save(fn)
-            else:
-                QtGui.QMessageBox.critical(cellWidget,
-                                           "Save cell",
-                                           "Unknown file extension")
-
-class SVGToolBar(QCellToolBar):
-    """
-    ImageViewerToolBar derives from CellToolBar to give the ImageViewerCellWidget
-    a customizable toolbar
-    
-    """
-    def createToolBar(self):
-        """ createToolBar() -> None
-        This will get call initiallly to add customizable widgets
-        
-        """
-        self.appendAction(SVGSaveAction(self))
