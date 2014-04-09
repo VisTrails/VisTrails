@@ -38,16 +38,15 @@ from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
 from vistrails.core.collection import Collection
-from vistrails.core.debug import critical
-from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.system import vistrails_default_file_type
+from vistrails.core.system import vistrails_default_file_type, \
+    vistrails_file_directory
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.log.log import Log
 from vistrails.core.log.opm_graph import OpmGraph
 from vistrails.core.log.prov_document import ProvDocument
-from vistrails.core.db.locator import FileLocator, XMLFileLocator
+from vistrails.core.db.locator import XMLFileLocator
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.configuration import get_vistrails_configuration
 
@@ -58,7 +57,6 @@ from vistrails.gui.version_view import QVersionTreeView
 from vistrails.gui.query_view import QQueryView
 from vistrails.gui.paramexplore.pe_view import QParamExploreView
 from vistrails.gui.vis_diff import QDiffView
-from vistrails.gui.paramexplore.param_view import QParameterView
 from vistrails.gui.vistrail_controller import VistrailController
 from vistrails.gui.mashups.mashup_view import QMashupView
 from vistrails.gui.ports_pane import ParameterEntry
@@ -1023,6 +1021,16 @@ class QVistrailView(QtGui.QWidget):
         if not locator:
             return False
         self.controller.write_registry(locator)
+
+    def save_version_graph(self):
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self.window(),
+            "Save DOT...",
+            vistrails_file_directory(),
+            "Graphviz DOT files (*.dot)")
+        if not filename:
+            return
+        self.controller.save_version_graph(filename)
 
 
     def save_opm(self, locator_class=XMLFileLocator, 

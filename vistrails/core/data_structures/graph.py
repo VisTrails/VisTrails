@@ -678,14 +678,15 @@ class Graph(object):
         """
         vs = self.vertices.keys()
         vs.sort()
-        al = []
-        for i in [map(lambda (t, i): (f, t, i), l)
-                  for (f, l) in self.adjacency_list.items()]:
-            al.extend(i)
+        al = [(vfrom, vto, edgeid)
+              for vfrom, lto in self.adjacency_list.iteritems()
+              for vto, edgeid in lto]
         al.sort()
-        return "digraph G { " \
-               + ";".join([str(s) for s in vs]) + ";" \
-               + ";".join(["%s -> %s [label=\"%s\"]" % s for s in al]) + "}"
+        return ("digraph G {\n"
+                + ";".join([str(s) for s in vs])
+                + ";\n"
+                + "\n".join(["%s -> %s [label=\"%s\"];" % s for s in al])
+                + "\n}")
 
     def __repr__(self):
         """ __repr__() -> str

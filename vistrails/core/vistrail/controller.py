@@ -122,6 +122,9 @@ class CompareThumbnailsError(Exception):
         return "Comparing thumbnails failed.\n%s\n%s\n%s" % \
             (self._msg, self._first, self._second)
 
+def dot_escape(s):
+    return '"%s"' % s.replace('\\', '\\\\').replace('"', '\\"')
+
 class VistrailController(object):
     def __init__(self, vistrail=None, locator=None, abstractions=None, 
                  thumbnails=None, mashups=None, id_scope=None, 
@@ -2796,19 +2799,30 @@ class VistrailController(object):
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
-        
-    # def refine_graph(self, step=1.0):
-    #     """ refine_graph(step: float in [0,1]) -> (Graph, Graph)
-    #     Refine the graph of the current vistrail based the search
-    #     status of the controller. It also return the full graph as a
-    #     reference
-                     
-    #     """
-        
-    #     if self._current_full_graph is None:
-    #         self.recompute_terse_graph()
-    #     return (self._current_terse_graph, self._current_full_graph,
-    #             self._current_graph_layout)
+
+    def save_version_graph(self, filename, tersed=True):
+        if tersed:
+            graph = copy.copy(self._current_terse_graph)
+        else:
+            graph = copy.copy(self._current_full_graph)
+        tm = self.vistrail.get_tagMap()
+        vs = graph.vertices.keys()
+        vs.sort()
+        al = [(vfrom, vto, edgeid)
+              for vfrom, lto in graph.adjacency_list.iteritems()
+              for vto, edgeid in lto]
+        al.sort()
+
+        with open(filename, 'wb') as fp:
+            fp.write('digraph G {\n')
+            for v in vs:
+                descr = tm.get(v, None) or self.vistrail.get_description(v)
+                fp.write('    %s [label=%s];\n' % (v, dot_escape(descr)))
+            fp.write('\n')
+            for s in al:
+                vfrom, vto, vdata = s
+                fp.write('    %s -> %s;\n' % (vfrom, vto))
+            fp.write('}\n')
 
     def get_latest_version_in_graph(self):
         if not self._current_terse_graph:
