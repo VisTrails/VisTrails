@@ -249,7 +249,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         
         """
         if not hasattr(self, 'exportSheetToImageVar'):
-            self.exportSheetToImageVar = QtGui.QAction('Export', self)
+            self.exportSheetToImageVar = QtGui.QAction('Export Sheet', self)
             self.exportSheetToImageVar.setStatusTip(
                 'Export all cells in the spreadsheet to a montaged image')
 

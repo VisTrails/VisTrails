@@ -306,7 +306,7 @@ class QCellToolBar(QtGui.QToolBar):
                     "This cell type doesn't provide any export option")
             return
         filename = QtGui.QFileDialog.getSaveFileName(
-            self, "Select a File to Export the Sheet",
+            self, "Select a File to Export the Cell",
             ".", ';;'.join(cell.save_formats))
         if filename:
             cell.dumpToFile(filename)
