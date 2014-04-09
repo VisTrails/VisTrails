@@ -36,6 +36,7 @@ import copy
 from itertools import izip
 import os
 import uuid
+import re
 import shutil
 import tempfile
 
@@ -124,6 +125,16 @@ class CompareThumbnailsError(Exception):
 
 def dot_escape(s):
     return '"%s"' % s.replace('\\', '\\\\').replace('"', '\\"')
+
+custom_color_key = '__color__'
+
+custom_color_fmt = re.compile(r'^([0-9]+) *, *([0-9]+) *, *([0-9]+)$')
+
+def parse_custom_color(color):
+    m = custom_color_fmt.match(color)
+    if not m:
+        raise ValueError("Color annotation doesn't match format")
+    return tuple(int(m.group(i)) for i in xrange(1, 4))
 
 class VistrailController(object):
     def __init__(self, vistrail=None, locator=None, abstractions=None, 
@@ -2813,11 +2824,28 @@ class VistrailController(object):
               for vto, edgeid in lto]
         al.sort()
 
+        configuration = get_vistrails_configuration()
+        use_custom_colors = configuration.check('enableCustomVersionColors')
+
         with open(filename, 'wb') as fp:
             fp.write('digraph G {\n')
             for v in vs:
                 descr = tm.get(v, None) or self.vistrail.get_description(v)
-                fp.write('    %s [label=%s];\n' % (v, dot_escape(descr)))
+                if use_custom_colors:
+                    color = self.vistrail.get_action_annotation(
+                            v,
+                            custom_color_key)
+                else:
+                    color = None
+                if color:
+                    color = '#%s%s%s' % tuple(
+                            '%02x' % c
+                            for c in parse_custom_color(color.value))
+                    fp.write('    %s [label=%s, '
+                             'style=filled, fillcolor="%s"];\n' % (
+                             v, dot_escape(descr), color))
+                else:
+                    fp.write('    %s [label=%s];\n' % (v, dot_escape(descr)))
             fp.write('\n')
             for s in al:
                 vfrom, vto, vdata = s
