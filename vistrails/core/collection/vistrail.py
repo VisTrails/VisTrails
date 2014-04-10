@@ -80,8 +80,8 @@ class VistrailEntity(Entity):
         else:
             entity.description = ''
         entity.user = action.user
-        entity.mod_time = action.date
-        entity.create_time = action.date
+        entity.mod_time = action.db_date
+        entity.create_time = action.db_date
         locator = BaseLocator.from_url(self.url)
         locator.kwargs['version_node'] = action.id
         entity.url = locator.to_url()
@@ -98,8 +98,8 @@ class VistrailEntity(Entity):
         else:
             entity.description = ''
         entity.user = action.user
-        entity.mod_time = action.date
-        entity.create_time = action.date
+        entity.mod_time = action.db_date
+        entity.create_time = action.db_date
         locator = BaseLocator.from_url(self.url)
         locator.kwargs['mashuptrail'] = trail_id
         locator.kwargs['mashup'] = action.id
@@ -153,11 +153,11 @@ class VistrailEntity(Entity):
             latestVersionId = vistrail.get_latest_version()
             latestVersion = vistrail.actionMap[latestVersionId]
             user = latestVersion.user
-            mod_time = latestVersion.date
+            mod_time = latestVersion.db_date
             # FIXME: relies on 1 being the first version...
             firstVersion = vistrail.actionMap[1] \
                 if 1 in vistrail.actionMap else latestVersion
-            create_time = firstVersion.date
+            create_time = firstVersion.db_date
         url = vistrail.locator.to_url() if vistrail.locator else "untitled:"
         return (name, size, user, mod_time, create_time, url)
 

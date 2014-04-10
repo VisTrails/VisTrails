@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 from vistrails.core.db.locator import BaseLocator
+from datetime import datetime
 
 class Entity(object):
     def __init__(self):
@@ -45,21 +46,24 @@ class Entity(object):
     def load(self, *args):
         (self.id, 
          _, 
-         self.name, 
+         self.name,
          self.user,
-         self.mod_time, 
+         self.mod_time,
          self.create_time,
          self.size,
          self.description,
          self.url) = args
+        self.mod_time = self.timeval(self.mod_time)
+        self.create_time = self.timeval(self.create_time)
+
 
     def save(self):
         return (self.id,
                 self.type_id,
                 self.name,
                 self.user,
-                self.mod_time,
-                self.create_time,
+                str(self.mod_time),
+                str(self.create_time),
                 self.size,
                 self.description,
                 self.url)
@@ -71,6 +75,20 @@ class Entity(object):
     def _get_end_date(self):
         return self.mod_time
     end_date = property(_get_end_date)
+
+    def now(self):
+        return datetime.now()
+
+    def timeval(self, time):
+        try:
+            return datetime.strptime(time,'%Y-%m-%d %H:%M:%S.%f')
+        except ValueError:
+            # try old format
+            try:
+                return datetime.strptime(time, '%d %b %Y %H:%M:%S')
+            except ValueError:
+                # locale or other error
+                return self.now()
 
 #     # returns string
 #     def get_name(self):
