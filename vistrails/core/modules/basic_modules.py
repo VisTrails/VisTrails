@@ -554,6 +554,10 @@ class WriteFile(Converter):
         contents = self.getInputFromPort('in_value')
         suffix = self.forceGetInputFromPort('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
+        if self.hasInputFromPort('encoding'):
+            contents = contents.decode('utf-8') # VisTrails uses UTF-8
+                                                # internally (I hope)
+            contents = contents.encode(self.getInputFromPort('encoding'))
         with open(result.name, 'wb') as fp:
             fp.write(contents)
         self.setResult('out_value', result)
@@ -565,6 +569,10 @@ class ReadFile(Converter):
         filename = self.getInputFromPort('in_value').name
         with open(filename, 'rb') as fp:
             contents = fp.read()
+        if self.hasInputFromPort('encoding'):
+            contents = contents.decode(self.getInputFromPort('encoding'))
+            contents = contents.encode('utf-8') # VisTrails uses UTF-8
+                                                # internally (for now)
         self.setResult('out_value', contents)
 
 ##############################################################################
@@ -1251,10 +1259,12 @@ def initialize(*args, **kwargs):
     reg.add_module(WriteFile)
     reg.add_input_port(WriteFile, 'in_value', String)
     reg.add_input_port(WriteFile, 'suffix', String, True, defaults='[""]')
+    reg.add_input_port(WriteFile, 'encoding', String, True)
     reg.add_output_port(WriteFile, 'out_value', File)
 
     reg.add_module(ReadFile)
     reg.add_input_port(ReadFile, 'in_value', File)
+    reg.add_input_port(ReadFile, 'encoding', String, True)
     reg.add_output_port(ReadFile, 'out_value', String)
 
     reg.add_module(Color)
