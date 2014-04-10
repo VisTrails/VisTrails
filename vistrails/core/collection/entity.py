@@ -36,6 +36,8 @@ from vistrails.core.db.locator import BaseLocator
 from datetime import datetime
 
 class Entity(object):
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
+
     def __init__(self):
         self.parent = None
         self.children = []
@@ -62,8 +64,8 @@ class Entity(object):
                 self.type_id,
                 self.name,
                 self.user,
-                str(self.mod_time),
-                str(self.create_time),
+                self.mod_time.strftime(self.DATE_FORMAT),
+                self.create_time.strftime(self.DATE_FORMAT),
                 self.size,
                 self.description,
                 self.url)
@@ -81,7 +83,7 @@ class Entity(object):
 
     def timeval(self, time):
         try:
-            return datetime.strptime(time,'%Y-%m-%d %H:%M:%S.%f')
+            return datetime.strptime(time, self.DATE_FORMAT)
         except ValueError:
             # try old format
             try:
