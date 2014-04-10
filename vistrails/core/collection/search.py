@@ -41,7 +41,6 @@ from vistrails.core.query import extract_text
 
 import unittest
 import datetime
-import vistrails.core
 
 ################################################################################
 
@@ -398,14 +397,14 @@ class BeforeSearchStmt(TimeSearchStmt):
     def match(self, entity):
         if not entity.mod_time:
             return False
-        t = time.mktime(time.strptime(entity.mod_time, "%d %b %Y %H:%M:%S"))
+        t = time.mktime(entity.mod_time)
         return t <= self.date
 
 class AfterSearchStmt(TimeSearchStmt):
     def match(self, entity):
         if not entity.mod_time:
             return False
-        t = time.mktime(time.strptime(entity.mod_time, "%d %b %Y %H:%M:%S"))
+        t = time.mktime(entity.mod_time)
         return t >= self.date
 
 class UserSearchStmt(SearchStmt):
