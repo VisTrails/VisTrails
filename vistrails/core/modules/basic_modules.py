@@ -558,6 +558,15 @@ class WriteFile(Converter):
             fp.write(contents)
         self.setResult('out_value', result)
 
+class ReadFile(Converter):
+    """Reads a File to a String.
+    """
+    def compute(self):
+        filename = self.getInputFromPort('in_value').name
+        with open(filename, 'rb') as fp:
+            contents = fp.read()
+        self.setResult('out_value', contents)
+
 ##############################################################################
 
 class Color(Constant):
@@ -1243,6 +1252,10 @@ def initialize(*args, **kwargs):
     reg.add_input_port(WriteFile, 'in_value', String)
     reg.add_input_port(WriteFile, 'suffix', String, True, defaults='[""]')
     reg.add_output_port(WriteFile, 'out_value', File)
+
+    reg.add_module(ReadFile)
+    reg.add_input_port(ReadFile, 'in_value', File)
+    reg.add_output_port(ReadFile, 'out_value', String)
 
     reg.add_module(Color)
     reg.add_input_port(Color, "value", Color)
