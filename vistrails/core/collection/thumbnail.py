@@ -64,8 +64,8 @@ class ThumbnailEntity(Entity):
             statinfo = os.stat(self.thumbnail)
             self.user = statinfo[stat.ST_UID]
             self.size = statinfo[stat.ST_SIZE]
-            time = datetime(*localtime(statinfo[stat.ST_MTIME])[:6]).strftime('%d %b %Y %H:%M:%S')
-            self.mod_time = ''
+            time = datetime(*localtime(statinfo[stat.ST_MTIME])[:6])
+            self.mod_time = time
             self.create_time = time
             self.description = ""
             self.url = 'test'
