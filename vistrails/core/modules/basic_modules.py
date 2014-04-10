@@ -410,24 +410,23 @@ Directory.default_value = Directory()
 
 def path_parameter_hasher(p):
     def get_mtime(path):
-        v_list = [int(os.path.getmtime(path))]
+        t = int(os.path.getmtime(path))
         if os.path.isdir(path):
             for subpath in os.listdir(path):
                 subpath = os.path.join(path, subpath)
                 if os.path.isdir(subpath):
-                    v_list.extend(get_mtime(subpath))
-        return v_list
+                    t = max(t, get_mtime(subpath))
+        return t
 
     h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
     try:
         # FIXME: This will break with aliases - I don't really care that much
-        v_list = get_mtime(p.strValue)
+        t = get_mtime(p.strValue)
     except OSError:
         return h
     hasher = sha_hash()
     hasher.update(h)
-    for v in v_list:
-        hasher.update(str(v))
+    hasher.update(str(t))
     return hasher.digest()
 
 ##############################################################################
