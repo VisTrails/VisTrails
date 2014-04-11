@@ -46,7 +46,7 @@ class MashupEntity(Entity):
     @staticmethod
     def create(*args):
         entity = MashupEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
 
     def update(self, mashup):

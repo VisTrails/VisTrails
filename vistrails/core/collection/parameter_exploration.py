@@ -46,7 +46,7 @@ class ParameterExplorationEntity(Entity):
     @staticmethod
     def create(*args):
         entity = ParameterExplorationEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
 
     def update(self, pe):
