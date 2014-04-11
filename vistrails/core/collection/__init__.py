@@ -188,7 +188,7 @@ class Collection(object):
 
     def load_entity(self, *args):
         if args[1] in Collection.entity_types:
-            entity = Collection.entity_types[args[1]].load(*args)
+            entity = Collection.entity_types[args[1]].create(*args)
             return entity
         else:
             debug.critical("Cannot find entity type '%s'" % args[1])

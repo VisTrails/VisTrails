@@ -65,7 +65,7 @@ class VistrailEntity(Entity):
         self.reload(vistrail)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = VistrailEntity()
         Entity.load(entity, *args)
         return entity

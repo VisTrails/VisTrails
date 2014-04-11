@@ -49,7 +49,7 @@ class ThumbnailEntity(Entity):
         self.update(thumbnail)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = ThumbnailEntity()
         Entity.load(entity, *args)
         return entity
