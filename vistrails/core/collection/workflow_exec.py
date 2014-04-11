@@ -32,8 +32,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.system import strftime
-
 from entity import Entity
 
 class WorkflowExecEntity(Entity):
@@ -55,12 +53,10 @@ class WorkflowExecEntity(Entity):
         if self.workflow_exec is not None:
             self.name = "%s" % self.workflow_exec.db_ts_start
             self.user = self.workflow_exec.user
-            self.mod_time = (
-                strftime(self.workflow_exec.ts_end, '%d %b %Y %H:%M:%S')
-                if self.workflow_exec.ts_end else '1 Jan 0000 00:00:00')
-            self.create_time = (
-                strftime(self.workflow_exec.ts_start, '%d %b %Y %H:%M:%S')
-                if self.workflow_exec.ts_start else '1 Jan 0000 00:00:00')
+            self.mod_time =    self.workflow_exec.ts_end \
+                               if self.workflow_exec.ts_end else self.now()
+            self.create_time = self.workflow_exec.ts_start \
+                               if self.workflow_exec.ts_start else self.now()
             self.size = len(self.workflow_exec.item_execs)
             self.description = ""
             self.url = 'test'

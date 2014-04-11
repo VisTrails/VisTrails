@@ -37,7 +37,6 @@ import stat
 from time import localtime
 from datetime import datetime
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.system import strftime
 
 from entity import Entity
 
@@ -65,9 +64,8 @@ class ThumbnailEntity(Entity):
             statinfo = os.stat(self.thumbnail)
             self.user = statinfo[stat.ST_UID]
             self.size = statinfo[stat.ST_SIZE]
-            time = strftime(datetime(*localtime(statinfo[stat.ST_MTIME])[:6]),
-                            '%d %b %Y %H:%M:%S')
-            self.mod_time = ''
+            time = datetime(*localtime(statinfo[stat.ST_MTIME])[:6])
+            self.mod_time = time
             self.create_time = time
             self.description = ""
             self.url = 'test'

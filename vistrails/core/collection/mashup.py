@@ -55,8 +55,8 @@ class MashupEntity(Entity):
             self.name = mashup.name \
             if mashup.name else "Version #" + str(mashup.id)
             self.user = 'testing'
-            self.mod_time = 'test'
-            self.create_time = 'test'
+            self.mod_time = self.now()
+            self.create_time = self.now()
             self.size = len(self.mashup.alias_list)
             self.description = ""
             self.url = 'test'
