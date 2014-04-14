@@ -32,199 +32,243 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-"""HTTP provides packages for HTTP-based file fetching. This provides
-a location-independent way of referring to files. This package uses a
-local cache of the files, inside the per-user VisTrails
-directory. This way, files that haven't been changed do not need
-downloading. The check is performed efficiently using the HTTP GET
-headers.
-"""
-from vistrails.core.modules.vistrails_module import ModuleError
-from vistrails.core.configuration import get_vistrails_persistent_configuration
-from vistrails.gui.utils import show_warning
-from vistrails.core.modules.vistrails_module import Module
-import vistrails.core.modules.basic_modules
-import vistrails.core.modules.module_registry
-from vistrails.core import debug
-from vistrails.core.system import current_dot_vistrails, strptime
-import vistrails.gui.repository
 
-import datetime
+"""URL provides modules to download files via the network.
+
+It can refer to HTTP and FTP files, which enables workflows to be distributed
+without its associated data.
+
+This package uses a local cache, inside the per-user VisTrails directory. This
+way, files that haven't been changed do not need to be downloaded again. The
+check is performed efficiently using HTTP headers.
+"""
+
+from datetime import datetime
 import email.utils
 import hashlib
-import os.path
-import sys
-import unittest
+import os
 import urllib
 import urllib2
+
+from vistrails.core.configuration import get_vistrails_persistent_configuration
+from vistrails.core import debug
+import vistrails.core.modules.basic_modules
+import vistrails.core.modules.module_registry
+from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.system import current_dot_vistrails, strptime
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+import vistrails.gui.repository
+from vistrails.gui.utils import show_warning
 
 from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
 
-from http_directory import download_directory
+from .http_directory import download_directory
 
-# special file uploaders used to push files to repository
 
 package_directory = None
 
+
 ###############################################################################
 
-class HTTPFile(Module):
-    """ Downloads file from URL """
+class Downloader(object):
+    def __init__(self, url, module):
+        self.url = url
+        self.module = module
 
-    def compute(self):
-        self.check_input('url')
-        url = self.get_input("url")
-        (result, downloaded_file, local_filename) = self.download(url)
-        self.set_output("local_filename", local_filename)
-        if result == 2:
-            raise ModuleError(self, downloaded_file)
-        else:
-            self.set_output("file", downloaded_file)
+    def execute(self):
+        """ Tries to download a file from url.
 
-    def download(self, url):
-        """download(url:string) -> (result: int, downloaded_file: File,
-                                    local_filename:string)
-        Tries to download a file from url. It returns a tuple with:
-        result: 0 -> success
-                1 -> couldn't download the file, but found a cached version
-                2 -> failed (in this case downloaded_file will contain the 
-                             error message)
-        downloaded_file: The downloaded file or the error message in case it
-                         failed
-                         
-        local_filename: the path to the local_filename
-        
+        Returns the path to the local file.
         """
-        
-        self._parse_url(url)
+        self.local_filename = os.path.join(package_directory,
+                                           urllib.quote_plus(self.url))
 
+        # Before download
+        self.pre_download()
+
+        # Send request
+        try:
+            response = self.send_request()
+        except urllib2.URLError, e:
+            if self.is_in_local_cache:
+                debug.warning("A network error occurred. DownloadFile will "
+                              "use a cached version of the file")
+                return self.local_filename
+            else:
+                raise ModuleError(
+                        self.module,
+                        "Network error: %s" % debug.format_exception(e))
+        if response is None:
+            return self.local_filename
+
+        # Read response headers
+        self.size_header = None
+        if not self.read_headers(response):
+            return self.local_filename
+
+        # Download
+        self.download(response)
+
+        # Post download
+        self.post_download(response)
+
+        return self.local_filename
+
+    def pre_download(self):
+        pass
+
+    def send_request(self):
         opener = urllib2.build_opener()
+        return opener.open(self.url)
 
-        local_filename = self._local_filename(url)
+    def read_headers(self, response):
+        return True
 
+    def download(self, response):
+        try:
+            dl_size = 0
+            CHUNKSIZE = 4096
+            f2 = open(self.local_filename, 'wb')
+            while True:
+                if self.size_header is not None:
+                    self.module.logging.update_progress(
+                            self.module,
+                            dl_size*1.0/self.size_header)
+                chunk = response.read(CHUNKSIZE)
+                if not chunk:
+                    break
+                dl_size += len(chunk)
+                f2.write(chunk)
+            f2.close()
+            response.close()
+
+        except Exception, e:
+            try:
+                os.unlink(self.local_filename)
+            except OSError:
+                pass
+            raise ModuleError(
+                    self.module,
+                    "Error retrieving URL: %s" % debug.format_exception(e))
+
+    def post_download(self, response):
+        pass
+
+    @property
+    def is_in_local_cache(self):
+        return os.path.isfile(self.local_filename)
+
+
+class HTTPDownloader(Downloader):
+    def pre_download(self):
         # Get ETag from disk
         try:
-            with open(local_filename + '.etag') as etag_file:
-                etag = etag_file.read()
+            with open(self.local_filename + '.etag') as etag_file:
+                self.etag = etag_file.read()
         except IOError:
-            etag = None
+            self.etag = None
 
+    def send_request(self):
+        opener = urllib2.build_opener()
         try:
-            request = urllib2.Request(url)
-            if etag is not None:
+            request = urllib2.Request(self.url)
+            if self.etag is not None:
                 request.add_header(
                     'If-None-Match',
-                    etag)
+                    self.etag)
             try:
-                mtime = email.utils.formatdate(os.path.getmtime(local_filename),
-                                               usegmt=True)
+                mtime = email.utils.formatdate(
+                        os.path.getmtime(self.local_filename),
+                        usegmt=True)
                 request.add_header(
                     'If-Modified-Since',
                     mtime)
             except OSError:
                 pass
-            f1 = opener.open(request)
-        except urllib2.URLError, e:
-            if isinstance(e, urllib2.HTTPError) and e.code == 304:
+            return opener.open(request)
+        except urllib2.HTTPError, e:
+            if e.code == 304:
                 # Not modified
-                result = vistrails.core.modules.basic_modules.File()
-                result.name = local_filename
-                return (0, result, local_filename)
-            if self._file_is_in_local_cache(local_filename):
-                debug.warning('A network error occurred. HTTPFile will use a '
-                              'cached version of the file')
-                result = vistrails.core.modules.basic_modules.File()
-                result.name = local_filename
-                return (1, result, local_filename)
-            else:
-                return (2, (debug.format_exception(e)), local_filename)
-        else:
-            try:
-                mod_header = f1.headers['last-modified']
-            except KeyError:
-                mod_header = None
-            try:
-                size_header = f1.headers['content-length']
-                if not size_header:
-                    raise ValueError
-                size_header = int(size_header)
-            except (KeyError, ValueError):
-                size_header = None
+                return None
+            raise
 
-            result = vistrails.core.modules.basic_modules.File()
-            result.name = local_filename
-
-            if (not self._file_is_in_local_cache(local_filename) or
-                    not mod_header or
-                    self._is_outdated(mod_header, local_filename)):
-                try:
-                    dl_size = 0
-                    CHUNKSIZE = 4096
-                    f2 = open(local_filename, 'wb')
-                    while True:
-                        if size_header is not None:
-                            self.logging.update_progress(
-                                    self,
-                                    dl_size*1.0/size_header)
-                        chunk = f1.read(CHUNKSIZE)
-                        if not chunk:
-                            break
-                        dl_size += len(chunk)
-                        f2.write(chunk)
-                    f2.close()
-                    f1.close()
-
-                except Exception, e:
-                    try:
-                        os.unlink(local_filename)
-                    except OSError:
-                        pass
-                    return (2, ("Error retrieving URL: %s" % e), local_filename)
-            result.name = local_filename
-
-            # Save ETag
-            try:
-                etag = f1.headers['ETag']
-            except KeyError:
-                pass
-            else:
-                with open(local_filename + '.etag', 'w') as etag_file:
-                    etag = etag_file.write(etag)
-
-            return (0, result, local_filename)
-        
-    ##########################################################################
-
-    def _parse_url(self, url):
-        s = url.split('/')
+    def read_headers(self, response):
         try:
-            self.host = s[2]
-            self.filename = '/' + '/'.join(s[3:])
-        except:
-            raise ModuleError(self, "Malformed URL: %s" % url)
-
-    def _is_outdated(self, remoteHeader, localFile):
-        """Checks whether local file is outdated."""
-        local_time = \
-                datetime.datetime.utcfromtimestamp(os.path.getmtime(localFile))
+            self.mod_header = response.headers['last-modified']
+        except KeyError:
+            self.mod_header = None
         try:
-            remote_time = strptime(remoteHeader, "%a, %d %b %Y %H:%M:%S %Z")
+            size_header = response.headers['content-length']
+            if not size_header:
+                raise ValueError
+            self.size_header = int(size_header)
+        except (KeyError, ValueError):
+            self.size_header = None
+        return True
+
+    def _is_outdated(self):
+        local_time = datetime.utcfromtimestamp(
+                os.path.getmtime(self.local_filename))
+        try:
+            remote_time = strptime(self.mod_header,
+                                   "%a, %d %b %Y %H:%M:%S %Z")
         except ValueError:
             try:
-                remote_time = strptime(remoteHeader, "%a, %d %B %Y %H:%M:%S %Z")
+                remote_time = strptime(self.mod_header,
+                                       "%a, %d %B %Y %H:%M:%S %Z")
             except ValueError:
                 # unable to parse last-modified header, download file again
-                debug.warning("Unable to parse Last-Modified header"
-                              ", downloading file")
+                debug.warning("Unable to parse Last-Modified header, "
+                              "downloading file")
                 return True
         return remote_time > local_time
 
-    def _file_is_in_local_cache(self, local_filename):
-        return os.path.isfile(local_filename)
+    def download(self, response):
+        if (not self.is_in_local_cache or
+                not self.mod_header or self._is_outdated()):
+            Downloader.download(self, response)
 
-    def _local_filename(self, url):
-        return package_directory + '/' + urllib.quote_plus(url)
+    def post_download(self, response):
+        try:
+            etag = response.headers['ETag']
+        except KeyError:
+            pass
+        else:
+            with open(self.local_filename + '.etag', 'w') as etag_file:
+                etag = etag_file.write(etag)
+
+
+downloaders = {
+    'http': HTTPDownloader,
+    'https': HTTPDownloader,
+    'ftp': Downloader}
+
+
+class DownloadFile(Module):
+    """ Downloads file from URL.
+
+    This modules uses urllib2 to download a remote file. It uses a cache on the
+    filesystem so as to not re-download unchanged files.
+    """
+
+    def compute(self):
+        self.check_input('url')
+        url = self.get_input('url')
+        local_filename = self.download(url)
+        self.set_output('local_filename', local_filename)
+        result = vistrails.core.modules.basic_modules.File()
+        result.name = local_filename
+        self.set_output('file', result)
+
+    def download(self, url):
+        """ Tries to download a file from url.
+
+        Returns the path to the local file.
+        """
+        scheme = urllib2.splittype(url)[0]
+        DL = downloaders.get(scheme, Downloader)
+        return DL(url, self).execute()
 
 
 class HTTPDirectory(Module):
@@ -248,7 +292,7 @@ class HTTPDirectory(Module):
 
 
 class RepoSync(Module):
-    """ VisTrails Server version of RepoSync modules. Customized to play 
+    """ VisTrails Server version of RepoSync modules. Customized to play
     nicely with crowdlabs. Needs refactoring.
 
     RepoSync enables data to be synced with a online repository. The designated file
@@ -293,7 +337,8 @@ class RepoSync(Module):
     def checksum_lookup(self):
         """ checks if the repository has the wanted data """
 
-        checksum_url = "%s/datasets/exists/%s/" % (self.base_url, self.checksum)
+        checksum_url = "%s/datasets/exists/%s/" % (self.base_url,
+                                                   self.checksum)
         self.on_server = False
         try:
             check_dataset_on_repo = urllib2.urlopen(url=checksum_url)
@@ -354,7 +399,7 @@ class RepoSync(Module):
             if self.up_to_date and os.path.isfile(self.in_file.name):
                 self.set_output("file", self.in_file)
             else:
-                # local file not present or out of date, download or used cached
+                # local file not present or out of date, download or use cache
                 self.url = "%s/datasets/download/%s" % (self.base_url,
                                                        self.checksum)
                 local_filename = package_directory + '/' + \
@@ -395,8 +440,9 @@ class RepoSync(Module):
                 # do size check
                 size = os.path.getsize(self.in_file.name)
                 if size > 26214400:
-                    show_warning("File is too large", ("file is larger than 25MB, "
-                                 "unable to sync with web repository"))
+                    show_warning("File is too large",
+                                 "file is larger than 25MB, "
+                                 "unable to sync with web repository")
                     self.set_output("file", self.in_file)
                 else:
                     # compute checksum
@@ -424,14 +470,16 @@ class RepoSync(Module):
                     # download file
                     self.data_sync()
 
+
 def initialize(*args, **keywords):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     basic = vistrails.core.modules.basic_modules
 
-    reg.add_module(HTTPFile)
-    reg.add_input_port(HTTPFile, "url", (basic.String, 'URL'))
-    reg.add_output_port(HTTPFile, "file", (basic.File, 'local File object'))
-    reg.add_output_port(HTTPFile, "local_filename",
+    reg.add_module(DownloadFile)
+    reg.add_input_port(DownloadFile, "url", (basic.String, 'URL'))
+    reg.add_output_port(DownloadFile, "file",
+                        (basic.File, 'local File object'))
+    reg.add_output_port(DownloadFile, "local_filename",
                         (basic.String, 'local filename'), optional=True)
 
     reg.add_module(HTTPDirectory)
@@ -459,15 +507,30 @@ def initialize(*args, **keywords):
             debug.log("Creating HTTP package directory: %s" % package_directory)
             os.mkdir(package_directory)
         except:
-            debug.critical(("Create directory failed. Make sure '%s' does not"
-                           " exist and parent directory is writable") %
-                            package_directory)
-            sys.exit(1)
-
-##############################################################################
+            raise RuntimeError("Failed to create cache directory: %s" %
+                               package_directory)
 
 
-class TestHTTPFile(unittest.TestCase):
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    module_remap = {
+            # HTTPFile was renamed DownloadFile
+            'HTTPFile': [
+                (None, '1.0.0', 'DownloadFile', {})
+            ],
+        }
+
+    return UpgradeWorkflowHandler.remap_module(controller,
+                                               module_id,
+                                               pipeline,
+                                               module_remap)
+
+
+###############################################################################
+
+import unittest
+
+
+class TestDownloadFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         from vistrails.core.packagemanager import get_package_manager
@@ -476,18 +539,12 @@ class TestHTTPFile(unittest.TestCase):
         try:
             pm.get_package('org.vistrails.vistrails.http')
         except MissingPackage:
-            pm.late_enable_package('HTTP')
-
-    def testParseURL(self):
-        foo = HTTPFile()
-        foo._parse_url('http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip')
-        self.assertEquals(foo.host, 'www.sci.utah.edu')
-        self.assertEquals(foo.filename, '/~cscheid/stuff/vtkdata-5.0.2.zip')
+            pm.late_enable_package('URL')
 
     def testIncorrectURL(self):
         from vistrails.tests.utils import execute
         self.assertTrue(execute([
-                ('HTTPFile', identifier, [
+                ('DownloadFile', identifier, [
                     ('url', [('String', 'http://idbetthisdoesnotexistohrly')]),
                 ]),
             ]))
@@ -495,10 +552,11 @@ class TestHTTPFile(unittest.TestCase):
     def testIncorrectURL_2(self):
         from vistrails.tests.utils import execute
         self.assertTrue(execute([
-                ('HTTPFile', identifier, [
+                ('DownloadFile', identifier, [
                     ('url', [('String', 'http://neitherodesthisohrly')]),
                 ]),
             ]))
+
 
 class TestHTTPDirectory(unittest.TestCase):
     def test_download(self):
@@ -530,6 +588,7 @@ class TestHTTPDirectory(unittest.TestCase):
                 })
         finally:
             shutil.rmtree(testdir)
+
 
 if __name__ == '__main__':
     unittest.main()
