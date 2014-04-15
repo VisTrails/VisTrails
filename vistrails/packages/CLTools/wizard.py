@@ -1017,6 +1017,7 @@ class QArgWidget(QtGui.QWidget):
         if self.argtype in self.stdTypes:
             return
         klass = self.klassList.itemData(self.klassList.currentIndex())
+        type = self.typeList.itemData(self.typeList.currentIndex())
         self.listLabel.setVisible(klass == "list" and type == 'input')
         self.subtype.setVisible(klass == "list" and type == 'input')
 
