@@ -61,7 +61,7 @@ class WebViewCell(SpreadsheetCell):
         else:
             fileValue = None
             urlValue = None
-        self.display(WebViewCellWidget, (urlValue, fileValue))
+        self.displayAndWait(WebViewCellWidget, (urlValue, fileValue))
 
 class WebViewCellWidget(QCellWidget):
     """

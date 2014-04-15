@@ -11,7 +11,7 @@ class TableCell(SpreadsheetCell):
 
     def compute(self):
         table = self.getInputFromPort('table')
-        self.cellWidget = self.displayAndWait(TableCellWidget, (table,))
+        self.displayAndWait(TableCellWidget, (table,))
 
 
 class TableCellWidget(QCellWidget):

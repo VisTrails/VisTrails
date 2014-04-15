@@ -62,7 +62,7 @@ class SVGCell(SpreadsheetCell):
             fileValue = window.file_pool.make_local_copy(file_to_display.name)
         else:
             fileValue = None
-        self.display(SVGCellWidget, (fileValue,))
+        self.displayAndWait(SVGCellWidget, (fileValue,))
 
 ### SVG Cell  widget type
 class SVGCellWidget(QCellWidget):
