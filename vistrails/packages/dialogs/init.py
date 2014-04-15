@@ -35,6 +35,7 @@
 
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.packagemanager import get_package_manager
 from PyQt4 import QtGui
 
 
@@ -117,3 +118,9 @@ class YesNoDialog(Dialog):
 _modules = [(Dialog, {'abstract': True}),
             TextDialog, PasswordDialog,
             YesNoDialog]
+
+
+pm = get_package_manager()
+if pm.has_package('org.vistrails.vistrails.spreadsheet'):
+    from .continue_prompt import _modules as continue_modules
+    _modules.extend(continue_modules)
