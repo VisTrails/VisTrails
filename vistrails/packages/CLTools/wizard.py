@@ -1008,9 +1008,10 @@ class QArgWidget(QtGui.QWidget):
             
     def fromList(self, arg):
         if self.argtype not in self.stdTypes:
-            self.argtype, self.name, self.klass, self.options = arg
+            self.argtype, self.name, klass, self.options = arg
         else:
-            self.name, self.klass, self.options = arg
+            self.name, klass, self.options = arg
+        self.klass = klass.lower()
         self.setValues()
 
     def klassChanged(self, index=None):
