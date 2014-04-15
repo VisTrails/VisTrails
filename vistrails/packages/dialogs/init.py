@@ -43,17 +43,16 @@ from PyQt4 import QtCore, QtGui
 ##############################################################################
 
 class Dialog(Module):
-    pass
-
-class TextDialog(Dialog):
-    password = False
 
     def __init__(self, *args, **kwargs):
-        super(TextDialog,self).__init__(*args, **kwargs)
+        super(Dialog,self).__init__(*args, **kwargs)
         self.cacheable_dialog = False
 
     def is_cacheable(self):
         return self.cacheable_dialog
+
+class TextDialog(Dialog):
+    password = False
 
     def compute(self):
         if self.hasInputFromPort('title'):
@@ -93,18 +92,48 @@ class PasswordDialog(TextDialog):
     password = True
 
 
+class YesNoDialog(Dialog):
+    def compute(self):
+        if self.hasInputFromPort('title'):
+            title = self.getInputFromPort('title')
+        else:
+            title = 'VisTrails Dialog'
+        if self.hasInputFromPort('label'):
+            label = self.getInputFromPort('label')
+        else:
+            label = 'Yes/No?'
+
+        if self.hasInputFromPort('cacheable') and self.getInputFromPort('cacheable'):
+            self.cacheable_dialog = True
+        else:
+            self.cacheable_dialog = False
+
+        result = QtGui.QMessageBox.question(
+                None,
+                title, label,
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        result = result == QtGui.QMessageBox.Yes
+
+        self.setResult('result', result)
+
+
 ##############################################################################
 
 def initialize(*args, **keywords):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     basic = vistrails.core.modules.basic_modules
-    reg.add_module(Dialog, abstract=True)
-    reg.add_module(TextDialog)
 
-    reg.add_input_port(TextDialog, "title", basic.String)
+    reg.add_module(Dialog, abstract=True)
+    reg.add_input_port(Dialog, "title", basic.String)
+    reg.add_input_port(Dialog, "cacheable", basic.Boolean)
+
+    reg.add_module(TextDialog)
     reg.add_input_port(TextDialog, "label", basic.String)
     reg.add_input_port(TextDialog, "default", basic.String)
-    reg.add_input_port(TextDialog, "cacheable", basic.Boolean)
     reg.add_output_port(TextDialog, "result", basic.String)
 
     reg.add_module(PasswordDialog)
+
+    reg.add_module(YesNoDialog)
+    reg.add_input_port(YesNoDialog, "label", basic.String)
+    reg.add_output_port(YesNoDialog, "result", basic.Boolean)

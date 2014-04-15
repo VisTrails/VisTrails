@@ -37,5 +37,5 @@ Users can then enter file names, numbers, strings, etc."""
 
 identifier = 'org.vistrails.vistrails.dialogs'
 name = 'Dialogs'
-version = '0.9.1'
+version = '0.9.2'
 old_identifiers = ['edu.utah.sci.vistrails.dialogs']
