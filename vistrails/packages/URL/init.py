@@ -64,9 +64,13 @@ from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
 
 from .http_directory import download_directory
+from .https import build_opener
 
 
 package_directory = None
+
+
+opener = build_opener()
 
 
 ###############################################################################
@@ -119,7 +123,6 @@ class Downloader(object):
         pass
 
     def send_request(self):
-        opener = urllib2.build_opener()
         return opener.open(self.url)
 
     def read_headers(self, response):
@@ -170,7 +173,6 @@ class HTTPDownloader(Downloader):
             self.etag = None
 
     def send_request(self):
-        opener = urllib2.build_opener()
         try:
             request = urllib2.Request(self.url)
             if self.etag is not None:

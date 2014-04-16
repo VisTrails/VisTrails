@@ -1,9 +1,13 @@
 # https://gist.github.com/remram44/6540454
 
 from HTMLParser import HTMLParser
-import urllib2
 import os
 import re
+
+from .https import build_opener
+
+
+opener = build_opener()
 
 
 re_url = re.compile(r'^(([a-zA-Z_-]+)://([^/]+))(/.*)?$')
@@ -63,7 +67,7 @@ def download_directory(url, target):
             mkdir.done = True
     mkdir.done = False
 
-    response = urllib2.urlopen(url)
+    response = opener.open(url)
 
     if response.info().type == 'text/html':
         contents = response.read()
