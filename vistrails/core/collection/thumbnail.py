@@ -49,9 +49,9 @@ class ThumbnailEntity(Entity):
         self.update(thumbnail)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = ThumbnailEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
 
     def update(self, thumbnail):

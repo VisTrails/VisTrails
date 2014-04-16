@@ -43,9 +43,9 @@ class WorkflowExecEntity(Entity):
         self.update(workflow_exec)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = WorkflowExecEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
 
     def update(self, workflow_exec):

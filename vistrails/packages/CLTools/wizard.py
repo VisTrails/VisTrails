@@ -1011,15 +1011,17 @@ class QArgWidget(QtGui.QWidget):
             
     def fromList(self, arg):
         if self.argtype not in self.stdTypes:
-            self.argtype, self.name, self.klass, self.options = arg
+            self.argtype, self.name, klass, self.options = arg
         else:
-            self.name, self.klass, self.options = arg
+            self.name, klass, self.options = arg
+        self.klass = klass.lower()
         self.setValues()
 
     def klassChanged(self, index=None):
         if self.argtype in self.stdTypes:
             return
         klass = self.klassList.itemData(self.klassList.currentIndex())
+        type = self.typeList.itemData(self.typeList.currentIndex())
         self.listLabel.setVisible(klass == "list" and type == 'input')
         self.subtype.setVisible(klass == "list" and type == 'input')
 

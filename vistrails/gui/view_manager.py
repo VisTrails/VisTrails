@@ -490,6 +490,7 @@ class QViewManager(QtGui.QTabWidget):
             if not locator:
                 return False
             # update collection
+            vistrailView.controller.flush_delayed_actions()
             try:
                 vistrailView.controller.write_vistrail(locator)
             except Exception, e:

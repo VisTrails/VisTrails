@@ -1728,6 +1728,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             else:
                 yield (item, True)
 
+    def mouseReleaseEvent(self, event):
+        super(QGraphicsModuleItem, self).mouseReleaseEvent(event)
+        if not self.controller.changed and self.controller.has_move_actions():
+            self.controller.set_changed(True)
+
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: value) -> value
         Capture move event to also move the connections.  Also unselect any

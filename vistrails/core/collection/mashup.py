@@ -44,9 +44,9 @@ class MashupEntity(Entity):
         self.update(mashup)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = MashupEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
 
     def update(self, mashup):
@@ -62,48 +62,6 @@ class MashupEntity(Entity):
             self.url = 'test'
             self.was_updated = True
 
-#             self.name = self.workflow.name
-#             self.user = self.workflow.user
-#             self.mod_time = self.workflow.py_date
-#             self.create_time = self.workflow.py_date
-#             self.size = len(self.workflow.modules)
-#             self.description = self.workflow.notes
-#             self.was_updated = True
-        
-#     # returns string
-#     def get_name(self):
-#         raise RuntimeError("Method is abstract")
-
-#     # returns datetime
-#     def get_mod_time(self):
-#         raise RuntimeError("Method is abstract")
-
-#     # returns datetime
-#     def get_create_time(self):
-#         raise RuntimeError("Method is abstract")
-    
-#     # returns string
-#     # FIXME: perhaps this should be a User object at some point
-#     def get_user(self):
-#         raise RuntimeError("Method is abstract")
-    
-#     # returns tuple (<entity_type>, <entity_id>)
-#     def get_id(self):
-#         raise RuntimeError("Method is abstract")
-
-#     # returns integer
-#     def get_size(self):
-#         raise RuntimeError("Method is abstract")
-    
-#     # returns possibly empty list of Entity objects
-#     def get_children(self):
-#         raise RuntimeError("Method is abstract")
-
-#     # returns list of strings representing paths
-#     # FIXME: should this be uris for database access?
-#     def get_image_fnames(self):
-#         raise RuntimeError("Method is abstract")
-    
     # returns boolean, True if search input is satisfied else False
     def match(self, search):
         raise RuntimeError("Not implemented")
