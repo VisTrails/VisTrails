@@ -64,7 +64,7 @@ from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
 
 from .http_directory import download_directory
-from .https import build_opener
+from .https_if_available import build_opener
 
 
 package_directory = None

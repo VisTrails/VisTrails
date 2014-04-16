@@ -4,7 +4,7 @@ from HTMLParser import HTMLParser
 import os
 import re
 
-from .https import build_opener
+from .https_if_available import build_opener
 
 
 re_url = re.compile(r'^(([a-zA-Z_-]+)://([^/]+))(/.*)?$')

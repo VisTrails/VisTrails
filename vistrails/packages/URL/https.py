@@ -12,6 +12,9 @@ import certifi
 from backports.ssl_match_hostname import match_hostname
 
 
+__all__ = ['VerifiedHTTPSHandler', 'https_handler', 'build_opener']
+
+
 class CertValidatingHTTPSConnection(httplib.HTTPConnection):
     default_port = httplib.HTTPS_PORT
 
