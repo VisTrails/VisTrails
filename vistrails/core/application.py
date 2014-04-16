@@ -739,6 +739,7 @@ after self.init()"""
             return False
         old_locator = controller.locator
 
+        controller.flush_delayed_actions()
         try:
             controller.write_vistrail(locator, export=export)
         except Exception, e:

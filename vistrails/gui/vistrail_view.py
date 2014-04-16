@@ -889,6 +889,7 @@ class QVistrailView(QtGui.QWidget):
         #print "CALLED SAVE VISTRAIL", locator_class
 
         self.flush_changes()
+        self.controller.flush_delayed_actions()
         gui_get = locator_class.save_from_gui
         # get a locator to write to
         if not locator or locator.is_untitled():
