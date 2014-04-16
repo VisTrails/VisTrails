@@ -7,9 +7,6 @@ import re
 from .https import build_opener
 
 
-opener = build_opener()
-
-
 re_url = re.compile(r'^(([a-zA-Z_-]+)://([^/]+))(/.*)?$')
 
 def resolve_link(link, url):
@@ -57,7 +54,7 @@ class ListingParser(HTMLParser):
                     break
 
 
-def download_directory(url, target):
+def download_directory(url, target, insecure=False):
     def mkdir():
         if not mkdir.done:
             try:
@@ -67,6 +64,7 @@ def download_directory(url, target):
             mkdir.done = True
     mkdir.done = False
 
+    opener = build_opener(insecure=insecure)
     response = opener.open(url)
 
     if response.info().type == 'text/html':
@@ -84,7 +82,7 @@ def download_directory(url, target):
             if '?' in name:
                 continue
             mkdir()
-            download_directory(link, os.path.join(target, name))
+            download_directory(link, os.path.join(target, name), insecure)
         if not mkdir.done:
             # We didn't find anything to write inside this directory
             # Maybe it's a HTML file?

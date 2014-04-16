@@ -70,15 +70,13 @@ from .https import build_opener
 package_directory = None
 
 
-opener = build_opener()
-
-
 ###############################################################################
 
 class Downloader(object):
-    def __init__(self, url, module):
+    def __init__(self, url, module, insecure):
         self.url = url
         self.module = module
+        self.opener = build_opener(insecure=insecure)
 
     def execute(self):
         """ Tries to download a file from url.
@@ -123,7 +121,7 @@ class Downloader(object):
         pass
 
     def send_request(self):
-        return opener.open(self.url)
+        return self.opener.open(self.url)
 
     def read_headers(self, response):
         return True
@@ -188,7 +186,7 @@ class HTTPDownloader(Downloader):
                     mtime)
             except OSError:
                 pass
-            return opener.open(request)
+            return self.opener.open(request)
         except urllib2.HTTPError, e:
             if e.code == 304:
                 # Not modified
@@ -257,20 +255,21 @@ class DownloadFile(Module):
     def compute(self):
         self.check_input('url')
         url = self.get_input('url')
-        local_filename = self.download(url)
+        insecure = self.get_input('insecure')
+        local_filename = self.download(url, insecure)
         self.set_output('local_filename', local_filename)
         result = vistrails.core.modules.basic_modules.File()
         result.name = local_filename
         self.set_output('file', result)
 
-    def download(self, url):
+    def download(self, url, insecure):
         """ Tries to download a file from url.
 
         Returns the path to the local file.
         """
         scheme = urllib2.splittype(url)[0]
         DL = downloaders.get(scheme, Downloader)
-        return DL(url, self).execute()
+        return DL(url, self, insecure).execute()
 
 
 class HTTPDirectory(Module):
@@ -280,16 +279,17 @@ class HTTPDirectory(Module):
     def compute(self):
         self.check_input('url')
         url = self.get_input('url')
-        local_path = self.download(url)
+        insecure = self.get_input('insecure')
+        local_path = self.download(url, insecure)
         self.set_output('local_path', local_path)
         local_dir = vistrails.core.modules.basic_modules.Directory()
         local_dir.name = local_path
         self.set_output('directory', local_dir)
 
-    def download(self, url):
+    def download(self, url, insecure):
         local_path = self.interpreter.filePool.create_directory(
                 prefix='vt_http').name
-        download_directory(url, local_path)
+        download_directory(url, local_path, insecure)
         return local_path
 
 
@@ -479,6 +479,9 @@ def initialize(*args, **keywords):
 
     reg.add_module(DownloadFile)
     reg.add_input_port(DownloadFile, "url", (basic.String, 'URL'))
+    reg.add_input_port(DownloadFile, 'insecure',
+                       (basic.Boolean, "Allow invalid SSL certificates"),
+                       optional=True, defaults="['False']")
     reg.add_output_port(DownloadFile, "file",
                         (basic.File, 'local File object'))
     reg.add_output_port(DownloadFile, "local_filename",
@@ -486,6 +489,9 @@ def initialize(*args, **keywords):
 
     reg.add_module(HTTPDirectory)
     reg.add_input_port(HTTPDirectory, 'url', (basic.String, "URL"))
+    reg.add_input_port(HTTPDirectory, 'insecure',
+                       (basic.Boolean, "Allow invalid SSL certificates"),
+                       optional=True, defaults="['False']")
     reg.add_output_port(HTTPDirectory, 'directory',
                         (basic.Directory, "local Directory object"))
     reg.add_output_port(HTTPDirectory, 'local_path',

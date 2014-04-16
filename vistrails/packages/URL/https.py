@@ -55,6 +55,14 @@ class VerifiedHTTPSHandler(urllib2.HTTPSHandler):
 https_handler = VerifiedHTTPSHandler(ca_certs=certifi.where())
 
 
-def build_opener(*handlers):
-    handlers = handlers + (https_handler, urllib2.ProxyHandler())
+def build_opener(*handlers, **kwargs):
+    # Keyword-only argument 'insecure'
+    insecure = kwargs.pop('insecure', False)
+    if kwargs:
+        raise TypeError("build_opener() got unexpected keyword argument %r" %
+                        next(iter(kwargs)))
+
+    if not insecure:
+        handlers = handlers + (https_handler,)
+    handlers = handlers + (urllib2.ProxyHandler(),)
     return urllib2.build_opener(*handlers)
