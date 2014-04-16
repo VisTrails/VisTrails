@@ -565,16 +565,38 @@ class WriteFile(Converter):
     """Writes a String to a temporary File.
     """
     _input_ports = [IPort('in_value', String),
-                    IPort('suffix', String, optional=True, default="")]
+                    IPort('suffix', String, optional=True, default=""),
+                    IPort('encoding', String, optional=True)]
     _output_ports = [OPort('out_value', File)]
 
     def compute(self):
         contents = self.get_input('in_value')
         suffix = self.force_get_input('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
+        if self.hasInputFromPort('encoding'):
+            contents = contents.decode('utf-8') # VisTrails uses UTF-8
+                                                # internally (I hope)
+            contents = contents.encode(self.get_input('encoding'))
         with open(result.name, 'wb') as fp:
             fp.write(contents)
         self.set_output('out_value', result)
+
+class ReadFile(Converter):
+    """Reads a File to a String.
+    """
+    _input_ports = [IPort('in_value', File),
+                    IPort('encoding', String, optional=True)]
+    _output_ports = [OPort('out_value', String)]
+
+    def compute(self):
+        filename = self.get_input('in_value').name
+        with open(filename, 'rb') as fp:
+            contents = fp.read()
+        if self.has_input('encoding'):
+            contents = contents.decode(self.get_input('encoding'))
+            contents = contents.encode('utf-8') # VisTrails uses UTF-8
+                                                # internally (for now)
+        self.set_output('out_value', contents)
 
 ##############################################################################
 
@@ -1255,7 +1277,7 @@ def init_constant(m):
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
 
-_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual, StringFormat]
+_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, ReadFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual, StringFormat]
 
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
