@@ -3,6 +3,8 @@ from PyQt4 import QtCore, QtGui
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellContainer
+
 
 class PromptWindow(QtGui.QDialog):
     def __init__(self, widget, label=None):
@@ -33,14 +35,22 @@ class PromptIsOkay(Module):
         cell = self.getInputFromPort('cell').cellWidget
         label = self.forceGetInputFromPort('label', None)
 
-        result = PromptWindow(cell, label).exec_() == QtGui.QDialog.Accepted
+        # FIXME : This should be done via the spreadsheet, removing it properly
+        # and then sending a new DisplayCellEvent
+        # However, there is currently no facility to remove the widget from
+        # wherever it is
+        oldparent = cell.parent()
+        assert isinstance(oldparent, QCellContainer)
+        ncell = oldparent.takeWidget()
+        assert ncell == cell
+        dialog = PromptWindow(cell, label)
+        result = dialog.exec_() == QtGui.QDialog.Accepted
+        oldparent.setWidget(cell)
 
         self.setResult('result', result)
 
         if not result and not self.getInputFromPort('carry_on'):
             raise ModuleError(self, "Execution aborted")
-
-        # TODO : put widget back in the spreadsheet
 
 
 _modules = [PromptIsOkay]
