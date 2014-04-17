@@ -43,6 +43,7 @@
 type information, and organizes them.
 
 """
+from ast import literal_eval
 import re
 import vtk
 import class_tree
@@ -308,9 +309,9 @@ class VTKMethodParser(object):
 
             # Now quote the args and eval them.  Easy!
             if ret:
-                ret = eval(pat.sub('\"', ret))
+                ret = literal_eval(pat.sub('\"', ret))
             if arg:
-                arg = eval(pat.sub('\"', arg))
+                arg = literal_eval(pat.sub('\"', arg))
                 if isinstance(arg, basestring):
                     arg = [arg]
 

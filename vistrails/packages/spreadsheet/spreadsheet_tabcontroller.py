@@ -36,6 +36,7 @@
 # This file implements the Spreadsheet Tab Controller, to manages tabs
 #   StandardWidgetTabController
 ################################################################################
+from ast import literal_eval
 import os.path
 from PyQt4 import QtCore, QtGui
 from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
@@ -738,13 +739,13 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         lidx += 1
         for tabIdx in xrange(tabCount):
             # FIXME: eval should pretty much never be used
-            tabInfo = eval(lines[lidx])
+            tabInfo = literal_eval(lines[lidx])
             lidx += 1
             sheet = spreadsheetRegistry.getSheet(tabInfo[1])(self)
             sheet.setDimension(tabInfo[2], tabInfo[3])
             self.addTabWidget(sheet, tabInfo[0])
             while lines[lidx]!='---':
-                (r, c, vistrail, pid, cid) = eval(lines[lidx])
+                (r, c, vistrail, pid, cid) = literal_eval(lines[lidx])
                 locator = vistrail['locator']
                 if locators.has_key(locator):
                     vistrail['locator'] = locators[locator]
@@ -766,7 +767,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         progress.show()
         for pipelineIdx in xrange(pipelineCount):
             # FIXME: eval should pretty much never be used
-            (serializedLocator, version) = eval(lines[lidx])
+            (serializedLocator, version) = literal_eval(lines[lidx])
             try:
                 locator = locators[serializedLocator]
             except KeyError:

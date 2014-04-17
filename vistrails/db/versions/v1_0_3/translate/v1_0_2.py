@@ -46,6 +46,7 @@ from vistrails.db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString
 from itertools import izip
 
+from ast import literal_eval
 import unittest
 
 id_scope = None
@@ -58,7 +59,7 @@ def update_portSpec(old_obj, translate_dict):
         for sig in sigstring[1:-1].split(','):
             sigs.append(sig.split(':', 2))
     # not great to use eval...
-    defaults = eval(old_obj.db_defaults) if old_obj.db_defaults else []
+    defaults = literal_eval(old_obj.db_defaults) if old_obj.db_defaults else []
     if isinstance(defaults, basestring):
         defaults = (defaults,)
     else:
@@ -67,7 +68,7 @@ def update_portSpec(old_obj, translate_dict):
         except TypeError:
             defaults = (defaults,)
     # not great to use eval...
-    labels = eval(old_obj.db_labels) if old_obj.db_labels else []
+    labels = literal_eval(old_obj.db_labels) if old_obj.db_labels else []
     if isinstance(labels, basestring):
         labels = (labels,)
     else:
@@ -231,7 +232,7 @@ def translateVistrail(_vistrail):
         new_annotations = []
         for a in old_obj.db_annotations:
             if a.db_key == '__vistrail_vars__':
-                for name, data in dict(eval(a.db_value)).iteritems():
+                for name, data in dict(literal_eval(a.db_value)).iteritems():
                     uuid, identifier, value = data
                     package, module, namespace = identifier
                     var = DBVistrailVariable(name, uuid, package, module, 

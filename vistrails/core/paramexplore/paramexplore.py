@@ -47,7 +47,7 @@ from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
    FloatLinearInterpolator, RGBColorInterpolator, HSVColorInterpolator,\
    UserDefinedFunctionInterpolator
 
-
+from ast import literal_eval
 import unittest
 import copy
 
@@ -102,7 +102,7 @@ class ParameterExploration(DBParameterExploration):
     
     def get_dims(self):
         try:
-            return eval(self._dims)
+            return literal_eval(self._dims)
         except Exception:
             return []
     def set_dims(self, d):
@@ -114,7 +114,7 @@ class ParameterExploration(DBParameterExploration):
 
     def get_layout(self):
         try:
-            return eval(self._layout)
+            return literal_eval(self._layout)
         except Exception:
             return {}
     def set_layout(self, l):
@@ -160,25 +160,25 @@ class ParameterExploration(DBParameterExploration):
                 if param.interpolator == 'Linear Interpolation':
                     # need to figure out type
                     if port_spec_item.module == "Integer":
-                        i_range = eval(text)
+                        i_range = literal_eval(text)
                         p_min = int(i_range[0])
                         p_max =int(i_range[1])
                         values = IntegerLinearInterpolator(p_min, p_max,
                                                      count).get_values()
                     if port_spec_item.module == "Float":
-                        i_range = eval(text)
+                        i_range = literal_eval(text)
                         p_min = float(i_range[0])
                         p_max =float(i_range[1])
                         values = FloatLinearInterpolator(p_min, p_max,
                                                      count).get_values()
                 elif param.interpolator == 'RGB Interpolation':
-                    i_range = eval(text)
+                    i_range = literal_eval(text)
                     p_min = str(i_range[0])
                     p_max =str(i_range[1])
                     values = RGBColorInterpolator(p_min, p_max,
                                                      count).get_values()
                 elif param.interpolator == 'HSV Interpolation':
-                    i_range = eval(text)
+                    i_range = literal_eval(text)
                     p_min = str(i_range[0])
                     p_max =str(i_range[1])
                     values = HSVColorInterpolator(p_min, p_max,
@@ -186,7 +186,7 @@ class ParameterExploration(DBParameterExploration):
                 elif param.interpolator == 'List':
                     p_module = port_spec_item.descriptor.module
                     values = [p_module.translate_to_python(m)
-                              for m in eval(text)]
+                              for m in literal_eval(text)]
                 elif param.interpolator == 'User-defined Function':
                     p_module = port_spec_item.descriptor.module
                     values = UserDefinedFunctionInterpolator(p_module,

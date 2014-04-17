@@ -47,6 +47,7 @@ from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
 
 from abc import ABCMeta
+from ast import literal_eval
 from itertools import izip
 import os
 import pickle
@@ -843,7 +844,7 @@ class List(Constant):
 
     @staticmethod
     def translate_to_python(v):
-        return eval(v)
+        return literal_eval(v)
 
     @staticmethod
     def translate_to_string(v, dims=None):
@@ -887,7 +888,7 @@ class List(Constant):
 # Dictionary
                     
 def dict_conv(v):
-    v_dict = eval(v)
+    v_dict = literal_eval(v)
     return v_dict
 
 def dict_compute(self):

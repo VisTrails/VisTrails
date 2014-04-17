@@ -2014,13 +2014,6 @@ class VistrailController(object):
                                                     abs_name, None, 
                                                     module_version, 
                                                     is_global, avail_fnames)
-            #if desc.version != module_version:
-                #print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version, "and namespace", desc.namespace
-#        else:
-#            if upgrade_version is not None:
-#                print "version", old_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry as upgraded version", module_version
-#            else:
-#                print "version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry"
         return desc
     
     def unload_abstractions(self):
@@ -2035,52 +2028,6 @@ class VistrailController(object):
                 except Exception:
                     pass
         self._loaded_abstractions.clear()
-
-        # for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
-        #     abs_desc_info = abs_vistrail.get_annotation('__abstraction_descriptor_info__')
-        #     if abs_desc_info is not None:
-        #         abs_desc_info = eval(abs_desc_info.value)
-        #         # Don't unload package abstractions that have been
-        #         # upgraded by this controller (during a manual version
-        #         # upgrade) because that would also unload the version
-        #         # in the module palette
-        #         if abs_desc_info[2] == abs_vistrail.get_annotation('__abstraction_uuid__').value:
-        #             continue
-        #     abs_name = parse_abstraction_name(abs_fname)
-        #     abs_namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
-        #     try:
-        #         descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
-        #         print "removing all versions of", abs_name, "from registry (namespace: %s)"%abs_namespace
-        #         while descriptor is not None:
-        #             reg = core.modules.module_registry.get_module_registry()
-        #             reg.delete_module(abstraction_pkg, abs_name, abs_namespace)
-        #             descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
-        #     except:
-        #         # No versions of the abstraction exist in the registry now
-        #         pass
-        # self._loaded_abstractions.clear()
-
-#    def update_abstraction(self, abstraction, new_actions):
-#        module_version = abstraction.internal_version
-#        if isinstance(module_version, basestring):
-#            module_version = int(module_version)
-#        abstraction_uuid = \
-#            abstraction.vistrail.get_annotation('__abstraction_uuid__').value
-#        upgrade_action = self.create_upgrade_action(new_actions) 
-#        
-#        a = (abstraction.vistrail, 
-#             module_version)
-#        
-#        desc = self.get_abstraction_desc(abstraction.name, abstraction_uuid,
-#                                         new_version)
-#        if desc is None:
-#            # desc = self.add_abstraction_to_registry(abstraction.vistrail,
-#            # abstraction.
-#            pass
-#        # FIXME finish this!
-                                         
-                                         
-        
 
     def manage_package_names(self, vistrail, package):
         vistrail = copy.copy(vistrail)

@@ -41,12 +41,11 @@ from vistrails.core.system import get_vistrails_basic_pkg_id, \
     get_module_registry
 from vistrails.core.utils import enum, VistrailsInternalError
 from vistrails.core.vistrail.port_spec_item import PortSpecItem
-from vistrails.db.domain import DBPortSpec
+from vistrails.db.domain import DBPortSpec, IdScope
 
+from ast import literal_eval
 import unittest
 import copy
-from vistrails.db.domain import IdScope
-import vistrails.core
 
 PortEndPoint = enum('PortEndPoint',
                     ['Invalid', 'Source', 'Destination'])
@@ -287,19 +286,19 @@ class PortSpec(DBPortSpec):
         if defaults is None:
             defaults = []
         elif isinstance(defaults, basestring):
-            defaults = eval(defaults)
+            defaults = literal_eval(defaults)
         if labels is None:
             labels = []
         elif isinstance(labels, basestring):
-            labels = eval(labels)
+            labels = literal_eval(labels)
         if values is None:
             values = []
         elif isinstance(values, basestring):
-            values = eval(values)
+            values = literal_eval(values)
         if entry_types is None:
             entry_types = []
         elif isinstance(entry_types, basestring):
-            entry_types = eval(entry_types)
+            entry_types = literal_eval(entry_types)
         attrs = [defaults, labels, values, entry_types]
         if items:
             self.set_items(items, *attrs)

@@ -50,6 +50,7 @@ from vistrails.db import VistrailsDBException
 import vistrails.db.services.io
 from vistrails.gui import qt
 import vistrails.gui.theme
+from ast import literal_eval
 import os.path
 import getpass
 import re
@@ -728,7 +729,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         options_re = re.compile(r"^(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])$")
         if options_re.match(msg):
             #it's safe to eval as a list
-            args = eval(msg)
+            args = literal_eval(msg)
             if isinstance(args, list):
                 #print "args from another instance %s"%args
                 try:

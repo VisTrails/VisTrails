@@ -47,6 +47,7 @@ from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from vistrails.core.utils import all, any, InstanceObject
 from vistrails.core.vistrail.connection import Connection
 
+from ast import literal_eval
 from hasher import vtk_hasher
 from itertools import izip
 import os.path
@@ -194,13 +195,13 @@ def get_method_signature(method, docum='', name=''):
             # Now quote the args and eval them.  Easy!
             if ret and ret[:3]!='vtk':
                 try:
-                    ret = eval(pat.sub('\"', ret))
+                    ret = literal_eval(pat.sub('\"', ret))
                 except Exception:
                     continue
             if arg:
                 if arg.find('(')!=-1:
                     try:
-                        arg = eval(pat.sub('\"', arg))
+                        arg = literal_eval(pat.sub('\"', arg))
                     except Exception:
                         continue
                 else:
