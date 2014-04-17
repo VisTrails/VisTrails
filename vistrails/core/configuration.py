@@ -239,6 +239,7 @@ def default():
         'upgradeDelay': True,
         'upgradeModuleFailPrompt': True,
         'useCache': True,
+        'developperDebugger': False,
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),
 #        'workflowGraph': (None, str),

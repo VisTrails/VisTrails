@@ -36,14 +36,67 @@ import inspect
 import logging
 import logging.handlers
 import os
+import pdb
 import re
+import sys
 import time
 import traceback
 
 ################################################################################
 
 def format_exception(e):
+    """Formats an exception as a single-line (no traceback).
+
+    Use this instead of str() which might drop the exception type.
+    """
     return traceback._format_final_exc_line(type(e).__name__, e)
+
+
+def unexpected_exception(e, tb=None, frame=None):
+    """Marks an exception that we might want to debug.
+
+    Before logging an exception or showing a message (potentially with
+    format_exception()), you might want to call this. It's a no-op unless
+    debugging is enabled in the configuration, in which case it will start a
+    debugger.
+    """
+    if tb is None:
+        tb = sys.exc_info()[2]
+    if frame is None:
+        frame = sys._getframe().f_back
+
+    # Whether to use the debugger
+    try:
+        from vistrails.core.configuration import get_vistrails_configuration
+        debugger = getattr(get_vistrails_configuration(),
+                           'developperDebugger',
+                           False)
+    except Exception:
+        debugger = False
+    if not debugger:
+        return
+
+    # Removes PyQt's input hook
+    try:
+        from PyQt4 import QtCore
+    except ImportError:
+        pass
+    else:
+        QtCore.pyqtRemoveInputHook()
+
+    # Prints the exception and traceback
+    print >>sys.stderr, "!!!!!!!!!!"
+    print >>sys.stderr, "Got unexpected exception, starting debugger"
+    traceback.print_stack(frame, sys.stderr)
+    if e is not None:
+        print >>sys.stderr, format_exception(e)
+
+    # Starts the debugger
+    print >>sys.stderr, "!!!!!!!!!!"
+    # pdb.post_mortem()
+    p = pdb.Pdb()
+    p.reset()
+    p.interaction(frame, tb)
 
 ################################################################################
 
