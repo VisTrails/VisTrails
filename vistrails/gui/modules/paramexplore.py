@@ -679,6 +679,7 @@ class QUserFunctionEditor(QtGui.QFrame):
                         return module.default_value
                     return v
                 except Exception, e:
+                    debug.unexpected_exception(e)
                     return debug.format_exception(e)
             return [evaluate(i) for i in xrange(self.size)]
         result = get()

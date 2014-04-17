@@ -435,7 +435,8 @@ class Module(Serializable):
             raise ModuleError(self, 'Interrupted by user')
         except ModuleBreakpoint:
             raise
-        except Exception, e: 
+        except Exception, e:
+            debug.unexpected_exception(e)
             import traceback
             raise ModuleError(
                     self,

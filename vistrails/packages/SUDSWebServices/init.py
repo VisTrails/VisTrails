@@ -605,6 +605,7 @@ It is a WSDL type with signature:
                     #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
                 except Exception, e:
+                    debug.unexpected_exception(e)
                     raise ModuleError(self, "Error invoking method %s: %s" % (
                             name, debug.format_exception(e)))
                 for name, qtype in self.wsmethod.outputs.iteritems():

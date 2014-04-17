@@ -3364,12 +3364,10 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
-            #details = '\n'.join(set(debug.format_exception(e)
-            #                        for e in left_exceptions + new_exceptions))
-            #debug.critical("Some exceptions could not be handled",
-            #               *(left_exceptions + new_exceptions))
-            raise InvalidPipeline(left_exceptions + new_exceptions, 
-                                  cur_pipeline, new_version)
+            e = InvalidPipeline(left_exceptions + new_exceptions,
+                                cur_pipeline, new_version)
+            debug.format_exception(e)
+            raise e
         return (new_version, cur_pipeline)
 
     def validate(self, pipeline, raise_exception=True):

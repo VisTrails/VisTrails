@@ -354,6 +354,7 @@ class QVistrailView(QtGui.QWidget):
             self.mashup_view.updateView()
             self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
         except Exception, e:
+            debug.unexpected_exception(e)
             print "EXCEPTION: ", debug.format_exception(e)
     def mashup_unselected(self):
         #print "MASHUP UN"
