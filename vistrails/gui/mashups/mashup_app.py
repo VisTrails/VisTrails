@@ -618,6 +618,7 @@ class TestMashupApp(TestVisTrailsGUI):
         filename = (vistrails.core.system.vistrails_root_directory() + 
                     '/tests/resources/spx_loop.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
+        view.controller.flush_delayed_actions()
         id = "d5026457-de6c-11e2-b074-3c07543dba07"
         mashup = view.get_mashup_from_mashuptrail_id(id, "loop")
         self.assert_(mashup)
