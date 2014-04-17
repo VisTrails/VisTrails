@@ -1261,8 +1261,10 @@ _modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, 
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
+    import vistrails.core.modules.output_modules
     global _modules
     _modules.extend(vistrails.core.modules.sub_module._modules)
+    _modules.extend(vistrails.core.modules.output_modules._modules)
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):

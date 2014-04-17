@@ -510,7 +510,10 @@ base_config = {
      ConfigField('isInServerMode', False, bool, ConfigType.INTERNAL),
      ConfigField('isRunningGUI', True, bool, ConfigType.INTERNAL),
      ConfigField('handlerDontAsk', False, bool, ConfigType.INTERNAL),
-     ConfigField('spawned', False, bool, ConfigType.INTERNAL)],
+     ConfigField('spawned', False, bool, ConfigType.INTERNAL),
+     ConfigFieldParent('outputSettings', 
+        [ConfigFieldParent('overrides', [])])],
+    
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),
