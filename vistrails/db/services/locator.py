@@ -804,7 +804,7 @@ class DBLocator(BaseLocator):
             return True
         try:
             self.get_connection()
-        except:
+        except Exception:
             return False
         return True
         

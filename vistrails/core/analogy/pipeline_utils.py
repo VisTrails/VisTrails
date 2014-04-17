@@ -42,7 +42,7 @@ def smart_sum(v):
     try:
         fst = v.next()
         return sum(v, fst)
-    except:
+    except Exception:
         pass
     fst = v[0]
     return sum(v[1:], fst)

@@ -211,7 +211,7 @@ def get_value_and_type(s):
         val = eval(s)
         if isinstance(val, type):
             return (None, None)
-    except:
+    except Exception:
         val = s
     port_type = get_type_from_val(val)
     return (val, port_type)

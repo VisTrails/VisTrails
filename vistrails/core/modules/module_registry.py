@@ -987,9 +987,10 @@ class ModuleRegistry(DBRegistry):
                 desc = self.get_descriptor_by_name(*sig)
             else:
                 desc = self.get_descriptor(cls)
-        except:
-            raise Exception('Cannot convert value "%s" due to missing '
-                            'descriptor for port' % val)
+        except Exception, e:
+            debug.unexpected_exception(e)
+            raise VistrailsInternalError("Cannot convert value %r due to "
+                                         "missing descriptor for port" % val)
         constant_desc = self.get_descriptor_by_name(basic_pkg, 'Constant')
         if not self.is_descriptor_subclass(desc, constant_desc):
             raise TypeError("Cannot convert value for non-constant type")

@@ -114,7 +114,7 @@ class PersistentRef(Constant):
             s_tuple = eval(x)
             (res.type, res.id, res.version, res.local_path, res.local_read,
              res.local_writeback, res.versioned, res.name, res.tags) = s_tuple
-        except:
+        except Exception:
             return None
 #         result.settings = dict(zip(sorted(default_settings.iterkeys()),
 #                                    s_tuple))
@@ -586,7 +586,7 @@ def initialize():
         if not os.path.exists(local_db):
             try:
                 os.mkdir(local_db)
-            except:
+            except OSError:
                 raise RuntimeError('local_db "%s" does not exist' % local_db)
 
     local_repo = repo.get_repo(local_db)
@@ -601,7 +601,7 @@ def initialize():
     if configuration.check('search_dbs'):
         try:
             check_paths = eval(configuration.search_dbs)
-        except:
+        except Exception:
             print "*** persistence error: cannot parse search_dbs ***"
         for path in check_paths:
             if os.path.exists(path):

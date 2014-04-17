@@ -47,7 +47,7 @@ def evaluate_expressions(expressions):
     for e in exps:
         try:                        
             base = base[:e[0]] + unicode(eval(e[1],None,None)) + base[e[0]:]
-        except:
+        except Exception:
             base = base[:e[0]] + '$' + e[1] + '$' + base[e[0]:]
     return base
 

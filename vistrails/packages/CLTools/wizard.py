@@ -97,7 +97,7 @@ class Command(object):
                 self.process = subprocess.Popen(self.command, **kwargs)
                 self.output, self.error = self.process.communicate()
                 self.status = self.process.returncode
-            except:
+            except Exception:
                 import traceback
                 self.error = traceback.format_exc()
                 self.status = -1
@@ -683,7 +683,7 @@ class QCLToolsWizard(QtGui.QWidget):
             for a, b in encode_list:
                 text = text.replace(a, b)
             return text
-        except:
+        except Exception:
             return None
     
     def generateFromManPage(self):

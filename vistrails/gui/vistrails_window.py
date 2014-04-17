@@ -1683,7 +1683,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             pe = vistrail.get_paramexp(pe_id)
         except ValueError:
             pe= vistrail.get_named_paramexp(pe_id)
-        except Exception:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return
         self.current_view.open_parameter_exploration(pe.id)
         self.qactions['execute'].trigger()

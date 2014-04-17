@@ -229,8 +229,8 @@ class QVistrailView(QtGui.QWidget):
         try:
             qaction = self.tab_state[self.tabs.currentIndex()]
             qaction.trigger()
-        except:
-            pass
+        except Exception, e:
+            debug.unexpected_exception(e)
         
     def reset_tab_view_to_current(self):
         index = self.tabs.currentIndex()

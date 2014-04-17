@@ -442,7 +442,7 @@ class VTKMethodParser(object):
                     for x in values[:]:
                         try:
                             getattr(obj, 'Set%sTo%s'%(key, x[0]))()
-                        except:
+                        except Exception:
                             continue
                         val = getattr(obj, 'Get%s'%key)()
                         x[1] = val

@@ -2032,7 +2032,7 @@ class VistrailController(object):
             for namespace in get_all_abs_namespaces(abs_vistrail):
                 try:
                     reg.delete_module(abstraction_pkg, abs_name, namespace)
-                except:
+                except Exception:
                     pass
         self._loaded_abstractions.clear()
 

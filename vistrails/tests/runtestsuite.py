@@ -96,7 +96,7 @@ def setNewPyQtAPI():
         # We now use the new PyQt API - IPython needs it
         sip.setapi('QString', 2)
         sip.setapi('QVariant', 2)
-    except:
+    except Exception:
         print "Could not set PyQt API, is PyQt4 installed?"
 setNewPyQtAPI()
 
@@ -311,7 +311,7 @@ for (p, subdirs, files) in os.walk(root_directory):
                 m = __import__(module, globals(), locals(), ['foo'])
             else:
                 m = __import__(module)
-        except:
+        except BaseException:
             print >>sys.stderr, "ERROR: Could not import module: %s" % module
             if verbose >= 1:
                 traceback.print_exc(file=sys.stderr)

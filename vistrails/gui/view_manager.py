@@ -392,7 +392,7 @@ class QViewManager(QtGui.QTabWidget):
         if isinstance(version, basestring):
             try:
                 version = vistrail.get_version_number(version)
-            except:
+            except Exception:
                 version = None
 
         vistrailView = QVistrailView()
@@ -422,7 +422,7 @@ class QViewManager(QtGui.QTabWidget):
                 if isinstance(version, basestring):
                     try:
                         version = view.vistrail.get_version_number(version)
-                    except:
+                    except Exception:
                         version = None
                 if version is not None:
                     view.setup_view(version)

@@ -644,7 +644,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             try:
                 version = \
                     self.get_controller().vistrail.get_version_number(version)
-            except:
+            except Exception, e:
+                debug.unexpected_exception(e)
                 version = None
         return version
 
@@ -749,7 +750,8 @@ The builder window can be accessed by a spreadsheet menu option.")
         controller.flush_delayed_actions()
         try:
             controller.write_vistrail(locator, export=export)
-        except Exception:
+        except Exception, e:
+            debug.unexpected_exception(e)
             import traceback
             debug.critical("Failed to save vistrail", traceback.format_exc())
             raise

@@ -167,7 +167,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         # Parse/validate the xml
         try:
             xmlDoc = parseString(xmlString).documentElement
-        except:
+        except Exception:
             debug.critical("Parameter Exploration load failed because of "
                            "invalid XML:\n\n%s" % xmlString)
             return
