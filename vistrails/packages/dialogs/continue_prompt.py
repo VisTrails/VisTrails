@@ -1,5 +1,6 @@
 from PyQt4 import QtCore, QtGui
 
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
@@ -32,6 +33,11 @@ class PromptIsOkay(Module):
     _output_ports = [('result', basic_modules.Boolean)]
 
     def compute(self):
+        vt_configuration = get_vistrails_configuration()
+        if not getattr(vt_configuration, 'interactiveMode', False):
+            self.setResult('result', True)
+            return
+
         cell = self.getInputFromPort('cell').cellWidget
         label = self.forceGetInputFromPort('label', None)
 
