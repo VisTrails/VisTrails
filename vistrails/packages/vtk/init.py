@@ -712,7 +712,7 @@ def addOtherPorts(module, other_list):
                         if isinstance(p, list): 
                             for aux in p: paramsList.insert(0, aux)
                         else:
-                          types.append(typeMap(p))
+                            types.append(typeMap(p))
                 else:
                     types = []
                 if not all(is_class_allowed(x) for x in types):

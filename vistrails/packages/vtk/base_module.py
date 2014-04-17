@@ -102,21 +102,21 @@ class vtkBaseModule(Module):
 
         pp = []
         for j in xrange(len(setterSig)):
-          setter = list(setterSig[j][1]) if setterSig[j][1] != None else None
-          aux = []
-          if setter != None and len(setter) == len(params) and pp == []:
-              for i in xrange(len(setter)):
-                  if setter[i].find('[') != -1:
-                      del aux[:]
-                      aux.append(params[i])
-                  elif setter[i].find(']') != -1:
-                      aux.append(params[i])
-                      pp.append(aux)
-                  else:
-                      if len(aux) > 0: 
-                          aux.append(params[i])
-                      else:
-                          pp.append(params[i])                
+            setter = list(setterSig[j][1]) if setterSig[j][1] != None else None
+            aux = []
+            if setter != None and len(setter) == len(params) and pp == []:
+                for i in xrange(len(setter)):
+                    if setter[i].find('[') != -1:
+                        del aux[:]
+                        aux.append(params[i])
+                    elif setter[i].find(']') != -1:
+                        aux.append(params[i])
+                        pp.append(aux)
+                    else:
+                        if len(aux) > 0:
+                            aux.append(params[i])
+                        else:
+                            pp.append(params[i])
         if pp != []:
             params = pp 
             attr(*params)
