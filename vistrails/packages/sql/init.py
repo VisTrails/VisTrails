@@ -165,6 +165,7 @@ class SQLSource(Module):
             except Exception:
                 self.set_output('result', None)
                 self.set_output('resultSet', None)
+                raise
             else:
                 # results.returns_rows is True
                 # We don't use 'if return_rows' because this attribute didn't
