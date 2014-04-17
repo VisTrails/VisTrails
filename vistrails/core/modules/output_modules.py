@@ -396,7 +396,7 @@ class RichTextOutput(OutputModule):
     # need specific spreadsheet richtext mode here
     pass
 
-_modules = [OutputModule, GenericOutput, FileOutput]
+_modules = [OutputModule, GenericOutput, FileOutput, ImageFileOutput]
 
 # need to put WebOutput, ImageOutput, RichTextOutput, SVGOutput, VTKOutput, MplOutput, etc. elsewhere
 
