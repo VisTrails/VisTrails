@@ -79,7 +79,7 @@ class VTKViewCell(SpreadsheetCell):
         renderView = self.force_get_input('SetRenderView')
         if renderView==None:
             raise ModuleError(self, 'A vtkRenderView input is required.')
-        self.cellWidget = self.displayAndWait(QVTKViewWidget, (renderView,))
+        self.displayAndWait(QVTKViewWidget, (renderView,))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,

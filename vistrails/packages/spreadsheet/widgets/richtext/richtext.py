@@ -75,7 +75,7 @@ class RichTextCell(SpreadsheetCell):
             else:
                 raise ModuleError(self, "'%s' format is unknown" % text_format)
 
-        self.cellWidget = self.displayAndWait(RichTextCellWidget, (html,))
+        self.displayAndWait(RichTextCellWidget, (html,))
 
 
 class XSLCell(SpreadsheetCell):
@@ -97,7 +97,7 @@ class XSLCell(SpreadsheetCell):
         if html is None:
             raise ModuleError(self, "Error applying XSL")
 
-        self.cellWidget = self.displayAndWait(RichTextCellWidget, (html,))
+        self.displayAndWait(RichTextCellWidget, (html,))
 
 class RichTextCellWidget(QCellWidget):
     """

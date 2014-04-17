@@ -12,7 +12,7 @@ class TableCell(SpreadsheetCell):
 
     def compute(self):
         table = self.get_input('table')
-        self.cellWidget = self.displayAndWait(TableCellWidget, (table,))
+        self.displayAndWait(TableCellWidget, (table,))
 
 
 class TableCellWidget(QCellWidget):

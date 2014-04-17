@@ -61,7 +61,7 @@ class ImageViewerCell(SpreadsheetCell):
             fileValue = window.file_pool.make_local_copy(file_to_display.name)
         else:
             fileValue = None
-        self.cellWidget = self.displayAndWait(ImageViewerCellWidget, (fileValue, ))
+        self.displayAndWait(ImageViewerCellWidget, (fileValue, ))
 
 class ImageViewerCellWidget(QCellWidget):
     """
