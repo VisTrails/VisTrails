@@ -435,7 +435,8 @@ class Module(Serializable):
             raise ModuleError(self, 'Interrupted by user')
         except ModuleBreakpoint:
             raise
-        except Exception, e: 
+        except Exception, e:
+            debug.unexpected_exception(e)
             import traceback
             raise ModuleError(
                     self,
@@ -586,7 +587,7 @@ class Module(Serializable):
         d = None
         try:
             d = reg.get_descriptor(self.__class__)
-        except:
+        except Exception:
             pass
         if not d:
             return None
@@ -594,7 +595,7 @@ class Module(Serializable):
         ps = None
         try:
             ps = reg.get_port_spec_from_descriptor(d, port_name, 'input')
-        except:
+        except Exception:
             pass
         if not ps:
             return None
@@ -676,9 +677,9 @@ class Module(Serializable):
             reg = get_module_registry()
             m = reg.get_module_by_name(ident, name, ns)
             return m()
-        except:
-            msg = "Cannot get module named " + str(name) + \
-                  " with identifier " + str(ident) + " and namespace " + ns
+        except Exception:
+            msg = ("Cannot get module named %s with identifier %s and "
+                   "namespace %s" % (name, ident, ns))
             raise ModuleError(self, msg)
 
     @classmethod

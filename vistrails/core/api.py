@@ -3,6 +3,7 @@ import itertools
 import vistrails.core.application
 from vistrails.core.db.locator import FileLocator, untitled_locator
 import vistrails.core.db.io
+from vistrails.core import debug
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.utils import create_port_spec_string
@@ -401,7 +402,8 @@ class VisTrailsAPI(object):
             try:
                 version = \
                     self.controller.vistrail.get_version_number(version)
-            except:
+            except Exception, e:
+                debug.unexpected_exception(e)
                 raise ValueError('Cannot locate version "%s"' % version)
         return version
 

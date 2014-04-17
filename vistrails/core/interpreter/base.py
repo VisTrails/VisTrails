@@ -156,7 +156,7 @@ class BaseInterpreter(object):
                 base = '0'
             try:
                 base = eval(base,None,None)
-            except:
+            except Exception:
                 pass
         return base
 

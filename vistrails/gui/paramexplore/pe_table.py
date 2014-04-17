@@ -270,7 +270,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                     p_max =str(i_range[1])
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
-                                except:
+                                except Exception:
                                     pass
                             elif p.interpolator == 'List':
                                 p_values = '%s' % unescape(p.value,
@@ -299,7 +299,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         # Parse/validate the xml
         try:
             xmlDoc = parseString(xmlString).documentElement
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Parameter Exploration load failed because of "
                            "invalid XML:\n\n%s" % xmlString)
             return
@@ -349,7 +350,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                     p_max = str(p.attributes['max'].value)
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
-                                except:
+                                except Exception:
                                     pass
                             elif p_intType == 'List':
                                 p_values = str(p.attributes['values'].value)

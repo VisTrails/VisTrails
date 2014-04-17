@@ -148,7 +148,7 @@ def choose_columns(nb_columns, column_names=None, names=None, indexes=None):
             except ValueError:
                 try:
                     idx = column_names.index(name.strip())
-                except:
+                except ValueError:
                     raise ValueError("Column name was not found: %r" % name)
             result.append(idx)
         if indexes is not None:

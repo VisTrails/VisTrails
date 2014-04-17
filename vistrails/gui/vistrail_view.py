@@ -229,8 +229,8 @@ class QVistrailView(QtGui.QWidget):
         try:
             qaction = self.tab_state[self.tabs.currentIndex()]
             qaction.trigger()
-        except:
-            pass
+        except Exception, e:
+            debug.unexpected_exception(e)
         
     def reset_tab_view_to_current(self):
         index = self.tabs.currentIndex()
@@ -354,6 +354,7 @@ class QVistrailView(QtGui.QWidget):
             self.mashup_view.updateView()
             self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
         except Exception, e:
+            debug.unexpected_exception(e)
             print "EXCEPTION: ", debug.format_exception(e)
     def mashup_unselected(self):
         #print "MASHUP UN"

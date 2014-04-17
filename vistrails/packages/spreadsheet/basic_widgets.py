@@ -150,7 +150,7 @@ class CellLocation(Module):
             try:
                 self.col = ord(col)-ord('A')
                 self.row = int(row)-1
-            except:
+            except (TypeError, ValueError):
                 raise ModuleError(self, 'ColumnRowAddress format error')
             
         ref = self.force_get_input("SheetReference")

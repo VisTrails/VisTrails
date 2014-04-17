@@ -938,7 +938,7 @@ class Pipeline(DBWorkflow):
                         desc = module.module_descriptor
                         if long(module.internal_version) != long(desc.version):
                             exceptions.add(MissingModuleVersion(desc.package, desc.name, desc.namespace, desc.version, desc.package_version, module.id))
-                    except:
+                    except Exception:
                         pass
         try:
             self.ensure_port_specs()

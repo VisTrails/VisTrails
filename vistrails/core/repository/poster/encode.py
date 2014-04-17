@@ -161,7 +161,7 @@ class MultipartParam(object):
                     fileobj.seek(0, 2)
                     self.filesize = fileobj.tell()
                     fileobj.seek(0)
-                except:
+                except IOError:
                     raise ValueError("Could not determine filesize")
 
     def __cmp__(self, other):

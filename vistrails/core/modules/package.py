@@ -449,7 +449,8 @@ class Package(DBPackage):
 
             if hasattr(self._init_module, 'initialize'):
                 self._init_module.initialize()
-        except Exception:
+        except Exception, e:
+            debug.unexpected_exception(e)
             self.unload()
             raise
 

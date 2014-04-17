@@ -248,7 +248,7 @@ def string_compare(value_a, value_b, query_method):
             m = re.match(value_b, value_a)
             if m is not None:
                 return (m.end() ==len(value_a))
-        except:
+        except re.error:
             pass
     return False
 

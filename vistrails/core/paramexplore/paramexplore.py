@@ -103,24 +103,24 @@ class ParameterExploration(DBParameterExploration):
     def get_dims(self):
         try:
             return eval(self._dims)
-        except:
+        except Exception:
             return []
     def set_dims(self, d):
         try:
             _dims = repr(d)
-        except:
+        except Exception:
             _dims = []
     dims = property(get_dims, set_dims)
 
     def get_layout(self):
         try:
             return eval(self._layout)
-        except:
+        except Exception:
             return {}
     def set_layout(self, l):
         try:
             _layout = repr(l)
-        except:
+        except Exception:
             _layout = '{}'
     layout = property(get_layout, set_layout)
 

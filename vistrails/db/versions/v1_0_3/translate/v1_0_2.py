@@ -122,7 +122,7 @@ def createParameterExploration(action_id, xmlString, vistrail):
         striplen = len("<paramexps>")
         xmlString = xmlString[striplen:-(striplen+1)].strip()
         xmlDoc = parseString(xmlString).documentElement
-    except:
+    except Exception:
         return None
     # we need the pipeline to look up function/paramater id:s
     pipeline = materializeWorkflow(vistrail, action_id)

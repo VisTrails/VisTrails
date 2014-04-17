@@ -36,7 +36,7 @@
 # VTK Package for VisTrails
 ################################################################################
 
-from vistrails.core.debug import debug
+from vistrails.core.debug import debug, warning, unexpected_exception
 from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
      Color, identifier as basic_pkg
 from vistrails.core.modules.module_registry import get_module_registry
@@ -195,13 +195,13 @@ def get_method_signature(method, docum='', name=''):
             if ret and ret[:3]!='vtk':
                 try:
                     ret = eval(pat.sub('\"', ret))
-                except:
+                except Exception:
                     continue
             if arg:
                 if arg.find('(')!=-1:
                     try:
                         arg = eval(pat.sub('\"', arg))
-                    except:
+                    except Exception:
                         continue
                 else:
                     arg = arg.split(', ')
@@ -722,11 +722,13 @@ def addOtherPorts(module, other_list):
                     # print module.vtkClass.__name__, n
                     try:
                         doc = module.get_doc(n)
+                    except Exception, e:
+                        unexpected_exception(e)
+                        warning("Error with %s" % module.vtkClass.__name, e)
+                    else:
                         registry.add_input_port(module, n, types,
                                                 not (n in force_not_optional_port),
-                                                docstring=module.get_doc(n))
-                    except:
-                        print "&*& ERROR WITH ", module.vtkClass.__name__, n
+                                                docstring=doc)
 
 disallowed_get_ports = set([
     'GetClassName',

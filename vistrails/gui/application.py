@@ -387,7 +387,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             for m in self.notifications[notification_id]:
                 try:
                     m(*args)
-                except Exception:
+                except Exception, e:
+                    debug.unexpected_exception(e)
                     import traceback
                     traceback.print_exc()
         notifications = {}
@@ -402,7 +403,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 for m in notifications[notification_id]:
                     try:
                         m(*args)
-                    except Exception:
+                    except Exception, e:
+                        debug.unexpected_exception(e)
                         import traceback
                         traceback.print_exc()
 
@@ -418,7 +420,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 for m in notifications[notification_id]:
                     try:
                         m(*args)
-                    except Exception:
+                    except Exception, e:
+                        debug.unexpected_exception(e)
                         import traceback
                         traceback.print_exc()
 

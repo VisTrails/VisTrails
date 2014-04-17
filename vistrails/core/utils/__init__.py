@@ -247,7 +247,7 @@ class InvalidPipeline(Exception):
         # it is invalid. So if it throws an Exception, we will just ignore
         try:
             self._pipeline = copy.copy(pipeline)
-        except:
+        except Exception:
             self._pipeline = None
         self._version = version
 

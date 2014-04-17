@@ -238,7 +238,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
                 url = locator.to_url()
                 entity = self.collection.updateVistrail(url)
                 self.collection.add_to_workspace(entity)
-            except:
+            except Exception:
                 debug.critical("Failed to add file '%s'" % filename)
         progress.setValue(len(filenames))
         self.collection.commit()
@@ -860,7 +860,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 try:
                     version = \
                         view.controller.vistrail.get_version_number(version)
-                except:
+                except Exception:
                     version = None
             if self.searchMode:
                 self.search_result_selected(view, version)

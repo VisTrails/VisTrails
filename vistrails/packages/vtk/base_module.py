@@ -91,7 +91,7 @@ class vtkBaseModule(Module):
         try:
             # doc = self.provide_output_port_documentation(function)
             doc = self.get_doc(function)
-        except:
+        except Exception:
             doc = ''
 
         setterSig = []
