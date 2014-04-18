@@ -36,6 +36,7 @@ import copy
 from itertools import izip
 import os
 import uuid
+import re
 import shutil
 import tempfile
 
@@ -121,6 +122,19 @@ class CompareThumbnailsError(Exception):
     def __str__(self):
         return "Comparing thumbnails failed.\n%s\n%s\n%s" % \
             (self._msg, self._first, self._second)
+
+def dot_escape(s):
+    return '"%s"' % s.replace('\\', '\\\\').replace('"', '\\"')
+
+custom_color_key = '__color__'
+
+custom_color_fmt = re.compile(r'^([0-9]+) *, *([0-9]+) *, *([0-9]+)$')
+
+def parse_custom_color(color):
+    m = custom_color_fmt.match(color)
+    if not m:
+        raise ValueError("Color annotation doesn't match format")
+    return tuple(int(m.group(i)) for i in xrange(1, 4))
 
 class VistrailController(object):
     def __init__(self, vistrail=None, locator=None, abstractions=None, 
@@ -2000,13 +2014,6 @@ class VistrailController(object):
                                                     abs_name, None, 
                                                     module_version, 
                                                     is_global, avail_fnames)
-            #if desc.version != module_version:
-                #print "upgraded version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "to version", desc.version, "and namespace", desc.namespace
-#        else:
-#            if upgrade_version is not None:
-#                print "version", old_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry as upgraded version", module_version
-#            else:
-#                print "version", module_version, "of", abs_name, "(namespace: %s)"%abstraction_uuid, "already in registry"
         return desc
     
     def unload_abstractions(self):
@@ -2018,55 +2025,9 @@ class VistrailController(object):
             for namespace in get_all_abs_namespaces(abs_vistrail):
                 try:
                     reg.delete_module(abstraction_pkg, abs_name, namespace)
-                except:
+                except Exception:
                     pass
         self._loaded_abstractions.clear()
-
-        # for abs_fname, abs_vistrail in self._loaded_abstractions.iteritems():
-        #     abs_desc_info = abs_vistrail.get_annotation('__abstraction_descriptor_info__')
-        #     if abs_desc_info is not None:
-        #         abs_desc_info = eval(abs_desc_info.value)
-        #         # Don't unload package abstractions that have been
-        #         # upgraded by this controller (during a manual version
-        #         # upgrade) because that would also unload the version
-        #         # in the module palette
-        #         if abs_desc_info[2] == abs_vistrail.get_annotation('__abstraction_uuid__').value:
-        #             continue
-        #     abs_name = parse_abstraction_name(abs_fname)
-        #     abs_namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
-        #     try:
-        #         descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
-        #         print "removing all versions of", abs_name, "from registry (namespace: %s)"%abs_namespace
-        #         while descriptor is not None:
-        #             reg = core.modules.module_registry.get_module_registry()
-        #             reg.delete_module(abstraction_pkg, abs_name, abs_namespace)
-        #             descriptor = self.get_abstraction_descriptor(abs_name, abs_namespace)
-        #     except:
-        #         # No versions of the abstraction exist in the registry now
-        #         pass
-        # self._loaded_abstractions.clear()
-
-#    def update_abstraction(self, abstraction, new_actions):
-#        module_version = abstraction.internal_version
-#        if isinstance(module_version, basestring):
-#            module_version = int(module_version)
-#        abstraction_uuid = \
-#            abstraction.vistrail.get_annotation('__abstraction_uuid__').value
-#        upgrade_action = self.create_upgrade_action(new_actions) 
-#        
-#        a = (abstraction.vistrail, 
-#             module_version)
-#        
-#        desc = self.get_abstraction_desc(abstraction.name, abstraction_uuid,
-#                                         new_version)
-#        if desc is None:
-#            # desc = self.add_abstraction_to_registry(abstraction.vistrail,
-#            # abstraction.
-#            pass
-#        # FIXME finish this!
-                                         
-                                         
-        
 
     def manage_package_names(self, vistrail, package):
         vistrail = copy.copy(vistrail)
@@ -2647,23 +2608,25 @@ class VistrailController(object):
                 if 'compare_thumbnails' in extra_info:
                     # check thumbnail difference
                     prev = None
-                    if self.vistrail.has_thumbnail(version):
-                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(version))
-                    elif version in self.vistrail.actionMap and \
-                        int(self.vistrail.get_upgrade(self.vistrail.actionMap[version].parent)) == version and \
-                        self.vistrail.has_thumbnail(self.vistrail.actionMap[version].parent):
-                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(self.vistrail.actionMap[version].parent))
+                    thumb_version = version
+                    # the thumb can be in a previous upgrade
+                    while not self.vistrail.has_thumbnail(thumb_version) and \
+                        thumb_version in self.vistrail.actionMap and \
+                        self.vistrail.has_upgrade(self.vistrail.actionMap[thumb_version].parent):
+                        thumb_version = self.vistrail.actionMap[thumb_version].parent
+                    if self.vistrail.has_thumbnail(thumb_version):
+                        prev = thumb_cache.get_abs_name_entry(self.vistrail.get_thumbnail(thumb_version))
                     else:
-                        error = CompareThumbnailsError("No thumbnail exist for version %s" % version)
+                        error = CompareThumbnailsError("No thumbnail exist for version %s" % thumb_version)
                     if prev:
                         if not prev:
-                            error = CompareThumbnailsError("No thumbnail file exist for version %s" % version)
+                            error = CompareThumbnailsError("No thumbnail file exist for version %s" % thumb_version)
                         elif not fname:
                             raise CompareThumbnailsError("No thumbnail generated")
                         else:
                             next = thumb_cache.get_abs_name_entry(fname)
                             if not next:
-                                raise CompareThumbnailsError("No thumbnail file generated for version %s" % version)
+                                raise CompareThumbnailsError("No thumbnail file generated for version %s" % thumb_version)
                             else:
                                 min_err = extra_info['compare_thumbnails'](prev, next)
                                 treshold = 0.1
@@ -2794,19 +2757,47 @@ class VistrailController(object):
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
-        
-    # def refine_graph(self, step=1.0):
-    #     """ refine_graph(step: float in [0,1]) -> (Graph, Graph)
-    #     Refine the graph of the current vistrail based the search
-    #     status of the controller. It also return the full graph as a
-    #     reference
-                     
-    #     """
-        
-    #     if self._current_full_graph is None:
-    #         self.recompute_terse_graph()
-    #     return (self._current_terse_graph, self._current_full_graph,
-    #             self._current_graph_layout)
+
+    def save_version_graph(self, filename, tersed=True):
+        if tersed:
+            graph = copy.copy(self._current_terse_graph)
+        else:
+            graph = copy.copy(self._current_full_graph)
+        tm = self.vistrail.get_tagMap()
+        vs = graph.vertices.keys()
+        vs.sort()
+        al = [(vfrom, vto, edgeid)
+              for vfrom, lto in graph.adjacency_list.iteritems()
+              for vto, edgeid in lto]
+        al.sort()
+
+        configuration = get_vistrails_configuration()
+        use_custom_colors = configuration.check('enableCustomVersionColors')
+
+        with open(filename, 'wb') as fp:
+            fp.write('digraph G {\n')
+            for v in vs:
+                descr = tm.get(v, None) or self.vistrail.get_description(v)
+                if use_custom_colors:
+                    color = self.vistrail.get_action_annotation(
+                            v,
+                            custom_color_key)
+                else:
+                    color = None
+                if color:
+                    color = '#%s%s%s' % tuple(
+                            '%02x' % c
+                            for c in parse_custom_color(color.value))
+                    fp.write('    %s [label=%s, '
+                             'style=filled, fillcolor="%s"];\n' % (
+                             v, dot_escape(descr), color))
+                else:
+                    fp.write('    %s [label=%s];\n' % (v, dot_escape(descr)))
+            fp.write('\n')
+            for s in al:
+                vfrom, vto, vdata = s
+                fp.write('    %s -> %s;\n' % (vfrom, vto))
+            fp.write('}\n')
 
     def get_latest_version_in_graph(self):
         if not self._current_terse_graph:
@@ -3295,9 +3286,9 @@ class VistrailController(object):
                     pe.action_id = new_version
                     self.vistrail.db_add_parameter_exploration(pe)
                 for mashup in new_mashups:
-                    mashup.vtVersion = self.current_version
+                    mashup.vtVersion = new_version
                     for action in mashup.actions:
-                        action.mashup.version = self.current_version
+                        action.mashup.version = new_version
                     self._mashups.append(mashup)
 
                 self.set_changed(True)
@@ -3320,12 +3311,10 @@ class VistrailController(object):
 
         left_exceptions = check_exceptions(root_exceptions)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
-            #details = '\n'.join(set(debug.format_exception(e)
-            #                        for e in left_exceptions + new_exceptions))
-            #debug.critical("Some exceptions could not be handled",
-            #               *(left_exceptions + new_exceptions))
-            raise InvalidPipeline(left_exceptions + new_exceptions, 
-                                  cur_pipeline, new_version)
+            e = InvalidPipeline(left_exceptions + new_exceptions,
+                                cur_pipeline, new_version)
+            debug.format_exception(e)
+            raise e
         return (new_version, cur_pipeline)
 
     def validate(self, pipeline, raise_exception=True):

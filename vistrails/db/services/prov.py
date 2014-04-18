@@ -406,7 +406,7 @@ def create_prov(workflow, version, log):
             
             try:
                 functions = module_functions[exec_._db_module_id]
-            except:
+            except Exception:
                 activities.append(prov_activity)
                 return True
                 

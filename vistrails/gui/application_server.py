@@ -585,7 +585,7 @@ class RequestHandler(object):
             root = ElementTree.fromstring(xml_string)
             try:
                 medley = MedleySimpleGUI.from_xml(root)
-            except:
+            except Exception:
                 #even if this error occurred there's still a chance of
                 # recovering from it... (the server can find cached images)
                 self.server_logger.error("couldn't instantiate medley")

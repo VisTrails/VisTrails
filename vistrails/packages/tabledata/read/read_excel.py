@@ -88,7 +88,7 @@ class ExcelSpreadsheet(Table):
             name = self.get_input('sheet_name')
             try:
                 index = workbook.sheet_names().index(name)
-            except:
+            except Exception:
                 raise ModuleError(self, "Sheet name not found")
             if self.has_input('sheet_index'):
                 if sheet_index != index:

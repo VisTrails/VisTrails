@@ -369,7 +369,8 @@ class VistrailController(QtCore.QObject, BaseController):
         return (results, changed)
 
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 reason='Pipeline Execution', sinks=None):
+                                 extra_info=None, reason='Pipeline Execution',
+                                 sinks=None):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -388,7 +389,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                          custom_params,
                                          reason,
                                          sinks,
-                                         None)])
+                                         extra_info)])
         return ([], False)
 
 

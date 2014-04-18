@@ -126,15 +126,18 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
                 current_workflow = JobWorkflow(locator.to_url(), version)
                 jobMonitor.getInstance().startWorkflow(current_workflow)
 
-        (results, _) = \
+        try:
+            (results, _) = \
             controller.execute_current_workflow(custom_aliases=aliases,
                                                 extra_info=extra_info,
                                                 reason=reason)
+        finally:
+            jobMonitor.finishWorkflow()
         new_version = controller.current_version
         if new_version != version:
-            debug.warning("Version '%s' (%s) was upgraded. The actual "
-                          "version executed was %s" % \
-                              (workflow, version, new_version))
+            debug.log("Version '%s' (%s) was upgraded. The actual "
+                      "version executed was %s" % (
+                      workflow, version, new_version))
         run = results[0]
         run.workflow_info = (locator.name, new_version)
         run.pipeline = controller.current_pipeline
@@ -142,7 +145,6 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
-        jobMonitor.finishWorkflow()
         if current_workflow.modules:
             if current_workflow.completed():
                 run.job = "COMPLETED"

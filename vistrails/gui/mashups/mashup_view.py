@@ -35,6 +35,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.mashups.mashups_manager import MashupsManager
 from vistrails.gui.mashups.alias_list import QAliasListPanel
@@ -138,7 +139,8 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                         self.disconnect(self.mshpController.vtController,
                                         QtCore.SIGNAL('vistrailChanged()'),
                                         self.mshpControllerVistrailChanged)
-                except Exception:
+                except Exception, e:
+                    debug.unexpected_exception(e)
                     import traceback
                     traceback.print_exc()
             self.controller.flush_delayed_actions()

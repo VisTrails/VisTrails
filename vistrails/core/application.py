@@ -83,7 +83,7 @@ def is_running_gui():
     app = get_vistrails_application()
     return app.is_running_gui()
 
-def init(options_dict={}, args=None):
+def init(options_dict={}, args=[]):
     app = VistrailsCoreApplication()
     set_vistrails_application(app)
     app.init(optionsDict=options_dict, args=args)
@@ -94,7 +94,7 @@ class VistrailsApplicationInterface(object):
         self._initialized = False
         self.notifications = {}
 
-    def setupOptions(self, args=None):
+    def setupOptions(self, args=[]):
         """ setupOptions() -> None
         Check and store all command-line arguments
         
@@ -203,10 +203,7 @@ The builder window can be accessed by a spreadsheet menu option.")
             help=("Do not use the .vistrails directory, and load packages "
                   "automatically when needed"))
 
-        if args != None:
-            command_line.CommandLineParser.parse_options(args=args)
-        else:
-            command_line.CommandLineParser.parse_options()
+        command_line.CommandLineParser.parse_options(args=args)
 
     def printVersion(self):
         """ printVersion() -> None
@@ -336,7 +333,7 @@ The builder window can be accessed by a spreadsheet menu option.")
             self.temp_configuration.jobList = bool(get('listJobs'))
         self.input = command_line.CommandLineParser().positional_arguments()
 
-    def init(self, optionsDict=None, args=None):
+    def init(self, optionsDict=None, args=[]):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
@@ -647,7 +644,8 @@ The builder window can be accessed by a spreadsheet menu option.")
             try:
                 version = \
                     self.get_controller().vistrail.get_version_number(version)
-            except:
+            except Exception, e:
+                debug.unexpected_exception(e)
                 version = None
         return version
 
@@ -698,8 +696,6 @@ The builder window can be accessed by a spreadsheet menu option.")
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
-        # flush in case version was upgraded
-        controller.flush_delayed_actions()
         return True
         
     def open_workflow(self, locator):
@@ -751,9 +747,11 @@ The builder window can be accessed by a spreadsheet menu option.")
             return False
         old_locator = controller.locator
 
+        controller.flush_delayed_actions()
         try:
             controller.write_vistrail(locator, export=export)
-        except Exception:
+        except Exception, e:
+            debug.unexpected_exception(e)
             import traceback
             debug.critical("Failed to save vistrail", traceback.format_exc())
             raise
@@ -801,8 +799,9 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
         self._controllers = {}
         self._cur_controller = None
 
-    def init(self, optionsDict=None, args=None):
-        VistrailsApplicationInterface.init(self, optionsDict=optionsDict, args=args)
+    def init(self, optionsDict=None, args=[]):
+        VistrailsApplicationInterface.init(self, optionsDict=optionsDict,
+                                           args=args)
         self.vistrailsStartup.init()
 
     def is_running_gui(self):

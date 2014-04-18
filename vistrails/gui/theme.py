@@ -72,6 +72,9 @@ class DefaultTheme(DefaultCoreTheme):
         ######################
         #### MEASUREMENTS ####
 
+        # pipeline view bounding rect
+        self.BOUNDING_RECT_MINIMUM = 512
+
         # Port shape
         self.PORT_RECT = QtCore.QRectF(0, 0, self.PORT_WIDTH, self.PORT_HEIGHT)
 

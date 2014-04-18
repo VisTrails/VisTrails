@@ -405,12 +405,12 @@ class TestSystem(unittest.TestCase):
                     self.assertEquals(v1, vistrails_revision())
             except AssertionError:
                 raise
-            except:
+            except Exception:
                 pass
             try:
                 with Chdir(os.path.join(r, '..', '..')):
                     self.assertEquals(v1, vistrails_revision())
             except AssertionError:
                 raise
-            except:
+            except Exception:
                 pass

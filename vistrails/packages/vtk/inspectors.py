@@ -169,7 +169,7 @@ class vtkDataSetAttributesInspector(vtkBaseInspector):
 
 class vtkDataArrayInspector(vtkBaseInspector):
 
-   def compute(self):
+    def compute(self):
         vtk_object = None
         if self.has_input("SetInput"):
             port_object = self.get_input("SetInput")
@@ -180,10 +180,10 @@ class vtkDataArrayInspector(vtkBaseInspector):
         if vtk_object:
             self.auto_set_results(vtk_object)
 
-   input_ports = [('SetInput',
-                   [(vtk_pkg_identifier, 'vtkDataArray')])]
-   output_ports = [('GetMaxNorm', [Float]),
-                   ('GetRange', [Float] * 2)]
+    input_ports = [('SetInput',
+                    [(vtk_pkg_identifier, 'vtkDataArray')])]
+    output_ports = [('GetMaxNorm', [Float]),
+                    ('GetRange', [Float] * 2)]
                    
 class vtkPolyDataInspector(vtkDataSetInspector):
 

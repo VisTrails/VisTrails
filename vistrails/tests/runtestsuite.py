@@ -63,6 +63,7 @@ import os.path
 import optparse
 from optparse import OptionParser
 import platform
+import re
 import shutil
 import tempfile
 
@@ -95,7 +96,7 @@ def setNewPyQtAPI():
         # We now use the new PyQt API - IPython needs it
         sip.setapi('QString', 2)
         sip.setapi('QVariant', 2)
-    except:
+    except Exception:
         print "Could not set PyQt API, is PyQt4 installed?"
 setNewPyQtAPI()
 
@@ -256,6 +257,8 @@ tests_passed = True
 main_test_suite = unittest.TestSuite()
 test_loader = unittest.TestLoader()
 
+import_skip_regex = re.compile(r'(?i)# *pragma[: ]*no *testimport')
+
 if test_modules:
     sub_print("Trying to import some of the modules")
 else:
@@ -269,6 +272,7 @@ for (p, subdirs, files) in os.walk(root_directory):
         # skip files that don't look like VisTrails python modules
         if not filename.endswith('.py'):
             continue
+        module_file = os.path.join(p, filename)
         module = os.path.join("vistrails", p[len(root_directory)+1:],
                               filename[:-3])
         if (module.startswith(os.sep) or
@@ -291,8 +295,15 @@ for (p, subdirs, files) in os.walk(root_directory):
         if ('.system.' in module and not
             module.endswith('__init__')):
             continue
-
-        msg = ("%s %s |" % (" " * (40 - len(module)), module))
+        with open(module_file) as fp:
+            l = fp.readline()
+            if l.startswith('#!'): # shebang
+                l = fp.readline()
+            if import_skip_regex.match(l):
+                if verbose >= 1:
+                    print >>sys.stderr, ("Skipping %s, not an importable "
+                                         "module" % module)
+                continue
 
         m = None
         try:
@@ -300,14 +311,10 @@ for (p, subdirs, files) in os.walk(root_directory):
                 m = __import__(module, globals(), locals(), ['foo'])
             else:
                 m = __import__(module)
-        except vistrails.tests.NotModule:
+        except BaseException:
+            print >>sys.stderr, "ERROR: Could not import module: %s" % module
             if verbose >= 1:
-                print "Skipping %s, not an importable module" % filename
-            continue
-        except:
-            print msg, "ERROR: Could not import module!"
-            if verbose >= 1:
-                traceback.print_exc(file=sys.stdout)
+                traceback.print_exc(file=sys.stderr)
             continue
 
         # Load the unittest TestCases
@@ -327,9 +334,11 @@ for (p, subdirs, files) in os.walk(root_directory):
         main_test_suite.addTests(suite)
 
         if suite.countTestCases() == 0 and verbose >= 1:
-            print msg, "WARNING: %s has no tests!" % filename
+            print >>sys.stderr, "WARNING: module has no tests: %s" % module
         elif verbose >= 2:
-            print msg, "Ok: %d test cases." % suite.countTestCases()
+            print >>sys.stderr, "OK: module as %d test cases: %s" % (
+                    suite.countTestCases(),
+                    module)
 
 sub_print("Imported modules. Running %d tests%s..." % (
           main_test_suite.countTestCases(),

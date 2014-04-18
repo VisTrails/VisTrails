@@ -36,46 +36,67 @@ import inspect
 import logging
 import logging.handlers
 import os
-import os.path
+import pdb
 import re
+import sys
 import time
 import traceback
 
 ################################################################################
 
 def format_exception(e):
+    """Formats an exception as a single-line (no traceback).
+
+    Use this instead of str() which might drop the exception type.
+    """
     return traceback._format_final_exc_line(type(e).__name__, e)
 
-################################################################################
 
-_warningformat = re.compile(
-        '^(.+):'
-        '([0-9]+): '
-        '([A-Za-z_][A-Za-z0-9_]*): '
-        '((?:.|\n)+)$')
+def unexpected_exception(e, tb=None, frame=None):
+    """Marks an exception that we might want to debug.
 
-class EmitWarnings(logging.Handler):
-    """A logging Handler that re-logs warning messages in our log format.
-
-    This parses the warnings logged by the standard `warnings` module and
-    writes them to the given logger at level WARNING in the format we use
-    (see DebugPrint#message()).
+    Before logging an exception or showing a message (potentially with
+    format_exception()), you might want to call this. It's a no-op unless
+    debugging is enabled in the configuration, in which case it will start a
+    debugger.
     """
-    def __init__(self, logger):
-        logging.Handler.__init__(self)
-        self.logger = logger
+    if tb is None:
+        tb = sys.exc_info()[2]
+    if frame is None:
+        frame = sys._getframe().f_back
 
-    def emit(self, record):
-        # Here we basically do the contrary of warnings:formatwarning()
-        m = _warningformat.match(record.args[0])
-        if m == None:
-            self.logger.warning("(File info not available)\n" +
-                           record.args[0])
-        else:
-            filename, lineno, category, message = m.groups()
-            # And here we do self.message()
-            self.logger.warning('%s, line %s\n%s: %s' % (filename, lineno,
-                                                    category, message))
+    # Whether to use the debugger
+    try:
+        from vistrails.core.configuration import get_vistrails_configuration
+        debugger = getattr(get_vistrails_configuration(),
+                           'developperDebugger',
+                           False)
+    except Exception:
+        debugger = False
+    if not debugger:
+        return
+
+    # Removes PyQt's input hook
+    try:
+        from PyQt4 import QtCore
+    except ImportError:
+        pass
+    else:
+        QtCore.pyqtRemoveInputHook()
+
+    # Prints the exception and traceback
+    print >>sys.stderr, "!!!!!!!!!!"
+    print >>sys.stderr, "Got unexpected exception, starting debugger"
+    traceback.print_stack(frame, sys.stderr)
+    if e is not None:
+        print >>sys.stderr, format_exception(e)
+
+    # Starts the debugger
+    print >>sys.stderr, "!!!!!!!!!!"
+    # pdb.post_mortem()
+    p = pdb.Pdb()
+    p.reset()
+    p.interaction(frame, tb)
 
 ################################################################################
 

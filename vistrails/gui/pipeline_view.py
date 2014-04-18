@@ -1098,14 +1098,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         else:
             before_names = self._cur_function_names
             after_names = set([f.name for f in core_module.functions])
-            # print "before_names:", before_names
-            # print "after_names:", after_names
             added_functions = after_names - before_names
             deleted_functions = before_names - after_names
             self._cur_function_names = copy.copy(after_names)
 
-        # print "added_functions:", added_functions
-        # print "deleted_functions:", deleted_functions
         if len(deleted_functions) > 0:
             for function_name in deleted_functions:
                 try:
@@ -1117,9 +1113,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     item = self.getInputPortItem(f_spec)
                     if item is not None:
                         item.disconnect()
-                except:
-                    # import traceback
-                    # traceback.print_exc()
+                except Exception:
                     pass
 
         if len(added_functions) > 0:
@@ -1187,7 +1181,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         try:
             r = self.paddedRect.adjusted(-2, -2, 2, 2)
-        except:
+        except Exception:
             r = QtCore.QRectF()
         return r
 
@@ -1551,21 +1545,20 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     port_klass = QGraphicsPortTriangleItem
                     try:
                         kwargs['angle'] = int(shape[8:])
-                    except:
+                    except ValueError:
                         kwargs['angle'] = 0
                 elif shape == "diamond":
                     port_klass = QGraphicsPortDiamondItem
                 elif shape == "circle" or shape == "ellipse":
                     port_klass = QGraphicsPortEllipseItem
             else:
-                is_iterable = False
                 try:
-                    shape.__iter__()
-                    is_iterable = True
+                    iter(shape)
+                except TypeError:
+                    pass
+                else:
                     port_klass = QGraphicsPortPolygonItem
                     kwargs['points'] = shape
-                except:
-                    pass
 
         portShape = port_klass(port, x, y, self.ghosted, self, **kwargs)
         # portShape = QGraphicsPortRectItem(port, x, y, self.ghosted, self)
@@ -1727,6 +1720,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 yield (item, False)
             else:
                 yield (item, True)
+
+    def mouseReleaseEvent(self, event):
+        super(QGraphicsModuleItem, self).mouseReleaseEvent(event)
+        if not self.controller.changed and self.controller.has_move_actions():
+            self.controller.set_changed(True)
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: value) -> value

@@ -47,6 +47,7 @@ from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
 
 from abc import ABCMeta
+from ast import literal_eval
 from itertools import izip
 import os
 import pickle
@@ -248,7 +249,7 @@ def string_compare(value_a, value_b, query_method):
             m = re.match(value_b, value_a)
             if m is not None:
                 return (m.end() ==len(value_a))
-        except:
+        except re.error:
             pass
     return False
 
@@ -333,24 +334,23 @@ Path.default_value = PathObject('')
 
 def path_parameter_hasher(p):
     def get_mtime(path):
-        v_list = [int(os.path.getmtime(path))]
+        t = int(os.path.getmtime(path))
         if os.path.isdir(path):
             for subpath in os.listdir(path):
                 subpath = os.path.join(path, subpath)
                 if os.path.isdir(subpath):
-                    v_list.extend(get_mtime(subpath))
-        return v_list
+                    t = max(t, get_mtime(subpath))
+        return t
 
     h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
     try:
         # FIXME: This will break with aliases - I don't really care that much
-        v_list = get_mtime(p.strValue)
+        t = get_mtime(p.strValue)
     except OSError:
         return h
     hasher = sha_hash()
     hasher.update(h)
-    for v in v_list:
-        hasher.update(str(v))
+    hasher.update(str(t))
     return hasher.digest()
 
 class File(Path):
@@ -542,16 +542,38 @@ class WriteFile(Converter):
     """Writes a String to a temporary File.
     """
     _input_ports = [IPort('in_value', String),
-                    IPort('suffix', String, optional=True, default="")]
+                    IPort('suffix', String, optional=True, default=""),
+                    IPort('encoding', String, optional=True)]
     _output_ports = [OPort('out_value', File)]
 
     def compute(self):
         contents = self.get_input('in_value')
         suffix = self.force_get_input('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
+        if self.hasInputFromPort('encoding'):
+            contents = contents.decode('utf-8') # VisTrails uses UTF-8
+                                                # internally (I hope)
+            contents = contents.encode(self.get_input('encoding'))
         with open(result.name, 'wb') as fp:
             fp.write(contents)
         self.set_output('out_value', result)
+
+class ReadFile(Converter):
+    """Reads a File to a String.
+    """
+    _input_ports = [IPort('in_value', File),
+                    IPort('encoding', String, optional=True)]
+    _output_ports = [OPort('out_value', String)]
+
+    def compute(self):
+        filename = self.get_input('in_value').name
+        with open(filename, 'rb') as fp:
+            contents = fp.read()
+        if self.has_input('encoding'):
+            contents = contents.decode(self.get_input('encoding'))
+            contents = contents.encode('utf-8') # VisTrails uses UTF-8
+                                                # internally (for now)
+        self.set_output('out_value', contents)
 
 ##############################################################################
 
@@ -798,7 +820,7 @@ class List(Constant):
 
     @staticmethod
     def translate_to_python(v):
-        return eval(v)
+        return literal_eval(v)
 
     @staticmethod
     def translate_to_string(v, dims=None):
@@ -842,7 +864,7 @@ class List(Constant):
 # Dictionary
                     
 def dict_conv(v):
-    v_dict = eval(v)
+    v_dict = literal_eval(v)
     return v_dict
 
 def dict_compute(self):
@@ -1232,7 +1254,7 @@ def init_constant(m):
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
 
-_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual, StringFormat]
+_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, ReadFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual, StringFormat]
 
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too

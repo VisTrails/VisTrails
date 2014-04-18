@@ -856,11 +856,10 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         def func_to_bool(function):
             try:
                 value = function.parameters[0].strValue
-                if value and value == 'True':
-                    return True
-            except:
-                pass
-            return False
+            except IndexError:
+                return False
+            if value and value == 'True':
+                return True
 
         ref_exists = False
         self.existing_ref = None

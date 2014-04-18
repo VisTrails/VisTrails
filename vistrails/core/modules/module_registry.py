@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 from itertools import izip, chain
-import ast
+from ast import literal_eval
 import collections
 import copy
 import os
@@ -987,9 +987,10 @@ class ModuleRegistry(DBRegistry):
                 desc = self.get_descriptor_by_name(*sig)
             else:
                 desc = self.get_descriptor(cls)
-        except:
-            raise Exception('Cannot convert value "%s" due to missing '
-                            'descriptor for port' % val)
+        except Exception, e:
+            debug.unexpected_exception(e)
+            raise VistrailsInternalError("Cannot convert value %r due to "
+                                         "missing descriptor for port" % val)
         constant_desc = self.get_descriptor_by_name(basic_pkg, 'Constant')
         if not self.is_descriptor_subclass(desc, constant_desc):
             raise TypeError("Cannot convert value for non-constant type")
@@ -1428,7 +1429,7 @@ class ModuleRegistry(DBRegistry):
             if defaults is not None:
                 new_defaults = []
                 if isinstance(defaults, basestring):
-                    defaults = ast.literal_eval(defaults)
+                    defaults = literal_eval(defaults)
                 if not isinstance(defaults, list):
                     raise ValueError('Defaults for port "%s" must be a list' %
                                      name)
@@ -1447,13 +1448,13 @@ class ModuleRegistry(DBRegistry):
             if values is not None:
                 new_values = []
                 if isinstance(values, basestring):
-                    values = ast.literal_eval(values)
+                    values = literal_eval(values)
                 if not isinstance(values, list):
                     raise ValueError('Values for port "%s" must be a list '
                                      'of lists' % name)
                 for i, values_list in enumerate(values):
                     if isinstance(values_list, basestring):
-                        values_list = ast.literal_eval(values_list)
+                        values_list = literal_eval(values_list)
                     if values_list is not None:
                         if not isinstance(values_list, list):
                             raise ValueError('Values for port "%s" must be '
