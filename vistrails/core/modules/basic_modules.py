@@ -695,7 +695,7 @@ class StandardOutput(NotCacheable, Module):
     value connected on its port to standard output. It is intended
     mostly as a debugging device."""
 
-    _input_ports = [IPort("value", Module)]
+    _input_ports = [IPort("value", 'Variant')]
     
     def compute(self):
         v = self.get_input("value")
@@ -804,7 +804,7 @@ class List(Constant):
     _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
     _input_ports = [IPort("value", "List"),
-                    IPort("head", "Module"),
+                    IPort("head", "Variant"),
                     IPort("tail", "List")]
     _output_ports = [OPort("value", "List")]
 
@@ -1191,8 +1191,8 @@ class AssertEqual(Module):
     It is provided for convenience.
     """
 
-    _input_ports = [IPort('value1', 'Module'),
-                    IPort('value2', 'Module')]
+    _input_ports = [IPort('value1', 'Variant'),
+                    IPort('value2', 'Variant')]
 
     def compute(self):
         values = (self.get_input('value1'),
