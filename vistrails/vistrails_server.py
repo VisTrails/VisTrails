@@ -64,7 +64,12 @@ if __name__ == '__main__':
 
     import vistrails.gui.application_server
     try:
-        v = vistrails.gui.application_server.start_server()
+        optionsDict = {
+            'interactiveMode': False,
+            'enablePackagesSilently': True,
+            'handlerDontAsk': True,
+        }
+        v = vistrails.gui.application_server.start_server(optionsDict)
         app = vistrails.gui.application_server.VistrailsServer()
     except SystemExit, e:
         print str(e)
