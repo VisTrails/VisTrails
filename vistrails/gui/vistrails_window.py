@@ -156,10 +156,10 @@ class QBaseViewWindow(QtGui.QMainWindow):
                     else:
                         self.connect(qaction, QtCore.SIGNAL("triggered()"),
                                      callback)
-        
+
     def init_action_list(self):
         global _app
-        
+
         self._actions = [("file", "&File",
                    [("export", "Export",
                       [('savePDF', "PDF...",
@@ -167,6 +167,12 @@ class QBaseViewWindow(QtGui.QMainWindow):
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_tab,
                                                        'save_pdf')}),
+                       ('saveDOT', "Version tree to Graphviz DOT...",
+                        {'statusTip': "Save the version view to a Graphviz "
+                             "DOT file",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_view,
+                                                       'save_version_graph')}),
                        "---",
                        ('saveWorkflow', "Workflow To XML...",
                         {'statusTip': "Save the current workflow to a file",
@@ -567,6 +573,12 @@ class QVistrailViewWindow(QBaseViewWindow):
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_tab,
                                                        'save_pdf')}),
+                       ('saveDOT', "Version tree to Graphviz DOT...",
+                        {'statusTip': "Save the version view to a Graphviz "
+                             "DOT file",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_view,
+                                                       'save_version_graph')}),
                        "---",
                        ('saveWorkflow', "Workflow To XML...",
                         {'statusTip': "Save the current workflow to a file",
@@ -1671,7 +1683,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             pe = vistrail.get_paramexp(pe_id)
         except ValueError:
             pe= vistrail.get_named_paramexp(pe_id)
-        except Exception:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return
         self.current_view.open_parameter_exploration(pe.id)
         self.qactions['execute'].trigger()

@@ -198,7 +198,7 @@ class HTTPFile(Module):
         try:
             self.host = s[2]
             self.filename = '/' + '/'.join(s[3:])
-        except:
+        except IndexError:
             raise ModuleError(self, "Malformed URL: %s" % url)
 
     def _is_outdated(self, remoteHeader, localFile):
@@ -452,10 +452,10 @@ def initialize(*args, **keywords):
         try:
             debug.log("Creating HTTP package directory: %s" % package_directory)
             os.mkdir(package_directory)
-        except:
+        except Exception, e:
             debug.critical(("Create directory failed. Make sure '%s' does not"
                            " exist and parent directory is writable") %
-                            package_directory)
+                            package_directory, e)
             sys.exit(1)
 
 ##############################################################################

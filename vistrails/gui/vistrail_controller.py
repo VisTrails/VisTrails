@@ -369,7 +369,8 @@ class VistrailController(QtCore.QObject, BaseController):
         return (results, changed)
 
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 reason='Pipeline Execution', sinks=None):
+                                 extra_info=None, reason='Pipeline Execution',
+                                 sinks=None):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -388,7 +389,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                          custom_params,
                                          reason,
                                          sinks,
-                                         None)])
+                                         extra_info)])
         return ([], False)
 
 
@@ -446,7 +447,8 @@ class VistrailController(QtCore.QObject, BaseController):
         msg = "VisTrails needs to enable package '%s'." % identifier
         if len(deps) > 0:
             msg += (" This will also enable the dependencies: %s." 
-                    " Do you want to enable these packages?") % str(deps)
+                    " Do you want to enable these packages?" % (
+                    ", ".join(deps),))
         else:
             msg += " Do you want to enable this package?"
         res = show_question('Enable package?',

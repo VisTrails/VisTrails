@@ -42,11 +42,9 @@ from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
 from vistrails.core.collection import Collection, MashupEntity, ThumbnailEntity, \
     VistrailEntity, WorkflowEntity, WorkflowExecEntity, ParameterExplorationEntity
-from vistrails.core.collection.search import SearchCompiler, SearchParseError
 from vistrails.core.db.locator import FileLocator
 from vistrails.core.system import time_strptime
 from vistrails.db.services.locator import UntitledLocator
-from vistrails.gui.common_widgets import QToolWindowInterface, QToolWindow, QSearchBox
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.module_palette import QModuleTreeWidgetItemDelegate
@@ -103,13 +101,8 @@ class QCollectionWidget(QtGui.QTreeWidget):
                                for i in xrange(item.childCount())])
 
     def item_selected(self, widget_item, column):
-        #print 'item_selected'
         locator = widget_item.entity.locator()
-        #print "locator", locator
         import vistrails.gui.application
-#        if not locator.is_valid():
-#            debug.critical("Locator is not valid:" % locator.to_url())
-#            return
         app = vistrails.gui.application.get_vistrails_application()
         open_vistrail = app.builderWindow.open_vistrail_without_prompt
         args = {}
@@ -118,24 +111,16 @@ class QCollectionWidget(QtGui.QTreeWidget):
         if args['version']:
             # set vistrail name
             locator = widget_item.entity.parent.locator()
-            pass
-            #locator._name = widget_item.entity.parent.name
 
         workflow_exec = locator.kwargs.get('workflow_exec', None)
         if workflow_exec:
             args['workflow_exec'] = workflow_exec
             locator = widget_item.entity.parent.parent.locator()
             locator.update_from_gui(self)
-            # set vistrail name
-            #locator._name = widget_item.entity.parent.parent.name
-            
+
         locator.update_from_gui(self)
-#        print '*** opening'
-#        print locator.to_url()
-#        print locator.name
-#        print '***'
         open_vistrail(locator, **args)
-                                                       
+
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
         menu = QtGui.QMenu(self)
@@ -253,7 +238,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
                 url = locator.to_url()
                 entity = self.collection.updateVistrail(url)
                 self.collection.add_to_workspace(entity)
-            except:
+            except Exception:
                 debug.critical("Failed to add file '%s'" % filename)
         progress.setValue(len(filenames))
         self.collection.commit()
@@ -293,7 +278,6 @@ class QWorkspaceWidget(QCollectionWidget):
         for entity in self.collection.workspaces[self.collection.currentWorkspace]:
             item = QBrowserWidgetItem(entity, self)
             self.addTopLevelItem(item)
-#        if self.collection.currentWorkspace != 'Default':
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
@@ -325,16 +309,7 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
             self.addChild(self.paramExplorationsItem)
             self.setIcon(0, CurrentTheme.HISTORY_ICON)
             return
-        
-        # # old, esoteric code
-        #
-        # l = list(str(x) for x in entity.save())
-        # l.pop(0) # remove identifier
-        # type = l.pop(0)
-        # desc = l[5]
-        # if len(desc) > 20:
-        #     l[5] = desc[:20] + '...'
-        klass = self.__class__
+
         self.entity = entity
         QtGui.QTreeWidgetItem.__init__(self, parent, [entity.name])
         if entity.type_id == VistrailEntity.type_id:
@@ -360,7 +335,6 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
         tooltip = '<html>%s' % entity.url
             
         for child in entity.children:
-            # l = child.save()
             if child.type_id == ThumbnailEntity.type_id:
                 # is a thumbnail
                 # add to parent workflow item
@@ -407,14 +381,6 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
             tooltip += '<br/>%s' % entity.description
         tooltip += '</html>'
         self.setToolTip(0, tooltip)
-
-    #def __lt__(self, other):
-    #    sort_col = self.treeWidget().sortColumn()
-    #    if sort_col in set([4]):
-    #        return int(self.text(sort_col)) < int(other.text(sort_col))
-    #    elif sort_col in set([2,3]):
-    #        return datetime(*time_strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*time_strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
-    #    return QtGui.QTreeWidgetItem.__lt__(self, other)
 
     def refresh_object(self):
         Collection.getInstance().updateVistrail(self.entity.url)
@@ -473,7 +439,6 @@ class QExplorerWidget(QCollectionWidget):
         for entity in self.collection.workspaces[self.collection.currentWorkspace]:
             item = QExplorerWidgetItem(entity)
             self.addTopLevelItem(item)
-#        if self.collection.currentWorkspace != 'Default':
         self.setSortingEnabled(True)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
 
@@ -483,9 +448,6 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         l.pop(0) # remove identifier
         type = l.pop(0)
         desc = l.pop(5)
-#        l.pop(7)
-#        if len(desc) > 20:
-#            l[5] = desc[:20] + '...'
         QtGui.QTreeWidgetItem.__init__(self, parent, l)
         self.entity = entity
         if type == '1':
@@ -528,47 +490,19 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
-#        self.workspace_list = QtGui.QComboBox()
-#        self.titleWidget = QtGui.QWidget()
-#        self.titleLayout = QtGui.QHBoxLayout()
-#        self.titleLayout.setMargin(0)
-#        self.titleLayout.setSpacing(5)
-#        self.titleLayout.addWidget(QtGui.QLabel('Project:'), 0)
-#        self.titleLayout.addWidget(self.workspace_list, 1)
-#        self.titleWidget.setLayout(self.titleLayout)
-#        self.setTitleBarWidget(self.titleWidget)
         self.setWindowTitle('Workspace')
         # make it possible to ignore updates during updating of workspace list
         self.updatingWorkspaceList = False
-#        self.connect(self.workspace_list,
-#                     QtCore.SIGNAL("currentIndexChanged(QString)"),
-#                     self.workspace_changed)
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(5)
-#        self.search_box = QSearchBox(True, False, self)
-#        layout.addWidget(self.search_box)
 
         self.collection = Collection.getInstance()
 
         self.open_list = QVistrailList()
         self.open_list.collection = self.collection
         layout.addWidget(self.open_list)
-#        layout.addWidget(self.titleWidget)
-
-#        self.browser = QWorkspaceWidget(self.collection)
-#        layout.addWidget(self.browser)
-#        self.browser.setup_widget('Default')
-#        self.connect(self.search_box, QtCore.SIGNAL('resetSearch()'),
-#                     self.reset_search)
-#        self.connect(self.search_box, QtCore.SIGNAL('executeSearch(QString)'),
-#                     self.execute_search)
-#        self.connect(self.search_box, QtCore.SIGNAL('refineMode(bool)'),
-#                     self.refine_mode)
-#        self.connect(self.browser, QtCore.SIGNAL('workspaceListUpdated()'),
-#                     self.update_workspace_list)
         self.setLayout(layout)
-#        self.update_workspace_list()
 
         self.addButtonsToToolbar()
 
@@ -687,16 +621,6 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
     def set_results(self, results):
         pass
 
-    def execute_search(self, text):
-        s = str(text)
-        try:
-            search = SearchCompiler(s).searchStmt
-        except SearchParseError, e:
-            debug.warning("Search Parse Error", e)
-            search = None
-
-        self.browser.run_search(search)
-
     def refine_mode(self, on):
         pass
 
@@ -709,82 +633,6 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
     def remove_vt_window(self, vistrail_window):
         self.open_list.remove_vt_window(vistrail_window)
 
-class QExplorerDialog(QToolWindow, QToolWindowInterface):
-    def __init__(self, parent=None):
-        QToolWindow.__init__(self, parent=parent)
-
-        self.widget = QtGui.QWidget()
-        self.setWidget(self.widget)
-        self.workspace_list = QtGui.QComboBox()
-        self.setTitleBarWidget(self.workspace_list)
-        # make it possible to ignore updates during updating of workspace list
-        self.updatingWorkspaceList = False
-        self.connect(self.workspace_list,
-                     QtCore.SIGNAL("currentIndexChanged(QString)"),
-                     self.workspace_changed)
-        layout = QtGui.QVBoxLayout()
-#        layout.setMargin(0)
-#        layout.setSpacing(5)
-        self.search_box = QSearchBox(True, False, self)
-        layout.addWidget(self.search_box)
-
-        self.collection = Collection.getInstance()
-        self.browser = QExplorerWidget(self.collection, self)
-        layout.addWidget(self.browser)
-        self.browser.setup_widget('Recent files')
-        self.connect(self.search_box, QtCore.SIGNAL('resetSearch()'),
-                     self.reset_search)
-        self.connect(self.search_box, QtCore.SIGNAL('executeSearch(QString)'),
-                     self.execute_search)
-        self.connect(self.search_box, QtCore.SIGNAL('refineMode(bool)'),
-                     self.refine_mode)
-        self.connect(self.browser, QtCore.SIGNAL('workspaceListUpdated()'),
-                     self.update_workspace_list)
-        self.widget.setLayout(layout)
-        self.update_workspace_list()
- 
-    def update_workspace_list(self):
-        """ Updates workspace list and highlights currentWorkspace
-            Keeps 'Default' on top
-        """
-        self.updatingWorkspaceList = True
-        self.workspace_list.clear()
-        self.workspace_list.addItem('Default')
-        if 'Default' == self.browser.collection.currentWorkspace:
-            self.workspace_list.setCurrentIndex(self.workspace_list.count()-1)
-        sorted_workspaces = self.browser.collection.workspaces.keys()
-        if 'Default' in sorted_workspaces:
-            sorted_workspaces.remove('Default')
-        sorted_workspaces.sort()
-        for p in sorted_workspaces:
-            self.workspace_list.addItem(p)
-            if p == self.browser.collection.currentWorkspace:
-                self.workspace_list.setCurrentIndex(self.workspace_list.count()-1)
-        self.updatingWorkspaceList = False
-
-    def workspace_changed(self, workspace):
-        if not self.updatingWorkspaceList:
-            self.browser.setup_widget(str(workspace))
-    
-    def reset_search(self):
-        self.browser.reset_search()
-
-    def set_results(self, results):
-        pass
-
-    def execute_search(self, text):
-        s = str(text)
-        try:
-            search = SearchCompiler(s).searchStmt
-        except SearchParseError, e:
-            debug.warning("Search Parse Error", e)
-            search = None
-
-        self.browser.run_search(search)
-
-    def refine_mode(self, on):
-        pass
-
 class QVistrailEntityItem(QBrowserWidgetItem):
     def __init__(self, entity, window=None):
         QBrowserWidgetItem.__init__(self, entity)
@@ -796,7 +644,6 @@ class QVistrailEntityItem(QBrowserWidgetItem):
         # make them draggable
         self.setFlags(self.flags() | QtCore.Qt.ItemIsDragEnabled
                                    | QtCore.Qt.ItemIsDropEnabled
-#                                   | QtCore.Qt.ItemIsSelectable
                                    )
 
     def open_in_new_window(self):
@@ -1013,12 +860,11 @@ class QVistrailList(QtGui.QTreeWidget):
                 try:
                     version = \
                         view.controller.vistrail.get_version_number(version)
-                except:
+                except Exception:
                     version = None
             if self.searchMode:
                 self.search_result_selected(view, version)
             else:
-                # _app.view_changed(view)
                 _app.change_view(view)
                 if version:
                     view.version_selected(version, True, double_click=True)
@@ -1057,9 +903,7 @@ class QVistrailList(QtGui.QTreeWidget):
             vistrail_entity = entity.parent.parent
             locator = vistrail_entity.locator()
             locator.update_from_gui(self)
-            # set vistrail name
-            #locator._name = widget_item.entity.parent.parent.name
-            
+
         if isinstance(widget_item, QVistrailListLatestItem):
             # find the latest item (max action id)
             vistrail = widget_item.parent().parent().window.controller.vistrail
@@ -1285,11 +1129,6 @@ class QVistrailList(QtGui.QTreeWidget):
         
         (new_entity, was_updated) = \
             entity.update_vistrail(view.controller.vistrail)
-        #if new_entity:
-        #    Collection.getInstance().create_vistrail_entity(
-        #        view.controller.vistrail)
-        #    self.add_vt_window(view)
-        #    return
         if was_updated:
             item.setText(0, entity.name)
         (added_wfs, deleted_wfs) = entity.update_workflows()
@@ -1520,7 +1359,6 @@ class QVistrailList(QtGui.QTreeWidget):
                 # parent node
                 return
             vistrail = vistrail.parent()
-        #print "*** item clicked", id(vistrail.window)
 
         self.setSelected(vistrail.window)
         self.parent().emit(QtCore.SIGNAL("vistrailChanged(PyQt_PyObject)"), 
@@ -1605,27 +1443,3 @@ class QVistrailList(QtGui.QTreeWidget):
             act.setStatusTip("Execute the mashup")
             menu.addAction(act)
             menu.exec_(event.globalPos())
-
-if __name__ == '__main__':
-    import sys
-    sys.path.append('/vistrails/src/query/vistrails')
-    from vistrails.core.collection import Collection
-    
-#     vt_1 = load_vistrail(ZIPFileLocator('/vistrails/examples/spx.vt'))[0]
-#     vt_2 = load_vistrail(DBLocator('vistrails.sci.utah.edu', 3306,
-#                                    'vistrails', 'vistrails', '8edLj4',
-#                                    obj_id=9, obj_type='vistrail'))[0]
-
-    c = Collection('test.db')
-    # c.clear()
-    # e_1 = c.create_vistrail_entity(vt_1)
-    # e_2 = c.create_vistrail_entity(vt_2)
-    
-    c.entities = {}
-    c.load_entities()
-
-    app = QtGui.QApplication(sys.argv)
-    widget = QBrowserWidget(c)
-    widget.setup_widget('Recent items')
-    widget.show()
-    sys.exit(app.exec_())

@@ -32,6 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from ast import literal_eval
 import os
 import sys
 import tempfile
@@ -96,7 +97,7 @@ def create_vector(v_list, desired_type=None):
     return robjects.RVector(v_list)
 
 def vector_conv(v, desired_type=None):
-    v_list = eval(v)
+    v_list = literal_eval(v)
     return create_vector(v_list, desired_type)
 
 RVector = new_constant('RVector', staticmethod(vector_conv),
@@ -159,7 +160,7 @@ def create_matrix(v_list):
     
 def matrix_conv(v):
     # should be a double list
-    v_list = eval(v)
+    v_list = literal_eval(v)
     create_matrix(v_list)
 
 def matrix_compute(self):
@@ -190,7 +191,7 @@ def create_list(v_dict):
     return robjects.r['list'](**data_dict)
 
 def list_conv(v):
-    v_dict = eval(v)
+    v_dict = literal_eval(v)
     return create_list(v_dict)
 
 RList = new_constant('RList', staticmethod(list_conv),
@@ -211,7 +212,7 @@ def create_data_frame(v_dict):
     return robjects.r['data.frame'](**data_dict)
 
 def data_frame_conv(v):
-    v_dict = eval(v)
+    v_dict = literal_eval(v)
     return create_data_frame(v_dict)
 
 RDataFrame = new_constant('RDataFrame', staticmethod(data_frame_conv),

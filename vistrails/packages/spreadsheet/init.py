@@ -83,8 +83,8 @@ def addWidget(packagePath):
         widget.registerWidget(registry, basic_modules, basicWidgets)
         spreadsheetRegistry.registerPackage(widget, packagePath)
         debug.log('  ==> Successfully import <%s>' % widgetName)
-    except:
-        debug.log('  ==> Ignored package <%s>' % packagePath)
+    except Exception, e:
+        debug.log('  ==> Ignored package <%s>' % packagePath, e)
         widget = None
     return widget
 

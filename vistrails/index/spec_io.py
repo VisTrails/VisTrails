@@ -1,3 +1,4 @@
+# pragma: no testimport
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -42,7 +43,7 @@ DBUSER = 'specuser'
 DBPASS = 'specpass'
 DBDB   = 'wfspec'
 
-class Spec:
+class Spec(object):
     def __init__(self):
         self.db = None
         try:

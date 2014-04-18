@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -32,10 +33,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 # Resource object code
 #
-# Created: Thu Sep 21 00:22:30 2006
-#      by: The Resource Compiler for PyQt (Qt v4.1.3)
+# Created: Thu Mar 20 11:57:15 2014
+#      by: The Resource Compiler for PyQt (Qt v4.8.5)
 #
 # WARNING! All changes made in this file will be lost!
 

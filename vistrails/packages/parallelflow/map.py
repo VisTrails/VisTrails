@@ -317,7 +317,7 @@ class Map(Module):
         for eng in engines:
             try:
                 rc[eng]['init']
-            except:
+            except Exception:
                 uninitialized.append(eng)
         if uninitialized:
             init_view = rc[uninitialized]

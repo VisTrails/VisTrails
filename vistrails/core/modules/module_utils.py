@@ -83,6 +83,7 @@ class FilePool(object):
                     os.rmdir(os.path.join(root, name))
             os.rmdir(self.directory)
         except OSError, e:
+            debug.unexpected_exception(e)
             raise VistrailsInternalError("Can't remove %s: %s" %
                                          (self.directory,
                                           debug.format_exception(e)))

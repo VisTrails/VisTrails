@@ -938,7 +938,7 @@ class Pipeline(DBWorkflow):
                         desc = module.module_descriptor
                         if long(module.internal_version) != long(desc.version):
                             exceptions.add(MissingModuleVersion(desc.package, desc.name, desc.namespace, desc.version, desc.package_version, module.id))
-                    except:
+                    except Exception:
                         pass
         try:
             self.ensure_port_specs()
@@ -1122,8 +1122,7 @@ class Pipeline(DBWorkflow):
                 value_set = False
                 for func in module.functions:
                     if func.name == 'value':
-                        value = func.params[0].strValue
-                        if value and value != "None":
+                        if func.params[0].strValue:
                             value_set = True
                             continue
                 if value_set:

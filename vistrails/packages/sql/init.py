@@ -32,194 +32,268 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.bundles import py_import
-from PyQt4 import QtCore, QtGui
+
+from sqlalchemy.engine import create_engine
+from sqlalchemy.engine.url import URL
+from sqlalchemy.exc import SQLAlchemyError
 import urllib
 
+from vistrails.core.db.action import create_action
+from vistrails.core.bundles.installbundle import install
 from vistrails.core import debug
-from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from vistrails.gui.modules.source_configure import SourceConfigurationWidget
+from vistrails.core.modules.config import ModuleSettings
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-from vistrails.core.utils import PortAlreadyExists
-from vistrails.gui.theme import CurrentTheme
+from vistrails.core.utils import versions_increasing
 
-MySQLdb = py_import('MySQLdb', {
-        'pip': 'mysql-python',
-        'linux-debian': 'python-mysqldb',
-        'linux-ubuntu': 'python-mysqldb',
-        'linux-fedora': 'MySQL-python'})
+from vistrails.packages.tabledata.common import TableObject
 
-psycopg2 = py_import('psycopg2', {
-        'pip': 'psycopg2',
-        'linux-debian':'python-psycopg2',
-        'linux-ubuntu':'python-psycopg2',
-        'linux-fedora':'python-psycopg2'})
-
-
-class QPasswordEntry(QtGui.QDialog):
-    def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        self.setModal(True)
-        self.setWindowTitle("Enter Password:")
-        self.setLayout(QtGui.QVBoxLayout())
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel("Password:"))
-        self.line_edit = QtGui.QLineEdit()
-        self.line_edit.setEchoMode(QtGui.QLineEdit.Password)
-        hbox.addWidget(self.line_edit)
-        self.layout().addLayout(hbox)
-
-        bbox = QtGui.QHBoxLayout()
-        cancel = QtGui.QPushButton("Cancel")
-        ok = QtGui.QPushButton("OK")
-        ok.setDefault(True)
-        bbox.addWidget(cancel, 1, QtCore.Qt.AlignRight)
-        bbox.addWidget(ok, 0, QtCore.Qt.AlignRight)
-        self.layout().addLayout(bbox)
-        self.connect(ok, QtCore.SIGNAL("clicked(bool)"), self.accept)
-        self.connect(cancel, QtCore.SIGNAL("clicked(bool)"), self.reject)
-
-    def get_password(self):
-        return str(self.line_edit.text())
 
 class DBConnection(Module):
-    def __init__(self):
-         Module.__init__(self)
-         self.conn = None
-         self.protocol = 'mysql'
-    
-    def get_db_lib(self):
-        if self.protocol == 'mysql':
-            return MySQLdb
-        elif self.protocol == 'postgresql':
-            return psycopg2
-        else:
-            raise ModuleError(self, "Currently no support for '%s'" % protocol)
-        
-    def ping(self):
-        """ping() -> boolean 
-        It will ping the database to check if the connection is alive.
-        It returns True if it is, False otherwise. 
-        This can be used for preventing the "MySQL Server has gone away" error. 
-        """
-        result = False
-        if self.conn:
-            try:
-                self.conn.ping()
-                result = True
-            except self.get_db_lib().OperationalError, e:
-                result = False
-            except AttributeError, e:
-                #psycopg2 connections don't have a ping method
-                try:
-                    if self.conn.status == 1:
-                        result = True
-                except Exception, e:
-                    result = False
-        return result
-    
-    def open(self):        
-        retry = True
-        while retry:
-            config = {'host': self.host,
-                      'port': self.port,
-                      'user': self.user}
-            
-            # unfortunately keywords are not standard across libraries
-            if self.protocol == 'mysql':    
-                config['db'] = self.db_name
-                if self.password is not None:
-                    config['passwd'] = self.password
-            elif self.protocol == 'postgresql':
-                config['database'] = self.db_name
-                if self.password is not None:
-                    config['password'] = self.password
-            try:
-                self.conn = self.get_db_lib().connect(**config)
-                break
-            except self.get_db_lib().Error, e:
-                debug.warning("Got an error connecting to the database", e)
-                if (e[0] == 1045 or self.get_db_lib().OperationalError 
-                    and self.password is None):
-                    passwd_dlg = QPasswordEntry()
-                    if passwd_dlg.exec_():
-                        self.password = passwd_dlg.get_password()
-                    else:
-                        retry = False
-                else:
-                    raise ModuleError(self, debug.format_exception(e))
-             
+    """Connects to a database.
+
+    If the URI you enter uses a driver which is not currently installed,
+    VisTrails will try to set it up.
+    """
+    _input_ports = [('protocol', '(basic:String)'),
+                    ('user', '(basic:String)',
+                     {'optional': True}),
+                    ('password', '(basic:String)',
+                     {'optional': True}),
+                    ('host', '(basic:String)',
+                     {'optional': True}),
+                    ('port', '(basic:Integer)',
+                     {'optional': True}),
+                    ('db_name', '(basic:String)')]
+    _output_ports = [('connection', '(DBConnection)')]
+
     def compute(self):
-        self.check_input('db_name')
-        self.host = self.force_get_input('host', 'localhost')
-        self.port = self.force_get_input('port', 3306)
-        self.user = self.force_get_input('user', None)
-        self.db_name = self.get_input('db_name')
-        self.protocol = self.force_get_input('protocol', 'mysql')
-        if self.has_input('password'):
-            self.password = self.get_input('password')
-        else:
-            self.password = None
+        url = URL(drivername=self.get_input('protocol'),
+                  username=self.force_get_input('user', None),
+                  password=self.force_get_input('password', None),
+                  host=self.force_get_input('host', None),
+                  port=self.force_get_input('port', None),
+                  database=self.get_input('db_name'))
 
-        self.open()
+        try:
+            engine = create_engine(url)
+        except ImportError, e:
+            driver = url.drivername
+            installed = False
+            if driver == 'sqlite':
+                raise ModuleError(self,
+                                  "Python was built without sqlite3 support")
+            elif (driver == 'mysql' or
+                    driver == 'drizzle'): # drizzle is a variant of MySQL
+                installed = install({
+                        'pip': 'mysql-python',
+                        'linux-debian': 'python-mysqldb',
+                        'linux-ubuntu': 'python-mysqldb',
+                        'linux-fedora': 'MySQL-python'})
+            elif (driver == 'postgresql' or
+                    driver == 'postgre'):   # deprecated alias
+                installed = install({
+                        'pip': 'psycopg2',
+                        'linux-debian':'python-psycopg2',
+                        'linux-ubuntu':'python-psycopg2',
+                        'linux-fedora':'python-psycopg2'})
+            elif driver == 'firebird':
+                installed = install({
+                        'pip': 'fdb',
+                        'linux-fedora':'python-fdb'})
+            elif driver == 'mssql' or driver == 'sybase':
+                installed = install({
+                        'pip': 'pyodbc',
+                        'linux-debian':'python-pyodbc',
+                        'linux-ubuntu':'python-pyodbc',
+                        'linux-fedora':'pyodbc'})
+            elif driver == 'oracle':
+                installed = install({
+                        'pip': 'cx_Oracle'})
+            else:
+                raise ModuleError(self,
+                                  "SQLAlchemy couldn't connect: %s" %
+                                  debug.format_exception(e))
+            if not installed:
+                raise ModuleError(self,
+                                  "Failed to install required driver")
+            try:
+                engine = create_engine(url)
+            except Exception, e:
+                raise ModuleError(self,
+                                  "Couldn't connect to the database: %s" %
+                                  debug.format_exception(e))
+        except SQLAlchemyError:
+            # This is NoSuchModuleError in newer versions of SQLAlchemy but we
+            # want compatibility here
+            raise ModuleError(
+                    self,
+                    "SQLAlchemy has no support for protocol %r -- are you "
+                    "sure you spelled that correctly?" % url.drivername)
 
-    # nice to have enumeration constant type
-    _input_ports = [('host', '(basic:String)'),
-                    ('port', '(basic:Integer)'),
-                    ('user', '(basic:String)'),
-                    ('db_name', '(basic:String)'),
-                    ('protocol', '(basic:String)')]
-    _output_ports = [('self', '(DBConnection)')]
+        self.set_output('connection', engine.connect())
+
 
 class SQLSource(Module):
-    def __init__(self):
-        Module.__init__(self)
-        self.is_cacheable = self.cachedOff
-        
+    _settings = ModuleSettings(configure_widget=
+            'vistrails.packages.sql.widgets:SQLSourceConfigurationWidget')
+    _input_ports = [('connection', '(DBConnection)'),
+                    ('cacheResults', '(basic:Boolean)'),
+                    ('source', '(basic:String)')]
+    _output_ports = [('result', '(org.vistrails.vistrails.tabledata:Table)'),
+                     ('resultSet', '(basic:List)')]
+
+    def is_cacheable(self):
+        return False
+
     def compute(self):
         cached = False
         if self.has_input('cacheResults'):
             cached = self.get_input('cacheResults')
-        self.check_input('connection')
+            self.is_cacheable = lambda: cached
         connection = self.get_input('connection')
-        inputs = [self.get_input(k) for k in self.inputPorts
-                  if k != 'source' and k != 'connection' and k!= 'cacheResults']
-        #print 'inputs:', inputs
-        s = urllib.unquote(str(self.force_get_input('source', '')))
-        if not connection.ping():
-            connection.open()
-        cur = connection.conn.cursor()
-        cur.execute(s, inputs)
-    
-        if cached:
-            self.is_cacheable = self.cachedOn
-        else:
-            self.is_cacheable = self.cachedOff
-            
-        self.set_output('resultSet', cur.fetchall())
+        inputs = [self.get_input(k) for k in self.inputPorts.iterkeys()
+                  if k not in ('source', 'connection', 'cacheResults')]
+        s = urllib.unquote(str(self.get_input('source')))
 
-    def cachedOn(self):
-        return True
-    
-    def cachedOff(self):
-        return False
-    
-    _input_ports = [('connection', '(DBConnection)'),
-                    ('cacheResults', '(basic:Boolean)'),    
-                    ('source', '(basic:String)')]
-    _output_ports = \
-        [('resultSet', '(basic:List)')]
+        try:
+            transaction = connection.begin()
+            results = connection.execute(s, inputs)
+            try:
+                rows = results.fetchall()
+            except Exception:
+                self.set_output('result', None)
+                self.set_output('resultSet', None)
+                raise
+            else:
+                # results.returns_rows is True
+                # We don't use 'if return_rows' because this attribute didn't
+                # use to exist
+                table = TableObject.from_dicts(rows, results.keys())
+                self.set_output('result', table)
+                self.set_output('resultSet', rows)
+            transaction.commit()
+        except SQLAlchemyError, e:
+            raise ModuleError(self, debug.format_exception(e))
 
-class SQLSourceConfigurationWidget(SourceConfigurationWidget):
-    def __init__(self, module, controller, parent=None):
-        SourceConfigurationWidget.__init__(self, module, controller, None,
-                                           True, False, parent)
-        
-_modules = [DBConnection,
-            (SQLSource, {'configureWidgetType': SQLSourceConfigurationWidget})]
+
+_modules = [DBConnection, SQLSource]
+
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-    module_remap = {'SQLSource': [(None, '0.0.3', None, {})]}
+    # Before 0.0.3, SQLSource's resultSet output was type ListOfElements (which
+    #   doesn't exist anymore)
+    # In 0.0.3, SQLSource's resultSet output was type List
+    # In 0.1.0, SQLSource's output was renamed to result and is now a Table;
+    #   this is totally incompatible and no upgrade code is possible
+    #   the resultSet is kept for now for compatibility
 
-    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
-                                               module_remap)
+    # Up to 0.0.4, DBConnection would ask for a password if one was necessary;
+    #   this behavior has not been kept. There is now a password input port, to
+    #   which you can connect a PasswordDialog from package dialogs if needed
+
+    old_module = pipeline.modules[module_id]
+    # DBConnection module from before 0.1.0: automatically add the password
+    # prompt module
+    if (old_module.name == 'DBConnection' and
+            versions_increasing(old_module.version, '0.1.0')):
+        reg = get_module_registry()
+        # Creates the new module
+        new_module = controller.create_module_from_descriptor(
+                reg.get_descriptor(DBConnection))
+        # Create the password module
+        mod_desc = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.dialogs', 'PasswordDialog')
+        mod = controller.create_module_from_descriptor(mod_desc)
+        # Adds a 'label' function to the password module
+        ops = [('add', mod)]
+        ops.extend(controller.update_function_ops(mod,
+                                                  'label', ['Server password']))
+        # Connects the password module to the new module
+        conn = controller.create_connection(mod, 'result',
+                                            new_module, 'password')
+        ops.append(('add', conn))
+        # Replaces the old module with the new one
+        upgrade_actions = UpgradeWorkflowHandler.replace_generic(
+                controller, pipeline,
+                old_module, new_module,
+                src_port_remap={'self': 'connection'})
+        password_fix_action = create_action(ops)
+        return upgrade_actions + [password_fix_action]
+
+    return UpgradeWorkflowHandler.attempt_automatic_upgrade(
+            controller, pipeline,
+            module_id)
+
+
+###############################################################################
+
+import unittest
+
+
+class TestSQL(unittest.TestCase):
+    def test_query_sqlite3(self):
+        """Queries a SQLite3 database.
+        """
+        import os
+        import sqlite3
+        import tempfile
+        import urllib2
+        from vistrails.tests.utils import execute, intercept_results
+        identifier = 'org.vistrails.vistrails.sql'
+
+        test_db_fd, test_db = tempfile.mkstemp(suffix='.sqlite3')
+        os.close(test_db_fd)
+        try:
+            conn = sqlite3.connect(test_db)
+            cur = conn.cursor()
+            cur.execute('''
+                    CREATE TABLE test(name VARCHAR(24) PRIMARY KEY,
+                                      lastname VARCHAR(32) NOT NULL,
+                                      age INTEGER NOT NULL)
+                    ''')
+            cur.executemany('''
+                    INSERT INTO test(name, lastname, age)
+                    VALUES(:name, :lastname, :age)
+                    ''',
+                    [{'name': 'John', 'lastname': 'Smith', 'age': 25},
+                     {'name': 'Lara', 'lastname': 'Croft', 'age': 21},
+                     {'name': 'Michael', 'lastname': 'Buck', 'age': 78}])
+            conn.commit()
+            conn.close()
+
+            source = "SELECT name, lastname, age FROM test WHERE age > :age"
+
+            with intercept_results(DBConnection, 'connection', SQLSource, 'result') as (connection, table):
+                self.assertFalse(execute([
+                        ('DBConnection', identifier, [
+                            ('protocol', [('String', 'sqlite')]),
+                            ('db_name', [('String', test_db)]),
+                        ]),
+                        ('SQLSource', identifier, [
+                            ('source', [('String', urllib2.quote(source))]),
+                            ('age', [('Integer', '22')]),
+                        ]),
+                    ],
+                    [
+                        (0, 'connection', 1, 'connection'),
+                    ],
+                    add_port_specs=[
+                        (1, 'input', 'age',
+                         'org.vistrails.vistrails.basic:Integer'),
+                    ]))
+
+            self.assertEqual(len(connection), 1)
+            connection[0].close()
+            self.assertEqual(len(table), 1)
+            table, = table
+            self.assertEqual(table.names, ['name', 'lastname', 'age'])
+            self.assertEqual((table.rows, table.columns), (2, 3))
+            self.assertEqual(set(table.get_column(1)),
+                             set(['Smith', 'Buck']))
+        finally:
+            try:
+                os.remove(test_db)
+            except OSError:
+                pass # Oops, we are leaking the file here...

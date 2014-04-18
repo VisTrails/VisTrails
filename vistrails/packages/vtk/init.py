@@ -36,7 +36,7 @@
 # VTK Package for VisTrails
 ################################################################################
 
-from vistrails.core.debug import debug
+from vistrails.core.debug import debug, warning, unexpected_exception
 from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
      Color, PathObject, identifier as basic_pkg
 from vistrails.core.modules.module_registry import get_module_registry
@@ -47,6 +47,7 @@ from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from vistrails.core.utils import all, any, InstanceObject
 from vistrails.core.vistrail.connection import Connection
 
+from ast import literal_eval
 from hasher import vtk_hasher
 from itertools import izip
 import os.path
@@ -196,14 +197,14 @@ def get_method_signature(method, docum='', name=''):
             # Now quote the args and eval them.  Easy!
             if ret and ret[:3]!='vtk':
                 try:
-                    ret = eval(pat.sub('\"', ret))
-                except:
+                    ret = literal_eval(pat.sub('\"', ret))
+                except Exception:
                     continue
             if arg:
                 if arg.find('(')!=-1:
                     try:
-                        arg = eval(pat.sub('\"', arg))
-                    except:
+                        arg = literal_eval(pat.sub('\"', arg))
+                    except Exception:
                         continue
                 else:
                     arg = arg.split(', ')
@@ -714,7 +715,7 @@ def addOtherPorts(module, other_list):
                         if isinstance(p, list): 
                             for aux in p: paramsList.insert(0, aux)
                         else:
-                          types.append(typeMap(p))
+                            types.append(typeMap(p))
                 else:
                     types = []
                 if not all(is_class_allowed(x) for x in types):
@@ -724,11 +725,13 @@ def addOtherPorts(module, other_list):
                     # print module.vtkClass.__name__, n
                     try:
                         doc = module.get_doc(n)
+                    except Exception, e:
+                        unexpected_exception(e)
+                        warning("Error with %s" % module.vtkClass.__name, e)
+                    else:
                         registry.add_input_port(module, n, types,
                                                 not (n in force_not_optional_port),
-                                                docstring=module.get_doc(n))
-                    except:
-                        print "&*& ERROR WITH ", module.vtkClass.__name__, n
+                                                docstring=doc)
 
 disallowed_get_ports = set([
     'GetClassName',

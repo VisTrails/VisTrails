@@ -4,10 +4,17 @@ from vistrails.core.modules.vistrails_module import Module
 
 
 class NumPyArray(Module):
-    """
-    A Numpy Array, that can be loaded from a file.
+    """Reads a Numpy Array that has been written to a file.
 
     Declared as returning a List, but returns a Numpy array instead!
+
+    NumPy can use one of two schemes: either 'plain' binary arrays, i.e. just
+    the binary representation of the data format (in this case you must specify
+    the exact format to get the original data back), or the NPY format, i.e.
+    .npy files that know what the actual structure of the array is.
+
+    If the array you are reading is not a simple one-dimensional array, you can
+    use the shape port to indicate its expected structure.
     """
     NPY_FMT = object()
 

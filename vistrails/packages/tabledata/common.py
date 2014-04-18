@@ -1,17 +1,26 @@
 try:
     import numpy
-except ImportError:
+except ImportError: # pragma: no cover
     numpy = None
 
+from vistrails.core.modules.basic_modules import List, ListType
 from vistrails.core.modules.config import ModuleSettings
-from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.modules.vistrails_module import Module, ModuleError, \
+    Converter
+
+
+class InternalModuleError(Exception):
+    """Track ModuleError in subclasses."""
+
+    def raise_module_error(self, module_obj):
+        raise ModuleError(module_obj, self.message)
 
 
 class TableObject(object):
-    columns = None
-    rows = None
-
-    names = None
+    columns = None # the number of columns in the table
+    rows = None # the number of rows in the table
+    names = None # the names of the columns
+    name = None # a name for the table (useful for joins, etc.)
 
     def __init__(self, columns, nb_rows, names):
         self.columns = len(columns)
@@ -34,12 +43,135 @@ class TableObject(object):
         else:
             return self._columns[i]
 
+    def get_column_by_name(self, name, numeric=False):
+        """Gets a column from its name.
+
+        This convenience methods looks up the right column index if names are
+        available and calls get_column().
+
+        You shouldn't need to override this method, get_column() should be
+        sufficient.
+        """
+        try:
+            col = self.names.index(name)
+        except ValueError:
+            raise KeyError(name)
+        else:
+            return self.get_column(col, numeric)
+
+    @classmethod
+    def from_dicts(cls, dicts, keys=None):
+        iterator = iter(dicts)
+        try:
+            first = next(iterator)
+        except StopIteration:
+            if keys is None:
+                raise ValueError("No entry in sequence")
+            return cls([[]] * len(keys), 0, list(keys))
+        if keys is None:
+            keys = first.keys()
+        columns = [[first[key]] for key in keys]
+        count = 1
+        for dct in iterator:
+            for i, key in enumerate(keys):
+                try:
+                    v = dct[key]
+                except KeyError:
+                    raise ValueError("Entry %d has no key %r" % (count, key))
+                else:
+                    columns[i].append(v)
+            count += 1
+        return cls(columns, count, keys)
+
 
 class Table(Module):
-    pass
+    _input_ports = [('name', '(org.vistrails.vistrails.basic:String)')]
+    _output_ports = [('value', 'Table')]
+
+    def set_output(self, port_name, value):
+        if value is not None and port_name == 'value':
+            if value.name is None:
+                value.name = self.force_get_input('name', None)
+        Module.set_output(self, port_name, value)
+
+
+def choose_column(nb_columns, column_names=None, name=None, index=None):
+    """Selects a column in a table either by name or index.
+
+    If both are specified, the function will make sure that they represent the
+    same column.
+    """
+    if name is not None:
+        if isinstance(name, unicode):
+            name = name.encode('utf-8')
+        if column_names is None:
+            raise ValueError("Unable to get column by name: table doesn't "
+                             "have column names")
+        try:
+            name_index = column_names.index(name)
+        except ValueError:
+            try:
+                name_index = column_names.index(name.strip())
+            except ValueError:
+                raise ValueError("Column name was not found: %r" % name)
+        if index is not None:
+            if name_index != index:
+                raise ValueError("Both a column name and index were "
+                                 "specified, and they don't agree")
+        return name_index
+    elif index is not None:
+        if index < 0 or index >= nb_columns:
+            raise ValueError("No column %d, table only has %d columns" % (
+                             index, nb_columns))
+        return index
+    else:
+        raise ValueError("No column name nor index specified")
+
+
+def choose_columns(nb_columns, column_names=None, names=None, indexes=None):
+    """Selects a list of columns from a table.
+
+    If both the names and indexes lists are specified, the function will make
+    sure that they represent the same list of columns.
+    Columns may appear more than once.
+    """
+    if names is not None:
+        if column_names is None:
+            raise ValueError("Unable to get column by names: table "
+                             "doesn't have column names")
+        result = []
+        for name in names:
+            if isinstance(name, unicode):
+                name = name.encode('utf-8')
+            try:
+                idx = column_names.index(name)
+            except ValueError:
+                try:
+                    idx = column_names.index(name.strip())
+                except ValueError:
+                    raise ValueError("Column name was not found: %r" % name)
+            result.append(idx)
+        if indexes is not None:
+            if result != indexes:
+                raise ValueError("Both column names and indexes were "
+                                 "specified, and they don't agree")
+        return result
+    elif indexes is not None:
+        for index in indexes:
+            if index < 0 or index >= nb_columns:
+                raise ValueError("No column %d, table only has %d columns" % (
+                                 index, nb_columns))
+        return indexes
+    else:
+        raise ValueError("No column names nor indexes specified")
 
 
 class ExtractColumn(Module):
+    """Gets a single column from a table, as a list.
+
+    Specifying one of 'column_name' or 'column_index' is sufficient; if you
+    provide both, the module will check that the column has the expected name.
+    """
     _input_ports = [
             ('table', Table),
             ('column_name', '(org.vistrails.vistrails.basic:String)',
@@ -53,43 +185,26 @@ class ExtractColumn(Module):
 
     def compute(self):
         table = self.get_input('table')
-        if self.has_input('column_index'):
-            column_index = self.get_input('column_index')
-        if self.has_input('column_name'):
-            name = self.get_input('column_name')
-            if isinstance(name, unicode):
-                name = name.encode('utf-8')
-            if table.names is None:
-                raise ModuleError("Unable to get column by names: table "
-                                  "doesn't have column names")
-            try:
-                index = table.names.index(name)
-            except ValueError:
-                try:
-                    name = name.strip()
-                    index = table.column_names.index(name)
-                except:
-                    raise ModuleError(self, "Column name was not found")
-            if self.has_input('column_index'):
-                if column_index != index:
-                    raise ModuleError(self,
-                                      "Both column_name and column_index were "
-                                      "specified, and they don't agree")
-        elif self.has_input('column_index'):
-            index = column_index
-        else:
-            raise ModuleError(self,
-                              "You must set one of column_name or "
-                              "column_index")
+        try:
+            column_idx = choose_column(
+                    table.columns,
+                    column_names=table.names,
+                    name=self.force_get_input('column_name', None),
+                    index=self.force_get_input('column_index', None))
+        except ValueError, e:
+            raise ModuleError(self, e.message)
 
-        result = table.get_column(
-                index,
-                numeric=self.get_input('numeric', allow_default=True))
-
-        self.set_output('value', result)
+        self.set_output('value', table.get_column(
+                column_idx,
+                self.get_input('numeric', allow_default=True)))
 
 
 class BuildTable(Module):
+    """Builds a table by putting together columns from multiple sources.
+
+    Input can be a mix of lists, which will be used as single columns, and
+    whole tables, whose column names will be mangled.
+    """
     _settings = ModuleSettings(configure_widget=
             'vistrails.packages.tabledata.widgets:BuildTableWidget')
     _output_ports = [('value', Table)]
@@ -100,7 +215,7 @@ class BuildTable(Module):
 
     def compute(self):
         items = None
-        if self.input_ports_order:
+        if self.input_ports_order: # pragma: no branch
             items = [(p, self.get_input(p))
                      for p in self.input_ports_order]
         if not items:
@@ -141,4 +256,20 @@ class BuildTable(Module):
         self.set_output('value', TableObject(cols, nb_rows, names))
 
 
-_modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable]
+class SingleColumnTable(Converter):
+    """Automatic Converter module from List to Table.
+    """
+    _input_ports = [('in_value', List)]
+    _output_ports = [('out_value', Table)]
+    def compute(self):
+        column = self.getInputFromPort('in_value')
+        if not isinstance(column, ListType):
+            column = list(column)
+        self.set_output('out_value', TableObject(
+                [column],               # columns
+                len(column),            # nb_rows
+                ['converted_list']))    # names
+
+
+_modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable,
+            (SingleColumnTable, {'hide_descriptor': True})]
