@@ -142,8 +142,8 @@ class OutputModule(NotCacheable, Module):
 
     @classmethod
     def ensure_mode_dict(cls):
-        if not hasattr(cls, '_output_modes_dict'):
-            if hasattr(cls, '_output_modes'):
+        if '_output_modes_dict' not in cls.__dict__:
+            if '_output_modes' in cls.__dict__:
                 cls._output_modes_dict = \
                                 dict((mcls.mode_type, (mcls, mcls.priority))
                                      for mcls in cls._output_modes)
@@ -157,7 +157,7 @@ class OutputModule(NotCacheable, Module):
         if priority is None:
             priority = mode_cls.priority
         cls.ensure_mode_dict()
-        if not hasattr(cls, '_output_modes'):
+        if '_output_modes' not in cls.__dict__:
             cls._output_modes = []
         cls._output_modes.append(mode_cls)
         cls._output_modes_dict[mode_cls.mode_type] = (mode_cls, priority)
@@ -171,24 +171,52 @@ class OutputModule(NotCacheable, Module):
                              mode_type)
         cls._output_modes_dict[mode_type][1] = priority
 
+    @classmethod
+    def get_mode_class(cls, mode_type):
+        cls_list = [cls]
+        while len(cls_list) > 0:
+            c = cls_list.pop(0)
+            if issubclass(c, OutputModule):
+                c.ensure_mode_dict()
+                if mode_type in c._output_modes_dict:
+                    return c._output_modes_dict[mode_type][0]
+                cls_list.append(c.__bases__)
+        return None
+
+    @classmethod
+    def get_sorted_mode_list(cls):
+        cls_list = [cls]
+        idx = 0
+        while idx < len(cls_list):
+            for c in cls_list[idx].__bases__:
+                if issubclass(c, OutputModule):
+                    c.ensure_mode_dict()
+                    cls_list.append(c)
+            idx += 1
+
+        mode_dict = {}
+        for c in reversed(cls_list):
+            mode_dict.update(c._output_modes_dict)
+        mode_list = [c for c, _ in reversed(sorted(mode_dict.itervalues(), 
+                                                   key=lambda x: x[1]))]
+        return mode_list
+
     def compute(self):
         mode_cls = None
         self.ensure_mode_dict()
         if self.has_input("mode_type"):
             # use user-specified mode_type
             mode_type = self.get_input("mode_type")
-            if mode_type not in self._output_modes_dict:
+            mode_cls = self.get_mode_class(mode_type)
+            if mode_cls is None:
                 raise ModuleError(self, 'Cannot output in mode "%s" because '
                                   'that mode has not been defined' % mode_type)
-            mode_cls = self._output_modes_dict[mode_type][0]
         else:
             # FIXME should have user-setable priorities!
 
             # determine mode_type based on registered modes by priority,
             # checking if each is possible
-            for mcls, _ in sorted(self._output_modes_dict.itervalues(), 
-                                       reverse=True,
-                                       key=lambda mode_t: mode_t[1]):
+            for mcls in self.get_sorted_mode_list():
                 if mcls.can_compute():
                     mode_cls = mcls
                     break
@@ -319,7 +347,6 @@ class FileMode(OutputMode):
             if not overwrite and os.path.exists(full_path):
                 raise IOError('File "%s" exists and overwrite is False' % full_path)
 
-        print "GET FILENAME RETURNING:", full_path
         return full_path
         
 class FileToFileMode(FileMode):
