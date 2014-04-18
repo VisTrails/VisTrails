@@ -36,7 +36,6 @@
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from PyQt4 import QtGui
 
 
@@ -123,6 +122,8 @@ if pm.has_package('org.vistrails.vistrails.spreadsheet'):
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.modules.module_registry import get_module_registry
+    from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+
     reg = get_module_registry()
 
     def fix_cell_input(old_conn, new_module):
@@ -141,7 +142,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         # Can't use .module_descriptor here because it references the old
         # package version
         # Here we get the NEW package version, since it might be upgrading as
-        # well... let's hope not
+        # well... let's hope that upgrade doesn't do too much
         cell_desc = reg.get_descriptor_by_name(
                 'org.vistrails.vistrails.spreadsheet',
                 'SpreadsheetCell')
@@ -153,9 +154,21 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
             return []
 
         # Create connection to 'Widget' instead of 'self'
+        # Here we create a Port object instead of just passing the string
+        # 'Widget' because we are setting it on the OLD module -- the upgrade
+        # affecting the upstream module is independent!
+        # This way we avoid the UpgradeWorkflowHandler looking up the port and
+        # raising MissingPackageVersion when it tries to access
+        # old_src_module.module_descriptor.
+        from vistrails.core.modules.utils import create_port_spec_string
+        from vistrails.core.vistrail.port import Port
+        source_port = Port(name="Widget", type='source',
+                           signature=create_port_spec_string([
+                                   ('org.vistrails.vistrails.spreadsheet',
+                                    'SpreadsheetCell', '')]))
         new_conn = UpgradeWorkflowHandler.create_new_connection(
                 controller,
-                old_src_module, 'Widget',
+                old_src_module, source_port,
                 new_module, 'cell')
         return [('add', new_conn)]
 
