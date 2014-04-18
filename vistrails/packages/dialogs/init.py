@@ -36,6 +36,7 @@
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from PyQt4 import QtGui
 
 
@@ -118,3 +119,60 @@ pm = get_package_manager()
 if pm.has_package('org.vistrails.vistrails.spreadsheet'):
     from .continue_prompt import _modules as continue_modules
     _modules.extend(continue_modules)
+
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    from vistrails.core.modules.module_registry import get_module_registry
+    reg = get_module_registry()
+
+    def fix_cell_input(old_conn, new_module):
+        """Uses the 'Widget' output port instead of 'self'
+
+        Only works if we are directly connected to a SpreadsheetCell module. If
+        using a Group or something funny, the automatic upgrade will fail and
+        you'll need to fix the connection yourself.
+        """
+        # Check that upstream port is 'self'
+        if old_conn.source.name != 'self':
+            return []
+
+        # Check that upstream module is a SpreadsheetCell subclass
+        old_src_module = pipeline.modules[old_conn.source.moduleId]
+        # Can't use .module_descriptor here because it references the old
+        # package version
+        # Here we get the NEW package version, since it might be upgrading as
+        # well... let's hope not
+        cell_desc = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.spreadsheet',
+                'SpreadsheetCell')
+        desc = reg.get_descriptor_by_name(old_src_module.package,
+                                          old_src_module.name,
+                                          old_src_module.namespace)
+        if not reg.is_descriptor_subclass(desc, cell_desc):
+            # Not cool
+            return []
+
+        # Create connection to 'Widget' instead of 'self'
+        new_conn = UpgradeWorkflowHandler.create_new_connection(
+                controller,
+                old_src_module, 'Widget',
+                new_module, 'cell')
+        return [('add', new_conn)]
+
+    module_remap = {
+            # SpreadsheetCell now outputs the widget on the 'Widget' output
+            # port
+            # We used to get it from m.cellWidget, with 'm' from the 'self'
+            # output port
+            'PromptIsOkay': [
+                ('0.9.2', '0.9.3', None, {
+                    'dst_port_remap': {
+                        'cell': fix_cell_input},
+                }),
+            ],
+        }
+
+    return UpgradeWorkflowHandler.remap_module(controller,
+                                               module_id,
+                                               pipeline,
+                                               module_remap)
