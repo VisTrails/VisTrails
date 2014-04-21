@@ -1338,6 +1338,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                           {'dst_port_remap': {'old_name': None}})],
                     'PythonSource':
                         [(None, '1.6', None, {})],
+                    'Tuple':
+                        [(None, '2.1', None, {})],
                     }
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
