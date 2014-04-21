@@ -172,6 +172,9 @@ parser.add_option("-S", "--startup", action="store", type="str", default=None,
 parser.add_option('-L', '--locale', action='store', type='str', default='',
                   dest='locale',
                   help="set locale to this string")
+parser.add_option('-D', '--debug', action='store_true',
+                  default=False,
+                  help="start interactive debugger on unexpected error")
 
 (options, args) = parser.parse_args()
 # remove empty strings
@@ -182,6 +185,7 @@ test_examples = options.examples
 test_images = options.images
 installbundles = options.installbundles
 dotVistrails = options.dotVistrails
+debug_mode = options.debug
 test_modules = None
 if len(args) > 0:
     test_modules = args
@@ -211,6 +215,7 @@ optionsDict = {
         'installBundles': installbundles,
         'enablePackagesSilently': True,
         'handlerDontAsk': True,
+        'developperDebugger': debug_mode,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
