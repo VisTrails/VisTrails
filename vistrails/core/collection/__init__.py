@@ -290,17 +290,18 @@ class Collection(object):
 
     def update_from_database(self, db_locator):
         # db_conn = db_locator.get_connection()
-        config = (('host', db_locator._host),
-                  ('port', int(db_locator._port)),
-                  ('db', db_locator._db),
-                  ('user', db_locator._user),
-                  ('passwd', db_locator._passwd))
-        rows = vistrails.db.services.io.get_db_object_list(dict(config), 'vistrail')
+        config = {'host': db_locator._host,
+                  'port': int(db_locator._port),
+                  'db': db_locator._db,
+                  'user': db_locator._user,
+                  'passwd': db_locator._passwd}
+        rows = vistrails.db.services.io.get_db_object_list(config, 'vistrail')
         for row in rows:
             if row[0] in [1,]:
                 continue
-            kwargs = {'obj_type': 'vistrail', 'obj_id': row[0]}
-            locator = DBLocator(*[x[1] for x in config], **kwargs)
+            locator = DBLocator(config['host'], config['port'], config['db'],
+                                config['user'], config['passwd'],
+                                obj_type='vistrail', obj_id=row[0])
             (vistrail, abstractions, thumbnails, mashups) = load_vistrail(locator)
             vistrail.abstractions = abstractions
             vistrail.thumbnails = thumbnails

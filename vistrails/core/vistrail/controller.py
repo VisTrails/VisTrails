@@ -801,11 +801,8 @@ class VistrailController(object):
             -> [ModuleFunction]
         
         """
-        new_functions = []
         static_call = VistrailController.create_function_static
-        for f in functions:
-            new_functions.append(static_call(id_scope, module, *f))
-        return new_functions
+        return [static_call(id_scope, module, *f) for f in functions]
 
     def create_port_spec(self, *args, **kwargs):
         return self.create_port_spec_static(self.id_scope, *args, **kwargs)

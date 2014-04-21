@@ -379,14 +379,13 @@ class TestConsoleMode(unittest.TestCase):
                            package='org.vistrails.vistrails.console_mode_test',
                            version='0.9.1')
         module.add_function(function)
-        
+
         p.add_module(module)
-        
-        kwargs = {'locator': XMLFileLocator('foo'),
-                  'current_version': 1L,
-                  'view': v,
-                  }
-        interpreter.execute(p, **kwargs)
+
+        interpreter.execute(p,
+                            locator=XMLFileLocator('foo'),
+                            current_version=1L,
+                            view=v)
 
     def test_python_source(self):
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
