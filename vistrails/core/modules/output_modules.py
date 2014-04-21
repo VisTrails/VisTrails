@@ -235,7 +235,7 @@ class OutputModule(NotCacheable, Module):
                     mode_config = mode_config_cls(v)
                     break
 
-        self.annotate({"output_mode": mode.mode_type})        
+        self.annotate({"output_mode": mode.mode_type})
         mode.compute_output(self, mode_config)
                 
 class StdoutModeConfig(OutputModeConfig):
@@ -374,23 +374,6 @@ class FileToStdoutMode(StdoutMode):
         with open(fname, 'r') as f:
             for line in f:
                 sys.stdout.write(line)
-
-class SpreadsheetModeConfig(OutputModeConfig):
-    _input_ports = [IPort('row', 'Integer'),
-                    IPort('col', 'Integer'),
-                    IPort('sheet', 'String')]
-
-class SpreadsheetMode(OutputMode):
-    mode_type = 'spreadsheet'
-    priority = 0
-    
-    @classmethod
-    def can_compute(cls):
-        # FIXME check if spreadsheet is enabled
-        return True
-
-    def compute_output(self, output_module, configuration=None):
-        pass
 
 class GenericToStdoutMode(StdoutMode):
     def compute_output(self, output_module, configuration=None):

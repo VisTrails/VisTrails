@@ -33,10 +33,12 @@
 ###############################################################################
 
 import matplotlib
+from matplotlib.backend_bases import FigureCanvasBase
 import pylab
 import urllib
 
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
+from vistrails.core.modules.output_modules import FileMode, OutputModule
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 
 ################################################################################
@@ -153,7 +155,25 @@ class MplContourSet(Module):
 
 class MplQuadContourSet(MplContourSet):
     pass
+
+class MplFigureToFile(FileMode):
+    def compute_output(self, output_module, configuration=None):
+        value = output_module.get_input('value')
+        filename = self.get_filename(configuration, suffix='.pdf')
+        figure = value.figInstance
         
+        previous_size = tuple(figure.get_size_inches())
+        figure.set_size_inches(8.0,6.0)
+        canvas = FigureCanvasBase(figure)
+        # canvas.print_figure(filename)
+        canvas.print_pdf(filename)
+        figure.set_size_inches(previous_size[0],previous_size[1])
+        canvas.draw()
+
+class MplFigureOutput(OutputModule):
+    _input_ports = [('value', 'MplFigure')]
+    _output_modes = [MplFigureToFile]
+
 _modules = [(MplProperties, {'abstract': True}),
             (MplPlot, {'abstract': True}), 
             (MplSource, {'configureWidgetType': \
@@ -161,4 +181,6 @@ _modules = [(MplProperties, {'abstract': True}),
                               'MplSourceConfigurationWidget')}),
             MplFigure,
             MplContourSet,
-            MplQuadContourSet]
+            MplQuadContourSet,
+            MplFigureOutput]
+
