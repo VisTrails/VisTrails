@@ -1370,9 +1370,8 @@ def build_remap(module_name=None):
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     global _remap, _controller, _pipeline
-    reg = get_module_registry()
     if _remap is None:
-        _remap = {}
+        _remap = {'vtkInteractionHandler': [(None, '0.9.5', None, {})]}
     
     _controller = controller
     _pipeline = pipeline
