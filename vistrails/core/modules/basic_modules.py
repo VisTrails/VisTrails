@@ -574,7 +574,7 @@ class WriteFile(Converter):
         contents = self.get_input('in_value')
         suffix = self.force_get_input('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
-        if self.hasInputFromPort('encoding'):
+        if self.has_input('encoding'):
             contents = contents.decode('utf-8') # VisTrails uses UTF-8
                                                 # internally (I hope)
             contents = contents.encode(self.get_input('encoding'))
