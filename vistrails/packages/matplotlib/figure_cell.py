@@ -53,7 +53,7 @@ FigureCanvasQTAgg.DEBUG = True
 class MplFigureToSpreadsheet(SpreadsheetMode):
     @classmethod
     def can_compute(cls):
-        return False
+        return True
 
     def compute_output(self, output_module, configuration=None):
         fig = output_module.get_input('value')
