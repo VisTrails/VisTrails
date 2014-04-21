@@ -65,7 +65,7 @@ except ImportError:
 
 ###############################################################################
 
-version = '2.1'
+version = '2.1.1'
 name = 'Basic Modules'
 identifier = 'org.vistrails.vistrails.basic'
 old_identifiers = ['edu.utah.sci.vistrails.basic']
@@ -1314,6 +1314,14 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                           {'dst_port_remap': {'old_name': None}})],
                     'PythonSource':
                         [(None, '1.6', None, {})],
+                    'StandardOutput':
+                        [(None, '2.1.1', None, {})],
+                    'List':
+                        [(None, '2.1.1', None, {})],
+                    'AssertEqual':
+                        [(None, '2.1.1', None, {})],
+                    'Converter':
+                        [(None, '2.1.1', None, {})],
                     }
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,

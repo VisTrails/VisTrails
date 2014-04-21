@@ -142,6 +142,7 @@ class vtkInteractionHandler(NotCacheable, Module):
             self.shareddata = self.shareddata[0]
         if self.observer:
             source = urllib.unquote(self.handler)
+            observer = self.observer.vtkInstance
             for e in vtkInteractionHandler.vtkEvents:
                 f = e[0].lower() + e[1:]
                 f = f.replace('Event', 'Handler')
