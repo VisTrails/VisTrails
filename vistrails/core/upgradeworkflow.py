@@ -96,9 +96,20 @@ class UpgradeModuleRemap(object):
 
     @classmethod
     def from_tuple(cls, module_name, t):
-        obj = cls(t[0], t[1], None, t[2], module_name=module_name)
-        if len(t) > 3:
-            for remap_type, remap_dict in t[3].iteritems():
+        if len(t) == 3:
+            obj = cls(t[0], t[1], None, t[2], module_name=module_name)
+            remap = None
+        elif len(t) == 4:
+            obj = cls(t[0], t[1], None, t[2], module_name=module_name)
+            remap = t[3]
+        elif len(t) == 5:
+            obj = cls(t[0], t[1], t[2], t[3], module_name=module_name)
+            remap = t[4]
+        else:
+            raise TypeError("UpgradeModuleRemap.from_tuple() got a tuple of "
+                            "length %d" % len(t))
+        if remap is not None:
+            for remap_type, remap_dict in remap.iteritems():
                 for remap_name, remap_change in remap_dict.iteritems():
                     obj.add_remap(remap_type, remap_name, remap_change)
         return obj
