@@ -40,8 +40,7 @@ import vistrails.core.db.action
 from vistrails.core.modules.module_registry import get_module_registry, \
      ModuleDescriptor, MissingModule, MissingPort, MissingPackage
 from vistrails.core.modules.utils import parse_descriptor_string, \
-    create_descriptor_string, parse_port_spec_string, \
-    create_port_spec_string, expand_port_spec_string
+    create_descriptor_string, parse_port_spec_string, create_port_spec_string
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.annotation import Annotation
@@ -199,7 +198,6 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def dispatch_request(controller, module_id, current_pipeline):
-        reg = get_module_registry()
         pm = get_package_manager()
         if module_id not in current_pipeline.modules:
             # It is possible that some other upgrade request has
@@ -226,7 +224,7 @@ class UpgradeWorkflowHandler(object):
     @staticmethod
     def check_port_spec(module, port_name, port_type, descriptor=None, 
                         sigstring=None):
-        from vistrails.core.modules.basic_modules import identifier as basic_pkg
+        basic_pkg = get_vistrails_basic_pkg_id()
 
         reg = get_module_registry()
         found = False
@@ -262,8 +260,6 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def find_descriptor(controller, pipeline, module_id, desired_version=''):
-        from vistrails.core.modules.abstraction \
-            import identifier as local_abstraction_pkg
         reg = get_module_registry()
 
         get_descriptor = reg.get_descriptor_by_name
@@ -356,7 +352,7 @@ class UpgradeWorkflowHandler(object):
             else:
                 nss = mname
             msg = ("Could not upgrade module %s from package %s.\n" %
-                    (mname, mpkg))
+                    (nss, mpkg))
             raise UpgradeWorkflowError(msg)
 
         UpgradeWorkflowHandler.check_upgrade(pipeline, module_id, d, 
@@ -420,6 +416,8 @@ class UpgradeWorkflowHandler(object):
                         function_remap={}, src_port_remap={}, 
                         dst_port_remap={}, annotation_remap={},
                         use_registry=True):
+        basic_pkg = get_vistrails_basic_pkg_id()
+
         ops = []
         ops.extend(controller.delete_module_list_ops(pipeline, [old_module.id]))
         
@@ -497,8 +495,6 @@ class UpgradeWorkflowHandler(object):
             if use_registry:
                 function_port_spec = function_name
             else:
-                reg = get_module_registry()
-                basic_pkg = get_vistrails_basic_pkg_id()
                 def mk_psi(pos):
                     psi = PortSpecItem(module="Module", package=basic_pkg,
                                        namespace="", pos=pos)
@@ -585,8 +581,8 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def replace_group(controller, pipeline, module_id, new_subpipeline):
-        old_group = pipeline.modules[module_id]
         basic_pkg = get_vistrails_basic_pkg_id()
+        old_group = pipeline.modules[module_id]
         new_group = controller.create_module(basic_pkg, 'Group', '', 
                                              old_group.location.x, 
                                              old_group.location.y)
@@ -805,7 +801,6 @@ class TestUpgradePackageRemap(unittest.TestCase):
         return c.current_version
 
     def run_multi_upgrade_test(self, pkg_remap):
-        from vistrails.core.packagemanager import get_package_manager
         from vistrails.core.application import get_vistrails_application
 
         app = get_vistrails_application()
@@ -874,7 +869,6 @@ class TestUpgradePackageRemap(unittest.TestCase):
         self.run_multi_upgrade_test(pkg_remap)
 
     def test_external_upgrade(self):
-        from vistrails.core.packagemanager import get_package_manager
         from vistrails.core.application import get_vistrails_application
 
         app = get_vistrails_application()
