@@ -123,19 +123,12 @@ class MplSource(CodeRunnerMixin, MplPlot):
         self.run_code(s, use_input=True, use_output=True)
 
 class MplFigure(Module):
-    # _input_ports = [("addPlot", "(MplPlot)"),
-    #                 ("numSubfigRows", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("numSubfigCols", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ]
     _input_ports = [("addPlot", "(MplPlot)"),
                     ("axesProperties", "(MplAxesProperties)"),
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
 
-    _output_ports = [("file", "(basic:File)"),
-                     ("self", "(MplFigure)")]
+    _output_ports = [("self", "(MplFigure)")]
 
     def __init__(self):
         Module.__init__(self)
@@ -149,17 +142,6 @@ class MplFigure(Module):
 
     def compute(self):
         plots = self.getInputListFromPort("addPlot")
-        # num_rows = self.getInputFromPort("numSubfigRows")
-        # if num_rows < 1:
-        #     raise ModuleError(self, "numSubfigRows must be at least 1.")
-        # num_cols = self.getInputFromPort("numSubfigCols")
-        # if num_cols < 1:
-        #     raise ModuleError(self, "numSubfigCols must be at least 1.")
-        # if len(plots) < 1:
-        #     raise ModuleError(self, "Must add at least one plot to figure.")
-
-        # FIXME just take the fig instance from the first plot
-        # self.figInstance = plots[0].figInstance
 
         if self.hasInputFromPort("figureProperties"):
             figure_props = self.getInputFromPort("figureProperties")
@@ -170,107 +152,6 @@ class MplFigure(Module):
         if self.hasInputFromPort("setLegend"):
             legend = self.getInputFromPort("setLegend")
             self.figInstance.gca().legend()
-
-        #FIXME write file out if File port is attached!
-
-        # if num_rows > 1 or num_cols > 1:
-        #     # need to reconstruct plot...
-        #     self.figInstance = pylab.figure()
-        # else:
-        #     self.figInstance = plots[0].figInstance
-
-        # for plot in plots:
-        #     p_axes = plot.get_fig().gca()
-        #     print "DPI:", plot.get_fig().dpi
-        #     for c in p_axes.collections:
-        #         print "TRANSFORM:", c._transform
-        #         print "DATALIM:", c.get_datalim(p_axes.transData)
-        #         print "PREPARE POINTS:", c._prepare_points()
-
-        # self.figInstance = pylab.figure()
-        # axes = self.figInstance.gca()
-        # x0 = None
-        # x1 = None
-        # y0 = None
-        # y1 = None
-        # dataLim = None
-        # for plot in plots:
-        #     p_axes = plot.get_fig().gca()
-        #     dataLim = p_axes.dataLim.frozen()
-        #     p_x0, p_x1 = p_axes.get_xlim()
-        #     if x0 is None or p_x0 < x0:
-        #         x0 = p_x0
-        #     if x1 is None or p_x1 > x1:
-        #         x1 = p_x1
-        #     p_y0, p_y1 = p_axes.get_ylim()
-        #     if y0 is None or p_y0 < y0:
-        #         y0 = p_y0
-        #     if y1 is None or p_y1 > y1:
-        #         y1 = p_y1
-
-        # print x0, x1, y0, y1
-        # axes.set_xlim(x0, x1, emit=False, auto=None)
-        # axes.set_ylim(y0, y1, emit=False, auto=None)
-
-        # # axes.dataLim = dataLim
-        # # axes.ignore_existing_data_limits = False
-        # # axes.autoscale_view()
-
-        # for plot in plots:
-        #     p_axes = plot.get_fig().gca()
-        #     # axes.lines.extend(p_axes.lines)
-        #     for line in p_axes.lines:
-        #         print "adding line!"
-        #         line = copy.copy(line)
-        #         line._transformSet = False
-        #         axes.add_line(line)
-        #     # axes.patches.extend(p_axes.patches)
-        #     for patch in p_axes.patches:
-        #         print "adding patch!"
-        #         patch = copy.copy(patch)
-        #         patch._transformSet = False
-        #         axes.add_patch(patch)
-        #     axes.texts.extend(p_axes.texts)
-        #     # axes.tables.extend(p_axes.tables)
-        #     for table in p_axes.tables:
-        #         table = copy.copy(table)
-        #         table._transformSet = False
-        #         axes.add_table(table)
-        #     # axes.artists.extend(p_axes.artists)
-        #     for artist in p_axes.artists:
-        #         artist = copy.copy(artist)
-        #         artist._transformSet = False
-        #         axes.add_artist(artist)
-        #     axes.images.extend(p_axes.images)
-        #     # axes.collections.extend(p_axes.collections)
-        #     for collection in p_axes.collections:
-        #         print "adding collection!"
-        #         # print "collection:", collection.__class__.__name__
-        #         # print "datalim:", p_axes.dataLim
-        #         # transOffset = axes.transData
-        #         collection = copy.copy(collection)
-        #         # collection._transformSet = False
-        #         # print dir(mtransforms)
-        #         collection.set_transform(mtransforms.IdentityTransform())
-        #         collection._transOffset = axes.transData
-        #         # collection._transformSet = False
-        #         collection._label = None
-        #         collection._clippath = None
-        #         axes.add_collection(collection)
-        #         # collection.set_transform(mtransforms.IdentityTransform())
-        #         # axes.collections.append(collection)
-        #     # axes.containers.extend(p_axes.containers)
-        # print "transFigure start:", self.figInstance.transFigure
-        # # axes.dataLim = dataLim
-        # # axes.ignore_existing_data_limits = False
-        # # print "datalim after:", axes.dataLim
-
-
-        # # print "DPI:", self.figInstance.dpi
-        # # for c in axes.collections:
-        # #     print "TRANSFORM:", c._transform
-        # #     print "DATALIM:", c.get_datalim(p_axes.transData)
-        # #     print "PREPARE POINTS:", c._prepare_points()
 
 
         self.setResult("self", self)
