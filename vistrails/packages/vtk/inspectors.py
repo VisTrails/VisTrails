@@ -80,17 +80,18 @@ class vtkBaseInspector(Module):
                                          list(resolve_type(t) for t in types))
 
     def auto_set_results(self, vtk_object):
+        mid = self.moduleInfo['moduleId']
         for function in self.outputPorts.keys():
             if hasattr(vtk_object, function):
                 retValues = getattr(vtk_object, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
-                    output  = VTKInstanceWrapper(retValues)
+                    output  = VTKInstanceWrapper(retValues, mid)
                     self.set_output(function, output)
                 elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
-                            result[i] = VTKInstanceWrapper(result[i])
+                            result[i] = VTKInstanceWrapper(result[i], mid)
                     self.set_output(function, type(retValues)(result))
                 else:
                     self.set_output(function, retValues)

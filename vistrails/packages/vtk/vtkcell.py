@@ -240,7 +240,7 @@ class QVTKWidget(QCellWidget):
             if renderView==None:
                 vtkInstance = renderer.vtkInstance
                 renWin.AddRenderer(vtkInstance)
-                self.renderer_maps[vtkInstance] = None #renderer.moduleInfo['moduleId'] # FIXME : this is broken
+                self.renderer_maps[vtkInstance] = renderer.vt_module_id
             else:
                 vtkInstance = renderer
             if hasattr(vtkInstance, 'IsActiveCameraCreated'):

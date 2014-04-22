@@ -237,23 +237,25 @@ class vtkBaseModule(Module):
             if isAlgorithm and not is_aborted:
                 self.vtkInstance.RemoveObserver(cbId)
 
+        mid = self.moduleInfo['moduleId']
+
         # Then update the output ports also with appropriate function calls
         for function in self.outputPorts.keys():
             if function[:13]=='GetOutputPort':
                 i = int(function[13:])
                 vtkOutput = self.vtkInstance.GetOutputPort(i)
-                self.set_output(function, VTKInstanceWrapper(vtkOutput))
+                self.set_output(function, VTKInstanceWrapper(vtkOutput, mid))
             elif hasattr(self.vtkInstance, function):
                 retValues = getattr(self.vtkInstance, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
-                    self.set_output(function, VTKInstanceWrapper(retValues))
+                    self.set_output(function, VTKInstanceWrapper(retValues, mid))
                 elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
-                            result[i] = VTKInstanceWrapper(result[i])
+                            result[i] = VTKInstanceWrapper(result[i], mid)
                     self.set_output(function, type(retValues)(result))
                 else:
                     self.set_output(function, retValues)
 
-        self.set_output('Instance', VTKInstanceWrapper(self.vtkInstance))
+        self.set_output('Instance', VTKInstanceWrapper(self.vtkInstance, mid))

@@ -1,11 +1,12 @@
-import warnings
+#import warnings
+
+
 class VTKInstanceWrapper(object):
-    def __init__(self, instance):
+    def __init__(self, instance, module_id):
         self.vtkInstance = instance
+        self.vt_module_id = module_id
 
     # For future use: warns when .vtkInstance is used
-    # If this is enabled, replace mentions of self.vtkInstance with
-    # self.__dict__['vtkInstance'] in this class
     #@property
     #def vtkInstance(self):
     #    warnings.warn(
@@ -13,7 +14,7 @@ class VTKInstanceWrapper(object):
     #            "anymore, call method directly",
     #            DeprecationWarning,
     #            stacklevel=2)
-    #    return self.__dict__['vtkInstance']
+    #    return self.__vtkInstance
 
     def __getattr__(self, name):
         return getattr(self.vtkInstance, name)
