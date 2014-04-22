@@ -202,7 +202,10 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.versionNotes.controller = controller
         self.versionThumbs.controller = controller
         self.versionMashups.controller = controller
-        self.updateVersion(controller.current_version)
+        if controller is not None:
+            self.updateVersion(controller.current_version)
+        else:
+            self.updateVersion(-1)
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
