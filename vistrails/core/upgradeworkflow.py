@@ -810,25 +810,26 @@ class TestUpgradePackageRemap(unittest.TestCase):
         from vistrails.core.application import get_vistrails_application
 
         app = get_vistrails_application()
-        app.new_vistrail()
-
+        created_vistrail = False
         try:
             pm = get_package_manager()
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})
             app.new_vistrail()
+            created_vistrail = True
             c = app.get_controller()
             self.create_workflow(c)
         
             p = c.current_pipeline
             actions = UpgradeWorkflowHandler.remap_module(c, 0, p, pkg_remap)
         finally:
+            if created_vistrail:
+                app.close_vistrail()
             try:
                 pm.late_disable_package('upgrades')
             except MissingPackage:
                 pass
-            app.close_vistrail()
 
     def test_multi_upgrade_obj(self):
         module_remap_1 = UpgradeModuleRemap('0.8', '0.9', '0.9', None,
@@ -870,18 +871,19 @@ class TestUpgradePackageRemap(unittest.TestCase):
         from vistrails.core.application import get_vistrails_application
 
         app = get_vistrails_application()
-        app.new_vistrail()
         default_upgrade_on = app.temp_configuration.upgradeOn
         default_upgrade_delay = app.temp_configuration.upgradeDelay
         app.temp_configuration.upgradeOn = True
         app.temp_configuration.upgradeDelay = False
 
+        created_vistrail = False
         try:
             pm = get_package_manager()
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})
             app.new_vistrail()
+            created_vistrail = True
             c = app.get_controller()
             current_version = self.create_workflow(c)
             for m in c.current_pipeline.modules.itervalues():
@@ -900,11 +902,12 @@ class TestUpgradePackageRemap(unittest.TestCase):
             self.assertEqual(conn.destination.name, 'b')
                 
         finally:
+            if created_vistrail:
+                app.close_vistrail()
             try:
                 pm.late_disable_package('upgrades')
             except MissingPackage:
                 pass
-            app.close_vistrail()
             app.temp_configuration.upgradeOn = default_upgrade_on
             app.temp_configuration.upgradeDelay = default_upgrade_delay
 
