@@ -33,33 +33,37 @@ class OutputModeConfig(dict):
                                  (k, self.__class__.__name__))
 
     @classmethod
-    def has_field(cls, k):
-        def cls_has_field(c):
-            if hasattr(c, '_fields'):
-                if not hasattr(c, '_field_dict'):
-                    c._field_dict = dict((f.name, f.default_val) 
-                                       for f in c._fields)
-                if k in c._field_dict:
-                    return True
-            return False
-        return any(cls_has_field(bcls) 
-                   for bcls in ([cls,] + list(cls.__bases__)))
+    def ensure_field_dict(cls):
+        if '_field_dict' not in cls.__dict__:
+            if '_fields' in cls.__dict__:
+                cls._field_dict = dict((f.name, f.default_val) 
+                                       for f in cls._fields)
+            else:
+                cls._field_dict = {}
 
     @classmethod
+    def has_field(cls, k):
+        cls_list = [cls]
+        while len(cls_list) > 0:
+            c = cls_list.pop(0)
+            print "class:", c
+            if issubclass(c, OutputModeConfig):
+                c.ensure_field_dict()
+                if k in c._field_dict:
+                    return True
+                cls_list.extend(c.__bases__)
+        return False
+            
+    @classmethod
     def get_default(cls, k):
-        def cls_get_default(c):
-            if hasattr(c, '_fields'):
-                if not hasattr(c, '_field_dict'):
-                    c._field_dict = dict((f.name, f.default_val) 
-                                       for f in c._fields)
+        cls_list = [cls]
+        while len(cls_list) > 0:
+            c = cls_list.pop(0)
+            if issubclass(c, OutputModeConfig):
+                c.ensure_field_dict()
                 if k in c._field_dict:
                     return c._field_dict[k]
-            return None
-
-        for bcls in ([cls,] + list(cls.__bases__)):
-            retval = cls_get_default(bcls)
-            if retval is not None:
-                return retval
+                cls_list.extend(c.__bases__)
         return None
 
     @classmethod
@@ -180,7 +184,7 @@ class OutputModule(NotCacheable, Module):
                 c.ensure_mode_dict()
                 if mode_type in c._output_modes_dict:
                     return c._output_modes_dict[mode_type][0]
-                cls_list.append(c.__bases__)
+                cls_list.extend(c.__bases__)
         return None
 
     @classmethod
@@ -435,7 +439,11 @@ class TestOutputModeConfig(unittest.TestCase):
 
     def test_get_item(self):
         config = FileModeConfig()
-        self.assertEqual(config["seriesStart"], 0)
+        self.assertEqual(config["seriesStart"], 0)        
+
+    def test_get_default(self):
+        self.assertEqual(FileModeConfig.get_default("seriesStart"), 0)
+        
 
 if __name__ == '__main__':
     import vistrails.core.application
