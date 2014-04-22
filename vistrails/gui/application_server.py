@@ -280,8 +280,10 @@ class RequestHandler(object):
 
     def get_server_packages(self, codepath=None, status=None):
         """get_server_packages()-> dict
-        This returns a dictionary with all the packages to vistrails with status indicating wether it is loaded.
-        It is also possible to enable/disable a package by passing a package codepath and the desired status on/off
+        This returns a dictionary with all the packages to vistrails with
+        status indicating wether it is loaded.
+        It is also possible to enable/disable a package by passing a package
+        codepath and the desired status on/off
         The keys are the package identifier.
         """
         self.server_logger.info("Request: get_server_packages()")
@@ -312,11 +314,12 @@ class RequestHandler(object):
                            "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
+                finally:
+                    self.proxies_queue.put(proxy)
                 if s == 0:
                     messages.append('An error occurred: %s' % result)
                 else:
                     messages.append(result[1])
-                self.proxies_queue.put(proxy)
 
         try:
             pkg_manager = get_package_manager()
