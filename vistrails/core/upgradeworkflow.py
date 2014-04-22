@@ -777,6 +777,7 @@ class TestUpgradePackageRemap(unittest.TestCase):
                               namespace='',
                               package_version='0.8')
         m1 = c.create_module_from_descriptor(d1, use_desc_pkg_version=True)
+        m1.is_valid = False
         c.add_module_action(m1)
 
         d2 = ModuleDescriptor(package=upgrade_test_pkg,
@@ -784,6 +785,7 @@ class TestUpgradePackageRemap(unittest.TestCase):
                               namespace='',
                               package_version = '0.8')
         m2 = c.create_module_from_descriptor(d2, use_desc_pkg_version=True)
+        m2.is_valid = False
         c.add_module_action(m2)
 
         basic_pkg = get_vistrails_basic_pkg_id()
