@@ -47,9 +47,11 @@ from datetime import datetime
 import email.utils
 import hashlib
 import os
+import re
 import urllib
 import urllib2
 
+from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.configuration import get_vistrails_persistent_configuration
 from vistrails.core import debug
 import vistrails.core.modules.basic_modules
@@ -239,17 +241,130 @@ class HTTPDownloader(Downloader):
                 etag = etag_file.write(etag)
 
 
+class SSHDownloader(object):
+    """ SSH downloader: downloads files via SCP, using paramiko and scp.
+
+    Recognized URL schemes are:
+        ssh://user[:password]@host[:port]/absolute/path
+            Examples:
+                ssh://john@vistrails.nyu.edu/home/john/example.txt
+                ssh://eve:my%20secret@google.com/tmp/test%20file.bin
+            Note that both password and path are url-encoded, that the path
+            is absolute, and that the username must be specified
+        scp://[user@]host:path
+            Examples:
+                scp://john@vistrails.nyu.edu:files/test.txt
+                scp://poly.edu:/tmp/test.bin
+            Note that nothing is url encoded, that the path can be relative
+            (to the user's home directory) and that no username or port can
+            be specified
+    """
+
+    SSH_FORMAT = re.compile(
+            r'^'
+            'ssh://'                    # Protocol
+            '([A-Za-z0-9_/+.-]+)'       # 1 Username
+            '(?::([^@]+))?'             # 2 Password
+            '@([A-Za-z0-9_.-]+)'        # 3 Hostname
+            '(?::([0-9]+))?'            # 4 Port number
+            '(/.+)'                     # 5 Path (url-encoded!)
+            '$'
+            )
+    SCP_FORMAT = re.compile(
+            r'^'
+            '(?:scp://)?'               # Protocol
+            '(?:([A-Za-z0-9_/+.-]+)@)?' # 1 Username
+            '([A-Za-z0-9_.-]+)'         # 2 Hostname
+            ':(.+)'                     # 3 Path (not url-encoded)
+            '$'
+            )
+
+    def __init__(self, url, module, insecure):
+        self.url = url
+        self.module = module
+
+    def execute(self):
+        # Parse URL
+        password = None
+        portnum = None
+        if self.url.startswith('ssh:'):
+            m = self.SSH_FORMAT.match(self.url)
+            if m is None:
+                raise ModuleError(self.module,
+                                  "SSH error: invalid URL %r" % self.url)
+            username, password, hostname, portnum, path = m.groups()
+            password = urllib.unquote_plus(password)
+            path = urllib.unquote_plus(path)
+        elif self.url.startswith('scp:'):
+            m = self.SCP_FORMAT.match(self.url)
+            if m is None:
+                raise ModuleError(self.module,
+                                  "SSH error: invalid URL %r" % self.url)
+            username, hostname, path = m.groups()
+        else:
+            raise ModuleError(self.module, "SSHDownloader: Invalid URL")
+
+        if portnum is None:
+            portnum = 22
+        else:
+            portnum = int(portnum)
+        return self._open_ssh(username, password, hostname, portnum, path)
+
+    def _open_ssh(self, username, password, hostname, portnum, path):
+        paramiko = py_import('paramiko', {
+                'pip': 'paramiko',
+                'linux-debian': 'python-paramiko',
+                'linux-ubuntu': 'python-paramiko',
+                'linux-fedora': 'python-paramiko'})
+        scp = py_import('scp', {
+                'pip': 'scp'})
+
+        local_filename = os.path.join(package_directory,
+                                      urllib.quote_plus(self.url))
+
+        ssh = paramiko.SSHClient()
+        ssh.load_system_host_keys()
+        try:
+            ssh.connect(hostname, port=portnum,
+                        username=username, password=password)
+        except paramiko.SSHException, e:
+            raise ModuleError(self.module, debug.format_exception(e))
+        client = scp.SCPClient(ssh.get_transport())
+
+        client.get(path, local_filename)
+        return local_filename
+
+
 downloaders = {
     'http': HTTPDownloader,
     'https': HTTPDownloader,
-    'ftp': Downloader}
+    'ssh': SSHDownloader,
+    'scp': SSHDownloader}
 
 
 class DownloadFile(Module):
     """ Downloads file from URL.
 
-    This modules uses urllib2 to download a remote file. It uses a cache on the
+    This modules downloads a remote file. It tries to cache files on the local
     filesystem so as to not re-download unchanged files.
+
+    Recognized URL schemes are:
+        http://...
+        https://...
+        ftp://...
+        ssh://user[:password]@host[:port]/absolute/path
+            Examples:
+                ssh://john@vistrails.nyu.edu/home/john/example.txt
+                ssh://eve:my%20secret@google.com/tmp/test%20file.bin
+            Note that both password and path are url-encoded, that the path
+            is absolute, and that the username must be specified
+        scp://[user@]host:path
+            Examples:
+                scp://john@vistrails.nyu.edu:files/test.txt
+                scp://poly.edu:/tmp/test.bin
+            Note that nothing is url encoded, that the path can be relative
+            (to the user's home directory) and that no username or port can
+            be specified
     """
 
     def compute(self):
