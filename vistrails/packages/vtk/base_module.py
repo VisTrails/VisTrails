@@ -40,8 +40,12 @@ import vtk
 
 from vistrails.core import debug
 from vistrails.core.interpreter.base import AbortExecution
+from vistrails.core.configuration import ConfigField
 from vistrails.core.modules.module_registry import registry
+from vistrails.core.modules.output_modules import OutputModule, FileMode, \
+    FileModeConfig
 from vistrails.core.modules.vistrails_module import Module, ModuleError
+import vistrails.core.system
 from identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
@@ -272,3 +276,58 @@ class vtkBaseModule(Module):
                                                  classname).module()
         result.vtkInstance = instance
         return result
+
+class vtkFileModeConfig(FileModeConfig):
+    _fields = [ConfigField('width', 512, int),
+              ConfigField('height', 512, int)]
+
+class vtkRendererToFile(FileMode):
+    config_cls = vtkFileModeConfig
+
+    @classmethod
+    def can_compute(cls):
+        return True
+
+    def compute_output(self, output_module, configuration):
+        r = output_module.get_input("value").vtkInstance
+        w = configuration["width"]
+        h = configuration["height"]
+        fname = self.get_filename(configuration)
+
+        window = vtk.vtkRenderWindow()
+        window.OffScreenRenderingOn()
+        window.SetSize(w, h)
+
+        # FIXME think this may be fixed in VTK6 so we don't have this
+        # dependency...
+        widget = None
+        if vistrails.core.system.systemType=='Darwin':
+            from PyQt4 import QtCore, QtGui
+            widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+            widget.resize(w, h)
+            widget.show()
+            window.SetWindowInfo(str(int(widget.winId())))
+
+        window.AddRenderer(r)
+        window.Render()
+        win2image = vtk.vtkWindowToImageFilter()
+        win2image.SetInput(window)
+        win2image.Update()
+        writer = vtk.vtkPNGWriter()
+        writer.SetInput(win2image.GetOutput())
+        writer.SetFileName(fname)
+        writer.Write()
+        window.Finalize()
+        if widget!=None:
+            widget.close()
+
+class vtkRendererOutput(OutputModule):
+    # DAK: no render view here, use a separate module for this...
+    _input_ports = [('value', 'vtkRenderer')]
+                    # DK: these ports can be enabled, I think, just
+                    # have to be laoded without the spreadsheet being
+                    # enabled
+                    # ('interactionHandler', 'vtkInteractionHandler'), 
+                    # ('interactorStyle', 'vtkInteractorStyle'), 
+                    # ('picker', 'vtkAbstractPicker')]
+    _output_modes = [vtkRendererToFile]
