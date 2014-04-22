@@ -369,7 +369,8 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def set_controller(self, controller=None):
         self.controller = controller
-        self.set_diff()
+        if self.controller is not None:
+            self.set_diff()
         
     def update_module(self, module=None):
         """ moduleSelected(id: int, selectedItems: [QGraphicsItem]) -> None
