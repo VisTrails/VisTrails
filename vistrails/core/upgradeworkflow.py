@@ -810,6 +810,7 @@ class TestUpgradePackageRemap(unittest.TestCase):
         from vistrails.core.application import get_vistrails_application
 
         app = get_vistrails_application()
+        app.new_vistrail()
 
         try:
             pm = get_package_manager()
@@ -869,6 +870,7 @@ class TestUpgradePackageRemap(unittest.TestCase):
         from vistrails.core.application import get_vistrails_application
 
         app = get_vistrails_application()
+        app.new_vistrail()
         default_upgrade_on = app.temp_configuration.upgradeOn
         default_upgrade_delay = app.temp_configuration.upgradeDelay
         app.temp_configuration.upgradeOn = True
