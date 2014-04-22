@@ -238,6 +238,8 @@ class OutputModule(NotCacheable, Module):
                 if k == mode.mode_type:
                     mode_config = mode_config_cls(v)
                     break
+        if mode_config is None:
+            mode_config = mode_config_cls()
 
         self.annotate({"output_mode": mode.mode_type})
         mode.compute_output(self, mode_config)
@@ -263,7 +265,7 @@ class FileModeConfig(OutputModeConfig):
                ConfigField('suffix', None, str),
                ConfigField('dir', None, ConfigPath),
                ConfigField('series', False, bool),
-               ConfigField('overwrite', False, bool),
+               ConfigField('overwrite', True, bool),
                ConfigField('seriesPadding', 3, int),
                ConfigField('seriesStart', 0, int)]
 
@@ -286,10 +288,10 @@ class FileMode(OutputMode):
 
     def get_filename(self, configuration, full_path=None, filename=None,
                      dirname=None, basename=None, prefix=None, suffix=None,
-                     overwrite=None, series=False, series_padding=3):
+                     overwrite=True, series=False, series_padding=3):
         # if prefix/suffix/series are overridden, want to use them
         # instead of name...
-        if full_path is None and configuration is not None:
+        if full_path is None:
             # use file if overridden or none of the file params are
             # overridden and the file is not None
 
