@@ -473,6 +473,18 @@ class RepoSync(Module):
                     self.data_sync()
 
 
+class URLEncode(Module):
+    def compute(self):
+        value = self.get_input('string')
+        self.set_output('encoded', urllib.quote_plus(value))
+
+
+class URLDecode(Module):
+    def compute(self):
+        encoded = self.get_input('encoded')
+        self.set_output('string', urllib.unquote_plus(encoded))
+
+
 def initialize(*args, **keywords):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     basic = vistrails.core.modules.basic_modules
@@ -505,6 +517,14 @@ def initialize(*args, **keywords):
                                            'Repository Synced File object'))
     reg.add_output_port(RepoSync, "checksum",
                         (basic.String, 'Checksum'), optional=True)
+
+    reg.add_module(URLEncode)
+    reg.add_input_port(URLEncode, "string", basic.String)
+    reg.add_output_port(URLEncode, "encoded", basic.String)
+
+    reg.add_module(URLDecode)
+    reg.add_input_port(URLDecode, "encoded", basic.String)
+    reg.add_output_port(URLDecode, "string", basic.String)
 
     global package_directory
     dotVistrails = current_dot_vistrails()
