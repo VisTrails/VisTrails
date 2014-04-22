@@ -63,7 +63,10 @@ def unexpected_exception(e, tb=None, frame=None):
     if tb is None:
         tb = sys.exc_info()[2]
     if frame is None:
-        frame = sys._getframe().f_back
+        tb_it = tb
+        while tb_it.tb_next is not None:
+            tb_it = tb_it.tb_next
+        frame = tb_it.tb_frame
 
     # Whether to use the debugger
     try:
@@ -87,7 +90,7 @@ def unexpected_exception(e, tb=None, frame=None):
     # Prints the exception and traceback
     print >>sys.stderr, "!!!!!!!!!!"
     print >>sys.stderr, "Got unexpected exception, starting debugger"
-    traceback.print_stack(frame, sys.stderr)
+    traceback.print_tb(tb, file=sys.stderr)
     if e is not None:
         print >>sys.stderr, format_exception(e)
 
