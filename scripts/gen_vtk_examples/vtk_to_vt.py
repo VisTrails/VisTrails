@@ -215,7 +215,7 @@ class VTK2VT(object):
             package_name = self.basic_name
         elif module_name == 'PythonCalc':
             package_name = self.pythoncalc_name
-        elif module_name == 'HTTPFile':
+        elif module_name == 'DownloadFile':
             package_name = self.http_name
         db_module = DBModule(id=self.max_module_id,
                              name=module_name,
@@ -687,9 +687,9 @@ class VTK2VT(object):
                     type(function.parent) == vtk_module and \
                     len(function._args) == 1 and \
                     type(function._args[0]) == str:
-                # replace SetFileName with a HTTPFile -> Unzip -> SetFile
+                # replace SetFileName with a DownloadFile -> Unzip -> SetFile
                 if not self.http_module:
-                    self.http_module = vtk_module('HTTPFile')
+                    self.http_module = vtk_module('DownloadFile')
                     self.http_module.url(self.vtk_data_url)
                     self.create_module(self.http_module)
                     self.create_functions(self.http_module)

@@ -92,9 +92,9 @@ addPackage('pythonCalc')
 # The spreadsheet package enables the Visualization Spreadsheet
 addPackage('spreadsheet')
 
-# The HTTP package provides an easy way to access files from http and use
-# them as regular files in VisTrails pipelines.
-addPackage('HTTP')
+# The URL package provides an easy way to download files and use them as
+# regular files in VisTrails pipelines.
+addPackage('URL')
 
 #matplotlib/pylab package for plotting and histograms
 addPackage('pylab')

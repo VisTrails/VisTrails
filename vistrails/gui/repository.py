@@ -305,7 +305,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     if module.name[-6:] == 'Reader' or \
                        module.name in self.local_data_modules:
                         for edge in pipeline.graph.edges_to(module.id):
-                            if pipeline.modules[edge[0]].name in ['HTTPFile',
+                            if pipeline.modules[edge[0]].name in ['DownloadFile',
                                                                   'RepoSync']:
                                 on_repo = True
 
