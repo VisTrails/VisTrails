@@ -183,6 +183,9 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 }
 
     # '1.0.1' -> '1.0.2' changes 'self' output port to 'value'
+    module_remap.setdefault('MplSource', []).append(
+                (None, '1.0.2', None, {
+                 'src_port_remap': {'self': 'value'}}))
     if module.name in (m.__name__ for m in _plot_modules + _artist_modules):
         module_remap.setdefault(module.name, []).append(
                 (None, '1.0.2', None, {
