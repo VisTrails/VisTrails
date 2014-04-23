@@ -159,10 +159,8 @@ class VistrailsInternalError(Exception):
     this.
 
     """
-    def __init__(self, msg):
-        self.emsg = msg
     def __str__(self):
-        return "Vistrails Internal Error: " + str(self.emsg)
+        return "Vistrails Internal Error: " + str(self.message)
 
 class VersionTooLow(Exception):
     """VersionTooLow is raised when you're running an outdated version of
