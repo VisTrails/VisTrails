@@ -153,8 +153,8 @@ class SQLSource(Module):
             cached = self.get_input('cacheResults')
             self.is_cacheable = lambda: cached
         connection = self.get_input('connection')
-        inputs = [self.get_input(k) for k in self.inputPorts.iterkeys()
-                  if k not in ('source', 'connection', 'cacheResults')]
+        inputs = dict((k, self.get_input(k)) for k in self.inputPorts.iterkeys()
+                  if k not in ('source', 'connection', 'cacheResults'))
         s = urllib.unquote(str(self.get_input('source')))
 
         try:
