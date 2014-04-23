@@ -384,13 +384,6 @@ class Directory(Path):
     _output_ports = [OPort("value", "Directory"),
                      OPort("itemList", "List")]
 
-    @staticmethod
-    def translate_to_python(x):
-        result = Directory()
-        result.name = x
-        result.set_output("value", result)
-        return result
-
     def compute(self):
         n = self.get_name()
         if (self.has_input("create_directory") and 
