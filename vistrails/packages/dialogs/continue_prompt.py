@@ -4,6 +4,7 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellContainer
 
 
@@ -29,7 +30,7 @@ class PromptIsOkay(Module):
                      {'optional': True}),
                     ('carry_on', basic_modules.Boolean,
                      {'optional': True, 'defaults': "['False']"}),
-                    ('cell', Module)]
+                    ('cell', SpreadsheetCell)]
     _output_ports = [('result', basic_modules.Boolean)]
 
     def compute(self):
@@ -38,7 +39,7 @@ class PromptIsOkay(Module):
             self.setResult('result', True)
             return
 
-        cell = self.getInputFromPort('cell').cellWidget
+        cell = self.getInputFromPort('cell')
         label = self.forceGetInputFromPort('label', None)
 
         # FIXME : This should be done via the spreadsheet, removing it properly

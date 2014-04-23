@@ -80,6 +80,7 @@ def registerWidget(reg, basicModules, basicWidgets):
 
     reg.add_module(SpreadsheetCell)
     reg.add_input_port(SpreadsheetCell, "Location", CellLocation)
+    reg.add_output_port(SpreadsheetCell, "Widget", SpreadsheetCell)
 
     reg.add_module(SingleCellSheetReference)
     reg.add_input_port(SingleCellSheetReference, "SheetName",
@@ -233,6 +234,7 @@ class SpreadsheetCell(NotCacheable, Module):
         if spreadsheetWindow.echoMode == False:
             spreadsheetWindow.configShow(show=True)
         self.cellWidget = spreadsheetWindow.displayCellEvent(e)
+        self.setResult('Widget', self.cellWidget)
         return self.cellWidget
 
     display = displayAndWait
