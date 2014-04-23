@@ -2676,15 +2676,19 @@ class VistrailController(object):
                 if self._auto_save:
                     locator.save_temporary(self.vistrail)
             view = DummyView()
-            return self.execute_workflow_list([(self.locator,
-                                                self.current_version,
-                                                self.current_pipeline,
-                                                view,
-                                                custom_aliases,
-                                                custom_params,
-                                                reason,
-                                                sinks,
-                                                extra_info)])
+            try:
+                return self.execute_workflow_list([(self.locator,
+                                                    self.current_version,
+                                                    self.current_pipeline,
+                                                    view,
+                                                    custom_aliases,
+                                                    custom_params,
+                                                    reason,
+                                                    sinks,
+                                                    extra_info)])
+            except Exception, e:
+                debug.unexpected_exception(e)
+                raise
 
     def recompute_terse_graph(self):
         # get full version tree (including pruned nodes) this tree is

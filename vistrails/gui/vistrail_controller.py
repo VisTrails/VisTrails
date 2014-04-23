@@ -381,15 +381,19 @@ class VistrailController(QtCore.QObject, BaseController):
             if locator:
                 locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
-            return self.execute_workflow_list([(self.locator,
-                                         self.current_version,
-                                         self.current_pipeline,
-                                         self.current_pipeline_scene,
-                                         custom_aliases,
-                                         custom_params,
-                                         reason,
-                                         sinks,
-                                         extra_info)])
+            try:
+                return self.execute_workflow_list([(self.locator,
+                                             self.current_version,
+                                             self.current_pipeline,
+                                             self.current_pipeline_scene,
+                                             custom_aliases,
+                                             custom_params,
+                                             reason,
+                                             sinks,
+                                             extra_info)])
+            except Exception, e:
+                debug.unexpected_exception(e)
+                raise
         return ([], False)
 
 
