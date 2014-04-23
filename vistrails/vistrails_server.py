@@ -59,6 +59,11 @@ def fix_paths():
 
 if __name__ == '__main__':
     fix_paths()
+
+    # Set locale to English
+    import locale
+    locale.setlocale(locale.LC_ALL, 'C')
+
     import vistrails.gui.requirements
     vistrails.gui.requirements.require_pyqt4_api2()
 
