@@ -76,6 +76,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
     
     """
     _input_ports = [('source', '(basic:String)')]
+    _output_ports = [('value', '(MplSource)')]
 
     def compute(self):
         """ compute() -> None
@@ -87,6 +88,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
              urllib.unquote(source))
 
         self.run_code(s, use_input=True, use_output=True)
+        self.set_output('value', None)
 
 class MplFigure(Module):
     _input_ports = [("addPlot", "(MplPlot)"),
