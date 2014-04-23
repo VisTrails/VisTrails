@@ -41,14 +41,12 @@ import uuid
 from vistrails.core.cache.hasher import Hasher
 from vistrails.core.cache.utils import hash_list
 from vistrails.core.modules import module_registry
-from vistrails.core.modules.basic_modules import String, Boolean, Variant, \
-    NotCacheable, identifier as basic_pkg
+from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
     ModuleError, ModuleSuspended
-from vistrails.core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
+from vistrails.core.utils import VistrailsInternalError
 import os.path
-import vistrails.db
 
 try:
     import hashlib
@@ -233,12 +231,12 @@ class Group(Module):
 ###############################################################################
 
 def coalesce_port_specs(neighbors, type):
-    from vistrails.core.modules.basic_modules import identifier as basic_pkg
     reg = module_registry.get_module_registry()
     cur_descs = None
+    Variant_desc = reg.get_descriptor_by_name(basic_pkg, 'Variant')
     if type == 'input':
         find_common = reg.find_descriptor_subclass
-        common_desc = reg.get_descriptor_by_name(basic_pkg, 'Variant')
+        common_desc = Variant_desc
     elif type == 'output':
         find_common = reg.find_descriptor_superclass
         common_desc = reg.get_descriptor_by_name(basic_pkg, 'Module')
@@ -258,7 +256,12 @@ def coalesce_port_specs(neighbors, type):
                                              "types")
             descs = []
             for cur_desc, next_desc in izip(cur_descs, next_descs):
-                new_desc = find_common(cur_desc, next_desc)
+                if cur_desc is Variant_desc:
+                    new_desc = next_desc
+                elif next_desc is Variant_desc:
+                    new_desc = cur_desc
+                else:
+                    new_desc = find_common(cur_desc, next_desc)
                 if new_desc is None:
                     new_desc = common_desc
                 descs.append(new_desc)
@@ -293,7 +296,6 @@ def get_port_spec_info(pipeline, module):
                  for (m_id, c_id) in get_edges(module.id)]
     port_name = neighbors[0][1]
     sigstring = coalesce_port_specs(neighbors, type)
-    old_name = port_name
     # sigstring = neighbor.get_port_spec(port_name, type).sigstring
 
     # FIXME check old registry here?
