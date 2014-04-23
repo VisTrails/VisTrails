@@ -103,8 +103,12 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def set_controller(self, controller):
         self.controller = controller
-        self.set_pipeline(self.controller.current_pipeline)
-        self.pipeline_view.setScene(self.controller.current_pipeline_scene)
+        if self.controller is not None:
+            self.set_pipeline(self.controller.current_pipeline)
+            self.pipeline_view.setScene(self.controller.current_pipeline_scene)
+        else:
+            self.set_pipeline(None)
+            self.pipeline_view.setScene(None)
 
     def set_pipeline(self, pipeline):
         self.pipeline = pipeline

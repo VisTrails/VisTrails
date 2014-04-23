@@ -94,8 +94,7 @@ class MplFigure(Module):
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
 
-    _output_ports = [("file", "(basic:File)"),
-                     ("self", "(MplFigure)")]
+    _output_ports = [("self", "(MplFigure)")]
 
     def __init__(self):
         Module.__init__(self)
@@ -129,7 +128,6 @@ class MplFigure(Module):
             legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 
-        #FIXME write file out if File port is attached!
 
         self.set_output("self", self)
 

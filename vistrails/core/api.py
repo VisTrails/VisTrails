@@ -66,13 +66,11 @@ class Module(object):
         if self._module.has_port_spec(attr_name, 'input'):
             port_spec = self._module.get_port_spec(attr_name, 'input')
 
-            args = None
             # FIXME want this to be any iterable
             if isinstance(value, tuple):
-                args = value
+                self._update_func(port_spec, *value)
             else:
-                args = (value,)
-            self._update_func(port_spec, *args)
+                self._update_func(port_spec, value)
         else:
             raise AttributeError("type object '%s' has no "
                                  "attribute '%s'" % \
@@ -132,7 +130,7 @@ class Module(object):
                 # print 'update literal', type(value), value
                 num_params += 1
         if num_ports > 1 or (num_ports == 1 and num_params > 0):
-            reg = vistrails.core.modules.module_registry.get_module_registry()
+            reg = get_module_registry()
             tuple_desc = reg.get_descriptor_by_name(basic_pkg, 'Tuple')
             tuple_module = vt_api.add_module_from_descriptor(tuple_desc)
             output_port_spec = PortSpec(id=-1,
@@ -140,7 +138,7 @@ class Module(object):
                                         type='output',
                                         sigstring=port_spec.sigstring)
             vt_api.add_port_spec(tuple_module, output_port_spec)
-            self._update_func(port_spec, *[tuple_module.value()])
+            self._update_func(port_spec, tuple_module.value())
             assert len(port_spec.descriptors()) == len(args)
             for i, descriptor in enumerate(port_spec.descriptors()):
                 arg_name = 'arg%d' % i

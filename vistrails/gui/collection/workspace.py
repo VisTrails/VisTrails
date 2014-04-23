@@ -546,16 +546,15 @@ class QWorkspaceWindow(QtGui.QWidget, QVistrailsPaletteInterface):
         self.open_list.state_changed(view)
         
     def gotoSearch(self):
+        from vistrails.gui.vistrails_window import _app
         if self.searchAction.searchMode:
             self.open_list.hide_search_results()
             self.searchAction.searchMode = False
             self.open_list.searchMode = False
             self.searchAction.setText("Search")
 
-            from vistrails.gui.vistrails_window import _app
             _app.notify('query_changed', None)
         else:
-            from vistrails.gui.vistrails_window import _app
             _app.qactions['search'].trigger()
  
     def updateSearchResults(self, search=None, result_list=None):
@@ -1078,7 +1077,7 @@ class QVistrailList(QtGui.QTreeWidget):
         self.setSortingEnabled(False)
         if not (hasattr(item, 'tag_to_item') or hasattr(item, 'mshp_to_item')): 
             return
-        for tag, wf in item.tag_to_item.iteritems():
+        for wf in item.tag_to_item.itervalues():
             index = wf.parent().indexOfChild(wf)
             wf = wf.parent().takeChild(index)
             item.workflowsItem.addChild(wf)
@@ -1236,7 +1235,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 recent.entity.url == entity.url:
                 self.setSelected(None)
                 index = self.closedFilesItem.indexOfChild(recent)
-                item = self.closedFilesItem.takeChild(index)
+                self.closedFilesItem.takeChild(index)
         item = QVistrailEntityItem(entity, vistrail_window)
         item.current_item = QVistrailListLatestItem()
         item.workflowsItem.addChild(item.current_item)
@@ -1339,7 +1338,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 item = parent_item.child(i)
                 font = item.font(0)
                 window = item.window if hasattr(item, 'window') else None
-                font.setBold(view == window if window and view else False)
+                font.setBold(bool(window and view and view == window))
                 item.setFont(0, font)
                 if window:
                     item.setText(0, window.get_name())
@@ -1409,7 +1408,7 @@ class QVistrailList(QtGui.QTreeWidget):
             menu.addAction(act)
             menu.exec_(event.globalPos())
         elif (isinstance(item, QWorkflowEntityItem) or 
-              isinstance(item, QVistrailListLatestItem)):
+                isinstance(item, QVistrailListLatestItem)):
             if item and self.openFilesItem.indexOfChild(item.get_vistrail()) == -1:
                 # vistrail is not open
                 return
@@ -1428,7 +1427,7 @@ class QVistrailList(QtGui.QTreeWidget):
             act.setStatusTip("Open specified workflow in a new window")
             menu.addAction(act)
             menu.exec_(event.globalPos())
-        elif isinstance(item,QMashupEntityItem):
+        elif isinstance(item, QMashupEntityItem):
             if item and self.openFilesItem.indexOfChild(item.parent().parent()) == -1:
                 # vistrail is not open
                 return

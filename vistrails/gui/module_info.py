@@ -129,14 +129,17 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             ports_list.set_controller(controller)
         self.annotations.set_controller(controller)
 
-        scene = self.controller.current_pipeline_scene
-        selected_ids = scene.get_selected_module_ids() 
-        modules = [self.controller.current_pipeline.modules[i] 
-                   for i in selected_ids]
-        if len(modules) == 1:
-            self.update_module(modules[0])
+        if self.controller is not None:
+            scene = self.controller.current_pipeline_scene
+            selected_ids = scene.get_selected_module_ids() 
+            modules = [self.controller.current_pipeline.modules[i] 
+                       for i in selected_ids]
+            if len(modules) == 1:
+                self.update_module(modules[0])
+            else:
+                self.update_module(None)
         else:
-            self.update_module(None)
+            self.update_module()
 
     def update_module(self, module=None):
         self.module = module

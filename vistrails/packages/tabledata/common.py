@@ -262,7 +262,7 @@ class SingleColumnTable(Converter):
     _input_ports = [('in_value', List)]
     _output_ports = [('out_value', Table)]
     def compute(self):
-        column = self.getInputFromPort('in_value')
+        column = self.get_input('in_value')
         if not isinstance(column, ListType):
             column = list(column)
         self.set_output('out_value', TableObject(

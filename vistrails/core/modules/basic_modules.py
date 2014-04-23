@@ -550,7 +550,7 @@ class WriteFile(Converter):
         contents = self.get_input('in_value')
         suffix = self.force_get_input('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
-        if self.hasInputFromPort('encoding'):
+        if self.has_input('encoding'):
             contents = contents.decode('utf-8') # VisTrails uses UTF-8
                                                 # internally (I hope)
             contents = contents.encode(self.get_input('encoding'))
@@ -1314,6 +1314,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                           {'dst_port_remap': {'old_name': None}})],
                     'PythonSource':
                         [(None, '1.6', None, {})],
+                    'Tuple':
+                        [(None, '2.1', None, {})],
                     'StandardOutput':
                         [(None, '2.1.1', None, {})],
                     'List':
