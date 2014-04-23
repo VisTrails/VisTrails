@@ -40,7 +40,7 @@ from vistrails.core.packagemanager import get_package_manager
 
 identifier = 'org.vistrails.vistrails.dialogs'
 name = 'Dialogs'
-version = '0.9.3'
+version = '0.9.2'
 old_identifiers = ['edu.utah.sci.vistrails.dialogs']
 
 
