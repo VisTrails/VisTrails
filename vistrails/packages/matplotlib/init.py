@@ -145,12 +145,13 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         old_loc = module.location
         old_figure = find_figure(module)
 
-    module_remap = {'MplPlot': 
+    module_remap = {'MplPlot':
                     [(None, '1.0.0', 'MplSource',
                       {'dst_port_remap': {'source': 'source',
                                           'Hide Toolbar': None},
-                       'src_port_remap': {'source': 'self'}})],
-                    'MplFigure': 
+                       'src_port_remap': {'source': 'value',
+                                          'self': 'value'}})],
+                    'MplFigure':
                     [(None, '1.0.0', None,
                       {'dst_port_remap': {'Script': 'addPlot'},
                        'src_port_remap': {'FigureManager': 'self',
@@ -166,8 +167,9 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                           'facecolor': None,
                                           'title': None,
                                           'xlabel': None,
-                                          'ylabel': None},
-                       'src_port_remap': {'source': 'self'}})],
+                                          'ylabel': None,
+                                          'self': 'value'},
+                       'src_port_remap': {'source': 'value'}})],
                     'MplHistogram':
                     [(None, '1.0.0', 'MplHist',
                       {'dst_port_remap': {'columnData': 'x',
@@ -175,9 +177,16 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                           'facecolor': None,
                                           'title': None,
                                           'xlabel': None,
-                                          'ylabel': None},
-                       'src_port_remap': {'source': 'self'}})],
+                                          'ylabel': None,
+                                          'self': 'value'},
+                       'src_port_remap': {'source': 'value'}})],
                 }
+
+    # '1.0.1' -> '1.0.2' changes 'self' output port to 'value'
+    if module.name in (m.__name__ for m in _plot_modules + _artist_modules):
+        module_remap.setdefault(module.name, []).append(
+                (None, '1.0.2', None, {
+                 'src_port_remap': {'self': 'value'}}))
 
     action_list = []
     if old_figure[1] is not None and \
@@ -261,9 +270,5 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                          fig_module,
                                          'axesProperties')
         more_ops.append(('add', new_conn))
-    
-    # for action in action_list:
-    #     for op in action.operations:
-    #         print "@+>:", op
+
     return action_list
-            

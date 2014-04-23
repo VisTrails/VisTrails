@@ -42,7 +42,7 @@ import uuid
 import vistrails.core.debug
 from vistrails.core.configuration import ConfigurationObject
 from vistrails.core.cache.hasher import Hasher
-from vistrails.core.modules.basic_modules import Path, File, Directory, Boolean, \
+from vistrails.core.modules.basic_modules import Path, PathObject, Directory, Boolean, \
     String, Constant
 from vistrails.core.modules.module_registry import get_module_registry, MissingModule, \
     MissingPackageVersion, MissingModuleVersion
@@ -437,10 +437,7 @@ class PersistentFile(PersistentPath):
         PersistentPath.compute(self, is_input, 'blob')
 
     def set_result(self, path):
-        persistent_path = File()
-        persistent_path.name = path
-        persistent_path.set_output('value', self)
-        persistent_path.upToDate = True
+        persistent_path = PathObject(path)
         self.set_output("value", persistent_path)
 
 class PersistentDir(PersistentPath):
@@ -455,10 +452,7 @@ class PersistentDir(PersistentPath):
         PersistentPath.compute(self, is_input, 'tree')
 
     def set_result(self, path):
-        persistent_path = Directory()
-        persistent_path.name = path
-        persistent_path.set_output('value', self)
-        persistent_path.upToDate = True
+        persistent_path = PathObject(path)
         self.set_output("value", persistent_path)
 
 class PersistentInputDir(PersistentDir):

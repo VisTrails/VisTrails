@@ -89,7 +89,7 @@ class FilePool(object):
                                           debug.format_exception(e)))
 
     def create_file(self, suffix = '', prefix = 'vt_tmp'):
-        """create_file(suffix='', prefix='vt_tmp') -> File.
+        """create_file(suffix='', prefix='vt_tmp') -> PathObject.
 
         Returns a File module representing a writable file for use in
         modules. To avoid race conditions, this file will already
@@ -100,26 +100,21 @@ class FilePool(object):
                                       prefix=prefix,
                                       dir=self.directory)
         os.close(fd)
-        result = basic_modules.File()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
 
     def create_directory(self, suffix = '', prefix = 'vt_tmp'):
-        """create_directory(suffix='', prefix='vt_tmp') -> Directory.
+        """create_directory(suffix='', prefix='vt_tmp') -> PathObject.
 
-        Returns a Directory module representing a writable directory
-        for use in modules. To avoid race conditions, this directory
-        will already exist in the file system.
+        Returns a writable directory for use in modules. To avoid race
+        conditions, this directory will already exist in the file system.
 
         """
         name = tempfile.mkdtemp(suffix=suffix,
                                       prefix=prefix,
                                       dir=self.directory)
-        result = basic_modules.Directory()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
 
@@ -131,7 +126,7 @@ class FilePool(object):
         return os.path.splitext(file_name)[1]
 
     def make_local_copy(self, src):
-        """make_local_copy(src) -> File
+        """make_local_copy(src) -> PathObject
 
         Returns a file in the filePool that's either a link or a copy
         of the given file path. This ensures the file's longevity when
@@ -146,9 +141,7 @@ class FilePool(object):
         # FIXME: Watch out for race conditions
         os.unlink(name)
         link_or_copy(src, name)
-        result = basic_modules.File()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
         

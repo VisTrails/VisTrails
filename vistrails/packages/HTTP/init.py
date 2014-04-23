@@ -128,14 +128,12 @@ class HTTPFile(Module):
         except urllib2.URLError, e:
             if isinstance(e, urllib2.HTTPError) and e.code == 304:
                 # Not modified
-                result = vistrails.core.modules.basic_modules.File()
-                result.name = local_filename
+                result = vistrails.core.modules.basic_modules.PathObject(local_filename)
                 return (0, result, local_filename)
             if self._file_is_in_local_cache(local_filename):
                 debug.warning('A network error occurred. HTTPFile will use a '
                               'cached version of the file')
-                result = vistrails.core.modules.basic_modules.File()
-                result.name = local_filename
+                result = vistrails.core.modules.basic_modules.PathObject(local_filename)
                 return (1, result, local_filename)
             else:
                 return (2, (debug.format_exception(e)), local_filename)
@@ -152,8 +150,7 @@ class HTTPFile(Module):
             except (KeyError, ValueError):
                 size_header = None
 
-            result = vistrails.core.modules.basic_modules.File()
-            result.name = local_filename
+            result = vistrails.core.modules.basic_modules.PathObject(local_filename)
 
             if (not self._file_is_in_local_cache(local_filename) or
                     not mod_header or
@@ -236,8 +233,7 @@ class HTTPDirectory(Module):
         url = self.get_input('url')
         local_path = self.download(url)
         self.set_output('local_path', local_path)
-        local_dir = vistrails.core.modules.basic_modules.Directory()
-        local_dir.name = local_path
+        local_dir = vistrails.core.modules.basic_modules.PathObject(local_path)
         self.set_output('directory', local_dir)
 
     def download(self, url):
@@ -365,8 +361,7 @@ class RepoSync(Module):
                         urllib.urlretrieve(self.url, local_filename)
                     except IOError, e:
                         raise ModuleError(self, ("Invalid URL: %s" % e))
-                out_file = vistrails.core.modules.basic_modules.File()
-                out_file.name = local_filename
+                out_file = vistrails.core.modules.basic_modules.PathObject(local_filename)
                 debug.warning('RepoSync is using repository data')
                 self.set_output("file", out_file)
 
@@ -385,8 +380,7 @@ class RepoSync(Module):
                 pass
 
             if os.path.isfile(dataset_path):
-                out_file = vistrails.core.modules.basic_modules.File()
-                out_file.name = dataset_path
+                out_file = vistrails.core.modules.basic_modules.File(dataset_path)
                 self.set_output("file", out_file)
         else: # is client
             self.check_input('file')

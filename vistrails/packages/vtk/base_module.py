@@ -42,7 +42,8 @@ from vistrails.core import debug
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.modules.module_registry import registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
-from identifiers import identifier as vtk_pkg_identifier
+from .identifiers import identifier as vtk_pkg_identifier
+from .wrapper import VTKInstanceWrapper
 
 ################################################################################
 
@@ -56,7 +57,7 @@ class vtkBaseModule(Module):
 
     def __init__(self):
         """ vtkBaseModule() -> vtkBaseModule
-        Instantiate an emptt VTK Module with real VTK instance
+        Instantiate an empty VTK Module with real VTK instance
         
         """
         Module.__init__(self)
@@ -201,8 +202,7 @@ class vtkBaseModule(Module):
                     vtk_pkg_identifier,
                     'vtkAlgorithmOutput')
                 for i in xrange(len(paramList)):
-                    if isinstance(paramList[i], desc.module):
-                        paramList[i] = (0, paramList[i])
+                    paramList[i] = (0, paramList[i])
             for p,connector in izip(paramList, connector_list):
                 # Don't call method
                 if connector in self.is_method:
@@ -237,38 +237,25 @@ class vtkBaseModule(Module):
             if isAlgorithm and not is_aborted:
                 self.vtkInstance.RemoveObserver(cbId)
 
+        mid = self.moduleInfo['moduleId']
+
         # Then update the output ports also with appropriate function calls
         for function in self.outputPorts.keys():
             if function[:13]=='GetOutputPort':
                 i = int(function[13:])
                 vtkOutput = self.vtkInstance.GetOutputPort(i)
-                output = vtkBaseModule.wrapperModule('vtkAlgorithmOutput',
-                                                     vtkOutput)
-                self.set_output(function, output)
+                self.set_output(function, VTKInstanceWrapper(vtkOutput, mid))
             elif hasattr(self.vtkInstance, function):
                 retValues = getattr(self.vtkInstance, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
-                    className = retValues.GetClassName()
-                    output  = vtkBaseModule.wrapperModule(className, retValues)
-                    self.set_output(function, output)
+                    self.set_output(function, VTKInstanceWrapper(retValues, mid))
                 elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
-                            className = result[i].GetClassName()
-                            result[i] = vtkBaseModule.wrapperModule(className,
-                                                                    result[i])
+                            result[i] = VTKInstanceWrapper(result[i], mid)
                     self.set_output(function, type(retValues)(result))
                 else:
                     self.set_output(function, retValues)
 
-    @staticmethod
-    def wrapperModule(classname, instance):
-        """ wrapperModule(classname: str, instance: vtk class) -> Module
-        Create a wrapper module in VisTrails with a vtk instance
-        
-        """
-        result = registry.get_descriptor_by_name(vtk_pkg_identifier,
-                                                 classname).module()
-        result.vtkInstance = instance
-        return result
+        self.set_output('Instance', VTKInstanceWrapper(self.vtkInstance, mid))

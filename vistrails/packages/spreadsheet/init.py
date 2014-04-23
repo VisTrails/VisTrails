@@ -35,20 +35,19 @@
 ################################################################################
 # Spreadsheet Package for VisTrails
 ################################################################################
+import os
+import sys
+
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core import debug
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.system import vistrails_root_directory
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+
 from spreadsheet_controller import spreadsheetController
 from spreadsheet_registry import spreadsheetRegistry
-from spreadsheet_window import SpreadsheetWindow
-import os
-import string
-import sys
-from spreadsheet_config import configuration
-import vistrails.core
 
 # This must be here because of VisTrails protocol
 
@@ -127,7 +126,7 @@ def initialize(*args, **keywords):
     if app==None:
         app = QtGui.QApplication(sys.argv)
     if hasattr(app, 'builderWindow'):
-        global spreadsheetWindow        
+        global spreadsheetWindow
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(show=False)
 
 def menu_items():
@@ -151,3 +150,30 @@ def finalize():
     ### It is not supposed to be called directly
     spreadsheetWindow.cleanup()
     spreadsheetWindow.deleteLater()
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    module_remap = {
+            'CellLocation': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+            'SheetReference': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+            'SingleCellSheetReference': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+        }
+
+    return UpgradeWorkflowHandler.remap_module(controller,
+                                               module_id,
+                                               pipeline,
+                                               module_remap)

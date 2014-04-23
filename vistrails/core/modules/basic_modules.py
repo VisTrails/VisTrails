@@ -65,7 +65,7 @@ except ImportError:
 
 ###############################################################################
 
-version = '2.1'
+version = '2.1.1'
 name = 'Basic Modules'
 identifier = 'org.vistrails.vistrails.basic'
 old_identifiers = ['edu.utah.sci.vistrails.basic']
@@ -286,6 +286,14 @@ String._output_ports.append(OPort("value_as_string", "String", optional=True))
     
 ##############################################################################
 
+class PathObject(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return "PathObject(%r)" % self.name
+    __str__ = __repr__
+
 class Path(Constant):
     _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" % \
                                                 constant_config_path))
@@ -293,14 +301,9 @@ class Path(Constant):
                     IPort("name", "String", optional=True)]
     _output_ports = [OPort("value", "Path")]
 
-    name = ""
-
     @staticmethod
     def translate_to_python(x):
-        result = Path()
-        result.name = x
-        result.set_output("value", result)
-        return result
+        return PathObject(x)
 
     @staticmethod
     def translate_to_string(x):
@@ -308,9 +311,7 @@ class Path(Constant):
 
     @staticmethod
     def validate(v):
-        #print 'validating', v
-        #print 'isinstance', isinstance(v, Path)
-        return isinstance(v, Path)
+        return isinstance(v, PathObject)
 
     def get_name(self):
         n = None
@@ -322,15 +323,14 @@ class Path(Constant):
         return n
 
     def set_results(self, n):
-        self.name = n
-        self.set_output("value", self)
-        self.set_output("value_as_string", self.translate_to_string(self))
+        self.set_output("value", PathObject(n))
+        self.set_output("value_as_string", n)
 
     def compute(self):
         n = self.get_name()
         self.set_results(n)
 
-Path.default_value = Path()
+Path.default_value = PathObject('')
 
 def path_parameter_hasher(p):
     def get_mtime(path):
@@ -363,15 +363,7 @@ class File(Path):
     _input_ports = [IPort("value", "File"),
                     IPort("create_file", "Boolean", optional=True)]
     _output_ports = [OPort("value", "File"),
-                     OPort("self", "File", optional=True),
                      OPort("local_filename", "String", optional=True)]
-
-    @staticmethod
-    def translate_to_python(x):
-        result = File()
-        result.name = x
-        result.set_output("value", result)
-        return result
 
     def compute(self):
         n = self.get_name()
@@ -382,8 +374,6 @@ class File(Path):
         self.set_results(n)
         self.set_output("local_filename", n)
 
-File.default_value = File()
-    
 class Directory(Path):
 
     _settings = ModuleSettings(constant_signature=path_parameter_hasher,
@@ -417,19 +407,8 @@ class Directory(Path):
         output_list = []
         for item in dir_list:
             full_path = os.path.join(n, item)
-            if os.path.isfile(full_path):
-                file_item = File()
-                file_item.name = full_path
-                file_item.upToDate = True
-                output_list.append(file_item)
-            elif os.path.isdir(full_path):
-                dir_item = Directory()
-                dir_item.name = full_path
-                dir_item.upToDate = True
-                output_list.append(dir_item)
+            output_list.append(PathObject(full_path))
         self.set_output('itemList', output_list)
-            
-Directory.default_value = Directory()
 
 ##############################################################################
 
@@ -446,17 +425,14 @@ class OutputPath(Path):
             self.check_input("name")
             n = self.get_input("name")
         return n
-        
+
     def set_results(self, n):
-        self.name = n
-        self.set_output("value", self)
-        self.set_output("value_as_string", self.translate_to_string(self))
+        self.set_output("value", PathObject(n))
+        self.set_output("value_as_string", n)
 
     def compute(self):
         n = self.get_name()
         self.set_results(n)
-        
-OutputPath.default_value = OutputPath()
 
 class FileSink(NotCacheable, Module):
     """FileSink takes a file and writes it to a user-specified
@@ -719,7 +695,7 @@ class StandardOutput(NotCacheable, Module):
     value connected on its port to standard output. It is intended
     mostly as a debugging device."""
 
-    _input_ports = [IPort("value", Module)]
+    _input_ports = [IPort("value", 'Variant')]
     
     def compute(self):
         v = self.get_input("value")
@@ -828,7 +804,7 @@ class List(Constant):
     _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
     _input_ports = [IPort("value", "List"),
-                    IPort("head", "Module"),
+                    IPort("head", "Variant"),
                     IPort("tail", "List")]
     _output_ports = [OPort("value", "List")]
 
@@ -1215,8 +1191,8 @@ class AssertEqual(Module):
     It is provided for convenience.
     """
 
-    _input_ports = [IPort('value1', 'Module'),
-                    IPort('value2', 'Module')]
+    _input_ports = [IPort('value1', 'Variant'),
+                    IPort('value2', 'Variant')]
 
     def compute(self):
         values = (self.get_input('value1'),
@@ -1339,7 +1315,15 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                     'PythonSource':
                         [(None, '1.6', None, {})],
                     'Tuple':
-                        [(None, '2.1', None, {})],
+                        [(None, '2.1.1', None, {})],
+                    'StandardOutput':
+                        [(None, '2.1.1', None, {})],
+                    'List':
+                        [(None, '2.1.1', None, {})],
+                    'AssertEqual':
+                        [(None, '2.1.1', None, {})],
+                    'Converter':
+                        [(None, '2.1.1', None, {})],
                     }
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,

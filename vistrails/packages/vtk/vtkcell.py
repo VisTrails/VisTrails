@@ -240,7 +240,7 @@ class QVTKWidget(QCellWidget):
             if renderView==None:
                 vtkInstance = renderer.vtkInstance
                 renWin.AddRenderer(vtkInstance)
-                self.renderer_maps[vtkInstance] = renderer.moduleInfo['moduleId']
+                self.renderer_maps[vtkInstance] = renderer.vt_module_id
             else:
                 vtkInstance = renderer
             if hasattr(vtkInstance, 'IsActiveCameraCreated'):
@@ -1034,9 +1034,9 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                 ops.append(('add', camera))
 
                 # Connect camera to renderer
-                camera_conn = controller.create_connection(camera, 'self',
-                                                           renderer, 
-                                                           'SetActiveCamera')
+                camera_conn = controller.create_connection(
+                        camera, 'Instance',
+                        renderer, 'SetActiveCamera')
                 ops.append(('add', camera_conn))
             # update functions
             def convert_to_str(arglist):
@@ -1106,5 +1106,3 @@ def registerSelf():
         except Exception, e:
             debug.warning("Got an exception adding VTKCell's %s input "
                           "port" % port, e)
-
-    registry.add_output_port(VTKCell, "self", VTKCell)
