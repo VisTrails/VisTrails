@@ -1315,7 +1315,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                     'PythonSource':
                         [(None, '1.6', None, {})],
                     'Tuple':
-                        [(None, '2.1', None, {})],
+                        [(None, '2.1.1', None, {})],
                     'StandardOutput':
                         [(None, '2.1.1', None, {})],
                     'List':
