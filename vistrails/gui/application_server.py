@@ -278,8 +278,10 @@ class RequestHandler(object):
 
     def get_server_packages(self, codepath=None, status=None):
         """get_server_packages()-> dict
-        This returns a dictionary with all the packages to vistrails with status indicating wether it is loaded.
-        It is also possible to enable/disable a package by passing a package codepath and the desired status on/off
+        This returns a dictionary with all the packages to vistrails with
+        status indicating wether it is loaded.
+        It is also possible to enable/disable a package by passing a package
+        codepath and the desired status on/off
         The keys are the package identifier.
         """
         self.server_logger.info("Request: get_server_packages()")
@@ -310,11 +312,12 @@ class RequestHandler(object):
                            "Error message: %s\n") % (err.url, err.headers,
                                                  err.errcode, err.errmsg)
                     self.server_logger.error(err_msg)
+                finally:
+                    self.proxies_queue.put(proxy)
                 if s == 0:
                     messages.append('An error occurred: %s' % result)
                 else:
                     messages.append(result[1])
-                self.proxies_queue.put(proxy)
 
         try:
             pkg_manager = get_package_manager()
@@ -575,6 +578,91 @@ class RequestHandler(object):
             self.server_logger.error(str(e))
             return (str(e), 0)
 
+    #webgl
+    def run_from_db_webgl(self, host, port, db_name, vt_id, path_to_figures,
+                        version=None,  pdf=False, vt_tag='', build_always=False,
+                        parameters='', is_local=True):
+        # get vistrail
+        locator = DBLocator(host=host,
+                            port=int(port),
+                            database=db_name,
+                            user=db_read_user,
+                            passwd=db_read_pass,
+                            obj_id=int(vt_id),
+                            obj_type=None,
+                            connection_id=None)
+        (vistrail, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
+        from core.vistrail.controller import VistrailController as BaseController
+        c = BaseController()
+        c.set_vistrail(vistrail, locator, abstractions, thumbnails, mashups)
+
+        # get server packages
+        local_packages = [x.identifier for x in module_registry().package_list]
+        version_id = 0
+        version_tag = 0
+
+        from db.domain import IdScope
+        from core.vistrail.connection import Connection
+        from core.vistrail.module import Module
+        from core.vistrail.port import Port
+
+        # get last pipeline
+        workflow = False
+        if (vt_tag == ''):
+            version = vistrail.get_latest_version()#-1;
+        else:
+            version = int(vt_tag)
+
+        c.change_selected_version(version)
+        workflow = c.current_pipeline.__copy__()
+
+        #id_scope = IdScope(version)
+        id_scope = vistrail.idScope
+        if workflow:
+            # if doesnt have VTKWebView and vtkRenderer
+            if ("vtkRenderer" not in [x.name for x in workflow.module_list]):
+                return (str("Doesn't have vtkRenderer"), 1)
+
+            # if already have VTKWebView, execute it
+            if ("VTKWebView" not in [x.name for x in workflow.module_list]):
+                # else, add VTKWebView to vtkRenderer and execute it
+                renderer = workflow.module_list[[x.name for x in workflow.module_list].index('vtkRenderer')]
+
+                action_list = []
+
+                mWeb = Module(id=id_scope.getNewId(Module.vtType),
+                           name='VTKWebView',
+                           package='edu.utah.sci.vistrails.vtWebGL',
+                           functions=[])
+                mWeb.version = '0.0.2'
+                workflow.add_module(mWeb);
+                # create connection from render to web
+                source = Port(id=id_scope.getNewId(Port.vtType),
+                              type='source',
+                              moduleId=renderer.id,
+                              moduleName='vtkRenderer',
+                              name='self',
+                              signature='(edu.utah.sci.vistrails.vtk:vtkRenderer)')
+                destination = Port(id=id_scope.getNewId(Port.vtType),
+                                   type='destination',
+                                   moduleId=mWeb.id,
+                                   moduleName='VTKWebView',
+                                   name='vtkrenderer',
+                                   signature='(edu.utah.sci.vistrails.vtk:vtkRenderer)')
+                c1 = Connection(id=id_scope.getNewId(Connection.vtType), ports=[source, destination])
+                # add connection to action list.
+                workflow.add_connection(c1)
+                workflow.validate()
+
+            c.current_pipeline = workflow;
+            (results, x) = c.execute_current_workflow()
+            if len(results[0].errors.values()) > 0:
+                print "> ERROR: ", results[0].errors
+                return (-1, str(results[0].errors.values()[0]))
+            else: return (1, 1)
+
+        return ("Doesnt have working workflow.", 1)
+
     #medleys
     
     def executeMedley(self, xml_medley, extra_info=None):
@@ -791,7 +879,7 @@ class RequestHandler(object):
             # use same hashing as on crowdlabs webserver
             dest_version = "%s_%s_%d_%d_%d" % (host, db_name, int(port), int(vt_id), int(version))
             dest_version = hashlib.sha1(dest_version).hexdigest()
-            path_to_figures = os.path.join(media_dir, "wf_execution", dest_version)
+            path_to_figures = os.path.join(media_dir, "photos", "wf_execution", dest_version)
 
         if ((not self.path_exists_and_not_empty(path_to_figures) or 
              build_always) and self.proxies_queue is not None):
@@ -831,7 +919,7 @@ class RequestHandler(object):
             if os.path.exists(extra_info['pathDumpCells']):
                 shutil.rmtree(extra_info['pathDumpCells'])
             os.mkdir(extra_info['pathDumpCells'])
-            
+
             result = ''
             if vt_tag !='':
                 version = vt_tag;
@@ -845,6 +933,8 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
                 results = []
+                self.server_logger.info("run_and_get_results(%s,%s,%s,%s,%s)" % \
+                            (locator, version, parameters, True, extra_info))
                 try:
                     results = \
                     vistrails.core.console_mode.run_and_get_results([(locator,
@@ -854,6 +944,7 @@ class RequestHandler(object):
                                                           extra_info=extra_info,
                                                           reason="Server Pipeline Execution")
                 except Exception, e:
+                    self.server_logger.error("workflow execution failed:")
                     self.server_logger.error(str(e))
                     self.server_logger.error(traceback.format_exc())
                     return (str(e), 0)

@@ -98,19 +98,12 @@ class MplSource(CodeRunnerMixin, MplPlot):
         self.run_code(s, use_input=True, use_output=True)
 
 class MplFigure(Module):
-    # _input_ports = [("addPlot", "(MplPlot)"),
-    #                 ("numSubfigRows", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("numSubfigCols", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ]
     _input_ports = [("addPlot", "(MplPlot)"),
                     ("axesProperties", "(MplAxesProperties)"),
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
 
-    _output_ports = [("file", "(basic:File)"),
-                     ("self", "(MplFigure)")]
+    _output_ports = [("self", "(MplFigure)")]
 
     def __init__(self):
         Module.__init__(self)
@@ -144,7 +137,6 @@ class MplFigure(Module):
             legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 
-        #FIXME write file out if File port is attached!
 
         self.set_output("self", self)
 
