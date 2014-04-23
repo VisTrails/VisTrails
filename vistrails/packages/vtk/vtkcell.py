@@ -89,7 +89,7 @@ class VTKCell(SpreadsheetCell):
         iHandlers = self.forceGetInputListFromPort('InteractionHandler')
         iStyle = self.forceGetInputFromPort('InteractorStyle')
         picker = self.forceGetInputFromPort('AddPicker')
-        self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
+        self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,

@@ -32,17 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.modules.vistrails_module import Module, ModuleError
-import vistrails.core.modules
-import vistrails.core.modules.basic_modules
-import vistrails.core.modules.module_registry
-import vistrails.core.system
-import vistrails.gui.application
-from PyQt4 import QtCore, QtGui
 
-##############################################################################
+from vistrails.core.modules import basic_modules
+from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.packagemanager import get_package_manager
+from PyQt4 import QtGui
+
 
 class Dialog(Module):
+    _input_ports = [('title', basic_modules.String,
+                     {'optional': True}),
+                    ('cacheable', basic_modules.Boolean,
+                     {'optional': True, 'defaults': "['False']"})]
 
     def __init__(self, *args, **kwargs):
         super(Dialog,self).__init__(*args, **kwargs)
@@ -51,7 +52,14 @@ class Dialog(Module):
     def is_cacheable(self):
         return self.cacheable_dialog
 
+
 class TextDialog(Dialog):
+    _input_ports = [('label', basic_modules.String,
+                     {'optional': True, 'defaults': "['']"}),
+                    ('default', basic_modules.String,
+                     {'optional': True, 'defaults': "['']"})]
+    _output_ports = [('result', basic_modules.String)]
+
     password = False
 
     def compute(self):
@@ -59,22 +67,11 @@ class TextDialog(Dialog):
             title = self.getInputFromPort('title')
         else:
             title = 'VisTrails Dialog'
-        if self.hasInputFromPort('label'):
-            label = self.getInputFromPort('label')
-        else:
-            label = ''
-            if self.password:
-                label = 'Password'
+        label = self.getInputFromPort('label')
 
-        if self.hasInputFromPort('default'):
-            default = self.getInputFromPort('default')
-        else:
-            default = ''
-            
-        if self.hasInputFromPort('cacheable') and self.getInputFromPort('cacheable'):
-            self.cacheable_dialog = True
-        else:
-            self.cacheable_dialog = False
+        default = self.getInputFromPort('default')
+
+        self.cacheable_dialog = self.getInputFromPort('cacheable')
 
         mode =  QtGui.QLineEdit.Normal
         if self.password:
@@ -89,24 +86,25 @@ class TextDialog(Dialog):
 
 
 class PasswordDialog(TextDialog):
+    _input_ports = [('label', basic_modules.String,
+                     {'optional': True, 'defaults': "['Password']"})]
+
     password = True
 
 
 class YesNoDialog(Dialog):
+    _input_ports = [('label', basic_modules.String,
+                     {'optional': True, 'defaults': "['Yes/No?']"})]
+    _output_ports = [('result', basic_modules.Boolean)]
+
     def compute(self):
         if self.hasInputFromPort('title'):
             title = self.getInputFromPort('title')
         else:
             title = 'VisTrails Dialog'
-        if self.hasInputFromPort('label'):
-            label = self.getInputFromPort('label')
-        else:
-            label = 'Yes/No?'
+        label = self.getInputFromPort('label')
 
-        if self.hasInputFromPort('cacheable') and self.getInputFromPort('cacheable'):
-            self.cacheable_dialog = True
-        else:
-            self.cacheable_dialog = False
+        self.cacheable_dialog = self.getInputFromPort('cacheable')
 
         result = QtGui.QMessageBox.question(
                 None,
@@ -117,23 +115,12 @@ class YesNoDialog(Dialog):
         self.setResult('result', result)
 
 
-##############################################################################
+_modules = [(Dialog, {'abstract': True}),
+            TextDialog, PasswordDialog,
+            YesNoDialog]
 
-def initialize(*args, **keywords):
-    reg = vistrails.core.modules.module_registry.get_module_registry()
-    basic = vistrails.core.modules.basic_modules
 
-    reg.add_module(Dialog, abstract=True)
-    reg.add_input_port(Dialog, "title", basic.String)
-    reg.add_input_port(Dialog, "cacheable", basic.Boolean)
-
-    reg.add_module(TextDialog)
-    reg.add_input_port(TextDialog, "label", basic.String)
-    reg.add_input_port(TextDialog, "default", basic.String)
-    reg.add_output_port(TextDialog, "result", basic.String)
-
-    reg.add_module(PasswordDialog)
-
-    reg.add_module(YesNoDialog)
-    reg.add_input_port(YesNoDialog, "label", basic.String)
-    reg.add_output_port(YesNoDialog, "result", basic.Boolean)
+pm = get_package_manager()
+if pm.has_package('org.vistrails.vistrails.spreadsheet'):
+    from .continue_prompt import _modules as continue_modules
+    _modules.extend(continue_modules)

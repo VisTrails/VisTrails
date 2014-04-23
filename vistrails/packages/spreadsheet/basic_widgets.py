@@ -80,6 +80,7 @@ def registerWidget(reg, basicModules, basicWidgets):
 
     reg.add_module(SpreadsheetCell)
     reg.add_input_port(SpreadsheetCell, "Location", CellLocation)
+    reg.add_output_port(SpreadsheetCell, "Widget", SpreadsheetCell)
 
     reg.add_module(SingleCellSheetReference)
     reg.add_input_port(SingleCellSheetReference, "SheetName",
@@ -216,21 +217,6 @@ class SpreadsheetCell(NotCacheable, Module):
         e.cellType = cellType
         e.inputPorts = inputPorts
         return e
-    
-    def display(self, cellType, inputPorts):
-        """ display(cellType: python type, iputPorts: tuple) -> None
-        Dispatch the cellType to the spreadsheet with appropriate input data
-        to display it
-
-        Keyword arguments:
-        cellType   --- widget type, this is truely a python type
-        inputPorts --- a tuple of input data that cellType() will understand
-        
-        """
-        if spreadsheetController.echoMode():
-            return self.displayAndWait(cellType, inputPorts)
-        e = self.createDisplayEvent(cellType, inputPorts)
-        spreadsheetController.postEventToSpreadsheet(e)
 
     def displayAndWait(self, cellType, inputPorts):
         """ displayAndWait(cellType: python type, iputPorts: tuple)
@@ -247,7 +233,11 @@ class SpreadsheetCell(NotCacheable, Module):
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         if spreadsheetWindow.echoMode == False:
             spreadsheetWindow.configShow(show=True)
-        return spreadsheetWindow.displayCellEvent(e)
+        self.cellWidget = spreadsheetWindow.displayCellEvent(e)
+        self.setResult('Widget', self.cellWidget)
+        return self.cellWidget
+
+    display = displayAndWait
 
 class SingleCellSheetReference(SheetReference):
     """

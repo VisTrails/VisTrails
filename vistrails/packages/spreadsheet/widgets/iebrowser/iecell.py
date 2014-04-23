@@ -61,7 +61,7 @@ class IECell(SpreadsheetCell):
         else:
             fileValue = None
             urlValue = None
-        self.display(IECellWidget, (urlValue, fileValue))
+        self.displayAndWait(IECellWidget, (urlValue, fileValue))
 
 class IECellWidget(QCellWidget):
     """
