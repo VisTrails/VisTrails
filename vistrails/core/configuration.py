@@ -35,6 +35,7 @@
 
 """Configuration variables for controlling specific things in VisTrails."""
 import argparse
+import ast
 import copy
 import os.path
 import re
@@ -367,6 +368,14 @@ withWorkflow: Boolean
 
     Output the workflow graph as an image
 
+outputSettings.persistent: List
+
+    One or more comma-separated parameters
+
+outputSettings.overrides: List
+
+    One or more comma-separated parameters
+
 """
     
 class ConfigType(object):
@@ -378,6 +387,8 @@ class ConfigType(object):
     INTERNAL = 5
     STORAGE = 6
     PACKAGE = 7
+    LIST = 8
+    INTERNAL_LIST = 9
 
 class ConfigPath(object):
     pass
@@ -413,6 +424,11 @@ base_config = {
      ConfigField("batch", False, bool, ConfigType.COMMAND_LINE_FLAG, 
                  flag='-b'),
      ConfigField("outputDirectory", None, ConfigPath, flag='-o'),
+     ConfigFieldParent('outputSettings',
+                       [ConfigField('persistent', [], str,
+                                    ConfigType.INTERNAL_LIST),
+                        ConfigField('overrides', [], str, ConfigType.LIST,
+                                    flag='-p')]),
      # ConfigField("package", [], str, flag='-p', nargs='*'),
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
@@ -604,6 +620,24 @@ class VisTrailsHelpFormatter(argparse.HelpFormatter):
         argparse.HelpFormatter.add_usage(self, usage, new_actions, groups,
                                          prefix)
 
+def nested_action(parser, action_type):
+    cls = parser._registry_get('action', action_type)
+    if cls is None:
+        raise ValueError('Action type "%s" is not defined' % action_type)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        orig_dest = self.dest
+        nesting = self.dest.split('.')
+        while len(nesting) > 1:
+            namespace = getattr(namespace, nesting.pop(0))
+        self.dest = nesting[0]
+        cls.__call__(self, parser, namespace, values, option_string=None)
+        self.dest = orig_dest
+
+    nested_name = "_Nested%s" % cls.__name__[1:]
+    nested_cls = type(nested_name, (cls,), {"__call__": __call__})
+    return nested_cls
+
 def build_command_line_parser(d, parser=None, prefix="", **parser_args):
     global _usage_args
 
@@ -653,36 +687,46 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
                 continue
             k_dashes = camel_to_dashes(field.name)
             help_str = find_help('%s%s' % (prefix, field.name))
+            dest_name = prefix + field.name
 
             config_type = field.field_type
             if config_type is None:
                 config_type = ConfigType.NORMAL
-            if config_type == ConfigType.INTERNAL or \
-               config_type == ConfigType.STORAGE:
+            if (config_type == ConfigType.INTERNAL or \
+                config_type == ConfigType.STORAGE or
+                config_type == ConfigType.INTERNAL_LIST):
                 # these are not in the command line
                 continue
             elif config_type == ConfigType.ON_OFF:
                 k_dashes = camel_to_dashes(field.name)
                 group = cat_group.add_mutually_exclusive_group()                
                 group.add_argument('--%s%s' % (prefix_dashes, k_dashes), 
-                                   action="store_true",
-                                   dest=field.name, help=help_str)
+                                   # action="store_true",
+                                   action=nested_action(group, "store_true"),
+                                   dest=dest_name, help=help_str,
+                                   default=argparse.SUPPRESS)
                 group.add_argument('--no-%s%s' % (prefix_dashes, k_dashes), 
-                                   action="store_false",
-                                   dest=field.name, 
+                                   # action="store_false",
+                                   action=nested_action(group, "store_false"),
+                                   dest=dest_name, 
                                    help=("Inverse of --%s%s" % 
-                                         (prefix_dashes, k_dashes)))
+                                         (prefix_dashes, k_dashes)),
+                                   default=argparse.SUPPRESS)
             elif config_type == ConfigType.SHOW_HIDE:
                 k_dashes = camel_to_dashes(field.name[4:])
                 group = cat_group.add_mutually_exclusive_group()
                 group.add_argument('--show-%s%s' % (prefix_dashes, k_dashes), 
-                                   action="store_true",
-                                   dest=field.name, help=help_str)
+                                   # action="store_true",
+                                   action = nested_action(group, "store_true"),
+                                   dest=dest_name, help=help_str,
+                                   default=argparse.SUPPRESS)
                 group.add_argument('--hide-%s%s' % (prefix_dashes, k_dashes), 
-                                   action="store_false",
-                                   dest=field.name, 
+                                   # action="store_false",
+                                   action=nested_action(group, "store_false"),
+                                   dest=dest_name, 
                                    help=("Inverse of --show-%s%s" % 
-                                         (prefix_dashes, k_dashes)))
+                                         (prefix_dashes, k_dashes)),
+                                   default=argparse.SUPPRESS)
             else:
                 k_dashes = camel_to_dashes(field.name)
                 long_arg = '--%s%s' % (prefix_dashes, k_dashes)
@@ -690,23 +734,26 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
                     args = (field.flag, long_arg)
                 else:
                     args = (long_arg,)
-                kwargs = {'dest': field.name,
-                          'help': help_str}
+                kwargs = {'dest': dest_name,
+                          'help': help_str,
+                          'default': argparse.SUPPRESS}
                 if (field.val_type != ConfigPath and 
                     field.val_type != ConfigURL and 
                     field.val_type != str and 
                     field.val_type != bool):
                     kwargs["type"] = field.val_type
-                if config_type == ConfigType.COMMAND_LINE_FLAG:
-                    kwargs["action"] = "store_true"
+                if config_type == ConfigType.LIST:
+                    kwargs["action"] = nested_action(cat_group, "append")
+                elif config_type == ConfigType.COMMAND_LINE_FLAG:
+                    kwargs["action"] = nested_action(cat_group, "store_true")
                 else:
-                    kwargs["action"] = "store"
+                    kwargs["action"] = nested_action(cat_group, "store")
                 if field.val_type == ConfigPath:
                     kwargs["metavar"] = "DIR"
                 elif field.val_type == ConfigURL:
                     kwargs["metavar"] = "URL"
                 if field.nargs is not None:
-                    kwargs["nargs"] = conf[6]
+                    kwargs["nargs"] = field.nargs
 
                 cat_group.add_argument(*args, **kwargs)
                 if cat_group == "Command-Line":
@@ -732,6 +779,8 @@ class ConfigValue(object):
             obj = ConfigInt()
         elif isinstance(value, float):
             obj = ConfigFloat()
+        elif isinstance(value, list):
+            obj = ConfigList()
         elif isinstance(value, ConfigurationObject):
             obj = value
         elif value is None:
@@ -810,6 +859,26 @@ class ConfigFloat(DBConfigFloat, ConfigValue):
     def convert(_val):
         _val.__class__ = ConfigFloat
 
+class ConfigList(DBConfigStr, ConfigValue):
+    def __copy__(self):
+        """ __copy__() -> ConfigList - Returns a clone of itself """ 
+        return ConfigList.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBConfigStr.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = ConfigList
+        return cp
+
+    @staticmethod
+    def convert(_val):
+        _val.__class__ = ConfigList
+
+    def get_value(self):
+        return ast.literal_eval(self.db_value)
+
+    def set_value(self, val):
+        self.db_value = unicode(val)
+
 class ConfigKey(DBConfigKey):
     def __init__(self, name, value):
         if isinstance(value, tuple):
@@ -843,6 +912,7 @@ class ConfigKey(DBConfigKey):
             ConfigInt.convert(_key.db_value)
         elif isinstance(_key.db_value, DBConfigFloat):
             ConfigFloat.convert(_key.db_value)
+        #FIXME add ConfigList to db and here
         _key.set_type(type(_key.value))
     
     def _get_value(self):
@@ -1258,6 +1328,7 @@ class TestConfiguration(unittest.TestCase):
         conf = default()
         self.assertTrue(conf.check("showWindow"))
         self.assertFalse(conf.check("showDebugPopups"))
+        self.assertFalse(conf.check("thumbs.mouseHover"))
 
     def test_update(self):
         conf1 = default()
@@ -1337,6 +1408,23 @@ class TestConfiguration(unittest.TestCase):
                      namespace=config)
         self.assertTrue(config.dbDefault)
         self.assertEqual(config.dotVistrails, "/tmp")
+
+    def test_parse_output_settings(self):
+        p = build_command_line_parser(base_config)
+        config = default()
+        p.parse_args(args=["-p", "file.series=false"],
+                     namespace=config)
+        self.assertEqual(config.outputSettings.overrides,
+                         ["file.series=false"])
+
+    def test_multiple_params(self):
+        p = build_command_line_parser(base_config)
+        config = default()
+        p.parse_args(args=["-p", "file.series=false",
+                           "-p", "file.suffix=.png"],
+                     namespace=config)
+        self.assertEqual(config.outputSettings.overrides,
+                         ["file.series=false", "file.suffix=.png"])
 
 if __name__ == '__main__':
     unittest.main()
