@@ -71,7 +71,7 @@ class MplArtistProperties(MplProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplArtistProperties)")]
 
-    class Artist(object):
+    class Artist(MplProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -90,7 +90,7 @@ class MplArtistProperties(MplProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplProperties.update_sub_props(self, objs)
+            MplProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -173,7 +173,7 @@ class Mpl_AxesImageBaseProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(Mpl_AxesImageBaseProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -192,7 +192,7 @@ class Mpl_AxesImageBaseProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -255,7 +255,7 @@ class MplAxesImageProperties(Mpl_AxesImageBaseProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplAxesImageProperties)")]
 
-    class Artist(object):
+    class Artist(Mpl_AxesImageBaseProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -274,7 +274,7 @@ class MplAxesImageProperties(Mpl_AxesImageBaseProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            Mpl_AxesImageBaseProperties.update_sub_props(self, objs)
+            Mpl_AxesImageBaseProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -331,7 +331,7 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplNonUniformImageProperties)")]
 
-    class Artist(object):
+    class Artist(MplAxesImageProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -350,7 +350,7 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplAxesImageProperties.update_sub_props(self, objs)
+            MplAxesImageProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -407,7 +407,7 @@ class MplBboxImageProperties(Mpl_AxesImageBaseProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplBboxImageProperties)")]
 
-    class Artist(object):
+    class Artist(Mpl_AxesImageBaseProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -426,7 +426,7 @@ class MplBboxImageProperties(Mpl_AxesImageBaseProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            Mpl_AxesImageBaseProperties.update_sub_props(self, objs)
+            Mpl_AxesImageBaseProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -490,7 +490,7 @@ class MplPcolorImageProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplPcolorImageProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -509,7 +509,7 @@ class MplPcolorImageProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -566,7 +566,7 @@ class MplFigureImageProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplFigureImageProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -585,7 +585,7 @@ class MplFigureImageProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -711,7 +711,7 @@ class MplCollectionProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -730,7 +730,7 @@ class MplCollectionProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -807,7 +807,7 @@ class MplPathCollectionProperties(MplCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplPathCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -826,7 +826,7 @@ class MplPathCollectionProperties(MplCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplCollectionProperties.update_sub_props(self, objs)
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -861,7 +861,7 @@ class MplPolyCollectionProperties(MplCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplPolyCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -880,7 +880,7 @@ class MplPolyCollectionProperties(MplCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplCollectionProperties.update_sub_props(self, objs)
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -918,7 +918,7 @@ class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplBrokenBarHCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplPolyCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -937,7 +937,7 @@ class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPolyCollectionProperties.update_sub_props(self, objs)
+            MplPolyCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -970,7 +970,7 @@ class MplRegularPolyCollectionProperties(MplCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplRegularPolyCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -989,7 +989,7 @@ class MplRegularPolyCollectionProperties(MplCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplCollectionProperties.update_sub_props(self, objs)
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1025,7 +1025,7 @@ class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplStarPolygonCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplRegularPolyCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1044,7 +1044,7 @@ class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplRegularPolyCollectionProperties.update_sub_props(self, objs)
+            MplRegularPolyCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1080,7 +1080,7 @@ class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties)
     # only one output port: 'value'
     _output_ports = [("value", "(MplAsteriskPolygonCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplRegularPolyCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1099,7 +1099,7 @@ class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties)
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplRegularPolyCollectionProperties.update_sub_props(self, objs)
+            MplRegularPolyCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1163,7 +1163,7 @@ class MplLineCollectionProperties(MplCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplLineCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1182,7 +1182,7 @@ class MplLineCollectionProperties(MplCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplCollectionProperties.update_sub_props(self, objs)
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1235,7 +1235,7 @@ class MplCircleCollectionProperties(MplCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplCircleCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1254,7 +1254,7 @@ class MplCircleCollectionProperties(MplCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplCollectionProperties.update_sub_props(self, objs)
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1289,7 +1289,7 @@ class MplEllipseCollectionProperties(MplCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplEllipseCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1308,7 +1308,7 @@ class MplEllipseCollectionProperties(MplCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplCollectionProperties.update_sub_props(self, objs)
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1353,7 +1353,7 @@ class MplPatchCollectionProperties(MplCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplPatchCollectionProperties)")]
 
-    class Artist(object):
+    class Artist(MplCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1372,7 +1372,7 @@ class MplPatchCollectionProperties(MplCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplCollectionProperties.update_sub_props(self, objs)
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1411,7 +1411,7 @@ class MplTriMeshProperties(MplCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplTriMeshProperties)")]
 
-    class Artist(object):
+    class Artist(MplCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1430,7 +1430,7 @@ class MplTriMeshProperties(MplCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplCollectionProperties.update_sub_props(self, objs)
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1498,7 +1498,7 @@ class MplQuadMeshProperties(MplCollectionProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplQuadMeshProperties)")]
 
-    class Artist(object):
+    class Artist(MplCollectionProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1517,7 +1517,7 @@ class MplQuadMeshProperties(MplCollectionProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplCollectionProperties.update_sub_props(self, objs)
+            MplCollectionProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1577,7 +1577,7 @@ class MplPatchProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplPatchProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1596,7 +1596,7 @@ class MplPatchProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1650,7 +1650,7 @@ class MplShadowProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplShadowProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1669,7 +1669,7 @@ class MplShadowProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1715,7 +1715,7 @@ class MplRectangleProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplRectangleProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1734,7 +1734,7 @@ class MplRectangleProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1779,7 +1779,7 @@ class MplRegularPolygonProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplRegularPolygonProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1798,7 +1798,7 @@ class MplRegularPolygonProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1837,7 +1837,7 @@ class MplCirclePolygonProperties(MplRegularPolygonProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplCirclePolygonProperties)")]
 
-    class Artist(object):
+    class Artist(MplRegularPolygonProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1856,7 +1856,7 @@ class MplCirclePolygonProperties(MplRegularPolygonProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplRegularPolygonProperties.update_sub_props(self, objs)
+            MplRegularPolygonProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1889,7 +1889,7 @@ class MplPathPatchProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplPathPatchProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1908,7 +1908,7 @@ class MplPathPatchProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -1939,7 +1939,7 @@ class MplPolygonProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplPolygonProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -1958,7 +1958,7 @@ class MplPolygonProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2009,7 +2009,7 @@ class MplFancyArrowProperties(MplPolygonProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplFancyArrowProperties)")]
 
-    class Artist(object):
+    class Artist(MplPolygonProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2028,7 +2028,7 @@ class MplFancyArrowProperties(MplPolygonProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPolygonProperties.update_sub_props(self, objs)
+            MplPolygonProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2085,7 +2085,7 @@ class MplWedgeProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplWedgeProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2104,7 +2104,7 @@ class MplWedgeProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2149,7 +2149,7 @@ class MplArrowProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplArrowProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2168,7 +2168,7 @@ class MplArrowProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2218,7 +2218,7 @@ class MplYAArrowProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplYAArrowProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2237,7 +2237,7 @@ class MplYAArrowProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2282,7 +2282,7 @@ class MplEllipseProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplEllipseProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2301,7 +2301,7 @@ class MplEllipseProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2338,7 +2338,7 @@ class MplCircleProperties(MplEllipseProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplCircleProperties)")]
 
-    class Artist(object):
+    class Artist(MplEllipseProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2357,7 +2357,7 @@ class MplCircleProperties(MplEllipseProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplEllipseProperties.update_sub_props(self, objs)
+            MplEllipseProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2405,7 +2405,7 @@ class MplArcProperties(MplEllipseProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplArcProperties)")]
 
-    class Artist(object):
+    class Artist(MplEllipseProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2424,7 +2424,7 @@ class MplArcProperties(MplEllipseProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplEllipseProperties.update_sub_props(self, objs)
+            MplEllipseProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2488,7 +2488,7 @@ class MplFancyBboxPatchProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplFancyBboxPatchProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2507,7 +2507,7 @@ class MplFancyBboxPatchProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2582,7 +2582,7 @@ class MplFancyArrowPatchProperties(MplPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplFancyArrowPatchProperties)")]
 
-    class Artist(object):
+    class Artist(MplPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2601,7 +2601,7 @@ class MplFancyArrowPatchProperties(MplPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplPatchProperties.update_sub_props(self, objs)
+            MplPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2699,7 +2699,7 @@ class MplConnectionPatchProperties(MplFancyArrowPatchProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplConnectionPatchProperties)")]
 
-    class Artist(object):
+    class Artist(MplFancyArrowPatchProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2718,7 +2718,7 @@ class MplConnectionPatchProperties(MplFancyArrowPatchProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplFancyArrowPatchProperties.update_sub_props(self, objs)
+            MplFancyArrowPatchProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2840,7 +2840,7 @@ class MplLine2DProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplLine2DProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -2859,7 +2859,7 @@ class MplLine2DProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -2982,7 +2982,7 @@ class MplTextProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplTextProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -3001,7 +3001,7 @@ class MplTextProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -3156,7 +3156,7 @@ class MplTextWithDashProperties(MplTextProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplTextWithDashProperties)")]
 
-    class Artist(object):
+    class Artist(MplTextProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -3175,7 +3175,7 @@ class MplTextWithDashProperties(MplTextProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplTextProperties.update_sub_props(self, objs)
+            MplTextProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -3318,7 +3318,7 @@ class MplTickProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplTickProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -3337,7 +3337,7 @@ class MplTickProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
             if not matplotlib.cbook.iterable(objs):
                 objs_iter = [objs]
             else:
@@ -3459,7 +3459,7 @@ class MplXTickProperties(MplTickProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplXTickProperties)")]
 
-    class Artist(object):
+    class Artist(MplTickProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -3478,7 +3478,7 @@ class MplXTickProperties(MplTickProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplTickProperties.update_sub_props(self, objs)
+            MplTickProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -3572,7 +3572,7 @@ class MplYTickProperties(MplTickProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplYTickProperties)")]
 
-    class Artist(object):
+    class Artist(MplTickProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -3591,7 +3591,7 @@ class MplYTickProperties(MplTickProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplTickProperties.update_sub_props(self, objs)
+            MplTickProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -3698,7 +3698,7 @@ class MplAxisProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplAxisProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -3717,7 +3717,7 @@ class MplAxisProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
             if not matplotlib.cbook.iterable(objs):
                 objs_iter = [objs]
             else:
@@ -3807,7 +3807,7 @@ class MplXAxisProperties(MplAxisProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplXAxisProperties)")]
 
-    class Artist(object):
+    class Artist(MplAxisProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -3826,7 +3826,7 @@ class MplXAxisProperties(MplAxisProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplAxisProperties.update_sub_props(self, objs)
+            MplAxisProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -3879,7 +3879,7 @@ class MplYAxisProperties(MplAxisProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplYAxisProperties)")]
 
-    class Artist(object):
+    class Artist(MplAxisProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -3898,7 +3898,7 @@ class MplYAxisProperties(MplAxisProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplAxisProperties.update_sub_props(self, objs)
+            MplAxisProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -4025,7 +4025,7 @@ class MplLegendProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplLegendProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -4044,7 +4044,7 @@ class MplLegendProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -4241,7 +4241,7 @@ class MplAxesProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplAxesProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -4260,7 +4260,7 @@ class MplAxesProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
             if not matplotlib.cbook.iterable(objs):
                 objs_iter = [objs]
             else:
@@ -4395,7 +4395,7 @@ class MplAxesSubplotProperties(MplAxesProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplAxesSubplotProperties)")]
 
-    class Artist(object):
+    class Artist(MplAxesProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -4414,7 +4414,7 @@ class MplAxesSubplotProperties(MplAxesProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplAxesProperties.update_sub_props(self, objs)
+            MplAxesProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -4479,7 +4479,7 @@ class MplFigureProperties(MplArtistProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplFigureProperties)")]
 
-    class Artist(object):
+    class Artist(MplArtistProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -4498,7 +4498,7 @@ class MplFigureProperties(MplArtistProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplArtistProperties.update_sub_props(self, objs)
+            MplArtistProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)
@@ -4568,7 +4568,7 @@ class MplAnnotationProperties(MplTextProperties):
     # only one output port: 'value'
     _output_ports = [("value", "(MplAnnotationProperties)")]
 
-    class Artist(object):
+    class Artist(MplTextProperties.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -4587,7 +4587,7 @@ class MplAnnotationProperties(MplTextProperties):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            MplTextProperties.update_sub_props(self, objs)
+            MplTextProperties.Artist.update_sub_props(self, objs)
 
         def update_kwargs(self, kwargs):
             kwargs.update(self.constructor_props)

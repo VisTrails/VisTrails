@@ -68,7 +68,7 @@ class ${spec.name}(${spec.superklass}):
     # only one output port: 'value'
     _output_ports = [("value", "(${spec.name})")]
 
-    class Artist(object):
+    class Artist(${spec.superklass}.Artist):
         def __init__(self):
             self.props = {}
             self.constructor_props = {}
@@ -90,7 +90,7 @@ class ${spec.name}(${spec.superklass}):
             self.update_sub_props(objs)
 
         def update_sub_props(self, objs):
-            ${spec.superklass}.update_sub_props(self, objs)
+            ${spec.superklass}.Artist.update_sub_props(self, objs)
             % if any(ps.is_property() for ps in spec.output_port_specs):
             if not matplotlib.cbook.iterable(objs):
                 objs_iter = [objs]

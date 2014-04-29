@@ -45,9 +45,10 @@ class MplProperties(Module):
     def compute(self, artist):
         pass
 
-    def update_sub_props(self, objs):
-        # must implement in subclass
-        pass
+    class Artist(object):
+        def update_sub_props(self, objs):
+            # must implement in subclass
+            pass
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
