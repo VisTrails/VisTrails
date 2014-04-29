@@ -162,6 +162,9 @@ class SaveBundle(object):
         
         for t in self.thumbnails:
             cp.thumbnails.append(t)
+
+        for m in self.mashups:
+            cp.mashups.append(m)
         
         return cp
 
