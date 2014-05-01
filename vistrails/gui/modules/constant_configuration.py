@@ -259,8 +259,10 @@ class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
         from vistrails.gui.common_widgets import QPathChooserToolButton
         if cls is None:
             cls = QPathChooserToolButton
-        return cls(self, self.line_edit, 
-                   defaultPath=system.vistrails_data_directory())
+        button = cls(self, self.line_edit, 
+                     defaultPath=system.vistrails_data_directory())
+        button.pathChanged.connect(self.update_parent)
+        return button
 
     def updateMethod(self):
         if self.parent() and hasattr(self.parent(), 'updateMethod'):

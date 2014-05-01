@@ -504,7 +504,7 @@ class QConfigurationPane(QtGui.QWidget):
             values = options["allowed_values"]
             if "remap" in options:
                 remap = options["remap"]
-                inv_remap = {v: k for (k,v) in remap.iteritems()}
+                inv_remap = dict((v, k) for (k, v) in remap.iteritems())
                 entries = [remap[v] for v in values]
                 cur_text = remap[config_val]
             else:

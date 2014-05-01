@@ -35,9 +35,11 @@
 
 """Configuration variables for controlling specific things in VisTrails."""
 import argparse
+import ast
 import copy
 import os.path
 import re
+import shlex
 import shutil
 import sys
 import tempfile
@@ -367,6 +369,14 @@ withWorkflow: Boolean
 
     Output the workflow graph as an image
 
+outputSettings: ConfigurationObject
+
+    One or more comma-separated key=value parameters
+
+outputDefaultSettings: ConfigurationObject
+
+    One or more comma-separated key=value parameters
+
 """
     
 class ConfigType(object):
@@ -378,6 +388,8 @@ class ConfigType(object):
     INTERNAL = 5
     STORAGE = 6
     PACKAGE = 7
+    SUBOBJECT = 8
+    INTERNAL_SUBOBJECT = 9
 
 class ConfigPath(object):
     pass
@@ -413,6 +425,10 @@ base_config = {
      ConfigField("batch", False, bool, ConfigType.COMMAND_LINE_FLAG, 
                  flag='-b'),
      ConfigField("outputDirectory", None, ConfigPath, flag='-o'),
+     ConfigField('outputDefaultSettings', [], str,
+                 ConfigType.INTERNAL_SUBOBJECT),
+     ConfigField('outputSettings', [], str, ConfigType.SUBOBJECT,
+                 flag='-p'),
      # ConfigField("package", [], str, flag='-p', nargs='*'),
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
@@ -538,6 +554,9 @@ def build_config_obj(d):
             if isinstance(field, ConfigFieldParent):
                 new_d[field.name] = build_config_obj({category:
                                                       field.sub_fields})
+            elif (field.field_type == ConfigType.SUBOBJECT or 
+                  field.field_type == ConfigType.INTERNAL_SUBOBJECT):
+                new_d[field.name] = ConfigurationObject()
             else:
                 v = field.default_val
                 if v is None:
@@ -607,6 +626,45 @@ class VisTrailsHelpFormatter(argparse.HelpFormatter):
         argparse.HelpFormatter.add_usage(self, usage, new_actions, groups,
                                          prefix)
 
+class NestedSetKwargs(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        orig_dest = self.dest
+        nesting = self.dest.split('.')
+        while len(nesting) > 1:
+            namespace = getattr(namespace, nesting.pop(0))
+        self.dest = nesting[0]
+
+        param_splitter = shlex.shlex(values, posix=True)
+        param_splitter.whitespace = ','
+        param_splitter.whitespace_split = True
+        for param in param_splitter:
+            key_val_split = param.split('=',1)
+            if len(key_val_split) < 2:
+                raise ValueError("Expected key=value comma-separated list")
+            key, val = key_val_split
+
+            dest = "%s.%s" % (self.dest, key)
+            namespace.set_deep_value(dest, val, True)
+        self.dest = orig_dest
+
+def nested_action(parser, action_type):
+    cls = parser._registry_get('action', action_type)
+    if cls is None:
+        raise ValueError('Action type "%s" is not defined' % action_type)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        orig_dest = self.dest
+        nesting = self.dest.split('.')
+        while len(nesting) > 1:
+            namespace = getattr(namespace, nesting.pop(0))
+        self.dest = nesting[0]
+        cls.__call__(self, parser, namespace, values, option_string=None)
+        self.dest = orig_dest
+
+    nested_name = "_Nested%s" % cls.__name__[1:]
+    nested_cls = type(nested_name, (cls,), {"__call__": __call__})
+    return nested_cls
+
 def build_command_line_parser(d, parser=None, prefix="", **parser_args):
     global _usage_args
 
@@ -656,36 +714,46 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
                 continue
             k_dashes = camel_to_dashes(field.name)
             help_str = find_help('%s%s' % (prefix, field.name))
+            dest_name = prefix + field.name
 
             config_type = field.field_type
             if config_type is None:
                 config_type = ConfigType.NORMAL
-            if config_type == ConfigType.INTERNAL or \
-               config_type == ConfigType.STORAGE:
+            if (config_type == ConfigType.INTERNAL or \
+                config_type == ConfigType.STORAGE or
+                config_type == ConfigType.INTERNAL_SUBOBJECT):
                 # these are not in the command line
                 continue
             elif config_type == ConfigType.ON_OFF:
                 k_dashes = camel_to_dashes(field.name)
                 group = cat_group.add_mutually_exclusive_group()                
                 group.add_argument('--%s%s' % (prefix_dashes, k_dashes), 
-                                   action="store_true",
-                                   dest=field.name, help=help_str)
+                                   # action="store_true",
+                                   action=nested_action(group, "store_true"),
+                                   dest=dest_name, help=help_str,
+                                   default=argparse.SUPPRESS)
                 group.add_argument('--no-%s%s' % (prefix_dashes, k_dashes), 
-                                   action="store_false",
-                                   dest=field.name, 
+                                   # action="store_false",
+                                   action=nested_action(group, "store_false"),
+                                   dest=dest_name, 
                                    help=("Inverse of --%s%s" % 
-                                         (prefix_dashes, k_dashes)))
+                                         (prefix_dashes, k_dashes)),
+                                   default=argparse.SUPPRESS)
             elif config_type == ConfigType.SHOW_HIDE:
                 k_dashes = camel_to_dashes(field.name[4:])
                 group = cat_group.add_mutually_exclusive_group()
                 group.add_argument('--show-%s%s' % (prefix_dashes, k_dashes), 
-                                   action="store_true",
-                                   dest=field.name, help=help_str)
+                                   # action="store_true",
+                                   action = nested_action(group, "store_true"),
+                                   dest=dest_name, help=help_str,
+                                   default=argparse.SUPPRESS)
                 group.add_argument('--hide-%s%s' % (prefix_dashes, k_dashes), 
-                                   action="store_false",
-                                   dest=field.name, 
+                                   # action="store_false",
+                                   action=nested_action(group, "store_false"),
+                                   dest=dest_name, 
                                    help=("Inverse of --show-%s%s" % 
-                                         (prefix_dashes, k_dashes)))
+                                         (prefix_dashes, k_dashes)),
+                                   default=argparse.SUPPRESS)
             else:
                 k_dashes = camel_to_dashes(field.name)
                 long_arg = '--%s%s' % (prefix_dashes, k_dashes)
@@ -693,23 +761,26 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
                     args = (field.flag, long_arg)
                 else:
                     args = (long_arg,)
-                kwargs = {'dest': field.name,
-                          'help': help_str}
+                kwargs = {'dest': dest_name,
+                          'help': help_str,
+                          'default': argparse.SUPPRESS}
                 if (field.val_type != ConfigPath and 
                     field.val_type != ConfigURL and 
                     field.val_type != str and 
                     field.val_type != bool):
                     kwargs["type"] = field.val_type
-                if config_type == ConfigType.COMMAND_LINE_FLAG:
-                    kwargs["action"] = "store_true"
+                if config_type == ConfigType.SUBOBJECT:
+                    kwargs["action"] = NestedSetKwargs
+                elif config_type == ConfigType.COMMAND_LINE_FLAG:
+                    kwargs["action"] = nested_action(cat_group, "store_true")
                 else:
-                    kwargs["action"] = "store"
+                    kwargs["action"] = nested_action(cat_group, "store")
                 if field.val_type == ConfigPath:
                     kwargs["metavar"] = "DIR"
                 elif field.val_type == ConfigURL:
                     kwargs["metavar"] = "URL"
                 if field.nargs is not None:
-                    kwargs["nargs"] = conf[6]
+                    kwargs["nargs"] = field.nargs
 
                 cat_group.add_argument(*args, **kwargs)
                 if cat_group == "Command-Line":
@@ -735,6 +806,8 @@ class ConfigValue(object):
             obj = ConfigInt()
         elif isinstance(value, float):
             obj = ConfigFloat()
+        elif isinstance(value, list):
+            obj = ConfigList()
         elif isinstance(value, ConfigurationObject):
             obj = value
         elif value is None:
@@ -813,6 +886,26 @@ class ConfigFloat(DBConfigFloat, ConfigValue):
     def convert(_val):
         _val.__class__ = ConfigFloat
 
+class ConfigList(DBConfigStr, ConfigValue):
+    def __copy__(self):
+        """ __copy__() -> ConfigList - Returns a clone of itself """ 
+        return ConfigList.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBConfigStr.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = ConfigList
+        return cp
+
+    @staticmethod
+    def convert(_val):
+        _val.__class__ = ConfigList
+
+    def get_value(self):
+        return ast.literal_eval(self.db_value)
+
+    def set_value(self, val):
+        self.db_value = unicode(val)
+
 class ConfigKey(DBConfigKey):
     def __init__(self, name, value):
         if isinstance(value, tuple):
@@ -846,6 +939,7 @@ class ConfigKey(DBConfigKey):
             ConfigInt.convert(_key.db_value)
         elif isinstance(_key.db_value, DBConfigFloat):
             ConfigFloat.convert(_key.db_value)
+        #FIXME add ConfigList to db and here
         _key.set_type(type(_key.value))
     
     def _get_value(self):
@@ -969,6 +1063,28 @@ class ConfigurationObject(DBConfiguration):
                 for ref in to_remove:
                     self.__subscribers__[name].remove(ref)
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        seen_keys = set()
+        for name in self.keys():
+            seen_keys.add(name)
+            if name not in other.keys():
+                return False
+            val1 = getattr(self, name)
+            val2 = getattr(other, name)
+            if type(val1) != type(val2):
+                return False
+            if val1 != val2:
+                return False
+        for name in other.keys():
+            if name not in seen_keys:
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def update(self, other):
         for name, other_key in other.db_config_keys_name_index.iteritems():
             self.__setattr__(name, other_key.value)
@@ -1018,11 +1134,18 @@ class ConfigurationObject(DBConfiguration):
                 return False
         return True
 
-    def set_deep_value(self, keys_str, value):
+    def set_deep_value(self, keys_str, value, create_if_missing=False):
         keys = keys_str.split('.')
         config = self
         for key in keys[:-1]:
-            config = config.get(key)
+            if config.has(key):
+                config = config.get(key)
+            elif create_if_missing:
+                new_config = ConfigurationObject()
+                config.__setattr__(key, new_config)
+                config = new_config
+            else:
+                raise ValueError('No path for key "%s"' % keys_str)
         config.__setattr__(keys[-1], value)
 
     def check(self, key):
@@ -1261,6 +1384,7 @@ class TestConfiguration(unittest.TestCase):
         conf = default()
         self.assertTrue(conf.check("showWindow"))
         self.assertFalse(conf.check("showDebugPopups"))
+        self.assertFalse(conf.check("thumbs.mouseHover"))
 
     def test_update(self):
         conf1 = default()
@@ -1290,17 +1414,6 @@ class TestConfiguration(unittest.TestCase):
         # with self.assertRaises(AttributeError):
         #     conf.reallyDoesNotExist = True
 
-    def check_equality(self, c1, c2):
-        for name in c1.keys():
-            self.assertIn(name, c2.keys())
-            val1 = getattr(c1, name)
-            val2 = getattr(c2, name)
-            self.assertEqual(type(val1), type(val2), "Error on type for '%s'" % name)
-            if isinstance(val1, ConfigurationObject):
-                self.check_equality(val1, val2)
-            else:
-                self.assertEqual(val1, val2)
-
     def test_serialize(self):
         from vistrails.db.persistence import DAOList
         conf1 = default()
@@ -1314,12 +1427,12 @@ class TestConfiguration(unittest.TestCase):
         finally:
             os.unlink(fname)
 
-        self.check_equality(conf1, conf2)
+        self.assertEqual(conf1, conf2)
 
     def test_copy(self):
         conf1 = default()
         conf2 = copy.copy(conf1)
-        self.check_equality(conf1, conf2)
+        self.assertEqual(conf1, conf2)
         self.assertItemsEqual(conf1._unset_keys.keys(), 
                               conf2._unset_keys.keys())
 
@@ -1340,6 +1453,40 @@ class TestConfiguration(unittest.TestCase):
                      namespace=config)
         self.assertTrue(config.dbDefault)
         self.assertEqual(config.dotVistrails, "/tmp")
+
+    def test_parse_output_settings(self):
+        p = build_command_line_parser(base_config)
+        config = default()
+        p.parse_args(args=["-p", "file.series=false"],
+                     namespace=config)
+        self.assertTrue(config.outputSettings.has("file"))
+        self.assertTrue(config.outputSettings.file.has("series"))
+        self.assertEqual(config.outputSettings.file.series, "false")
+
+    def test_multiple_params(self):
+        p = build_command_line_parser(base_config)
+        config = default()
+        p.parse_args(args=["-p", "file.series=false",
+                           "-p", "file.suffix=.png"],
+                     namespace=config)
+        self.assertTrue(config.outputSettings.has("file"))
+        self.assertTrue(config.outputSettings.file.has("series"))
+        self.assertTrue(config.outputSettings.file.has("suffix"))
+        self.assertEqual(config.outputSettings.file.series, "false")        
+        self.assertEqual(config.outputSettings.file.suffix, ".png")
+
+    def test_comma_sep_params(self):
+        p = build_command_line_parser(base_config)
+        config = default()
+        p.parse_args(args=["-p", 'file.series=false,other.separator=","'],
+                     namespace=config)
+        self.assertTrue(config.outputSettings.has("file"))
+        self.assertTrue(config.outputSettings.file.has("series"))
+        self.assertEqual(config.outputSettings.file.series, "false")        
+        self.assertTrue(config.outputSettings.has("other"))
+        self.assertTrue(config.outputSettings.other.has("separator"))
+        self.assertEqual(config.outputSettings.other.separator, ",")
+        
 
 if __name__ == '__main__':
     unittest.main()
