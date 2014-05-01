@@ -39,6 +39,7 @@ import ast
 import copy
 import os.path
 import re
+import shlex
 import shutil
 import sys
 import tempfile
@@ -368,13 +369,13 @@ withWorkflow: Boolean
 
     Output the workflow graph as an image
 
-outputSettings.persistent: List
+outputSettings: ConfigurationObject
 
-    One or more comma-separated parameters
+    One or more comma-separated key=value parameters
 
-outputSettings.overrides: List
+outputDefaultSettings: ConfigurationObject
 
-    One or more comma-separated parameters
+    One or more comma-separated key=value parameters
 
 """
     
@@ -387,8 +388,8 @@ class ConfigType(object):
     INTERNAL = 5
     STORAGE = 6
     PACKAGE = 7
-    LIST = 8
-    INTERNAL_LIST = 9
+    SUBOBJECT = 8
+    INTERNAL_SUBOBJECT = 9
 
 class ConfigPath(object):
     pass
@@ -424,11 +425,10 @@ base_config = {
      ConfigField("batch", False, bool, ConfigType.COMMAND_LINE_FLAG, 
                  flag='-b'),
      ConfigField("outputDirectory", None, ConfigPath, flag='-o'),
-     ConfigFieldParent('outputSettings',
-                       [ConfigField('persistent', [], str,
-                                    ConfigType.INTERNAL_LIST),
-                        ConfigField('overrides', [], str, ConfigType.LIST,
-                                    flag='-p')]),
+     ConfigField('outputDefaultSettings', [], str,
+                 ConfigType.INTERNAL_SUBOBJECT),
+     ConfigField('outputSettings', [], str, ConfigType.SUBOBJECT,
+                 flag='-p'),
      # ConfigField("package", [], str, flag='-p', nargs='*'),
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
@@ -551,6 +551,9 @@ def build_config_obj(d):
             if isinstance(field, ConfigFieldParent):
                 new_d[field.name] = build_config_obj({category:
                                                       field.sub_fields})
+            elif (field.field_type == ConfigType.SUBOBJECT or 
+                  field.field_type == ConfigType.INTERNAL_SUBOBJECT):
+                new_d[field.name] = ConfigurationObject()
             else:
                 v = field.default_val
                 if v is None:
@@ -619,6 +622,27 @@ class VisTrailsHelpFormatter(argparse.HelpFormatter):
                 new_actions.append(action)
         argparse.HelpFormatter.add_usage(self, usage, new_actions, groups,
                                          prefix)
+
+class NestedSetKwargs(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        orig_dest = self.dest
+        nesting = self.dest.split('.')
+        while len(nesting) > 1:
+            namespace = getattr(namespace, nesting.pop(0))
+        self.dest = nesting[0]
+
+        param_splitter = shlex.shlex(values, posix=True)
+        param_splitter.whitespace = ','
+        param_splitter.whitespace_split = True
+        for param in param_splitter:
+            key_val_split = param.split('=',1)
+            if len(key_val_split) < 2:
+                raise ValueError("Expected key=value comma-separated list")
+            key, val = key_val_split
+
+            dest = "%s.%s" % (self.dest, key)
+            namespace.set_deep_value(dest, val, True)
+        self.dest = orig_dest
 
 def nested_action(parser, action_type):
     cls = parser._registry_get('action', action_type)
@@ -694,7 +718,7 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
                 config_type = ConfigType.NORMAL
             if (config_type == ConfigType.INTERNAL or \
                 config_type == ConfigType.STORAGE or
-                config_type == ConfigType.INTERNAL_LIST):
+                config_type == ConfigType.INTERNAL_SUBOBJECT):
                 # these are not in the command line
                 continue
             elif config_type == ConfigType.ON_OFF:
@@ -742,8 +766,8 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
                     field.val_type != str and 
                     field.val_type != bool):
                     kwargs["type"] = field.val_type
-                if config_type == ConfigType.LIST:
-                    kwargs["action"] = nested_action(cat_group, "append")
+                if config_type == ConfigType.SUBOBJECT:
+                    kwargs["action"] = NestedSetKwargs
                 elif config_type == ConfigType.COMMAND_LINE_FLAG:
                     kwargs["action"] = nested_action(cat_group, "store_true")
                 else:
@@ -1107,11 +1131,18 @@ class ConfigurationObject(DBConfiguration):
                 return False
         return True
 
-    def set_deep_value(self, keys_str, value):
+    def set_deep_value(self, keys_str, value, create_if_missing=False):
         keys = keys_str.split('.')
         config = self
         for key in keys[:-1]:
-            config = config.get(key)
+            if config.has(key):
+                config = config.get(key)
+            elif create_if_missing:
+                new_config = ConfigurationObject()
+                config.__setattr__(key, new_config)
+                config = new_config
+            else:
+                raise ValueError('No path for key "%s"' % keys_str)
         config.__setattr__(keys[-1], value)
 
     def check(self, key):
@@ -1425,8 +1456,9 @@ class TestConfiguration(unittest.TestCase):
         config = default()
         p.parse_args(args=["-p", "file.series=false"],
                      namespace=config)
-        self.assertEqual(config.outputSettings.overrides,
-                         ["file.series=false"])
+        self.assertTrue(config.outputSettings.has("file"))
+        self.assertTrue(config.outputSettings.file.has("series"))
+        self.assertEqual(config.outputSettings.file.series, "false")
 
     def test_multiple_params(self):
         p = build_command_line_parser(base_config)
@@ -1434,8 +1466,24 @@ class TestConfiguration(unittest.TestCase):
         p.parse_args(args=["-p", "file.series=false",
                            "-p", "file.suffix=.png"],
                      namespace=config)
-        self.assertEqual(config.outputSettings.overrides,
-                         ["file.series=false", "file.suffix=.png"])
+        self.assertTrue(config.outputSettings.has("file"))
+        self.assertTrue(config.outputSettings.file.has("series"))
+        self.assertTrue(config.outputSettings.file.has("suffix"))
+        self.assertEqual(config.outputSettings.file.series, "false")        
+        self.assertEqual(config.outputSettings.file.suffix, ".png")
+
+    def test_comma_sep_params(self):
+        p = build_command_line_parser(base_config)
+        config = default()
+        p.parse_args(args=["-p", 'file.series=false,other.separator=","'],
+                     namespace=config)
+        self.assertTrue(config.outputSettings.has("file"))
+        self.assertTrue(config.outputSettings.file.has("series"))
+        self.assertEqual(config.outputSettings.file.series, "false")        
+        self.assertTrue(config.outputSettings.has("other"))
+        self.assertTrue(config.outputSettings.other.has("separator"))
+        self.assertEqual(config.outputSettings.other.separator, ",")
+        
 
 if __name__ == '__main__':
     unittest.main()
