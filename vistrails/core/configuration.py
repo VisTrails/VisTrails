@@ -1036,6 +1036,28 @@ class ConfigurationObject(DBConfiguration):
                 for ref in to_remove:
                     self.__subscribers__[name].remove(ref)
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        seen_keys = set()
+        for name in self.keys():
+            seen_keys.add(name)
+            if name not in other.keys():
+                return False
+            val1 = getattr(self, name)
+            val2 = getattr(other, name)
+            if type(val1) != type(val2):
+                return False
+            if val1 != val2:
+                return False
+        for name in other.keys():
+            if name not in seen_keys:
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def update(self, other):
         for name, other_key in other.db_config_keys_name_index.iteritems():
             self.__setattr__(name, other_key.value)
@@ -1358,17 +1380,6 @@ class TestConfiguration(unittest.TestCase):
         # with self.assertRaises(AttributeError):
         #     conf.reallyDoesNotExist = True
 
-    def check_equality(self, c1, c2):
-        for name in c1.keys():
-            self.assertIn(name, c2.keys())
-            val1 = getattr(c1, name)
-            val2 = getattr(c2, name)
-            self.assertEqual(type(val1), type(val2), "Error on type for '%s'" % name)
-            if isinstance(val1, ConfigurationObject):
-                self.check_equality(val1, val2)
-            else:
-                self.assertEqual(val1, val2)
-
     def test_serialize(self):
         from vistrails.db.persistence import DAOList
         conf1 = default()
@@ -1382,12 +1393,12 @@ class TestConfiguration(unittest.TestCase):
         finally:
             os.unlink(fname)
 
-        self.check_equality(conf1, conf2)
+        self.assertEqual(conf1, conf2)
 
     def test_copy(self):
         conf1 = default()
         conf2 = copy.copy(conf1)
-        self.check_equality(conf1, conf2)
+        self.assertEqual(conf1, conf2)
         self.assertItemsEqual(conf1._unset_keys.keys(), 
                               conf2._unset_keys.keys())
 

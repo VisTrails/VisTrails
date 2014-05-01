@@ -90,6 +90,15 @@ class StartupPackage(DBStartupPackage):
     configuration = DBStartupPackage.db_configuration
     name = DBStartupPackage.db_name
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        return (self.name == other.name and
+                self.configuration == other.configuration)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 class VistrailsStartup(DBStartup):
     """
     VistrailsStartup is the class that initializes VisTrails based on
@@ -197,6 +206,27 @@ class VistrailsStartup(DBStartup):
     disabled_packages = property(_get_disabled_packages)
     version = DBStartup.db_version
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        def check_packages(self_pkgs, other_pkgs):
+            if len(self_pkgs.db_packages) != len(other_pkgs.db_packages):
+                return False
+            for (p_name, pkg1) in \
+                    self_pkgs.db_packages_name_index.iteritems():
+                if p_name not in other_pkgs.db_packages_name_index:
+                    return False
+                else:
+                    pkg2 = other_pkgs.db_packages_name_index[p_name]
+                    if pkg1 != pkg2:
+                        return False
+            return True
+        return (self.configuration == other.configuration and
+                check_packages(self.db_enabled_packages, 
+                               other.db_enabled_packages) and
+                check_packages(self.db_disabled_packages,
+                               other.db_disabled_packages))
+
     def get_startup_xml_fname(self):
         return os.path.join(self._dot_vistrails, 'startup.xml')
 
@@ -297,7 +327,7 @@ class VistrailsStartup(DBStartup):
             try:
                 os.mkdir(dir_name)
                 return True
-            except e:
+            except Exception, e:
                 msg = ("Failed to create directory: '%s'."
                        "This could be an indication of a permissions problem."
                        "Make sure directory '%s' in writable." %
@@ -967,6 +997,23 @@ class TestStartup(unittest.TestCase):
             os.chmod(dir_name, stat.S_IRWXU)
             shutil.rmtree(dir_name)
             
+    def test_load_old_startup_xml(self):
+        import vistrails.core.db.io
+        root_dir = system.vistrails_root_directory()
+        # has old nested shell settings that don't match current naming
+        old_default_fname = os.path.join(root_dir,'tests','resources',
+                                            'startup-0.1.xml')
+        startup1 = vistrails.core.db.io.load_startup(old_default_fname)
+
+        (h, fname) = tempfile.mkstemp(suffix=".xml")
+        os.close(h)
+        try:
+            vistrails.core.db.io.save_startup(startup1, fname)
+            startup2 = vistrails.core.db.io.load_startup(fname)
+            self.assertEqual(startup1, startup2)
+        finally:
+            os.remove(fname)
+
     # def test_load_packages(self):
     #     from vistrails.core.system import default_dot_vistrails
     #     dir_name = default_dot_vistrails()
