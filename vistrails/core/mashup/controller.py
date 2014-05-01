@@ -127,7 +127,8 @@ class MashupController(object):
             new_aliases = []
             pos = 0
             for old_pos in new_order:
-                alias = copy.copy(self.currentMashup.alias_list[old_pos])
+                alias = self.currentMashup.alias_list[old_pos].do_copy(
+                               new_ids=True, id_scope=self.mshptrail.id_scope)
                 alias.component.pos = pos
                 new_aliases.append(alias)
                 pos += 1
@@ -145,10 +146,12 @@ class MashupController(object):
         if self.currentMashup:
             for a in self.currentMashup.alias_list:
                 if a.id != alias.id:
-                    calias = copy.copy(a)
+                    calias = a.do_copy(new_ids=True,
+                                       id_scope=self.mshptrail.id_scope)
                 else:
                     #print "found alias: ", a
-                    calias = copy.copy(alias)
+                    calias = alias.do_copy(new_ids=True,
+                                           id_scope=self.mshptrail.id_scope)
                 new_aliases.append(calias)
         return self.createMashupVersion(new_aliases, quiet=False)
         
@@ -158,7 +161,8 @@ class MashupController(object):
         pos = 0
         for alias in self.currentMashup.alias_list:
             if alias.component.vtid != param.id:
-                calias = copy.copy(alias)
+                calias = alias.do_copy(new_ids=True,
+                                       id_scope=self.mshptrail.id_scope)
                 calias.component.pos = pos
                 new_aliases.append(calias)
                 pos += 1
@@ -166,14 +170,15 @@ class MashupController(object):
                 #print "found alias: ", alias
                 add_alias = False
                 if param.alias != '':
-                    new_alias = copy.copy(alias)
+                    new_alias = alias.do_copy(new_ids=True,
+                                           id_scope=self.mshptrail.id_scope)
                     new_alias.name = param.alias
                     new_aliases.append(new_alias)
                     pos += 1
         if add_alias:
             parameter = self.vtPipeline.db_get_object(param.dbtype, param.id)
-            cid = self.id_scope.getNewId('component')
-            aid = self.id_scope.getNewId('alias')
+            cid = self.id_scope.getNewId('mashup_component')
+            aid = self.id_scope.getNewId('mashup_alias')
             component = Component(cid, parameter.vtType, 
                                   parameter.real_id, param.parent_dbtype, 
                                   param.parent_id,
@@ -209,7 +214,8 @@ class MashupController(object):
             new_a = None
             for a in self.currentMashup.alias_list:
                 if a.name not in pip_aliases:
-                    old_a = copy.copy(a)
+                    old_a = a.do_copy(new_ids=True,
+                                      id_scope=self.mshptrail.id_scope)
                     new_aliases.append(old_a)
                 else:
                     new_aliases.append(a)
@@ -234,7 +240,8 @@ class MashupController(object):
             pos = 0
             for a in self.currentMashup.alias_list:
                 if a.name in pip_aliases:
-                    alias = copy.copy(a)
+                    alias = a.do_copy(new_ids=True,
+                                      id_scope=self.mshptrail.id_scope)
                     alias.component.pos = pos
                     new_aliases.append(alias)
                     pos += 1
@@ -246,8 +253,8 @@ class MashupController(object):
                 if a not in mashup_aliases:
                     info = pipeline.aliases[a]
                     parameter = pipeline.db_get_object(info[0],info[1])
-                    cid = self.id_scope.getNewId('component')
-                    aid = self.id_scope.getNewId('alias')
+                    cid = self.id_scope.getNewId('mashup_component')
+                    aid = self.id_scope.getNewId('mashup_alias')
                     component = Component(cid, parameter.vtType, 
                                           parameter.real_id, info[2], info[3],
                                           info[4], parameter.type, 
@@ -322,7 +329,7 @@ class MashupController(object):
             pos = 0
             for alias in self.currentMashup.alias_list:
                 if alias.name != name:
-                    calias = copy.copy(alias)
+                    calias = alias.do_copy(new_ids=True, id_scope=self.mshptrail.id_scope)
                     calias.component.pos = pos
                     new_aliases.append(calias)
                     pos += 1
