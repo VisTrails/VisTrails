@@ -424,13 +424,10 @@ class QRepositoryPushWidget(QtGui.QWidget):
             (fd, filename) = tempfile.mkstemp(suffix='.vt', prefix='vt_tmp')
             os.close(fd)
 
-            # writing tmp vt and switching back to orginal vt
+            # writing tmp vt and switching back to original vt
             locator = ZIPFileLocator(filename)
             controller = vistrails.api.get_current_controller()
-            tmp_controller = VistrailController(controller.vistrail.do_copy(), 
-                                                locator)
-            tmp_controller.changed = True
-            tmp_controller.write_vistrail(locator)
+            controller.write_vistrail(locator, export=True)
 
             # check if this vt is from the repository
             if controller.vistrail.get_annotation('repository_vt_id'):
