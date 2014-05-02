@@ -391,10 +391,19 @@ class ConfigType(object):
     SUBOBJECT = 8
     INTERNAL_SUBOBJECT = 9
 
-class ConfigPath(object):
+class ConfigString(object):
+    @classmethod
+    def from_string(val):
+        return val
+
+    @classmethod
+    def to_string(val):
+        return val
+
+class ConfigPath(ConfigString):
     pass
 
-class ConfigURL(object):
+class ConfigURL(ConfigString):
     pass
 
 class ConfigField(object):
@@ -412,6 +421,22 @@ class ConfigField(object):
         self.widget_type = widget_type
         self.widget_options = widget_options
         self.depends_on = depends_on
+
+    def from_string(self, str_val):
+        if hasattr(self.val_type, "from_string"):
+            return self.val_type.from_string(str_val)
+        if issubclass(self.val_type, basestring):
+            return str_val
+        val = ast.literal_eval(str_val)
+        if not isinstance(val, self.val_type):
+            raise ValueError('Output setting "%s" cannot be parsed to %s' %
+                             (self.name, self.val_type.__name__))
+        return val
+
+    def to_string(self, val):
+        if hasattr(self.val_type, "to_string"):
+            return self.val_type.to_string(val)
+        return unicode(val)
 
 class ConfigFieldParent(object):
     def __init__(self, name, sub_fields):

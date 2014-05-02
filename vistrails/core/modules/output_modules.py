@@ -1,9 +1,10 @@
+import ast
 import copy
 import os
 import sys
 import unittest
 
-from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
+from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, ConfigURL, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 from vistrails.core.modules.config import IPort, OPort
 import vistrails.core.system
@@ -36,8 +37,7 @@ class OutputModeConfig(dict):
     def ensure_field_dict(cls):
         if '_field_dict' not in cls.__dict__:
             if '_fields' in cls.__dict__:
-                cls._field_dict = dict((f.name, f.default_val) 
-                                       for f in cls._fields)
+                cls._field_dict = dict((f.name, f) for f in cls._fields)
             else:
                 cls._field_dict = {}
 
@@ -55,7 +55,7 @@ class OutputModeConfig(dict):
         return False
             
     @classmethod
-    def get_default(cls, k):
+    def get_field(cls, k):
         cls_list = [cls]
         while len(cls_list) > 0:
             c = cls_list.pop(0)
@@ -64,6 +64,13 @@ class OutputModeConfig(dict):
                 if k in c._field_dict:
                     return c._field_dict[k]
                 cls_list.extend(c.__bases__)
+        return None
+
+    @classmethod
+    def get_default(cls, k):
+        f = cls.get_field(k)
+        if f is not None:
+            return f.default_val
         return None
 
     @classmethod
@@ -94,7 +101,8 @@ class OutputModeConfig(dict):
     @classmethod
     def get_override(cls, k):
         config = get_vistrails_temp_configuration().outputSettings
-        return cls.get_from_config(config, k)
+        str_val = cls.get_from_config(config, k)
+        return cls.get_field(k).from_string(str_val)
 
     @classmethod
     def has_global_setting(cls, k):
