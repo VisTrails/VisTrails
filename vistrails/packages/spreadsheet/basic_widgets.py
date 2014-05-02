@@ -39,7 +39,8 @@
 #   SingleCellSheetReference
 #   SpreadsheetCell
 ################################################################################
-from vistrails.core.configuration import ConfigField
+from vistrails.core.configuration import ConfigField, \
+    get_vistrails_configuration
 from vistrails.core.modules.output_modules import OutputMode, OutputModeConfig
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 from spreadsheet_base import (StandardSheetReference,
@@ -266,6 +267,8 @@ class SpreadsheetMode(OutputMode):
 
     @classmethod
     def can_compute(cls):
+        if get_vistrails_configuration().batch:
+            return False
         return True
 
     def create_display_event(self, output_module, configuration,

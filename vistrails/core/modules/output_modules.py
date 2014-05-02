@@ -88,22 +88,22 @@ class OutputModeConfig(dict):
 
     @classmethod
     def has_override(cls, k):
-        config = get_vistrails_temp_configuration().outputSettings.overrides
+        config = get_vistrails_temp_configuration().outputSettings
         return cls.has_from_config(config, k)
 
     @classmethod
     def get_override(cls, k):
-        config = get_vistrails_temp_configuration().outputSettings.overrides
+        config = get_vistrails_temp_configuration().outputSettings
         return cls.get_from_config(config, k)
 
     @classmethod
     def has_global_setting(cls, k):
-        config = get_vistrails_persistent_configuration().outputSettings
+        config = get_vistrails_persistent_configuration().outputDefaultSettings
         return cls.has_from_config(config, k)
 
     @classmethod
     def get_global_setting(cls, k):
-        config = get_vistrails_persistent_configuration().outputSettings
+        config = get_vistrails_persistent_configuration().outputDefaultSettings
         return cls.get_from_config(config, k)
 
     @classmethod

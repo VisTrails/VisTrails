@@ -684,8 +684,8 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
         parser = argparse.ArgumentParser(prog='vistrails',
                                          **parser_args)
         parser._my_arg_groups = {}
-        parser.add_argument('vistrails', metavar='vistrail', type=file, nargs='*',
-                        help="Vistrail to open")
+        parser.add_argument('vistrails', metavar='vistrail', type=str, 
+                            nargs='*', help="Vistrail to open")
         _usage_args.add('vistrails')
 
 

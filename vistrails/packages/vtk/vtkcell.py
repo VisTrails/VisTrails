@@ -66,7 +66,7 @@ from identifiers import identifier as vtk_pkg_identifier
 class vtkRendererToSpreadsheet(SpreadsheetMode):
     @classmethod
     def can_compute(cls):
-        return True
+        return SpreadsheetMode.can_compute()
 
     def compute_output(self, output_module, configuration=None):
         renderers = output_module.force_get_input_list('value')
