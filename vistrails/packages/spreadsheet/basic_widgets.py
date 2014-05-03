@@ -257,6 +257,8 @@ class SpreadsheetModeConfig(OutputModeConfig):
     _fields = [ConfigField('row', None, int),
                ConfigField('col', None, int),
                ConfigField('sheetName', None, str),
+               ConfigField('sheetRowCount', None, int),
+               ConfigField('sheetColCount', None, int),
                ConfigField('rowSpan', None, int),
                ConfigField('colSpan', None, int)]
 
@@ -285,7 +287,16 @@ class SpreadsheetMode(OutputMode):
         if configuration is not None:
             e.row = configuration['row']
             e.col = configuration['col']
-            e.sheetReference = configuration['sheetName']
+            if (configuration['sheetName'] or configuration['sheetRowCount'] or
+                configuration['sheetColCount']):
+                ref = StandardSheetReference()
+                if configuration['sheetName']:
+                    ref.sheetName = configuration['sheetName']
+                if configuration['sheetRowCount']:
+                    ref.minimumRowCount = configuration['sheetRowCount']
+                if configuration['sheetColCount']:
+                    ref.minimumColumnCount = configuration['sheetColCount']
+                e.sheetReference = ref
             e.rowSpan = configuration['rowSpan']
             e.colSpan = configuration['colSpan']
         e.vistrail = output_module.moduleInfo
