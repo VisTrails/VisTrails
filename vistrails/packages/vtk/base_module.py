@@ -41,6 +41,7 @@ import vtk
 from vistrails.core import debug
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.configuration import ConfigField
+from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import registry
 from vistrails.core.modules.output_modules import OutputModule, FileMode, \
     FileModeConfig
@@ -279,7 +280,7 @@ class vtkBaseModule(Module):
 
 class vtkFileModeConfig(FileModeConfig):
     _fields = [ConfigField('width', 512, int),
-              ConfigField('height', 512, int)]
+               ConfigField('height', 512, int)]
 
 class vtkRendererToFile(FileMode):
     config_cls = vtkFileModeConfig
@@ -331,3 +332,4 @@ class vtkRendererOutput(OutputModule):
                     # ('interactorStyle', 'vtkInteractorStyle'), 
                     # ('picker', 'vtkAbstractPicker')]
     _output_modes = [vtkRendererToFile]
+    _settings = OutputModule._settings

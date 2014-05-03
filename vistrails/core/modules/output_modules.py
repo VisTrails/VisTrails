@@ -6,7 +6,7 @@ import unittest
 
 from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, ConfigURL, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
-from vistrails.core.modules.config import IPort, OPort
+from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 import vistrails.core.system
 
 class OutputMode(object):
@@ -65,6 +65,23 @@ class OutputModeConfig(dict):
                     return c._field_dict[k]
                 cls_list.extend(c.__bases__)
         return None
+
+    @classmethod
+    def get_all_fields(cls):
+        field_dicts = []
+        cls_list = [cls]
+        while len(cls_list) > 0:
+            c = cls_list.pop(0)
+            if issubclass(c, OutputModeConfig):
+                c.ensure_field_dict()
+                field_dicts.append(c._field_dict)
+                cls_list.extend(c.__bases__)
+        field_dict = {}
+        for fd in reversed(field_dicts):
+            field_dict.update(fd)
+        fields = field_dict.values()
+        fields.sort()
+        return fields
 
     @classmethod
     def get_default(cls, k):
@@ -145,6 +162,7 @@ class OutputModule(NotCacheable, Module):
     _input_ports = [IPort('value', "Variant"),
                     IPort('mode_type', "String"),
                     IPort('configuration', "Dictionary")]
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
 
     # configuration is a dictionary of dictionaries where root-level
     # keys are mode_types and the inner dictionaries are
@@ -208,6 +226,7 @@ class OutputModule(NotCacheable, Module):
 
         mode_dict = {}
         for c in reversed(cls_list):
+            c.ensure_mode_dict()
             mode_dict.update(c._output_modes_dict)
         mode_list = [c for c, _ in reversed(sorted(mode_dict.itervalues(), 
                                                    key=lambda x: x[1]))]
