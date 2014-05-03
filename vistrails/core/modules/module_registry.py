@@ -1095,17 +1095,7 @@ class ModuleRegistry(DBRegistry):
         meant to be used by the packagemanager, when inspecting the package
         contents."""
         if isinstance(module, type):
-            if '_settings' in module.__dict__:
-                settings = module.__dict__['_settings']
-                if isinstance(settings, ModuleSettings):
-                    return self.add_module_from_settings(module, settings)
-                elif isinstance(settings, dict):
-                    return self.add_module(module, **settings)
-                else:
-                    raise TypeError("Expected module._settings to be "
-                                    "ModuleSettings or dict")
-            else:
-                return self.add_module(module)
+            return self.add_module(module)
         elif (isinstance(module, tuple) and
               len(module) == 2 and
               isinstance(module[0], type) and
@@ -1123,26 +1113,42 @@ class ModuleRegistry(DBRegistry):
         add_module.
 
         """
-        remap = {'configureWidgetType': 'configure_widget',
-                 'constantWidget': 'constant_widget',
-                 'constantWidgets': 'constant_widgets',
-                 'signatureCallable': 'signature',
-                 'constantSignatureCallable': 'constant_signature',
-                 'moduleColor': 'color',
-                 'moduleFringe': 'fringe',
-                 'moduleLeftFringe': 'left_fringe',
-                 'moduleRightFringe': 'right_fringe',
-                 'is_abstract': 'abstract'}
+        def remap_dict(d):
+            remap = {'configureWidgetType': 'configure_widget',
+                     'constantWidget': 'constant_widget',
+                     'constantWidgets': 'constant_widgets',
+                     'signatureCallable': 'signature',
+                     'constantSignatureCallable': 'constant_signature',
+                     'moduleColor': 'color',
+                     'moduleFringe': 'fringe',
+                     'moduleLeftFringe': 'left_fringe',
+                     'moduleRightFringe': 'right_fringe',
+                     'is_abstract': 'abstract'}
+            remapped_d = {}
+            for k, v in d.iteritems():
+                if k in remap:
+                    remapped_d[remap[k]] = v
+                else:
+                    remapped_d[k] = v
+            return remapped_d
 
-        remapped_kwargs = {}
-        for k, v in kwargs.iteritems():
-            if k in remap:
-                remapped_kwargs[remap[k]] = v
+        module_settings = None
+        if '_settings' in module.__dict__:
+            settings = module.__dict__['_settings']
+            if isinstance(settings, ModuleSettings):
+                module_settings = settings
+            elif isinstance(settings, dict):
+                module_settings = ModuleSettings(**remap_dict(settings))
             else:
-                remapped_kwargs[k] = v
+                raise TypeError("Expected module._settings to be "
+                                "ModuleSettings or dict")
                 
-        settings = ModuleSettings(**remapped_kwargs)
-        return self.add_module_from_settings(module, settings)
+        remapped_kwargs = remap_dict(kwargs)
+        if module_settings is not None:
+            module_settings = module_settings._replace(**remapped_kwargs)
+        else:
+            module_settings = ModuleSettings(**remapped_kwargs)
+        return self.add_module_from_settings(module, module_settings)
 
     def add_module_from_settings(self, module, settings):
         """add_module(module: class, settings) -> ModuleDescriptor
