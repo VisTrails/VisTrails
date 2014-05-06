@@ -434,18 +434,18 @@ class FileOutput(OutputModule):
     _input_ports = [('value', 'File')]
     _output_modes = [FileToStdoutMode, FileToFileMode]
 
-class ImageFileOutput(FileOutput):
-    pass
+class ImageFileModeConfig(FileModeConfig):
+    _fields = [ConfigField('width', 800, int),
+               ConfigField('height', 600, int)]
 
-class ImageOutput(OutputModule):
-    # need specific spreadsheet image mode here
-    pass
+class ImageFileMode(FileMode):
+    config_cls = ImageFileModeConfig
 
 class RichTextOutput(OutputModule):
     # need specific spreadsheet richtext mode here
     pass
 
-_modules = [OutputModule, GenericOutput, FileOutput, ImageFileOutput]
+_modules = [OutputModule, GenericOutput, FileOutput]
 
 # need to put WebOutput, ImageOutput, RichTextOutput, SVGOutput, VTKOutput, MplOutput, etc. elsewhere
 

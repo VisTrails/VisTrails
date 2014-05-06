@@ -38,7 +38,8 @@ import pylab
 import urllib
 
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
-from vistrails.core.modules.output_modules import FileMode, OutputModule
+from vistrails.core.modules.output_modules import ImageFileMode, \
+    ImageFileModeConfig, OutputModule
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 
 ################################################################################
@@ -156,17 +157,23 @@ class MplContourSet(Module):
 class MplQuadContourSet(MplContourSet):
     pass
 
-class MplFigureToFile(FileMode):
+class MplFigureToFile(ImageFileMode):
+    config_cls = ImageFileModeConfig
+
     def compute_output(self, output_module, configuration=None):
         value = output_module.get_input('value')
         filename = self.get_filename(configuration, suffix='.pdf')
+        w = configuration["width"]
+        h = configuration["height"]
+        w_inches = w / 72.0
+        h_inches = h / 72.0
         figure = value.figInstance
         
         previous_size = tuple(figure.get_size_inches())
-        figure.set_size_inches(8.0,6.0)
+        figure.set_size_inches(w_inches, h_inches)
         canvas = FigureCanvasBase(figure)
         # canvas.print_figure(filename)
-        canvas.print_pdf(filename)
+        canvas.print_pdf(filename, dpi=72)
         figure.set_size_inches(previous_size[0],previous_size[1])
         canvas.draw()
 

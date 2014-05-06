@@ -43,8 +43,8 @@ from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.configuration import ConfigField
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import registry
-from vistrails.core.modules.output_modules import OutputModule, FileMode, \
-    FileModeConfig
+from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
+    ImageFileModeConfig
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 import vistrails.core.system
 from identifiers import identifier as vtk_pkg_identifier
@@ -278,12 +278,8 @@ class vtkBaseModule(Module):
         result.vtkInstance = instance
         return result
 
-class vtkFileModeConfig(FileModeConfig):
-    _fields = [ConfigField('width', 512, int),
-               ConfigField('height', 512, int)]
-
-class vtkRendererToFile(FileMode):
-    config_cls = vtkFileModeConfig
+class vtkRendererToFile(ImageFileMode):
+    config_cls = ImageFileModeConfig
 
     @classmethod
     def can_compute(cls):
@@ -293,7 +289,7 @@ class vtkRendererToFile(FileMode):
         r = output_module.get_input("value").vtkInstance
         w = configuration["width"]
         h = configuration["height"]
-        fname = self.get_filename(configuration)
+        fname = self.get_filename(configuration, suffix='.png')
 
         window = vtk.vtkRenderWindow()
         window.OffScreenRenderingOn()
