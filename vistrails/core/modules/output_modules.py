@@ -335,12 +335,18 @@ class FileMode(OutputMode):
                  configuration['file'] is not None)):
                 full_path = configuration['file']
             else:
-                basename = configuration['basename']
-                prefix = configuration['prefix']
-                suffix = configuration['suffix']
-                dirname = configuration['dir']
-                series = configuration['series']
-                series_padding = configuration['seriesPadding']
+                if configuration['basename'] is not None:
+                    basename = configuration['basename']
+                if configuration['prefix'] is not None:
+                    prefix = configuration['prefix']
+                if configuration['suffix'] is not None:
+                    suffix = configuration['suffix']
+                if configuration['dir'] is not None:
+                    dirname = configuration['dir']
+                if configuration['series'] is not None:
+                    series = configuration['series']
+                if configuration['seriesPadding'] is not None:
+                    series_padding = configuration['seriesPadding']
 
         if full_path is None:                
             # should any of these necessitate series=True?
