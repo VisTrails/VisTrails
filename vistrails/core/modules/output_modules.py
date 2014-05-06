@@ -436,10 +436,24 @@ class FileOutput(OutputModule):
 
 class ImageFileModeConfig(FileModeConfig):
     _fields = [ConfigField('width', 800, int),
-               ConfigField('height', 600, int)]
+               ConfigField('height', 600, int),
+               ConfigField('format', None, str)]
 
 class ImageFileMode(FileMode):
     config_cls = ImageFileModeConfig
+
+    def get_format(self, configuration=None):
+        format_map = {'png': 'png',
+                      'jpeg': 'jpg',
+                      'jpg': 'jpg',
+                      'tif': 'tif',
+                      'tiff': 'tif'}
+        if configuration is not None:
+            img_format = configuration['format']
+            if img_format.lower() in format_map:
+                return format_map[img_format.lower()]
+            return img_format
+        return 'png'
 
 class RichTextOutput(OutputModule):
     # need specific spreadsheet richtext mode here

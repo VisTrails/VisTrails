@@ -286,10 +286,18 @@ class vtkRendererToFile(ImageFileMode):
         return True
 
     def compute_output(self, output_module, configuration):
+        format_map = {'png': vtk.vtkPNGWriter,
+                      'jpg': vtk.vtkJPEGWriter,
+                      'tif': vtk.vtkTIFFWriter,
+                      'pnm': vtk.vtkPNMWriter}
         r = output_module.get_input("value").vtkInstance
         w = configuration["width"]
         h = configuration["height"]
-        fname = self.get_filename(configuration, suffix='.png')
+        img_format = self.get_format(configuration)
+        if img_format not in format_map:
+            raise ModuleError(output_module, 
+                              'Cannot output in format "%s"' % img_format)
+        fname = self.get_filename(configuration, suffix='.%s' % img_format)
 
         window = vtk.vtkRenderWindow()
         window.OffScreenRenderingOn()
@@ -310,7 +318,7 @@ class vtkRendererToFile(ImageFileMode):
         win2image = vtk.vtkWindowToImageFilter()
         win2image.SetInput(window)
         win2image.Update()
-        writer = vtk.vtkPNGWriter()
+        writer = format_map[img_format]()
         writer.SetInput(win2image.GetOutput())
         writer.SetFileName(fname)
         writer.Write()

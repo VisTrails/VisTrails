@@ -162,9 +162,11 @@ class MplFigureToFile(ImageFileMode):
 
     def compute_output(self, output_module, configuration=None):
         value = output_module.get_input('value')
-        filename = self.get_filename(configuration, suffix='.pdf')
         w = configuration["width"]
         h = configuration["height"]
+        img_format = self.get_format(configuration)
+        filename = self.get_filename(configuration, suffix='.%s' % img_format)
+
         w_inches = w / 72.0
         h_inches = h / 72.0
         figure = value.figInstance
@@ -172,8 +174,7 @@ class MplFigureToFile(ImageFileMode):
         previous_size = tuple(figure.get_size_inches())
         figure.set_size_inches(w_inches, h_inches)
         canvas = FigureCanvasBase(figure)
-        # canvas.print_figure(filename)
-        canvas.print_pdf(filename, dpi=72)
+        canvas.print_figure(filename, dpi=72, format=img_format)
         figure.set_size_inches(previous_size[0],previous_size[1])
         canvas.draw()
 
