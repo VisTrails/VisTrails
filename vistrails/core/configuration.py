@@ -393,11 +393,11 @@ class ConfigType(object):
 
 class ConfigString(object):
     @classmethod
-    def from_string(val):
+    def from_string(cls, val):
         return val
 
     @classmethod
-    def to_string(val):
+    def to_string(cls, val):
         return val
 
 class ConfigPath(ConfigString):
