@@ -52,7 +52,10 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
     allows resizing and stretching at the same time
     
     """
-    minimumSize = 50
+    THICKNESS = 30
+    MINIMUM_SIZE = 50
+
+    fitToWindow = True
 
     def __init__(self, orientation, parent=None):
         """ StandardWidgetHeaderView(orientation: QtCore.Qt.Align...,
@@ -74,6 +77,13 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         self.connect(self, QtCore.SIGNAL('sectionResized(int, int, int)'),
                      self.section_resized)
         self._target_size = None
+
+    section_sizes = None
+    def read_section_sizes(self):
+        if (self.section_sizes is None or
+                len(self.section_sizes) != self.count()):
+            self.section_sizes = [float(self.sectionSize(self.logicalIndex(i)))
+                                  for i in xrange(self.count())]
 
     _resizing = False
 
@@ -102,7 +112,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
                 old_size: int, new_size: int) -> None
         Called when a section of of the header is resized
         """
-        if self._target_size is None:
+        if not self.fitToWindow or self._target_size is None:
             return
 
         vis_index = self.visualIndex(log_index)
@@ -113,8 +123,8 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         orig_new_size = new_size
 
         # Can't shrink below minimum size
-        if new_size < old_size and new_size < self.minimumSize:
-            new_size = self.minimumSize
+        if new_size < old_size and new_size < self.MINIMUM_SIZE:
+            new_size = self.MINIMUM_SIZE
 
         if self._target_size is None:
             return
@@ -124,7 +134,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
             min_right = 0
             for i in xrange(vis_index + 1, self.count()):
                 if not self.isSectionHidden(self.logicalIndex(i)):
-                    min_right += self.minimumSize
+                    min_right += self.MINIMUM_SIZE
             pos = self.sectionPosition(log_index)
             total_right = self._target_size - pos - new_size
             if total_right < min_right:
@@ -134,15 +144,12 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
             self.resizeSection(log_index, new_size)
 
         # Resize the rows to the right
-        if self.section_sizes is not None:
-            self.section_sizes[vis_index] = float(new_size)
+        self.read_section_sizes()
+        self.section_sizes[vis_index] = float(new_size)
         self._resize_right_rows(vis_index + 1)
 
-    section_sizes = None
     def _resize_right_rows(self, vis_index):
-        if self.section_sizes is None:
-            self.section_sizes = [float(self.sectionSize(self.logicalIndex(i)))
-                                  for i in xrange(self.count())]
+        self.read_section_sizes()
 
         previous_space = sum(self.section_sizes[vis_index:])
         new_space = self._target_size - sum(self.section_sizes[:vis_index])
@@ -159,16 +166,9 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
             reclaimed_space = previous_space - new_space
             for i, size in enumerate(self.section_sizes[vis_index:], vis_index):
                 size -= reclaimed_space * (
-                        (size - self.minimumSize)/previous_space)
+                        (size - self.MINIMUM_SIZE)/previous_space)
                 self.section_sizes[i] = size
                 self.resizeSection(self.logicalIndex(i), size)
-
-    def resizeEvent(self, e):
-        if self.orientation() == QtCore.Qt.Vertical:
-            self._target_size = self.size().height()
-        else:
-            self._target_size = self.size().width()
-        self.resize_right_rows(0)
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -177,9 +177,9 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         """
         size = QtGui.QHeaderView.sizeHint(self)
         if self.orientation()==QtCore.Qt.Vertical:
-            size.setWidth(30)
+            size.setWidth(self.THICKNESS)
         else:
-            size.setHeight(30)
+            size.setHeight(self.THICKNESS)
         return size
 
 
@@ -404,7 +404,9 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         if fit!=self.fitToWindow:
             self.fitToWindow = fit
+            self.horizontalHeader().fitToWindow = fit
             self.horizontalHeader()._target_size = None
+            self.verticalHeader().fitToWindow = fit
             self.verticalHeader()._target_size = None
             if not fit:
                 width = self.columnWidth(self.columnCount()-1)
@@ -413,6 +415,10 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                 self.setColumnWidth(self.columnCount()-1, width)
                 self.setRowHeight(self.rowCount()-1, height)
             self.stretchCells()
+            policy = (QtCore.Qt.ScrollBarAlwaysOff if fit
+                      else QtCore.Qt.ScrollBarAlwaysOn)
+            self.setHorizontalScrollBarPolicy(policy)
+            self.setVerticalScrollBarPolicy(policy)
 
     def showEvent(self, event):
         """ showEvent(event: QShowEvent) -> None
@@ -447,6 +453,16 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                 self.helpers.hide()
         else:
             self.helpers.hide()
+
+    def resizeEvent(self, e):
+        if not self.fitToWindow:
+            return
+
+        thickness = StandardWidgetHeaderView.THICKNESS
+        self.horizontalHeader()._target_size = self.size().width() - thickness
+        self.horizontalHeader().resize_right_rows(0)
+        self.verticalHeader()._target_size = self.size().height() - thickness
+        self.verticalHeader().resize_right_rows(0)
 
     def getRealLocation(self, vRow, vCol, visual=False):
         """ getRealLocation(vRow: int, vCol: int, visual: bool) -> (int, int)
