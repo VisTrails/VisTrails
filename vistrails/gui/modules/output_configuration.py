@@ -66,26 +66,37 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
 
     def update_widget(self):
         self._changed_config = {}
-        self._mode_groups = {}
+        self._changed_fields = {}
         layout = QtGui.QVBoxLayout()
         config = self.get_configuration()
 
+        self.field_widgets = {}
         self.found_modes = set()
+        mode_layouts = []
         for mode in self.module.module_descriptor.module.get_sorted_mode_list():
             mode_config = None
             if mode.mode_type in config:
                 mode_config = config[mode.mode_type]
             # create output mode widget passing current config
-            fields = self.build_mode_config(layout, mode, mode_config)
-            self._mode_groups[mode.mode_type] = fields
+            mode_w = self.build_mode_config(layout, mode, mode_config)
+            mode_layouts.append(mode_w.layout())
             self.found_modes.add(mode.mode_type)
             
         for mode_type, mode_config in config.iteritems():
             if mode_type not in self.found_modes:
-                fields = self.build_mode_config(layout, None, mode_config)
-                self._mode_groups[mode_type] = fields
+                mode_w = self.build_mode_config(layout, None, mode_config)
+                mode_layouts.append(mode_w.layout())
                 self.found_modes.add(mode_type)
                 
+        width = 0
+        for mode_layout in mode_layouts:
+            for row in xrange(mode_layout.rowCount()):
+                item = mode_layout.itemAtPosition(row, 0)
+                if item and item.widget():
+                    width = max(width, item.widget().sizeHint().width())
+        for mode_layout in mode_layouts:
+            mode_layout.setColumnMinimumWidth(0, width)
+
         # do we want to add a manual config mode for modes that have
         # neither been set before nor are registered?
         # DK: not now...
@@ -123,59 +134,34 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
     def build_mode_config(self, base_layout, mode, mode_config):
         group_box = QtGui.QGroupBox()
         group_box.setTitle(mode.mode_type)
-        group_layout = QtGui.QVBoxLayout()
-        group_box.setLayout(group_layout)
-        # label = QtGui.QLabel(mode.mode_type)
-        # base_layout.addWidget(label)
-        base_layout.addWidget(group_box, 1)
-        field_layouts = {}
+        # group_layout = QtGui.QVBoxLayout()
+        group_layout = QtGui.QGridLayout()
+        group_layout.setMargin(5)
+        group_layout.setSpacing(5)
+        group_layout.setColumnStretch(1,1)
+
         if mode is None:
             for k, v in mode_config.iteritems():
                 print "ADD UNSPECIFIED FIELD:", k
                 dummy_field = ConfigField(k, None, str)
-                layout = self.add_field(dummy_field, mode_config, k)
-                group_layout.addLayout(layout)
-                field_layouts[k] = layout
+                self.add_field(group_layout, dummy_field, mode_config,
+                                        k)
         else:
             for field in mode.config_cls.get_all_fields():
                 print "ADD FIELD:", mode.mode_type, field.name
-                layout = self.add_field(field, mode_config, mode.mode_type)
-                group_layout.addLayout(layout)
-                field_layouts[mode.mode_type] = layout
-        return field_layouts
+                self.add_field(group_layout, field, mode_config, 
+                               mode.mode_type)
+        group_box.setLayout(group_layout)
+        base_layout.addWidget(group_box, 1)
+        return group_box
 
     # TODO Unify this with code in gui.configuration!
-    def add_field(self, field, mode_config, mode_type, indent=0):
-        layout = QtGui.QHBoxLayout()
-        layout.setMargin(0)
-        layout.setSpacing(5)
-
+    def add_field(self, layout, field, mode_config, mode_type, indent=0):
         config_key = (mode_type, field.name)
         if mode_config is not None and field.name in mode_config:
             config_val = mode_config[field.name]
         else:
             config_val = field.default_val
-        # config_val = mode_config.get_deep_value(config_key)
-
-        # icon = self.style().standardIcon(QtGui.QStyle.SP_MessageBoxWarning)
-        # label = QtGui.QLabel()
-        # label.setPixmap(icon.pixmap(14,14))
-        # label.setToolTip("This option has been changed for this session")
-        # layout.addWidget(label, 0, QtCore.Qt.AlignTop)
-            
-        # space = 0
-        # if (not startup_only and
-        #     config_val == self._configuration.get_deep_value(config_key)):
-        #     space = label.sizeHint().width() + layout.spacing() * (indent + 1)
-        #     label.hide()
-        # elif indent > 0:
-        #     space = layout.spacing() * indent
-
-        # if space > 0:
-        #     spacer = QtGui.QSpacerItem(space, label.sizeHint().height())
-        #     layout.insertSpacerItem(0, spacer)
-
-        # config_desc = find_simpledoc(config_key)
 
         config_desc = field.name
         widget_type = field.widget_type
@@ -188,118 +174,144 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
                 widget_type = "lineedit"
 
         if widget_type == "combo":
-            self.add_combo(layout, field, config_key, config_desc, config_val)
+            widget = self.add_combo(layout, field, config_key, config_desc, 
+                                    config_val)
         elif widget_type == "lineedit":
-            self.add_line_edit(layout, field, config_key, config_desc, 
+            widget = self.add_line_edit(layout, field, config_key, config_desc, 
                                config_val)
         elif widget_type == "pathedit":
-            self.add_path_edit(layout, field, config_key, config_desc, 
-                               config_val)
+            widget = self.add_path_edit(layout, field, config_key, config_desc, 
+                                        config_val)
         else:
             config_val = bool(config_val)
-            self.add_checkbox(layout, field, config_key, config_desc, 
-                              config_val)
-        layout.addStretch(1)
-        # base_layout.addLayout(layout)
-        return layout
+            widget = self.add_checkbox(layout, field, config_key, config_desc, 
+                                       config_val)
+        self.field_widgets[config_key] = widget
 
-    def add_signals(self, config_key, field):
-        def call_field_changed(val):
-            self.field_changed(config_key, field, val)
-        self.connect(cb, QtCore.SIGNAL("toggled(bool)"),
-                     call_field_changed)
+    def reset_field(self, widget, field, mode_config, mode_type):
+        config_key = (mode_type, field.name)
+        if mode_config is not None and field.name in mode_config:
+            config_val = mode_config[field.name]
+        else:
+            config_val = field.default_val
+
+        config_desc = field.name
+        widget_type = field.widget_type
+        if widget_type is None:
+            if field.val_type == bool:
+                widget_type = "checkbox"
+            elif field.val_type == ConfigPath:
+                widget_type = "pathedit"
+            else:
+                widget_type = "lineedit"
+
+        if widget_type == "combo":
+            self.set_combo_value(widget, config_val)
+        elif widget_type == "lineedit":
+            self.set_line_edit_value(widget, config_val)
+        elif widget_type == "pathedit":
+            self.set_path_edit_value(widget, config_val)
+        else:
+            config_val = bool(config_val)
+            self.set_checkbox_value(widget, config_val)
 
     def add_checkbox(self, layout, field, config_key, config_desc, config_val):
         cb = QtGui.QCheckBox(config_desc)
-        cb.setChecked(config_val)
-        layout.addWidget(cb)
+        self.set_checkbox_value(cb, config_val)
+        row = layout.rowCount()
+        layout.addWidget(cb, row, 1)
 
         def call_field_changed(val):
             self.field_changed(config_key, field, val)
         cb.toggled.connect(call_field_changed)
+        return cb
+
+    def set_checkbox_value(self, cb, config_val):
+        cb.setChecked(config_val)
 
     def add_line_edit(self, layout, field, config_key, config_desc, config_val):
         options = {}
         if field.widget_options is not None:
             options = field.widget_options
 
-        sub_layout = QtGui.QHBoxLayout()
-        sub_layout.setMargin(0)
-        sub_layout.setSpacing(5)
-
         if "label" in options:
             label_text = options["label"]
         else:
             label_text = config_desc
         label = QtGui.QLabel(label_text)
-        sub_layout.addWidget(label)
+        row = layout.rowCount()
+        layout.addWidget(label, row, 0, QtCore.Qt.AlignRight)
 
         line_edit = QtGui.QLineEdit()
-        if config_val is None:
-            config_val = ""
-        line_edit.setText(unicode(config_val))
-        sub_layout.addWidget(line_edit)
-        layout.addLayout(sub_layout)
+        self.set_line_edit_value(line_edit, config_val)
+        layout.addWidget(line_edit, row, 1)
 
         def call_field_changed(val):
             self.field_changed(config_key, field, val)
         line_edit.textEdited.connect(call_field_changed)
+        return line_edit
+
+    def set_line_edit_value(self, line_edit, config_val):
+        if config_val is None:
+            config_val = ""
+        line_edit.setText(unicode(config_val))
 
     def add_path_edit(self, layout, field, config_key, config_desc, config_val):
         options = {}
         if field.widget_options is not None:
             options = field.widget_options
 
-        sub_layout = QtGui.QVBoxLayout()
-        sub_layout.setMargin(0)
-        sub_layout.setSpacing(5)
-        
+        path_edit = QtGui.QWidget()
         if "label" in options:
             label_text = options["label"]
         else:
             label_text = config_desc
         label = QtGui.QLabel(label_text)
-        sub_layout.addWidget(label)
+        row = layout.rowCount()
+        layout.addWidget(label, row, 0, QtCore.Qt.AlignRight)
 
-        path_layout = QtGui.QHBoxLayout()
-        path_layout.setMargin(0)
-        path_layout.setSpacing(5)
-        path_layout.addSpacing(15)
+        sub_layout = QtGui.QHBoxLayout()
+        sub_layout.setMargin(0)
+        sub_layout.setSpacing(5)
         line_edit = QtGui.QLineEdit()
-        line_edit.setMinimumWidth(200)
         if config_val is None:
             config_val = ""
         line_edit.setText(unicode(config_val))
-        path_layout.addWidget(line_edit)
+        sub_layout.addWidget(line_edit)
+        path_edit.line_edit = line_edit
 
         # if field.val_type == ConfigPath:
         #     button_cls = QDirectoryChooserToolButton
         # else:
         button_cls = QDirectoryChooserToolButton
         button = button_cls(self, line_edit)
-        # button.pathChanged.connect(self.field_changed)
-        path_layout.addWidget(button)
-        sub_layout.addLayout(path_layout)
-        layout.addLayout(sub_layout)
+        sub_layout.addWidget(button)
+        path_edit.setLayout(sub_layout)
+        layout.addWidget(path_edit, row, 1)
 
         def call_field_changed(val):
             self.field_changed(config_key, field, val)
         line_edit.textEdited.connect(call_field_changed)
+        return path_edit
+
+    def set_path_edit_value(self, path_edit, config_val):
+        if config_val is None:
+            config_val = ""
+        path_edit.line_edit.setText(unicode(config_val))
 
     def add_combo(self, layout, field, config_key, config_desc, config_val):
         options = {}
         if field.widget_options is not None:
             options = field.widget_options
 
-        sub_layout = QtGui.QHBoxLayout()
-        sub_layout.setMargin(0)
-        sub_layout.setSpacing(5)
         if "label" in options:
             label_text = options["label"]
         else:
             label_text = config_desc
         label = QtGui.QLabel(label_text)
-        sub_layout.addWidget(label)
+        row = layout.rowCount()
+        layout.addWidget(label, row, 0, QtCore.Qt.AlignRight)
+
         combo = QtGui.QComboBox()
         inv_remap = None
         if "allowed_values" in options:
@@ -308,21 +320,30 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
                 remap = options["remap"]
                 inv_remap = dict((v, k) for (k, v) in remap.iteritems())
                 entries = [remap[v] for v in values]
-                cur_text = remap[config_val]
             else:
                 entries = values
-                cur_text = config_val
             for entry in entries:
                 combo.addItem(entry)
-            combo.setCurrentIndex(combo.findText(cur_text))
-        sub_layout.addWidget(combo)
-        layout.addLayout(sub_layout)
+        self.set_combo_value(combo, config_val)
+        laout.addWidget(combo, row, 1)
 
         def call_field_changed(val):
             if inv_remap is not None:
                 val = inv_remap[val]
             self.field_changed(config_key, field, val)
         combo.currentIndexChanged[unicode].connect(call_field_changed)
+        return combo
+
+    def set_combo_value(self, combo, config_val):
+        if "allowed_values" in options:
+            if "remap" in options:
+                remap = options["remap"]
+                cur_text = remap[config_val]
+            else:
+                cur_text = config_val
+            combo.setCurrentIndex(combo.findText(cur_text))
+        else:
+            combo.setCurrentIndex(-1)
 
     def field_changed(self, config_key, field, val):
         print "field changed:", config_key, val
@@ -331,53 +352,9 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         # TODO support arbitrary nesting?
         val = field.from_string(val)
         self._changed_config[config_key[0]][config_key[1]] = val
+        self._changed_fields[config_key] = field
         self.saveButton.setEnabled(True)
         self.resetButton.setEnabled(True)
-        
-        # config_val = self._configuration.get_deep_value(config_key)
-        # if config_val != self._temp_configuration.get_deep_value(config_key):
-        #     retval = QtGui.QMessageBox.question(
-        #         self, 
-        #         "Change Setting",
-        #         "This configuration value has been temporarily changed. "
-        #         "If you change it, it will be changed permanently.  Do you "
-        #         "want to continue?", 
-        #         QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Ok,
-        #         QtGui.QMessageBox.Ok)
-        #     if retval != QtGui.QMessageBox.Ok:
-        #         return
-        #     # need to update hbox to reflect change...
-        #     layout = self._field_layouts[config_key]
-        #     leading_item = layout.itemAt(0)
-        #     if isinstance(leading_item.widget(), QtGui.QLabel):
-        #         label = leading_item.widget()
-        #         spacer = QtGui.QSpacerItem(label.sizeHint().width() + \
-        #                                    layout.spacing(),
-        #                                    label.sizeHint().height())
-        #         layout.insertSpacerItem(0, spacer)
-        #     else:
-        #         spacer = leading_item
-        #         label = layout.itemAt(1).widget()
-        #         spacer.changeSize(spacer.sizeHint().width() + \
-        #                           label.sizeHint().width() + layout.spacing(), 
-        #                           label.sizeHint().height())
-        #     label.hide()
-        # # FIXME
-        # if False:
-        #     QtGui.QMessageBox.information(
-        #         self, "Change Setting",
-        #         "You must restart VisTrails for this setting to take effect.")
-
-        # setattr(self._temp_configuration, config_key, val)
-        # setattr(self._configuration, config_key, val)
-
-
-    # def get_config_from_widgets(self):
-    #     # go through field layouts and set each value in config
-    #     for mode, field_layouts in self._mode_groups.iteritems():
-    #         for field_name, layout in field_layouts.iteritems():
-                
-    #     return config
 
     def save_triggered(self):
         # get values from each widget check if any changed and
@@ -388,5 +365,11 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.set_configuration(config)
 
     def reset_triggered(self):
-        self.clear()
-        self.update_Widget()
+        config = self.get_configuration()
+        for config_key, field in self._changed_fields.iteritems():
+            widget = self.field_widgets[config_key]
+            mode_type = config_key[0]
+            mode_config = None
+            if mode_type in config:
+                mode_config = config[mode_type]
+            self.reset_field(widget, field, mode_config, mode_type)
