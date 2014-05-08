@@ -62,6 +62,7 @@ _simple_docs = {}
 _usage_args = set()
 
 _simple_documentation = """
+autoConnect: Automatically connect dragged in modules
 autoSave: Automatically save backup vistrails every two minutes
 dbDefault: Save vistrails in a database by default
 cache: Cache previous results so they may be used in future computations
@@ -73,6 +74,21 @@ enablePackagesSilently: Automatically enable packages when needed
 installBundles: Install missing Python dependencies
 installBundlesWithPip: Use pip to install missing Python dependencies
 upgrades: Attempt to automatically upgrade old workflows
+showConnectionErrors: Show error when input value doesn't match type during execution
+showVariantErrors: Show error when variant input value doesn't match type during execution
+showDebugPopups: Always bring debug messages to the front
+showScrollbars: Show scrollbars on the version tree and workflow canvases
+shell.fontFace: Console Font
+shell.fontSize: Console Font Size
+maxRecentVistrails: Number of recently opened vistrails to keep
+maximizeWindows: VisTrails windows should be maximized
+multiHeads: Use multiple screens for VisTrails windows
+showSplash: Show VisTrails splash screen during startup
+migrateTags: Move tags to upgraded versions
+upgradeModuleFailPrompt: Alert when a subworkflow upgrade fails
+thumbs.autoSave: Save thumbnails of visual results
+thumbs.mouseHover: Show thumbnails when mouse is hovering above a version
+thumbs.tagsOnly: Store thumbnails only for tagged versions
 """
 
 _documentation = """
@@ -594,7 +610,7 @@ def parse_simple_docs():
     line = line_iter.next()
     for line in line_iter:
         (arg, doc) = line.strip().split(':', 1)
-        _simple_docs[arg] = doc
+        _simple_docs[arg] = doc.strip()
 
 def find_help(arg_path):
     if len(_docs) == 0:
