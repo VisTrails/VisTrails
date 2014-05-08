@@ -128,7 +128,8 @@ class MashupController(object):
             pos = 0
             for old_pos in new_order:
                 alias = self.currentMashup.alias_list[old_pos].do_copy(
-                               new_ids=True, id_scope=self.mshptrail.id_scope)
+                               new_ids=True, id_scope=self.mshptrail.id_scope,
+                               id_remap={})
                 alias.component.pos = pos
                 new_aliases.append(alias)
                 pos += 1
@@ -147,11 +148,13 @@ class MashupController(object):
             for a in self.currentMashup.alias_list:
                 if a.id != alias.id:
                     calias = a.do_copy(new_ids=True,
-                                       id_scope=self.mshptrail.id_scope)
+                                       id_scope=self.mshptrail.id_scope,
+                                       id_remap={})
                 else:
                     #print "found alias: ", a
                     calias = alias.do_copy(new_ids=True,
-                                           id_scope=self.mshptrail.id_scope)
+                                           id_scope=self.mshptrail.id_scope,
+                                           id_remap={})
                 new_aliases.append(calias)
         return self.createMashupVersion(new_aliases, quiet=False)
         
@@ -162,7 +165,8 @@ class MashupController(object):
         for alias in self.currentMashup.alias_list:
             if alias.component.vtid != param.id:
                 calias = alias.do_copy(new_ids=True,
-                                       id_scope=self.mshptrail.id_scope)
+                                       id_scope=self.mshptrail.id_scope,
+                                       id_remap={})
                 calias.component.pos = pos
                 new_aliases.append(calias)
                 pos += 1
@@ -171,7 +175,8 @@ class MashupController(object):
                 add_alias = False
                 if param.alias != '':
                     new_alias = alias.do_copy(new_ids=True,
-                                           id_scope=self.mshptrail.id_scope)
+                                              id_scope=self.mshptrail.id_scope,
+                                              id_remap={})
                     new_alias.name = param.alias
                     new_aliases.append(new_alias)
                     pos += 1
@@ -215,7 +220,8 @@ class MashupController(object):
             for a in self.currentMashup.alias_list:
                 if a.name not in pip_aliases:
                     old_a = a.do_copy(new_ids=True,
-                                      id_scope=self.mshptrail.id_scope)
+                                      id_scope=self.mshptrail.id_scope,
+                                      id_remap={})
                     new_aliases.append(old_a)
                 else:
                     new_aliases.append(a)
@@ -241,7 +247,8 @@ class MashupController(object):
             for a in self.currentMashup.alias_list:
                 if a.name in pip_aliases:
                     alias = a.do_copy(new_ids=True,
-                                      id_scope=self.mshptrail.id_scope)
+                                      id_scope=self.mshptrail.id_scope,
+                                      id_remap={})
                     alias.component.pos = pos
                     new_aliases.append(alias)
                     pos += 1
@@ -329,7 +336,9 @@ class MashupController(object):
             pos = 0
             for alias in self.currentMashup.alias_list:
                 if alias.name != name:
-                    calias = alias.do_copy(new_ids=True, id_scope=self.mshptrail.id_scope)
+                    calias = alias.do_copy(new_ids=True,
+                                           id_scope=self.mshptrail.id_scope,
+                                           id_remap={})
                     calias.component.pos = pos
                     new_aliases.append(calias)
                     pos += 1
