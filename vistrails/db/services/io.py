@@ -957,6 +957,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'thumbnail list entry must be a filename')
     # Save Mashups
+    saved_mashups = []
     #print " mashups:"
     if len(save_bundle.mashups) > 0 and not os.path.exists(mashup_dir):
         os.mkdir(mashup_dir)
@@ -965,6 +966,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
         try:
             xml_fname = os.path.join(mashup_dir, str(obj.id))
             save_mashuptrail_to_xml(obj, xml_fname)
+            saved_mashups.append(obj)
         except Exception, e:
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'when saving mashup: %s'%str(e))
@@ -1005,7 +1007,10 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     finally:
         os.unlink(tmp_zip_file)
         os.rmdir(tmp_zip_dir)
-    save_bundle = SaveBundle(save_bundle.bundle_type, save_bundle.vistrail, save_bundle.log, thumbnails=saved_thumbnails, abstractions=saved_abstractions)
+    save_bundle = SaveBundle(save_bundle.bundle_type, save_bundle.vistrail,
+                             save_bundle.log, thumbnails=saved_thumbnails,
+                             abstractions=saved_abstractions,
+                             mashups=saved_mashups)
     return (save_bundle, vt_save_dir)
 
 def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, version=None):
@@ -1029,7 +1034,10 @@ def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, versio
     save_abstractions_to_db(save_bundle.abstractions, vistrail.db_id, db_connection, do_copy)
     save_mashuptrails_to_db(save_bundle.mashups, vistrail.db_id, db_connection, do_copy)
     save_thumbnails_to_db(save_bundle.thumbnails, db_connection)
-    return SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=list(save_bundle.abstractions), thumbnails=list(save_bundle.thumbnails))
+    return SaveBundle(DBVistrail.vtType, vistrail, log,
+                      abstractions=list(save_bundle.abstractions),
+                      thumbnails=list(save_bundle.thumbnails),
+                      mashups=list(save_bundle.mashups))
 
 def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     if db_connection is None:
