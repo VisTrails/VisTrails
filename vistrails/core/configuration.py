@@ -62,6 +62,7 @@ _simple_docs = {}
 _usage_args = set()
 
 _simple_documentation = """
+autoConnect: Automatically connect dragged in modules
 autoSave: Automatically save backup vistrails every two minutes
 dbDefault: Save vistrails in a database by default
 cache: Cache previous results so they may be used in future computations
@@ -73,6 +74,37 @@ enablePackagesSilently: Automatically enable packages when needed
 installBundles: Install missing Python dependencies
 installBundlesWithPip: Use pip to install missing Python dependencies
 upgrades: Attempt to automatically upgrade old workflows
+showConnectionErrors: Show error when input value doesn't match type during execution
+showVariantErrors: Show error when variant input value doesn't match type during execution
+showDebugPopups: Always bring debug messages to the front
+showScrollbars: Show scrollbars on the version tree and workflow canvases
+shell.fontFace: Console Font
+shell.fontSize: Console Font Size
+maxRecentVistrails: Number of recent vistrails
+maximizeWindows: VisTrails windows should be maximized
+multiHeads: Use multiple screens for VisTrails windows
+showSplash: Show VisTrails splash screen during startup
+migrateTags: Move tags to upgraded versions
+upgradeModuleFailPrompt: Alert when a subworkflow upgrade fails
+thumbs.autoSave: Save thumbnails of visual results
+thumbs.mouseHover: Show thumbnails when mouse is hovering above a version
+thumbs.tagsOnly: Store thumbnails only for tagged versions
+thumbs.cacheDirectory: Thumbnail cache directory
+thumbs.cacheSize: Thumbnail cache size (MB)
+singleInstance: Do not allow more than one instance of VisTrails to run at once
+staticRegistry: XML registry file
+dotVistrails: User configuration directory
+subworkflowsDirectory: Local subworkflows directory
+dataDirectory: Default data directory
+packageDirectory: System packages directory
+userPackageDirectory: Local packages directory
+logDirectory: Log files directory
+fileDirectory: Default vistrail directory
+temporaryDirectory: Temporary files directory
+webRepositoryURL: Web repository URL
+webRepositoryUser: Web repository username
+repositoryLocalPath: Local package repository directory
+repositoryHTTPURL: Remote package repository URL
 """
 
 _documentation = """
@@ -503,8 +535,7 @@ base_config = {
                  widget_options={"allowed_values": ["appropriate",
                                                     "history",
                                                     "pipeline"],
-                                 "label": "When loading a vistrail, " \
-                                      "the default view shown is:",
+                                 "label": "Default view after loading vistrail:",
                                  "remap": {"appropriate": "Most Appropriate",
                                            "history": "Always History",
                                            "pipeline": "Always Pipeline"}})],
@@ -512,11 +543,11 @@ base_config = {
     [ConfigFieldParent('thumbs', 
         [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
          # FIXME add clear button for cache in preferences dialog!
+         ConfigField('mouseHover', False, bool, ConfigType.ON_OFF),
+         ConfigField('tagsOnly', False, bool, ConfigType.ON_OFF),
          ConfigField('cacheDirectory', os.path.join("$DOT_VISTRAILS", "thumbs"),
                      ConfigPath, ConfigType.NORMAL),
-         ConfigField('cacheSize', 20, int),
-         ConfigField('mouseHover', False, bool, ConfigType.ON_OFF),
-         ConfigField('tagsOnly', False, bool, ConfigType.ON_OFF)])],
+         ConfigField('cacheSize', 20, int)])],
     "Packages":
     [ConfigField('enablePackagesSilently', False, bool, ConfigType.ON_OFF),
      ConfigField('installBundles', True, bool, ConfigType.ON_OFF),
@@ -532,19 +563,18 @@ base_config = {
                  os.path.join("$DOT_VISTRAILS", "subworkflows"), ConfigPath),
      ConfigField('dataDirectory', None, ConfigPath),
      ConfigField('packageDirectory', None, ConfigPath),
+     ConfigField('userPackageDirectory', 
+                 os.path.join("$DOT_VISTRAILS", "userpackages"), ConfigPath),
      ConfigField('fileDirectory', None, ConfigPath),
      ConfigField('logDirectory', os.path.join("$DOT_VISTRAILS", "logs"), 
                  ConfigPath),
-     ConfigField('rootDirectory', None, ConfigPath),
-     ConfigField('temporaryDirectory', None,  ConfigPath),
-     ConfigField('userPackageDirectory', 
-                 os.path.join("$DOT_VISTRAILS", "userpackages"), ConfigPath)],
+     ConfigField('temporaryDirectory', None,  ConfigPath)],
     "Advanced":
     [ConfigField('singleInstance', True, bool, ConfigType.ON_OFF),
      ConfigField('staticRegistry', None, ConfigPath)],
     "Web Sharing":
-    [ConfigField('webRepositoryUser', None, str),
-     ConfigField('webRepositoryURL', "http://www.crowdlabs.org", ConfigURL)],
+    [ConfigField('webRepositoryURL', "http://www.crowdlabs.org", ConfigURL),
+     ConfigField('webRepositoryUser', None, str)],
     "Internal":
     [ConfigField('recentVistrailList', None, str, ConfigType.STORAGE),
      ConfigField('runningJobsList', None, str, ConfigType.STORAGE),
@@ -552,9 +582,7 @@ base_config = {
      ConfigField('isRunningGUI', True, bool, ConfigType.INTERNAL),
      ConfigField('handlerDontAsk', False, bool, ConfigType.INTERNAL),
      ConfigField('spawned', False, bool, ConfigType.INTERNAL),
-     ConfigFieldParent('outputSettings', 
-        [ConfigFieldParent('overrides', [])])],
-    
+     ConfigField('rootDirectory', None, ConfigPath, ConfigType.INTERNAL)],
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),
@@ -622,7 +650,7 @@ def parse_simple_docs():
     line = line_iter.next()
     for line in line_iter:
         (arg, doc) = line.strip().split(':', 1)
-        _simple_docs[arg] = doc
+        _simple_docs[arg] = doc.strip()
 
 def find_help(arg_path):
     if len(_docs) == 0:
@@ -1064,19 +1092,25 @@ class ConfigurationObject(DBConfiguration):
         else:
             if name in self.db_config_keys_name_index:
                 config_key = self.db_config_keys_name_index[name]
-                config_key.value = value
+                if value is None:
+                    self.db_delete_config_key(config_key)
+                    self._unset_keys[name] = (None, type(config_key.value))
+                else:
+                    config_key.value = value
             else:
                 if name not in self._unset_keys:
                     self._unset_keys[name] = (None, type(value))
                     # raise AttributeError('Key "%s" was not defined when '
                     #                      'ConfigurationObject was created' % 
                     #                      name)
-                if not self.matches_type(value, self._unset_keys[name][1]):
+                if (value is not None and 
+                      not self.matches_type(value, self._unset_keys[name][1])):
                     raise TypeError('Value "%s" does match type "%s" for "%s"' %
                                     (value, self._unset_keys[name][1], name))
-                del self._unset_keys[name]
-                config_key = ConfigKey(name=name, value=value)
-                self.db_add_config_key(config_key)
+                if value is not None:
+                    del self._unset_keys[name]
+                    config_key = ConfigKey(name=name, value=value)
+                    self.db_add_config_key(config_key)
             if name in self.__subscribers__:
                 to_remove = []
                 for subscriber in self.__subscribers__[name]:
@@ -1139,6 +1173,13 @@ class ConfigurationObject(DBConfiguration):
             return self._unset_keys[key]
         config_key = self.db_config_keys_name_index[key]
         return config_key.value
+
+    def is_unset(self, keys_str):
+        keys = keys_str.split('.')
+        config = self
+        for key in keys[:-1]:
+            config = config.get(key)
+        return keys[-1] in config._unset_keys
 
     def get_deep_value(self, keys_str):
         # keys_str is something like "thmbs.cacheDirectory"
