@@ -244,6 +244,129 @@ class QConfigurationWidget(QtGui.QWidget):
     def configuration_changed(self, persistent_config, temp_config):
         self._tree.treeWidget.create_tree(persistent_config, temp_config)
 
+class QConfigurationWidgetItem(object):
+    def __init__(self, key, field, callback_f):
+        self.key = key
+        self.field = field
+        self.change_callback_f = callback_f
+        self._desc = None
+
+    def get_desc(self):
+        if self._desc is not None:
+            return self._desc
+
+        options = self.get_widget_options()
+        if "label" in options:
+            return options["label"]
+        return ""
+
+    def set_desc(self, desc=None):
+        self._desc = desc
+
+    def get_label_text(self):
+        return self.get_desc()
+
+    def set_value(self, value):
+        raise NotImplementedError("Subclass needs to implement this method")
+
+    def value_changed(self, value):
+        self.change_callback_f(self, self.key, self.field, value)
+
+    def get_widget_options(self):
+        options = {}
+        if self.field.widget_options is not None:
+            options = self.field.widget_options
+        return options
+
+class QConfigurationCheckBox(QtGui.QCheckBox, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, parent=None):
+        QtGui.QCheckBox.__init__(self, parent)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+        self.setText(self.get_desc())
+        self.toggled.connect(self.value_changed)
+
+    def set_value(self, value):
+        self.setChecked(value)
+
+    def get_label_text(self):
+        return ""
+
+class QConfigurationLineEdit(QtGui.QLineEdit, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, parent=None):
+        QtGui.QLineEdit.__init__(self, parent)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+        self.setMinimumWidth(200)
+        self.editingFinished.connect(self.value_changed)
+
+    def value_changed(self):
+        QConfigurationWidgetItem.value_changed(self, self.text())
+
+    def set_value(self, value):
+        if value is None:
+            value = ""
+        self.setText(unicode(value))
+
+class QConfigurationPathEdit(QtGui.QWidget, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f,
+                 button_cls=QDirectoryChooserToolButton,
+                 parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+
+        layout = QtGui.QHBoxLayout()
+        layout.setMargin(0)
+        layout.setSpacing(5)
+
+        self.line_edit = QtGui.QLineEdit()
+        self.line_edit.setMinimumWidth(200)
+        layout.addWidget(self.line_edit)
+
+        button = button_cls(self, self.line_edit)
+        layout.addWidget(button)
+        self.setLayout(layout)
+
+        self.line_edit.editingFinished.connect(self.value_changed)
+
+    def value_changed(self):
+        QConfigurationWidgetItem.value_changed(self, self.line_edit.text())
+
+    def set_value(self, value):
+        if value is None:
+            value = ""
+        self.line_edit.setText(unicode(value))
+
+class QConfigurationComboBox(QtGui.QComboBox, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, parent=None):
+        QtGui.QComboBox.__init__(self, parent)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+
+        inv_remap = None
+        options = self.get_widget_options()
+        if "allowed_values" in options:
+            values = options["allowed_values"]
+            if "remap" in options:
+                remap = options["remap"]
+                inv_remap = dict((v, k) for (k, v) in remap.iteritems())
+                entries = [remap[v] for v in values]
+            else:
+                entries = values
+            for entry in entries:
+                self.addItem(entry)
+
+        self.currentIndexChanged[unicode].connect(self.value_changed)
+
+    def set_value(self, value):
+        options = self.get_widget_options()
+        if value is not None and "allowed_values" in options:
+            if "remap" in options:
+                remap = options["remap"]
+                cur_text = remap[value]
+            else:
+                cur_text = value
+            self.setCurrentIndex(self.findText(cur_text))
+        else:
+            self.setCurrentIndex(-1)
+
 class QConfigurationPane(QtGui.QWidget):
     def __init__(self, parent, persistent_config, temp_config, cat_fields):
         QtGui.QWidget.__init__(self, parent)
@@ -400,134 +523,32 @@ class QConfigurationPane(QtGui.QWidget):
             else:
                 widget_type = "lineedit"
 
-        label_text = ""
-        if widget_type != 'checkbox':
-            options = {}
-            if field.widget_options is not None:
-                options = field.widget_options
-            if "label" in options:
-                label_text = options["label"]
-            else:
-                label_text = config_desc + ":"
+        if widget_type == "combo":
+            widget = QConfigurationComboBox(config_key, field,
+                                            self.field_changed)
+        elif widget_type == "lineedit":
+            widget = QConfigurationLineEdit(config_key, field,
+                                            self.field_changed)
+        elif widget_type == "pathedit":
+            widget = QConfigurationPathEdit(config_key, field,
+                                            self.field_changed)
         else:
-            if category != "":
-                label_text = category + ":"
-        if label_text is not None:
+            config_val = bool(config_val)
+            widget = QConfigurationCheckBox(config_key, field,
+                                            self.field_changed)
+        widget.set_value(config_val)
+
+        label_text = widget.get_label_text()
+        if not label_text and category:
+            label_text = category
+        if label_text:
             label = QtGui.QLabel(label_text)
             label_layout.addWidget(label)
 
-        if widget_type == "combo":
-            widget = self.add_combo(field, config_key, config_desc,
-                                    config_val)
-        elif widget_type == "lineedit":
-            widget = self.add_line_edit(field, config_key, config_desc,
-                                        config_val)
-        elif widget_type == "pathedit":
-            widget = self.add_path_edit(field, config_key, config_desc,
-                                        config_val)
-        else:
-            config_val = bool(config_val)
-            widget = self.add_checkbox(field, config_key, config_desc,
-                                       config_val)
         base_layout.addRow(label_widget, widget)
         self._field_layouts[config_key] = (base_layout, base_layout.rowCount())
 
-    def add_signals(self, config_key, field):
-        def call_field_changed(val):
-            self.field_changed(config_key, field, val)
-        self.connect(cb, QtCore.SIGNAL("toggled(bool)"),
-                     call_field_changed)
-
-    def add_checkbox(self, field, config_key, config_desc, config_val):
-        cb = QtGui.QCheckBox(config_desc)
-        cb.setChecked(config_val)
-
-        def call_field_changed(val):
-            self.field_changed(config_key, field, val)
-        cb.toggled.connect(call_field_changed)
-        return cb
-
-    def add_line_edit(self, field, config_key, config_desc, config_val):
-        options = {}
-        if field.widget_options is not None:
-            options = field.widget_options
-
-        line_edit = QtGui.QLineEdit()
-        line_edit.setMinimumWidth(200)
-        if config_val is None:
-            config_val = ""
-        line_edit.setText(unicode(config_val))
-
-        def call_field_changed(val):
-            if val.strip() == "":
-                val = None
-            self.field_changed(config_key, field, val)
-        line_edit.textEdited.connect(call_field_changed)
-        return line_edit
-
-    def add_path_edit(self, field, config_key, config_desc, config_val):
-        options = {}
-        if field.widget_options is not None:
-            options = field.widget_options
-
-        path_edit = QtGui.QWidget()
-        sub_layout = QtGui.QHBoxLayout()
-        sub_layout.setMargin(0)
-        sub_layout.setSpacing(5)
-        
-        line_edit = QtGui.QLineEdit()
-        line_edit.setMinimumWidth(200)
-        if config_val is None:
-            config_val = ""
-        line_edit.setText(unicode(config_val))
-        sub_layout.addWidget(line_edit)
-
-        # if field.val_type == ConfigPath:
-        #     button_cls = QDirectoryChooserToolButton
-        # else:
-        button_cls = QDirectoryChooserToolButton
-        button = button_cls(self, line_edit)
-        # button.pathChanged.connect(self.field_changed)
-        sub_layout.addWidget(button)
-        path_edit.setLayout(sub_layout)
-        path_edit.line_edit = line_edit
-
-        def call_field_changed(val):
-            if val.strip() == "":
-                val = None
-            self.field_changed(config_key, field, val)
-        line_edit.textEdited.connect(call_field_changed)
-        return path_edit
-
-    def add_combo(self, field, config_key, config_desc, config_val):
-        options = {}
-        if field.widget_options is not None:
-            options = field.widget_options
-
-        combo = QtGui.QComboBox()
-        inv_remap = None
-        if "allowed_values" in options:
-            values = options["allowed_values"]
-            if "remap" in options:
-                remap = options["remap"]
-                inv_remap = dict((v, k) for (k, v) in remap.iteritems())
-                entries = [remap[v] for v in values]
-                cur_text = remap[config_val]
-            else:
-                entries = values
-                cur_text = config_val
-            for entry in entries:
-                combo.addItem(entry)
-            combo.setCurrentIndex(combo.findText(cur_text))
-
-        def call_field_changed(val):
-            if inv_remap is not None:
-                val = inv_remap[val]
-            self.field_changed(config_key, field, val)
-        combo.currentIndexChanged[unicode].connect(call_field_changed)
-        return combo
-
-    def field_changed(self, config_key, field, val):
+    def field_changed(self, widget, config_key, field, val):
         config_val = self._configuration.get_deep_value(config_key)
         if config_val != self._temp_configuration.get_deep_value(config_key):
             retval = QtGui.QMessageBox.question(
@@ -539,6 +560,9 @@ class QConfigurationPane(QtGui.QWidget):
                 QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Ok,
                 QtGui.QMessageBox.Ok)
             if retval != QtGui.QMessageBox.Ok:
+                # revert widget's value
+                widget.set_value(self._temp_configuration.get_deep_value(
+                    config_key))
                 return
             # need to update hbox to reflect change...
             form_layout, row = self._field_layouts[config_key]

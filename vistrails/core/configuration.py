@@ -442,7 +442,10 @@ class ConfigField(object):
         self.flag = flag
         self.nargs = nargs
         self.widget_type = widget_type
-        self.widget_options = widget_options
+        if widget_options is not None:
+            self.widget_options = widget_options
+        else:
+            self.widget_options = {}
         self.depends_on = depends_on
 
 class ConfigFieldParent(object):
@@ -643,6 +646,20 @@ def find_simpledoc(arg_path):
         return _simple_docs[arg_path]
     return find_help(arg_path)
     
+def set_field_labels(fields, prefix=""):
+    for field in fields:
+        if isinstance(field, ConfigFieldParent):
+            prefix = "%s%s." % (prefix, field.name)
+            set_field_labels(field.sub_fields, prefix=prefix)
+        else:
+            full_field_name = "%s%s" % (prefix, field.name)
+            label = find_simpledoc(full_field_name)
+            if label is not None and 'label' not in field.widget_options:
+                field.widget_options['label'] = label
+
+for field_list in base_config.itervalues():
+    set_field_labels(field_list)
+
 class VisTrailsHelpFormatter(argparse.HelpFormatter):
     def add_usage(self, usage, actions, groups, prefix=None):
         new_actions = []
