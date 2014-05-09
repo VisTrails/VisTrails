@@ -512,10 +512,11 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             load_vistrail(updated_locator)
 
                     # FIXME need to figure out what to do with this !!!
+                    current_version = controller.current_version
                     controller.set_vistrail(up_vistrail,
                                             controller.vistrail.locator,
                                             abstractions, thumbnails, mashups)
-
+                    controller.change_selected_version(current_version)
                     # update version tree drawing
                     controller.recompute_terse_graph()
                     controller.invalidate_version_tree()
