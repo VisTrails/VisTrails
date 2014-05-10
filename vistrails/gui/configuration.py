@@ -306,10 +306,8 @@ class QConfigurationLineEdit(QtGui.QLineEdit, QConfigurationWidgetItem):
             value = ""
         self.setText(unicode(value))
 
-class QConfigurationPathEdit(QtGui.QWidget, QConfigurationWidgetItem):
-    def __init__(self, key, field, callback_f,
-                 button_cls=QDirectoryChooserToolButton,
-                 parent=None):
+class QConfigurationLineEditButton(QtGui.QWidget, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, button, parent=None):
         QtGui.QWidget.__init__(self, parent)
         QConfigurationWidgetItem.__init__(self, key, field, callback_f)
 
@@ -321,11 +319,14 @@ class QConfigurationPathEdit(QtGui.QWidget, QConfigurationWidgetItem):
         self.line_edit.setMinimumWidth(200)
         layout.addWidget(self.line_edit)
 
-        button = button_cls(self, self.line_edit)
-        layout.addWidget(button)
+        if button is not None:
+            layout.addWidget(button)
         self.setLayout(layout)
 
         self.line_edit.editingFinished.connect(self.value_changed)
+
+    def add_button(self, button):
+        self.layout().addWidget(button)
 
     def value_changed(self):
         QConfigurationWidgetItem.value_changed(self, self.line_edit.text())
@@ -334,6 +335,83 @@ class QConfigurationPathEdit(QtGui.QWidget, QConfigurationWidgetItem):
         if value is None:
             value = ""
         self.line_edit.setText(unicode(value))
+
+class QConfigurationPathEdit(QConfigurationLineEditButton):
+    def __init__(self, key, field, callback_f, 
+                 button_cls=QDirectoryChooserToolButton, parent=None):
+        QConfigurationLineEditButton.__init__(self, key, field, callback_f,
+                                              None, parent)
+        button = button_cls(self, self.line_edit)
+        self.add_button(button)
+
+class QConfigurationThumbnailCache(QConfigurationLineEditButton):
+    def __init__(self, key, field, callback_f, parent=None):
+        button = QtGui.QPushButton("Clear...")
+        button.setAutoDefault(False)
+        button.clicked.connect(self.clear_clicked)
+        QConfigurationLineEditButton.__init__(self, key, field, callback_f, 
+                                              button, parent)
+
+    def clear_clicked(self, checked=False):
+        cache_dir = get_vistrails_configuration().thumbs.cacheDirectory
+        res = show_question('VisTrails',
+                            ("All files in %s will be removed. "
+                             "Are you sure? " % cache_dir),
+                            buttons = [YES_BUTTON,NO_BUTTON],
+                            default = NO_BUTTON)
+        if res == YES_BUTTON:
+            ThumbnailCache.getInstance().clear()
+
+class QConfigurationLabelButton(QtGui.QWidget, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, label=None, button=None, 
+                 parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+
+        layout = QtGui.QHBoxLayout()
+        layout.setMargin(0)
+        layout.setSpacing(5)
+
+        if label is not None:
+            self.label = label
+            layout.addWidget(self.label)
+
+        if button is not None:
+            self.button = button
+            layout.addWidget(self.button)
+        self.setLayout(layout)
+
+    def add_button(self, button):
+        self.button = button
+        self.layout().addWidget(self.button)
+
+    def add_label(self, label):
+        self.label = label
+        self.layout().insertWidget(0, self.label)
+
+    def set_value(self, value):
+        # nothing to do here
+        pass
+
+class QConfigurationLinuxHandler(QConfigurationLabelButton):
+    def __init__(self, key, field, callback_f, parent=None):
+        from vistrails.gui.application import linux_default_application_set
+        if linux_default_application_set():
+            label = QtGui.QLabel(".vt, .vtl handlers installed")
+            button = None
+        else:
+            label = QtGui.QLabel(".vt, .vtl handlers not installed")
+        button = QtGui.QPushButton("Install...")
+        button.setAutoDefault(False)
+        button.clicked.connect(self.install_clicked)
+        QConfigurationLabelButton.__init__(self, key, field, callback_f, 
+                                           label, button, parent)
+
+    def install_clicked(self, checked=False):
+        from vistrails.core.application import get_vistrails_application
+        app = get_vistrails_application()
+        if app.ask_update_default_application(False):
+            self.label.setText(".vt, .vtl handlers installed")
 
 class QConfigurationComboBox(QtGui.QComboBox, QConfigurationWidgetItem):
     def __init__(self, key, field, callback_f, parent=None):
@@ -353,16 +431,20 @@ class QConfigurationComboBox(QtGui.QComboBox, QConfigurationWidgetItem):
             for entry in entries:
                 self.addItem(entry)
 
-        self.currentIndexChanged[unicode].connect(self.value_changed)
+        self.currentIndexChanged[int].connect(self.value_changed)
 
     def set_value(self, value):
         options = self.get_widget_options()
+        print "SETTING VALUE:", value
         if value is not None and "allowed_values" in options:
             if "remap" in options:
                 remap = options["remap"]
                 cur_text = remap[value]
+                print "USING REMAP:", remap
             else:
+                print "NO REMAP"
                 cur_text = value
+            print "CUR TEXT:", value
             self.setCurrentIndex(self.findText(cur_text))
         else:
             self.setCurrentIndex(-1)
@@ -388,68 +470,6 @@ class QConfigurationPane(QtGui.QWidget):
             spacer_layout.addSpacing(15)
             spacer_widget.setLayout(spacer_layout)
             layout.addRow("", spacer_widget)
-
-        self.create_default_handler_button(self, layout)
-
-    def create_default_handler_button(self, parent, layout):
-        if vistrails.core.system.systemType == 'Linux':
-            from vistrails.gui.application import linux_default_application_set
-            from vistrails.core.application import get_vistrails_application
-
-            group = QtGui.QGroupBox(u"Open .vt .vtl files with VisTrails")
-            layout.addWidget(group)
-            layout2 = QtGui.QHBoxLayout()
-            group.setLayout(layout2)
-
-            if linux_default_application_set():
-                label = u".vt .vtl has a handler set"
-            else:
-                label = u".vt .vtl has no handler"
-            self._handler_status = QtGui.QLabel(label)
-
-            def set_dont_ask(state):
-                self._configuration.handlerDontAsk = bool(state)
-                self._temp_configuration.handlerDontAsk = bool(state)
-                self.emit(QtCore.SIGNAL('configuration_changed'),
-                        'handlerDontAsk', bool(state))
-            self._handler_dont_ask = QtGui.QCheckBox(u"Don't ask at startup")
-            self.connect(self._handler_dont_ask,
-                         QtCore.SIGNAL('stateChanged(int)'),
-                         set_dont_ask)
-
-            def install():
-                app = get_vistrails_application()
-                if app.ask_update_default_application(False):
-                    self._handler_status.setText(u".vt .vtl has a handler set")
-            install_button = QtGui.QPushButton(u"Install handler")
-            self.connect(install_button, QtCore.SIGNAL('clicked()'),
-                         install)
-
-            layout2.addWidget(self._handler_status)
-            layout2.addWidget(self._handler_dont_ask)
-            layout2.addWidget(install_button)
-
-    def update_state(self, persistent_config, temp_config):
-        """ update_state(configuration: VistrailConfiguration) -> None
-        
-        Update the dialog state based on a new configuration
-        """
-        
-        self._configuration = persistent_config
-        self._temp_configuration = temp_config
-
-        #Default handler
-        if vistrails.core.system.systemType == 'Linux':
-            from vistrails.gui.application import \
-                linux_default_application_set, linux_update_default_application
-
-            if linux_default_application_set():
-                self._handler_status.setText(u".vt .vtl has a handler set")
-            else:
-                self._handler_status.setText(u".vt .vtl has no handler")
-
-            self._handler_dont_ask.setChecked(
-                    self._configuration.check('handlerDontAsk'))
 
     def process_fields(self, layout, fields, category, parent_fields=[], 
                        prev_field=None, prefix=""):
@@ -532,6 +552,12 @@ class QConfigurationPane(QtGui.QWidget):
         elif widget_type == "pathedit":
             widget = QConfigurationPathEdit(config_key, field,
                                             self.field_changed)
+        elif widget_type == "thumbnailcache":
+            widget = QConfigurationThumbnailCache(config_key, field,
+                                                  self.field_changed)
+        elif widget_type == "linuxext":
+            widget = QConfigurationLinuxHandler(config_key, field,
+                                                self.field_changed)
         else:
             config_val = bool(config_val)
             widget = QConfigurationCheckBox(config_key, field,
@@ -542,7 +568,7 @@ class QConfigurationPane(QtGui.QWidget):
         if not label_text and category:
             label_text = category
         if label_text:
-            label = QtGui.QLabel(label_text)
+            label = QtGui.QLabel(label_text + ":")
             label_layout.addWidget(label)
 
         base_layout.addRow(label_widget, widget)
@@ -609,17 +635,4 @@ class QThumbnailConfiguration(QtGui.QWidget):
         else:
             show_warning('VisTrails', 'The directory specified does not exist.')
             self._thumbs_cache_directory_edt.setText(old_folder)
-                        
-    def clear_thumbs_cache_pressed(self):
-        """clear_thumbs_cache_pressed() -> None
-        Will delete all files in thumbs.cacheDirectory if user clicks yes
-        
-        """
-        res = show_question('VisTrails',
-                  "All files in %s will be removed. Are you sure? " % (
-                            self._temp_configuration.thumbs.cacheDirectory),
-                  buttons = [YES_BUTTON,NO_BUTTON],
-                  default = NO_BUTTON)
-        if res == YES_BUTTON:
-            self._cache.clear()
- 
+
