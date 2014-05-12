@@ -1764,7 +1764,10 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
         msg = "Need to call open_db_connection() before reading"
         raise VistrailsDBException(msg)
 
-    old_ids = get_db_mashuptrail_ids_from_vistrail(db_connection, vt_id)
+    # for now we replace all mashups
+    for old_id in get_db_mashuptrail_ids_from_vistrail(db_connection, vt_id):
+        delete_entity_from_db(db_connection, Mashuptrail.vtType, old_id)
+
     for mashuptrail in mashuptrails:
         try: 
             id_key = '__mashuptrail_vistrail_id__'
@@ -1776,9 +1779,6 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
                 annotation=DBAnnotation(mashuptrail.id_scope.getNewId(DBAnnotation.vtType),
                                         id_key, id_value)
                 mashuptrail.db_add_annotation(annotation)
-
-            if mashuptrail.db_id in old_ids:
-                delete_entity_from_db(db_connection, mashuptrail.vtType, mashuptrail.db_id)
 
             # add vt_id to mashups
             for action in mashuptrail.db_actions:
