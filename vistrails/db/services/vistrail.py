@@ -208,6 +208,10 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
     MergeGUI = merge_gui.MergeGUI if merge_gui else False
     skip = 0
 
+    # right now we just replace mashups and subworkflows
+    sb.mashups = list(next_sb.mashups)
+    sb.abstractions = list(next_sb.abstractions)
+
     id_remap = {}
 
     checkout_key = "__checkout_version_"

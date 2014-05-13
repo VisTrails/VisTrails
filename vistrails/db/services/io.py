@@ -1593,7 +1593,7 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
     prepared_statement = format_prepared_statement(
     """
     SELECT a.value
-    FROM annotation a
+    FROM action_annotation a
     WHERE a.akey = '__thumb__' AND a.entity_id = ? AND a.entity_type = ?
     """)
     try:
@@ -1605,7 +1605,6 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
         msg = "Couldn't get thumbnails list from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
-
     # Next get all thumbnails from the db that aren't already in tmp_dir
     get_db_file_names = [fname for fname in file_names if fname not in os.listdir(tmp_dir)]
     for file_name in get_db_file_names:
