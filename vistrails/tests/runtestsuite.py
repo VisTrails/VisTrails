@@ -186,7 +186,7 @@ dotVistrails = options.dotVistrails
 test_modules = None
 if len(args) > 0:
     test_modules = args
-else:
+elif os.path.exists(EXAMPLES_PATH):
     test_images = True
 
 def module_filter(name):
