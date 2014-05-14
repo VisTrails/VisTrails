@@ -162,6 +162,9 @@ class SaveBundle(object):
         
         for t in self.thumbnails:
             cp.thumbnails.append(t)
+
+        for m in self.mashups:
+            cp.mashups.append(m)
         
         return cp
 
@@ -955,6 +958,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'thumbnail list entry must be a filename')
     # Save Mashups
+    saved_mashups = []
     #print " mashups:"
     if len(save_bundle.mashups) > 0 and not os.path.exists(mashup_dir):
         os.mkdir(mashup_dir)
@@ -963,6 +967,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
         try:
             xml_fname = os.path.join(mashup_dir, str(obj.id))
             save_mashuptrail_to_xml(obj, xml_fname)
+            saved_mashups.append(obj)
         except Exception, e:
             raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                        'when saving mashup: %s'%str(e))
@@ -1001,7 +1006,10 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     finally:
         os.unlink(tmp_zip_file)
         os.rmdir(tmp_zip_dir)
-    save_bundle = SaveBundle(save_bundle.bundle_type, save_bundle.vistrail, save_bundle.log, thumbnails=saved_thumbnails, abstractions=saved_abstractions)
+    save_bundle = SaveBundle(save_bundle.bundle_type, save_bundle.vistrail,
+                             save_bundle.log, thumbnails=saved_thumbnails,
+                             abstractions=saved_abstractions,
+                             mashups=saved_mashups)
     return (save_bundle, vt_save_dir)
 
 def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, version=None):
@@ -1025,7 +1033,10 @@ def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, versio
     save_abstractions_to_db(save_bundle.abstractions, vistrail.db_id, db_connection, do_copy)
     save_mashuptrails_to_db(save_bundle.mashups, vistrail.db_id, db_connection, do_copy)
     save_thumbnails_to_db(save_bundle.thumbnails, db_connection)
-    return SaveBundle(DBVistrail.vtType, vistrail, log, abstractions=list(save_bundle.abstractions), thumbnails=list(save_bundle.thumbnails))
+    return SaveBundle(DBVistrail.vtType, vistrail, log,
+                      abstractions=list(save_bundle.abstractions),
+                      thumbnails=list(save_bundle.thumbnails),
+                      mashups=list(save_bundle.mashups))
 
 def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     if db_connection is None:
@@ -1581,7 +1592,7 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
     prepared_statement = format_prepared_statement(
     """
     SELECT a.value
-    FROM annotation a
+    FROM action_annotation a
     WHERE a.akey = '__thumb__' AND a.entity_id = ? AND a.entity_type = ?
     """)
     try:
@@ -1593,7 +1604,6 @@ def open_thumbnails_from_db(db_connection, obj_type, obj_id, tmp_dir=None):
         msg = "Couldn't get thumbnails list from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
-
     # Next get all thumbnails from the db that aren't already in tmp_dir
     get_db_file_names = [fname for fname in file_names if fname not in os.listdir(tmp_dir)]
     for file_name in get_db_file_names:
@@ -1752,7 +1762,10 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
         msg = "Need to call open_db_connection() before reading"
         raise VistrailsDBException(msg)
 
-    old_ids = get_db_mashuptrail_ids_from_vistrail(db_connection, vt_id)
+    # for now we replace all mashups
+    for old_id in get_db_mashuptrail_ids_from_vistrail(db_connection, vt_id):
+        delete_entity_from_db(db_connection, Mashuptrail.vtType, old_id)
+
     for mashuptrail in mashuptrails:
         try: 
             id_key = '__mashuptrail_vistrail_id__'
@@ -1764,9 +1777,6 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
                 annotation=DBAnnotation(mashuptrail.id_scope.getNewId(DBAnnotation.vtType),
                                         id_key, id_value)
                 mashuptrail.db_add_annotation(annotation)
-
-            if mashuptrail.db_id in old_ids:
-                delete_entity_from_db(db_connection, mashuptrail.vtType, mashuptrail.db_id)
 
             # add vt_id to mashups
             for action in mashuptrail.db_actions:

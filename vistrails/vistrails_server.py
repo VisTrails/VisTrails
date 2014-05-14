@@ -71,7 +71,7 @@ if __name__ == '__main__':
     try:
         optionsDict = {
             'interactiveMode': False,
-            'enablePackagesSilently': True,
+            'enablePackagesSilently': False,
             'handlerDontAsk': True,
         }
         v = vistrails.gui.application_server.start_server(optionsDict)

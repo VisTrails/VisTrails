@@ -72,6 +72,7 @@ from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry as module_registry
 from vistrails.core import interpreter
 from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.thumbnails import ThumbnailCache
 import vistrails.db.services.io
 import gc
 
@@ -221,6 +222,51 @@ class RequestHandler(object):
             else:
                 result = "Pipeline was not materialized"
                 self.server_logger.error(str(result))
+        except xmlrpclib.ProtocolError, err:
+            err_msg = ("A protocol error occurred\n"
+                       "URL: %s\n"
+                       "HTTP/HTTPS headers: %s\n"
+                       "Error code: %d\n"
+                       "Error message: %s\n") % (err.url, err.headers,
+                                                 err.errcode, err.errmsg)
+            self.server_logger.error(err_msg)
+            return (str(err), 0)
+        except Exception, e:
+            result = str(e)
+            self.server_logger.error(result)
+            self.server_logger.error(traceback.format_exc())
+        return (result, 0)
+
+    def get_wf_mashups(self, host, port, db_name, vt_id, version):
+        """get_wf_mashups(host:str, port:int, db_name:str, vt_id:int,
+                          version:int) -> (return_status, list of dict)
+           Returns a list of mashups in a workflow
+           in a list of dictionaries. The dictionary has the following keys:
+           name, package, documentation.
+        """
+        self.server_logger.info("Request: get_wf_mashups(%s,%s,%s,%s,%s)" % \
+                                (host, port, db_name, vt_id, version))
+        result = []
+        try:
+            locator = DBLocator(host=host,
+                                port=int(port),
+                                database=db_name,
+                                user=db_read_user,
+                                passwd=db_read_pass,
+                                obj_id=int(vt_id),
+                                obj_type=None,
+                                connection_id=None)
+            (vistrail, abstractions, thumbnails, mashups) = \
+                                                      io.load_vistrail(locator)
+            for mashuptrail in mashups:
+                # Find tagged mashups for this version
+                if mashuptrail.vtVersion == version:
+                    for name, mashup_id in mashuptrail.getTagMap().iteritems():
+                        if name != 'ROOT':
+                            mashup = MedleySimpleGUI.from_mashup(
+                                                 mashuptrail.getMashup(mashup_id))
+                            result.append([name, ElementTree.tostring(mashup.to_xml())])
+            return (result, 1)
         except xmlrpclib.ProtocolError, err:
             err_msg = ("A protocol error occurred\n"
                        "URL: %s\n"
@@ -391,7 +437,7 @@ class RequestHandler(object):
         """
         try:
             if is_local:
-                locator = ZIPFileLocator(vt_filepath).load()
+                bundle = ZIPFileLocator(vt_filepath).load()
             else:
                 # vt_filepath contains vt file datastream
                 # write to tmp file, read into FileLocator
@@ -403,19 +449,19 @@ class RequestHandler(object):
                     vt_file = open(fname, "wb")
                     vt_file.write(vt_filepath.data)
                     vt_file.close()
-                    locator = ZIPFileLocator(fname).load()
+                    bundle = ZIPFileLocator(fname).load()
                 finally:
                     os.unlink(fname)
 
             # set some crowdlabs id info
             if repository_vt_id != -1:
-                vistrail = locator.vistrail
+                vistrail = bundle.vistrail
                 vistrail.set_annotation('repository_vt_id', repository_vt_id)
                 vistrail.set_annotation('repository_creator', repository_creator)
 
             db_locator = DBLocator(host=host, port=int(port), database=db_name,
                                    name=filename, user=db_write_user, passwd=db_write_pass)
-            db_locator.save_as(locator)
+            db_locator.save_as(bundle)
             return (db_locator.obj_id, 1)
 
         except xmlrpclib.ProtocolError, err:
@@ -460,6 +506,8 @@ class RequestHandler(object):
                 new_locator = ZIPFileLocator(tmp_file)
 
             new_bundle = new_locator.load()
+            # add thumbnails to cache
+            ThumbnailCache.getInstance()._copy_thumbnails(new_bundle.thumbnails)
             new_locator.save(new_bundle)
             old_db_locator = DBLocator(host=host, port=int(port), database=db_name,
                                        obj_id=int(old_db_vt_id), user=db_write_user, passwd=db_write_pass)
@@ -723,6 +771,7 @@ class RequestHandler(object):
                                         obj_type=None,
                                         connection_id=None)
 
+                    extra_info['mashup_id'] = medley._id
                     workflow = medley._version
                     sequence = False
                     for (k,v) in medley._alias_list.iteritems():
@@ -751,6 +800,7 @@ class RequestHandler(object):
                                       vistrails.core.console_mode.run_and_get_results( \
                                                     [(locator,int(workflow))],
                                                     s_alias,
+                                                    update_vistrail=False,
                                                     extra_info=extra_info)
                                     self.server_logger.info("Memory usage: %s"% self.memory_usage())
                                     interpreter.cached.CachedInterpreter.flush()
@@ -844,7 +894,8 @@ class RequestHandler(object):
                     for f in file_names:
                         sub.append(os.path.join(root[root.find(subdir):],
                                               f))
-                    s.append(";".join(sub))
+                    if len(sub):
+                        s.append(";".join(sub))
                 result = ":::".join(s)
                 # FIXME: copy images to extra_path
             self.server_logger.info("returning %s" % result)
@@ -1757,6 +1808,17 @@ class XMLObject(object):
                 return str(value)
         return ''
 
+    @staticmethod
+    def type_name(type):
+        d = {'Integer':'int',
+             'String':'str',
+             'Long':'long',
+             'Float':'float',
+             'Boolean':'bool',
+             'Date':'date',
+             'DateTime':'datetime',
+             }
+        return d.get(type, 'str')
 ################################################################################
 
 class MedleySimpleGUI(XMLObject):
@@ -1823,6 +1885,21 @@ class MedleySimpleGUI(XMLObject):
                 alias_list[alias._name] = alias
         return MedleySimpleGUI(id=id, name=name, vtid=vtid, version=version,
                                alias_list=alias_list, t=type, has_seq=seq)
+        
+    @staticmethod
+    def from_mashup(mashup):
+        #read attributes
+        alias_list = {}
+        for child in mashup.aliases:
+            alias = AliasSimpleGUI.from_alias(child)
+            alias_list[alias._name] = alias
+        return MedleySimpleGUI(id=mashup.id,
+                               name=mashup.name,
+                               vtid=mashup.vtid,
+                               version=mashup.version,
+                               alias_list=alias_list,
+                               t=mashup.type,
+                               has_seq=mashup.has_seq)
 
 ################################################################################
 
@@ -1861,6 +1938,12 @@ class AliasSimpleGUI(XMLObject):
             if child.tag == "component":
                 component = ComponentSimpleGUI.from_xml(child)
         alias = AliasSimpleGUI(id,name,component)
+        return alias
+
+    @staticmethod
+    def from_alias(alias):
+        component = ComponentSimpleGUI.from_component(alias.component)
+        alias = AliasSimpleGUI(alias.id, alias.name, component)
         return alias
 
 ################################################################################
@@ -1970,6 +2053,22 @@ class ComponentSimpleGUI(XMLObject):
                                        parent=parent,
                                        seq=seq,
                                        widget=widget)
+        return component
+    
+    @staticmethod
+    def from_component(c):
+        component = ComponentSimpleGUI(id=c.id,
+                                       pos=c.pos,
+                                       ctype='Parameter',
+                                       spec=ComponentSimpleGUI.type_name(c.type),
+                                       val=c.val,
+                                       minVal=c.minVal,
+                                       maxVal=c.maxVal,
+                                       stepSize=c.stepSize,
+                                       strvalueList=c.strvaluelist,
+                                       parent=c.parent,
+                                       seq=c.seq,
+                                       widget=c.widget)
         return component
 
 ################################################################################
