@@ -107,7 +107,7 @@ def fix_paths():
     if vistrails_dir not in sys.path:
         sys.path.insert(0, vistrails_dir)
 
-if __name__ == '__main__':
+def main():
     fix_paths()
     disable_lion_restore()
     fix_site()
@@ -140,8 +140,11 @@ if __name__ == '__main__':
         traceback.print_exc()
         sys.exit(255)
     if (app.temp_configuration.interactiveMode and
-        not app.temp_configuration.check('spreadsheetDumpCells')): 
+        not app.temp_configuration.check('spreadsheetDumpCells')):
         v = app.exec_()
-        
+
     vistrails.gui.application.stop_application()
     sys.exit(v)
+
+if __name__ == '__main__':
+    main()
