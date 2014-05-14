@@ -124,7 +124,7 @@ class Abstraction(DBAbstraction, Module):
         try:
             desc = reg.get_descriptor_by_name(self.package, self.name, 
                                               self.namespace)
-        except:
+        except Exception:
             # Should only get here if the abstraction's descriptor was
             # removed from the registry which only happens when the
             # abstraction should be destroyed.

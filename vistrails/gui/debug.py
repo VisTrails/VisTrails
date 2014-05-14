@@ -55,17 +55,6 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
            import gui.debug
            gui.debug.watch_signal(my_signal)
      """
-    #Singleton technique
-    # _instance = None
-    # class DebugViewSingleton():
-    #     def __call__(self, *args, **kw):
-    #         if DebugView._instance is None:
-    #             obj = DebugView(*args, **kw)
-    #             DebugView._instance = obj
-    #         return DebugView._instance
-        
-    # getInstance = DebugViewSingleton()
-
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         ui = logging.StreamHandler(debugStream(self.write))

@@ -32,13 +32,24 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from ast import literal_eval
 import copy
+import unittest
+
 from vistrails.core.modules.utils import parse_port_spec_item_string, \
     create_port_spec_item_string
+from vistrails.core.system import get_module_registry
 from vistrails.db.domain import DBPortSpecItem
 
-import unittest
-from vistrails.db.domain import IdScope
+
+_MissingPackage = None
+def get_MissingPackage():
+    global _MissingPackage
+    if _MissingPackage is None:
+        from vistrails.core.modules.module_registry import MissingPackage
+        _MissingPackage = MissingPackage
+    return _MissingPackage
 
 class PortSpecItem(DBPortSpecItem):
 
@@ -70,9 +81,8 @@ class PortSpecItem(DBPortSpecItem):
             org.vistrails.vistrails) and use the current one.
 
             """
-            from vistrails.core.modules.module_registry import \
-                get_module_registry, MissingPackage
             reg = get_module_registry()
+            MissingPackage = get_MissingPackage()
             try:
                 identifier = reg.get_package_by_name(identifier).identifier
             except MissingPackage:
@@ -160,7 +170,6 @@ class PortSpecItem(DBPortSpecItem):
 
     def _get_descriptor(self):
         if self._descriptor is None:
-            from vistrails.core.modules.module_registry import get_module_registry
             reg = get_module_registry()
             if self.package is None:
                 self._descriptor = \
@@ -176,8 +185,7 @@ class PortSpecItem(DBPortSpecItem):
 
     def _get_values(self):
         if self._values is None:
-            # don't use eval here...
-            self._values = eval(self.db_values)
+            self._values = literal_eval(self.db_values)
         return self._values
     def _set_values(self, values):
         if not isinstance(values, basestring):
@@ -185,8 +193,7 @@ class PortSpecItem(DBPortSpecItem):
             self.db_values = str(values)
         else:
             self.db_values = values
-            # don't use eval here...
-            self._values = eval(values)
+            self._values = literal_eval(values)
     values = property(_get_values, _set_values)
 
     def _get_spec_tuple(self):

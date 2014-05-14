@@ -255,8 +255,9 @@ class DBLocator(_DBLocator, CoreLocator):
                     shutil.copyfile(thumbnail, cachedir_thumbnail)
                     new_thumbnails.append(cachedir_thumbnail)
                 except Exception, e:
-                    debug.critical('copying %s -> %s failed: %s' % \
-                                       (thumbnail, cachedir_thumbnail, str(e)))
+                    debug.critical("copying %s -> %s failed" % (
+                                   thumbnail, cachedir_thumbnail),
+                                   e)
         save_bundle.thumbnails = new_thumbnails
         # Need to update thumbnail cache in case some references have changed
         thumb_cache.add_entries_from_files(save_bundle.thumbnails)
@@ -303,7 +304,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 f.write("\nConnect to db with username [%s]: "%self._user)
                 f.close()
                 user = raw_input()
-            except:
+            except IOError:
                 debug.warning("Couldn't write to terminal. Will try stdout")
                 user = raw_input("Connecting to db with username[%s]: "%self._user)
             try:
@@ -322,10 +323,10 @@ class DBLocator(_DBLocator, CoreLocator):
                 config['name'] = '%s@%s'%(self._user,self._host)
                 config['id'] = -1
             except VistrailsDBException, e:
-                debug.critical('VisTrails DB Exception',  str(e))
+                debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
             except Exception, e2:
-                debug.critical('VisTrails Exception', str(e2))
+                debug.critical('VisTrails Exception', e2)
                 config['succeeded'] = False
         if config is not None:
             if config['succeeded'] == False:
@@ -343,7 +344,7 @@ class DBLocator(_DBLocator, CoreLocator):
                     config['succeeded'] = True
                     config['passwd'] = self._passwd
                 except VistrailsDBException, e:
-                    debug.critical('VisTrails DB Exception',  str(e))
+                    debug.critical('VisTrails DB Exception', e)
                     config['succeeded'] = False
             
             if config['succeeded'] == True:
@@ -676,7 +677,7 @@ class FileLocator(CoreLocator):
             showSpreadsheetOnly = False
         try:
             version = int(version)
-        except:
+        except ValueError:
             pass
 
         if tag is None:

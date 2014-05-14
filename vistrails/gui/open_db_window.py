@@ -607,9 +607,8 @@ class QDBObjectList(QtGui.QListWidget):
                     self.addItem(item)
             except VistrailsDBException, e:
                 #show connection setup
-                error = str(e)
-                if "Couldn't get list of vistrails objects" in error:
-                    debug.critical('An error has occurred', error)
+                if "Couldn't get list of vistrails objects" in str(e):
+                    debug.critical('An error has occurred', e)
                     raise e
                 config = parent.connectionList.getConnectionInfo(int(conn_id))
                 if config != None:
@@ -758,7 +757,7 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
             show_info('Vistrails',"Connection succeeded!")
             
         except Exception, e:
-            debug.critical('An error has occurred', str(e))
+            debug.critical('An error has occurred', e)
 
     def updateButtons(self):
         """updateButtons() -> None

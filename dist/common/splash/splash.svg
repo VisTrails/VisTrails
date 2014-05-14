@@ -27,7 +27,7 @@
    inkscape:export-ydpi="61.445782"><metadata
    id="metadata955"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
-         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
    id="defs953"><filter
      inkscape:collect="always"
      id="filter5665"
@@ -47,14 +47,14 @@
    inkscape:pageopacity="0"
    inkscape:pageshadow="2"
    inkscape:window-width="1053"
-   inkscape:window-height="856"
+   inkscape:window-height="954"
    id="namedview951"
    showgrid="false"
    inkscape:zoom="1.0261044"
    inkscape:cx="408.58013"
    inkscape:cy="283.54718"
-   inkscape:window-x="364"
-   inkscape:window-y="55"
+   inkscape:window-x="20"
+   inkscape:window-y="17"
    inkscape:window-maximized="0"
    inkscape:current-layer="g7" />
 <switch
@@ -1341,10 +1341,6 @@
    fill="#FFFFFF"><tspan
      style="-inkscape-font-specification:Arial;font-family:Arial;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal"
      id="tspan4889">© 2011-2014 NYU-Poly. © 2006-2011 University of Utah. All Rights Reserved.</tspan></text>
-
-
-
-
 
 
 
@@ -2844,10 +2840,6 @@
 
 
 
-
-
-
-
 			</g>
 		</g>
 		<g
@@ -2925,11 +2917,9 @@
    font-size="85.0751"
    transform="scale(1.1065261,0.90372925)"><tspan
      style="font-size:55px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#000000;font-family:Franklin Gothic;-inkscape-font-specification:Franklin Gothic"
-     id="tspan4025">2.1.2</tspan></text>
-
-
-
-
+     id="tspan4025">2.0.<tspan
+   style="font-size:52px"
+   id="tspan3982">3</tspan></tspan></text>
 
 
 <flowRoot
@@ -2951,12 +2941,8 @@
    id="text919-3-8"
    font-size="85.0751"
    transform="scale(1.1065261,0.90372925)"><tspan
-     style="font-size:52px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:Franklin Gothic;-inkscape-font-specification:Franklin Gothic"
-     id="tspan4025-7">2.1.2</tspan></text>
-
-
-
-
+     style="font-size:51.99999994px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ffffff;font-family:Franklin Gothic;-inkscape-font-specification:Franklin Gothic"
+     id="tspan4025-7">2.0.3</tspan></text>
 
 
 <image

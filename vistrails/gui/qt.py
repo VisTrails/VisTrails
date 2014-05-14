@@ -79,20 +79,26 @@ class qt_super(object):
 
 class DisallowedCaller(Exception):
     """This expection is raised whenever a caller that's not privileged to
-allow QObject construction tries to do so."""
+    allow QObject construction tries to do so.
+
+    """
     def __str__(self):
         return "Caller is not allowed to call this function"
 
 class QApplicationNotYetCreated(Exception):
     """This expection is raised whenever a function asks for permission to
-create a QObject but the QApplication has not granted it yet."""
+    create a QObject but the QApplication has not granted it yet.
+
+    """
     def __str__(self):
         return "QApplication has not been created yet"
 
 def allowQObjects():
     """Allows subsequent QObject creation. The constructor for the
-QApplication-derived class must call this so that we know it's alright
-to start creating other QtCore.QObjects."""
+    QApplication-derived class must call this so that we know it's
+    alright to start creating other QtCore.QObjects.
+
+    """
     
     # tries to check if caller is allowed to call this
     caller = inspect.currentframe().f_back
@@ -104,8 +110,10 @@ to start creating other QtCore.QObjects."""
     okToCreateQObjects = True
 
 def askForQObjectCreation():
-    """This function simply throws an exception if it is not yet ok
-to create QObjects."""
+    """This function simply throws an exception if it is not yet ok to
+    create QObjects.
+
+    """
     global okToCreateQObjects
     if not okToCreateQObjects:
         raise QApplicationNotYetCreated()
@@ -114,8 +122,9 @@ global _appHolder
 _appHolder = None
 
 def createBogusQtGuiApp(argv=["bogus"]):    
-    """createBogusQtGuiApp creates a bogus QtApplication so we can
-    create qobjects during test runs.
+    """createBogusQtGuiApp creates a bogus QtApplication so we can create
+    qobjects during test runs.
+
     """    
     class BogusApplication(QtGui.QApplication):
         def __init__(self):
@@ -142,12 +151,13 @@ def qt_version():
 okToCreateQObjects = False
 
 class SignalSet(object):
-    
-    """SignalSet stores a list of (object, signal, method) that can be
-    all connected and disconnected simultaneously. This way, it's
-    harder to forget to disconnect one of many signals. Also, if the
+    """SignalSet stores a list of (object, signal, method) that can be all
+    connected and disconnected simultaneously. This way, it's harder
+    to forget to disconnect one of many signals. Also, if the
     SignalSet has already been plugged, it will signal an exception,
-    to avoid multiple connections."""
+    to avoid multiple connections.
+
+    """
     
     def __init__(self, owner, signalTripleList):
         self.owner = owner

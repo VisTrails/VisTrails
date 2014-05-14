@@ -32,4 +32,5 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 from vistrails.db.versions.v1_0_3.domain import *

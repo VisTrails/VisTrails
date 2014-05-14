@@ -228,7 +228,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             ("Error checking user projects (server side issues)")
                     debug.critical("Error checking user projects (server side issues)")
                 else:
-                    debug.critical(str(e))
+                    debug.critical("Exception checking user projects", e)
 
                 self._push_button.setEnabled(False)
                 self.update_push_information()
@@ -277,7 +277,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             ("Error when checking dependencies (server side issues)")
                     debug.critical("Error when checking dependencies (server side issues)")
                 else:
-                    debug.critical(str(e))
+                    debug.critical("Exception checking dependencies", e)
 
                 self._push_button.setEnabled(False)
                 self.update_push_information()
@@ -305,7 +305,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     if module.name[-6:] == 'Reader' or \
                        module.name in self.local_data_modules:
                         for edge in pipeline.graph.edges_to(module.id):
-                            if pipeline.modules[edge[0]].name in ['HTTPFile',
+                            if pipeline.modules[edge[0]].name in ['DownloadFile',
                                                                   'RepoSync']:
                                 on_repo = True
 
@@ -528,7 +528,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             "Update to repository was successful"
 
         except Exception, e:
-            debug.critical("An error occurred", str(e))
+            debug.critical("An error occurred", e)
             self._repository_status['details'] = "An error occurred"
         self.update_push_information()
 

@@ -1,9 +1,10 @@
 import csv
-from itertools import izip
-import numpy
+try:
+    import numpy
+except ImportError: # pragma: no cover
+    numpy = None
 
-from vistrails.core.modules.vistrails_module import ModuleError
-from ..common import Table
+from ..common import TableObject, Table, InternalModuleError
 
 
 def count_lines(fp):
@@ -13,104 +14,108 @@ def count_lines(fp):
     return lines
 
 
-class ReadError(Exception):
-    pass
-
-
-class CSVFile(Table):
-    _input_ports = [
-            ('file', '(org.vistrails.vistrails.basic:File)'),
-            ('delimiter', '(org.vistrails.vistrails.basic:String)',
-             {'optional': True}),
-            ('header_present', '(org.vistrails.vistrails.basic:Boolean)',
-             {'optional': True, 'defaults': "['True']"})]
-    _output_ports = [
-            ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
-            ('column_names', '(org.vistrails.vistrails.basic:List)'),
-            ('self', '(org.vistrails.vistrails.tabledata:read|csv|CSVFile)')]
-
-    _STANDARD_DELIMITERS = [';', ',', '\t', '|']
-
-    def __init__(self):
-        Table.__init__(self)
+# FIXME : test coverage for CSVTable
+class CSVTable(TableObject):
+    def __init__(self, csv_file, header_present, delimiter,
+                 skip_lines=0, dialect=None, use_sniffer=True):
         self._rows = None
 
-    @staticmethod
-    def read_file(filename, delimiter=None, header_present=True):
-        try:
-            with open(filename, 'rb') as fp:
-                first_line = fp.readline()
-            if delimiter is None:
-                counts = [first_line.count(d)
-                          for d in CSVFile._STANDARD_DELIMITERS]
-                read_delimiter, count = max(
-                        izip(CSVFile._STANDARD_DELIMITERS, counts),
-                        key=lambda (delim, count): count)
-                if count == 0:
-                    raise ReadError("Couldn't guess the field delimiter")
-                else:
-                    delimiter = read_delimiter
-            else:
-                count = first_line.count(delimiter)
-
-            column_count = count + 1
-
-            if header_present:
-                column_names = [
-                        name.strip()
-                        for name in first_line.split(delimiter)]
-            else:
-                column_names = None
-        except IOError:
-            raise ReadError("File does not exist")
-
-        return column_count, column_names, delimiter
-
-    def compute(self):
-        csv_file = self.getInputFromPort('file').name
-        self.header_present = self.getInputFromPort('header_present',
-                                                    allowDefault=True)
-        if self.hasInputFromPort('delimiter'):
-            self.delimiter = self.getInputFromPort('delimiter')
-        else:
-            self.delimiter = None
-
+        self.header_present = header_present
+        self.delimiter = delimiter
         self.filename = csv_file
+        self.skip_lines = skip_lines
+        self.dialect = dialect
 
-        try:
-            self.columns, self.names, self.delimiter = self.read_file(
-                    csv_file,
-                    self.delimiter,
-                    self.header_present)
-        except ReadError, e:
-            raise ModuleError(self, *e.args)
+        (self.columns, self.names, self.delimiter,
+         self.header_present, self.dialect) = \
+            self.read_file(csv_file, delimiter, header_present, skip_lines,
+                           dialect, use_sniffer)
+        if self.header_present:
+            self.skip_lines += 1
 
         self.column_cache = {}
 
-        self.setResult('column_count', self.columns)
-        self.setResult('column_names', self.names)
+    @staticmethod
+    def read_file(filename, delimiter=None, header_present=True,
+                  skip_lines=0, dialect=None, use_sniffer=True):
+        if delimiter is None and use_sniffer is False:
+            raise InternalModuleError("Must set delimiter if not using sniffer")
+
+        try:
+            with open(filename, 'rb') as fp:
+                if use_sniffer:
+                    first_lines = ""
+                    line = fp.readline()
+                    for i in xrange(skip_lines):
+                        if not line:
+                            break
+                        line = fp.readline()
+                    for i in xrange(5):
+                        if not line:
+                            break
+                        first_lines += line
+                        line = fp.readline()
+                    sniffer = csv.Sniffer()
+                    fp.seek(0)
+                    if delimiter is None:
+                        dialect = sniffer.sniff(first_lines)
+                        delimiter = dialect.delimiter
+                        # cannot determine header without sniffing delimiter
+                        if header_present is None:
+                            header_present = sniffer.has_header(first_lines)
+
+                for i in xrange(skip_lines):
+                    if not line:
+                        raise InternalModuleError("skip_lines greater than "
+                                                  "the number of lines in the "
+                                                  "file")
+                    line = fp.readline()
+
+                if dialect is not None:
+                    reader = csv.reader(fp, dialect=dialect)
+                else:
+                    reader = csv.reader(fp, delimiter=delimiter)
+                result = reader.next()
+                column_count = len(result)
+
+                if header_present:
+                    column_names = [name.strip() for name in result]
+                else:
+                    column_names = None
+        except IOError:
+            raise InternalModuleError("File does not exist")
+
+        return column_count, column_names, delimiter, header_present, dialect
 
     def get_column(self, index, numeric=False):
-        if index in self.column_cache:
-            return self.column_cache[index]
+        if (index, numeric) in self.column_cache:
+            return self.column_cache[(index, numeric)]
 
-        if numeric:
+        if numeric and numpy is not None:
             result = numpy.loadtxt(
                     self.filename,
                     dtype=numpy.float32,
                     delimiter=self.delimiter,
-                    skiprows=1 if self.header_present else 0,
+                    skiprows=self.skip_lines,
                     usecols=[index])
         else:
             with open(self.filename, 'rb') as fp:
-                if self.header_present:
-                    fp.readline()
-                reader = csv.reader(
-                        fp,
-                        delimiter=self.delimiter)
-                result = [row[index] for row in reader]
+                for i in xrange(self.skip_lines):
+                    line = fp.readline()
+                    if not line:
+                        raise InternalModuleError("skip_lines greater than "
+                                                  "the number of lines in the "
+                                                  "file")
+                if self.dialect is not None:
+                    reader = csv.reader(fp, dialect=self.dialect)
+                else:
+                    reader = csv.reader(fp, delimiter=self.delimiter)
 
-        self.column_cache[index] = result
+                result = [row[index] for row in reader]
+            if numeric:
+                result = [float(e) for e in result]
+
+        self.column_cache[(index, numeric)] = result
         return result
 
     @property
@@ -119,12 +124,55 @@ class CSVFile(Table):
             return self._rows
         with open(self.filename, 'rb') as fp:
             self._rows = count_lines(fp)
-        if self.header_present:
-            self._rows -= 1
+        self._rows -= self.skip_lines
         return self._rows
 
 
-_modules = {'csv': [CSVFile]}
+class CSVFile(Table):
+    """Reads a table from a CSV file.
+
+    This module uses Python's csv module to read a table from a file. It is
+    able to guess the actual format of the file in most cases, or you can use
+    the 'delimiter', 'header_present' and 'skip_lines' ports to force how the
+    file will be read.
+    """
+    _input_ports = [
+            ('file', '(org.vistrails.vistrails.basic:File)'),
+            ('delimiter', '(org.vistrails.vistrails.basic:String)',
+             {'optional': True}),
+            ('header_present', '(org.vistrails.vistrails.basic:Boolean)',
+             {'optional': True, 'defaults': "['True']"}),
+            ('sniff_header', '(org.vistrails.vistrails.basic:Boolean)',
+             {'optional': True, 'defaults': "['True']"}),
+            ('skip_lines', '(org.vistrails.vistrails.basic:Integer)',
+             {'optional': True, 'defaults': "['0']"}),
+            ('dialect', '(org.vistrails.vistrails.basic:String)',
+             {'optional': True})]
+    _output_ports = [
+            ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
+            ('column_names', '(org.vistrails.vistrails.basic:List)'),
+            ('value', Table)]
+
+    def compute(self):
+        csv_file = self.get_input('file').name
+        header_present = self.force_get_input('header_present', None)
+        delimiter = self.force_get_input('delimiter', None)
+        skip_lines = self.get_input('skip_lines')
+        dialect = self.force_get_input('dialect', None)
+        sniff_header = self.get_input('sniff_header')
+
+        try:
+            table = CSVTable(csv_file, header_present, delimiter, skip_lines,
+                             dialect, sniff_header)
+        except InternalModuleError, e:
+            e.raise_module_error(self)
+
+        self.set_output('column_count', table.columns)
+        self.set_output('column_names', table.names)
+        self.set_output('value', table)
+
+
+_modules = [CSVFile]
 
 
 ###############################################################################
@@ -151,7 +199,7 @@ class CSVTestCase(unittest.TestCase):
         with intercept_result(ExtractColumn, 'value') as results:
             with intercept_result(CSVFile, 'column_count') as columns:
                 self.assertFalse(execute([
-                        ('read|csv|CSVFile', identifier, [
+                        ('read|CSVFile', identifier, [
                             ('file', [('File', self._test_dir + '/test.csv')]),
                         ]),
                         ('ExtractColumn', identifier, [
@@ -164,7 +212,7 @@ class CSVTestCase(unittest.TestCase):
                         ]),
                     ],
                     [
-                        (0, 'self', 1, 'table'),
+                        (0, 'value', 1, 'table'),
                         (1, 'value', 2, 'l'),
                     ],
                     add_port_specs=[
@@ -181,7 +229,7 @@ class CSVTestCase(unittest.TestCase):
         """Uses CSVFile and ExtractColumn with mismatching columns.
         """
         self.assertTrue(execute([
-                ('read|csv|CSVFile', identifier, [
+                ('read|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
                 ('ExtractColumn', identifier, [
@@ -190,14 +238,14 @@ class CSVTestCase(unittest.TestCase):
                 ]),
             ],
             [
-                (0, 'self', 1, 'table'),
+                (0, 'value', 1, 'table'),
             ]))
 
     def test_csv_missing(self):
         """Uses CSVFile and ExtractColumn with a nonexisting column.
         """
         self.assertTrue(execute([
-                ('read|csv|CSVFile', identifier, [
+                ('read|CSVFile', identifier, [
                     ('file', [('File', self._test_dir + '/test.csv')]),
                 ]),
                 ('ExtractColumn', identifier, [
@@ -205,7 +253,7 @@ class CSVTestCase(unittest.TestCase):
                 ]),
             ],
             [
-                (0, 'self', 1, 'table'),
+                (0, 'value', 1, 'table'),
             ]))
 
     def test_csv_nonnumeric(self):
@@ -213,7 +261,7 @@ class CSVTestCase(unittest.TestCase):
         """
         with intercept_result(ExtractColumn, 'value') as results:
             self.assertFalse(execute([
-                    ('read|csv|CSVFile', identifier, [
+                    ('read|CSVFile', identifier, [
                         ('file', [('File', self._test_dir + '/test.csv')]),
                         ('header_present', [('Boolean', 'False')]),
                     ]),
@@ -223,7 +271,7 @@ class CSVTestCase(unittest.TestCase):
                     ]),
                 ],
                 [
-                    (0, 'self', 1, 'table'),
+                    (0, 'value', 1, 'table'),
                 ]))
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0],

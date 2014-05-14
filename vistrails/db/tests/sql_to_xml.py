@@ -1,3 +1,4 @@
+# pragma: no testimport
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -38,12 +39,7 @@ import os
 import MySQLdb
 
 from vistrails.db.services import io
-import vistrails.tests
 
-if __name__ != '__main__':
-    import vistrails.tests
-    raise vistrails.tests.NotModule('This should not be imported as a module')
-    
 os.environ['EXECUTABLEPATH'] = '/vistrails/VisTrails.app/Contents/MacOS'
 
 

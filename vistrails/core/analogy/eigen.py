@@ -32,19 +32,17 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.bundles import py_import
-from vistrails.core.data_structures.bijectivedict import Bidict
-from itertools import imap, chain
 import copy
-
+from itertools import imap, chain
 import math
 import operator
-from pipeline_utils import *
-
-from vistrails.core.utils import append_to_dict_of_lists
-from vistrails.core.system import temporary_directory
-
 import scipy
+import tempfile
+
+from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core.utils import append_to_dict_of_lists
+
+from .pipeline_utils import pipeline_bbox, pipeline_centroid
 
 
 ##############################################################################
@@ -54,15 +52,11 @@ import scipy
 # EigenBase
 
 def mzeros(*args, **kwargs):
-    nkwargs = copy.copy(kwargs)
-    nkwargs['dtype'] = float
-    az = scipy.zeros(*args, **nkwargs)
+    az = scipy.zeros(*args, dtype=float, **kwargs)
     return scipy.matrix(az)
 
 def mones(*args, **kwargs):
-    nkwargs = copy.copy(kwargs)
-    nkwargs['dtype'] = float
-    az = scipy.ones(*args, **nkwargs)
+    az = scipy.ones(*args, dtype=float, **kwargs)
     return scipy.matrix(az)
 
 #mzeros = lambda *args, **kwargs: scipy.matrix(scipy.zeros(*args, **kwargs))
@@ -405,10 +399,9 @@ class EigenPipelineSimilarity(EigenBase):
 class EigenPipelineSimilarity2(EigenBase):
 
     def __init__(self, *args, **kwargs):
-        basekwargs = copy.copy(kwargs)
-        del basekwargs['alpha']
-        EigenBase.__init__(self, *args, **basekwargs)
-        self.init_operator(alpha=kwargs['alpha'])
+        alpha = kwargs.pop('alpha')
+        EigenBase.__init__(self, *args, **kwargs)
+        self.init_operator(alpha=alpha)
 
     def init_operator(self, alpha):
         def edges(pip, v_id):
@@ -466,7 +459,7 @@ class EigenPipelineSimilarity2(EigenBase):
         v = copy.copy(self._e)
         step = 0
         def write_current_matrix():
-            f = open('%s/%s_%03d.v' % (temporary_directory(),
+            f = open('%s/%s_%03d.v' % (tempfile.gettempdir(),
                                        self._debug_matrix_file, step), 'w')
             x = v.reshape(len(self._p1.modules),
                           len(self._p2.modules))
@@ -501,13 +494,14 @@ class EigenPipelineSimilarity2(EigenBase):
                 f.write('%d %s %f %f\n' % (i, m.name, nc.x, nc.y))
             for i, c in pipeline.connections.iteritems():
                 f.write('%d %d %d\n' % (i, c.sourceId, c.destinationId))
-            
+
         if self._debug:
-            out = open('%s/pipelines.txt' % temporary_directory(), 'w')
+            out = open('%s/pipelines.txt' % tempfile.gettempdir(), 'w')
             write_debug_pipeline_positions(self._p1, self._g1_vertex_map, out)
             write_debug_pipeline_positions(self._p2, self._g2_vertex_map, out)
             self.print_s8ys()
-            
+            out.close()
+
         self._debug_matrix_file = 'input_matrix'
         r_in  = self.solve_v(self._input_vertex_s8y)
         self._debug_matrix_file = 'output_matrix'

@@ -34,7 +34,8 @@
 ###############################################################################
 
 from datetime import date, datetime
-from time import strptime
+
+from vistrails.core.system import strftime, time_strptime
 
 class SQLDAO:
     def __init__(self):
@@ -54,13 +55,13 @@ class SQLDAO:
                 if db_type == 'date':
                     return value
                 else:
-                    return date(*strptime(str(value), '%Y-%m-%d')[0:3])
+                    return date(*time_strptime(str(value), '%Y-%m-%d')[0:3])
             elif type == 'datetime':
                 if db_type == 'datetime':
                     return value
                 else:
-                    return datetime(*strptime(str(value), 
-                                              '%Y-%m-%d %H:%M:%S')[0:6])
+                    return datetime(*time_strptime(str(value),
+                                                   '%Y-%m-%d %H:%M:%S')[0:6])
         return None
 
     def convertToDB(self, value, type, db_type):
@@ -76,7 +77,7 @@ class SQLDAO:
             elif type == 'date':
                 return "'" + value.isoformat() + "'"
             elif type == 'datetime':
-                return "'" + value.strftime('%Y-%m-%d %H:%M:%S') + "'"
+                return "'" + strftime(value, '%Y-%m-%d %H:%M:%S') + "'"
             else:
                 return str(value)
 

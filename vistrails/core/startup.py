@@ -39,6 +39,7 @@ from vistrails.core import system
 from vistrails.core.utils.uxml import named_elements, elements_filter, \
      eval_xml_value, enter_named_element
 import copy
+from distutils.version import LooseVersion
 import vistrails.core.packagemanager
 import vistrails.core.utils
 import os.path
@@ -169,7 +170,9 @@ class VistrailsStartup(object):
 
     def get_python_environment(self):
         """get_python_environment(): returns the python environment generated
-by startup.py. This should only be called after init()."""
+        by startup.py. This should only be called after init().
+
+        """
         return self._python_environment
 
     def create_default_directory(self):
@@ -180,13 +183,14 @@ by startup.py. This should only be called after init()."""
         try:
             os.mkdir(self.temp_configuration.dotVistrails)
             debug.log('Succeeded!')
-        except:
+        except Exception, e:
             debug.critical("""Failed to create initialization directory.
                     This could be an indication of a permissions problem.
                     Make sure parent directory of '%s' is writable."""
-                    % self.temp_configuration.dotVistrails)
+                    % self.temp_configuration.dotVistrails,
+                    e)
             sys.exit(1)
-                
+
     def runDotVistrails(self):
         """ runDotVistrails() -> None
         Setup to run user .vistrails file
@@ -210,11 +214,11 @@ by startup.py. This should only be called after init()."""
                 f = open(name, 'w')
                 f.write('pass\n')
                 f.close()
-            except:
+            except Exception, e:
                 msg = ("""Failed to create file '%s'. This could indicate a
                 rare combination of a race condition and a permissions problem.
                 Please make sure it is writable.""" % name)
-                debug.critical(msg)
+                debug.critical(msg, e)
                 sys.exit(1)
 
         def create_user_packages_dir(userpackagesname=None):
@@ -228,13 +232,13 @@ by startup.py. This should only be called after init()."""
                     self.configuration.userPackageDirectory = userpackagesname
                     self.temp_configuration.userPackageDirectory = \
                         userpackagesname
-                except:
+                except Exception, e:
                     msg = ("""Failed to create userpackages directory: '%s'.
                     This could be an indication of a permissions problem.
                     Make sure directory '%s' in writable.""" %
                            (userpackagesname,
                             self.configuration.dotVistrails))
-                    debug.critical(msg)
+                    debug.critical(msg, e)
                     sys.exit(1)
             create_user_packages_init(userpackagesname)
                 
@@ -250,13 +254,13 @@ by startup.py. This should only be called after init()."""
                     self.configuration.thumbs.cacheDirectory = thumbnails_dir
                     self.temp_configuration.thumbs.cacheDirectory = \
                         thumbnails_dir
-                except:
+                except Exception, e:
                     msg = ("Failed to create thumbnails cache directory: '%s'.  "
                            "This could be an indication of a permissions "
                            "problem.  Make sure directory '%s' is writable." % \
                                (thumbnails_dir, 
                                 self.configuration.dotVistrails))
-                    debug.critical(msg)
+                    debug.critical(msg, e)
                     sys.exit(1)   
                                 
         def create_abstractions_dir(abstractions_dir=None):
@@ -270,13 +274,13 @@ by startup.py. This should only be called after init()."""
                     self.configuration.abstractionsDirectory = abstractions_dir
                     self.temp_configuration.abstractionsDirectory = \
                         abstractions_dir
-                except:
+                except Exception, e:
                     msg = ("Failed to create subworkflows directory: '%s'.  "
                            "This could be an indication of a permissions "
                            "problem.  Make sure directory '%s' is writable." % \
                                (abstractions_dir, 
                                 self.configuration.dotVistrails))
-                    debug.critical(msg)
+                    debug.critical(msg, e)
                     sys.exit(1)
 #             try:
 #                 root_dir = core.system.vistrails_root_directory()
@@ -297,24 +301,25 @@ by startup.py. This should only be called after init()."""
         def install_default_startup():
             debug.log('Will try to create default startup script')
             try:
-                root_dir = vistrails.core.system.vistrails_root_directory()
+                root_dir = system.vistrails_root_directory()
                 default_file = os.path.join(root_dir,'core','resources',
                                             'default_vistrails_startup')
                 user_file = os.path.join(self.temp_configuration.dotVistrails,
                                          'startup.py')
                 shutil.copyfile(default_file,user_file)
                 debug.log('Succeeded!')
-            except:
+            except Exception, e:
                 debug.critical("""Failed to copy default file %s.
                 This could be an indication of a permissions problem.
                 Make sure directory '%s' is writable"""
-                % (user_file,self.temp_configuration.dotVistrails))
+                % (user_file,self.temp_configuration.dotVistrails),
+                e)
                 sys.exit(1)
 
         def install_default_startupxml_if_needed():
             fname = os.path.join(self.temp_configuration.dotVistrails,
                                  'startup.xml')
-            root_dir = vistrails.core.system.vistrails_root_directory() 
+            root_dir = system.vistrails_root_directory()
             origin = os.path.join(root_dir, 'core','resources',
                                   'default_vistrails_startup_xml')
             def skip():
@@ -322,9 +327,8 @@ by startup.py. This should only be called after init()."""
                     try:
                         d = self.startup_dom()
                         v = str(d.getElementsByTagName('startup')[0].attributes['version'].value)
-                        r = vistrails.core.utils.version_string_to_list(v)
-                        return r >= [0, 1]
-                    except:
+                        return LooseVersion('0.1') <= LooseVersion(v)
+                    except Exception:
                         return False
                 else:
                     return False
@@ -333,12 +337,12 @@ by startup.py. This should only be called after init()."""
             try:
                 shutil.copyfile(origin, fname)
                 debug.log('Succeeded!')
-            except:
+            except Exception, e:
                 debug.critical("""Failed to copy default configuration
                 file to %s. This could be an indication of a
                 permissions problem. Please make sure '%s' is writable."""
                                % (fname,
-                                  self.temp_configuration.dotVistrails))
+                                  self.temp_configuration.dotVistrails), e)
 
         def execDotVistrails(tried_once=False):
             """ execDotVistrails() -> None
@@ -355,30 +359,32 @@ by startup.py. This should only be called after init()."""
                     shutil.copyfile(self.temp_configuration.dotVistrails, name)
                     try:
                         os.unlink(self.temp_configuration.dotVistrails)
-                    except:
+                    except Exception, e:
                         debug.critical("""Failed to remove old initialization file.
                         This could be an indication of a permissions problem.
                         Make sure file '%s' is writable."""
-                        % self.temp_configuration.dotVistrails)
+                        % self.temp_configuration.dotVistrails,
+                        e)
                         sys.exit(1)
                     self.create_default_directory()
                     try:
                         destiny = os.path.join(self.temp_configuration.dotVistrails,
                                                'startup.py')
                         shutil.copyfile(name, destiny)
-                    except:
+                    except Exception, e:
                         debug.critical("""Failed to copy old initialization file to
                         newly-created initialization directory. This must have been
                         a race condition. Please remove '%s' and
                         restart VisTrails."""
-                        % self.temp_configuration.dotVistrails)
+                        % self.temp_configuration.dotVistrails,
+                        e)
                         sys.exit(1)
                     debug.critical("Successful move!")
                 finally:
                     try:
                         os.unlink(name)
-                    except:
-                        debug.warning("Failed to erase temporary file.")
+                    except Exception, e:
+                        debug.warning("Failed to erase temporary file.", e)
 
             if os.path.isdir(self.temp_configuration.dotVistrails):
                 if self.temp_configuration.check('userPackageDirectory'):

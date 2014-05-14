@@ -38,12 +38,12 @@ import glob
 from itertools import chain
 import os
 from datetime import datetime
-from time import strptime
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
 from vistrails.core.collection import Collection, MashupEntity, ThumbnailEntity, \
     VistrailEntity, WorkflowEntity, WorkflowExecEntity, ParameterExplorationEntity
 from vistrails.core.db.locator import FileLocator
+from vistrails.core.system import time_strptime
 from vistrails.db.services.locator import UntitledLocator
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.theme import CurrentTheme
@@ -238,7 +238,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
                 url = locator.to_url()
                 entity = self.collection.updateVistrail(url)
                 self.collection.add_to_workspace(entity)
-            except:
+            except Exception:
                 debug.critical("Failed to add file '%s'" % filename)
         progress.setValue(len(filenames))
         self.collection.commit()
@@ -344,8 +344,8 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
                     pixmap = QtGui.QPixmap(path)
                     if pixmap and not pixmap.isNull():
                         self.setIcon(0, QtGui.QIcon(pixmap.scaled(16, 16)))
-                    tooltip += """<br/><img border=0 src='%(path)s'/>
-                        """ % {'path':path}
+                    tooltip += "<br/><img border=0 src='%(path)s'/>" % \
+                               {'path': path}
             elif child.type_id == WorkflowEntity.type_id:
                 # is a pipeline
                 # only show tagged items
@@ -475,7 +475,7 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         if sort_col in set([4]):
             return int(self.text(sort_col)) < int(other.text(sort_col))
         elif sort_col in set([2,3]):
-            return datetime(*strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
+            return datetime(*time_strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*time_strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
         return QtGui.QTreeWidgetItem.__lt__(self, other)
 
     def refresh_object(self):
@@ -859,7 +859,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 try:
                     version = \
                         view.controller.vistrail.get_version_number(version)
-                except:
+                except Exception:
                     version = None
             if self.searchMode:
                 self.search_result_selected(view, version)

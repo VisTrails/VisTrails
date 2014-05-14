@@ -55,7 +55,6 @@ from PyQt4 import QtGui, QtCore
 import SocketServer
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from datetime import date, datetime
-from time import strptime
 
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.application import VistrailsApplicationInterface
@@ -74,7 +73,6 @@ from vistrails.core.modules.module_registry import get_module_registry as module
 from vistrails.core import interpreter
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.thumbnails import ThumbnailCache
-import vistrails.core.system
 import vistrails.db.services.io
 import gc
 
@@ -83,7 +81,7 @@ import vistrails.core.console_mode
 
 from vistrails.db.versions import currentVersion
 
-ElementTree = vistrails.core.system.get_elementtree_library()
+ElementTree = system.get_elementtree_library()
 
 
 
@@ -723,7 +721,7 @@ class RequestHandler(object):
             root = ElementTree.fromstring(xml_string)
             try:
                 medley = MedleySimpleGUI.from_xml(root)
-            except:
+            except Exception:
                 #even if this error occurred there's still a chance of
                 # recovering from it... (the server can find cached images)
                 self.server_logger.error("couldn't instantiate medley")
@@ -1794,9 +1792,9 @@ class XMLObject(object):
                 elif type == 'bool':
                     return bool_conv(value)
                 elif type == 'date':
-                    return date(*strptime(value, '%Y-%m-%d')[0:3])
+                    return date(*system.time_strptime(value, '%Y-%m-%d')[0:3])
                 elif type == 'datetime':
-                    return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+                    return datetime(*system.time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
         return None
 
     @staticmethod
@@ -1805,7 +1803,7 @@ class XMLObject(object):
             if type == 'date':
                 return value.isoformat()
             elif type == 'datetime':
-                return value.strftime('%Y-%m-%d %H:%M:%S')
+                return system.strftime(value, '%Y-%m-%d %H:%M:%S')
             else:
                 return str(value)
         return ''

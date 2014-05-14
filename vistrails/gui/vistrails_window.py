@@ -156,10 +156,10 @@ class QBaseViewWindow(QtGui.QMainWindow):
                     else:
                         self.connect(qaction, QtCore.SIGNAL("triggered()"),
                                      callback)
-        
+
     def init_action_list(self):
         global _app
-        
+
         self._actions = [("file", "&File",
                    [("export", "Export",
                       [('savePDF', "PDF...",
@@ -167,6 +167,12 @@ class QBaseViewWindow(QtGui.QMainWindow):
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_tab,
                                                        'save_pdf')}),
+                       ('saveDOT', "Version tree to Graphviz DOT...",
+                        {'statusTip': "Save the version view to a Graphviz "
+                             "DOT file",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_view,
+                                                       'save_version_graph')}),
                        "---",
                        ('saveWorkflow', "Workflow To XML...",
                         {'statusTip': "Save the current workflow to a file",
@@ -567,6 +573,12 @@ class QVistrailViewWindow(QBaseViewWindow):
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_tab,
                                                        'save_pdf')}),
+                       ('saveDOT', "Version tree to Graphviz DOT...",
+                        {'statusTip': "Save the version view to a Graphviz "
+                             "DOT file",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_view,
+                                                       'save_version_graph')}),
                        "---",
                        ('saveWorkflow', "Workflow To XML...",
                         {'statusTip': "Save the current workflow to a file",
@@ -959,7 +971,12 @@ class QVistrailsWindow(QVistrailViewWindow):
             window = self.windows[view]
             window.close()
         QWorkspaceWindow.instance().remove_vt_window(view)
-        self.current_view = None
+
+        # DK: **Do not** set current_view here because remove_vistrail
+        # calls change_view which sends notifications that there is
+        # not current controller
+        #
+        # self.current_view = None
 
     def view_triggered(self, action):
         #print "VIEW_TRIGGERED", action
@@ -1374,7 +1391,6 @@ class QVistrailsWindow(QVistrailViewWindow):
         self._first_view = self.get_current_view()
 
     def change_view(self, view):
-        #print 'changing view', id(view), view
         if isinstance(view, QVistrailView) or view is None:
             self.view_changed(view)
             if view and view not in self.windows:
@@ -1433,6 +1449,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 self.notify('controller_changed', new_view.get_controller())
                 if new_view.current_tab:
                     self.set_action_defaults(new_view.current_tab)
+            else:
+                self.notify('controller_changed', None)
         
         if new_view is not None:
             window = None
@@ -1495,17 +1513,6 @@ class QVistrailsWindow(QVistrailViewWindow):
                 # FIXME how do we choose which one? -- really should open all
                 locator = untitled_temps[0]
 
-        # try:
-        #     (vistrail, abstraction_files, thumbnail_files) = load_vistrail(locator)
-        # except ModuleRegistryException, e:
-        #     debug.critical("Module registry error for %s" %
-        #                    str(e.__class__.__name__), str(e))
-        # except Exception, e:
-        #     debug.critical('An error has occurred', str(e))
-        #     raise
-        # return self.set_vistrail_view(vistrail, locator, abstraction_files,
-        #                               thumbnail_files)
-        
         self.open_vistrail(locator)
         self.qactions['pipeline'].trigger()
 
@@ -1530,7 +1537,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             self._first_view = None
 
     def ensureController(self, controller):
-        """ ensureController(locator: VistrailController) -> QVistrailView        
+        """ ensureController(controller: VistrailController) -> QVistrailView        
         This will first find among the opened vistrails to see if
         controller is open. If not, it will try to open it if a locator exist.
 
@@ -1603,10 +1610,6 @@ class QVistrailsWindow(QVistrailViewWindow):
     def remove_vistrail(self, locator):
         for view in copy.copy(self.vistrail_widgets):
             if view.controller.locator == locator:
-                from vistrails.gui.job_monitor import QJobView
-                jobView = QJobView.instance()
-                jobView.delete_job(view.controller, all=True)
-
                 view.closeDetachedViews()
                 self.remove_view(view)
                 self.vistrail_widgets.remove(view)
@@ -1686,7 +1689,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             pe = vistrail.get_paramexp(pe_id)
         except ValueError:
             pe= vistrail.get_named_paramexp(pe_id)
-        except Exception:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return
         self.current_view.open_parameter_exploration(pe.id)
         self.qactions['execute'].trigger()
@@ -1836,6 +1840,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         if current_view:
             locator = current_view.controller.locator
 
+        SAVE_BUTTON, DISCARD_BUTTON, CANCEL_BUTTON = 0, 1, 2
+
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
             name = current_view.controller.name
@@ -1854,27 +1860,18 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                 0,
                                                 2)
             # Check if any unsaved workflow contains jobs
-            if res == 1:
-                vistrail = current_view.controller.vistrail
-                conf = get_vistrails_configuration()
-                if not conf.has('runningJobsList') or not conf.runningJobsList:
-                    conf_jobs = []
-                else:
-                    conf_jobs = conf.runningJobsList.split(';')
-                    res2 = 0
-                for url in conf_jobs:
-                    loc, version = url.split('?')
-                    version = int(version.split('=')[1])
-                    if loc != locator.to_url():
+            vistrail = current_view.controller.vistrail
+            from vistrails.core.interpreter.job import JobMonitor
+            if res == DISCARD_BUTTON:
+                res2 = SAVE_BUTTON
+                for workflow in JobMonitor.getInstance()._running_workflows.values():
+                    if workflow.vistrail != locator.to_url():
                         continue
-                    action = vistrail.db_get_action_by_id(version)
+                    action = vistrail.db_get_action_by_id(workflow.version)
                     if not action.is_dirty:
                         continue
-                    if res2 == 1:
-                        # already discarded
-                        from vistrails.gui.job_monitor import QJobView
-                        QJobView.instance().delete_job(
-                                             current_view.controller, version)
+                    if res2 == DISCARD_BUTTON:
+                        JobMonitor.getInstance().deleteWorkflow(workflow.id)
                         continue
                     text = ('Vistrail ' +
                             QtCore.Qt.escape(name) +
@@ -1888,19 +1885,17 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                         'Cancel',
                                                         0,
                                                         2)
-                    if res2 == 0:
-                        res = 0
+                    if res2 == SAVE_BUTTON:
+                        res = SAVE_BUTTON
                         break
-                    elif res2 == 1:
-                        from vistrails.gui.job_monitor import QJobView
-                        QJobView.instance().delete_job(
-                                             current_view.controller, version)
-                    elif res2 == 2:
+                    elif res2 == DISCARD_BUTTON:
+                        JobMonitor.getInstance().deleteWorkflow(workflow.id)
+                    elif res2 == CANCEL_BUTTON:
                         return False
         else:
-            res = 1
+            res = DISCARD_BUTTON
         
-        if res == 0:
+        if res == SAVE_BUTTON:
             if locator is None or locator.is_untitled():
                 class_ = FileLocator()
             else:
@@ -1908,7 +1903,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             locator = current_view.save_vistrail(class_)
             if not locator:
                 return False
-        elif res == 2:
+        elif res == CANCEL_BUTTON:
             return False
         
         if locator is not None:

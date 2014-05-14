@@ -32,73 +32,39 @@
 ##
 ###############################################################################
 
+import matplotlib
 import pylab
 import urllib
 
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
-from vistrails.core.modules.vistrails_module import Module, NotCacheable
+from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 
 ################################################################################
 
 class MplProperties(Module):
-    _output_ports = [("self", "(MplProperties)")]
-    
-    def update_props(self, objs):
-        # must implement in subclass
+    def compute(self, artist):
         pass
-        
+
+    class Artist(object):
+        def update_sub_props(self, objs):
+            # must implement in subclass
+            pass
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
-    # _input_ports = [("subfigRow", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("subfigCol", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]})]
-    _output_ports = [("self", "(MplPlot)")]
-
     def __init__(self):
         Module.__init__(self)
-        # self.figInstance = None
+        self.figInstance = None
 
-    # def set_fig(self, fig):
-    #     self.figInstance = fig
+    def set_figure(self, fig):
+        if self.figInstance is None:
+            self.figInstance = fig
+        else:
+            raise ModuleError(self,
+                              "matplotlib plots can only be in one figure")
 
-    # def get_fig(self):
-    #     if self.figInstance is None:
-    #         self.figInstance = pylab.figure()
-    #     return self.figInstance
-
-    # def get_translation(self, port, val):
-    #     '''doing translation for enum type of the input ports'''
-        
-    #     for klass in self.__class__.mro():
-    #         if '_mpl_translations' in klass.__dict__ and \
-    #                 port in klass._mpl_translations:
-    #             obj = klass._mpl_translations[port]
-    #             if isinstance(obj, dict):
-    #                 if val in obj:
-    #                     return obj[val]
-    #                 else:
-    #                     raise ArtistException(
-    #                         "Value '%s' for input '%s' invalid." % (val, port))
-    #             else:
-    #                 print "trying to call"
-    #                 return obj(val)
-    #     return None
-    
-    # def get_kwargs_except(self, listExcepts):
-    #     ''' getting all the input ports except those ports listed inside listExcepts
-    #         return format: {port_name:value,...}'''
-    #     kwargs = {}
-    #     for port in self.inputPorts:
-    #         if port not in listExcepts:
-    #             val = self.getInputFromPort(port)
-    #             translation = self.get_translation(port, val)
-    #             if translation is not None:
-    #                 kwargs[port] = translation
-    #             else:
-    #                 kwargs[port] = val
-    #     return kwargs
+    def compute(self):
+        matplotlib.pyplot.figure(self.figInstance.number)
 
 class MplSource(CodeRunnerMixin, MplPlot):
     """
@@ -111,16 +77,19 @@ class MplSource(CodeRunnerMixin, MplPlot):
     
     """
     _input_ports = [('source', '(basic:String)')]
+    _output_ports = [('value', '(MplSource)')]
 
     def compute(self):
         """ compute() -> None
         """
-        source = self.getInputFromPort('source')
-        s = ('from pylab import *\n' +
+        source = self.get_input('source')
+        s = ('from pylab import *\n'
              'from numpy import *\n' +
+             'figure(%d)\n' % self.figInstance.number +
              urllib.unquote(source))
 
         self.run_code(s, use_input=True, use_output=True)
+        self.set_output('value', None)
 
 class MplFigure(Module):
     _input_ports = [("addPlot", "(MplPlot)"),
@@ -134,27 +103,36 @@ class MplFigure(Module):
         Module.__init__(self)
         self.figInstance = None
 
-    def updateUpstream(self):
+    def update_upstream(self):
+        # Create a figure
         if self.figInstance is None:
             self.figInstance = pylab.figure()
         pylab.hold(True)
-        Module.updateUpstream(self)
+
+        # Set it on the plots
+        connectorList = self.inputPorts.get('addPlot', [])
+        connectorList.extend(self.inputPorts.get('setLegend', []))
+        for connector in connectorList:
+            connector.obj.set_figure(self.figInstance)
+
+        # Now we can run upstream modules
+        super(MplFigure, self).update_upstream()
 
     def compute(self):
-        plots = self.getInputListFromPort("addPlot")
+        plots = self.get_input_list("addPlot")
 
-        if self.hasInputFromPort("figureProperties"):
-            figure_props = self.getInputFromPort("figureProperties")
+        if self.has_input("figureProperties"):
+            figure_props = self.get_input("figureProperties")
             figure_props.update_props(self.figInstance)
-        if self.hasInputFromPort("axesProperties"):
-            axes_props = self.getInputFromPort("axesProperties")
+        if self.has_input("axesProperties"):
+            axes_props = self.get_input("axesProperties")
             axes_props.update_props(self.figInstance.gca())
-        if self.hasInputFromPort("setLegend"):
-            legend = self.getInputFromPort("setLegend")
+        if self.has_input("setLegend"):
+            legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 
 
-        self.setResult("self", self)
+        self.set_output("self", self)
 
 class MplContourSet(Module):
     pass

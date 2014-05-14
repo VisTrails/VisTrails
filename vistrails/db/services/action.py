@@ -136,7 +136,7 @@ def create_action(action_list):
       parent_type=None,
       parent_id=None,
     )
-    Example: create_action([('add', module1), ('delete', connection2)]
+    Example: create_action([('add', module1), ('delete', connection2)])
 
     """
     ops = []

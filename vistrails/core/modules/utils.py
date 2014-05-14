@@ -33,7 +33,25 @@
 ##
 ###############################################################################
 import vistrails.core
-from vistrails.core.system import get_vistrails_default_pkg_prefix
+from vistrails.core.system import get_vistrails_default_pkg_prefix, \
+    get_vistrails_basic_pkg_id, get_module_registry
+
+def load_cls(cls_item, prefix=None):
+    path = None
+    if isinstance(cls_item, basestring):
+        [path, cls_name] = cls_item.split(':')[:2]
+    elif isinstance(cls_item, tuple):
+        (path, cls_name) = cls_item
+    if path is not None:
+        try:
+            module = __import__(path, globals(), locals(), [cls_name])
+        except ImportError:
+            if prefix is None:
+                raise
+            path = '.'.join([prefix, path])
+            module = __import__(path, globals(), locals(), [cls_name])
+        return getattr(module, cls_name)
+    return cls_item
 
 def create_descriptor_string(package, name, namespace=None,
                              use_package=True):
@@ -77,14 +95,11 @@ def parse_descriptor_string(d_string, cur_package=None):
     else:
         qual_name = d_string
         if cur_package is None:
-            from vistrails.core.modules.module_registry import get_module_registry
             reg = get_module_registry()
             if reg._current_package is not None:
                 package = reg._current_package.identifier
             else:
-                import vistrails.core.modules.basic_modules
-                basic_pkg = vistrails.core.modules.basic_modules.identifier
-                package = basic_pkg
+                package = get_vistrails_basic_pkg_id()
         else:
             package = cur_package
     qual_parts = qual_name.rsplit('|', 1)
@@ -129,9 +144,19 @@ def parse_port_spec_string(p_string, cur_package=None):
 
 
 def create_port_spec_string(specs_list, old_style=False):
-    return '(' + ','.join(create_port_spec_item_string(
-            *(specs + ((None, old_style) if len(specs) < 3 else (old_style,))))
-                          for specs in specs_list) + ')'
+    spec_items = []
+    for specs in specs_list:
+        if len(specs) == 3:
+            pkg, name, ns = specs
+        elif len(specs) == 2:
+            pkg, name = specs
+            ns = None
+        else:
+            raise TypeError("create_port_spec_string() got spec tuple "
+                            "with %d elements" % len(specs))
+        spec_items.append(create_port_spec_item_string(pkg, name, ns,
+                                                       old_style))
+    return '(%s)' % ','.join(spec_items)
 
 def expand_port_spec_string(p_string, cur_package=None, 
                             old_style=False):

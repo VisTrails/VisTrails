@@ -96,13 +96,16 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
         
     def set_controller(self, controller):
         self.controller = controller
-        self.scene = controller.current_pipeline_scene
+        if self.controller is not None:
+            self.scene = controller.current_pipeline_scene
 
-        selected_ids = self.scene.get_selected_module_ids() 
-        modules = [controller.current_pipeline.modules[i] 
-                   for i in selected_ids]
-        if len(modules) == 1:
-            self.updateModule(modules[0])
+            selected_ids = self.scene.get_selected_module_ids() 
+            modules = [controller.current_pipeline.modules[i] 
+                       for i in selected_ids]
+            if len(modules) == 1:
+                self.updateModule(modules[0])
+            else:
+                self.updateModule(None)
         else:
             self.updateModule(None)
 

@@ -35,7 +35,6 @@
 import copy
 import sys
 import os
-#sys.path.append(os.getenv('VISTRAILS', ''))
 import vistrails.db.services.io
 from vistrails.db.domain import DBProvDocument, DBProvEntity, DBProvActivity, \
     DBProvAgent, DBProvGeneration, DBProvUsage, DBProvAssociation, \
@@ -407,7 +406,7 @@ def create_prov(workflow, version, log):
             
             try:
                 functions = module_functions[exec_._db_module_id]
-            except:
+            except Exception:
                 activities.append(prov_activity)
                 return True
                 

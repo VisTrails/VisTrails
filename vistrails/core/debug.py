@@ -32,17 +32,74 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import inspect
 import logging
 import logging.handlers
-import inspect
 import os
-import os.path
+import pdb
 import re
+import sys
 import time
-import vistrails.core
+import traceback
 
-# from core.utils import VersionTooLow
-# from core import system
+################################################################################
+
+def format_exception(e):
+    """Formats an exception as a single-line (no traceback).
+
+    Use this instead of str() which might drop the exception type.
+    """
+    return traceback._format_final_exc_line(type(e).__name__, e)
+
+
+def unexpected_exception(e, tb=None, frame=None):
+    """Marks an exception that we might want to debug.
+
+    Before logging an exception or showing a message (potentially with
+    format_exception()), you might want to call this. It's a no-op unless
+    debugging is enabled in the configuration, in which case it will start a
+    debugger.
+    """
+    if tb is None:
+        tb = sys.exc_info()[2]
+    if frame is None:
+        tb_it = tb
+        while tb_it.tb_next is not None:
+            tb_it = tb_it.tb_next
+        frame = tb_it.tb_frame
+
+    # Whether to use the debugger
+    try:
+        from vistrails.core.configuration import get_vistrails_configuration
+        debugger = getattr(get_vistrails_configuration(),
+                           'developperDebugger',
+                           False)
+    except Exception:
+        debugger = False
+    if not debugger:
+        return
+
+    # Removes PyQt's input hook
+    try:
+        from PyQt4 import QtCore
+    except ImportError:
+        pass
+    else:
+        QtCore.pyqtRemoveInputHook()
+
+    # Prints the exception and traceback
+    print >>sys.stderr, "!!!!!!!!!!"
+    print >>sys.stderr, "Got unexpected exception, starting debugger"
+    traceback.print_tb(tb, file=sys.stderr)
+    if e is not None:
+        print >>sys.stderr, format_exception(e)
+
+    # Starts the debugger
+    print >>sys.stderr, "!!!!!!!!!!"
+    # pdb.post_mortem()
+    p = pdb.Pdb()
+    p.reset()
+    p.interaction(frame, tb)
 
 ################################################################################
 
@@ -77,7 +134,7 @@ class EmitWarnings(logging.Handler):
 
 ################################################################################
 
-class DebugPrint:
+class DebugPrint(object):
     """ Class to be used for debugging information.
 
     Verboseness can be set in the following way:
@@ -112,14 +169,11 @@ class DebugPrint:
                                        logging.DEBUG) # python logging levels
     #Singleton technique
     _instance = None
-    class DebugPrintSingleton():
-        def __call__(self, *args, **kw):
-            if DebugPrint._instance is None:
-                obj = DebugPrint(*args, **kw)
-                DebugPrint._instance = obj
-            return DebugPrint._instance
-
-    getInstance = DebugPrintSingleton()
+    @staticmethod
+    def getInstance(*args, **kwargs):
+        if DebugPrint._instance is None:
+            DebugPrint._instance = DebugPrint(*args, **kwargs)
+        return DebugPrint._instance
 
     def make_logger(self, f=None):
         self.fhandler = None
@@ -211,7 +265,7 @@ class DebugPrint:
             self.logger.addHandler(handler)
 
         except Exception, e:
-            self.critical("Could not set log file %s: %s"%(f,str(e)))
+            self.critical("Could not set log file %s: %s" % f, e)
 
     def set_message_level(self,level):
         """self.set_message_level(level) -> None. Sets the logging
@@ -232,12 +286,17 @@ class DebugPrint:
         if self.app:
             self.app.splashMessage(msg)
 
-    def message(self, caller, msg, details=''):
-        """self.message(caller, str, str) -> str. Returns a string with a
+    def message(self, caller, msg, *details):
+        """self.message(caller, str, ...) -> str. Returns a string with a
         formatted message to be send to the debugging output. This
         should not be called explicitly from userland. Consider using
         self.log(), self.warning() or self.critical() instead."""
-        msg = (msg + '\n' + details) if details else msg
+        for d in details:
+            if isinstance(d, Exception):
+                d = format_exception(d)
+                msg = '%s\n%s' % (msg, d)
+            else:
+                msg = '%s\n%s' % (msg, d)
         source = inspect.getsourcefile(caller)
         line = caller.f_lineno
         if source and line:
@@ -245,29 +304,29 @@ class DebugPrint:
         else:
             return "(File info not available)\n" + msg
 
-    def debug(self, msg, details = ''):
-        """self.log(str, str) -> None. Send information message (low
+    def debug(self, msg, *details):
+        """self.log(str, ...) -> None. Send information message (low
         importance) to log with appropriate call site information."""
         caller = inspect.currentframe().f_back # who called us?
-        self.logger.debug(self.message(caller, msg, details))
+        self.logger.debug(self.message(caller, msg, *details))
 
-    def log(self, msg, details = ''):
-        """self.log(str, str) -> None. Send information message (low
+    def log(self, msg, *details):
+        """self.log(str, ...) -> None. Send information message (low
         importance) to log with appropriate call site information."""
         caller = inspect.currentframe().f_back # who called us?
-        self.logger.info(self.message(caller, msg, details))
+        self.logger.info(self.message(caller, msg, *details))
 
-    def warning(self, msg, details = ''):
-        """self.warning(str, str) -> None. Send warning message (medium
+    def warning(self, msg, *details):
+        """self.warning(str, ...) -> None. Send warning message (medium
         importance) to log with appropriate call site information."""
         caller = inspect.currentframe().f_back # who called us?
-        self.logger.warning(self.message(caller, msg, details))
+        self.logger.warning(self.message(caller, msg, *details))
 
-    def critical(self, msg, details = ''):
-        """self.critical(str, str) -> None. Send critical message (high
+    def critical(self, msg, *details):
+        """self.critical(str, ...) -> None. Send critical message (high
         importance) to log with appropriate call site information."""
         caller = inspect.currentframe().f_back # who called us?
-        self.logger.critical(self.message(caller, msg, details))
+        self.logger.critical(self.message(caller, msg, *details))
 
 splashMessage = DebugPrint.getInstance().splashMessage
 critical = DebugPrint.getInstance().critical
@@ -286,7 +345,6 @@ def timecall(method):
     """timecall is a method decorator that wraps any call in timing calls
     so we get the total time taken by a function call as a debugging message."""
     def call(self, *args, **kwargs):
-        caller = inspect.currentframe().f_back
         start = time.time()
         method(self, *args, **kwargs)
         end = time.time()

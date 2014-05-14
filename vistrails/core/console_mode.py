@@ -43,6 +43,7 @@ import vistrails.core.db.io
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import XMLFileLocator, ZIPFileLocator
 from vistrails.core import debug
+from vistrails.core.interpreter.job import JobMonitor, Workflow as JobWorkflow
 from vistrails.core.utils import VistrailsInternalError, expression
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.vistrail import Vistrail
@@ -118,16 +119,34 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False
         
-        (results, _) = \
+        jobMonitor = JobMonitor.getInstance()
+        current_workflow = jobMonitor.currentWorkflow()
+        if not current_workflow:
+            for job in jobMonitor._running_workflows.itervalues():
+                try:
+                    job_version = int(job.version)
+                except ValueError:
+                    job_version =  v.get_version_number(job.version)
+                if version == job_version and locator.to_url() == job.vistrail:
+                    current_workflow = job
+                    jobMonitor.startWorkflow(job)
+            if not current_workflow:
+                current_workflow = JobWorkflow(locator.to_url(), version)
+                jobMonitor.getInstance().startWorkflow(current_workflow)
+
+        try:
+            (results, _) = \
             controller.execute_current_workflow(custom_aliases=aliases,
                                                 custom_params=params,
                                                 extra_info=extra_info,
                                                 reason=reason)
+        finally:
+            jobMonitor.finishWorkflow()
         new_version = controller.current_version
         if new_version != version:
-            debug.warning("Version '%s' (%s) was upgraded. The actual "
-                          "version executed was %s" % \
-                              (workflow, version, new_version))
+            debug.log("Version '%s' (%s) was upgraded. The actual "
+                      "version executed was %s" % (
+                      workflow, version, new_version))
         run = results[0]
         run.workflow_info = (locator.name, new_version)
         run.pipeline = controller.current_pipeline
@@ -135,6 +154,15 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
+        if current_workflow.modules:
+            if current_workflow.completed():
+                run.job = "COMPLETED"
+            else:
+                run.job = "RUNNING: %s" % current_workflow.id
+                for job in current_workflow.modules.itervalues():
+                    if not job.finished:
+                        run.job += "\n  %s %s %s" % (job.start, job.name, job.description())
+            print run.job
     return result
 
 ################################################################################
@@ -181,7 +209,7 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
                         controller.current_pipeline_scene.saveToPNG(filename)
                     result.append((True, ""))
             except Exception, e:
-                result.append((False, str(e)))
+                result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save pipeline figure when not " \
             "running in gui mode"
@@ -220,7 +248,7 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
                         del version_view
                         result.append((True, ""))
             except Exception, e:
-                result.append((False, str(e)))
+                result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save version tree figure when not " \
             "running in gui mode"
@@ -272,7 +300,8 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
                                                    showProgress=False)
         except Exception, e:
             import traceback
-            return (locator, pe_id, str(e), traceback.format_exc())
+            return (locator, pe_id,
+                    debug.format_exception(e), traceback.format_exc())
 
 def run_parameter_explorations(w_list, extra_info = {},
                        reason="Console Mode Parameter Exploration Execution"):
@@ -314,10 +343,21 @@ class TestConsoleMode(unittest.TestCase):
             manager.late_disable_package('console_mode_test')
             
     def test1(self):
-        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                                 '/tests/resources/dummy.xml')
-        result = run([(locator, "int chain")], update_vistrail=False)
-        self.assertEqual(len(result), 0)
+        from vistrails.core.modules.basic_modules import StandardOutput
+        values = []
+        def mycompute(s):
+            v = s.get_input('value')
+            values.append(v)
+        orig_compute = StandardOutput.compute
+        StandardOutput.compute = mycompute
+        try:
+            locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
+                                     '/tests/resources/dummy.xml')
+            result = run([(locator, "int chain")], update_vistrail=False)
+            self.assertEqual(len(result), 0)
+            self.assertEqual(values, [2])
+        finally:
+            StandardOutput.compute = orig_compute
 
     def test_tuple(self):
         from vistrails.core.vistrail.module_param import ModuleParam
@@ -348,14 +388,13 @@ class TestConsoleMode(unittest.TestCase):
                            package='org.vistrails.vistrails.console_mode_test',
                            version='0.9.1')
         module.add_function(function)
-        
+
         p.add_module(module)
-        
-        kwargs = {'locator': XMLFileLocator('foo'),
-                  'current_version': 1L,
-                  'view': v,
-                  }
-        interpreter.execute(p, **kwargs)
+
+        interpreter.execute(p,
+                            locator=XMLFileLocator('foo'),
+                            current_version=1L,
+                            view=v)
 
     def test_python_source(self):
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +

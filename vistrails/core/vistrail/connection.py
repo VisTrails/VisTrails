@@ -65,7 +65,7 @@ def moduleConnection(conn):
 
         iport = conn.destination.name
         oport = conn.source.name
-        src.enableOutputPort(oport)
+        src.enable_output_port(oport)
         conf = get_vistrails_configuration()
         error_on_others = getattr(conf, 'errorOnConnectionTypeerror')
         error_on_variant = (error_on_others or

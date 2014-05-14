@@ -4,18 +4,18 @@ from vistrails.core.modules.vistrails_module import Module
 
 
 class NumPyArray(Module):
-    """
-    A Numpy Array, that can be loaded from a file.
+    """Reads a Numpy Array that has been written to a file.
 
     Declared as returning a List, but returns a Numpy array instead!
-    """
-    _input_ports = [
-            ('file', '(org.vistrails.vistrails.basic:File)'),
-            ('datatype', '(org.vistrails.vistrails.basic:String)'),
-            ('shape', '(org.vistrails.vistrails.basic:List)')]
-    _output_ports = [
-            ('value', '(org.vistrails.vistrails.basic:List)')]
 
+    NumPy can use one of two schemes: either 'plain' binary arrays, i.e. just
+    the binary representation of the data format (in this case you must specify
+    the exact format to get the original data back), or the NPY format, i.e.
+    .npy files that know what the actual structure of the array is.
+
+    If the array you are reading is not a simple one-dimensional array, you can
+    use the shape port to indicate its expected structure.
+    """
     NPY_FMT = object()
 
     FORMAT_MAP = dict(
@@ -37,10 +37,18 @@ class NumPyArray(Module):
         complex128 = numpy.complex128,
     )
 
+    _input_ports = [
+            ('file', '(org.vistrails.vistrails.basic:File)'),
+            ('datatype', '(org.vistrails.vistrails.basic:String)',
+             {'entry_types': "['enum']", 'values': "[%r]" % FORMAT_MAP.keys()}),
+            ('shape', '(org.vistrails.vistrails.basic:List)')]
+    _output_ports = [
+            ('value', '(org.vistrails.vistrails.basic:List)')]
+
     def compute(self):
-        filename = self.getInputFromPort('file').name
-        if self.hasInputFromPort('datatype'):
-            dtype = NumPyArray.FORMAT_MAP[self.getInputFromPort('datatype')]
+        filename = self.get_input('file').name
+        if self.has_input('datatype'):
+            dtype = NumPyArray.FORMAT_MAP[self.get_input('datatype')]
         else:
             if filename[-4:].lower() == '.npy':
                 dtype = self.NPY_FMT
@@ -54,12 +62,12 @@ class NumPyArray(Module):
             # Numpy's plain binary format
             # Written with: array.tofile('xxx.dat')
             array = numpy.fromfile(filename, dtype)
-        if self.hasInputFromPort('shape'):
-            array.shape = tuple(self.getInputFromPort('shape'))
-        self.setResult('value', array)
+        if self.has_input('shape'):
+            array.shape = tuple(self.get_input('shape'))
+        self.set_output('value', array)
 
 
-_modules = {'numpy': [NumPyArray]}
+_modules = [NumPyArray]
 
 
 ###############################################################################
@@ -84,7 +92,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('read|numpy|NumPyArray', identifier, [
+                    ('read|NumPyArray', identifier, [
                         ('datatype', [('String', 'float32')]),
                         ('shape', [('List', '[2, 3]')]),
                         ('file', [('File', self._test_dir + '/random.dat')]),
@@ -102,7 +110,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('read|numpy|NumPyArray', identifier, [
+                    ('read|NumPyArray', identifier, [
                         ('datatype', [('String', 'npy')]),
                         ('file', [('File', self._test_dir + '/random.npy')]),
                     ]),
@@ -128,7 +136,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('read|numpy|NumPyArray', identifier, [
+                    ('read|NumPyArray', identifier, [
                         ('file', [('File', self._test_dir + '/random.npy')]),
                     ]),
                 ]))

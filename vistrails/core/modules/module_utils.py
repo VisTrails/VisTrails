@@ -48,7 +48,9 @@ import unittest
 class FilePool(object):
 
     """FilePool provides a convenient interface for Module developers to
-use temporary files. """
+    use temporary files.
+
+    """
     
     def __init__(self):
         d = {'prefix':'vt_tmp'}
@@ -65,9 +67,11 @@ use temporary files. """
     def cleanup(self):
         """cleanup() -> None
 
-Cleans up the file pool, by removing all temporary files
-and the directory they existed in. Module developers should never
-call this directly."""
+        Cleans up the file pool, by removing all temporary files and
+        the directory they existed in. Module developers should never
+        call this directly.
+
+        """
         if not os.path.isdir(self.directory):
             # cleanup has already happened
             return
@@ -79,36 +83,38 @@ call this directly."""
                     os.rmdir(os.path.join(root, name))
             os.rmdir(self.directory)
         except OSError, e:
+            debug.unexpected_exception(e)
             raise VistrailsInternalError("Can't remove %s: %s" %
                                          (self.directory,
-                                          str(e)))
+                                          debug.format_exception(e)))
 
     def create_file(self, suffix = '', prefix = 'vt_tmp'):
-        """create_file(suffix='', prefix='vt_tmp') -> File.
+        """create_file(suffix='', prefix='vt_tmp') -> PathObject.
 
-Returns a File module representing a writable file for use in modules. To
-avoid race conditions, this file will already exist in the file system."""
+        Returns a File module representing a writable file for use in
+        modules. To avoid race conditions, this file will already
+        exist in the file system.
+
+        """
         (fd, name) = tempfile.mkstemp(suffix=suffix,
                                       prefix=prefix,
                                       dir=self.directory)
         os.close(fd)
-        result = basic_modules.File()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
 
     def create_directory(self, suffix = '', prefix = 'vt_tmp'):
-        """create_directory(suffix='', prefix='vt_tmp') -> Directory.
+        """create_directory(suffix='', prefix='vt_tmp') -> PathObject.
 
-Returns a Directory module representing a writable directory for use in modules. To
-avoid race conditions, this directory will already exist in the file system."""
+        Returns a writable directory for use in modules. To avoid race
+        conditions, this directory will already exist in the file system.
+
+        """
         name = tempfile.mkdtemp(suffix=suffix,
                                       prefix=prefix,
                                       dir=self.directory)
-        result = basic_modules.Directory()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
 
@@ -120,22 +126,22 @@ avoid race conditions, this directory will already exist in the file system."""
         return os.path.splitext(file_name)[1]
 
     def make_local_copy(self, src):
-        """make_local_copy(src) -> File
+        """make_local_copy(src) -> PathObject
 
-Returns a file in the filePool that's either a link or a copy of the
-given file path. This ensures the file's longevity when
-necessary. Since it might use a hardlink for speed, modules should
-only use this method if the file is not going to be changed in the
-future."""
+        Returns a file in the filePool that's either a link or a copy
+        of the given file path. This ensures the file's longevity when
+        necessary. Since it might use a hardlink for speed, modules
+        should only use this method if the file is not going to be
+        changed in the future.
+
+        """
         (fd, name) = tempfile.mkstemp(suffix=self.guess_suffix(src),
                                       dir=self.directory)
         os.close(fd)
         # FIXME: Watch out for race conditions
         os.unlink(name)
         link_or_copy(src, name)
-        result = basic_modules.File()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
         

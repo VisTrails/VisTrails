@@ -34,13 +34,13 @@
 ###############################################################################
 # We need to remove QtGui and QtCore refernce by storing all of our
 # notes in plain text, not html, should be fix later
-from vistrails.core.query import extract_text
-import vistrails.core.utils
+import datetime
 import re
 import time
-
 import unittest
-import datetime
+
+from vistrails.core.query import extract_text
+from vistrails.core.system import time_strptime
 
 ################################################################################
 
@@ -49,10 +49,6 @@ class SearchParseError(Exception):
         Exception.__init__(self, *args, **kwargs)
 
 class SearchStmt(object):
-    def __init__(self, content):
-        self.text = content
-        self.content = re.compile('.*'+content+'.*', re.MULTILINE | re.IGNORECASE)
-
     def match(self, vistrail, action):
         return True
 
@@ -397,44 +393,57 @@ class BeforeSearchStmt(TimeSearchStmt):
     def match(self, vistrail, action):
         if not action.date:
             return False
-        t = time.mktime(time.strptime(action.date, "%d %b %Y %H:%M:%S"))
+        t = time.mktime(time_strptime(action.date, "%d %b %Y %H:%M:%S"))
         return t <= self.date
 
 class AfterSearchStmt(TimeSearchStmt):
     def match(self, vistrail, action):
         if not action.date:
             return False
-        t = time.mktime(time.strptime(action.date, "%d %b %Y %H:%M:%S"))
+        t = time.mktime(time_strptime(action.date, "%d %b %Y %H:%M:%S"))
         return t >= self.date
 
-class UserSearchStmt(SearchStmt):
+class RegexEnabledSearchStmt(SearchStmt):
+    def __init__(self, content, use_regex):
+        self.content = content
+        self.use_regex = use_regex
+        if self.use_regex:
+            self.regex = re.compile(content, re.MULTILINE | re.IGNORECASE)
+
+    def _content_matches(self, v):
+        if self.use_regex:
+            return self.regex.match(v)
+        else:
+            return v in self.content
+
+class UserSearchStmt(RegexEnabledSearchStmt):
     def match(self, vistrail, action):
         if not action.user:
             return False
-        return self.content.match(action.user)
+        return self._content_matches(action.user)
 
-class NotesSearchStmt(SearchStmt):
+class NotesSearchStmt(RegexEnabledSearchStmt):
     def match(self, vistrail, action):
         if vistrail.has_notes(action.id):
             plainNotes = extract_text(vistrail.get_notes(action.id))
-            return self.content.search(plainNotes)
+            return self._content_matches(plainNotes)
         return False
 
-class NameSearchStmt(SearchStmt):
+class NameSearchStmt(RegexEnabledSearchStmt):
     def match(self, vistrail, action):
         m = 0
         tm = vistrail.get_tagMap()
         if action.timestep in tm:
-            m = self.content.match(tm[action.timestep])
+            m = self._content_matches(tm[action.timestep])
         if bool(m) == False:
-            m = self.content.match(vistrail.get_description(action.timestep))
+            m = self._content_matches(vistrail.get_description(action.timestep))
         return bool(m)
 
-class ModuleSearchStmt(SearchStmt):
+class ModuleSearchStmt(RegexEnabledSearchStmt):
     def match(self, vistrail, action):
         pipeline = vistrail.getPipeline(action.timestep)
         for module in pipeline.modules.itervalues():
-            if self.content.match(module.name):
+            if self._content_matches(module.name):
                 return True
         return False
 
@@ -472,37 +481,48 @@ class TrueSearch(SearchStmt):
 
 class SearchCompiler(object):
     SEPARATOR = -1
-    def __init__(self, searchStr):
-        self.searchStmt = self.compile(searchStr)
-    def compile(self, searchStr):
+    def __init__(self, searchStr, use_regex=False):
+        self.searchStmt = self.compile(searchStr, use_regex)
+    def compile(self, searchStr, use_regex):
         lst = []
         t1 = searchStr.split(' ')
         while t1:
             tok = t1[0]
-            cmd = tok.split(':')
-            if not SearchCompiler.dispatch.has_key(cmd[0]):
-                fun = SearchCompiler.parseAny
-            else:
+            cmd = tok.split(':', 1)
+            if SearchCompiler.dispatch.has_key(cmd[0]):
                 fun = SearchCompiler.dispatch[cmd[0]]
-            if len(cmd) > 1:
-                [search, rest] = fun(self, cmd[1:] + t1[1:])
+                if len(cmd) > 1:
+                    t1 = [cmd[1]] + t1[1:]
+                search, rest = fun(self, t1, use_regex)
             else:
-                [search, rest] = fun(self, t1)
+                search, rest = self.parseAny(t1, use_regex)
             lst.append(search)
             t1 = rest
         return AndSearchStmt(lst)
-    def parseUser(self, tokStream):
-        if len(tokStream) == 0:
-            raise SearchParseError('Expected token, got end of search')
-        return (UserSearchStmt(tokStream[0]), tokStream[1:])
-    def parseAny(self, tokStream):
+    def parseAny(self, tokStream, use_regex):
         if len(tokStream) == 0:
             raise SearchParseError('Expected token, got end of search')
         tok = tokStream[0]
-        return (OrSearchStmt([UserSearchStmt(tok),
-                              NotesSearchStmt(tok),
-                              NameSearchStmt(tok)]), tokStream[1:])
-    def parseNotes(self, tokStream):
+        return (OrSearchStmt([UserSearchStmt(tok, use_regex),
+                              NotesSearchStmt(tok, use_regex),
+                              NameSearchStmt(tok, use_regex)]),
+                tokStream[1:])
+    def parseUser(self, tokStream, use_regex):
+        if len(tokStream) == 0:
+            raise SearchParseError('Expected token, got end of search')
+        return (UserSearchStmt(tokStream[0], use_regex), tokStream[1:])
+    def parseNotes(self, tokStream, use_regex):
+        if len(tokStream) == 0:
+            raise SearchParseError('Expected token, got end of search')
+        lst = []
+        while len(tokStream):
+            tok = tokStream[0]
+            if ':' in tok:
+                return (AndSearchStmt(lst, use_regex), tokStream)
+            lst.append(NotesSearchStmt(tok, use_regex))
+            tokStream = tokStream[1:]
+        return (AndSearchStmt(lst), [])
+    def parseName(self, tokStream, use_regex):
         if len(tokStream) == 0:
             raise SearchParseError('Expected token, got end of search')
         lst = []
@@ -510,10 +530,10 @@ class SearchCompiler(object):
             tok = tokStream[0]
             if ':' in tok:
                 return (AndSearchStmt(lst), tokStream)
-            lst.append(NotesSearchStmt(tok))
+            lst.append(NameSearchStmt(tok, use_regex))
             tokStream = tokStream[1:]
         return (AndSearchStmt(lst), [])
-    def parseName(self, tokStream):
+    def parseModule(self, tokStream, use_regex):
         if len(tokStream) == 0:
             raise SearchParseError('Expected token, got end of search')
         lst = []
@@ -521,21 +541,10 @@ class SearchCompiler(object):
             tok = tokStream[0]
             if ':' in tok:
                 return (AndSearchStmt(lst), tokStream)
-            lst.append(NameSearchStmt(tok))
+            lst.append(ModuleSearchStmt(tok, use_regex))
             tokStream = tokStream[1:]
         return (AndSearchStmt(lst), [])
-    def parseModule(self, tokStream):
-        if len(tokStream) == 0:
-            raise SearchParseError('Expected token, got end of search')
-        lst = []
-        while len(tokStream):
-            tok = tokStream[0]
-            if ':' in tok:
-                return (AndSearchStmt(lst), tokStream)
-            lst.append(ModuleSearchStmt(tok))
-            tokStream = tokStream[1:]
-        return (AndSearchStmt(lst), [])
-    def parseBefore(self, tokStream):
+    def parseBefore(self, tokStream, use_regex):
         old_tokstream = tokStream
         try:
             if len(tokStream) == 0:
@@ -554,14 +563,14 @@ class SearchCompiler(object):
         except SearchParseError, e:
             if 'Expected a date' in e.args[0]:
                 try:
-                    return self.parseAny(old_tokstream)
+                    return self.parseAny(old_tokstream, use_regex)
                 except SearchParseError, e2:
                     print "Another exception...", e2.args[0]
                     raise e
             else:
                 raise
             
-    def parseAfter(self, tokStream):
+    def parseAfter(self, tokStream, use_regex):
         try:
             if len(tokStream) == 0:
                 raise SearchParseError('Expected token, got end of search')
@@ -579,7 +588,7 @@ class SearchCompiler(object):
         except SearchParseError, e:
             if 'Expected a date' in e.args[0]:
                 try:
-                    return self.parseAny(['after'] + tokStream)
+                    return self.parseAny(['after'] + tokStream, use_regex)
                 except SearchParseError, e2:
                     print "Another exception...", e2.args[0]
                     raise e

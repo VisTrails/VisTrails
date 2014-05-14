@@ -60,14 +60,12 @@ ElementTree = get_elementtree_library()
 
 class MashupsManager(object):
     _instance = None
-    class MashupsManagerSingleton(object):
-        def __call__(self, *args, **kw):
-            if MashupsManager._instance is None:
-                obj = MashupsManager(*args, **kw)
-                MashupsManager._instance = obj
-            return MashupsManager._instance
-    
-    getInstance = MashupsManagerSingleton()
+    @staticmethod
+    def getInstance(*args, **kwargs):
+        if MashupsManager._instance is None:
+            obj = MashupsManager(*args, **kwargs)
+            MashupsManager._instance = obj
+        return MashupsManager._instance
 
     def __init__(self):
         if not MashupsManager._instance:

@@ -112,14 +112,17 @@ def main():
     disable_lion_restore()
     fix_site()
 
+    # Load the default locale (from environment)
+    import locale
+    locale.setlocale(locale.LC_ALL, '')
+
     from vistrails.gui.requirements import require_pyqt4_api2
     require_pyqt4_api2()
 
-    from PyQt4 import QtGui
     import vistrails.gui.application
     from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
     try:
-        v = vistrails.gui.application.start_application()
+        v = vistrails.gui.application.start_application(args=sys.argv[1:])
         if v != APP_SUCCESS:
             app = vistrails.gui.application.get_vistrails_application()
             if app:
@@ -135,9 +138,10 @@ def main():
         app = vistrails.gui.application.get_vistrails_application()
         if app:
             app.finishSession()
-        print "Uncaught exception on initialization: %s" % e
         import traceback
-        traceback.print_exc()
+        print >>sys.stderr, "Uncaught exception on initialization: %s" % (
+                traceback._format_final_exc_line(type(e).__name__, e))
+        traceback.print_exc(sys.stderr)
         sys.exit(255)
     if (app.temp_configuration.interactiveMode and
         not app.temp_configuration.check('spreadsheetDumpCells')):

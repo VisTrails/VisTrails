@@ -48,6 +48,7 @@ import celltoolbar_rc
 import spreadsheet_controller
 import analogy_api
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.system import strftime
 
 ################################################################################
 
@@ -55,8 +56,10 @@ class QCellWidget(QtGui.QWidget):
     """
     QCellWidget is the base cell class. All types of spreadsheet cells
     should inherit from this.
-    
+
     """
+    save_formats = ["Images (*.png *.xpm *.jpg)",
+                    "Portable Document Format (*.pdf)"]
 
     def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
         """ QCellWidget(parent: QWidget) -> QCellWidget
@@ -108,7 +111,7 @@ class QCellWidget(QtGui.QWidget):
         # Generate filename
         current = datetime.datetime.now()
         tmpDir = tempfile.gettempdir()
-        fn = ( "hist_" + current.strftime("%Y_%m_%d__%H_%M_%S") +
+        fn = ( "hist_" + strftime(current, "%Y_%m_%d__%H_%M_%S") +
                "_" + str(current.microsecond)+".png")
         fn = os.path.join(tmpDir, fn)
         if self.saveToPNG(fn):
@@ -221,8 +224,14 @@ class QCellWidget(QtGui.QWidget):
         """ dumpToFile(filename: str, dump_as_pdf: bool) -> None
         Dumps itself as an image to a file, calling grabWindowPixmap """
         pixmap = self.grabWindowPixmap()
-        pixmap.save(filename,"PNG")
-            
+        ext = os.path.splitext(filename)[1].lower()
+        if not ext:
+            pixmap.save(filename, 'PNG')
+        elif ext == '.pdf':
+            self.saveToPDF(filename)
+        else:
+            pixmap.save(filename)
+
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
 
@@ -264,6 +273,7 @@ class QCellToolBar(QtGui.QToolBar):
         self.layout().setMargin(0)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
+        self.addSaveCellAction()
         self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
         self.appendAction(QCellToolBarMergeCells(QtGui.QIcon(':celltoolbar/mergecells.png'), self))
         self.createToolBar()
@@ -276,8 +286,33 @@ class QCellToolBar(QtGui.QToolBar):
         self.appendAction(QCellToolBarPlayHistory(self))
         self.appendAction(QCellToolBarClearHistory(self))
 
+    def addSaveCellAction(self):
+        if not hasattr(self, 'saveActionVar'):
+            self.saveActionVar = QCellToolBarSelectedCell(
+                    QtGui.QIcon(":/images/camera.png"),
+                    "Save cell",
+                    self)
+            self.saveActionVar.setStatusTip("Export this cell only")
+
+            self.connect(self.saveActionVar, QtCore.SIGNAL('triggered(bool)'),
+                         self.exportCell)
+        self.appendAction(self.saveActionVar)
+
+    def exportCell(self, checked=False):
+        cell = self.sheet.getCell(self.row, self.col)
+        if not cell.save_formats:
+            QtGui.QMessageBox.information(
+                    self, "Export cell",
+                    "This cell type doesn't provide any export option")
+            return
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self, "Select a File to Export the Cell",
+            ".", ';;'.join(cell.save_formats))
+        if filename:
+            cell.dumpToFile(filename)
+
     def createToolBar(self):
-        """ createToolBar() -> None        
+        """ createToolBar() -> None
         A user-defined method for customizing the toolbar. This is
         going to be an empty method here for inherited classes to
         override.
@@ -352,7 +387,19 @@ class QCellToolBar(QtGui.QToolBar):
         else:
             return None
 
-class QCellToolBarRemoveCell(QtGui.QAction):
+class QCellToolBarSelectedCell(QtGui.QAction):
+    """
+    QCellToolBarSelectedCell is an action only visible if the cell isn't empty.
+    """
+    def updateStatus(self, info):
+        """ updateStatus(info: tuple) -> None
+        Updates the status of the button based on the input info
+
+        """
+        (sheet, row, col, cellWidget) = info
+        self.setVisible(cellWidget != None)
+
+class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
     """
     QCellToolBarRemoveCell is the action to clear the current cell
 
@@ -361,12 +408,12 @@ class QCellToolBarRemoveCell(QtGui.QAction):
         """ QCellToolBarRemoveCell(icon: QIcon, parent: QWidget)
                                    -> QCellToolBarRemoveCell
         Setup the image, status tip, etc. of the action
-        
+
         """
-        QtGui.QAction.__init__(self,
-                               icon,
-                               "&Clear the current cell",
-                               parent)
+        QCellToolBarSelectedCell.__init__(self,
+                                          icon,
+                                          "&Clear the current cell",
+                                          parent)
         self.setStatusTip("Clear the current cell")
 
     def triggeredSlot(self, checked=False):
@@ -383,14 +430,6 @@ class QCellToolBarRemoveCell(QtGui.QAction):
         if (r==QtGui.QMessageBox.Yes):
             self.toolBar.sheet.deleteCell(self.toolBar.row, self.toolBar.col)
 
-    def updateStatus(self, info):
-        """ updateStatus(info: tuple) -> None
-        Updates the status of the button based on the input info
-        
-        """
-        (sheet, row, col, cellWidget) = info
-        self.setVisible(cellWidget!=None)
-        
 class QCellToolBarMergeCells(QtGui.QAction):
     """
     QCellToolBarMergeCells is the action to merge selected cells to a

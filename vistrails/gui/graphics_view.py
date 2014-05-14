@@ -213,7 +213,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             pixmap.save(filename)
             self.setBackgroundBrush(brush)
         except Exception, e:
-            debug.critical("Exception: %s"%str(e))
+            debug.critical("Exception saving to PNG", e)
 
 class QInteractiveGraphicsView(QtGui.QGraphicsView):
     """

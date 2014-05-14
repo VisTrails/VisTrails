@@ -43,16 +43,19 @@ from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import system
 from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
-from vistrails.core.db.locator import FileLocator, DBLocator
+from vistrails.core.db.locator import FileLocator, DBLocator, BaseLocator
+from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.requirements
 from vistrails.db import VistrailsDBException
 import vistrails.db.services.io
 from vistrails.gui import qt
 import vistrails.gui.theme
+from ast import literal_eval
 import os.path
 import getpass
 import re
 import sys
+import StringIO
 
 ################################################################################
 
@@ -120,8 +123,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     try:
                         os.remove(self._unique_key)
                     except OSError, e:
-                        debug.critical("Couldn't remove socket: %s (%s)" % (
-                                       self._unique_key, e))
+                        debug.critical("Couldn't remove socket: %s" %
+                                       self._unique_key, e)
 
                 else:
                     if self.found_another_instance_running(local_socket):
@@ -180,14 +183,18 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             debug.critical("Main instance reports: %s" % res)
             return False
 
-    def init(self, optionsDict=None):
+    def init(self, optionsDict=None, args=[]):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
         
         """
         vistrails.gui.theme.initializeCurrentTheme()
-        VistrailsApplicationInterface.init(self, optionsDict)
+        VistrailsApplicationInterface.init(self, optionsDict, args)
+        
+        if self.temp_configuration.check('jobRun') or \
+           self.temp_configuration.check('jobList'):
+            self.temp_configuration.interactiveMode = False
 
         # singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
@@ -222,7 +229,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 if not linux_default_application_set():
                     self.ask_update_default_application()
 
-        if interactive:
+        if self.temp_configuration.check('jobList'):
+            job = JobMonitor.getInstance()
+            for i, j in job._running_workflows.iteritems():
+                print "JOB: ", i, j.vistrail, j.version, j.start, \
+                      "FINISHED" if j.completed() else "RUNNING"
+        elif self.temp_configuration.check('jobRun'):
+            return self.runJob(self.temp_configuration.jobRun)
+        elif interactive:
             self.interactiveMode()
         else:
             r = self.noninteractiveMode()
@@ -374,7 +388,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             for m in self.notifications[notification_id]:
                 try:
                     m(*args)
-                except Exception:
+                except Exception, e:
+                    debug.unexpected_exception(e)
                     import traceback
                     traceback.print_exc()
         notifications = {}
@@ -389,7 +404,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 for m in notifications[notification_id]:
                     try:
                         m(*args)
-                    except Exception:
+                    except Exception, e:
+                        debug.unexpected_exception(e)
                         import traceback
                         traceback.print_exc()
 
@@ -405,7 +421,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 for m in notifications[notification_id]:
                     try:
                         m(*args)
-                    except Exception:
+                    except Exception, e:
+                        debug.unexpected_exception(e)
                         import traceback
                         traceback.print_exc()
 
@@ -430,13 +447,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # self.builderWindow.modulePalette.connect_registry_signals()
         self.builderWindow.link_registry()
         
+        self.builderWindow.check_running_jobs()
         self.process_interactive_input()
         if not self.temp_configuration.showSpreadsheetOnly:
             self.showBuilderWindow()
         else:
             self.builderWindow.hide()
         self.builderWindow.create_first_vistrail()
-        self.builderWindow.check_running_jobs()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
@@ -655,10 +672,16 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.temp_configuration.interactiveMode = True
             
             try:
+                # redirect stdout
+                old_stdout = sys.stdout
+                sys.stdout = StringIO.StringIO()
                 result = self.parse_input_args_from_other_instance(str(byte_array))
+                output = sys.stdout.getvalue()
+                sys.stdout.close()
+                sys.stdout = old_stdout
             except Exception, e:
                 import traceback
-                debug.critical("Unknown error: %s" % str(e))
+                debug.critical("Unknown error", e)
                 result = traceback.format_exc()
             if None == result:
                 result = True
@@ -668,6 +691,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 result = "Command Failed"
             elif type(result) == list:
                 result = '\n'.join(result[1])
+            if result == "Command Completed" and output:
+                result += '\n' + output
             self.shared_memory.lock()
             local_socket.write(bytes(result))
             self.shared_memory.unlock()
@@ -691,8 +716,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             return False
         byte_array = local_socket.readAll()
         result = str(byte_array)
-        debug.log("Other instance processed input (%s)"%result)
-        if result != 'Command Completed':
+        print "Other instance processed input (%s)" % result
+        if not result.startswith('Command Completed'):
             debug.critical(result)
         else:
             local_socket.disconnectFromServer()
@@ -704,7 +729,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         options_re = re.compile(r"^(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])$")
         if options_re.match(msg):
             #it's safe to eval as a list
-            args = eval(msg)
+            args = literal_eval(msg)
             if isinstance(args, list):
                 #print "args from another instance %s"%args
                 try:
@@ -713,6 +738,22 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     debug.critical("Invalid options: %s" % ' '.join(args))
                     return False
                 self.readOptions()
+                if self.temp_configuration.check('jobList'):
+                    job = JobMonitor.getInstance()
+                    return '\n'.join(
+                        ["JOB: %s %s %s %s %s" %(i,
+                                                 j.vistrail,
+                                                 j.version,
+                                                 j.start,
+                              "FINISHED" if j.completed() else "RUNNING")
+                         for i, j in job._running_workflows.iteritems()])
+                if self.temp_configuration.check('jobRun'):
+                    # skip waiting for completion
+                    autoRun = self.configuration.check('autoRun')
+                    self.configuration.autoRun = True
+                    result = self.runJob(self.temp_configuration.jobRun)
+                    self.configuration.autoRun = autoRun
+                    return result == APP_SUCCESS
                 interactive = self.temp_configuration.check('interactiveMode')
                 if interactive:
                     result = self.process_interactive_input()
@@ -729,6 +770,20 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         else:
             debug.critical("Invalid input: %s" % msg)
         return False
+
+    def runJob(self, job_id):
+        jobMonitor = JobMonitor.getInstance()
+        workflow = jobMonitor.getWorkflow(job_id)
+        if not workflow:
+            print "No job with that id exists"
+            return APP_FAIL
+        locator = BaseLocator.from_url(workflow.vistrail)
+        jobMonitor.startWorkflow(workflow)
+        import vistrails.core.console_mode
+        error = vistrails.core.console_mode.run([(locator, workflow.version)],
+                                                update_vistrail=True)
+        return APP_SUCCESS
+
 
 def linux_default_application_set():
     """linux_default_application_set() -> True|False|None
@@ -832,7 +887,7 @@ MimeType=application/x-vistrails
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
-def start_application(optionsDict=None):
+def start_application(optionsDict=None, args=[]):
     """Initializes the application singleton."""
     VistrailsApplication = get_vistrails_application()
     if VistrailsApplication:
@@ -840,11 +895,12 @@ def start_application(optionsDict=None):
         return
     VistrailsApplication = VistrailsApplicationSingleton()
     set_vistrails_application(VistrailsApplication)
-    x = VistrailsApplication.init(optionsDict)
+    x = VistrailsApplication.init(optionsDict, args)
     return x
 
 def stop_application():
     """Stop and finalize the application singleton."""
+    JobMonitor.getInstance().save_to_file()
     VistrailsApplication = get_vistrails_application()
     VistrailsApplication.finishSession()
     VistrailsApplication.save_configuration()

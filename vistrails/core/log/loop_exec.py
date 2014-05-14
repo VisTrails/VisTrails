@@ -32,13 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.db.domain import DBLoopExec
+from vistrails.db.domain import DBLoopExec, DBLoopIteration
+
 
 class LoopExec(DBLoopExec):
-    """ Class that stores info for logging a loop execution. """
-
-    def __init__(self, *args, **kwargs):
-        DBLoopExec.__init__(self, *args, **kwargs)
+    """Class that stores info for logging a loop.
+    """
 
     def __copy__(self):
         return self.do_copy()
@@ -50,13 +49,49 @@ class LoopExec(DBLoopExec):
 
     @staticmethod
     def convert(_loop_exec):
-        from vistrails.core.log.module_exec import ModuleExec
-        from vistrails.core.log.group_exec import GroupExec
-
         if _loop_exec.__class__ == LoopExec:
             return
         _loop_exec.__class__ = LoopExec
-        for item_exec in _loop_exec.item_execs:
+        for iteration in _loop_exec.loop_iterations:
+            LoopIteration.convert(iteration)
+
+    ##########################################################################
+    # Properties
+
+    id = DBLoopExec.db_id
+    ts_start = DBLoopIteration.db_ts_start
+    ts_end = DBLoopIteration.db_ts_end
+
+    def _get_loop_iterations(self):
+        return self.db_loop_iterations
+    def _set_loop_iterations(self, iterations):
+        self.db_loop_iterations = iterations
+    loop_iterations = property(_get_loop_iterations, _set_loop_iterations)
+    def add_loop_iteration(self, iteration):
+        self.db_add_loop_iteration(iteration)
+
+
+class LoopIteration(DBLoopIteration):
+    """Class that stores info for logging a single iteration of a loop.
+    """
+
+    def __copy__(self):
+        return self.do_copy()
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBLoopIteration.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = LoopIteration
+        return cp
+
+    @staticmethod
+    def convert(_loop_iteration):
+        from vistrails.core.log.module_exec import ModuleExec
+        from vistrails.core.log.group_exec import GroupExec
+
+        if _loop_iteration.__class__ == LoopIteration:
+            return
+        _loop_iteration.__class__ = LoopIteration
+        for item_exec in _loop_iteration.item_execs:
             if item_exec.vtType == ModuleExec.vtType:
                 ModuleExec.convert(item_exec)
             elif item_exec.vtType == GroupExec.vtType:
@@ -67,11 +102,12 @@ class LoopExec(DBLoopExec):
     ##########################################################################
     # Properties
 
-    id = DBLoopExec.db_id
-    ts_start = DBLoopExec.db_ts_start
-    ts_end = DBLoopExec.db_ts_end
-    completed = DBLoopExec.db_completed
-    error = DBLoopExec.db_error
+    id = DBLoopIteration.db_id
+    ts_start = DBLoopIteration.db_ts_start
+    ts_end = DBLoopIteration.db_ts_end
+    completed = DBLoopIteration.db_completed
+    error = DBLoopIteration.db_error
+    iteration = DBLoopIteration.db_iteration
 
     def _get_duration(self):
         if self.db_ts_end is not None:

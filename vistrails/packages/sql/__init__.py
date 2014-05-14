@@ -33,15 +33,23 @@
 ##
 ###############################################################################
 """
-SQL Scripting package. It supports MySQL and PostgreSQL.
+SQL Scripting package.
 
-Preliminary work at adding DBConnection and SQLSource modules.
-Interfaces may change so don't write any critical code using this
-package!
-
+Uses SQLAlchemy to access a variety of database software.
 """
 
 identifier = 'org.vistrails.vistrails.sql'
 name = 'SQL'
-version = '0.0.4'
+version = '0.1.0'
 old_identifiers = ['edu.utah.sci.vistrails.sql']
+
+def package_dependencies():
+    return ['org.vistrails.vistrails.tabledata']
+
+def package_requirements():
+    from vistrails.core.requirements import require_python_module
+    require_python_module('sqlalchemy', {
+            'pip': 'SQLAlchemy',
+            'linux-debian': 'python-sqlalchemy',
+            'linux-ubuntu': 'python-sqlalchemy',
+            'linux-fedora': 'python-sqlalchemy'})

@@ -127,7 +127,7 @@ structure.
 
   You will set some parameters now:
 
-  * ``HTTPFile``: set the parameter "url" to http://www.sci.utah.edu/~cscheid/stuff/head.120.vtk
+  * ``DownloadFile``: set the parameter "url" to http://www.sci.utah.edu/~cscheid/stuff/head.120.vtk
   * ``List``: set the parameter "value" to *[0]*
   * ``Map``: set the parameter "InputPort" to *["SetValue"]* and the parameter "OutputPort" to *GetSurfaceArea*
 
@@ -388,7 +388,7 @@ that will be executed if the input is a structure identifier.
    text = '</BODY></HTML>'
    f.write(text)
 
-   self.setResult('html', f)
+   self.set_output('html', f)
 
    f.close()
 

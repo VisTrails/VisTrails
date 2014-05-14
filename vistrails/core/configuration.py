@@ -187,16 +187,22 @@ def default():
         'defaultFileType':system.vistrails_default_file_type(),
         'detachHistoryView': False,
         'dotVistrails': system.default_dot_vistrails(),
+        'enableCustomVersionColors': False,
         'enablePackagesSilently': False,
         'errorOnConnectionTypeerror': False,
         'errorOnVariantTypeerror': True,
+#        'evolutionGraph': (None, str),
         'executeWorkflows': False,
         'fileDirectory': (None, str),
-#        'evolutionGraph': (None, str),
+        'fixedCustomVersionColorSaturation': False,
         'handlerDontAsk': False,
         'installBundles': True,
         'installBundlesWithPip': False,
         'interactiveMode': True,
+        'jobCheckInterval': 600,
+        'jobAutorun': False,
+        'jobRun': (None, str),
+        'jobList': False,
         'logFile': (None, str),
         'logger': default_logger(),
         'maxMemory': (None, int),
@@ -214,7 +220,6 @@ def default():
         'repositoryHTTPURL': "http://www.vistrails.org/packages",
         'reviewMode': False,
         'rootDirectory': (None, str),
-        'runningJobsList': (None, str),
         'shell': default_shell(),
         'showHistoryViewOnLoad': False,
         'showPipelineViewOnLoad': False,
@@ -234,6 +239,7 @@ def default():
         'upgradeDelay': True,
         'upgradeModuleFailPrompt': True,
         'useCache': True,
+        'developperDebugger': False,
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),
 #        'workflowGraph': (None, str),
@@ -298,10 +304,11 @@ def default_thumbs():
 
 def add_specific_config(base_dir):
      """add_specific_config() -> dict
-    Returns a dict with other specific configuration
-    to the current platform added to base_dir
-    
-    """
+
+     Returns a dict with other specific configuration to the current
+     platform added to base_dir
+
+     """
      newdir = dict(base_dir)
      if system.systemType == 'Darwin':
          newdir['useMacBrushedMetalStyle'] = True

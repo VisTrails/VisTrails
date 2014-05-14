@@ -501,7 +501,8 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
         for p in points:
             if p[0] is None:
                 x = rect.x() + rect.width()
-            elif p[0] != 0 and p[0] != 1 and p[0] > 0 and p[0] < 1:
+            # can't do +1 (2+ is fine)
+            elif p[0] != 0 and p[0] > 0 and p[0] < 1.0001:
                 x = rect.x() + rect.width() * p[0]
             elif p[0] < 0:
                 x = rect.x() + rect.width() + p[0]
@@ -509,7 +510,7 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
                 x = rect.x() + p[0]
             if p[1] is None:
                 y = rect.y() + rect.height()
-            elif p[1] != 0 and p[1] != 1 and p[1] > 0 and p[1] < 1:
+            elif p[1] != 0 and p[1] > 0 and p[1] < 1.0001:
                 y = rect.y() + rect.height() * p[1]
             elif p[1] < 0:
                 y = rect.y() + rect.height() + p[1]
@@ -519,6 +520,7 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
             print "adding point", x, y
             if x < rect.x():
                 x = rect.x()
+            # can't do +1 (2+ is fine)
             elif x > (rect.x() + rect.width()):
                 x = rect.x() + rect.width()
             if y < rect.y():
@@ -1096,14 +1098,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         else:
             before_names = self._cur_function_names
             after_names = set([f.name for f in core_module.functions])
-            # print "before_names:", before_names
-            # print "after_names:", after_names
             added_functions = after_names - before_names
             deleted_functions = before_names - after_names
             self._cur_function_names = copy.copy(after_names)
 
-        # print "added_functions:", added_functions
-        # print "deleted_functions:", deleted_functions
         if len(deleted_functions) > 0:
             for function_name in deleted_functions:
                 try:
@@ -1115,9 +1113,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     item = self.getInputPortItem(f_spec)
                     if item is not None:
                         item.disconnect()
-                except:
-                    # import traceback
-                    # traceback.print_exc()
+                except Exception:
                     pass
 
         if len(added_functions) > 0:
@@ -1185,7 +1181,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         try:
             r = self.paddedRect.adjusted(-2, -2, 2, 2)
-        except:
+        except Exception:
             r = QtCore.QRectF()
         return r
 
@@ -1549,21 +1545,20 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     port_klass = QGraphicsPortTriangleItem
                     try:
                         kwargs['angle'] = int(shape[8:])
-                    except:
+                    except ValueError:
                         kwargs['angle'] = 0
                 elif shape == "diamond":
                     port_klass = QGraphicsPortDiamondItem
                 elif shape == "circle" or shape == "ellipse":
                     port_klass = QGraphicsPortEllipseItem
             else:
-                is_iterable = False
                 try:
-                    shape.__iter__()
-                    is_iterable = True
+                    iter(shape)
+                except TypeError:
+                    pass
+                else:
                     port_klass = QGraphicsPortPolygonItem
                     kwargs['points'] = shape
-                except:
-                    pass
 
         portShape = port_klass(port, x, y, self.ghosted, self, **kwargs)
         # portShape = QGraphicsPortRectItem(port, x, y, self.ghosted, self)
@@ -1890,7 +1885,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.read_only_mode = False
         self.current_pipeline = None
         self.current_version = -1
-        self.progress = None
 
         self.tmp_module_item = None
         self.tmp_input_conn = None
@@ -2942,14 +2936,15 @@ class QPipelineScene(QInteractiveGraphicsScene):
     ##########################################################################
     # Execution reporting API
 
-    def cancel_progress(self):
+    def check_progress_canceled(self):
         """Checks if the user have canceled the execution and takes
            appropriate action
         """
-        if self.progress.wasCanceled():
-            if self.progress._progress_canceled:
+        p = self.controller.progress
+        if p.wasCanceled():
+            if p._progress_canceled:
                 # It has already been confirmed in a progress update
-                self.progress._progress_canceled = False
+                p._progress_canceled = False
                 raise AbortExecution("Execution aborted by user")
             r = QtGui.QMessageBox.question(self.parent(),
                 'Execution Paused',
@@ -2959,7 +2954,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             if r == QtGui.QMessageBox.Yes:
                 raise AbortExecution("Execution aborted by user")
             else:
-                self.progress.goOn()
+                p.goOn()
 
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
@@ -2976,8 +2971,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 1, error,
-                                                      errorTrace = errorTrace))
+                                     QModuleStatusEvent(moduleId, 1, error.msg,
+                                                        errorTrace=errorTrace))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_not_executed(self, moduleId):
@@ -3003,10 +2998,12 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        if self.progress:
-            self.cancel_progress()
-            self.progress.setValue(self.progress.value() + 1)
-            self.progress.setLabelText(self.controller.current_pipeline.get_module_by_id(moduleId).name)
+        p = self.controller.progress
+        if p is not None:
+            self.check_progress_canceled()
+            pipeline = self.controller.current_pipeline
+            module = pipeline.get_module_by_id(moduleId)
+            p.setLabelText(module.name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
@@ -3016,16 +3013,17 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Post an event to the scene (self) for updating the module color
         
         """
-        if self.progress:
+        p = self.controller.progress
+        if p is not None:
             try:
-                self.cancel_progress()
+                self.check_progress_canceled()
             except AbortExecution:
-                self.progress._progress_canceled = True
+                p._progress_canceled = True
                 raise
+        status = '%d%% Completed' % int(progress*100)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 5,
-                                                        '%d%% Completed' % int(progress*100),
-                                                        progress))
+                                                        status, progress))
         QtCore.QCoreApplication.processEvents()
 
     def set_module_persistent(self, moduleId):
@@ -3034,28 +3032,20 @@ class QPipelineScene(QInteractiveGraphicsScene):
         QtCore.QCoreApplication.processEvents()
 
     def set_module_suspended(self, moduleId, error):
-        """ set_module_suspended(moduleId: int, error: str) -> None
+        """ set_module_suspended(moduleId: int, error: str/instance) -> None
         Post an event to the scene (self) for updating the module color
         
         """
-        msg = error if isinstance(error, str) else error.msg
-        text = "Module is suspended, reason: %s" % msg
+        status = "Module is suspended, reason: %s" % error
         QtGui.QApplication.postEvent(self,
-                                     QModuleStatusEvent(moduleId, 7, text))
+                                     QModuleStatusEvent(moduleId, 7, status))
         QtCore.QCoreApplication.processEvents()
-        # add to suspended modules dialog
-        if isinstance(error, str):
-            return
-        from vistrails.gui.job_monitor import QJobView
-        jobView = QJobView.instance()
-        try:
-            result = jobView.add_job(self.controller, error)
-            if result:
-                jobView.set_visible(True)
-        except Exception, e:
-            import traceback
-            debug.critical("Error Monitoring Job: %s" % str(e), traceback.format_exc())
-            
+
+    def set_execution_progress(self, progress):
+        p = self.controller.progress
+        if p is not None:
+            p.setValue(int(progress * 100))
+
     def reset_module_colors(self):
         for module in self.modules.itervalues():
             module.statusBrush = None
@@ -3189,41 +3179,15 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return False
     
     def execute(self, target=None):
-        # view.checkModuleConfigPanel()
         # reset job view
-        from vistrails.gui.job_monitor import QJobView
-        jobView = QJobView.instance()
-        if jobView.updating_now:
-            debug.critical("Execution Aborted: Job Monitor is updating. Please wait a few seconds and try again.")
-            return
-        jobView.delete_job(self.controller)
-        jobView.updating_now = True
-
-        try:
-            modules = len(self.controller.current_pipeline.modules)
-            progress = ExecutionProgressDialog(modules)
-            self.scene().progress = progress
-            progress.show()
-
-            if target is not None:
-                self.controller.execute_current_workflow(
-                        sinks=[target],
-                        reason="Execute specific module")
-            else:
-                self.controller.execute_current_workflow()
-
-            progress.setValue(modules)
-            #progress.hide()
-            self.scene().progress = None
-        except Exception, e:
-            import traceback
-            debug.critical(str(e) or e.__class__.__name__,
-                           traceback.format_exc())
-        finally:
-            self.scene().progress = None
-            jobView.updating_now = False
-            from vistrails.gui.vistrails_window import _app
-            _app.notify('execution_updated')
+        if target is not None:
+            self.controller.execute_user_workflow(
+                    sinks=[target],
+                    reason="Execute specific module")
+        else:
+            self.controller.execute_user_workflow()
+        from vistrails.gui.vistrails_window import _app
+        _app.notify('execution_updated')
         
     def publish_to_web(self):
         from vistrails.gui.publishing import QVersionEmbed
@@ -3252,7 +3216,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return module_ids_len > 0
 
     def has_selected_module(self, module):
-        #print 'calling has_selected_module'
+        # 'calling has_selected_module'
         return self.has_selected_modules(module, True)
 
     def has_selected_groups(self, module, only_one=False):
@@ -3367,25 +3331,6 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def paintModuleToPixmap(self, module_item):
         m = self.matrix()
         return module_item.paintToPixmap(m.m11(), m.m22())
-
-class ExecutionProgressDialog(QtGui.QProgressDialog):
-    def __init__(self, modules):
-        QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
-                                       '&Cancel',
-                                       0, modules)
-        self.setWindowTitle('Executing')
-        self.setWindowModality(QtCore.Qt.WindowModal)
-        self._last_set_value = 0
-        self._progress_canceled = False
-
-    def setValue(self, value):
-        self._last_set_value = value
-        super(ExecutionProgressDialog, self).setValue(value)
-
-    def goOn(self):
-        self.reset()
-        self.show()
-        super(ExecutionProgressDialog, self).setValue(self._last_set_value)
 
 ################################################################################
 # Testing

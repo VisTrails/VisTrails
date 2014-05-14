@@ -294,9 +294,9 @@ class Vistrail(DBVistrail):
             if self.has_upgrade(max_ver):
                 max_ver = long(self.get_upgrade(max_ver))
             return max_ver
-        except:
+        except Exception:
             return 0
-                   
+
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
         Return a pipeline object given a version number or a version name. 
@@ -1030,7 +1030,6 @@ class Vistrail(DBVistrail):
 
     def getDate(self):
         """ getDate() -> str - Returns the current date and time. """
-    #    return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
         return datetime.datetime.now()
     
     def getUser(self):
@@ -1126,8 +1125,8 @@ class Vistrail(DBVistrail):
                 try:
                     if isinstance(op, AddOp) and op.what == 'module':
                         package_list[op.data.package] = op.data.package
-                except:
-                    pass
+                except AttributeError, e:
+                    debug.unexpected_exception(e)
         return package_list
                     
 

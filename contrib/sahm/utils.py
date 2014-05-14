@@ -108,16 +108,16 @@ def createrootdir(rootWorkspace):
 def map_ports(module, port_map):
     args = {}
     for port, (flag, access, required) in port_map.iteritems():
-        if required or module.hasInputFromPort(port):
+        if required or module.has_input(port):
             #breakpoint()
-            value = module.forceGetInputListFromPort(port)
+            value = module.force_get_input_list(port)
             if len(value) > 1:
                 raise ModuleError(module, 'Multiple items found from Port ' + 
                     port + '.  Only single entry handled.  Please remove extraneous items.')
             elif len(value)  == 0:
                 raise ModuleError(module, 'Multiple items found from Port ' + 
                     port + '.  Only single entry handled.  Please remove extraneous items.')
-            value = module.forceGetInputFromPort(port)
+            value = module.force_get_input(port)
             if access is not None:
                 value = access(value)
             if isinstance(value, File) or \
@@ -128,7 +128,7 @@ def map_ports(module, port_map):
     return args
 
 def path_port(module, portName):
-    value = module.forceGetInputListFromPort(portName)
+    value = module.force_get_input_list(portName)
     if len(value) > 1:
         raise ModuleError(module, 'Multiple items found from Port ' + 
                           portName + '.  Only single entry handled.  Please remove extraneous items.')
