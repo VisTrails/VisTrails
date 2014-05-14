@@ -1,4 +1,14 @@
+import os
 from setuptools import setup
+
+
+os.chdir(os.path.abspath(os.path.dirname(__file__)))
+
+
+packages = []
+for rootdir, dirs, files in os.walk('vistrails'):
+    if '__init__.py' in files:
+        packages.append(rootdir.replace('\\', '.').replace('/', '.'))
 
 
 description = """
@@ -14,7 +24,7 @@ Who we are: <http://www.vistrails.org/index.php/People>
 """
 setup(name='vistrails',
       version='2.1.2',
-      packages=['vistrails'],
+      packages=packages,
       entry_points={
         'console_scripts': [
           'vistrails = vistrails.run:main']},
