@@ -6,7 +6,7 @@ wiki page
 """
 from datetime import date
 #Release version
-VT_VERSION = "2.1.1"
+VT_VERSION = "2.1.2"
 VT_REVISION = "90975fc00211"
 
 #Sourceforge information
