@@ -10,15 +10,12 @@ if len(sys.argv)<3:
 files = ["release_notes.py",
          "create_release_wiki_table.py",
          "../vistrails/core/system/__init__.py",
-         "../dist/mac/Input/README",
-         "../dist/windows/Input/releaseNotes.txt",
          "../dist/source/make-vistrails-src-release.py",
          "../doc/usersguide/conf.py"]
 
 for path in files:
     for f in glob.glob(path):
         print "Updating", f
-        
         file = open(f)
         text = file.read()
         file.close()
@@ -28,3 +25,7 @@ for path in files:
         file = open(f, "w")
         file.write(text)
         file.close()
+
+print "These files need to be updated manually:"
+print "  ../dist/mac/Input/README"
+print "  ../dist/windows/Input/releaseNotes.txt"
