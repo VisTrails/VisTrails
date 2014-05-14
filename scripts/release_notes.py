@@ -195,6 +195,7 @@ def build_release_notes(repo, branch):
     
     re_ticket_old = re.compile(r'<ticket>(.*?)</ticket>', re.M | re.S)
     re_ticket = re.compile(r'^Ticket: (.*?)$', re.M | re.S)
+    re_ticket2 = re.compile(r'^Fixes: (.*?)$', re.M | re.S)
     re_bugfix_old = re.compile(r'<bugfix>(.*?)</bugfix>', re.M | re.S)
     re_bugfix = re.compile(r'^Bugfix: (.*?)$', re.M | re.S)
     re_feature_old = re.compile(r'<feature>(.*?)</feature>', re.M | re.S)
@@ -221,9 +222,10 @@ def build_release_notes(repo, branch):
         lf = re_feature.findall(log.message)
         lf.extend(re_feature_old.findall(log.message))
         lt = re_ticket.findall(log.message)
+        lt.extend(re_ticket2.findall(log.message))
         lt.extend(re_ticket_old.findall(log.message))
         lb = re_bugfix.findall(log.message)
-        lb.extend(re_ticket_old.findall(log.message))
+        lb.extend(re_bugfix_old.findall(log.message))
         for s in ls:
             changes[s.strip()] = log.hexsha
         for f in lf:
