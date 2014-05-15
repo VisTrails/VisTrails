@@ -502,7 +502,8 @@ class Module(Serializable):
             raise ModuleError(self, 'Interrupted by user')
         except ModuleBreakpoint:
             raise
-        except Exception, e: 
+        except Exception, e:
+            debug.unexpected_exception(e)
             import traceback
             raise ModuleError(
                     self,
@@ -1204,7 +1205,7 @@ class Module(Serializable):
         d = None
         try:
             d = reg.get_descriptor(self.__class__)
-        except:
+        except Exception:
             pass
         if not d:
             return None
@@ -1212,7 +1213,7 @@ class Module(Serializable):
         ps = None
         try:
             ps = reg.get_port_spec_from_descriptor(d, port_name, 'input')
-        except:
+        except Exception:
             pass
         if not ps:
             return None
@@ -1499,36 +1500,29 @@ class Converter(Module):
     a custom condition.
     """
     _settings = ModuleSettings(abstract=True)
-    _input_ports = [IPort('in_value', Module)]
-    _output_ports = [OPort('out_value', Module)]
+    _input_ports = [IPort('in_value', 'Variant')]
+    _output_ports = [OPort('out_value', 'Variant')]
     @classmethod
     def can_convert(cls, sub_descs, super_descs):
         from vistrails.core.modules.module_registry import get_module_registry
         from vistrails.core.system import get_vistrails_basic_pkg_id
         reg = get_module_registry()
         basic_pkg = get_vistrails_basic_pkg_id()
-        variant_desc = reg.get_descriptor_by_name(basic_pkg, 'Variant')
         desc = reg.get_descriptor(cls)
-
-        def check_types(sub_descs, super_descs):
-            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
-                if (sub_desc == variant_desc or super_desc == variant_desc):
-                    continue
-                if not reg.is_descriptor_subclass(sub_desc, super_desc):
-                    return False
-            return True
 
         in_port = reg.get_port_spec_from_descriptor(
                 desc,
                 'in_value', 'input')
         if (len(sub_descs) != len(in_port.descriptors()) or
-                not check_types(sub_descs, in_port.descriptors())):
+                not reg.is_descriptor_list_subclass(sub_descs,
+                                                    in_port.descriptors())):
             return False
         out_port = reg.get_port_spec_from_descriptor(
                 desc,
                 'out_value', 'output')
         if (len(out_port.descriptors()) != len(super_descs)
-                or not check_types(out_port.descriptors(), super_descs)):
+                or not reg.is_descriptor_list_subclass(out_port.descriptors(),
+                                                       super_descs)):
             return False
 
         return True
@@ -1566,6 +1560,12 @@ class ModuleConnector(object):
 
     def __call__(self):
         result = self.obj.get_output(self.port)
+        if isinstance(result, Module):
+            warnings.warn(
+                    "A Module instance was used as data: "
+                    "module=%s, port=%s, object=%r" % (type(self.obj).__name__,
+                                                       self.port, result),
+                    UserWarning)
         depth = self.depth()
         from vistrails.core.modules.basic_modules import Iterator
         if isinstance(result, Iterator):

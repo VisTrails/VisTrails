@@ -75,7 +75,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplAcorr)"),
+        ("value", "(MplAcorr)"),
         ]
     
 
@@ -158,7 +158,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplArrow)"),
+        ("value", "(MplArrow)"),
         ]
     
 
@@ -229,7 +229,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplAxhline)"),
+        ("value", "(MplAxhline)"),
         ]
     
 
@@ -302,7 +302,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplAxhspan)"),
+        ("value", "(MplAxhspan)"),
         ]
     
 
@@ -376,7 +376,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplAxvline)"),
+        ("value", "(MplAxvline)"),
         ]
     
 
@@ -447,7 +447,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplAxvspan)"),
+        ("value", "(MplAxvspan)"),
         ]
     
 
@@ -559,7 +559,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplBar)"),
+        ("value", "(MplBar)"),
         ]
     
 
@@ -719,7 +719,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplBarh)"),
+        ("value", "(MplBarh)"),
         ]
     
 
@@ -839,7 +839,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplBrokenBarh)"),
+        ("value", "(MplBrokenBarh)"),
         ]
     
 
@@ -933,7 +933,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplBoxplot)"),
+        ("value", "(MplBoxplot)"),
         ]
     
 
@@ -1078,7 +1078,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplCohere)"),
+        ("value", "(MplCohere)"),
         ]
     
 
@@ -1174,7 +1174,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplClabel)"),
+        ("value", "(MplClabel)"),
         ]
     
 
@@ -1335,7 +1335,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplContour)"),
+        ("value", "(MplContour)"),
               ("contourSet", "MplQuadContourSet",
                 {}),
         ]
@@ -1538,7 +1538,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplContourf)"),
+        ("value", "(MplContourf)"),
               ("contourSet", "MplQuadContourSet",
                 {}),
         ]
@@ -1673,7 +1673,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplCsd)"),
+        ("value", "(MplCsd)"),
         ]
     
 
@@ -1803,7 +1803,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplErrorbar)"),
+        ("value", "(MplErrorbar)"),
         ]
     
 
@@ -1926,7 +1926,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplFill)"),
+        ("value", "(MplFill)"),
         ]
     
 
@@ -1987,7 +1987,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplFillBetween)"),
+        ("value", "(MplFillBetween)"),
         ]
     
 
@@ -2067,7 +2067,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplFillBetweenx)"),
+        ("value", "(MplFillBetweenx)"),
         ]
     
 
@@ -2184,7 +2184,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplHexbin)"),
+        ("value", "(MplHexbin)"),
         ]
     
 
@@ -2332,7 +2332,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplHist)"),
+        ("value", "(MplHist)"),
         ]
     
 
@@ -2463,7 +2463,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplHist2d)"),
+        ("value", "(MplHist2d)"),
         ]
     
 
@@ -2551,7 +2551,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplHlines)"),
+        ("value", "(MplHlines)"),
         ]
     
 
@@ -2677,7 +2677,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplImshow)"),
+        ("value", "(MplImshow)"),
         ]
     
 
@@ -2784,7 +2784,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplLoglog)"),
+        ("value", "(MplLoglog)"),
         ]
     
 
@@ -2913,7 +2913,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplPcolor)"),
+        ("value", "(MplPcolor)"),
         ]
     
 
@@ -3008,7 +3008,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplPcolormesh)"),
+        ("value", "(MplPcolormesh)"),
         ]
     
 
@@ -3101,7 +3101,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplPie)"),
+        ("value", "(MplPie)"),
         ]
     
 
@@ -3214,7 +3214,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplPlotDate)"),
+        ("value", "(MplPlotDate)"),
         ]
     
 
@@ -3304,7 +3304,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplPsd)"),
+        ("value", "(MplPsd)"),
         ]
     
 
@@ -3422,7 +3422,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplQuiver)"),
+        ("value", "(MplQuiver)"),
         ]
     
 
@@ -3542,7 +3542,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplQuiverkey)"),
+        ("value", "(MplQuiverkey)"),
         ]
     
 
@@ -3660,7 +3660,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplScatter)"),
+        ("value", "(MplScatter)"),
         ]
     
 
@@ -3762,7 +3762,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplSemilogx)"),
+        ("value", "(MplSemilogx)"),
         ]
     
 
@@ -3828,7 +3828,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplSemilogy)"),
+        ("value", "(MplSemilogy)"),
         ]
     
 
@@ -3920,7 +3920,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplSpecgram)"),
+        ("value", "(MplSpecgram)"),
         ]
     
 
@@ -3991,7 +3991,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplStackplot)"),
+        ("value", "(MplStackplot)"),
         ]
     
 
@@ -4052,7 +4052,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplStem)"),
+        ("value", "(MplStem)"),
         ]
     
 
@@ -4130,7 +4130,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplStep)"),
+        ("value", "(MplStep)"),
         ]
     
 
@@ -4194,7 +4194,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplStreamplot)"),
+        ("value", "(MplStreamplot)"),
         ]
     
 
@@ -4335,7 +4335,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplTricontour)"),
+        ("value", "(MplTricontour)"),
         ]
     
 
@@ -4472,7 +4472,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplTricontourf)"),
+        ("value", "(MplTricontourf)"),
         ]
     
 
@@ -4549,7 +4549,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplTripcolor)"),
+        ("value", "(MplTripcolor)"),
         ]
     
 
@@ -4588,7 +4588,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplTriplot)"),
+        ("value", "(MplTriplot)"),
         ]
     
 
@@ -4641,7 +4641,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplVlines)"),
+        ("value", "(MplVlines)"),
         ]
     
 
@@ -4733,7 +4733,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplXcorr)"),
+        ("value", "(MplXcorr)"),
         ]
     
 
@@ -4862,7 +4862,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplBarbs)"),
+        ("value", "(MplBarbs)"),
         ]
     
 
@@ -5002,7 +5002,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplSpy)"),
+        ("value", "(MplSpy)"),
         ]
     
 
@@ -5067,7 +5067,7 @@ Multiple theta, r arguments are supported, with format strings, as in :func:`~ma
         ]
 
     _output_ports = [
-        ("self", "(MplPolar)"),
+        ("value", "(MplPolar)"),
         ]
     
 
@@ -5200,7 +5200,7 @@ Example:
         ]
 
     _output_ports = [
-        ("self", "(MplLegend)"),
+        ("value", "(MplLegend)"),
         ]
     
 
@@ -5329,7 +5329,7 @@ Additional kwargs are Text properties:
         ]
 
     _output_ports = [
-        ("self", "(MplAnnotate)"),
+        ("value", "(MplAnnotate)"),
         ]
     
 
@@ -5425,7 +5425,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplLinePlot)"),
+        ("value", "(MplLinePlot)"),
         ]
     
 

@@ -429,9 +429,9 @@ def reload_scripts(initial=False):
             try:
                 debug.log("Creating CLTools directory...")
                 os.mkdir(location)
-            except:
+            except Exception, e:
                 debug.critical("""Could not create CLTools directory. Make
- sure '%s' does not exist and parent directory is writable""" % location)
+ sure '%s' does not exist and parent directory is writable""" % location, e)
                 sys.exit(1)
     else: # pragma: no cover
         # this is a standalone package so modules are placed in this directory
@@ -468,8 +468,9 @@ def menu_items():
     """
     try:
         from wizard import QCLToolsWizardWindow
-    except: # pragma: no cover
+    except Exception, e: # pragma: no cover
         if "CLTools" == identifiers.name:
+            debug.unexpected_exception(e)
             raise
         else:
             return

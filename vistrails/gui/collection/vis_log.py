@@ -155,8 +155,9 @@ class QExecutionListWidget(QtGui.QTreeWidget):
 
     def set_log(self, log=None):
         self.clear()
-        for execution in log:
-            self.addTopLevelItem(QExecutionItem(execution))
+        if log is not None:
+            for execution in log:
+                self.addTopLevelItem(QExecutionItem(execution))
 
     def add_workflow_exec(self, workflow_exec):
         # mark as recent
@@ -312,13 +313,16 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
         #print '@@@@ QLogDetails calling set_controller'
         self.controller = controller
         self.executionList.controller = self.controller
-        if not hasattr(self.controller, 'loaded_workflow_execs'):
-            self.controller.loaded_workflow_execs = {}
-            for e in self.controller.read_log().workflow_execs:
-                # set workflow names
-                e.db_name = controller.get_pipeline_name(e.parent_version)
-                self.controller.loaded_workflow_execs[e] = e
-        self.log = self.controller.loaded_workflow_execs
+        if self.controller is not None:
+            if not hasattr(self.controller, 'loaded_workflow_execs'):
+                self.controller.loaded_workflow_execs = {}
+                for e in self.controller.read_log().workflow_execs:
+                    # set workflow names
+                    e.db_name = controller.get_pipeline_name(e.parent_version)
+                    self.controller.loaded_workflow_execs[e] = e
+            self.log = self.controller.loaded_workflow_execs
+        else:
+            self.log = None
         self.executionList.set_log(self.log)
 
     def execution_changed(self, wf_item, execution):

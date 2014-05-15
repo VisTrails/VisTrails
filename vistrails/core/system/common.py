@@ -41,6 +41,7 @@ import platform
 import tempfile
 import warnings
 
+from vistrails.core import debug
 from vistrails.core.utils import VistrailsDeprecation
 
 
@@ -91,7 +92,8 @@ def current_ip():
         for i in info:
             if i[0] in (socket.AF_INET, socket.AF_INET6):
                 return i[4][0]
-    except:
+    except Exception, e:
+        debug.unexpected_exception(e)
         return ''
 
 def current_time():

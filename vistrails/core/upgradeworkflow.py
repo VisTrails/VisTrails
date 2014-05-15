@@ -40,8 +40,7 @@ import vistrails.core.db.action
 from vistrails.core.modules.module_registry import get_module_registry, \
      ModuleDescriptor, MissingModule, MissingPort, MissingPackage
 from vistrails.core.modules.utils import parse_descriptor_string, \
-    create_descriptor_string, parse_port_spec_string, \
-    create_port_spec_string, expand_port_spec_string
+    create_descriptor_string, parse_port_spec_string, create_port_spec_string
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.annotation import Annotation
@@ -97,9 +96,20 @@ class UpgradeModuleRemap(object):
 
     @classmethod
     def from_tuple(cls, module_name, t):
-        obj = cls(t[0], t[1], None, t[2], module_name=module_name)
-        if len(t) > 3:
-            for remap_type, remap_dict in t[3].iteritems():
+        if len(t) == 3:
+            obj = cls(t[0], t[1], None, t[2], module_name=module_name)
+            remap = None
+        elif len(t) == 4:
+            obj = cls(t[0], t[1], None, t[2], module_name=module_name)
+            remap = t[3]
+        elif len(t) == 5:
+            obj = cls(t[0], t[1], t[2], t[3], module_name=module_name)
+            remap = t[4]
+        else:
+            raise TypeError("UpgradeModuleRemap.from_tuple() got a tuple of "
+                            "length %d" % len(t))
+        if remap is not None:
+            for remap_type, remap_dict in remap.iteritems():
                 for remap_name, remap_change in remap_dict.iteritems():
                     obj.add_remap(remap_type, remap_name, remap_change)
         return obj
@@ -199,7 +209,6 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def dispatch_request(controller, module_id, current_pipeline):
-        reg = get_module_registry()
         pm = get_package_manager()
         if module_id not in current_pipeline.modules:
             # It is possible that some other upgrade request has
@@ -226,7 +235,7 @@ class UpgradeWorkflowHandler(object):
     @staticmethod
     def check_port_spec(module, port_name, port_type, descriptor=None, 
                         sigstring=None):
-        from vistrails.core.modules.basic_modules import identifier as basic_pkg
+        basic_pkg = get_vistrails_basic_pkg_id()
 
         reg = get_module_registry()
         found = False
@@ -262,8 +271,6 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def find_descriptor(controller, pipeline, module_id, desired_version=''):
-        from vistrails.core.modules.abstraction \
-            import identifier as local_abstraction_pkg
         reg = get_module_registry()
 
         get_descriptor = reg.get_descriptor_by_name
@@ -356,7 +363,7 @@ class UpgradeWorkflowHandler(object):
             else:
                 nss = mname
             msg = ("Could not upgrade module %s from package %s.\n" %
-                    (mname, mpkg))
+                    (nss, mpkg))
             raise UpgradeWorkflowError(msg)
 
         UpgradeWorkflowHandler.check_upgrade(pipeline, module_id, d, 
@@ -420,6 +427,8 @@ class UpgradeWorkflowHandler(object):
                         function_remap={}, src_port_remap={}, 
                         dst_port_remap={}, annotation_remap={},
                         use_registry=True):
+        basic_pkg = get_vistrails_basic_pkg_id()
+
         ops = []
         ops.extend(controller.delete_module_list_ops(pipeline, [old_module.id]))
         
@@ -497,8 +506,6 @@ class UpgradeWorkflowHandler(object):
             if use_registry:
                 function_port_spec = function_name
             else:
-                reg = get_module_registry()
-                basic_pkg = get_vistrails_basic_pkg_id()
                 def mk_psi(pos):
                     psi = PortSpecItem(module="Module", package=basic_pkg,
                                        namespace="", pos=pos)
@@ -507,7 +514,6 @@ class UpgradeWorkflowHandler(object):
                 function_port_spec = PortSpec(name=function_name,
                                               items=[mk_psi(i) 
                                                      for i in xrange(n_items)])
-                                                                 
             new_function = controller.create_function(new_module, 
                                                       function_port_spec,
                                                       new_param_vals,
@@ -586,8 +592,8 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def replace_group(controller, pipeline, module_id, new_subpipeline):
-        old_group = pipeline.modules[module_id]
         basic_pkg = get_vistrails_basic_pkg_id()
+        old_group = pipeline.modules[module_id]
         new_group = controller.create_module(basic_pkg, 'Group', '', 
                                              old_group.location.x, 
                                              old_group.location.y)
@@ -698,12 +704,12 @@ class UpgradeWorkflowHandler(object):
                   reg.get_package_by_name(new_module_t[0]).version == new_pkg_version):
                 # upgrading to the current version
                 try:
-                    new_module_desc = reg.get_descriptor_by_name(*old_module_t)
+                    new_module_desc = reg.get_descriptor_by_name(*new_module_t)
                 except MissingModule, e:
                     # if the replacement is an abstraction,
                     # and it has been upgraded, we use that
-                    if reg.has_abs_upgrade(*old_module_t):
-                        new_module_desc = reg.get_abs_upgrade(*old_module_t)
+                    if reg.has_abs_upgrade(*new_module_t):
+                        new_module_desc = reg.get_abs_upgrade(*new_module_t)
                     else:
                         raise e
                 use_registry = True
@@ -723,7 +729,7 @@ class UpgradeWorkflowHandler(object):
                 old_version = new_pkg_version
                 next_module_remap = pkg_remap.get_module_upgrade(old_desc_str,
                                                             old_version)
-                
+                old_module_t = new_module_t
             replace_module = UpgradeWorkflowHandler.replace_module
             actions = replace_module(controller, 
                                      tmp_pipeline,
@@ -777,6 +783,7 @@ class TestUpgradePackageRemap(unittest.TestCase):
                               namespace='',
                               package_version='0.8')
         m1 = c.create_module_from_descriptor(d1, use_desc_pkg_version=True)
+        m1.is_valid = False
         c.add_module_action(m1)
 
         d2 = ModuleDescriptor(package=upgrade_test_pkg,
@@ -784,6 +791,7 @@ class TestUpgradePackageRemap(unittest.TestCase):
                               namespace='',
                               package_version = '0.8')
         m2 = c.create_module_from_descriptor(d2, use_desc_pkg_version=True)
+        m2.is_valid = False
         c.add_module_action(m2)
 
         basic_pkg = get_vistrails_basic_pkg_id()
@@ -806,29 +814,29 @@ class TestUpgradePackageRemap(unittest.TestCase):
         return c.current_version
 
     def run_multi_upgrade_test(self, pkg_remap):
-        from vistrails.core.packagemanager import get_package_manager
         from vistrails.core.application import get_vistrails_application
 
         app = get_vistrails_application()
-        app.new_vistrail()
-
+        created_vistrail = False
         try:
             pm = get_package_manager()
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})
             app.new_vistrail()
+            created_vistrail = True
             c = app.get_controller()
             self.create_workflow(c)
         
             p = c.current_pipeline
             actions = UpgradeWorkflowHandler.remap_module(c, 0, p, pkg_remap)
         finally:
+            if created_vistrail:
+                app.close_vistrail()
             try:
                 pm.late_disable_package('upgrades')
             except MissingPackage:
                 pass
-            app.close_vistrail()
 
     def test_multi_upgrade_obj(self):
         module_remap_1 = UpgradeModuleRemap('0.8', '0.9', '0.9', None,
@@ -865,21 +873,34 @@ class TestUpgradePackageRemap(unittest.TestCase):
                                         "src_port_remap": {'zz': 'zzz'}})]}
         self.run_multi_upgrade_test(pkg_remap)
 
+    def test_multi_upgrade_rename(self):
+        pkg_remap = {"TestUpgradeA": 
+                     [UpgradeModuleRemap('0.8', '0.9', '0.9', "TestUpgradeB",
+                                         dst_port_remap={'a': 'b'},
+                                         src_port_remap={'z': 'zz'})],
+                     "TestUpgradeB":
+                     [UpgradeModuleRemap('0.9', '1.0', '1.0', None,
+                                         src_port_remap={'zz': None})]}
+        self.run_multi_upgrade_test(pkg_remap)
+
     def test_external_upgrade(self):
-        from vistrails.core.packagemanager import get_package_manager
         from vistrails.core.application import get_vistrails_application
 
         app = get_vistrails_application()
         app.new_vistrail()
+        default_upgrade_on = app.temp_configuration.upgradeOn
+        default_upgrade_delay = app.temp_configuration.upgradeDelay
         app.temp_configuration.upgradeOn = True
         app.temp_configuration.upgradeDelay = False
 
+        created_vistrail = False
         try:
             pm = get_package_manager()
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})
             app.new_vistrail()
+            created_vistrail = True
             c = app.get_controller()
             current_version = self.create_workflow(c)
             for m in c.current_pipeline.modules.itervalues():
@@ -898,11 +919,14 @@ class TestUpgradePackageRemap(unittest.TestCase):
             self.assertEqual(conn.destination.name, 'b')
                 
         finally:
+            if created_vistrail:
+                app.close_vistrail()
             try:
                 pm.late_disable_package('upgrades')
             except MissingPackage:
                 pass
-            app.close_vistrail()
+            app.temp_configuration.upgradeOn = default_upgrade_on
+            app.temp_configuration.upgradeDelay = default_upgrade_delay
 
 if __name__ == '__main__':
     import vistrails.core.application

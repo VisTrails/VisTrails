@@ -68,6 +68,7 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     """
     elements = parameters.split("$&$")
     aliases = {}
+    params = []
     result = []
     for locator, workflow in w_list:
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
@@ -92,7 +93,14 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
             
                 if controller.current_pipeline.has_alias(key):
                     aliases[key] = value
-                    
+                elif 'mashup_id' in extra_info:
+                    # new-style mashups can have aliases not existing in pipeline
+                    for mashuptrail in mashups:
+                        if mashuptrail.vtVersion == version:
+                            mashup = mashuptrail.getMashup(extra_info['mashup_id'])
+                            c = mashup.getAliasByName(key).component
+                            params.append((c.vttype, c.vtid, value))
+
         if workflow_info is not None and controller.current_pipeline is not None:
             # FIXME DAK: why is this always done?!? there is a flag for it...
             if is_running_gui():
@@ -126,10 +134,14 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
                 current_workflow = JobWorkflow(locator.to_url(), version)
                 jobMonitor.getInstance().startWorkflow(current_workflow)
 
-        (results, _) = \
+        try:
+            (results, _) = \
             controller.execute_current_workflow(custom_aliases=aliases,
+                                                custom_params=params,
                                                 extra_info=extra_info,
                                                 reason=reason)
+        finally:
+            jobMonitor.finishWorkflow()
         new_version = controller.current_version
         if new_version != version:
             debug.log("Version '%s' (%s) was upgraded. The actual "
@@ -142,7 +154,6 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
-        jobMonitor.finishWorkflow()
         if current_workflow.modules:
             if current_workflow.completed():
                 run.job = "COMPLETED"
@@ -377,14 +388,13 @@ class TestConsoleMode(unittest.TestCase):
                            package='org.vistrails.vistrails.console_mode_test',
                            version='0.9.1')
         module.add_function(function)
-        
+
         p.add_module(module)
-        
-        kwargs = {'locator': XMLFileLocator('foo'),
-                  'current_version': 1L,
-                  'view': v,
-                  }
-        interpreter.execute(p, **kwargs)
+
+        interpreter.execute(p,
+                            locator=XMLFileLocator('foo'),
+                            current_version=1L,
+                            view=v)
 
     def test_python_source(self):
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +

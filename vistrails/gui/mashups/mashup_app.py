@@ -236,6 +236,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 cellEvents = spreadsheetController.getEchoCellEvents()
         except Exception, e:
             import traceback
+            debug.unexpected_exception(e)
             print "Executing pipeline failed:", debug.format_exception(e), traceback.format_exc()
         finally:
             spreadsheetController.setEchoMode(False)
@@ -618,6 +619,7 @@ class TestMashupApp(TestVisTrailsGUI):
         filename = (vistrails.core.system.vistrails_root_directory() + 
                     '/tests/resources/spx_loop.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
+        view.controller.flush_delayed_actions()
         id = "d5026457-de6c-11e2-b074-3c07543dba07"
         mashup = view.get_mashup_from_mashuptrail_id(id, "loop")
         self.assert_(mashup)

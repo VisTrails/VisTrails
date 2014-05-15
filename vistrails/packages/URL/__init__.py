@@ -32,15 +32,19 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-"""HTTP provides packages for HTTP-based file fetching. This provides
-a location-independent way of referring to files. This package uses a
-local cache of the files, inside the per-user VisTrails
-directory. This way, files that haven't been changed do not need
-downloading. The check is performed efficiently using the HTTP GET
-headers.
+
+"""URL provides modules to download files via the network.
+
+It can refer to HTTP and FTP files, which enables workflows to be distributed
+without its associated data.
+
+This package uses a local cache, inside the per-user VisTrails directory. This
+way, files that haven't been changed do not need to be downloaded again. The
+check is performed efficiently using HTTP headers.
 """
 
-identifier = 'org.vistrails.vistrails.http'
-name = 'HTTP'
-version = '0.9.1'
-old_identifiers = ['edu.utah.sci.vistrails.http']
+identifier = 'org.vistrails.vistrails.url'
+name = 'URL'
+version = '1.0.0'
+old_identifiers = ['org.vistrails.vistrails.http',
+                   'edu.utah.sci.vistrails.http']

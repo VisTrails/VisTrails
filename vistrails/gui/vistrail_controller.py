@@ -369,7 +369,8 @@ class VistrailController(QtCore.QObject, BaseController):
         return (results, changed)
 
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 reason='Pipeline Execution', sinks=None):
+                                 extra_info=None, reason='Pipeline Execution',
+                                 sinks=None):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -380,15 +381,19 @@ class VistrailController(QtCore.QObject, BaseController):
             if locator:
                 locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
-            return self.execute_workflow_list([(self.locator,
-                                         self.current_version,
-                                         self.current_pipeline,
-                                         self.current_pipeline_scene,
-                                         custom_aliases,
-                                         custom_params,
-                                         reason,
-                                         sinks,
-                                         None)])
+            try:
+                return self.execute_workflow_list([(self.locator,
+                                             self.current_version,
+                                             self.current_pipeline,
+                                             self.current_pipeline_scene,
+                                             custom_aliases,
+                                             custom_params,
+                                             reason,
+                                             sinks,
+                                             extra_info)])
+            except Exception, e:
+                debug.unexpected_exception(e)
+                raise
         return ([], False)
 
 
@@ -1548,7 +1553,6 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
     #     v = api.new_vistrail()
        
     def tearDown(self):
-        from vistrails.core.configuration import get_vistrails_configuration
         vistrails.gui.utils.TestVisTrailsGUI.tearDown(self)
 
         config = get_vistrails_configuration()
@@ -1586,8 +1590,6 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
 
     def test_abstraction_create(self):
         from vistrails.core.db.locator import XMLFileLocator
-        import vistrails.core.db.io
-        from vistrails.core.configuration import get_vistrails_configuration
         config = get_vistrails_configuration()
         filename = os.path.join(config.abstractionsDirectory,
                                 '__TestFloatList.xml')
@@ -1600,15 +1602,16 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         # controller.change_selected_version(9L)
         controller.select_latest_version()
         self.assertNotEqual(controller.current_pipeline, None)
-        
-        # DAK: changed these because of upgrades...
-        # module_ids = [1, 2, 3]
-        # connection_ids = [1, 2, 3]
-        module_ids = [8, 10, 11]
-        #connection_ids = [6, 8, 9]
-        # TE: changed again because upgrades produced different id:s
-        # also saved upgrade in test_abstraction.xml
-        connection_ids = [13,14,15]
+
+        # If getting a KeyError here, run the upgrade on the vistrail and
+        # update the ids
+        # TODO : rewrite test so we don't have to update this unrelated code
+        # each time new upgrades are introduced
+        # Original ids:
+        #     module_ids = [1, 2, 3]
+        #     connection_ids = [1, 2, 3]
+        module_ids = [15, 13, 14]
+        connection_ids = [21, 18, 20]
         controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))

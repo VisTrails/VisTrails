@@ -477,7 +477,7 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
                 locators[my_uuid] = cls(my_uuid)
         return locators.values()
 
-class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
+class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
     def __init__(self, filename, **kwargs):
         self._name = filename
         self._vnode = kwargs.get('version_node', None)
@@ -804,7 +804,7 @@ class DBLocator(BaseLocator):
             return True
         try:
             self.get_connection()
-        except:
+        except Exception:
             return False
         return True
         

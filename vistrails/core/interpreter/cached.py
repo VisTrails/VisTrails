@@ -366,7 +366,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                         constant = create_constant(p, module)
                         connector = ModuleConnector(constant, 'value')
                     except Exception, e:
-                        err = VistrailsInternalError(
+                        debug.unexpected_exception(e)
+                        err = ModuleError(
+                                module,
                                 "Uncaught exception creating Constant from "
                                 "%r: %s" % (
                                 p.strValue,
@@ -383,7 +385,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                             connector = ModuleConnector(constant, 'value')
                             tupleModule.set_input_port(j, connector)
                         except Exception, e:
-                            err = VistrailsInternalError(
+                            debug.unexpected_exception(e)
+                            err = ModuleError(
+                                    module,
                                     "Uncaught exception creating Constant "
                                     "from %r: %s" % (
                                     p.strValue,

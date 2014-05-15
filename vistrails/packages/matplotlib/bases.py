@@ -42,24 +42,16 @@ from vistrails.core.modules.vistrails_module import Module, NotCacheable, Module
 ################################################################################
 
 class MplProperties(Module):
-    _output_ports = [("self", "(MplProperties)")]
-    
-    def update_props(self, objs):
-        # must implement in subclass
+    def compute(self, artist):
         pass
-        
-    def update_sub_props(self, objs):
-        # must implement in subclass
-        pass
+
+    class Artist(object):
+        def update_sub_props(self, objs):
+            # must implement in subclass
+            pass
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
-    # _input_ports = [("subfigRow", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("subfigCol", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]})]
-    _output_ports = [("self", "(MplPlot)")]
-
     def __init__(self):
         Module.__init__(self)
         self.figInstance = None
@@ -85,6 +77,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
     
     """
     _input_ports = [('source', '(basic:String)')]
+    _output_ports = [('value', '(MplSource)')]
 
     def compute(self):
         """ compute() -> None
@@ -96,21 +89,15 @@ class MplSource(CodeRunnerMixin, MplPlot):
              urllib.unquote(source))
 
         self.run_code(s, use_input=True, use_output=True)
+        self.set_output('value', None)
 
 class MplFigure(Module):
-    # _input_ports = [("addPlot", "(MplPlot)"),
-    #                 ("numSubfigRows", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("numSubfigCols", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ]
     _input_ports = [("addPlot", "(MplPlot)"),
                     ("axesProperties", "(MplAxesProperties)"),
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
 
-    _output_ports = [("file", "(basic:File)"),
-                     ("self", "(MplFigure)")]
+    _output_ports = [("self", "(MplFigure)")]
 
     def __init__(self):
         Module.__init__(self)
@@ -144,7 +131,6 @@ class MplFigure(Module):
             legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 
-        #FIXME write file out if File port is attached!
 
         self.set_output("self", self)
 

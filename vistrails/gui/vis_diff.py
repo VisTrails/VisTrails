@@ -36,6 +36,7 @@
 operation """
 from PyQt4 import QtCore, QtGui
 from vistrails.core.system import get_vistrails_basic_pkg_id
+from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.utils.color import ColorByName
 from vistrails.core.vistrail.abstraction import Abstraction
 from vistrails.core.vistrail.pipeline import Pipeline
@@ -355,7 +356,7 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         result = str(result)
         try:
             self.controller.add_analogy(result, version_a, version_b)
-        except:
+        except VistrailsInternalError:
             debug.critical("Analogy name already exists")
 
     def set_diff(self):
@@ -393,7 +394,8 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def set_controller(self, controller=None):
         self.controller = controller
-        self.set_diff()
+        if self.controller is not None:
+            self.set_diff()
         
     def update_module(self, module=None):
         """ moduleSelected(id: int, selectedItems: [QGraphicsItem]) -> None
@@ -931,7 +933,7 @@ class QVisualDiff(QtGui.QMainWindow):
         result = str(result)
         try:
             self.controller.add_analogy(result, self.v1, self.v2)
-        except:
+        except VistrailsInternalError:
             debug.critical("Analogy name already exists")
         
     def createToolWindows(self, v1Name, v2Name):
