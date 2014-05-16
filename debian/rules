@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+# export DH_VERBOSE=1
+
+# The magic debhelper rule:
+%:
+	dh $@ --with python2
+
+override_dh_compress:
+	dh_compress -X.vt -X.py
+
+override_dh_auto_install:
+	dh_auto_install
+	dh_install
+	mkdir -p debian/vistrails/usr/lib/python2.7/dist-packages/vistrails
+	cp -a vistrails/*     debian/vistrails/usr/lib/python2.7/dist-packages/vistrails
+	mv debian/vistrails/usr/lib/python2.7/dist-packages/vistrails/run.py debian/vistrails/usr/bin/vistrails
+	# Move the images to a more normal location.
+	mkdir -p debian/vistrails/usr/share/vistrails/resources
+	mv debian/vistrails/usr/lib/python2.7/dist-packages/vistrails/gui/resources/images debian/vistrails/usr/share/vistrails/resources/images
+	# Symlinks to the right places.
+	dh_link -p vistrails /usr/share/vistrails/resources/images /usr/lib/python2.7/dist-packages/vistrails/gui/resources/images
+	find debian/vistrails -type f -exec chmod 644 {} \;
+	dh_numpy

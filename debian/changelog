@@ -1,0 +1,28 @@
+vistrails (2.1.1-1) unstable; urgency=medium
+
+  * New upstream release.  Closes: #728986.
+  * Standards-Version: 3.9.5
+  * Now at DH_COMPAT=9
+  * Now use dh-python not python-support
+  * Patches needed to prevent auto-installing packages, fix paths for files.
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Fri, 16 May 2014 16:09:29 +0100
+
+vistrails (2.0.alpha~1-3) unstable; urgency=low
+
+  * Make vistrails Architecture: all. Closes: #654910.
+  * Add build-dep on python-support. Closes: 652288.
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sun, 29 Jan 2012 15:37:24 +0000
+
+vistrails (2.0.alpha~1-2) unstable; urgency=low
+
+  * Add runtime dependency on python-qt4-gl. Closes: #644355
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Wed, 05 Oct 2011 10:13:32 +0100
+
+vistrails (2.0.alpha~1-1) unstable; urgency=low
+
+  * Initial release. (Closes: #644096)
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Tue, 04 Oct 2011 11:09:27 +0100
