@@ -1909,7 +1909,6 @@ class ModuleRegistry(DBRegistry):
         # For a connection, this gets called for sub -> super
         basic_pkg = get_vistrails_basic_pkg_id()
         variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
-        iterator_desc = self.get_descriptor_by_name(basic_pkg, 'Iterator')
         # sometimes sub is coming None
         # I don't know if this is expected, so I will put a test here
         sub_descs = []
@@ -1917,14 +1916,14 @@ class ModuleRegistry(DBRegistry):
             sub_descs = sub.descriptors()
         if sub_descs is None:
             return False
-        elif sub_descs in [[variant_desc], [iterator_desc]]:
+        elif sub_descs == [variant_desc]:
             return True
         super_descs = []
         if super:
             super_descs = super.descriptors()
         if super_descs is None:
             return False
-        elif super_descs in [[variant_desc], [iterator_desc]]:
+        elif super_descs == [variant_desc]:
             return True
 
         if (len(sub_descs) == len(super_descs) and

@@ -34,7 +34,7 @@
 --#############################################################################
 
 CREATE TABLE `vistrails_version`(`version` char(16)) engine=InnoDB;
-INSERT INTO `vistrails_version`(`version`) VALUES ('1.0.3');
+INSERT INTO `vistrails_version`(`version`) VALUES ('1.0.4');
 
 CREATE TABLE thumbnail(
     id int not null auto_increment primary key,
@@ -62,6 +62,7 @@ CREATE TABLE port_spec(
     name varchar(255),
     type varchar(255),
     optional int,
+    depth int,
     sort_key int,
     min_conns int,
     max_conns int,
@@ -452,6 +453,16 @@ CREATE TABLE loop_exec(
     id int,
     ts_start datetime,
     ts_end datetime,
+    parent_type char(32),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
+CREATE TABLE control_parameter(
+    id int,
+    name varchar(255),
+    value mediumtext,
     parent_type char(32),
     entity_id int,
     entity_type char(16),

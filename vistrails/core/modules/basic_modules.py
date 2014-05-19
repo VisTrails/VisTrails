@@ -1165,7 +1165,7 @@ class Variant(Module):
 
 ##############################################################################
 
-class Iterator(Module):
+class Iterator(object):
     """
     Used to keep track if list iteration, it will execute a module once for
     each input in the list/generator.
@@ -1175,7 +1175,6 @@ class Iterator(Module):
     generators = []
     def __init__(self, values=None, depth=1, size=None,
                  module=None, generator=None, port=None):
-        Module.__init__(self)
         self.list_depth = depth
         self.values = values
         self.module = module
@@ -1199,6 +1198,9 @@ class Iterator(Module):
             except KeyError:
                 return None
         # return next value - the generator
+        value = self.module.get_output(self.port)
+        if isinstance(value, Iterator):
+            raise ModuleError(self.module, "Iterator generator cannot contain an iterator")
         return self.module.get_output(self.port)
     
     def all(self):
@@ -1309,7 +1311,7 @@ def init_constant(m):
     reg.add_output_port(m, "value", m)
 
 _modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List,
-            Iterator, Path, File, Directory, OutputPath,
+            Path, File, Directory, OutputPath,
             FileSink, DirectorySink, WriteFile, ReadFile, StandardOutput,
             Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant,
             Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color,

@@ -39,7 +39,7 @@ from vistrails.core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 
 from xml_dao import XMLDAO
-from vistrails.db.versions.v1_0_3.domain import *
+from vistrails.db.versions.v1_0_4.domain import *
 
 class DBOpmProcessIdEffectXMLDAOBase(XMLDAO):
 
@@ -443,6 +443,8 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         type = self.convertFromStr(data, 'str')
         data = node.get('optional', None)
         optional = self.convertFromStr(data, 'int')
+        data = node.get('depth', None)
+        depth = self.convertFromStr(data, 'int')
         data = node.get('sortKey', None)
         sort_key = self.convertFromStr(data, 'int')
         data = node.get('minConns', None)
@@ -470,6 +472,7 @@ class DBPortSpecXMLDAOBase(XMLDAO):
                          name=name,
                          type=type,
                          optional=optional,
+                         depth=depth,
                          sort_key=sort_key,
                          portSpecItems=portSpecItems,
                          min_conns=min_conns,
@@ -486,6 +489,7 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         node.set('name',self.convertToStr(portSpec.db_name, 'str'))
         node.set('type',self.convertToStr(portSpec.db_type, 'str'))
         node.set('optional',self.convertToStr(portSpec.db_optional, 'int'))
+        node.set('depth',self.convertToStr(portSpec.db_depth, 'int'))
         node.set('sortKey',self.convertToStr(portSpec.db_sort_key, 'int'))
         node.set('minConns',self.convertToStr(portSpec.db_min_conns, 'int'))
         node.set('maxConns',self.convertToStr(portSpec.db_max_conns, 'int'))
@@ -532,6 +536,7 @@ class DBModuleXMLDAOBase(XMLDAO):
         location = None
         functions = []
         annotations = []
+        controlParameters = []
         portSpecs = []
         
         # read children
@@ -549,6 +554,9 @@ class DBModuleXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                controlParameters.append(_data)
             elif child_tag == 'portSpec':
                 _data = self.getDao('portSpec').fromXML(child)
                 portSpecs.append(_data)
@@ -566,6 +574,7 @@ class DBModuleXMLDAOBase(XMLDAO):
                        location=location,
                        functions=functions,
                        annotations=annotations,
+                       controlParameters=controlParameters,
                        portSpecs=portSpecs)
         obj.is_dirty = False
         return obj
@@ -598,6 +607,11 @@ class DBModuleXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
+        controlParameters = module.db_controlParameters
+        for controlParameter in controlParameters:
+            if (controlParameters is not None) and (controlParameters != ""):
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(controlParameter, childNode)
         portSpecs = module.db_portSpecs
         for portSpec in portSpecs:
             if (portSpecs is not None) and (portSpecs != ""):
@@ -971,6 +985,39 @@ class DBOpmProcessesXMLDAOBase(XMLDAO):
         
         return node
 
+class DBRefProvActivityXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'prov:activity':
+            return None
+        
+        # read attributes
+        data = node.get('prov:ref', None)
+        prov_ref = self.convertFromStr(data, 'str')
+        
+        obj = DBRefProvActivity(prov_ref=prov_ref)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, ref_prov_activity, node=None):
+        if node is None:
+            node = ElementTree.Element('prov:activity')
+        
+        # set attributes
+        node.set('prov:ref',self.convertToStr(ref_prov_activity.db_prov_ref, 'str'))
+        
+        return node
+
 class DBOpmAccountIdXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -1191,6 +1238,7 @@ class DBGroupXMLDAOBase(XMLDAO):
         location = None
         functions = []
         annotations = []
+        controlParameters = []
         
         # read children
         for child in node.getchildren():
@@ -1210,6 +1258,9 @@ class DBGroupXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                controlParameters.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -1224,7 +1275,8 @@ class DBGroupXMLDAOBase(XMLDAO):
                       version=version,
                       location=location,
                       functions=functions,
-                      annotations=annotations)
+                      annotations=annotations,
+                      controlParameters=controlParameters)
         obj.is_dirty = False
         return obj
     
@@ -1261,6 +1313,11 @@ class DBGroupXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
+        controlParameters = group.db_controlParameters
+        for controlParameter in controlParameters:
+            if (controlParameters is not None) and (controlParameters != ""):
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(controlParameter, childNode)
         
         return node
 
@@ -1830,6 +1887,9 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 data = _data
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                data = _data
             elif child_tag == 'function':
                 _data = self.getDao('function').fromXML(child)
                 data = _data
@@ -1894,6 +1954,9 @@ class DBAddXMLDAOBase(XMLDAO):
             elif data.vtType == 'annotation':
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(data, childNode)
+            elif data.vtType == 'controlParameter':
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(data, childNode)
             elif data.vtType == 'function':
                 childNode = ElementTree.SubElement(node, 'function')
                 self.getDao('function').toXML(data, childNode)
@@ -2528,6 +2591,7 @@ class DBAbstractionXMLDAOBase(XMLDAO):
         location = None
         functions = []
         annotations = []
+        controlParameters = []
         
         # read children
         for child in node.getchildren():
@@ -2544,6 +2608,9 @@ class DBAbstractionXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                controlParameters.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -2558,7 +2625,8 @@ class DBAbstractionXMLDAOBase(XMLDAO):
                             internal_version=internal_version,
                             location=location,
                             functions=functions,
-                            annotations=annotations)
+                            annotations=annotations,
+                            controlParameters=controlParameters)
         obj.is_dirty = False
         return obj
     
@@ -2591,6 +2659,11 @@ class DBAbstractionXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
+        controlParameters = abstraction.db_controlParameters
+        for controlParameter in controlParameters:
+            if (controlParameters is not None) and (controlParameters != ""):
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(controlParameter, childNode)
         
         return node
 
@@ -3877,6 +3950,9 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 data = _data
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                data = _data
             elif child_tag == 'function':
                 _data = self.getDao('function').fromXML(child)
                 data = _data
@@ -3943,6 +4019,9 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif data.vtType == 'annotation':
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(data, childNode)
+            elif data.vtType == 'controlParameter':
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(data, childNode)
             elif data.vtType == 'function':
                 childNode = ElementTree.SubElement(node, 'function')
                 self.getDao('function').toXML(data, childNode)
@@ -4844,6 +4923,47 @@ class DBOpmWasTriggeredByXMLDAOBase(XMLDAO):
         
         return node
 
+class DBControlParameterXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag[0] == "{":
+            node_tag = node.tag.split("}")[1]
+        else:
+            node_tag = node.tag
+        if node_tag != 'controlParameter':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('name', None)
+        name = self.convertFromStr(data, 'str')
+        data = node.get('value', None)
+        value = self.convertFromStr(data, 'str')
+        
+        obj = DBControlParameter(id=id,
+                                 name=name,
+                                 value=value)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, controlParameter, node=None):
+        if node is None:
+            node = ElementTree.Element('controlParameter')
+        
+        # set attributes
+        node.set('id',self.convertToStr(controlParameter.db_id, 'long'))
+        node.set('name',self.convertToStr(controlParameter.db_name, 'str'))
+        node.set('value',self.convertToStr(controlParameter.db_value, 'str'))
+        
+        return node
+
 class DBMashupActionAnnotationXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -5394,39 +5514,6 @@ class DBDeleteXMLDAOBase(XMLDAO):
         
         return node
 
-class DBRefProvActivityXMLDAOBase(XMLDAO):
-
-    def __init__(self, daoList):
-        self.daoList = daoList
-
-    def getDao(self, dao):
-        return self.daoList[dao]
-
-    def fromXML(self, node):
-        if node.tag[0] == "{":
-            node_tag = node.tag.split("}")[1]
-        else:
-            node_tag = node.tag
-        if node_tag != 'prov:activity':
-            return None
-        
-        # read attributes
-        data = node.get('prov:ref', None)
-        prov_ref = self.convertFromStr(data, 'str')
-        
-        obj = DBRefProvActivity(prov_ref=prov_ref)
-        obj.is_dirty = False
-        return obj
-    
-    def toXML(self, ref_prov_activity, node=None):
-        if node is None:
-            node = ElementTree.Element('prov:activity')
-        
-        # set attributes
-        node.set('prov:ref',self.convertToStr(ref_prov_activity.db_prov_ref, 'str'))
-        
-        return node
-
 class DBProvAssociationXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -5532,6 +5619,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
         actions = []
         tags = []
         annotations = []
+        controlParameters = []
         vistrailVariables = []
         parameter_explorations = []
         actionAnnotations = []
@@ -5551,6 +5639,9 @@ class DBVistrailXMLDAOBase(XMLDAO):
             elif child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child_tag == 'controlParameter':
+                _data = self.getDao('controlParameter').fromXML(child)
+                controlParameters.append(_data)
             elif child_tag == 'vistrailVariable':
                 _data = self.getDao('vistrailVariable').fromXML(child)
                 vistrailVariables.append(_data)
@@ -5571,6 +5662,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
                          actions=actions,
                          tags=tags,
                          annotations=annotations,
+                         controlParameters=controlParameters,
                          vistrailVariables=vistrailVariables,
                          parameter_explorations=parameter_explorations,
                          actionAnnotations=actionAnnotations)
@@ -5602,6 +5694,11 @@ class DBVistrailXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
+        controlParameters = vistrail.db_controlParameters
+        for controlParameter in controlParameters:
+            if (controlParameters is not None) and (controlParameters != ""):
+                childNode = ElementTree.SubElement(node, 'controlParameter')
+                self.getDao('controlParameter').toXML(controlParameter, childNode)
         vistrailVariables = vistrail.db_vistrailVariables
         for vistrailVariable in vistrailVariables:
             if (vistrailVariables is not None) and (vistrailVariables != ""):
@@ -5755,6 +5852,8 @@ class XMLDAOListBase(dict):
             self['opm_account'] = DBOpmAccountXMLDAOBase(self)
         if 'opm_processes' not in self:
             self['opm_processes'] = DBOpmProcessesXMLDAOBase(self)
+        if 'ref_prov_activity' not in self:
+            self['ref_prov_activity'] = DBRefProvActivityXMLDAOBase(self)
         if 'opm_account_id' not in self:
             self['opm_account_id'] = DBOpmAccountIdXMLDAOBase(self)
         if 'port' not in self:
@@ -5861,6 +5960,8 @@ class XMLDAOListBase(dict):
             self['loop_exec'] = DBLoopExecXMLDAOBase(self)
         if 'opm_was_triggered_by' not in self:
             self['opm_was_triggered_by'] = DBOpmWasTriggeredByXMLDAOBase(self)
+        if 'controlParameter' not in self:
+            self['controlParameter'] = DBControlParameterXMLDAOBase(self)
         if 'mashup_actionAnnotation' not in self:
             self['mashup_actionAnnotation'] = DBMashupActionAnnotationXMLDAOBase(self)
         if 'connection' not in self:
@@ -5879,8 +5980,6 @@ class XMLDAOListBase(dict):
             self['opm_agent'] = DBOpmAgentXMLDAOBase(self)
         if 'delete' not in self:
             self['delete'] = DBDeleteXMLDAOBase(self)
-        if 'ref_prov_activity' not in self:
-            self['ref_prov_activity'] = DBRefProvActivityXMLDAOBase(self)
         if 'prov_association' not in self:
             self['prov_association'] = DBProvAssociationXMLDAOBase(self)
         if 'vistrail' not in self:

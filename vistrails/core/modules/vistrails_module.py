@@ -964,6 +964,7 @@ class Module(Serializable):
         Function used to check if the types of the input list element and of the
         inputPort of 'module' match.
         """
+        from vistrails.core.modules.basic_modules import Iterator
         from vistrails.core.modules.basic_modules import get_module
         for elementList in inputList:
             if len(elementList) != len(inputPorts):
@@ -971,6 +972,11 @@ class Module(Serializable):
                                   'The number of input values and input ports '
                                   'are not the same.')
             for element, inputPort in izip(elementList, inputPorts):
+                if isinstance(element, Iterator):
+                    if element.values:
+                        return
+                    else:
+                        raise ModuleError(self, "Iterator is not allowed here")
                 p_modules = module.moduleInfo['pipeline'].modules
                 p_module = p_modules[module.moduleInfo['moduleId']]
                 port_spec = p_module.get_port_spec(inputPort, 'input')
