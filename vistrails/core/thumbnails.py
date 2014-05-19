@@ -228,7 +228,7 @@ class ThumbnailCache(object):
         Deletes all files inside dirname
     
         """
-        if dir_name is None:
+        if dirname is None:
             return
         try:
             for root, dirs, files in os.walk(dirname):

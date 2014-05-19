@@ -105,6 +105,7 @@ webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
 repositoryLocalPath: Local package repository directory
 repositoryHTTPURL: Remote package repository URL
+handlerDontAsk: Do not ask about extension handling at startup
 """
 
 _documentation = """
@@ -451,7 +452,10 @@ class ConfigField(object):
         self.flag = flag
         self.nargs = nargs
         self.widget_type = widget_type
-        self.widget_options = widget_options
+        if widget_options is not None:
+            self.widget_options = widget_options
+        else:
+            self.widget_options = {}
         self.depends_on = depends_on
 
     def from_string(self, str_val):
@@ -500,10 +504,10 @@ base_config = {
      ConfigField('defaultFileType', system.vistrails_default_file_type(), str,
                  widget_type="combo",
                  widget_options={"allowed_values": [".vt", ".xml"],
-                                 "label": "Default File Type/Extension:"}),
+                                 "label": "Default File Type/Extension"}),
      ConfigField('debugLevel', 0, int, widget_type="combo",
                  widget_options={"allowed_values": [0,1,2], 
-                                 "label": "Show alerts for:",
+                                 "label": "Show alerts for",
                                  "remap": {0: "Critical Errors Only",
                                            1: "Critical Errors and Warnings",
                                            2: "Errors, Warnings, and " \
@@ -542,12 +546,11 @@ base_config = {
     "Thumbnails":
     [ConfigFieldParent('thumbs', 
         [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
-         # FIXME add clear button for cache in preferences dialog!
          ConfigField('mouseHover', False, bool, ConfigType.ON_OFF),
          ConfigField('tagsOnly', False, bool, ConfigType.ON_OFF),
          ConfigField('cacheDirectory', os.path.join("$DOT_VISTRAILS", "thumbs"),
                      ConfigPath, ConfigType.NORMAL),
-         ConfigField('cacheSize', 20, int)])],
+         ConfigField('cacheSize', 20, int, widget_type='thumbnailcache')])],
     "Packages":
     [ConfigField('enablePackagesSilently', False, bool, ConfigType.ON_OFF),
      ConfigField('installBundles', True, bool, ConfigType.ON_OFF),
@@ -580,7 +583,6 @@ base_config = {
      ConfigField('runningJobsList', None, str, ConfigType.STORAGE),
      ConfigField('isInServerMode', False, bool, ConfigType.INTERNAL),
      ConfigField('isRunningGUI', True, bool, ConfigType.INTERNAL),
-     ConfigField('handlerDontAsk', False, bool, ConfigType.INTERNAL),
      ConfigField('spawned', False, bool, ConfigType.INTERNAL),
      ConfigField('rootDirectory', None, ConfigPath, ConfigType.INTERNAL)],
     "Jobs":
@@ -593,12 +595,20 @@ base_config = {
 # FIXME make sure that the platform-specific configs are added!
 mac_config = {
     "Interface":
-    [('useMacBrushedMetalStyle', True, bool, ConfigType.ON_OFF)]
+    [ConfigField('useMacBrushedMetalStyle', True, bool, ConfigType.ON_OFF)]
 }
 
 win_config = { }
 
-linux_config = { }
+linux_config = { 
+    "General":
+    [ConfigField('handlerCheck', None, str, ConfigType.INTERNAL,
+                 widget_type="linuxext",
+                 widget_options={'label': 'Extension Handler'}),
+     ConfigField('handlerDontAsk', None, bool)]
+}
+
+all_configs = [base_config, mac_config, win_config, linux_config]
 
 def build_config_obj(d):
     new_d = {}
@@ -622,8 +632,25 @@ def build_config_obj(d):
                     new_d[field.name] = v
     return ConfigurationObject(**new_d)
 
+def get_system_config():
+    config = {}
+    config.update(base_config)
+    if system.systemType in ['Windows', 'Microsoft']:
+        sys_config = win_config
+    elif system.systemType in ['Linux']:
+        sys_config = linux_config
+    elif system.systemType in ['Darwin']:
+        sys_config = mac_config
+    for category, fields in sys_config.iteritems():
+        if category not in base_config:
+            config[category] = fields
+        else:
+            config[category].extend(fields)
+    return config
+
 def default():
-    retval =  build_config_obj(base_config)
+    config = get_system_config()
+    retval = build_config_obj(config)
     return retval
 
 def parse_documentation():
@@ -668,6 +695,21 @@ def find_simpledoc(arg_path):
         return _simple_docs[arg_path]
     return find_help(arg_path)
     
+def set_field_labels(fields, prefix=""):
+    for field in fields:
+        if isinstance(field, ConfigFieldParent):
+            prefix = "%s%s." % (prefix, field.name)
+            set_field_labels(field.sub_fields, prefix=prefix)
+        else:
+            full_field_name = "%s%s" % (prefix, field.name)
+            label = find_simpledoc(full_field_name)
+            if label is not None and 'label' not in field.widget_options:
+                field.widget_options['label'] = label
+
+for config in all_configs:
+    for field_list in config.itervalues():
+        set_field_labels(field_list)
+
 class VisTrailsHelpFormatter(argparse.HelpFormatter):
     def add_usage(self, usage, actions, groups, prefix=None):
         new_actions = []
