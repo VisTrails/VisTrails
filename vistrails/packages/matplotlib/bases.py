@@ -144,10 +144,10 @@ class MplFigureToFile(Module):
     _output_ports = [('imageFile', 'basic:File')]
 
     def compute(self):
-        figure = self.getInputFromPort('figure')
-        format = self.getInputFromPort('format')
-        width = self.getInputFromPort('width')
-        height = self.getInputFromPort('height')
+        figure = self.get_input('figure')
+        format = self.get_input('format')
+        width = self.get_input('width')
+        height = self.get_input('height')
         imageFile = self.interpreter.filePool.create_file(suffix=".%s" % format)
 
         fig = figure.figInstance
@@ -161,7 +161,7 @@ class MplFigureToFile(Module):
         fig.set_size_inches(previous_size[0],previous_size[1])
         canvas.draw()
 
-        self.setResult('imageFile', imageFile)
+        self.set_output('imageFile', imageFile)
 
 class MplContourSet(Module):
     pass
