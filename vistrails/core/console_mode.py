@@ -122,7 +122,7 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         jobMonitor = JobMonitor.getInstance()
         current_workflow = jobMonitor.currentWorkflow()
         if not current_workflow:
-            for job in jobMonitor._running_workflows.itervalues():
+            for job in jobMonitor.workflows.itervalues():
                 try:
                     job_version = int(job.version)
                 except ValueError:
@@ -154,12 +154,12 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
-        if current_workflow.modules:
+        if current_workflow.jobs:
             if current_workflow.completed():
                 run.job = "COMPLETED"
             else:
                 run.job = "RUNNING: %s" % current_workflow.id
-                for job in current_workflow.modules.itervalues():
+                for job in current_workflow.jobs.itervalues():
                     if not job.finished:
                         run.job += "\n  %s %s %s" % (job.start, job.name, job.description())
             print run.job

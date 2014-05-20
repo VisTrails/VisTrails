@@ -52,7 +52,7 @@ refresh_states = [('Off', 0), ('10 sec', 10),
 
 
 class QNumberValidator(QtGui.QIntValidator):
-    """Variant of QIntValidaator that rejects Intermediate values.
+    """Variant of QIntValidator that rejects Intermediate values.
 
     Intermediate strings are strings that could be the left part of an
     Acceptable string.
@@ -79,7 +79,6 @@ class QJobTree(QtGui.QTreeWidget):
                                    item.stdout)
             menu.addAction(act)
             act = QtGui.QAction("View Standard &Error", self)
-            act.setStatusTip("View Standard Error in new window")
             QtCore.QObject.connect(act,
                                    QtCore.SIGNAL("triggered()"),
                                    item.stderr)
@@ -187,7 +186,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         base = (workflowItem.intermediates[parent_id] if parent_id is not None
                                                       else workflowItem)
         id = obj.signature
-        if id not in workflow.modules and parent_id:
+        if id not in workflow.jobs and parent_id:
             id = '%s/%s' % (parent_id, obj.signature)
         if obj.children:
             # add parent items and their children
@@ -196,13 +195,13 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                                                              obj.name, base)
             for child in obj.children:
                 self.addJobRec(child, id)
-        elif obj.signature in workflow.modules:
+        elif obj.signature in workflow.jobs:
             # this is an already existing new-style job
             job = workflowItem.jobs[obj.signature]
             job.monitor = obj.monitor
             # need to force takeChild
             base.addChild(job.parent().takeChild(job.parent().indexOfChild(job)))
-        elif id in workflow.modules:
+        elif id in workflow.jobs:
             # this is an already existing old-style job
             job = workflowItem.jobs[id]
             job.monitor = obj.monitor
@@ -402,14 +401,14 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
     def load_running_jobs(self):
         """Loads the current jobs from the JSON file.
         """
-        workflows = self.jobMonitor._running_workflows
+        workflows = self.jobMonitor.workflows
         # update gui
         for workflow in workflows.itervalues():
             if workflow.id not in self.workflowItems:
                 workflowItem = QWorkflowItem(workflow, self.jobView)
                 self.jobView.addTopLevelItem(workflowItem)
                 self.workflowItems[workflow.id] = workflowItem
-                for job in workflow.modules.itervalues():
+                for job in workflow.jobs.itervalues():
                     if job.id not in workflowItem.jobs:
                         workflowItem.jobs[job.id] = QJobItem(job, workflowItem)
                         workflowItem.updateJobs()
