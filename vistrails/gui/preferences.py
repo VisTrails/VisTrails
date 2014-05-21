@@ -35,13 +35,16 @@
 from PyQt4 import QtGui, QtCore
 from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import InvalidPipeline
 from vistrails.core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
 from vistrails.gui.configuration import QConfigurationWidget, \
     QConfigurationPane
 from vistrails.gui.module_palette import QModulePalette
+from vistrails.gui.modules.output_configuration import OutputModeConfigurationWidget
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration, base_config
@@ -533,7 +536,70 @@ class QPackagesWidget(QtGui.QWidget):
     def invalidate_current_pipeline(self):
         from vistrails.gui.vistrails_window import _app
         _app.invalidate_pipelines()
+
+class QOutputConfigurationPane(QtGui.QWidget):
+    def __init__(self, parent, persistent_config, temp_config):
+        QtGui.QWidget.__init__(self, parent)
+
+        self.persistent_config = persistent_config
+        self.temp_config = temp_config
+
+        scroll_area = QtGui.QScrollArea()
+        inner_widget =  QtGui.QWidget()
+        self.inner_layout = QtGui.QVBoxLayout()
+        inner_widget.setLayout(self.inner_layout)
+        scroll_area.setWidget(inner_widget)
+        scroll_area.setWidgetResizable(True)
+        self.setLayout(QtGui.QVBoxLayout())
+        self.layout().addWidget(scroll_area, 1)
+        self.layout().setContentsMargins(0,0,0,0)
+
+        app = get_vistrails_application()
+        app.register_notification("package_added", self.update_output_modules)
+        app.register_notification("package_removed", self.update_output_modules)
+
+        self.mode_widgets = {}
+
+    def update_output_modules(self, *args, **kwargs):
+        # need to find all currently loaded output modes (need to
+        # check after modules are loaded and spin through registery)
+        # and display them here
+        reg = get_module_registry()
+        output_d = reg.get_descriptor_by_name(get_vistrails_basic_pkg_id(),
+                                              "OutputModule")
+        sublist = reg.get_descriptor_subclasses(output_d)
+        modes = {}
+        for d in sublist:
+            if hasattr(d.module, '_output_modes'):
+                for mode in d.module._output_modes:
+                    modes[mode.mode_type] = mode
+
+        found_modes = set()
+        for mode_type, mode in modes.iteritems():
+            found_modes.add(mode_type)
+            if mode_type not in self.mode_widgets:
+                mode_config = None
+                output_settings = self.persistent_config.outputDefaultSettings
+                if output_settings.has(mode_type):
+                    mode_config = getattr(output_settings, mode_type)
+                widget = OutputModeConfigurationWidget(mode, mode_config)
+                widget.fieldChanged.connect(self.field_was_changed)
+                self.inner_layout.addWidget(widget)
+                self.mode_widgets[mode_type] = widget
         
+        for mode_type, widget in self.mode_widgets.iteritems():
+            if mode_type not in found_modes:
+                self.inner_layout.removeWidget(self.mode_widgets[mode_type])
+                del self.mode_widgets[mode_type]
+
+    def field_was_changed(self, mode_widget):
+        # FIXME need to use temp_config to show command-line overrides
+        for k1, v_dict in mode_widget._changed_config.iteritems():
+            for k2, v in v_dict.iteritems():
+                k = "%s.%s" % (k1, k2)
+                self.persistent_config.outputDefaultSettings.set_deep_value(
+                    k, v, True)
+
 class QPreferencesDialog(QtGui.QDialog):
 
     def __init__(self, parent):
@@ -566,7 +632,11 @@ class QPreferencesDialog(QtGui.QDialog):
                                      get_vistrails_configuration(),
                                      [(c, base_config[c]) for c in categories])
             self._tab_widget.addTab(tab, tab_name)
-        
+
+        output_tab = QOutputConfigurationPane(self,
+                                    get_vistrails_persistent_configuration(), 
+                                    get_vistrails_configuration())
+        self._tab_widget.addTab(output_tab, "Output")
 
         self._packages_tab = self.create_packages_tab()
         self._tab_widget.addTab(self._packages_tab, 'Packages')

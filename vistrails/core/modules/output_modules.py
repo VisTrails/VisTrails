@@ -226,11 +226,25 @@ class OutputModule(NotCacheable, Module):
 
         mode_dict = {}
         for c in reversed(cls_list):
-            c.ensure_mode_dict()
             mode_dict.update(c._output_modes_dict)
         mode_list = [c for c, _ in reversed(sorted(mode_dict.itervalues(), 
                                                    key=lambda x: x[1]))]
         return mode_list
+
+    @classmethod
+    def get_mode_tree(cls):
+        cls_list = [cls]
+        idx = 0
+        while idx < len(cls_list):
+            for c in cls_list[idx].__bases__:
+                if issubclass(c, OutputModule):
+                    c.ensure_mode_dict()
+                    cls_list.append(c)
+            idx += 1
+
+        mode_tree = {}
+        for c in reversed(cls_list):
+            c.ensure_mode_dict()
 
     def compute(self):
         mode_cls = None
@@ -259,14 +273,25 @@ class OutputModule(NotCacheable, Module):
         mode = mode_cls()
         mode_config_cls = mode_cls.config_cls
         mode_config = None
+        mode_config_dict = {}
         configuration = self.force_get_input('configuration')
         if configuration is not None:
-            for k, v in configuration.iteritems():
-                if k == mode.mode_type:
-                    mode_config = mode_config_cls(v)
-                    break
-        if mode_config is None:
-            mode_config = mode_config_cls()
+            # want to search through all mode classes in case we have
+            # base class settings that should trump
+            cls_list = [mode_config_cls]
+            mode_config_cls_list = []
+            while len(cls_list) > 0:
+                c = cls_list.pop(0)
+                if issubclass(c, OutputModeConfig):
+                    mode_config_cls_list.append(c)
+                    cls_list.extend(c.__bases__)
+            mode_config_cls_list.reverse()
+        
+            for mode_config_cls in mode_config_cls_list:
+                for k, v in configuration.iteritems():
+                    if k == mode_config_cls.mode_type:
+                        mode_config_dict.update(v)
+        mode_config = mode_config_cls(mode_config_dict)
 
         self.annotate({"output_mode": mode.mode_type})
         mode.compute_output(self, mode_config)
@@ -435,12 +460,14 @@ class FileOutput(OutputModule):
     _output_modes = [FileToStdoutMode, FileToFileMode]
 
 class ImageFileModeConfig(FileModeConfig):
+    mode_type = "imageFile"
     _fields = [ConfigField('width', 800, int),
                ConfigField('height', 600, int),
                ConfigField('format', None, str)]
 
 class ImageFileMode(FileMode):
     config_cls = ImageFileModeConfig
+    mode_type = "imageFile"
 
     def get_format(self, configuration=None):
         format_map = {'png': 'png',

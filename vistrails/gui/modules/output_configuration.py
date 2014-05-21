@@ -65,12 +65,10 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
                                 [Dictionary.translate_to_string(config)])
 
     def update_widget(self):
-        self._changed_config = {}
-        self._changed_fields = {}
         layout = QtGui.QVBoxLayout()
         config = self.get_configuration()
 
-        self.field_widgets = {}
+        self.mode_widgets = []
         self.found_modes = set()
         mode_layouts = []
         for mode in self.module.module_descriptor.module.get_sorted_mode_list():
@@ -84,7 +82,8 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
             
         for mode_type, mode_config in config.iteritems():
             if mode_type not in self.found_modes:
-                mode_w = self.build_mode_config(layout, None, mode_config)
+                mode_w = self.build_mode_config(layout, None, mode_config, 
+                                                title=mode_type)
                 mode_layouts.append(mode_w.layout())
                 self.found_modes.add(mode_type)
                 
@@ -110,6 +109,13 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.layout().addLayout(self.create_buttons())
         self.layout().setContentsMargins(0,0,0,0)
 
+    def build_mode_config(self, base_layout, mode, mode_config, title=None):
+        mode_widget = OutputModeConfigurationWidget(mode, mode_config, title)
+        mode_widget.fieldChanged.connect(self.field_was_changed)
+        self.mode_widgets.append(mode_widget)
+        base_layout.addWidget(mode_widget, 1)
+        return mode_widget
+
     def create_buttons(self):
         """ create_buttons() -> None
         Create and connect signals to Save & Reset button
@@ -131,10 +137,52 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
                      self.reset_triggered)
         return buttonLayout
 
-    def build_mode_config(self, base_layout, mode, mode_config):
-        group_box = QtGui.QGroupBox()
-        group_box.setTitle(mode.mode_type)
-        # group_layout = QtGui.QVBoxLayout()
+    def save_triggered(self):
+        # get values from each widget check if any changed and
+        # then dump the whole dictionary back to the configuration
+        # function
+        config = self.get_configuration()
+        for mode_widget in self.mode_widgets:
+            config.update(mode_widget._changed_config)
+        self.set_configuration(config)
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
+
+    def reset_triggered(self):
+        config = self.get_configuration()
+        for mode_widget in self.mode_widgets:
+            for config_key, field in mode_widget._changed_fields.iteritems():
+                widget = mode_widget.field_widgets[config_key]
+                mode_type = config_key[0]
+                mode_config = None
+                if mode_type in config:
+                    mode_config = config[mode_type]
+                mode_widget.reset_field(widget, field, mode_config, mode_type)
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
+
+    def field_was_changed(self, mode_widget):
+        self.saveButton.setEnabled(True)
+        self.resetButton.setEnabled(True)
+
+class OutputModeConfigurationWidget(QtGui.QGroupBox):
+    fieldChanged = QtCore.pyqtSignal(object)
+
+    def __init__(self, mode, mode_config=None, title=None, parent=None):
+        assert(mode is not None or mode_config is not None)
+
+        QtGui.QGroupBox.__init__(self, parent)
+        self.field_widgets = {}
+        self._changed_config = {}
+        self._changed_fields = {}
+
+        if title is not None:
+            self.setTitle(title)
+        elif mode is not None:
+            self.setTitle(mode.mode_type)
+        else:
+            self.setTitle("unknown")
+
         group_layout = QtGui.QGridLayout()
         group_layout.setMargin(5)
         group_layout.setSpacing(5)
@@ -151,9 +199,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
                 print "ADD FIELD:", mode.mode_type, field.name
                 self.add_field(group_layout, field, mode_config, 
                                mode.mode_type)
-        group_box.setLayout(group_layout)
-        base_layout.addWidget(group_box, 1)
-        return group_box
+        self.setLayout(group_layout)
 
     # TODO Unify this with code in gui.configuration!
     def add_field(self, layout, field, mode_config, mode_type, indent=0):
@@ -353,23 +399,4 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         val = field.from_string(val)
         self._changed_config[config_key[0]][config_key[1]] = val
         self._changed_fields[config_key] = field
-        self.saveButton.setEnabled(True)
-        self.resetButton.setEnabled(True)
-
-    def save_triggered(self):
-        # get values from each widget check if any changed and
-        # then dump the whole dictionary back to the configuration
-        # function
-        config = self.get_configuration()
-        config.update(self._changed_config)
-        self.set_configuration(config)
-
-    def reset_triggered(self):
-        config = self.get_configuration()
-        for config_key, field in self._changed_fields.iteritems():
-            widget = self.field_widgets[config_key]
-            mode_type = config_key[0]
-            mode_config = None
-            if mode_type in config:
-                mode_config = config[mode_type]
-            self.reset_field(widget, field, mode_config, mode_type)
+        self.fieldChanged.emit(self)

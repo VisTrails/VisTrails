@@ -1940,6 +1940,15 @@ class ModuleRegistry(DBRegistry):
         return [self.get_descriptor(klass)
                 for klass in descriptor.module.mro()
                 if issubclass(klass, vistrails.core.modules.vistrails_module.Module)]
+
+    def get_descriptor_subclasses(self, descriptor):
+        # need to find all descriptors that are subdescriptors of descriptor
+        sub_list = []
+        for pkg in self.package_versions.itervalues():
+            for d in pkg.descriptor_list:
+                if self.is_descriptor_subclass(d, descriptor):
+                    sub_list.append(d)
+        return sub_list
         
     def get_input_port_spec(self, module, portName):
         """ get_input_port_spec(module: Module, portName: str) ->

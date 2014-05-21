@@ -1186,6 +1186,15 @@ class ConfigurationObject(DBConfiguration):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __contains__(self, k):
+        return self.has(k)
+
+    def __getitem__(self, k):
+        return self.get(k)
+
+    def __setitem__(self, k, v):
+        return self.__setattr__(k, v)
+
     def update(self, other):
         for name, other_key in other.db_config_keys_name_index.iteritems():
             self.__setattr__(name, other_key.value)
