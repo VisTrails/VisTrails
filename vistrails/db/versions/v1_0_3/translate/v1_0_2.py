@@ -430,7 +430,12 @@ def translateStartup(_startup):
                 else:
                     new_name = t_obj
 
-            if not to_delete:
+            # if we have already set a key, don't override the new
+            # setting in general (may want to if swapping existing
+            # names, but this should be the exception)
+            if (not to_delete and
+                (new_name == key.db_name or
+                 new_name not in _config.db_config_keys_name_index)):
                 # always overwrite DBConfigKey settings so recursion
                 # doesn't wrap over itself
                 key_t_dict = {}
@@ -544,6 +549,9 @@ class TestTranslate(unittest.TestCase):
             self.assertIn('cacheDir', thumbs_name_idx)
             self.assertEqual(thumbs_name_idx['cacheDir'].db_value.db_value,
                              '/path/to/thumbs')
+            self.assertIn('subworkflowsDir', name_idx)
+            self.assertEqual(name_idx['subworkflowsDir'].db_value.db_value,
+                             'subworkflows')
         finally:
             shutil.rmtree(startup_dir)
 
