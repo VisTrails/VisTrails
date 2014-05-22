@@ -641,7 +641,8 @@ class Module(Serializable):
                 from vistrails.core.modules.basic_modules import PythonSource
                 if isinstance(self, Streaming) or\
                    (isinstance(self, PythonSource) and
-                    '%23STREAMING' in self.get_input('source')): #STREAMING
+                    '%23%20pragma%3A%20streaming' in self.get_input('source')):
+                    # Magic tag: "# pragma: streaming"
                     self.compute()
                 else:
                     self.compute_accumulate()
@@ -1311,7 +1312,7 @@ class Module(Serializable):
         """creates a generator object that computes when the next input is received.
         """
         # use the below tag if calling from a PythonSource
-        #STREAMING - This tag is magic, do not change.
+        # pragma: streaming - This tag is magic, do not change.
         from vistrails.core.modules.basic_modules import Iterator
         
         ports = self.streamed_ports.keys()
