@@ -54,6 +54,7 @@ from distutils.version import LooseVersion
 import os.path
 import re
 import shutil
+import string
 import sys
 import tempfile
 import vistrails.core.configuration
@@ -907,10 +908,10 @@ class TestStartup(unittest.TestCase):
         log_dir = tempfile.mkdtemp()
         config = vistrails.core.configuration.default()
         config.dotVistrails = dir_name
-        config.userPackageDirectory = user_pkg_dir
-        config.subworkflowsDirectory = abstractions_dir
-        config.thumbs.cacheDirectory = thumbs_dir
-        config.logDirectory = log_dir
+        config.userPackageDir = user_pkg_dir
+        config.subworkflowsDir= abstractions_dir
+        config.thumbs.cacheDir = thumbs_dir
+        config.logDir = log_dir
         try:
             startup = VistrailsStartup(config, None)
             self.assertTrue(os.path.isfile(os.path.join(dir_name, 
@@ -938,10 +939,10 @@ class TestStartup(unittest.TestCase):
         log_dir = os.path.join(outer_log_dir, 'logs')
         config = vistrails.core.configuration.default()
         config.dotVistrails = dir_name
-        config.userPackageDirectory = user_pkg_dir
-        config.subworkflowsDirectory = abstractions_dir
-        config.thumbs.cacheDirectory = thumbs_dir
-        config.logDirectory = log_dir
+        config.userPackageDir = user_pkg_dir
+        config.subworkflowsDir = abstractions_dir
+        config.thumbs.cacheDir = thumbs_dir
+        config.logDir = log_dir
         try:
             startup = VistrailsStartup(config, None)
             self.assertTrue(os.path.isfile(os.path.join(dir_name, 
@@ -996,9 +997,18 @@ class TestStartup(unittest.TestCase):
         import vistrails.core.db.io
         root_dir = system.vistrails_root_directory()
         # has old nested shell settings that don't match current naming
-        old_default_fname = os.path.join(root_dir,'tests','resources',
-                                            'startup-0.1.xml')
-        startup1 = vistrails.core.db.io.load_startup(old_default_fname)
+        startup_tmpl = os.path.join(system.vistrails_root_directory(),
+                                    'tests', 'resources', 
+                                    'startup-0.1.xml.tmpl')
+        f = open(startup_tmpl, 'r')
+        template = string.Template(f.read())
+        
+        startup_dir = tempfile.mkdtemp(prefix="vt_startup")
+        old_startup_fname = os.path.join(startup_dir, "startup.xml")
+        with open(old_startup_fname, 'w') as f:
+            f.write(template.substitute({'startup_dir': startup_dir}))
+
+        startup1 = vistrails.core.db.io.load_startup(old_startup_fname)
 
         (h, fname) = tempfile.mkstemp(suffix=".xml")
         os.close(h)
@@ -1008,6 +1018,7 @@ class TestStartup(unittest.TestCase):
             self.assertEqual(startup1, startup2)
         finally:
             os.remove(fname)
+            shutil.rmtree(startup_dir)
 
     # def test_load_packages(self):
     #     from vistrails.core.system import default_dot_vistrails

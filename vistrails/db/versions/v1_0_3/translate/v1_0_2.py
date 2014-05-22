@@ -48,6 +48,9 @@ from vistrails.db.services.vistrail import materializeWorkflow
 
 import os
 from itertools import izip
+import shutil
+import string
+import tempfile
 import unittest
 from xml.dom.minidom import parseString
 
@@ -311,6 +314,11 @@ def translateStartup(_startup):
     # conversion_f is a function that mutates the value and
     # inner_d recurses the translation for inner configurations
 
+    dot_vt_path = None
+    startup_dir = os.path.dirname(_startup._filename)
+    if os.path.isabs(startup_dir):
+        dot_vt_path = startup_dir
+
     def change_value(cls, conv_f, _key, t_dict):
         cls_name = cls.__name__
         old_t_value = None
@@ -334,10 +342,22 @@ def translateStartup(_startup):
         return change_value(DBConfigBool, invert_value, _key, t_dict)
 
     def use_dirname(_key, t_dict):
-        print "calling use_dirname"
         def get_dirname(_value, t):
-            return os.path.dirname(_value.db_value)
+            dir_name = os.path.dirname(_value.db_value)
+            if os.path.isabs(dir_name) and dir_name.startswith(dot_vt_path):
+                dir_name = dir_name[len(dot_vt_path)+1:]
+                if not dir_name.strip():
+                    dir_name = "logs"
+            return dir_name
         return change_value(DBConfigStr, get_dirname, _key, t_dict)
+
+    def update_dirname(_key, t_dict):
+        def change_dirname(_value, t):
+            abs_path = _value.db_value
+            if os.path.isabs(abs_path) and abs_path.startswith(dot_vt_path):
+                return abs_path[len(dot_vt_path)+1:]
+            return abs_path
+        return change_value(DBConfigStr, change_dirname, _key, t_dict)
 
     t = {'alwaysShowDebugPopup': 'showDebugPopups',
          'autosave': 'autoSave',
@@ -372,17 +392,14 @@ def translateStartup(_startup):
          'workflowInfo': 'outputDirectory',
          'executeWorkflows': 'execute',
 
-         # todo:
-         # thumbs.cacheDirectory -> thumbs.cacheDir
-         # abstractionsDirectory -> subworkflowsDir
-         # userPackageDirectory -> userPackageDir
-         # packageDirectory -> packageDir
-         # update logDir (in use_dirname)
-
-         # not $DOT_VISTRAILS
-         # temporaryDirectory -> temporaryDir
-         # dataDirectory -> dataDir
-         # fileDirectory -> fileDir
+         'thumbs': ('thumbs', None, 
+                    {'cacheDirectory': ('cacheDir', update_dirname)}),
+         'abstractionsDirectory': ('subworkflowsDir', update_dirname),
+         'userPackageDirectory': ('userPackageDir', update_dirname),
+         'temporaryDirectory': 'temporaryDir',
+         'dataDirectory': 'dataDir',
+         'fileDirectory': 'fileDir',
+         'packageDirectory': 'packageDir',
          }
 
     def get_key_name_update(new_name):
@@ -496,14 +513,39 @@ class TestTranslate(unittest.TestCase):
         from vistrails.db.services.io import open_startup_from_xml
         from vistrails.core.system import vistrails_root_directory
         import os
-        startup = open_startup_from_xml(os.path.join(vistrails_root_directory(),
-                                                     'tests', 'resources', 
-                                                     'startup-0.1.xml'))
-        name_idx = startup.db_configuration.db_config_keys_name_index
-        self.assertNotIn('nologger', name_idx)
-        self.assertIn('executionLog', name_idx)
-        self.assertFalse(name_idx['executionLog'].db_value.db_value.lower() == 'true')
-        self.assertNotIn('showMovies', name_idx)
+
+        startup_tmpl = os.path.join(vistrails_root_directory(),
+                                    'tests', 'resources', 
+                                    'startup-0.1.xml.tmpl')
+        f = open(startup_tmpl, 'r')
+        template = string.Template(f.read())
+        
+        startup_dir = tempfile.mkdtemp(prefix="vt_startup")
+        startup_fname = os.path.join(startup_dir, "startup.xml")
+        with open(startup_fname, 'w') as f:
+            f.write(template.substitute({'startup_dir': startup_dir}))
+        try:
+            # FIXME need to generate startup from local path 
+            startup = open_startup_from_xml(startup_fname)
+            name_idx = startup.db_configuration.db_config_keys_name_index
+            self.assertNotIn('nologger', name_idx)
+            self.assertIn('executionLog', name_idx)
+            self.assertFalse(
+                name_idx['executionLog'].db_value.db_value.lower() == 'true')
+            self.assertNotIn('showMovies', name_idx)
+            self.assertIn('logDir', name_idx)
+            self.assertEqual(name_idx['logDir'].db_value.db_value, 'logs')
+            self.assertIn('userPackageDir', name_idx)
+            self.assertEqual(name_idx['userPackageDir'].db_value.db_value, 
+                             'userpackages')
+            self.assertIn('thumbs', name_idx)
+            thumbs_name_idx = \
+                    name_idx['thumbs'].db_value.db_config_keys_name_index
+            self.assertIn('cacheDir', thumbs_name_idx)
+            self.assertEqual(thumbs_name_idx['cacheDir'].db_value.db_value,
+                             '/path/to/thumbs')
+        finally:
+            shutil.rmtree(startup_dir)
 
 if __name__ == '__main__':
     import vistrails.core.application

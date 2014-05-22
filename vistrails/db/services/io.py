@@ -1795,6 +1795,8 @@ def open_startup_from_xml(filename):
         version = '1.0.3'
     daoList = getVersionDAO(version)
     startup = daoList.open_from_xml(filename, DBStartup.vtType, tree)
+    # need this for translation...
+    startup._filename = filename
     if old_version:
         version = '1.0.2'
     startup = translate_startup(startup, version)
