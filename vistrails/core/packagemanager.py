@@ -99,9 +99,8 @@ class PackageManager(object):
         # Imports standard packages directory
         conf = self._startup.temp_configuration
         old_sys_path = copy.copy(sys.path)
-        packageDir = system.get_vistrails_directory('packageDir')
-        if packageDir is not None:
-            sys.path.insert(0, packageDir)
+        if conf.check('packageDirectory'):
+            sys.path.insert(0, conf.packageDirectory)
         try:
             import vistrails.packages
         except ImportError:
