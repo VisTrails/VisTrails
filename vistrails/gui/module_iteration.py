@@ -1,4 +1,5 @@
 ###############################################################################
+
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
@@ -380,24 +381,26 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         if self.isVisible() == False:
             self.show()
         self.activateWindow()
-        
+
+PORTITEM = 1000
+DOTITEM = 1001
+CROSSITEM = 1002
 class PortItem(QtGui.QTreeWidgetItem):
     def __init__(self, port_name, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent)
-        self.port_name = port_name
+        QtGui.QTreeWidgetItem.__init__(self, parent, PORTITEM)
         self.setText(0, port_name)
         self.setFlags(self.flags() & ~QtCore.Qt.ItemIsDropEnabled)
 
 class DotItem(QtGui.QTreeWidgetItem):
     def __init__(self, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent)
+        QtGui.QTreeWidgetItem.__init__(self, parent, DOTITEM)
         self.setExpanded(True)
         self.setIcon(0, CurrentTheme.DOT_PRODUCT_ICON)
         self.setText(0, 'Dot')
 
 class CrossItem(QtGui.QTreeWidgetItem):
     def __init__(self, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent)
+        QtGui.QTreeWidgetItem.__init__(self, parent, CROSSITEM)
         self.setExpanded(True)
         self.setIcon(0, CurrentTheme.CROSS_PRODUCT_ICON)
         self.setText(0, 'Cross')
@@ -414,14 +417,6 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
         self.setToolTip("Right-click to add dot/cross product. Rearrange "
                         "items to get suitable order. 'Del' key deletes "
                         "selected product.")
-        self.addTopLevelItem(DotItem())
-        self.addTopLevelItem(CrossItem())
-        self.addTopLevelItem(PortItem('my_port'))
-        self.addTopLevelItem(DotItem())
-        self.addTopLevelItem(CrossItem())
-        self.addTopLevelItem(PortItem('my_port2'))
-        self.addTopLevelItem(PortItem('my_port3'))
-        self.addTopLevelItem(PortItem('my_port4'))
 
     def dropEvent(self, event):
         QtGui.QTreeWidget.dropEvent(self, event)
@@ -439,9 +434,9 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
         
     def saveNode(self, item):
         # populate json struct from widget items
-        if isinstance(item, PortItem):
-            return item.port_name
-        L = ['pairwise'] if isinstance(item, DotItem) else ['cartesian']
+        if item.type()==PORTITEM:
+            return item.text(0)
+        L = ['pairwise'] if item.type()==DOTITEM else ['cartesian']
         L.extend([self.saveNode(item.child(i))
                   for i in xrange(item.childCount())])
         L = [i for i in L if i is not None]
