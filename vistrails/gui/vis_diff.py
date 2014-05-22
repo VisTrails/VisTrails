@@ -292,7 +292,8 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         g_layout.addWidget(self.legend)
         legend_group.setLayout(g_layout)
         layout.addWidget(legend_group)
-
+        layout.setStretch(0,0)
+        layout.addStretch(1)
         self.params = QParamTable()
         params_group = QtGui.QGroupBox("Parameter Changes")
         g_layout = QtGui.QVBoxLayout()
@@ -301,6 +302,28 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         g_layout.addWidget(self.params)
         params_group.setLayout(g_layout)
         layout.addWidget(params_group)
+        layout.setStretch(2,1000)
+
+        self.cparams = QParamTable()
+        params_group = QtGui.QGroupBox("Control Parameter Changes")
+        g_layout = QtGui.QVBoxLayout()
+        g_layout.setMargin(0)
+        g_layout.setSpacing(0)
+        g_layout.addWidget(self.cparams)
+        params_group.setLayout(g_layout)
+        layout.addWidget(params_group)
+        layout.setStretch(3,1000)
+        
+        self.annotations = QParamTable()
+        params_group = QtGui.QGroupBox("Annotation Changes")
+        g_layout = QtGui.QVBoxLayout()
+        g_layout.setMargin(0)
+        g_layout.setSpacing(0)
+        g_layout.addWidget(self.annotations)
+        params_group.setLayout(g_layout)
+        layout.addWidget(params_group)
+        layout.setStretch(3,1000)
+        
         self.setLayout(layout)
         self.addButtonsToToolbar()
 
@@ -341,8 +364,6 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
             return
         ((vistrail_a, version_a), (vistrail_b, version_b)) = \
             self.controller.current_diff_versions
-        (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
-            self.controller.current_diff
 
         # Set up the version name correctly
         v1_name = vistrail_a.getVersionName(version_a)
@@ -367,6 +388,9 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         
         self.legend.set_names(v1_name, v2_name)
         self.params.set_names(v1_name, v2_name)
+        self.cparams.set_names(v1_name, v2_name)
+        self.annotations.set_names(v1_name, v2_name)
+        self.update_module()
 
     def set_controller(self, controller=None):
         self.controller = controller
@@ -381,11 +405,16 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         """
         if module is None or not hasattr(self.controller, 'current_diff'):
             self.params.model().clearList()
+            self.params.parent().setVisible(False)
+            self.cparams.model().clearList()
+            self.cparams.parent().setVisible(False)
+            self.annotations.model().clearList()
+            self.annotations.parent().setVisible(False)
             return
         
-        # Interprete the diff result and setup item models
-        (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
-            self.controller.current_diff
+        # Interpret the diff result and setup item models
+        (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged,
+         cparamChanged, annotChanged) = self.controller.current_diff
 
         # # Set the window title
         # if id>self.maxId1:
@@ -397,15 +426,18 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
 
         # FIXME set the module name/package info?
             
-        # Clear the old inspector
-        param_model = self.params.model()
-        # annotations = self.inspector.annotationsTab.model()
-        param_model.clearList()
-        # annotations.clearList()
+        to_text = lambda x:'%s(%s)' % (x[0], ','.join(v[1] for v in x[1]))
+        self.setTable(module, paramChanged, self.params, to_text)
+        to_text = lambda x:'%s(%s)' % (x[0], x[1])
+        self.setTable(module, cparamChanged, self.cparams, to_text)
+        self.setTable(module, annotChanged, self.annotations, to_text)
 
+    def setTable(self, module, changed, table, to_text):
         # Find the parameter changed module
+        model = table.model()
+        model.clearList()
         matching = None
-        for ((m1id, m2id), paramMatching) in paramChanged:
+        for ((m1id, m2id), paramMatching) in changed:
             if m1id == module.id:
                 #print "found match"
                 matching = paramMatching
@@ -414,26 +446,24 @@ class QDiffProperties(QtGui.QWidget, QVistrailsPaletteInterface):
         #print "matching:", matching
         # If the module has no parameter changed, just display nothing
         if not matching:          
+            table.parent().setVisible(False)
             return
         
+        table.parent().setVisible(True)
+
         # Else just layout the diff on a table
-        param_model.insertRows(0,len(matching))
+        model.insertRows(0,len(matching))
         currentRow = 0
         for (f1, f2) in matching:
             if f1[0]!=None:
-                param_model.setData(
-                    param_model.index(currentRow, 0),
-                    '%s(%s)' % (f1[0], ','.join(v[1] for v in f1[1])))
+                model.setData(model.index(currentRow, 0), to_text(f1))
             if f2[0]!=None:
-                param_model.setData(
-                    param_model.index(currentRow, 1),
-                    '%s(%s)' % (f2[0], ','.join(v[1] for v in f2[1])))
+                model.setData(model.index(currentRow, 1), to_text(f2))
             if f1==f2:
-                param_model.disableRow(currentRow)
+                model.disableRow(currentRow)
             currentRow += 1
 
-        self.params.resizeRowsToContents()
-        # self.inspector.annotationsTab.resizeRowsToContents()
+        table.resizeRowsToContents()
 
 class QDiffView(QPipelineView):
     def __init__(self, parent=None):
@@ -523,8 +553,8 @@ class QDiffView(QPipelineView):
         self.set_diff_version_names()
         self.diff = vistrails.core.db.io.get_workflow_diff(*self.diff_versions)
             # self.controller.vistrail.get_pipeline_diff(version_a, version_b)
-        (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged) = \
-            self.diff
+        (p1, p2, v1Andv2, heuristicMatch, v1Only, v2Only, paramChanged,
+         cparamChanged, annotChanged) = self.diff
         # print "  $$$ v1Andv2:", v1Andv2
         # print "  $$$ heuristicMatch:", heuristicMatch
         # print "  $$$ v1Only", v1Only
@@ -637,10 +667,11 @@ class QDiffView(QPipelineView):
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
         # Then add parameter changed version
-        for ((m1id, m2id), matching) in paramChanged:
+        inChanged = set([m for (m, matching)
+                        in chain(paramChanged, cparamChanged, annotChanged)])
+        for (m1id, m2id) in inChanged:
             m1 = p1.modules[m1id]
             m2 = p2.modules[m2id]
-            
             sum1_x += p1.modules[m1id].location.x
             sum1_y += p1.modules[m1id].location.y
             sum2_x += p2.modules[m2id].location.x
@@ -723,7 +754,7 @@ class QDiffView(QPipelineView):
         for (m1id, m2id) in heuristicMatch:
             v1Tov2[m1id] = m2id
             v2Tov1[m2id] = m1id
-        for ((m1id, m2id), matching) in paramChanged:
+        for (m1id, m2id) in inChanged:
             v1Tov2[m1id] = m2id
             v2Tov1[m2id] = m1id
 

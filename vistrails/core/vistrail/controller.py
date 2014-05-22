@@ -77,6 +77,7 @@ from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module, ModuleFunction, ModuleParam
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.pipeline import Pipeline
@@ -809,13 +810,15 @@ class VistrailController(object):
     
     @staticmethod
     def create_port_spec_static(id_scope, module, port_type, port_name, 
-                                port_sigstring, port_sort_key=-1):
+                                port_sigstring, port_sort_key=-1,
+                                port_depth=0):
         p_id = id_scope.getNewId(PortSpec.vtType)
         port_spec = PortSpec(id=p_id,
                              type=port_type,
                              name=port_name,
                              sigstring=port_sigstring,
                              sort_key=port_sort_key,
+                             depth=port_depth
                              )
         # don't know how many port spec items are created until after...
         for psi in port_spec.port_spec_items:
@@ -1231,6 +1234,48 @@ class VistrailController(object):
         else:
             action = vistrails.core.db.action.create_action([('add', annotation,
                                                         module.vtType, 
+                                                        module.id)])
+        return action
+
+    @vt_action
+    def delete_control_parameter(self, name, module_id):
+        """ delete_control_parameter(name: str, module_id: long) -> version_id
+        Deletes an control_parameter from a module
+
+        """
+        module = self.current_pipeline.get_module_by_id(module_id)
+        control_parameter = module.get_control_parameter_by_name(name)
+        action = vistrails.core.db.action.create_action([('delete', control_parameter,
+                                                module.vtType, module.id)])
+        return action
+
+    @vt_action
+    def add_control_parameter(self, pair, module_id):
+        """ add_control_parameter(pair: (str, str), moduleId: int)
+        Add/Update a name/value pair control_parameter into the module of
+        moduleId
+
+        """
+        assert isinstance(pair[0], basestring)
+        assert isinstance(pair[1], basestring)
+        if pair[0].strip()=='':
+            return
+
+        module = self.current_pipeline.get_module_by_id(module_id)
+        a_id = self.vistrail.idScope.getNewId(ModuleControlParam.vtType)
+        control_parameter = ModuleControlParam(id=a_id,
+                                name=pair[0],
+                                value=pair[1],
+                                )
+        if module.has_control_parameter_with_name(pair[0]):
+            old_control_parameter = module.get_control_parameter_by_name(pair[0])
+            action = \
+                vistrails.core.db.action.create_action([('change', old_control_parameter,
+                                                   control_parameter,
+                                                   module.vtType, module.id)])
+        else:
+            action = vistrails.core.db.action.create_action([('add', control_parameter,
+                                                        module.vtType,
                                                         module.id)])
         return action
 

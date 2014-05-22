@@ -33,4 +33,4 @@
 ##
 ###############################################################################
 
-from vistrails.db.versions.v1_0_3.domain import *
+from vistrails.db.versions.v1_0_4.domain import *

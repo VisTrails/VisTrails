@@ -33,13 +33,23 @@
 ##
 ###############################################################################
 import copy
-from itertools import izip
+import json
+import time
+from itertools import izip, product
 import warnings
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.utils import VistrailsDeprecation, deprecated
+
+# Valid control parameters should be put here
+LOOP_KEY = 'loop_type'
+WHILE_COND_KEY = 'while_cond'
+WHILE_INPUT_KEY = 'while_input'
+WHILE_OUTPUT_KEY = 'while_output'
+WHILE_MAX_KEY = 'while_max'
+WHILE_DELAY_KEY = 'while_delay'
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -275,6 +285,8 @@ class Module(Serializable):
         self.upToDate = False
         self.had_error = False
         self.was_suspended = False
+        self.is_while = False
+        self.list_depth = 0
         self.set_output("self", self) # every object can return itself
         self.logging = _dummy_logging
 
@@ -284,6 +296,8 @@ class Module(Serializable):
         # method order can work correctly
         self.is_method = Bidict()
         self._latest_method_order = 0
+        self.iterated_ports = []
+        self.streamed_ports = {}
         
         # Pipeline info that a module should know about This is useful
         # for a spreadsheet cell to know where it is from. It will be
@@ -384,7 +398,7 @@ class Module(Serializable):
             raise suspended[0]
         elif suspended:
             raise ModuleSuspended(
-                    self,
+                    self, 
                     "multiple suspended upstream modules",
                     children=suspended)
         elif was_suspended is not None:
@@ -393,7 +407,41 @@ class Module(Serializable):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.remove_input_connector(iport, connector)
-                    
+
+    def set_iterated_ports(self):
+        """ set_iterated_ports() -> None        
+        Calculates which inputs needs to be iterated over
+        This requires having the pipeline available
+        """
+        self.iterated_ports = []
+        if not self.moduleInfo.get('pipeline', None):
+            return
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        # get sorted port list
+        ports = [spec.name for spec in p_module.destinationPorts()]
+        items = [(port, self.inputPorts[port]) for port in ports
+                 if port in self.inputPorts] 
+        for iport, connectorList in items:
+            port_spec = p_module.get_port_spec(iport, 'input')
+            for connector in connectorList:
+                depth = connector.depth() - port_spec.depth
+                if depth > 0:
+                    self.iterated_ports.append((iport, depth, connector.get_raw()))
+
+    def set_streamed_ports(self):
+        """ set_streamed_ports() -> None        
+        Calculates which inputs will be streamed
+        
+        """
+        self.streamed_ports = {}
+        from vistrails.core.modules.basic_modules import Iterator
+        for iport, connectorList in self.inputPorts.items():
+            for connector in connectorList:
+                value = connector.get_raw()
+                if isinstance(value, Iterator) and value.module:
+                    self.streamed_ports[iport] = value
+
     def update(self):
         """ update() -> None        
         Check if the module is up-to-date then update the
@@ -418,7 +466,26 @@ class Module(Serializable):
         try:
             if self.is_breakpoint:
                 raise ModuleBreakpoint(self)
-            self.compute()
+            self.set_iterated_ports()
+            self.set_streamed_ports()
+            if self.streamed_ports:
+                self.compute_streaming()
+            elif self.iterated_ports:
+                self.compute_all()
+            else:
+                p_modules = self.moduleInfo['pipeline'] and \
+                            self.moduleInfo['pipeline'].modules
+                p_module = p_modules and \
+                           p_modules[self.moduleInfo['moduleId']]
+                if p_module and not self.is_while and \
+                          (p_module.has_control_parameter_with_name(
+                                                            WHILE_COND_KEY) or
+                           p_module.has_control_parameter_with_name(
+                                                              WHILE_MAX_KEY)):
+                    self.is_while = True
+                    self.compute_while()
+                else:
+                    self.compute()
             self.computed = True
         except ModuleSuspended, e:
             self.had_error, self.was_suspended = False, True
@@ -450,6 +517,509 @@ class Module(Serializable):
         self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
+    def join_port_list_rec(self, value, inputs):
+        if isinstance(value, basestring):
+            return [{value:i} for i in inputs[value]]
+        values = [self.join_port_list_rec(i, inputs) for i in value[1:]]
+        if value[0] == 'pairwise':
+            elements = zip(*values)
+        elif value[0]=='cartesian':
+            elements = list(product(*values))
+        # join the dicts for each item
+        return [dict((k,v) for d in element for(k,v) in d.items()) for element in elements]
+
+    def compute_all(self):
+        """This method executes the module once for each module.
+           Similarly to controlflow's fold.
+
+        """
+        from vistrails.core.modules.sub_module import InputPort
+        if isinstance(self, InputPort):
+            return self.compute()
+        if self.list_depth < 1:
+            raise ModuleError(self, "List compute has wrong depth %s" %
+                                    self.list_depth)
+        from vistrails.core.modules.basic_modules import Iterator
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        type = 'cartesian'
+        if p_module.has_control_parameter_with_name(LOOP_KEY):
+            type = p_module.get_control_parameter_by_name(LOOP_KEY).value
+
+        suspended = []
+
+        # only iterate max depth and leave the others for the next iteration
+        ports = [port for port, depth, value in self.iterated_ports
+                 if depth == self.list_depth]
+        inputs = {}
+        for port in ports:
+            value = self.get_input_list(port)
+            depth, iterator = [(depth, i) for _port, depth, i in
+                               self.iterated_ports if _port == port][0]
+            # flatten all connections to a single list
+            value = [item for sublist in value for item in sublist]
+            if depth > 1:
+                # wrap values in Iterator of 1 less list depth
+                d = iterator.list_depth - 1
+                value = [i if isinstance(i, Iterator) else Iterator(i, d)
+                         for i in value]
+            inputs[port] = value
+        elements = []
+        if type in ['pairwise', 'cartesian']:
+            elements = self.join_port_list_rec([type] + ports, inputs)
+            #elements = zip(*[inputs[port] for port in ports])
+            #elements = list(product(*[inputs[port] for port in ports]))
+        else:
+            elements = self.join_port_list_rec(json.loads(type), inputs)
+        # convert port dict to list in correct port order
+        elements = [[element[port] for port in ports] for element in elements]
+        num_inputs = len(elements)
+        loop = self.logging.begin_loop_execution(self, num_inputs)
+        ## Update everything for each value inside the list
+        outputs = {}
+        module = copy.copy(self)
+        module.list_depth = self.list_depth - 1
+        for i in xrange(num_inputs):
+            self.logging.update_progress(self, float(i)/num_inputs)
+            module.had_error = False
+
+            if not self.upToDate: # pragma: no partial
+                ## Type checking
+                if i == 0:
+                    module.typeChecking(module, ports, elements)
+
+                module.upToDate = False
+                module.computed = False
+
+                module.setInputValues(module, ports, elements[i])
+
+            loop.begin_iteration(module, i)
+
+            try:
+                module.update()
+            except ModuleSuspended, e:
+                e.loop_iteration = i
+                suspended.append(e)
+                loop.end_iteration(module)
+                continue
+
+            loop.end_iteration(module)
+
+            ## Getting the result from the output port
+            for nameOutput in module.outputPorts:
+                if nameOutput not in outputs:
+                    outputs[nameOutput] = []
+                output = module.get_output(nameOutput)
+                from vistrails.core.modules.basic_modules import Iterator
+                if isinstance(output, Iterator):
+                    output = output.all()
+                outputs[nameOutput].append(output)
+
+            self.logging.update_progress(self, i * 1.0 / num_inputs)
+
+        if suspended:
+            raise ModuleSuspended(
+                    self,
+                    "function module suspended in %d/%d iterations" % (
+                            len(suspended), num_inputs),
+                    children=suspended)
+        # set final outputs
+        for nameOutput in outputs:
+            self.set_output(nameOutput, outputs[nameOutput])
+        loop.end_loop_execution()
+
+    def compute_streaming(self):
+        """This method creates a generator object and sets the outputs as 
+        Iterator generators.
+
+        """
+        if self.list_depth == 0:
+            # this will be executed once after streaming is finished
+            # if all has depth=0 this is a post-streaming module
+            if max([i.list_depth for i in self.streamed_ports.itervalues()]):
+                # input accumulation needed
+                from vistrails.core.modules.basic_modules import PythonSource
+                if isinstance(self, Streaming) or\
+                   (isinstance(self, PythonSource) and
+                    '%23STREAMING' in self.get_input('source')): #STREAMING
+                    self.compute()
+                else:
+                    self.compute_accumulate()
+            else:
+                # forward the result after streaming
+                self.compute_after_streaming()
+            return
+        from vistrails.core.modules.basic_modules import Iterator
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        type = 'pairwise'
+        if p_module.has_control_parameter_with_name(LOOP_KEY):
+            type = p_module.get_control_parameter_by_name(LOOP_KEY).value
+        if type == 'cartesian':
+            raise ModuleError(self,
+                              'Cannot use cartesian product while streaming!')
+        suspended = []
+
+        # only iterate the max depth and leave others for the next iteration
+        ports = [port for port, depth, value in self.iterated_ports
+                 if depth == self.list_depth]
+        num_inputs = self.iterated_ports[0][2].size
+        # the generator will read next from each iterated input port and
+        # compute the module again
+        module = copy.copy(self)
+        module.list_depth = self.list_depth - 1
+        if num_inputs:
+            milestones = [i*num_inputs/10 for i in xrange(1,11)]
+        def generator(self):
+            self.logging.begin_compute(module)
+            i = 0
+            while 1:
+                iter_dict = dict([(port, (depth, value))
+                                  for port, depth, value in
+                                  self.iterated_ports])
+
+                elements = [iter_dict[port][1].next() for port in ports]
+                if None in elements:
+                    for name_output in module.outputPorts:
+                        module.set_output(name_output, None)
+                    if suspended:
+                        raise ModuleSuspended(
+                                self,
+                                ("function module suspended after streaming "
+                                 "%d/%d iterations") % (
+                                        len(suspended), num_inputs),
+                                children=suspended)
+                    self.logging.update_progress(module, 1.0)
+                    self.logging.end_update(module)
+                    yield None
+                if num_inputs:
+                    if i in milestones:
+                        self.logging.update_progress(module,float(i)/num_inputs)
+                else:
+                    self.logging.update_progress(module, 0.5)
+                module.had_error = False
+                ## Type checking
+                if i == 0:
+                    module.typeChecking(module, ports, [elements])
+    
+                module.upToDate = False
+                module.computed = False
+    
+                module.setInputValues(module, ports, elements)
+    
+                try:
+                    module.compute()
+                except ModuleSuspended, e:
+                    e.loop_iteration = i
+                    suspended.append(e)
+                except Exception, e:
+                    raise ModuleError(module, str(e))
+                i += 1
+                yield True
+    
+        _generator = generator(self)
+        # set streaming outputs
+        for name_output in self.outputPorts:
+            iterator = Iterator(depth=self.list_depth,
+                                size=num_inputs,
+                                module=module,
+                                generator=_generator,
+                                port=name_output)
+            self.set_output(name_output, iterator)
+
+    def compute_accumulate(self):
+        """This method creates a generator object that converts all
+        streaming inputs to list inputs for modules that does not explicitly
+        support streaming.
+
+        """
+        from vistrails.core.modules.basic_modules import Iterator
+        suspended = []
+        # max depth should be one
+        ports = self.streamed_ports.keys()
+        num_inputs = self.streamed_ports[ports[0]].size
+        # the generator will read next from each iterated input port and
+        # compute the module again
+        module = copy.copy(self)
+        module.list_depth = self.list_depth
+        module.had_error = False
+        module.upToDate = False
+        module.computed = False
+
+        inputs = dict([(port, []) for port in ports])
+        def generator(self):
+            self.logging.begin_update(module)
+            i = 0
+            while 1:
+                elements = [self.streamed_ports[port].next() for port in ports]
+                if None in elements:
+                    self.logging.begin_compute(module)
+                    # assembled all inputs so do the actual computation
+                    elements = [inputs[port] for port in ports]
+                    ## Type checking
+                    module.typeChecking(module, ports, zip(*elements))
+                    module.setInputValues(module, ports, elements)
+                    try:
+                        module.compute()
+                    except Exception, e:
+                        raise ModuleError(module, str(e))
+                    if suspended:
+                        raise ModuleSuspended(
+                                self,
+                                ("function module suspended after streaming "
+                                 "%d/%d iterations") % (
+                                        len(suspended), num_inputs),
+                                children=suspended)
+                    self.logging.end_update(module)
+                    yield None
+
+                for port, value in zip(ports, elements):
+                    inputs[port].append(value)
+                for name_output in module.outputPorts:
+                    module.set_output(name_output, None)
+                i += 1
+                yield True
+    
+        _generator = generator(self)
+        # set streaming outputs
+        for name_output in self.outputPorts:
+            iterator = Iterator(depth=self.list_depth,
+                                size=num_inputs,
+                                module=module,
+                                generator=_generator,
+                                port=name_output)
+            self.set_output(name_output, iterator)
+
+    def compute_after_streaming(self):
+        """This method creates a generator object that computes when the                                                                                                           
+        streaming is finished.                                                                                                                                                     
+                                                                                                                                                                                   
+        """
+        from vistrails.core.modules.basic_modules import Iterator
+        suspended = []
+
+        # max depth should be one
+        # max depth should be one
+        ports = [port for port in self.streamed_ports]
+        num_inputs = self.streamed_ports[ports[0]].size
+        # the generator will read next from each iterated input port and
+        # compute the module again
+        module = copy.copy(self)
+        module.list_depth = self.list_depth
+        module.had_error = False
+        module.upToDate = False
+        module.computed = False
+
+        def generator(self):
+            self.logging.begin_update(module)
+            i = 0
+            for name_output in module.outputPorts:
+                module.set_output(name_output, None)
+            while 1:
+                elements = [self.streamed_ports[port].next() for port in ports]
+                if None not in elements:
+                    self.logging.begin_compute(module)
+                    ## Type checking
+                    module.typeChecking(module, ports, [elements])
+                    module.setInputValues(module, ports, elements)
+                    try:
+                        module.compute()
+                    except Exception, e:
+                        raise ModuleError(module, str(e))
+                    if suspended:
+                        raise ModuleSuspended(
+                                self,
+                                ("function module suspended after streaming "
+                                 "%d/%d iterations") % (
+                                 len(suspended), num_inputs),
+                                children=suspended)
+                    self.logging.update_progress(self, 1.0)
+                    self.logging.end_update(module)
+                    yield None
+                i += 1
+                yield True
+    
+        _generator = generator(self)
+        # set streaming outputs
+        for name_output in self.outputPorts:
+            iterator = Iterator(depth=self.list_depth,
+                                size=num_inputs,
+                                module=module,
+                                generator=_generator,
+                                port=name_output)
+            self.set_output(name_output, iterator)
+
+    def compute_while(self):
+        """This method executes the module once for each module.
+           Similarly to fold.
+
+        """
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        name_condition = None
+        if p_module.has_control_parameter_with_name(WHILE_COND_KEY):
+            name_condition = p_module.get_control_parameter_by_name(
+                                                         WHILE_COND_KEY).value
+        max_iterations = 20
+        if p_module.has_control_parameter_with_name(WHILE_MAX_KEY):
+            max_iterations = int(p_module.get_control_parameter_by_name(
+                                                         WHILE_MAX_KEY).value)
+        delay = 0.0
+        if p_module.has_control_parameter_with_name(WHILE_DELAY_KEY):
+            delay = float(p_module.get_control_parameter_by_name(
+                                                       WHILE_DELAY_KEY).value)
+        # todo only one state port supported right now
+        name_state_input = None
+        if p_module.has_control_parameter_with_name(WHILE_INPUT_KEY):
+            name_state_input = [p_module.get_control_parameter_by_name(
+                                                       WHILE_INPUT_KEY).value]
+        name_state_output = None
+        if p_module.has_control_parameter_with_name(WHILE_OUTPUT_KEY):
+            name_state_output = [p_module.get_control_parameter_by_name(
+                                                      WHILE_OUTPUT_KEY).value]
+
+        from vistrails.core.modules.basic_modules import create_constant
+
+        if name_state_input or name_state_output:
+            if not name_state_input or not name_state_output:
+                raise ModuleError(self,
+                                  "Passing state between iterations requires "
+                                  "BOTH StateInputPorts and StateOutputPorts "
+                                  "to be set")
+            if len(name_state_input) != len(name_state_output):
+                raise ModuleError(self,
+                                  "StateInputPorts and StateOutputPorts need "
+                                  "to have the same number of ports "
+                                  "(got %d and %d)" %(len(name_state_input),
+                                                      len(name_state_output)))
+
+        module = copy.copy(self)
+        module.had_error = False
+
+        state = None
+
+        loop = self.logging.begin_loop_execution(self, max_iterations)
+        for i in xrange(max_iterations):
+            if not self.upToDate:
+                module.upToDate = False
+                module.computed = False
+
+                # Set state on input ports
+                if i > 0 and name_state_input:
+                    for value, port in izip(state, name_state_input):
+                        if port in module.inputPorts:
+                            del module.inputPorts[port]
+                        new_connector = ModuleConnector(
+                                create_constant(value),
+                                'value')
+                        module.set_input_port(port, new_connector)
+
+            loop.begin_iteration(module, i)
+
+            try:
+                module.update() # might raise ModuleError, ModuleSuspended,
+                                # ModuleHadError, ModuleWasSuspended
+            except ModuleSuspended, e:
+                e.loop_iteration = i
+                raise
+
+            loop.end_iteration(module)
+
+            if name_condition is not None:
+                if name_condition not in module.outputPorts:
+                    raise ModuleError(
+                            module,
+                            "Invalid output port: %s" % name_condition)
+                if not module.get_output(name_condition):
+                    break
+
+            if delay and i+1 != max_iterations:
+                time.sleep(delay)
+
+            # Get state on output ports
+            if name_state_output:
+                state = [module.get_output(port) for port in name_state_output]
+
+            self.logging.update_progress(self, i * 1.0 / max_iterations)
+
+        loop.end_loop_execution()
+
+        for name_output in self.outputPorts:
+            self.set_output(name_output, module.get_output(name_output))
+
+    def setInputValues(self, module, inputPorts, elementList):
+        """
+        Function used to set a value inside 'module', given the input port(s).
+        """
+        from vistrails.core.modules.basic_modules import create_constant
+        for element, inputPort in izip(elementList, inputPorts):
+            ## Cleaning the previous connector...
+            if inputPort in module.inputPorts:
+                del module.inputPorts[inputPort]
+            new_connector = ModuleConnector(create_constant(element), 'value')
+            module.set_input_port(inputPort, new_connector)
+
+    def typeChecking(self, module, inputPorts, inputList):
+        """
+        Function used to check if the types of the input list element and of the
+        inputPort of 'module' match.
+        """
+        from vistrails.core.modules.basic_modules import Iterator
+        from vistrails.core.modules.basic_modules import get_module
+        for elementList in inputList:
+            if len(elementList) != len(inputPorts):
+                raise ModuleError(self,
+                                  'The number of input values and input ports '
+                                  'are not the same.')
+            for element, inputPort in izip(elementList, inputPorts):
+                if isinstance(element, Iterator):
+                    if element.values:
+                        return
+                    else:
+                        raise ModuleError(self, "Iterator is not allowed here")
+                p_modules = module.moduleInfo['pipeline'].modules
+                p_module = p_modules[module.moduleInfo['moduleId']]
+                port_spec = p_module.get_port_spec(inputPort, 'input')
+                v_module = get_module(element, port_spec.signature)
+                if v_module is not None:
+                    if not self.compare(port_spec, v_module, inputPort):
+                        raise ModuleError(self,
+                                          'The type of a list element does '
+                                          'not match with the type of the '
+                                          'port %s.' % inputPort)
+
+                    del v_module
+                else:
+                    break
+
+    def createSignature(self, v_module):
+        """
+    `   Function used to create a signature, given v_module, for a port spec.
+        """
+        if isinstance(v_module, tuple):
+            v_module_class = []
+            for module_ in v_module:
+                v_module_class.append(self.createSignature(module_))
+            return v_module_class
+        else:
+            return v_module
+
+    def compare(self, port_spec, v_module, port):
+        """
+        Function used to compare two port specs.
+        """
+        port_spec1 = port_spec
+
+        from vistrails.core.modules.module_registry import get_module_registry
+        from vistrails.core.vistrail.port_spec import PortSpec
+        reg = get_module_registry()
+
+        v_module = self.createSignature(v_module)
+        port_spec2 = PortSpec(**{'signature': v_module})
+        matched = reg.are_specs_matched(port_spec2, port_spec1)
+
+        return matched
+
     def compute(self):
         """This method should be overridden in order to perform the module's
         computation.
@@ -479,7 +1049,18 @@ class Module(Serializable):
         for conn in self.inputPorts[port_name]:
             if isinstance(conn.obj, InputPort):
                 return conn()
-        return self.inputPorts[port_name][0]()
+        value = self.inputPorts[port_name][0]() 
+        depth = self.inputPorts[port_name][0].depth()
+        # type check list of lists
+        if self.moduleInfo.get('pipeline', False):
+            p_modules = self.moduleInfo['pipeline'].modules
+            p_module = p_modules[self.moduleInfo['moduleId']]
+            spec = p_module.get_port_spec(port_name, 'input')
+            # wrap depths that are too shallow
+            while depth - self.list_depth - spec.depth < 0:
+                value = [value]
+                depth += 1
+        return value
 
     def get_input_list(self, port_name):
         """Returns the value(s) coming in on the input port named
@@ -501,7 +1082,36 @@ class Module(Serializable):
                                if isinstance(connector.obj, InputPort)]
         if len(fromInputPortModule)>0:
             return fromInputPortModule
-        return [connector() for connector in self.inputPorts[port_name]]
+        ports = []
+        for connector in self.inputPorts[port_name]:
+            value = connector()
+            depth = connector.depth()
+            root = value
+            # type check list of lists
+            if self.moduleInfo['pipeline']:
+                from vistrails.core.modules.basic_modules import Iterator
+                p_modules = self.moduleInfo['pipeline'].modules
+                p_module = p_modules[self.moduleInfo['moduleId']]
+                spec = p_module.get_port_spec(port_name, 'input')
+                # wrap depths that are too shallow
+                while depth - self.list_depth - spec.depth < 0:
+                    value = [value]
+                    depth += 1
+                for i in xrange(1, depth):
+                    try:
+                        root = [(item.all() if isinstance(item, Iterator)
+                                 else item) for item in root]
+                        root = [item for sublist in root for item in sublist] 
+                    except TypeError:
+                        raise ModuleError(self, "List on port %s has wrong"
+                                                " depth %s, expected %s." %
+                                                (port_name, i-1, depth))
+
+            if depth and root:
+                self.typeChecking(self, [port_name],
+                                  [[r] for r in root] if depth else [[root]])
+            ports.append(value)
+        return ports
 
     def set_output(self, port_name, value):
         """This method is used to set a value on an output port.
@@ -511,6 +1121,20 @@ class Module(Serializable):
         :param value: the value to be assigned to the port
 
         """
+        if value is not self:
+            from vistrails.core.modules.basic_modules import Iterator
+            if not isinstance(value, Iterator):
+                # wrap lists in the special Iterator class
+                p_modules = self.moduleInfo['pipeline'] and \
+                            self.moduleInfo['pipeline'].modules
+                p_module = p_modules and p_modules[self.moduleInfo['moduleId']]
+                try:
+                    port_spec = p_module and p_module.get_port_spec(port_name,
+                                                                    'output')
+                except Exception:
+                    port_spec = None
+                if port_spec and (port_spec.depth + self.list_depth):
+                    value = Iterator(value, port_spec.depth + self.list_depth)
         self.outputPorts[port_name] = value
 
     def check_input(self, port_name):
@@ -668,6 +1292,127 @@ class Module(Serializable):
             if conList==[]:
                 del self.inputPorts[port_name]
 
+    def create_instance_of_type(self, ident, name, ns=''):
+        """ Create a vistrails module from the module registry.  This creates
+        an instance of the module for use in creating the object output by a
+        Module.
+        """
+        from vistrails.core.modules.module_registry import get_module_registry
+        try:
+            reg = get_module_registry()
+            m = reg.get_module_by_name(ident, name, ns)
+            return m()
+        except:
+            msg = "Cannot get module named " + str(name) + \
+                  " with identifier " + str(ident) + " and namespace " + ns
+            raise ModuleError(self, msg)
+
+    def set_streaming(self, UserGenerator):
+        """creates a generator object that computes when the next input is received.
+        """
+        # use the below tag if calling from a PythonSource
+        #STREAMING - This tag is magic, do not change.
+        from vistrails.core.modules.basic_modules import Iterator
+        
+        ports = self.streamed_ports.keys()
+        num_inputs = self.streamed_ports[ports[0]].size
+        module = copy.copy(self)
+        module.list_depth = self.list_depth-1
+        module.had_error = False
+        module.upToDate = False
+        module.computed = False
+        
+        if num_inputs:
+            milestones = [i*num_inputs/10 for i in xrange(1,11)]
+
+        def Generator(self):
+            self.logging.begin_compute(module)
+            i = 0
+            # <initialize here>
+            #intsum = 0
+            userGenerator = UserGenerator(module)
+            while 1:
+                elements = [self.streamed_ports[port].next() for port in ports]
+                if None in elements:
+                    self.logging.update_progress(self, 1.0)
+                    self.logging.end_update(module)
+                    for name_output in module.outputPorts:
+                        module.set_output(name_output, None)
+                    yield None
+                ## Type checking
+                module.typeChecking(module, ports, [elements])
+                module.setInputValues(module, ports, elements)
+        
+                userGenerator.next()
+                # <compute here>
+                #intsum += dict(zip(ports, elements))['integerStream']
+                #print "Sum so far:", intsum
+        
+                # <set output here if any>
+                #module.set_output(name_output, intsum)
+                if num_inputs:
+                    if i in milestones:
+                        self.logging.update_progress(self,float(i)/num_inputs)
+                else:
+                    self.logging.update_progress(self, 0.5)
+                i += 1
+                yield True
+        
+        generator = Generator(self)
+        # sets streaming outputs for downstream modules
+        for name_output in self.outputPorts:
+            iterator = Iterator(size=num_inputs,
+                                module=module,
+                                generator=generator,
+                                port=name_output)
+        
+            self.set_output(name_output, iterator)
+
+    def set_streaming_output(self, port, generator, size=0):
+        """This method is used to set a streaming output port.
+
+        :param port: the name of the output port to be set
+        :type port: String
+        :param generator: An iterator object supporting .next()
+        :param size: The number of values if known (default=0)
+        :type size: Integer
+        """
+        from vistrails.core.modules.basic_modules import Iterator
+        module = copy.copy(self)
+        module.list_depth = -1
+
+        if size:
+            milestones = [i*size/10 for i in xrange(1,11)]
+        def _generator():
+            i = 0
+            while 1:
+                try:
+                    value = generator.next()
+                except StopIteration:
+                    module.set_output(port, None)
+                    self.logging.update_progress(self, 1.0)
+                    yield None
+                except Exception, e:
+                    me = ModuleError(self, "Error generating value: %s"% str(e),
+                                      errorTrace=str(e))
+                    raise me
+                if value is None:
+                    module.set_output(port, None)
+                    self.logging.update_progress(self, 1.0)
+                    yield None
+                module.set_output(port, value)
+                if size:
+                    if i in milestones:
+                        self.logging.update_progress(self,float(i)/size)
+                else:
+                    self.logging.update_progress(self, 0.5)
+                i += 1
+                yield True
+        self.set_output(port, Iterator(size=size,
+                                       module=module,
+                                       generator=_generator(),
+                                       port=port))
+
     @classmethod
     def provide_input_port_documentation(cls, port_name):
         return None
@@ -740,6 +1485,14 @@ class NotCacheable(object):
 
 ################################################################################
 
+class Streaming(object):
+    """ A mixin indicating support for streamable inputs
+    
+    """
+    pass
+
+################################################################################
+
 class Converter(Module):
     """Base class for automatic conversion modules.
 
@@ -799,6 +1552,18 @@ class ModuleConnector(object):
         self.obj = None
         self.port = None
 
+    def depth(self, result=None):
+        """depth(result) -> int. Returns the list depth of the port value."""
+        if result is None:
+            result = self.obj.get_output(self.port)
+        from vistrails.core.modules.basic_modules import Iterator
+        return result.list_depth if isinstance(result, Iterator) else 0
+
+    def get_raw(self):
+        """get_raw() -> Module. Returns the value or an Iterator."""
+        return self.obj.get_output(self.port)
+        
+
     def __call__(self):
         result = self.obj.get_output(self.port)
         if isinstance(result, Module):
@@ -807,6 +1572,10 @@ class ModuleConnector(object):
                     "module=%s, port=%s, object=%r" % (type(self.obj).__name__,
                                                        self.port, result),
                     UserWarning)
+        depth = self.depth()
+        from vistrails.core.modules.basic_modules import Iterator
+        if isinstance(result, Iterator):
+            result = result.all()
         if self.spec is not None and self.typecheck is not None:
             descs = self.spec.descriptors()
             typecheck = self.typecheck
@@ -814,7 +1583,18 @@ class ModuleConnector(object):
                 if not typecheck[0]:
                     return result
                 mod = descs[0].module
-                if hasattr(mod, 'validate') and not mod.validate(result):
+                value = result
+                # flatten list
+                for i in xrange(depth):
+                    try:
+                        value = [item for sublist in value for item in sublist] 
+                    except TypeError:
+                        raise ModuleError(self.obj, "List on port %s has wrong"
+                                          " depth %s, expected %s."
+                                          "%s"% (self.port, i, depth))
+                if depth:
+                    value = value[0] if value else None
+                if hasattr(mod, 'validate') and value and not mod.validate(value):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s does not match destination type "
                                       "%s" % (self.port, descs[0].name))
@@ -885,3 +1665,35 @@ def new_module(base_module, name, dict={}, docstring=None):
 # >>> c = Z()
 # >>> c.f()
 # 4
+
+import unittest
+
+class TestImplicitLooping(unittest.TestCase):
+    def test_features(self):
+        from vistrails.core.system import vistrails_root_directory
+        from vistrails.core.db.locator import FileLocator
+        from vistrails.core.db.io import load_vistrail
+        from vistrails.core.console_mode import run
+        from vistrails.tests.utils import capture_stdout
+        import os
+        resources = vistrails_root_directory() + '/tests/resources/'
+        files = ['test-implicit-while.vt',
+                 'test-streaming.vt',
+                 'test-list-custom.vt']
+        for vtfile in files:
+            try:
+                errs = []
+                filename = os.path.join(resources, vtfile)
+                locator = FileLocator(os.path.abspath(filename))
+                (v, _, _, _) = load_vistrail(locator)
+                w_list = []
+                for version, _ in v.get_tagMap().iteritems():
+                    w_list.append((locator,version))
+                if len(w_list) > 0:
+                    with capture_stdout() as c:
+                        errs = run(w_list, update_vistrail=False)
+                    for err in errs:
+                        self.fail(str(err))
+            except Exception, e:
+                self.fail(debug.format_exception(e))
+            

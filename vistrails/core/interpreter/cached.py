@@ -46,7 +46,8 @@ from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
-from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.basic_modules import identifier as basic_pkg, \
+                                                 Iterator
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
     ModuleConnector, ModuleError, ModuleErrors, ModuleHadError, \
@@ -162,7 +163,8 @@ class ViewUpdatingLogController(object):
         if i in self.ids:
             self.ids.remove(i)
             self.view.set_execution_progress(
-                    1.0 - (len(self.ids) * 1.0 / self.nb_modules))
+                    1.0 - ((len(self.ids) + len(Iterator.generators)) * 1.0 /
+                           (self.nb_modules + len(Iterator.generators))))
 
         msg = '' if error is None else error.msg
         self.log.finish_execution(obj, msg, errorTrace,
@@ -210,6 +212,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self._objects = {}
         self._executed = {}
         self.filePool = self._file_pool
+        self._streams = []
 
     def clear(self):
         self._file_pool.cleanup()
@@ -340,6 +343,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             persistent_id = tmp_to_persistent_module_map[i]
             module = self._persistent_pipeline.modules[persistent_id]
             obj = self._objects[persistent_id] = module.summon()
+            obj.list_depth = module.list_depth
             obj.interpreter = self
             obj.id = persistent_id
             obj.is_breakpoint = module.is_breakpoint
@@ -487,6 +491,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
 
+        self._streams.append(Iterator.generators)
+        Iterator.generators = []
+
         # Update new sinks
         for obj in persistent_sinks:
             abort = False
@@ -518,6 +525,44 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 abort = True
             if stop_on_error or abort:
                 break
+
+        # execute all generators until inputs are exhausted
+        # this makes sure branching and multiple sinks are executed correctly
+        if not logging_obj.errors and not logging_obj.suspended and \
+                                                          Iterator.generators:
+            result = True
+            while result is not None:
+                for g in Iterator.generators:
+                    abort = False
+                    try:
+                        result = g.next()
+                        continue
+                    except ModuleWasSuspended:
+                        continue
+                    except ModuleHadError:
+                        pass
+                    except AbortExecution:
+                        break
+                    except ModuleSuspended, ms:
+                        ms.module.logging.end_update(ms.module, ms,
+                                                     was_suspended=True)
+                        continue
+                    except ModuleErrors, mes:
+                        for me in mes.module_errors:
+                            me.module.logging.end_update(me.module, me)
+                            logging_obj.signalError(me.module, me)
+                            abort = abort or me.abort
+                    except ModuleError, me:
+                        me.module.logging.end_update(me.module, me, me.errorTrace)
+                        logging_obj.signalError(me.module, me)
+                        abort = me.abort
+                    except ModuleBreakpoint, mb:
+                        mb.module.logging.end_update(mb.module)
+                        logging_obj.signalError(mb.module, mb)
+                        abort = True
+                    if stop_on_error or abort:
+                        break
+        Iterator.generators = self._streams.pop()
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)
@@ -644,8 +689,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
                                          'to execute: %s' % kwargs)
-
         self.clean_non_cacheable_modules()
+
 
 #         if controller is not None:
 #             vistrail = controller.vistrail

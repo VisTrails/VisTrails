@@ -336,6 +336,10 @@ _documentation = \
 
       The maximum number of values allowed for the port
 
+   Port.depth: Integer
+
+      The list depth of the port. Default is 0 (no list)
+      
    InputPort.label: String
 
       A label to be shown with a port
@@ -485,6 +489,7 @@ Port = namedtuple('Port',
                       (("shape", None),),
                       (("min_conns", 0),),
                       (("max_conns", -1),),
+                      (("depth", 0),),
                       ])
 
 InputPort = subnamedtuple('InputPort', Port,
