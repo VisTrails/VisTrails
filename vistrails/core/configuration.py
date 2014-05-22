@@ -1163,7 +1163,11 @@ class ConfigurationObject(DBConfiguration):
 
     def update(self, other):
         for name, other_key in other.db_config_keys_name_index.iteritems():
-            self.__setattr__(name, other_key.value)
+            if (isinstance(other_key.value, ConfigurationObject) and 
+                    self.has(name)):
+                self.get(name).update(other_key.value)
+            else:
+                self.__setattr__(name, other_key.value)
 
     def unsubscribe(self, field, callable_):
         """unsubscribe(field, callable_): remove observer from subject
