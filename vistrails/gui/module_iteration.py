@@ -139,7 +139,7 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         layout.addWidget(self.delayLabel)
         layout.setStretch(0, 0)
         self.delayEdit = QtGui.QLineEdit()
-        self.delayEdit.setValidator(QtGui.QDoubleValidator())
+        self.delayEdit.setValidator(QtGui.QDoubleValidator(self))
         self.delayEdit.setToolTip('Delay between iterations in fractions of seconds')
         layout.addWidget(self.delayEdit)
         layout.setStretch(1, 1)
