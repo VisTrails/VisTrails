@@ -1198,7 +1198,7 @@ class VistrailController(QtCore.QObject, BaseController):
         if dir_name:
             return None
         dir_name = os.path.abspath(str(dir_name))
-        setattr(get_vistrails_configuration(), 'fileDirectory', dir_name)
+        setattr(get_vistrails_configuration(), 'fileDir', dir_name)
         vistrails.core.system.set_vistrails_file_directory(dir_name)
         return dir_name
     
@@ -1549,12 +1549,10 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
     #     v = api.new_vistrail()
        
     def tearDown(self):
-        from vistrails.core.configuration import get_vistrails_configuration
         vistrails.gui.utils.TestVisTrailsGUI.tearDown(self)
 
-        config = get_vistrails_configuration()
-        filename = os.path.join(config.subworkflowsDirectory,
-                                '__TestFloatList.xml')
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, '__TestFloatList.xml')
         if os.path.exists(filename):
             os.remove(filename)
 
@@ -1588,10 +1586,8 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
     def test_abstraction_create(self):
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.db.io
-        from vistrails.core.configuration import get_vistrails_configuration
-        config = get_vistrails_configuration()
-        filename = os.path.join(config.subworkflowsDirectory,
-                                '__TestFloatList.xml')
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, '__TestFloatList.xml')
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/test_abstraction.xml')
         v = locator.load()

@@ -48,7 +48,7 @@ from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
     QFileChooserToolButton, QDirectoryChooserToolButton
 from vistrails.gui.utils import YES_BUTTON, NO_BUTTON, show_question, show_warning
 
-import vistrails.core.system
+from vistrails.core import system
 
 ##############################################################################
 
@@ -353,10 +353,10 @@ class QConfigurationThumbnailCache(QConfigurationLineEditButton):
                                               button, parent)
 
     def clear_clicked(self, checked=False):
-        cache_dir = get_vistrails_configuration().thumbs.cacheDirectory
+        thumbnail_dir = system.get_vistrails_directory("thumbs.cacheDir")
         res = show_question('VisTrails',
                             ("All files in %s will be removed. "
-                             "Are you sure? " % cache_dir),
+                             "Are you sure? " % thumbnail_dir),
                             buttons = [YES_BUTTON,NO_BUTTON],
                             default = NO_BUTTON)
         if res == YES_BUTTON:

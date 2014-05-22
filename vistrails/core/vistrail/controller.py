@@ -68,7 +68,8 @@ from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
 from vistrails.core.utils import VistrailsInternalError, PortAlreadyExists, DummyView, \
     InvalidPipeline
-from vistrails.core.system import vistrails_default_file_type
+from vistrails.core.system import vistrails_default_file_type, \
+    get_vistrails_directory
 from vistrails.core.vistrail.abstraction import Abstraction
 from vistrails.core.vistrail.action import Action
 from vistrails.core.vistrail.annotation import Annotation
@@ -1832,16 +1833,13 @@ class VistrailController(object):
         
     def get_abstraction_dir(self):
         conf = get_vistrails_configuration()
-        if conf.check('subworkflowsDirectory'):
-            abstraction_dir = conf.subworkflowsDirectory
-            if not os.path.exists(abstraction_dir):
-                raise VistrailsInternalError("Cannot find %s" % \
-                                                 abstraction_dir)
-            return abstraction_dir
-        else:
-            raise VistrailsInternalError("'subworkflowsDirectory' not"
+        abstration_dir = get_vistrails_directory("subworkflowsDir")
+        if abstraction_dir is None:
+            raise VistrailsInternalError("'subworkflowsDir' not"
                                          " specified in configuration")
-        return None
+        elif not os.path.exists(abstraction_dir):
+            raise VistrailsInternalError("Cannot find %s" % abstraction_dir)
+        return abstraction_dir
 
     def get_abstraction_desc(self, package, name, namespace, module_version=None):
         reg = vistrails.core.modules.module_registry.get_module_registry()

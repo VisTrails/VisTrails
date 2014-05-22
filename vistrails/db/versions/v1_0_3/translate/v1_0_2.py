@@ -344,7 +344,7 @@ def translateStartup(_startup):
          'errorOnConnectionTypeerror': 'showConnectionErrors',
          'errorOnVariantTypeerror': 'showVariantErrors',
          'interactiveMode': ('batch', invert_bool),
-         'logFile': ('logDirectory', use_dirname),
+         'logFile': ('logDir', use_dirname),
          'logger': None, # DELETE
          'maxMemory': None,
          'minMemory': None, 
@@ -371,7 +371,18 @@ def translateStartup(_startup):
          # 'workflowInfo': 'outputWorkflowInfo',
          'workflowInfo': 'outputDirectory',
          'executeWorkflows': 'execute',
-         'abstractionsDirectory': 'subworkflowsDirectory',
+
+         # todo:
+         # thumbs.cacheDirectory -> thumbs.cacheDir
+         # abstractionsDirectory -> subworkflowsDir
+         # userPackageDirectory -> userPackageDir
+         # packageDirectory -> packageDir
+         # update logDir (in use_dirname)
+
+         # not $DOT_VISTRAILS
+         # temporaryDirectory -> temporaryDir
+         # dataDirectory -> dataDir
+         # fileDirectory -> fileDir
          }
 
     def get_key_name_update(new_name):

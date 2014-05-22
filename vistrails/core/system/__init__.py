@@ -145,6 +145,18 @@ def get_vistrails_default_pkg_prefix():
 def get_vistrails_basic_pkg_id():
     return "%s.basic" % get_vistrails_default_pkg_prefix()
 
+def get_vistrails_directory(config_key, conf=None):
+    if conf is None:
+        from vistrails.core.configuration import get_vistrails_configuration
+        conf = get_vistrails_configuration()
+    if conf.has_deep_value(config_key):
+        d = conf.get_deep_value(config_key)
+        if os.path.isabs(d):
+            return d
+        else:
+            return os.path.join(current_dot_vistrails(conf), d)
+    return None
+
 def set_vistrails_data_directory(d):
     """ set_vistrails_data_directory(d:str) -> None
     Sets vistrails data directory taking into account environment variables
@@ -263,13 +275,15 @@ def default_dot_vistrails():
     """
     return os.path.join(home_directory(), '.vistrails')
 
-def current_dot_vistrails():
+def current_dot_vistrails(conf=None):
     """ current_dot_vistrails() -> str
     Returns the VisTrails per-user directory.
 
     """
-    from vistrails.core.configuration import get_vistrails_configuration
-    return get_vistrails_configuration().dotVistrails
+    if conf is None:
+        from vistrails.core.configuration import get_vistrails_configuration
+        conf = get_vistrails_configuration()
+    return conf.dotVistrails
 
 def default_connections_file():
     """ default_connections_file() -> str

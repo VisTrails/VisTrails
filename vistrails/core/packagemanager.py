@@ -43,7 +43,7 @@ import os
 import sys
 import warnings
 
-from vistrails.core import debug, get_vistrails_application
+from vistrails.core import debug, get_vistrails_application, system
 from vistrails.core.configuration import ConfigurationObject
 import vistrails.core.data_structures.graph
 import vistrails.core.db.io
@@ -99,8 +99,9 @@ class PackageManager(object):
         # Imports standard packages directory
         conf = self._startup.temp_configuration
         old_sys_path = copy.copy(sys.path)
-        if conf.check('packageDirectory'):
-            sys.path.insert(0, conf.packageDirectory)
+        packageDir = system.get_vistrails_directory('packageDir')
+        if packageDir is not None:
+            sys.path.insert(0, packageDir)
         try:
             import vistrails.packages
         except ImportError:
@@ -121,9 +122,9 @@ class PackageManager(object):
         # Imports user packages directory
         conf = self._startup.temp_configuration
         old_sys_path = copy.copy(sys.path)
-        if conf.check('userPackageDirectory'):
-            sys.path.insert(0, os.path.join(conf.userPackageDirectory,
-                                            os.path.pardir))
+        userPackageDir = system.get_vistrails_directory('userPackageDir')
+        if userPackageDir is not None:
+            sys.path.insert(0, os.path.join(userPackageDir, os.path.pardir))
             try:
                 import userpackages
             except ImportError:
@@ -132,10 +133,10 @@ class PackageManager(object):
                 raise
             finally:
                 sys.path = old_sys_path
-            os.environ['VISTRAILS_USERPACKAGES_DIR'] = conf.userPackageDirectory
+            os.environ['VISTRAILS_USERPACKAGES_DIR'] = userPackageDir
             self._userpackages = userpackages
             return userpackages
-        # possible that we don't have userPackageDirectory set!
+        # possible that we don't have userPackageDir set!
         return None
 
     def __init__(self, registry, startup):

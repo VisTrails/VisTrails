@@ -45,7 +45,7 @@ import mimetypes
 # mimetypes are broken by default on windows so use the builtins
 # Remove line below when it is fixed here: http://bugs.python.org/issue15207
 mimetypes.init(files=[])
-from vistrails.core import debug
+from vistrails.core import debug, system
 from vistrails.core.configuration import get_vistrails_configuration, \
       get_vistrails_persistent_configuration
 from vistrails.core.utils import VistrailsInternalError
@@ -90,13 +90,13 @@ class ThumbnailCache(object):
             shutil.rmtree(self._temp_directory)
         
     def get_directory(self):
-        if self.conf.check('cacheDirectory'):
-            thumbnail_dir = self.conf.cacheDirectory
+        thumbnail_dir = system.get_vistrails_directory('thumbs.cacheDir')
+        if thumbnail_dir is not None:
             if not os.path.exists(thumbnail_dir):
                 raise VistrailsInternalError("Cannot find %s" % thumbnail_dir)
             return thumbnail_dir
         
-        # raise VistrailsInternalError("'thumbs.cacheDirectory' not"
+        # raise VistrailsInternalError("'thumbs.cacheDir' not"
         #                              " specified in configuration")
         if self._temp_directory is None:
             self._temp_directory = tempfile.mkdtemp(prefix='vt_thumbs_')

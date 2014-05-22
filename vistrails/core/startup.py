@@ -43,7 +43,8 @@ from vistrails.db.domain import DBStartup, DBStartupPackage, \
     DBEnabledPackages, DBDisabledPackages
 import vistrails.db.services.io
 import vistrails.core.packagemanager
-from vistrails.core.system import get_elementtree_library
+from vistrails.core.system import get_elementtree_library, \
+    get_vistrails_directory
 import vistrails.core.utils
 from vistrails.core.utils import version_string_to_list
 
@@ -111,10 +112,10 @@ class VistrailsStartup(DBStartup):
     """
 
     # !!! IMPORTANT: keep logDirectory first!
-    DIRECTORIES = [('logDirectory', 'logs', False),
-                   ('userPackageDirectory', 'userpackages', True),
-                   ('subworkflowsDirectory', 'subworkflows', False),
-                   ('thumbs.cacheDirectory', 'thumbs', False)]
+    DIRECTORIES = [('logDir', 'logs', False),
+                   ('userPackageDir', 'userpackages', True),
+                   ('subworkflowsDir', 'subworkflows', False),
+                   ('thumbs.cacheDir', 'thumbs', False)]
     DOT_VISTRAILS_PREFIX = "$DOT_VISTRAILS"
     DOT_VISTRAILS_PREFIX_RE = re.compile("%s([%s/\\\\]|$)" % 
                                          (re.escape(DOT_VISTRAILS_PREFIX),
@@ -239,12 +240,13 @@ class VistrailsStartup(DBStartup):
         # load options from startup.xml
         self.load_persisted_startup()
 
-        # check the dot_vistrails paths
-        if self._dot_vistrails is not None:
-            self.update_dir_paths()
+        # # check the dot_vistrails paths
+        # if self._dot_vistrails is not None:
+        #     self.update_dir_paths()
 
         # set up temporary configuration with options and command-line
-        self.temp_configuration = copy.copy(self.configuration)        
+        self.temp_configuration = copy.copy(self.configuration)
+
         if options_config is not None:
             self.temp_configuration.update(options_config)
         if command_line_config is not None:
@@ -337,15 +339,10 @@ class VistrailsStartup(DBStartup):
         return False
 
     def setup_directory(self, config_key, default_dir, setup_init_file=False):
-        # FIXME need to deal with case where config value is
-        # $DOT_VISTRAILS and that doesn't exist
-        dir_name, abs_dir_name, is_default = \
-                                self.resolve_dir_name(config_key, default_dir)
+        abs_dir_name = get_vistrails_directory(config_key, 
+                                               self.temp_configuration)        
         if abs_dir_name is not None:
             self.create_directory(abs_dir_name)
-        if is_default:
-            self.update_deep_configs(config_key, dir_name)
-        self.temp_configuration.set_deep_value(config_key, abs_dir_name)
         if abs_dir_name is not None and setup_init_file:
             self.setup_init_file(abs_dir_name)
         return abs_dir_name
@@ -837,12 +834,10 @@ class VistrailsStartup(DBStartup):
         """
         if self.temp_configuration.has('rootDirectory'):
             system.set_vistrails_root_directory(self.temp_configuration.rootDirectory)
-        if self.temp_configuration.has('dataDirectory'):
-            system.set_vistrails_data_directory( \
-                self.temp_configuration.dataDirectory)
-        if self.temp_configuration.has('fileDirectory'):
-            system.set_vistrails_file_directory( \
-                self.temp_configuration.fileDirectory)
+        if self.temp_configuration.has('dataDir'):
+            system.set_vistrails_data_directory(self.temp_configuration.dataDir)
+        if self.temp_configuration.has('fileDir'):
+            system.set_vistrails_file_directory(self.temp_configuration.fileDir)
         if (self.temp_configuration.has('debugLevel') and
             self.temp_configuration.debugLevel != -1):
             verbose = self.temp_configuration.debugLevel
