@@ -938,7 +938,8 @@ class CodeRunnerMixin(object):
                         'self': self})
         if 'source' in locals_:
             del locals_['source']
-        exec code_str in locals_, locals_
+        # Python 2.6 needs code to end with newline
+        exec code_str + '\n' in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
                 if locals_.get(k) != None:
