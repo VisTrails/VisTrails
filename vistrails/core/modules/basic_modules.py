@@ -1440,7 +1440,10 @@ def get_module(value, signature):
 ###############################################################################
 
 import sys
-import unittest
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 
 class TestConcatenateString(unittest.TestCase):
     @staticmethod
