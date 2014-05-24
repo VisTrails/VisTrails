@@ -47,7 +47,7 @@ import cell_rc
 import celltoolbar_rc
 import spreadsheet_controller
 import analogy_api
-from vistrails.core.configuration import get_vistrails_configuration
+from spreadsheet_config import configuration
 from vistrails.core.system import strftime
 
 ################################################################################
@@ -80,7 +80,7 @@ class QCellWidget(QtGui.QWidget):
         self.connect(self._playerTimer,
                      QtCore.SIGNAL('timeout()'),
                      self.playNextFrame)
-        if getattr(get_vistrails_configuration(),'fixedSpreadsheetCells',False):
+        if configuration.fixedCellSize:
             self.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
             self.setFixedSize(200, 180)
 

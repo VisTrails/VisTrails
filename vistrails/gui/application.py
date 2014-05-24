@@ -522,7 +522,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             if self.temp_configuration.check('workflowGraph'):
                 workflow_graph = self.temp_configuration.workflowGraph
                 results = vistrails.core.console_mode.get_wf_graph(w_list, workflow_graph,
-                                     self.temp_configuration.spreadsheetDumpPDF)
+                                                                   self.temp_configuration.graphsAsPdf)
                 for r in results:
                     if r[0] == False:
                         errs.append("Error generating workflow graph: %s" % \
@@ -532,7 +532,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             if self.temp_configuration.check('evolutionGraph'):
                 evolution_graph = self.temp_configuration.evolutionGraph
                 results = vistrails.core.console_mode.get_vt_graph(vt_list, evolution_graph,
-                                     self.temp_configuration.spreadsheetDumpPDF)
+                                                                   self.temp_configuration.graphsAsPdf)
                 for r in results:
                     if r[0] == False:
                         errs.append("Error generating vistrail graph: %s" % \
@@ -548,11 +548,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             if self.temp_configuration.check('outputDirectory'):
                 extra_info = \
                 {'pathDumpCells': self.temp_configuration.outputDirectory}
-            if self.temp_configuration.check('spreadsheetDumpPDF'):
-                if extra_info is None:
-                    extra_info = {}
-                extra_info['pdf'] = self.temp_configuration.spreadsheetDumpPDF
-
             if self.temp_configuration.check('parameterExploration'):
                 errs.extend(
                     vistrails.core.console_mode.run_parameter_explorations(

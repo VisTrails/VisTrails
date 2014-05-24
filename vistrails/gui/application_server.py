@@ -822,6 +822,9 @@ class RequestHandler(object):
         extra_info = {}
         extra_info['pathDumpCells'] = path_to_figures
         self.server_logger.debug(path_to_figures)
+        # TODO: really want to push this into spreadsheet settings,
+        # perhaps the issue here is getting global access to package
+        # configuration?
         extra_info['pdf'] = pdf
         self.server_logger.debug("pdf: %s" % pdf)
         # execute workflow

@@ -42,7 +42,8 @@ from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, 
                                       DBModule, DBGroup, DBAnnotation, \
                                       DBActionAnnotation, DBStartup, \
                                       DBConfigKey, DBConfigBool, DBConfigStr, \
-                                      DBConfigInt, DBConfigFloat
+                                      DBConfigInt, DBConfigFloat, \
+                                      DBConfiguration, DBStartupPackage
 
 from vistrails.db.services.vistrail import materializeWorkflow
 
@@ -359,6 +360,12 @@ def translateStartup(_startup):
             return abs_path
         return change_value(DBConfigStr, change_dirname, _key, t_dict)
 
+    def pdf_bool_to_str(_value):
+        s_val = "PNG"
+        if _value.db_value.lower() == "true":
+            s_val = "PDF"
+        return DBConfigStr(value=s_val)
+
     t = {'alwaysShowDebugPopup': 'showDebugPopups',
          'autosave': 'autoSave',
          'errorOnConnectionTypeerror': 'showConnectionErrors',
@@ -375,13 +382,7 @@ def translateStartup(_startup):
                                    'font_size': 'fontSize'}),
          'showMovies': None,
          'showSpreadsheetOnly': ('showWindow', invert_bool),
-         # FIXME need to figure out how to move these to pkg config
-         # and check that the settings are there
-         # TODO
-         # 'spreadsheetDumpPDF': 'spreadsheet.outputPDF' ,
          'spreadsheetDumpCells': 'outputDirectory',
-         # TODO
-         # 'fixedSpreadsheetCells': 'spreadsheet.fixedCellSize',
          'upgradeOn': 'upgrades',
          'useCache': 'cache',
          'verbosenessLevel': 'debugLevel',
@@ -400,7 +401,14 @@ def translateStartup(_startup):
          'dataDirectory': 'dataDir',
          'fileDirectory': 'fileDir',
          'packageDirectory': 'packageDir',
+
          }
+
+    # these are moving to package configurations
+    t_package = {
+         'spreadsheetDumpPDF': ('spreadsheet', 'dumpfileType', pdf_bool_to_str),
+         'fixedSpreadsheetCells': ('spreadsheet', 'fixedCellSize'),
+    }
 
     def get_key_name_update(new_name):
         def update_key_name(_key, t_dict):
@@ -411,6 +419,7 @@ def translateStartup(_startup):
         # just update __startup_translate__ as we recurse,
         # update_key_name and update_key_value take care of the rest
         cur_t = t_dict['__startup_translate__']
+        cur_t_pkg = t_dict['__startup_translate_pkg__']
         new_keys = []
         for key in _config.db_config_keys:
             to_delete = False
@@ -430,10 +439,25 @@ def translateStartup(_startup):
                 else:
                     new_name = t_obj
 
+            if key.db_name in cur_t_pkg:
+                pkg_t = cur_t_pkg[key.db_name]
+                pkg_name = pkg_t[0]
+                key_name = pkg_t[1]
+                config_dict = t_dict['__startup_package_config__']
+                if pkg_name not in config_dict:
+                    config_dict[pkg_name] = []
+                if len(pkg_t) > 2:
+                    value_f = pkg_t[2]
+                    new_value = value_f(key.db_value)
+                else:
+                    new_value = key.db_value
+                config_dict[pkg_name].append(DBConfigKey(name=key_name,
+                                                         value=new_value))
+
             # if we have already set a key, don't override the new
             # setting in general (may want to if swapping existing
             # names, but this should be the exception)
-            if (not to_delete and
+            elif (not to_delete and
                 (new_name == key.db_name or
                  new_name not in _config.db_config_keys_name_index)):
                 # always overwrite DBConfigKey settings so recursion
@@ -474,12 +498,51 @@ def translateStartup(_startup):
                         del t_dict['DBConfigKey']
         return new_keys
 
+    def update_package_config(_startup_pkg, t_dict):
+        _config = _startup_pkg.db_configuration
+        package_config = t_dict['__startup_package_config__']
+        if _config is not None:
+            config = DBConfiguration.update_version(_config, t_dict)
+            if _startup_pkg.db_name in package_config:
+                for new_key in package_config[config.db_name]:
+                    if new_key.db_name in config.db_config_keys_name_index:
+                        # already have, don't replace new setting
+                        continue
+                    else:
+                        config.db_add_config_key(new_key)
+                del package_config[_startup_pkg.db_name]
+            return config
+        return None
+
     # need to recurse both key name changes and key value changes
     # (could also change types...)
     translate_dict = {'DBConfiguration': {'config_keys': update_config_keys},
-                      '__startup_translate__': t}
+                      'DBStartupPackage': {'configuration':
+                                           update_package_config},
+                      '__startup_translate__': t,
+                      '__startup_translate_pkg__': t_package,
+                      '__startup_package_config__': dict()}
     startup = DBStartup()
     startup = DBStartup.update_version(_startup, translate_dict, startup)
+
+    # add any translations to packages, creating startup_pkg and
+    # configuration if necessary
+    for pkg, keys in translate_dict['__startup_package_config__'].iteritems():
+        if pkg in startup.db_enabled_packages.db_packages_name_index:
+            s_pkg = startup.db_enabled_packages.db_packages_name_index[pkg]
+        elif pkg in startup.db_disabled_packages.db_packages_name_index:
+            s_pkg = startup.db_disabled_packages.db_packages_name_index[pkg]
+        else:
+            s_pkg = DBStartupPackage(name=pkg)
+            startup.db_disabled_packages.db_add_package(s_pkg)
+        if s_pkg.db_configuration is None:
+            s_pkg.db_configuration = DBConfiguration(config_keys=keys)
+        else:
+            for new_key in keys:
+                if new_key.db_name not in s_pkg.db_configuration:
+                    # only add if new setting doesn't already exist
+                    s_pkg.db_configuration.db_add_config_key(new_key)
+
     startup.db_version = '1.0.3'
     return startup
 
@@ -552,6 +615,20 @@ class TestTranslate(unittest.TestCase):
             self.assertIn('subworkflowsDir', name_idx)
             self.assertEqual(name_idx['subworkflowsDir'].db_value.db_value,
                              'subworkflows')
+
+            # note: have checked with spreadsheet removed from all
+            # packages list, too
+            # TODO: make this a permanent test (new template?)
+            self.assertNotIn('fixedSpreadsheetCells', name_idx)
+            enabled_names = startup.db_enabled_packages.db_packages_name_index
+            self.assertIn('spreadsheet', enabled_names)
+            spreadsheet_config = enabled_names['spreadsheet'].db_configuration
+            self.assertIsNotNone(spreadsheet_config)
+            spreadsheet_name_idx = spreadsheet_config.db_config_keys_name_index
+            self.assertIn('fixedCellSize', spreadsheet_name_idx)
+            self.assertTrue(spreadsheet_name_idx['fixedCellSize'].db_value.db_value.lower() == "true")
+            self.assertIn('dumpfileType', spreadsheet_name_idx)
+            self.assertEqual(spreadsheet_name_idx['dumpfileType'].db_value.db_value, "PNG")
         finally:
             shutil.rmtree(startup_dir)
 

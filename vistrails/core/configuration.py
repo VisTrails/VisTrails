@@ -468,7 +468,8 @@ base_config = {
      # ConfigField("package", [], str, flag='-p', nargs='*'),
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("withWorkflow", False, bool, ConfigType.COMMAND_LINE_FLAG),],
+     ConfigField("withWorkflow", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField["graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG)],
     "General":
     [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
      ConfigField('dbDefault', False, bool, ConfigType.ON_OFF),
