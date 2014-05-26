@@ -779,6 +779,7 @@ class Not(Module):
         self.set_output('value', not value)
 
 ##############################################################################
+
 # List
 
 # If numpy is available, we consider numpy arrays to be lists as well
@@ -937,7 +938,8 @@ class CodeRunnerMixin(object):
                         'self': self})
         if 'source' in locals_:
             del locals_['source']
-        exec code_str in locals_, locals_
+        # Python 2.6 needs code to end with newline
+        exec code_str + '\n' in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
                 if locals_.get(k) != None:
@@ -1164,6 +1166,68 @@ class Variant(Module):
 
 ##############################################################################
 
+class Iterator(object):
+    """
+    Used to keep track if list iteration, it will execute a module once for
+    each input in the list/generator.
+    """
+    _settings = ModuleSettings(abstract=True)
+
+    generators = []
+    def __init__(self, values=None, depth=1, size=None,
+                 module=None, generator=None, port=None):
+        self.list_depth = depth
+        self.values = values
+        self.module = module
+        self.generator = generator
+        self.port = port
+        self.size = size
+        if size is None and values:
+            self.size = len(values)
+        self.pos = 0
+        if generator and generator not in Iterator.generators:
+            # add to global list of generators
+            # they will be uniquely ordered topologically
+            Iterator.generators.append(self.generator)
+            
+    def next(self):
+        if self.values is not None:
+            try:
+                item = self.values[self.pos]
+                self.pos += 1
+                return item
+            except KeyError:
+                return None
+        # return next value - the generator
+        value = self.module.get_output(self.port)
+        if isinstance(value, Iterator):
+            raise ModuleError(self.module, "Iterator generator cannot contain an iterator")
+        return self.module.get_output(self.port)
+    
+    def all(self):
+        if self.values:
+            return self.values
+        items = []
+        item = self.next()
+        while item is not None:
+            items.append(item)
+            item = self.next()
+        return items
+
+    @staticmethod
+    def stream():
+        # execute all generators until inputs are exhausted
+        # this makes sure branching and multiple sinks are executed correctly
+        result = True
+        if not Iterator.generators:
+            return
+        while result is not None:
+            for g in Iterator.generators:
+                result = g.next()
+        Iterator.generators = []
+
+##############################################################################
+
 class Assert(Module):
     """
     Assert is a simple module that conditionally stops the execution.
@@ -1247,7 +1311,12 @@ def init_constant(m):
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
 
-_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, ReadFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual, StringFormat]
+_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List,
+            Path, File, Directory, OutputPath,
+            FileSink, DirectorySink, WriteFile, ReadFile, StandardOutput,
+            Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant,
+            Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color,
+            Round, TupleToList, Assert, AssertEqual, StringFormat]
 
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
@@ -1322,11 +1391,60 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                                module_remap)
 
+###############################################################################
+
+class NewConstant(Constant):
+    """
+    A new Constant module to be used inside the FoldWithModule module.
+    """
+    def setValue(self, v):
+        self.set_output("value", v)
+        self.upToDate = True
+
+def create_constant(value):
+    """
+    Creates a NewConstant module, to be used for the ModuleConnector.
+    """
+    constant = NewConstant()
+    constant.setValue(value)
+    return constant
+
+def get_module(value, signature):
+    """
+    Creates a module for value, in order to do the type checking.
+    """
+    from vistrails.core.modules.basic_modules import Boolean, String, \
+        Integer, Float, Constant, List
+    if isinstance(value, Constant):
+        return type(value)
+    elif isinstance(value, bool):
+        return Boolean
+    elif isinstance(value, str):
+        return String
+    elif isinstance(value, int):
+        return Integer
+    elif isinstance(value, float):
+        return Float
+    elif isinstance(value, list):
+        return List
+    elif isinstance(value, tuple):
+        v_modules = ()
+        for element in xrange(len(value)):
+            v_modules += (get_module(value[element], signature[element]),)
+        return v_modules
+    else: # pragma: no cover
+        debug.warning("Could not identify the type of the list element.")
+        debug.warning("Type checking is not going to be done inside"
+                      "FoldWithModule module.")
+        return None
 
 ###############################################################################
 
 import sys
-import unittest
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 
 class TestConcatenateString(unittest.TestCase):
     @staticmethod

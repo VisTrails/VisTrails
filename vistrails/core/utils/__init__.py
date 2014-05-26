@@ -538,7 +538,44 @@ class Ref(object):
             import new
             instance_method = new.instancemethod
         return instance_method(self._func, self._obj(), self._clas)
-    
+
+###############################################################################
+
+def xor(first, *others):
+    """XORs bytestrings.
+
+    Example: xor('abcd', '\x20\x01\x57\x56') = 'Ac42'
+    """
+    l = len(first)
+    first = [ord(c) for c in first]
+    for oth in others:
+        if len(oth) != l:
+            raise ValueError("All bytestrings should have the same length: "
+                             "%d != %d" % (l, len(oth)))
+        first = [c ^ ord(o) for (c, o) in itertools.izip(first, oth)]
+    return ''.join(chr(c) for c in first)
+
+def long2bytes(nb, length=None):
+    """Turns a single integer into a little-endian bytestring.
+
+    Uses as many bytes as necessary or optionally pads to length bytes.
+    Might return a result longer than length.
+
+    Example: long2bytes(54321, 4) = b'\x31\xD4\x00\x00'
+    """
+    if nb < 0:
+        raise ValueError
+    elif nb == 0:
+        result = b'\x00'
+    else:
+        result = b''
+        while nb > 0:
+            result += chr(nb & 0xFF)
+            nb = nb >> 8
+    if length is not None and len(result) < length:
+        result += '\x00' * (length - len(result))
+    return result
+
 ################################################################################
 
 class Chdir(object):

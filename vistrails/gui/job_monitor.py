@@ -179,10 +179,12 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         """
 
     def addJobRec(self, obj, parent_id=None):
-        """Recursively adds jobs.
+        """Recursively adds jobs that are executed by other modules like
+           Groups and Maps. This is only for display purposes.
         """
         workflow = self.jobMonitor.currentWorkflow()
         workflowItem = self.workflowItems[workflow.id]
+        # top down. Base is assumed to have been added already
         base = (workflowItem.intermediates[parent_id] if parent_id is not None
                                                       else workflowItem)
         id = obj.signature
