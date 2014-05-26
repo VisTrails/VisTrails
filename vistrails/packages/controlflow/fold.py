@@ -174,7 +174,7 @@ class FoldWithModule(Fold):
                     module.upToDate = False
                     module.computed = False
 
-                    self.setInputValues(module, nameInput, element)
+                    self.setInputValues(module, nameInput, element, i)
 
                 loop.begin_iteration(module, i)
 

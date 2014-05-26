@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from base64 import b16encode, b16decode
+
 import copy
 import json
 import time
@@ -41,7 +43,14 @@ import warnings
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
-from vistrails.core.utils import VistrailsDeprecation, deprecated
+from vistrails.core.utils import VistrailsDeprecation, deprecated, \
+                                 xor, long2bytes
+try:
+    import hashlib
+    sha1_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha1_hash = sha.new
 
 # Valid control parameters should be put here
 LOOP_KEY = 'loop_type'
@@ -591,7 +600,7 @@ class Module(Serializable):
                 module.upToDate = False
                 module.computed = False
 
-                module.setInputValues(module, ports, elements[i])
+                module.setInputValues(module, ports, elements[i], i)
 
             loop.begin_iteration(module, i)
 
@@ -706,7 +715,7 @@ class Module(Serializable):
                 module.upToDate = False
                 module.computed = False
     
-                module.setInputValues(module, ports, elements)
+                module.setInputValues(module, ports, elements, i)
     
                 try:
                     module.compute()
@@ -759,7 +768,7 @@ class Module(Serializable):
                     elements = [inputs[port] for port in ports]
                     ## Type checking
                     module.typeChecking(module, ports, zip(*elements))
-                    module.setInputValues(module, ports, elements)
+                    module.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
                     except Exception, e:
@@ -822,7 +831,7 @@ class Module(Serializable):
                     self.logging.begin_compute(module)
                     ## Type checking
                     module.typeChecking(module, ports, [elements])
-                    module.setInputValues(module, ports, elements)
+                    module.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
                     except Exception, e:
@@ -948,7 +957,7 @@ class Module(Serializable):
         for name_output in self.outputPorts:
             self.set_output(name_output, module.get_output(name_output))
 
-    def setInputValues(self, module, inputPorts, elementList):
+    def setInputValues(self, module, inputPorts, elementList, iteration):
         """
         Function used to set a value inside 'module', given the input port(s).
         """
@@ -959,6 +968,20 @@ class Module(Serializable):
                 del module.inputPorts[inputPort]
             new_connector = ModuleConnector(create_constant(element), 'value')
             module.set_input_port(inputPort, new_connector)
+            # Affix a fake signature on the module
+            # Ultimately, we might want to give it the signature it would have
+            # with its current functions if it had a connection to the upstream
+            # of our InputList port through a Getter module?
+            # This structure with the Getter is unlikely to actually happen
+            # anywhere though...
+            # The fake signature is
+            # XOR(signature(loop module), iteration, hash(inputPort))
+            inputPort_hash = sha1_hash()
+            inputPort_hash.update(inputPort)
+            module.signature = b16encode(xor(
+                    b16decode(self.signature.upper()),
+                    long2bytes(iteration, 20),
+                    inputPort_hash.digest()))
 
     def typeChecking(self, module, inputPorts, inputList):
         """
@@ -1342,7 +1365,7 @@ class Module(Serializable):
                     yield None
                 ## Type checking
                 module.typeChecking(module, ports, [elements])
-                module.setInputValues(module, ports, elements)
+                module.setInputValues(module, ports, elements, i)
         
                 userGenerator.next()
                 # <compute here>

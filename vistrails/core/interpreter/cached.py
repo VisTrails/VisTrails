@@ -135,7 +135,7 @@ class ViewUpdatingLogController(object):
         error.name = name
         # if signature is not set we use the module identifier
         if not error.signature:
-            error.signature = i
+            error.signature = obj.signature
         jm.addParent(error)
 
     def end_update(self, obj, error=None, errorTrace=None,
