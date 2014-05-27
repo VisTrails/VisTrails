@@ -414,16 +414,16 @@ class VistrailController(QtCore.QObject, BaseController):
         if not jobView.jobMonitor.currentWorkflow():
             version_id = self.current_version
             url = self.locator.to_url()
-            # check if a job for this workflow exists
+            # check if jobs for this workflow exists
             current_workflow = None
-            for job in jobView.jobMonitor._running_workflows.itervalues():
+            for wf in jobView.jobMonitor.workflows.itervalues():
                 try:
-                    job_version = int(job.version)
+                    wf_version = int(wf.version)
                 except ValueError:
-                    job_version = self.vistrail.get_version_number(job.version)
-                if version_id == job_version and url == job.vistrail:
-                    current_workflow = job
-                    jobView.jobMonitor.startWorkflow(job)
+                    wf_version = self.vistrail.get_version_number(wf.version)
+                if version_id == wf_version and url == wf.vistrail:
+                    current_workflow = wf
+                    jobView.jobMonitor.startWorkflow(wf)
             if not current_workflow:
                 current_workflow = JobWorkflow(url, version_id)
                 jobView.jobMonitor.startWorkflow(current_workflow)

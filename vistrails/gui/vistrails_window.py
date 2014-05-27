@@ -1868,7 +1868,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             from vistrails.core.interpreter.job import JobMonitor
             if res == DISCARD_BUTTON:
                 res2 = SAVE_BUTTON
-                for workflow in JobMonitor.getInstance()._running_workflows.values():
+                for workflow in JobMonitor.getInstance().workflows.values():
                     if workflow.vistrail != locator.to_url():
                         continue
                     action = vistrail.db_get_action_by_id(workflow.version)

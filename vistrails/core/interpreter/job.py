@@ -79,7 +79,7 @@ class JobMixin(NotCacheable):
             params = self.readInputs()
             params = self.startJob(params)
             jm = JobMonitor.getInstance()
-            jm.addJob(self.signature, params, "name-TODO")
+            jm.addJob(self.signature, params, self.__class__.__name__)
 
     def update_upstream(self):
         if not hasattr(self, 'signature'):

@@ -231,7 +231,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         if self.temp_configuration.check('jobList'):
             job = JobMonitor.getInstance()
-            for i, j in job._running_workflows.iteritems():
+            for i, j in job.workflows.iteritems():
                 print "JOB: ", i, j.vistrail, j.version, j.start, \
                       "FINISHED" if j.completed() else "RUNNING"
         elif self.temp_configuration.check('jobRun'):
@@ -746,7 +746,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                                  j.version,
                                                  j.start,
                               "FINISHED" if j.completed() else "RUNNING")
-                         for i, j in job._running_workflows.iteritems()])
+                         for i, j in job.workflows.iteritems()])
                 if self.temp_configuration.check('jobRun'):
                     # skip waiting for completion
                     autoRun = self.configuration.check('autoRun')
