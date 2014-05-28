@@ -34,9 +34,9 @@
 ##
 ###############################################################################
 """ This file contains a dialog for editing options for how the given
-    VisTrails module is looped.
+    VisTrails module is executed.
 
-QModuleIteration
+QModuleOptions
 """
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import LOOP_KEY, \
@@ -50,7 +50,7 @@ import unittest
 
 ###############################################################################
 
-class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
+class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
     """
     QModuleIteration is a dialog for editing module looping options.
 
@@ -62,7 +62,7 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
 
         """
         QtGui.QDialog.__init__(self, parent)
-        self.setWindowTitle("Module Looping")
+        self.setWindowTitle("Module Execution Options")
         self.createButtons()
         self.update_module()
 
@@ -229,10 +229,7 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
             self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
             
     def resetTriggered(self, checked = False):
-        self.state_changed = False
         self.update_module(self.module)
-        self.saveButton.setEnabled(False)
-        self.resetButton.setEnabled(False)
 
     def stateChanged(self, state=False, other=None):
         self.saveButton.setEnabled(True)
@@ -307,6 +304,9 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
             self.feedOutputLabel.setVisible(False)
             self.portCombiner.setVisible(False)
             self.jobCacheButton.setEnabled(False)
+            self.state_changed = False
+            self.saveButton.setEnabled(False)
+            self.resetButton.setEnabled(False)
             return
         # set defaults
         self.pairwiseButton.setEnabled(True)
@@ -359,6 +359,9 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         if module.has_control_parameter_with_name(JOB_CACHE_KEY):
             jobCache = module.get_control_parameter_by_name(JOB_CACHE_KEY).value
             self.jobCacheButton.setChecked(jobCache.lower()=='true')
+        self.state_changed = False
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
 
     def updateVistrail(self):
         values = []

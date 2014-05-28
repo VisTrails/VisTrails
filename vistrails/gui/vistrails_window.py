@@ -1022,7 +1022,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         from vistrails.gui.debugger import QDebugger
         from vistrails.gui.module_configuration import QModuleConfiguration
         from vistrails.gui.module_documentation import QModuleDocumentation
-        from vistrails.gui.module_iteration import QModuleIteration
+        from vistrails.gui.module_options import QModuleOptions
         from vistrails.gui.module_palette import QModulePalette
         from vistrails.gui.module_info import QModuleInfo
         from vistrails.gui.paramexplore.param_view import QParameterView
@@ -1087,7 +1087,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module'),
                  ('descriptor_changed', 'update_descriptor'))),
-               ((QModuleIteration, True),
+               ((QModuleOptions, True),
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module'))),
                ((QShellDialog, True),
@@ -2442,8 +2442,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.qactions[action_name].setChecked(True)
 
     def show_looping_options(self):
-        from vistrails.gui.module_iteration import QModuleIteration
-        action_name = QModuleIteration.instance().get_title()
+        from vistrails.gui.module_options import QModuleOptions
+        action_name = QModuleOptions.instance().get_title()
         # easy way to make sure that looping options window is raised
         self.qactions[action_name].setChecked(False)
         self.qactions[action_name].setChecked(True)
