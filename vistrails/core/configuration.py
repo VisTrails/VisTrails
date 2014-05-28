@@ -607,7 +607,7 @@ def build_config_obj(d):
 
 def get_system_config():
     config = {}
-    config.update(base_config)
+    config.update((k, copy.copy(v)) for k, v in base_config.iteritems())
     if system.systemType in ['Windows', 'Microsoft']:
         sys_config = win_config
     elif system.systemType in ['Linux']:
@@ -858,9 +858,10 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
 def build_default_parser():
     parser_args = {"formatter_class": VisTrailsHelpFormatter,
                    "argument_default": argparse.SUPPRESS}
-    return build_command_line_parser(base_config, **parser_args)
+    return build_command_line_parser(get_system_config(), **parser_args)
 
 def build_sphinx_parser():
+    # FIXME add system-specific config options somehow
     return build_command_line_parser(base_config)
 
 class ConfigValue(object):
