@@ -59,6 +59,8 @@ WHILE_INPUT_KEY = 'while_input'
 WHILE_OUTPUT_KEY = 'while_output'
 WHILE_MAX_KEY = 'while_max'
 WHILE_DELAY_KEY = 'while_delay'
+CACHE_KEY = 'cache'
+JOB_CACHE_KEY = 'job_cache'
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -384,6 +386,69 @@ class Module(Serializable):
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.remove_input_connector(port_name, connector)
 
+
+    def useJobCache(self):
+        """ useJobCache() -> Module/None
+            Checks if this is a job cache
+        """
+        if not self.moduleInfo.get('pipeline', None):
+            return False
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        if p_module.has_control_parameter_with_name(JOB_CACHE_KEY):
+            jobCache = p_module.get_control_parameter_by_name(
+                                                          JOB_CACHE_KEY).value
+            if jobCache and jobCache.lower() == 'true':
+                return p_module
+        return False
+
+    def setJobCache(self):
+        """ setJobCache() -> Boolean
+            Checks if this is a job cache and it exists
+        """
+        p_module = self.useJobCache()
+        if not p_module:
+            return False
+        from vistrails.core.interpreter.job import JobMonitor
+        jm = JobMonitor.getInstance()
+        specs = p_module.sourcePorts()
+        if jm.getCache(self.signature):
+            self.cache = jm.getCache(self.signature)
+            from vistrails.core.modules.basic_modules import Constant
+            for param, value in jm.getCache(self.signature).parameters.iteritems():
+                # get type for output param
+                spec = [s for s in specs if s.name == param][0]
+                module = spec.descriptors()[0].module
+                if not issubclass(module, Constant):
+                    raise ModuleError(self, "Trying to use a non-constant type a cache: %s" % spec.name)
+                self.set_output(param, module.translate_to_python(value))
+            self.upToDate = True
+            return True
+        return False
+    
+    def addJobCache(self):
+        """ addJobCache() -> None
+            Add outputs from job cache
+        """
+        p_module = self.useJobCache()
+        if not p_module:
+            return False
+        from vistrails.core.interpreter.job import JobMonitor
+        jm = JobMonitor.getInstance()
+        specs = p_module.sourcePorts()
+        params = {}
+        if not jm.getCache(self.signature):
+            from vistrails.core.modules.basic_modules import Constant
+            for spec in specs:
+                if spec.name == 'self':
+                    continue
+                # get type for output param
+                module = spec.descriptors()[0].module
+                if not issubclass(module, Constant):
+                    raise ModuleError(self, "Trying to cache a non-constant type: %s" % spec.name)
+                params[spec.name] = module.translate_to_string(self.get_output(spec.name))
+                jm.setCache(self.signature, params, p_module.name)
+
     def update_upstream(self):
         """ update_upstream() -> None        
         Go upstream from the current module, then update its upstream
@@ -464,7 +529,8 @@ class Module(Serializable):
         elif self.computed:
             return
         self.logging.begin_update(self)
-        self.update_upstream()
+        if not self.setJobCache():
+            self.update_upstream()
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
@@ -495,6 +561,7 @@ class Module(Serializable):
                     self.compute_while()
                 else:
                     self.compute()
+                    self.addJobCache()
             self.computed = True
         except ModuleSuspended, e:
             self.had_error, self.was_suspended = False, True

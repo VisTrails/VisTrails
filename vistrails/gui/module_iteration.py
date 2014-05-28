@@ -41,7 +41,7 @@ QModuleIteration
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import LOOP_KEY, \
     WHILE_COND_KEY, WHILE_INPUT_KEY, WHILE_OUTPUT_KEY, WHILE_MAX_KEY, \
-    WHILE_DELAY_KEY
+    WHILE_DELAY_KEY, CACHE_KEY, JOB_CACHE_KEY
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -172,6 +172,11 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         whileLayout.addStretch(1)
         self.layout().addLayout(whileLayout)
 
+        self.jobCacheButton = QtGui.QCheckBox("Cache Output Persistently")
+        self.jobCacheButton.setToolTip('Cache the module results persistently to disk. (outputs must be constants)')
+        self.layout().addWidget(self.jobCacheButton)
+        self.layout().setStretch(2, 0)
+
         self.layout().addStretch(1)
         self.buttonLayout = QtGui.QHBoxLayout()
         self.buttonLayout.setMargin(5)
@@ -188,7 +193,7 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
                      self.saveTriggered)
         self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
                      self.resetTriggered)        
-        self.layout().setStretch(2, 0)
+        self.layout().setStretch(3, 0)
         self.update_module()
         self.pairwiseButton.toggled.connect(self.stateChanged)
         self.cartesianButton.toggled.connect(self.stateChanged)
@@ -202,6 +207,7 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         self.delayEdit.textChanged.connect(self.stateChanged)
         self.feedInputEdit.textChanged.connect(self.stateChanged)
         self.feedOutputEdit.textChanged.connect(self.stateChanged)
+        self.jobCacheButton.toggled.connect(self.stateChanged)
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -300,6 +306,7 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
             self.feedInputLabel.setVisible(False)
             self.feedOutputLabel.setVisible(False)
             self.portCombiner.setVisible(False)
+            self.jobCacheButton.setEnabled(False)
             return
         # set defaults
         self.pairwiseButton.setEnabled(True)
@@ -321,6 +328,8 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         self.feedOutputLabel.setVisible(False)
         self.portCombiner.setVisible(False)
         self.portCombiner.setDefault(module)
+        self.jobCacheButton.setEnabled(True)
+        self.jobCacheButton.setChecked(False)
         if module.has_control_parameter_with_name(LOOP_KEY):
             type = module.get_control_parameter_by_name(LOOP_KEY).value
             self.pairwiseButton.setChecked(type=='pairwise')
@@ -347,6 +356,9 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         if module.has_control_parameter_with_name(WHILE_OUTPUT_KEY):
             output = module.get_control_parameter_by_name(WHILE_OUTPUT_KEY).value
             self.feedOutputEdit.setText(output)
+        if module.has_control_parameter_with_name(JOB_CACHE_KEY):
+            jobCache = module.get_control_parameter_by_name(JOB_CACHE_KEY).value
+            self.jobCacheButton.setChecked(jobCache.lower()=='true')
 
     def updateVistrail(self):
         values = []
@@ -363,6 +375,8 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         values.append((WHILE_DELAY_KEY, _while and self.delayEdit.text()))
         values.append((WHILE_INPUT_KEY, _while and self.feedInputEdit.text()))
         values.append((WHILE_OUTPUT_KEY,_while and self.feedOutputEdit.text()))
+        jobCache = self.jobCacheButton.isChecked()
+        values.append((JOB_CACHE_KEY, jobCache and str(jobCache)))
         for name, value in values:
             if value:
                 if not self.module.has_control_parameter_with_name(name) or \
