@@ -107,6 +107,7 @@ from vistrails.core import debug
 import vistrails.gui.application
 from vistrails.core.system import vistrails_root_directory, \
                                   vistrails_examples_directory
+from vistrails.core.packagemanager import get_package_manager
 
 ###############################################################################
 # Testing Examples
@@ -206,7 +207,6 @@ optionsDict = {
         'batch': False,
         'executionLog': False,
         'singleInstance': False,
-        'fixedSpreadsheetCells': True,
         'installBundles': installbundles,
         'enablePackagesSilently': True,
         'handlerDontAsk': True,
@@ -221,6 +221,10 @@ if v != 0:
     if app:
         app.finishSession()
     sys.exit(v)
+
+# make sure that fixedCellSize is turned on
+spreadsheet_conf = get_package_manager().get_package_configuration("spreadsheet")
+spreadsheet_conf.fixedCellSize = True
 
 # disable first vistrail
 app = vistrails.gui.application.get_vistrails_application()
