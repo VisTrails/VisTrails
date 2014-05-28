@@ -1833,7 +1833,7 @@ class VistrailController(object):
         
     def get_abstraction_dir(self):
         conf = get_vistrails_configuration()
-        abstration_dir = get_vistrails_directory("subworkflowsDir")
+        abstraction_dir = get_vistrails_directory("subworkflowsDir")
         if abstraction_dir is None:
             raise VistrailsInternalError("'subworkflowsDir' not"
                                          " specified in configuration")
