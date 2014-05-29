@@ -569,6 +569,11 @@ class UpgradeWorkflowHandler(object):
                                                       aliases)
             new_module.add_function(new_function)
 
+        if None in function_remap:
+            # used to add new functions
+            remap = function_remap[None]
+            function_ops.extend(remap(None, new_module))
+
         # add the new module
         ops.append(('add', new_module))
         ops.extend(function_ops)
