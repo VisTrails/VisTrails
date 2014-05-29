@@ -67,6 +67,9 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 }),
                 ('0.1.3', '0.1.4', None, {})
             ],
+            'read|JSONFile': [
+                (None, '0.1.5', 'read|JSONTable')
+            ],
         }
 
     return UpgradeWorkflowHandler.remap_module(controller,

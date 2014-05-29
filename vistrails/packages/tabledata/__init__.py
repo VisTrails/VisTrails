@@ -7,6 +7,8 @@ extraction and conversion routines.
 """
 
 # ChangeLog:
+# 2014-05-29 -- 0.1.5
+#   * Updates JSON readers
 # 2014-02-03 -- 0.1.4
 #   * Merges some tabdata functionality (improve CSV)
 # 2014-01-14 -- 0.1.3
