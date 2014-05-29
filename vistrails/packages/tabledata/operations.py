@@ -296,8 +296,85 @@ class SelectFromTable(Table):
         selected_table = TableObject(columns, len(matched_rows), table.names)
         self.set_output('value', selected_table)
 
+class AggregatedTable(TableObject):
+    def __init__(self, table, op, col, group_col):
+        self.table = table
+        self.op = op
+        self.col = col
+        self.group_col = group_col
 
-_modules = [JoinTables, ProjectTable, SelectFromTable]
+        self.build_map()
+
+    def build_map(self):
+        agg_map = {}
+        for i, val in enumerate(self.table.get_column(self.group_col)):
+            if val in agg_map:
+                agg_map[val].append(i)
+            else:
+                agg_map[val] = [i]
+        self.agg_rows = [(min(rows), rows) for rows in agg_map.itervalues()]
+        self.agg_rows.sort()
+        self.rows = len(self.agg_rows)
+        self.columns = 2
+        if self.table.names is not None:
+            self.names = [self.table.names[self.group_col],
+                          self.table.names[self.col]]
+
+    def get_column(self, index, numeric=False):
+        def average(value_iter):
+            # value_iter can only be used once
+            sum = 0
+            for count, v in enumerate(value_iter):
+                sum += v
+            return sum / (count+1)
+        op_map = {'sum': sum,
+                  'average': average,
+                  'min': min,
+                  'max': max}
+        if index == 0:
+            col = self.table.get_column(self.group_col, numeric)
+            return [col[x[0]] for x in self.agg_rows]
+        else:
+            if self.op == 'count':
+                return [len(x[1]) for x in self.agg_rows]
+            elif self.op in op_map:
+                col = self.table.get_column(self.col, True)
+                return [op_map[self.op](col[idx] for idx in x[1])
+                        for x in self.agg_rows]
+            else:
+                raise ValueError('Unknown operation: "%s"' % op)
+
+class AggregateColumn(Table):
+    _input_ports = [('table', 'Table'),
+                    ('op', 'basic:String',
+                     {'entry_types': "['enum']",
+                      'values': "[['sum', 'count', 'average', 'min', 'max']]"}),
+                    ('column_name', 'basic:String'),
+                    ('column_index', 'basic:Integer'),
+                    ('group_by_name', 'basic:String'),
+                    ('group_by_index', 'basic:Integer')]
+    _output_ports = [('value', 'Table')]
+
+    def compute(self):
+        table = self.get_input('table')
+        op = self.get_input('op')
+        column_name = self.force_get_input('column_name', None)
+        column_index = self.force_get_input('column_index', None)
+        col_idx = choose_column(table.columns,
+                                column_names=table.names,
+                                name=column_name,
+                                index=column_index)
+        group_by_name = self.force_get_input('group_by_name', None)
+        group_by_index = self.force_get_input('group_by_index', None)
+        gb_idx = choose_column(table.columns,
+                               column_names=table.names,
+                               name=group_by_name,
+                               index=group_by_index)
+
+        res_table = AggregatedTable(table, op, col_idx, gb_idx)
+        self.set_output('value', res_table)
+
+_modules = [JoinTables, ProjectTable, SelectFromTable, AggregateColumn]
 
 
 ###############################################################################
@@ -565,3 +642,54 @@ class TestSelect(unittest.TestCase):
                               ('String', r'([ab])\1')]),
             ])
         self.assertEqual(table.get_column(0, False), ['22', '43', '-7'])
+
+class TestAggregate(unittest.TestCase):
+    def do_aggregate(self, agg_functions):
+        with intercept_result(AggregateColumn, 'value') as results:
+            errors = execute([
+                    ('WriteFile', 'org.vistrails.vistrails.basic', [
+                        ('in_value', [('String', '22;a;T;100\n'
+                                                 '43;b;F;3\n'
+                                                 '-7;d;T;41\n'
+                                                 '500;e;F;21\n'
+                                                 '20;a;T;1\n'
+                                                 '43;b;F;23\n'
+                                                 '21;a;F;41\n')]),
+                    ]),
+                    ('read|CSVFile', identifier, [
+                        ('delimiter', [('String', ';')]),
+                        ('header_present', [('Boolean', 'False')]),
+                        ('sniff_header', [('Boolean', 'False')]),
+                    ]),
+                    ('AggregateColumn', identifier, agg_functions),
+                ],
+                [
+                    (0, 'out_value', 1, 'file'),
+                    (1, 'value', 2, 'table'),
+                ])
+        self.assertFalse(errors)
+        self.assertEqual(len(results), 1)
+        return results[0]
+
+    def test_aggregate_sum(self):
+        table = self.do_aggregate([('op', [('String', 'sum')]),
+                                   ('column_index', [('Integer', '0')]),
+                                   ('group_by_index', [('Integer', '1')])])
+        self.assertEqual(table.get_column(0, False), ['a', 'b', 'd', 'e'])
+        self.assertEqual(table.get_column(1, True), [63, 86, -7, 500])
+
+    def test_aggregate_avg(self):
+        table = self.do_aggregate([('op', [('String', 'average')]),
+                                   ('column_index', [('Integer', '3')]),
+                                   ('group_by_index', [('Integer', '2')])])
+        self.assertEqual(table.get_column(0, False), ['T', 'F'])
+        second_col = list(table.get_column(1, True))
+        self.assertAlmostEqual(second_col[0], 47.3333333333333)
+        self.assertAlmostEqual(second_col[1], 22.0)
+
+    def test_aggregate_min(self):
+        table = self.do_aggregate([('op', [('String', 'min')]),
+                                   ('column_index', [('Integer', '0')]),
+                                   ('group_by_index', [('Integer', '2')])])
+        self.assertEqual(table.get_column(0, False), ['T', 'F'])
+        self.assertEqual(table.get_column(1, True), [-7, 21])
