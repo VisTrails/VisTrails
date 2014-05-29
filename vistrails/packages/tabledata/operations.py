@@ -293,7 +293,7 @@ class SelectFromTable(Table):
         for col in xrange(table.columns):
             column = table.get_column(col)
             columns.append([column[row] for row in matched_rows])
-        selected_table = TableObject(columns, table.rows, table.names)
+        selected_table = TableObject(columns, len(matched_rows), table.names)
         self.set_output('value', selected_table)
 
 
