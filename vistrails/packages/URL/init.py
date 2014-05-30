@@ -66,6 +66,7 @@ from vistrails.gui.utils import show_warning
 from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
 
+from .identifiers import identifier
 from .http_directory import download_directory
 from .https_if_available import build_opener
 
