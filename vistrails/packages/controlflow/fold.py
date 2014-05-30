@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 from vistrails.core import debug
+from vistrails.core.modules.basic_modules import create_constant, get_module
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     ModuleConnector, InvalidOutput, ModuleSuspended, ModuleWasSuspended
 from vistrails.core.modules.basic_modules import Boolean, String, Integer, \
@@ -173,7 +174,7 @@ class FoldWithModule(Fold):
                     module.upToDate = False
                     module.computed = False
 
-                    self.setInputValues(module, nameInput, element)
+                    self.setInputValues(module, nameInput, element, i)
 
                 loop.begin_iteration(module, i)
 
@@ -205,69 +206,6 @@ class FoldWithModule(Fold):
                     children=suspended)
         loop.end_loop_execution()
 
-    def setInputValues(self, module, inputPorts, elementList):
-        """
-        Function used to set a value inside 'module', given the input port(s).
-        """
-        for element, inputPort in izip(elementList, inputPorts):
-            ## Cleaning the previous connector...
-            if inputPort in module.inputPorts:
-                del module.inputPorts[inputPort]
-            new_connector = ModuleConnector(create_constant(element), 'value')
-            module.set_input_port(inputPort, new_connector)
-
-    def typeChecking(self, module, inputPorts, inputList):
-        """
-        Function used to check if the types of the input list element and of the
-        inputPort of 'module' match.
-        """
-        for elementList in inputList:
-            if len(elementList) != len(inputPorts):
-                raise ModuleError(self,
-                                  'The number of input values and input ports '
-                                  'are not the same.')
-            for element, inputPort in izip(elementList, inputPorts):
-                p_modules = module.moduleInfo['pipeline'].modules
-                p_module = p_modules[module.moduleInfo['moduleId']]
-                port_spec = p_module.get_port_spec(inputPort, 'input')
-                v_module = get_module(element, port_spec.signature)
-                if v_module is not None:
-                    if not self.compare(port_spec, v_module, inputPort):
-                        raise ModuleError(self,
-                                          'The type of a list element does '
-                                          'not match with the type of the '
-                                          'port %s.' % inputPort)
-
-                    del v_module
-                else:
-                    break
-
-    def createSignature(self, v_module):
-        """
-    `   Function used to create a signature, given v_module, for a port spec.
-        """
-        if isinstance(v_module, tuple):
-            v_module_class = []
-            for module_ in v_module:
-                v_module_class.append(self.createSignature(module_))
-            return v_module_class
-        else:
-            return v_module
-
-    def compare(self, port_spec, v_module, port):
-        """
-        Function used to compare two port specs.
-        """
-        port_spec1 = port_spec
-
-        reg = get_module_registry()
-
-        v_module = self.createSignature(v_module)
-        port_spec2 = PortSpec(**{'signature': v_module})
-        matched = reg.are_specs_matched(port_spec2, port_spec1)
-
-        return matched
-
     def compute(self):
         """The compute method for the Fold."""
 
@@ -278,48 +216,3 @@ class FoldWithModule(Fold):
         self.updateFunctionPort()
 
         self.set_output('Result', self.partialResult)
-
-###############################################################################
-
-class NewConstant(Constant):
-    """
-    A new Constant module to be used inside the FoldWithModule module.
-    """
-    def setValue(self, v):
-        self.set_output("value", v)
-        self.upToDate = True
-
-def create_constant(value):
-    """
-    Creates a NewConstant module, to be used for the ModuleConnector.
-    """
-    constant = NewConstant()
-    constant.setValue(value)
-    return constant
-
-def get_module(value, signature):
-    """
-    Creates a module for value, in order to do the type checking.
-    """
-    if isinstance(value, Constant):
-        return type(value)
-    elif isinstance(value, bool):
-        return Boolean
-    elif isinstance(value, str):
-        return String
-    elif isinstance(value, int):
-        return Integer
-    elif isinstance(value, float):
-        return Float
-    elif isinstance(value, list):
-        return List
-    elif isinstance(value, tuple):
-        v_modules = ()
-        for element in xrange(len(value)):
-            v_modules += (get_module(value[element], signature[element]),)
-        return v_modules
-    else: # pragma: no cover
-        debug.warning("Could not identify the type of the list element.")
-        debug.warning("Type checking is not going to be done inside"
-                      "FoldWithModule module.")
-        return None

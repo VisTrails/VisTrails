@@ -44,6 +44,7 @@ from vistrails.core.modules.utils import parse_descriptor_string, \
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.port import Port
 from vistrails.core.vistrail.port_spec import PortSpec
@@ -70,7 +71,7 @@ class UpgradeModuleRemap(object):
                  output_version, new_module=None,
                  dst_port_remap=None, src_port_remap=None,
                  function_remap=None, annotation_remap=None,
-                 module_name=None):
+                 control_param_remap=None, module_name=None):
         self.module_name = module_name
         self.start_version = start_version
         self.end_version = end_version
@@ -93,6 +94,10 @@ class UpgradeModuleRemap(object):
             self._annotation_remap = {}
         else:
             self._annotation_remap = annotation_remap
+        if control_param_remap is None:
+            self._control_param_remap = {}
+        else:
+            self._control_param_remap = control_param_remap
 
     @classmethod
     def from_tuple(cls, module_name, t):
@@ -135,6 +140,10 @@ class UpgradeModuleRemap(object):
     def _get_annotation_remap(self):
         return self._annotation_remap
     annotation_remap = property(_get_annotation_remap)    
+
+    def _get_control_param_remap(self):
+        return self._control_param_remap
+    control_param_remap = property(_get_control_param_remap)    
 
     def add_remap(self, remap_type, remap_name, remap_change):
         if not hasattr(self, '_%s' % remap_type):
@@ -306,8 +315,14 @@ class UpgradeWorkflowHandler(object):
         return d
 
     @staticmethod
-    def check_upgrade(pipeline, module_id, d, function_remap={},
-                      src_port_remap={}, dst_port_remap={}):
+    def check_upgrade(pipeline, module_id, d, function_remap=None,
+                      src_port_remap=None, dst_port_remap=None):
+        if function_remap is None:
+            function_remap = {}
+        if src_port_remap is None:
+            src_port_remap = {}
+        if dst_port_remap is None:
+            dst_port_remap = {}
         invalid_module = pipeline.modules[module_id]
         def check_connection_port(port):
             port_type = PortSpec.port_type_map.inverse[port.type]
@@ -336,8 +351,9 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def attempt_automatic_upgrade(controller, pipeline, module_id,
-                                  function_remap={}, src_port_remap={}, 
-                                  dst_port_remap={}, annotation_remap={}):
+                                  function_remap=None, src_port_remap=None, 
+                                  dst_port_remap=None, annotation_remap=None,
+                                  control_param_remap=None):
         """attempt_automatic_upgrade(module_id, pipeline): [Action]
 
         Attempts to automatically upgrade module by simply adding a
@@ -380,7 +396,8 @@ class UpgradeWorkflowHandler(object):
                                                      function_remap,
                                                      src_port_remap, 
                                                      dst_port_remap,
-                                                     annotation_remap)
+                                                     annotation_remap,
+                                                     control_param_remap)
 
     @staticmethod
     def create_new_connection(controller, src_module, src_port, 
@@ -424,9 +441,20 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def replace_generic(controller, pipeline, old_module, new_module,
-                        function_remap={}, src_port_remap={}, 
-                        dst_port_remap={}, annotation_remap={},
-                        use_registry=True):
+                        function_remap=None, src_port_remap=None, 
+                        dst_port_remap=None, annotation_remap=None,
+                        control_param_remap=None, use_registry=True):
+        if function_remap is None:
+            function_remap = {}
+        if src_port_remap is None:
+            src_port_remap = {}
+        if dst_port_remap is None:
+            dst_port_remap = {}
+        if annotation_remap is None:
+            annotation_remap = {}
+        if control_param_remap is None:
+            control_param_remap = {}
+
         basic_pkg = get_vistrails_basic_pkg_id()
 
         ops = []
@@ -451,6 +479,27 @@ class UpgradeWorkflowHandler(object):
                            key=annotation_key,
                            value=annotation.value)
             new_module.add_annotation(new_annotation)
+
+        for control_param in old_module.control_parameters:
+            if control_param.name not in control_param_remap:
+                control_param_name = control_param.name
+            else:
+                remap = control_param_remap[control_param.name]
+                if remap is None:
+                    # don't add the control param back in
+                    continue
+                elif not isinstance(remap, basestring):
+                    ops.extend(remap(control_param))
+                    continue
+                else:
+                    control_param_name = remap
+
+            new_control_param = \
+                ModuleControlParam(id=controller.id_scope.getNewId(
+                                                   ModuleControlParam.vtType),
+                                   name=control_param_name,
+                                   value=control_param.value)
+            new_module.add_control_parameter(new_control_param)
 
         if not old_module.is_group() and not old_module.is_abstraction():
             for port_spec in old_module.port_spec_list:
@@ -519,6 +568,11 @@ class UpgradeWorkflowHandler(object):
                                                       new_param_vals,
                                                       aliases)
             new_module.add_function(new_function)
+
+        if None in function_remap:
+            # used to add new functions
+            remap = function_remap[None]
+            function_ops.extend(remap(None, new_module))
 
         # add the new module
         ops.append(('add', new_module))
@@ -603,8 +657,9 @@ class UpgradeWorkflowHandler(object):
 
     @staticmethod
     def replace_module(controller, pipeline, module_id, new_descriptor,
-                       function_remap={}, src_port_remap={}, dst_port_remap={},
-                       annotation_remap={}, use_registry=True):
+                       function_remap=None, src_port_remap=None,
+                       dst_port_remap=None, annotation_remap=None,
+                       control_param_remap=None, use_registry=True):
         old_module = pipeline.modules[module_id]
         internal_version = -1
         # try to determine whether new module is an abstraction
@@ -625,6 +680,7 @@ class UpgradeWorkflowHandler(object):
                                                       src_port_remap, 
                                                       dst_port_remap,
                                                       annotation_remap,
+                                                      control_param_remap,
                                                       use_registry)
 
     @staticmethod
@@ -739,6 +795,7 @@ class UpgradeWorkflowHandler(object):
                                      module_remap.src_port_remap,
                                      module_remap.dst_port_remap,
                                      module_remap.annotation_remap,
+                                     module_remap.control_param_remap,
                                      use_registry)
 
             for a in actions:

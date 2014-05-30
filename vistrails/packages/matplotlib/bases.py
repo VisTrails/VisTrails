@@ -36,6 +36,8 @@ import matplotlib
 import pylab
 import urllib
 
+from matplotlib.backend_bases import FigureCanvasBase
+
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 
@@ -134,6 +136,33 @@ class MplFigure(Module):
 
         self.set_output("self", self)
 
+class MplFigureToFile(Module):
+    _input_ports = [('figure', 'MplFigure'),
+                    ('format', 'basic:String', {"defaults": ["pdf"]}),
+                    ('width', 'basic:Integer', {"defaults": ["800"]}),
+                    ('height', 'basic:Integer', {"defaults": ["600"]})]
+    _output_ports = [('imageFile', 'basic:File')]
+
+    def compute(self):
+        figure = self.get_input('figure')
+        format = self.get_input('format')
+        width = self.get_input('width')
+        height = self.get_input('height')
+        imageFile = self.interpreter.filePool.create_file(suffix=".%s" % format)
+
+        fig = figure.figInstance
+        w_inches = width / 72.0
+        h_inches = height / 72.0
+
+        previous_size = tuple(fig.get_size_inches())
+        fig.set_size_inches(w_inches, h_inches)
+        canvas = FigureCanvasBase(fig)
+        canvas.print_figure(imageFile.name, dpi=72, format=format)
+        fig.set_size_inches(previous_size[0],previous_size[1])
+        canvas.draw()
+
+        self.set_output('imageFile', imageFile)
+
 class MplContourSet(Module):
     pass
 
@@ -146,5 +175,6 @@ _modules = [(MplProperties, {'abstract': True}),
                              ('vistrails.packages.matplotlib.widgets',
                               'MplSourceConfigurationWidget')}),
             MplFigure,
+            MplFigureToFile,
             MplContourSet,
             MplQuadContourSet]

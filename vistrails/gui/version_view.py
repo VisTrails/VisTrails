@@ -513,6 +513,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                 sat = float(new_rank+1) / new_max_rank
                 (h, s, v, a) = brush.color().getHsvF()
                 newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
+                brush = QtGui.QBrush(brush)
                 brush.setColor(QtGui.QColor.fromHsvF(*newHsv))
             self.versionBrush = brush
         self.update()

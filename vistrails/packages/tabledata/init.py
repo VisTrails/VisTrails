@@ -34,6 +34,12 @@ _modules = make_modules_dict(*_modules)
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
+    def add_keyname(fname, module):
+        new_function = controller.create_function(module, 
+                                                  "key_name",
+                                                  ["_key"])
+        return [('add', new_function, 'module', module.id)]
+
     module_remap = {
             'read|csv|CSVFile': [
                 (None, '0.1.1', 'read|CSVFile', {
@@ -52,7 +58,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                     'src_port_remap': {
                         'self': 'value'},
                 }),
-                ('0.1.3', '0.1.4', None, {})
+                ('0.1.3', '0.1.5', None, {})
             ],
             'read|NumPyArray': [
                 ('0.1.1', '0.1.2', None, {
@@ -66,6 +72,12 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                         'self': 'value'},
                 }),
                 ('0.1.3', '0.1.4', None, {})
+            ],
+            'read|JSONFile': [
+                (None, '0.1.5', 'read|JSONObject', {
+                    'function_remap': {
+                        None: add_keyname},
+                })
             ],
         }
 

@@ -51,6 +51,7 @@ from vistrails.core.vistrail.abstraction import Abstraction
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.plugin_data import PluginData
@@ -966,6 +967,8 @@ class Pipeline(DBWorkflow):
                 self.is_valid = False
                 return False
 
+        self.mark_list_depth()
+
         self.is_valid = True
         return True
 
@@ -1166,7 +1169,40 @@ class Pipeline(DBWorkflow):
         for module in self.modules.itervalues():
             if module.is_valid and module.is_abstraction():
                 module.check_latest_version()
-                
+
+    def mark_list_depth(self):
+        """mark_list_depth() -> list
+
+        Updates list_depth variable on each module according to list depth of
+        connecting port specs. This decides at what list depth the module
+        needs to be executed.
+
+        """
+        result = []
+        for module_id in self.graph.vertices_topological_sort():
+            module = self.get_module_by_id(module_id)
+            module.list_depth = 0
+            ports = []
+            for module_from_id, conn_id in self.graph.edges_to(module_id):
+                prev_depth = self.get_module_by_id(module_from_id).list_depth
+                conn = self.get_connection_by_id(conn_id)
+                source_depth = (conn.source.spec and
+                                conn.source.spec.depth) or 0
+                dest_depth = (conn.destination.spec and
+                              conn.destination.spec.depth) or 0
+                depth = prev_depth + source_depth - dest_depth
+                if depth > 0:
+                    ports.append(conn.destination.spec.name)
+                # if dest depth is greater the input will be wrapped in a
+                # list to match its depth
+                # if source depth is greater this module will be executed
+                # once for each input in the (possibly nested) list
+                module.list_depth = max(module.list_depth, depth)
+            result.append((module_id, module.list_depth))
+            module.iterated_ports = ports
+        return result
+
+
     ##########################################################################
     # Debugging
 
@@ -1315,11 +1351,18 @@ class TestPipeline(unittest.TestCase):
                 param.strValue = '4.0'
                 f.params.append(param)
                 return f
+            def cp1():
+                f = ModuleControlParam()
+                f.id = id_scope.getNewId(ModuleControlParam.vtType)
+                f.name = 'cpname1'
+                f.value = 'cpvalue[]'
+                return f
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
             m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
             m.functions.append(f1())
+            m.control_parameters.append(cp1())
             return m
         
         def module2(p):
