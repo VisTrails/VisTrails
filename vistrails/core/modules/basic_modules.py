@@ -1062,6 +1062,7 @@ def zip_extract_file(archive, filename_in_archive, output_filename):
             "%s > %s" % (
                     vistrails.core.system.list2cmdline([
                             vistrails.core.system.get_executable_path('unzip'),
+                            '-q', '-o',
                             '-p', archive,
                             filename_in_archive]),
                     vistrails.core.system.list2cmdline([output_filename])))
@@ -1071,6 +1072,7 @@ def zip_extract_all_files(archive, output_path):
     return os.system(
             vistrails.core.system.list2cmdline([
                     vistrails.core.system.get_executable_path('unzip'),
+                    '-q', '-o',
                     archive,
                     '-d', output_path]))
 
