@@ -67,7 +67,6 @@ import platform
 import re
 import shutil
 import tempfile
-import subprocess
 
 # Makes sure we can import modules as if we were running VisTrails
 # from the root directory
@@ -189,12 +188,10 @@ installbundles = options.installbundles
 dotVistrails = options.dotVistrails
 debug_mode = options.debug
 test_modules = None
-test_run = False
 if len(args) > 0:
     test_modules = args
 else:
     test_images = True
-    test_run = True
 
 def module_filter(name):
     if test_modules is None:
@@ -512,17 +509,6 @@ if test_examples:
 
 vistrails.gui.application.get_vistrails_application().finishSession()
 vistrails.gui.application.stop_application()
-
-if test_run:
-    run_py = os.path.realpath(os.path.join(root_directory, "run.py"))
-    if not os.path.isfile(run_py):
-        sub_print("run.py not found: skipping", overline=True)
-    else:
-        cmd = [sys.executable, run_py, "--spawned", "-b"]
-        sub_print("Testing " + " ".join(cmd), overline=True)
-        if subprocess.call(cmd):
-            sub_print("run.py failed", overline=True)
-            tests_passed = False
 
 # Test Runners can use the return value to know if the tests passed
 sys.exit(0 if tests_passed else 1)
