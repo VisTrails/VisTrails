@@ -67,7 +67,6 @@ setup(name='vistrails',
       zip_safe=False,
       install_requires=[
         # 'PyQt<5.0',
-        'ctypes',
         'numpy',
         'scipy'],
       description='Data analysis and visualization tool',
