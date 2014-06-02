@@ -53,6 +53,7 @@ import os.path
 import shutil
 import tempfile
 import copy
+import zipfile
 
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
@@ -710,17 +711,13 @@ def open_vistrail_bundle_from_zip_xml(filename):
     and thumbnails inside archive are '.png' files in 'thumbs' dir
 
     """
-    unzipcmd = get_executable_path('unzip')
-    if unzipcmd is None:
-        raise VistrailsInternalError("unzip command is not available")
-
     vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
-    output = []
-    cmdline = [unzipcmd, '-q','-o','-d', vt_save_dir, filename]
-    result = execute_cmdline(cmdline, output)
 
-    if result != 0 and len(output) != 0:
-        raise VistrailsDBException("Unzip of '%s' failed" % filename)
+    z = zipfile.ZipFile(filename)
+    try:
+        z.extractall(vt_save_dir)
+    finally:
+        z.close()
 
     vistrail = None
     log = None
