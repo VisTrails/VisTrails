@@ -29,9 +29,11 @@ def convert_color(c):
 
 class GMapVis(Module, OptionsMixin):
     _input_ports = [IPort('table', 'tabledata:Table'),
-                    IPort('latitudeColIdx', 'basic:Integer', optional=True),
+                    IPort('latitudeColIdx', 'basic:Integer', optional=True,
+                          default=0),
                     IPort('latitudeColName', 'basic:String', optional=True),
-                    IPort('longitudeColIdx', 'basic:Integer', optional=True),
+                    IPort('longitudeColIdx', 'basic:Integer', optional=True,
+                          default=1),
                     IPort('longitudeColName', 'basic:String', optional=True)]
     _output_ports = [OPort('self', 'GMapVis')]
     _settings = ModuleSettings(abstract=True)
@@ -40,18 +42,14 @@ class GMapVis(Module, OptionsMixin):
         if table is None:
             table = self.get_input("table")
         
-        lat_col_idx = self.force_get_input('latitudeColIdx')
+        lat_col_idx = self.get_input('latitudeColIdx') # default 0
         lat_col_name = self.force_get_input('latitudeColName')
-        lng_col_idx = self.force_get_input('longitudeColIdx')
+        lng_col_idx = self.get_input('longitudeColIdx') # default 1
         lng_col_name = self.force_get_input('longitudeColName')
-        lat_idx = 0
-        if lat_col_idx is not None or lat_col_name is not None:
-            lat_idx = choose_column(table.columns, table.names, 
-                                    lat_col_name, lat_col_idx)
-        lng_idx = 1
-        if lng_col_idx is not None or lng_col_name is not None:
-            lng_idx = choose_column(table.columns, table.names, 
-                                    lng_col_name, lng_col_idx)
+        lat_idx = choose_column(table.columns, table.names, 
+                                lat_col_name, lat_col_idx)
+        lng_idx = choose_column(table.columns, table.names, 
+                                lng_col_name, lng_col_idx)
         lat_col = table.get_column(lat_idx, True)
         lng_col = table.get_column(lng_idx, True)
         center = (sum(float(x) for x in lat_col)/len(lat_col),
@@ -85,13 +83,14 @@ class GMapMarkers(GMapVis):
         self.set_output("self", vis_data)
 
 class GMapValueVis(GMapVis):
-    _input_ports = [IPort('valueColIdx', 'basic:Integer', optional=True),
+    _input_ports = [IPort('valueColIdx', 'basic:Integer', optional=True,
+                          default=2),
                     IPort('valueColName', 'basic:String', optional=True)]
     _settings = ModuleSettings(abstract=True)
     def get_values(self, table=None):
         if table is None:
             table = self.get_input("table")
-        value_col_idx = self.force_get_input("valueColIdx")
+        value_col_idx = self.get_input("valueColIdx") # default 2
         value_col_name = self.force_get_input("valueColName")
         if value_col_idx is not None or value_col_name is not None:
             value_idx = choose_column(table.columns, table.names, 
