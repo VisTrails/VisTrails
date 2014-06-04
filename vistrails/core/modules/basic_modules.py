@@ -53,7 +53,7 @@ import os
 import pickle
 import re
 import shutil
-#import zipfile
+import zipfile
 import urllib
 
 try:
@@ -1058,23 +1058,23 @@ class SmartSource(NotCacheable, Module):
 ##############################################################################
 
 def zip_extract_file(archive, filename_in_archive, output_filename):
-    return os.system(
-            "%s > %s" % (
-                    vistrails.core.system.list2cmdline([
-                            vistrails.core.system.get_executable_path('unzip'),
-                            '-q', '-o',
-                            '-p', archive,
-                            filename_in_archive]),
-                    vistrails.core.system.list2cmdline([output_filename])))
+    z = zipfile.ZipFile(archive)
+    try:
+        fileinfo = z.getinfo(filename_in_archive) # Might raise KeyError
+        output_dirname, output_filename = os.path.split(output_filename)
+        fileinfo.filename = output_filename
+        z.extract(fileinfo, output_dirname)
+    finally:
+        z.close()
 
 
 def zip_extract_all_files(archive, output_path):
-    return os.system(
-            vistrails.core.system.list2cmdline([
-                    vistrails.core.system.get_executable_path('unzip'),
-                    '-q', '-o',
-                    archive,
-                    '-d', output_path]))
+    z = zipfile.ZipFile(archive)
+    try:
+        z.extractall(output_path)
+    finally:
+        z.close()
+
 
 class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
@@ -1091,11 +1091,9 @@ class Unzip(Module):
             raise ModuleError(self, "archive file does not exist")
         suffix = self.interpreter.filePool.guess_suffix(filename_in_archive)
         output = self.interpreter.filePool.create_file(suffix=suffix)
-        s = zip_extract_file(archive_file.name,
-                             filename_in_archive,
-                             output.name)
-        if s != 0:
-            raise ModuleError(self, "unzip command failed with status %d" % s)
+        zip_extract_file(archive_file.name,
+                         filename_in_archive,
+                         output.name)
         self.set_output("file", output)
 
 
@@ -1110,10 +1108,8 @@ class UnzipDirectory(Module):
         if not os.path.isfile(archive_file.name):
             raise ModuleError(self, "archive file does not exist")
         output = self.interpreter.filePool.create_directory()
-        s = zip_extract_all_files(archive_file.name,
-                                  output.name)
-        if s != 0:
-            raise ModuleError(self, "unzip command failed with status %d" % s)
+        zip_extract_all_files(archive_file.name,
+                              output.name)
         self.set_output("directory", output)
 
 ##############################################################################

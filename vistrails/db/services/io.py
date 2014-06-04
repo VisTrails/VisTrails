@@ -53,6 +53,7 @@ import os.path
 import shutil
 import tempfile
 import copy
+import zipfile
 
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
@@ -710,17 +711,13 @@ def open_vistrail_bundle_from_zip_xml(filename):
     and thumbnails inside archive are '.png' files in 'thumbs' dir
 
     """
-    unzipcmd = get_executable_path('unzip')
-    if unzipcmd is None:
-        raise VistrailsInternalError("unzip command is not available")
-
     vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
-    output = []
-    cmdline = [unzipcmd, '-q','-o','-d', vt_save_dir, filename]
-    result = execute_cmdline(cmdline, output)
 
-    if result != 0 and len(output) != 0:
-        raise VistrailsDBException("Unzip of '%s' failed" % filename)
+    z = zipfile.ZipFile(filename)
+    try:
+        z.extractall(vt_save_dir)
+    finally:
+        z.close()
 
     vistrail = None
     log = None
@@ -875,10 +872,8 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
 
     Generates a zip compressed version of vistrail.
     It raises an Exception if there was an error.
-    
-    """
 
-    vistrails.core.requirements.require_executable('zip')
+    """
 
     if save_bundle.vistrail is None:
         raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
@@ -986,22 +981,14 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
     output = []
     rel_vt_save_dir = os.path.split(vt_save_dir)[1]
 
-    # on windows, we assume zip.exe is in the current directory when
-    # running from the binary install
-    zipcmd = get_executable_path('zip')
-    if zipcmd is None:
-        raise VistrailsInternalError("zip command is not available")
-    cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']
+    z = zipfile.ZipFile(tmp_zip_file, 'w')
     try:
-        #if we want that directories are also stored in the zip file
-        # we need to run from the vt directory
         with Chdir(vt_save_dir):
-            result = execute_cmdline(cmdline,output)
-        #print result, output
-        if result != 0 or len(output) != 0:
-            for line in output:
-                if line.find('deflated') == -1:
-                    raise VistrailsDBException(" ".join(output))
+            # zip current directory
+            for root, dirs, files in os.walk('.'):
+                for f in files:
+                    z.write(os.path.join(root, f), f)
+        z.close()
         shutil.copyfile(tmp_zip_file, filename)
     finally:
         os.unlink(tmp_zip_file)

@@ -416,10 +416,6 @@ The builder window can be accessed by a spreadsheet menu option.")
                 'linux-fedora': 'scipy',
                 'pip': 'scipy'})
 
-        # ZIP manipulations use the command-line executables
-        vistrails.core.requirements.require_executable('zip')
-        vistrails.core.requirements.require_executable('unzip')
-
     def get_python_environment(self):
         """get_python_environment(): returns an environment that includes
         local definitions from startup.py. Should only be called after
