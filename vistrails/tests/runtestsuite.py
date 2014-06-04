@@ -44,21 +44,12 @@ any unit tests, as a crude measure of code coverage.
 
 """
 
-# First, import unittest, replacing it with unittest2 if necessary
-import sys
-try:
-    import unittest2
-except ImportError:
-    pass
-else:
-    sys.modules['unittest'] = unittest2
-import unittest
-
 import atexit
 from distutils.version import LooseVersion
 #import doctest
 import locale
 import os
+import sys
 import traceback
 import os.path
 import optparse
@@ -109,6 +100,10 @@ from vistrails.core import debug
 import vistrails.gui.application
 from vistrails.core.system import vistrails_root_directory, \
                                   vistrails_examples_directory
+
+# VisTrails does funny stuff with unittest/unittest2, be sure to load that
+# after vistrails
+import unittest
 
 ###############################################################################
 # Testing Examples
