@@ -55,7 +55,8 @@ class TableCellWidget(QCellWidget):
                               QtCore.Qt.ItemIsSelectable)
                 self.table.setItem(row, col + 1, item)
         for row in xrange(table.rows):
-            item = QtGui.QTableWidgetItem('%d' % row)
+            item = QtGui.QTableWidgetItem()
+            item.setData(QtCore.Qt.EditRole, row)
             item.setFlags(QtCore.Qt.NoItemFlags)
             self.table.setItem(row, 0, item)
 
