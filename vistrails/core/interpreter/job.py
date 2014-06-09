@@ -77,12 +77,19 @@ class JobMixin(NotCacheable):
         if self.cache is not None:
             # Result is available and cached
             self.setResults(self.cache.parameters)
-        else:
-            # Start new job
-            params = self.readInputs()
-            params = self.startJob(params)
-            jm = JobMonitor.getInstance()
-            jm.addJob(self.signature, params, "name-TODO")
+            return
+        # Start new job
+        params = self.readInputs()
+        params = self.startJob(params)
+        jm = JobMonitor.getInstance()
+        jm.addJob(self.signature, params, self.getName())
+        # Might raise ModuleSuspended
+        jm.checkJob(self, self.signature, self.getMonitor(params))
+        # Didn't raise: job is finished
+        params = self.finishJob(params)
+        self.setResults(params)
+        jm.setCache(self.signature, params)
+        self.cache = jm.getCache(self.signature)
 
     def update_upstream(self):
         if not hasattr(self, 'signature'):
@@ -93,6 +100,7 @@ class JobMixin(NotCacheable):
             return # compute() will use self.cache
         job = jm.getJob(self.signature)
         if job is not None:
+            # resume job
             params = job.parameters
             # Might raise ModuleSuspended
             jm.checkJob(self, self.signature, self.getMonitor(params))
@@ -141,11 +149,18 @@ class JobMixin(NotCacheable):
         """ getId(params: dict) -> job identifier
             Should return an string completely identifying this job
             Class name + input values are usually unique
-            WARNING: The default implementation does not work correctly in
-                     maps and groups
         """
         return self.signature
 
+    def getName(self):
+        # use module description if it exists
+        if 'pipeline' in self.moduleInfo and self.moduleInfo['pipeline']:
+            p_modules = self.moduleInfo['pipeline'].modules
+            p_module = p_modules[self.moduleInfo['moduleId']]
+            if p_module.has_annotation_with_key('__desc__'):
+                return p_module.get_annotation_by_key('__desc__').value
+        return self.__class__.__name__
+ 
 
 class Workflow(object):
     """ Represents a suspended workflow.
