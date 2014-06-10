@@ -987,7 +987,7 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
             # zip current directory
             for root, dirs, files in os.walk('.'):
                 for f in files:
-                    z.write(os.path.join(root, f), f)
+                    z.write(os.path.join(root, f))
         z.close()
         shutil.copyfile(tmp_zip_file, filename)
     finally:
