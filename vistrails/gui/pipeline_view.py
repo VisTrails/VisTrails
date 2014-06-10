@@ -951,12 +951,13 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
 
 
         # draw multiple connections depending on list depth
-        
         def diff(i, depth):
             return QtCore.QPointF((5.0 + 10.0*i)/depth - 5.0, 0.0)
         
-        startDepth = self.srcPortItem.parentItem().module.list_depth + 1
-        endDepth = self.dstPortItem.parentItem().module.list_depth + 1
+        srcParent = self.srcPortItem.parentItem()
+        startDepth = srcParent.module.list_depth + 1 if srcParent else 1
+        dstParent = self.dstPortItem.parentItem()
+        endDepth = dstParent.module.list_depth + 1 if dstParent else 1
         starts = [diff(i, startDepth) for i in xrange(startDepth)]
         ends = [diff(i, endDepth) for i in xrange(endDepth)]
     
