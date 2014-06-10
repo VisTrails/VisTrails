@@ -36,7 +36,7 @@
 
 from vistrails.core.interpreter.job import JobMonitor
 from vistrails.core.modules.basic_modules import File, Boolean, String, \
-                                                 PathObject
+                                                 PathObject, Path
 from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, \
                                                                     ModuleError
@@ -96,7 +96,7 @@ class HDFSGet(HadoopBaseModule):
     Then getting it from the server
     
     """
-    _input_ports = [IPort('Local File', File),
+    _input_ports = [IPort('Local File', Path),
                     IPort('Remote Location', String),
                     IPort('Override', Boolean),
                     IPort('Machine', '(org.vistrails.vistrails.remoteq:Machine)')]
