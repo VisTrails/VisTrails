@@ -37,18 +37,14 @@ from __future__ import with_statement
 from datetime import datetime
 from vistrails.core import debug
 from vistrails.core.bundles import py_import
-from vistrails.core.system import get_elementtree_library, strftime, \
-     execute_cmdline, get_executable_path
-from vistrails.core.utils import Chdir, VistrailsInternalError
-from vistrails.core.log.log import Log
+from vistrails.core.system import get_elementtree_library, strftime
+from vistrails.core.utils import Chdir
 from vistrails.core.mashup.mashup_trail import Mashuptrail
 from vistrails.core.modules.sub_module import get_cur_abs_namespace,\
     parse_abstraction_name, read_vistrail_from_db
 
 import vistrails.core.requirements
 
-import sys
-import os
 import os.path
 import shutil
 import tempfile
@@ -978,8 +974,6 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
         debug.warning("Could not call package hooks", str(e))
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
-    output = []
-    rel_vt_save_dir = os.path.split(vt_save_dir)[1]
 
     z = zipfile.ZipFile(tmp_zip_file, 'w')
     try:
