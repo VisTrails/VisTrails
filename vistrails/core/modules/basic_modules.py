@@ -408,6 +408,7 @@ class Directory(Path):
 class OutputPath(Path):
     _settings = ModuleSettings(constant_widget=("%s:OutputPathChooserWidget" % \
                                                 constant_config_path))
+    _input_ports = [IPort("value", "OutputPath")]
     _output_ports = [OPort("value", "OutputPath")]
 
     def get_name(self):
