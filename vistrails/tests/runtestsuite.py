@@ -77,19 +77,27 @@ sys.path.insert(0, os.path.realpath(os.path.join(root_directory, '..')))
 # Use a different temporary directory
 test_temp_dir = tempfile.mkdtemp(prefix='vt_testsuite_')
 tempfile.tempdir = test_temp_dir
-@atexit.register
-def clean_tempdir():
-    nb_dirs = 0
-    nb_files = 0
-    for f in os.listdir(test_temp_dir):
-        if os.path.isdir(f):
-            nb_dirs += 1
-        else:
-            nb_files += 1
-    if nb_dirs > 0 or nb_files > 0:
-        sys.stdout.write("Warning: %d dirs and %d files were left behind in "
-                         "tempdir, cleaning up\n" % (nb_dirs, nb_files))
-    shutil.rmtree(test_temp_dir, ignore_errors=True)
+@apply
+class clean_tempdir(object):
+    def __init__(self):
+        atexit.register(self.clean)
+        self.listdir = os.listdir
+        self.isdir = os.path.isdir
+        self.test_temp_dir = test_temp_dir
+        self.rmtree = shutil.rmtree
+        self.out = sys.stdout.write
+    def clean(self):
+        nb_dirs = 0
+        nb_files = 0
+        for f in self.listdir(self.test_temp_dir):
+            if self.isdir(f):
+                nb_dirs += 1
+            else:
+                nb_files += 1
+        if nb_dirs > 0 or nb_files > 0:
+            self.out("Warning: %d dirs and %d files were left behind in "
+                     "tempdir, cleaning up\n" % (nb_dirs, nb_files))
+        self.rmtree(self.test_temp_dir, ignore_errors=True)
 
 def setNewPyQtAPI():
     try:
@@ -190,7 +198,7 @@ debug_mode = options.debug
 test_modules = None
 if len(args) > 0:
     test_modules = args
-else:
+elif os.path.exists(EXAMPLES_PATH):
     test_images = True
 
 def module_filter(name):
