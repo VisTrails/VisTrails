@@ -2458,7 +2458,7 @@ class VistrailController(object):
         open_ports = {}
         unconnected_port_modules = {}
         for port_module, port_type in port_modules:
-            (port_name, _, _, neighbors) = \
+            (port_name, _, _, _, neighbors) = \
                 group.get_port_spec_info(port_module)
             new_neighbors = \
                 [(module_index[id_remap[(Module.vtType, m.id)]], n)
