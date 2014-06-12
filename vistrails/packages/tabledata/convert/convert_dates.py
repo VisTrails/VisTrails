@@ -80,45 +80,45 @@ _decimal_fmt = re.compile(
         '([0-9][0-9])?$')   # minutes
 
 def make_timezone(s):
-        if s == 'local':
-            return LocalTimezone()
+    if s == 'local':
+        return LocalTimezone()
 
-        match = _decimal_fmt.match(s)
-        if match is not None:
-            sign, hours, minutes = match.groups('')
-            sign = -1 if sign == '-' else 1
-            hours = int(hours)
-            minutes = int(minutes) if minutes else 0
-            offset = datetime.timedelta(
-                    minutes=sign * (hours*60 + minutes))
-            name = '%s%02d%02d' % (
-                    '-' if sign == -1 else '+',
-                    hours,
-                    minutes)
-            return FixedOffset(offset, name)
+    match = _decimal_fmt.match(s)
+    if match is not None:
+        sign, hours, minutes = match.groups('')
+        sign = -1 if sign == '-' else 1
+        hours = int(hours)
+        minutes = int(minutes) if minutes else 0
+        offset = datetime.timedelta(
+                minutes=sign * (hours*60 + minutes))
+        name = '%s%02d%02d' % (
+                '-' if sign == -1 else '+',
+                hours,
+                minutes)
+        return FixedOffset(offset, name)
 
+    try:
+        pytz = py_import('pytz', {
+                'pip': 'pytz',
+                'linux-debian': 'python-tz',
+                'linux-ubuntu': 'python-tz',
+                'linux-fedora': 'pytz'})
+    except ImportError: # pragma: no cover
+        raise ValueError("can't understand timezone %r (maybe you should "
+                         "install pytz?)" % s)
+    else:
+        ver = LooseVersion(pytz.__version__)
+        if ver < PYTZ_MIN_VER: # pragma: no cover
+            warnings.warn(
+                    "You are using an old version of pytz (%s). You might "
+                    "run into some issues with daylight saving handling." %
+                    pytz.__version__,
+                    category=VistrailsWarning)
         try:
-            pytz = py_import('pytz', {
-                    'pip': 'pytz',
-                    'linux-debian': 'python-tz',
-                    'linux-ubuntu': 'python-tz',
-                    'linux-fedora': 'pytz'})
-        except ImportError: # pragma: no cover
-            raise ValueError("can't understand timezone %r (maybe you should "
-                             "install pytz?)" % s)
-        else:
-            ver = LooseVersion(pytz.__version__)
-            if ver < PYTZ_MIN_VER: # pragma: no cover
-                warnings.warn(
-                        "You are using an old version of pytz (%s). You might "
-                        "run into some issues with daylight saving handling." %
-                        pytz.__version__,
-                        category=VistrailsWarning)
-            try:
-                return pytz.timezone(s)
-            except KeyError:
-                raise ValueError("can't understand timezone %r (defaulted to "
-                                 "pytz, which gave no answer)" % s)
+            return pytz.timezone(s)
+        except KeyError:
+            raise ValueError("can't understand timezone %r (defaulted to "
+                             "pytz, which gave no answer)" % s)
 
 
 class TimestampsToDates(Module):
@@ -198,7 +198,11 @@ class StringsToDates(Module):
         else:
             result = [datetime.datetime.strptime(s, fmt) for s in strings]
 
-        if tz:
+        if tz is None:
+            result = [dt.replace(tzinfo=None) for dt in result]
+        elif hasattr(tz, 'localize'):
+            result = [tz.localize(dt) for dt in result]
+        else:
             # Compute the time without daylight saving
             result = [dt.replace(tzinfo=tz) for dt in result]
 
@@ -219,8 +223,6 @@ class StringsToDates(Module):
                         # For dst -> standard (fall): the time will be in dst,
                         #   although it could also have been standard (there is
                         #   noway to know which one was meant)
-        else:
-            result = [dt.replace(tzinfo=None) for dt in result]
 
         return result
 
