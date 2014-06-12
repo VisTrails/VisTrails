@@ -118,14 +118,12 @@ class ${spec.name}(${spec.superklass}):
 
     _output_ports = [
         ("value", "(${spec.name})"),
-        % for ps in spec.output_port_specs:
-        % if not ps.is_property():
-              ("${ps.name}", "${ps.get_port_type()}",
-                ${ps.get_port_attrs()}),
+        % if any(not ps.is_property() for ps in spec.output_port_specs):
+            # (this plot has additional output which are not exposed as ports
+            # right now)
         % endif
-        % endfor
         ]
-    
+
     % if spec.get_init():
     ${spec.get_init()}
     % endif

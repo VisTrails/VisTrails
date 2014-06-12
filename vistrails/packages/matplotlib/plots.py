@@ -1324,8 +1324,8 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
     _output_ports = [
         ("value", "(MplContour)"),
-              ("contourSet", "MplQuadContourSet",
-                {}),
+            # (this plot has additional output which are not exposed as ports
+            # right now)
         ]
     
 
@@ -1526,8 +1526,8 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
     _output_ports = [
         ("value", "(MplContourf)"),
-              ("contourSet", "MplQuadContourSet",
-                {}),
+            # (this plot has additional output which are not exposed as ports
+            # right now)
         ]
     
 
