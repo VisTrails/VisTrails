@@ -1131,7 +1131,7 @@ class Module(Serializable):
                                                 " depth %s, expected %s." %
                                                 (port_name, i-1, depth))
 
-            if depth and root:
+            if depth and root is not None:
                 self.typeChecking(self, [port_name],
                                   [[r] for r in root] if depth else [[root]])
             ports.append(value)
@@ -1598,8 +1598,22 @@ class ModuleConnector(object):
                     UserWarning)
         depth = self.depth()
         from vistrails.core.modules.basic_modules import Iterator
+        value = result
         if isinstance(result, Iterator):
             result = result.all()
+            value = result
+            # flatten list
+            for i in xrange(1, depth):
+                try:
+                    value = [item for sublist in value for item in sublist] 
+                except TypeError:
+                    raise ModuleError(self.obj, "List on port %s has wrong"
+                                      " depth %s, expected %s." %
+                                      (self.port, i, depth))
+            if depth:
+                # Only type-check first value
+                value = value[0] if value is not None and len(value) else None
+
         if self.spec is not None and self.typecheck is not None:
             descs = self.spec.descriptors()
             typecheck = self.typecheck
@@ -1607,17 +1621,6 @@ class ModuleConnector(object):
                 if not typecheck[0]:
                     return result
                 mod = descs[0].module
-                value = result
-                # flatten list
-                for i in xrange(depth):
-                    try:
-                        value = [item for sublist in value for item in sublist] 
-                    except TypeError:
-                        raise ModuleError(self.obj, "List on port %s has wrong"
-                                          " depth %s, expected %s."
-                                          "%s"% (self.port, i, depth))
-                if depth:
-                    value = value[0] if value else None
                 if hasattr(mod, 'validate') and value and not mod.validate(value):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s does not match destination type "
@@ -1628,10 +1631,10 @@ class ModuleConnector(object):
                         typecheck = [True] * len(descs)
                     else:
                         return result
-                if not isinstance(result, tuple):
+                if not isinstance(value, tuple):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s is not a tuple" % self.port)
-                elif len(result) != len(descs):
+                elif len(value) != len(descs):
                     raise ModuleError(self.obj, "Object passed on Variant "
                                       "port %s does not have the correct "
                                       "length (%d, expected %d)" % (
@@ -1641,7 +1644,7 @@ class ModuleConnector(object):
                         continue
                     mod = desc.module
                     if hasattr(mod, 'validate'):
-                        if not mod.validate(result[i]):
+                        if not mod.validate(value[i]):
                             raise ModuleError(
                                     self.obj,
                                     "Element %d of tuple passed on Variant "

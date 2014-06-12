@@ -1181,7 +1181,7 @@ class Iterator(object):
         self.generator = generator
         self.port = port
         self.size = size
-        if size is None and values:
+        if size is None and values is not None:
             self.size = len(values)
         self.pos = 0
         if generator and generator not in Iterator.generators:
@@ -1204,7 +1204,7 @@ class Iterator(object):
         return self.module.get_output(self.port)
     
     def all(self):
-        if self.values:
+        if self.values is not None:
             return self.values
         items = []
         item = self.next()
@@ -1412,21 +1412,31 @@ def get_module(value, signature):
     """
     Creates a module for value, in order to do the type checking.
     """
-    from vistrails.core.modules.basic_modules import Boolean, String, \
-        Integer, Float, Constant, List
     if isinstance(value, Constant):
         return type(value)
-    elif isinstance(value, bool):
+    if isinstance(value, bool):
         return Boolean
-    elif isinstance(value, str):
+    if isinstance(value, str):
         return String
-    elif isinstance(value, int):
-        return Integer
-    elif isinstance(value, float):
+    #if isinstance(value, int):
+    # any object that can be cast as int without losing digits
+    try:
+        if value == int(value):
+            return Integer
+    except:
+        pass
+    #if isinstance(value, float):
+    # any object that can be cast as float except int
+    try:
+        float(value)
         return Float
-    elif isinstance(value, list):
+    except:
+        pass
+    if isinstance(value, list):
         return List
     elif isinstance(value, tuple):
+        if len(signature) == 1 and signature[0][0] == Variant:
+            return (Variant,)*len(value)
         v_modules = ()
         for element in xrange(len(value)):
             v_modules += (get_module(value[element], signature[element]),)
