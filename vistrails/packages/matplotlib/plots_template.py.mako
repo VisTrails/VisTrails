@@ -130,8 +130,7 @@ class ${spec.name}(${spec.superklass}):
     ${spec.get_init()}
     % endif
 
-    def compute(self):
-        super(${spec.name}, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []

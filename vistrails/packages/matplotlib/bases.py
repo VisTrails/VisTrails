@@ -54,19 +54,8 @@ class MplProperties(Module):
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
-    def __init__(self):
-        Module.__init__(self)
-        self.figInstance = None
-
-    def set_figure(self, fig):
-        if self.figInstance is None:
-            self.figInstance = fig
-        else:
-            raise ModuleError(self,
-                              "matplotlib plots can only be in one figure")
-
     def compute(self):
-        matplotlib.pyplot.figure(self.figInstance.number)
+        self.set_output('value', self.plot_figure)
 
 class MplSource(CodeRunnerMixin, MplPlot):
     """
@@ -81,17 +70,16 @@ class MplSource(CodeRunnerMixin, MplPlot):
     _input_ports = [('source', '(basic:String)')]
     _output_ports = [('value', '(MplSource)')]
 
-    def compute(self):
+    def plot_figure(self, figure):
         """ compute() -> None
         """
         source = self.get_input('source')
         s = ('from pylab import *\n'
              'from numpy import *\n' +
-             'figure(%d)\n' % self.figInstance.number +
+             'figure(%d)\n' % figure.number +
              urllib.unquote(source))
 
         self.run_code(s, use_input=True, use_output=True)
-        self.set_output('value', None)
 
 class MplFigure(Module):
     _input_ports = [("addPlot", "(MplPlot)"),
@@ -101,27 +89,15 @@ class MplFigure(Module):
 
     _output_ports = [("self", "(MplFigure)")]
 
-    def __init__(self):
-        Module.__init__(self)
-        self.figInstance = None
-
-    def update_upstream(self):
+    def compute(self):
         # Create a figure
-        if self.figInstance is None:
-            self.figInstance = pylab.figure()
+        self.figInstance = pylab.figure()
         pylab.hold(True)
 
-        # Set it on the plots
-        connectorList = self.inputPorts.get('addPlot', [])
-        connectorList.extend(self.inputPorts.get('setLegend', []))
-        for connector in connectorList:
-            connector.obj.set_figure(self.figInstance)
-
-        # Now we can run upstream modules
-        super(MplFigure, self).update_upstream()
-
-    def compute(self):
+        # Run the plots
         plots = self.get_input_list("addPlot")
+        for plot in plots:
+            plot(self.figInstance)
 
         if self.has_input("figureProperties"):
             figure_props = self.get_input("figureProperties")
@@ -132,7 +108,6 @@ class MplFigure(Module):
         if self.has_input("setLegend"):
             legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
-
 
         self.set_output("self", self)
 

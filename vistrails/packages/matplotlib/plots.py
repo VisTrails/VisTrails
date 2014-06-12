@@ -79,8 +79,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplAcorr, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -162,8 +161,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplArrow, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -233,8 +231,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplAxhline, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -306,8 +303,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplAxhspan, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -380,8 +376,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplAxvline, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -451,8 +446,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplAxvspan, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -563,8 +557,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplBar, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -723,8 +716,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplBarh, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -843,8 +835,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplBrokenBarh, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -937,8 +928,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplBoxplot, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1082,8 +1072,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplCohere, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1178,8 +1167,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplClabel, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1341,8 +1329,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplContour, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1544,8 +1531,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplContourf, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1677,8 +1663,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplCsd, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1807,8 +1792,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplErrorbar, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1930,8 +1914,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplFill, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1991,8 +1974,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplFillBetween, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2071,8 +2053,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplFillBetweenx, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2188,8 +2169,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplHexbin, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2336,8 +2316,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplHist, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2467,8 +2446,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplHist2d, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2555,8 +2533,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplHlines, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2681,8 +2658,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplImshow, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2788,8 +2764,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplLoglog, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2917,8 +2892,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplPcolor, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3012,8 +2986,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplPcolormesh, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3105,8 +3078,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplPie, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3218,8 +3190,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplPlotDate, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3308,8 +3279,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplPsd, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3426,8 +3396,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplQuiver, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3546,8 +3515,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplQuiverkey, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3664,8 +3632,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplScatter, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3766,8 +3733,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplSemilogx, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3832,8 +3798,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplSemilogy, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3924,8 +3889,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplSpecgram, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3995,8 +3959,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplStackplot, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4056,8 +4019,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplStem, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4134,8 +4096,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplStep, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4198,8 +4159,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplStreamplot, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4339,8 +4299,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplTricontour, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4476,8 +4435,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplTricontourf, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4553,8 +4511,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplTripcolor, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4592,8 +4549,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplTriplot, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4645,8 +4601,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplVlines, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4737,8 +4692,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplXcorr, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4866,8 +4820,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplBarbs, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -5006,8 +4959,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplSpy, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -5071,8 +5023,7 @@ Multiple theta, r arguments are supported, with format strings, as in :func:`~ma
         ]
     
 
-    def compute(self):
-        super(MplPolar, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -5204,8 +5155,7 @@ Example:
         ]
     
 
-    def compute(self):
-        super(MplLegend, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -5333,8 +5283,7 @@ Additional kwargs are Text properties:
         ]
     
 
-    def compute(self):
-        super(MplAnnotate, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -5429,8 +5378,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
     
 
-    def compute(self):
-        super(MplLinePlot, self).compute()
+    def plot_figure(self, figure):
         # get args into args, kwargs
         # write out translations
         args = []
