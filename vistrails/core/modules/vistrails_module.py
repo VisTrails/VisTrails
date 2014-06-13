@@ -307,6 +307,8 @@ class Module(Serializable):
         self._latest_method_order = 0
         self.iterated_ports = []
         self.streamed_ports = {}
+        self.input_port_depths = {}
+        self.output_port_depths = {}
         
         # Pipeline info that a module should know about This is useful
         # for a spreadsheet cell to know where it is from. It will be
@@ -423,20 +425,13 @@ class Module(Serializable):
         This requires having the pipeline available
         """
         self.iterated_ports = []
-        if not self.moduleInfo.get('pipeline', None):
-            return
-        p_modules = self.moduleInfo['pipeline'].modules
-        p_module = p_modules[self.moduleInfo['moduleId']]
-        # get sorted port list
-        ports = [spec.name for spec in p_module.destinationPorts()]
-        items = [(port, self.inputPorts[port]) for port in ports
-                 if port in self.inputPorts] 
-        for iport, connectorList in items:
-            port_spec = p_module.get_port_spec(iport, 'input')
+
+        for iport, connectorList in self.inputPorts.iteritems():
             for connector in connectorList:
-                depth = connector.depth() - port_spec.depth
+                depth = connector.depth() - self.input_port_depths[iport]
                 if depth > 0:
-                    self.iterated_ports.append((iport, depth, connector.get_raw()))
+                    self.iterated_ports.append((iport, depth, 
+                                                connector.get_raw()))
 
     def set_streamed_ports(self):
         """ set_streamed_ports() -> None        
@@ -1076,14 +1071,11 @@ class Module(Serializable):
         value = self.inputPorts[port_name][0]() 
         depth = self.inputPorts[port_name][0].depth()
         # type check list of lists
-        if self.moduleInfo.get('pipeline', False):
-            p_modules = self.moduleInfo['pipeline'].modules
-            p_module = p_modules[self.moduleInfo['moduleId']]
-            spec = p_module.get_port_spec(port_name, 'input')
-            # wrap depths that are too shallow
-            while depth - self.list_depth - spec.depth < 0:
-                value = [value]
-                depth += 1
+        
+        # wrap depths that are too shallow
+        while depth - self.list_depth - self.input_port_depths[port_name] < 0:
+            value = [value]
+            depth += 1
         return value
 
     def get_input_list(self, port_name):
@@ -1108,28 +1100,25 @@ class Module(Serializable):
             return fromInputPortModule
         ports = []
         for connector in self.inputPorts[port_name]:
+            from vistrails.core.modules.basic_modules import Iterator
             value = connector()
             depth = connector.depth()
             root = value
             # type check list of lists
-            if self.moduleInfo['pipeline']:
-                from vistrails.core.modules.basic_modules import Iterator
-                p_modules = self.moduleInfo['pipeline'].modules
-                p_module = p_modules[self.moduleInfo['moduleId']]
-                spec = p_module.get_port_spec(port_name, 'input')
-                # wrap depths that are too shallow
-                while depth - self.list_depth - spec.depth < 0:
-                    value = [value]
-                    depth += 1
-                for i in xrange(1, depth):
-                    try:
-                        root = [(item.all() if isinstance(item, Iterator)
-                                 else item) for item in root]
-                        root = [item for sublist in root for item in sublist] 
-                    except TypeError:
-                        raise ModuleError(self, "List on port %s has wrong"
-                                                " depth %s, expected %s." %
-                                                (port_name, i-1, depth))
+            # wrap depths that are too shallow
+            while (depth - self.list_depth - 
+                   self.input_port_depths[port_name]) < 0:
+                value = [value]
+                depth += 1
+            for i in xrange(1, depth):
+                try:
+                    root = [(item.all() if isinstance(item, Iterator)
+                             else item) for item in root]
+                    root = [item for sublist in root for item in sublist] 
+                except TypeError:
+                    raise ModuleError(self, "List on port %s has wrong"
+                                            " depth %s, expected %s." %
+                                            (port_name, i-1, depth))
 
             if depth and root is not None:
                 self.typeChecking(self, [port_name],
@@ -1145,20 +1134,14 @@ class Module(Serializable):
         :param value: the value to be assigned to the port
 
         """
+        # FIXME why do we check value not self?
         if value is not self:
             from vistrails.core.modules.basic_modules import Iterator
-            if not isinstance(value, Iterator):
-                # wrap lists in the special Iterator class
-                p_modules = self.moduleInfo['pipeline'] and \
-                            self.moduleInfo['pipeline'].modules
-                p_module = p_modules and p_modules[self.moduleInfo['moduleId']]
-                try:
-                    port_spec = p_module and p_module.get_port_spec(port_name,
-                                                                    'output')
-                except Exception:
-                    port_spec = None
-                if port_spec and (port_spec.depth + self.list_depth):
-                    value = Iterator(value, port_spec.depth + self.list_depth)
+            if (not isinstance(value, Iterator) and 
+                    port_name in self.output_port_depths and
+                    self.output_port_depths[port_name] + self.list_depth != 0):
+                value = Iterator(value, (self.output_port_depths[port_name] + 
+                                         self.list_depth))
         self.outputPorts[port_name] = value
 
     def check_input(self, port_name):

@@ -280,8 +280,7 @@ class Module(DBModule):
         desc = self.module_descriptor
         return reg.has_port_spec_from_descriptor(desc, port_name, port_type)
 
-    def summon(self):
-        result = self.module_descriptor.module()
+    def transfer_attrs(self, result):
         if self.cache != 1:
             result.is_cacheable = lambda *args: False
         if hasattr(result, 'input_ports_order'):
@@ -292,10 +291,23 @@ class Module(DBModule):
             result.output_ports_order.reverse()
         result.list_depth = self.list_depth
         result.is_breakpoint = self.is_breakpoint
+
+        def get_port_depths(port_specs):
+            port_depths = {}
+            for port_spec in port_specs:
+                port_depths[port_spec.name] = port_spec.depth
+            return port_depths
+        result.input_port_depths = get_port_depths(self.destinationPorts())
+        result.output_port_depths = get_port_depths(self.sourcePorts())
+
         # FIXME this may not be quite right because we don't have self.registry
         # anymore.  That said, I'm not sure how self.registry would have
         # worked for hybrids...
         result.registry = get_module_registry()
+
+    def summon(self):
+        result = self.module_descriptor.module()
+        self.transfer_attrs(result)
         return result
 
     def is_group(self):
