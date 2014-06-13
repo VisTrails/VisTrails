@@ -290,6 +290,8 @@ class Module(DBModule):
             result.output_ports_order = [p.name for p in self.output_port_specs]
             # output_ports are reversed for display purposes...
             result.output_ports_order.reverse()
+        result.list_depth = self.list_depth
+        result.is_breakpoint = self.is_breakpoint
         # FIXME this may not be quite right because we don't have self.registry
         # anymore.  That said, I'm not sure how self.registry would have
         # worked for hybrids...

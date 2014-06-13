@@ -343,10 +343,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             persistent_id = tmp_to_persistent_module_map[i]
             module = self._persistent_pipeline.modules[persistent_id]
             obj = self._objects[persistent_id] = module.summon()
-            obj.list_depth = module.list_depth
             obj.interpreter = self
             obj.id = persistent_id
-            obj.is_breakpoint = module.is_breakpoint
             obj.signature = module._signature
             
             # Checking if output should be stored
