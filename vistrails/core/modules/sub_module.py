@@ -235,8 +235,6 @@ class Group(Module):
         self.input_remap = module._input_remap
         self.output_remap = module._output_remap
         Module.transfer_attrs(self, module)
-        # reset is_cacheable since Module uses a lambda function
-        self.is_cacheable = Group.is_cacheable
 
 ###############################################################################
 
