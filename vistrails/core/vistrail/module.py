@@ -300,14 +300,14 @@ class Module(DBModule):
         result.input_port_depths = get_port_depths(self.destinationPorts())
         result.output_port_depths = get_port_depths(self.sourcePorts())
 
+    def summon(self):
+        result = self.module_descriptor.module()
+        result.transfer_attrs(self)
+
         # FIXME this may not be quite right because we don't have self.registry
         # anymore.  That said, I'm not sure how self.registry would have
         # worked for hybrids...
         result.registry = get_module_registry()
-
-    def summon(self):
-        result = self.module_descriptor.module()
-        self.transfer_attrs(result)
         return result
 
     def is_group(self):

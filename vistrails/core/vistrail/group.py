@@ -136,14 +136,6 @@ class Group(DBGroup, Module):
     version = basic_pkg_version
     internal_version = ''
 
-    def transfer_attrs(self, result):
-        result.pipeline = self.pipeline
-        if self._port_specs is None:
-            self.make_port_specs()
-        result.input_remap = self._input_remap
-        result.output_remap = self._output_remap
-        Module.transfer_attrs(self, result)
-
     def is_group(self):
         return True
 

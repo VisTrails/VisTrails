@@ -337,6 +337,26 @@ class Module(Serializable):
         # execution log
         self.annotate_output = False
 
+    def transfer_attrs(self, module):
+        if module.cache != 1:
+            self.is_cacheable = lambda *args: False
+        if hasattr(self, 'input_ports_order'):
+            self.input_ports_order = [p.name for p in module.input_port_specs]
+        if hasattr(self, 'output_ports_order'):
+            self.output_ports_order = [p.name for p in module.output_port_specs]
+            # output_ports are reversed for display purposes...
+            self.output_ports_order.reverse()
+        self.list_depth = module.list_depth
+        self.is_breakpoint = module.is_breakpoint
+
+        def get_port_depths(port_specs):
+            port_depths = {}
+            for port_spec in port_specs:
+                port_depths[port_spec.name] = port_spec.depth
+            return port_depths
+        self.input_port_depths = get_port_depths(module.destinationPorts())
+        self.output_port_depths = get_port_depths(module.sourcePorts())
+
     def __copy__(self):
         """Makes a copy of the input/output ports on shallow copy.
         """
