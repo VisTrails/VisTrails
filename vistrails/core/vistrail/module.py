@@ -280,26 +280,6 @@ class Module(DBModule):
         desc = self.module_descriptor
         return reg.has_port_spec_from_descriptor(desc, port_name, port_type)
 
-    def transfer_attrs(self, result):
-        if self.cache != 1:
-            result.is_cacheable = lambda *args: False
-        if hasattr(result, 'input_ports_order'):
-            result.input_ports_order = [p.name for p in self.input_port_specs]
-        if hasattr(result, 'output_ports_order'):
-            result.output_ports_order = [p.name for p in self.output_port_specs]
-            # output_ports are reversed for display purposes...
-            result.output_ports_order.reverse()
-        result.list_depth = self.list_depth
-        result.is_breakpoint = self.is_breakpoint
-
-        def get_port_depths(port_specs):
-            port_depths = {}
-            for port_spec in port_specs:
-                port_depths[port_spec.name] = port_spec.depth
-            return port_depths
-        result.input_port_depths = get_port_depths(self.destinationPorts())
-        result.output_port_depths = get_port_depths(self.sourcePorts())
-
     def summon(self):
         result = self.module_descriptor.module()
         result.transfer_attrs(self)
