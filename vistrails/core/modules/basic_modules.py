@@ -713,6 +713,10 @@ class Tuple(Module):
         self.input_ports_order = []
         self.values = tuple()
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
     def compute(self):
         values = tuple([self.get_input(p)
                         for p in self.input_ports_order])
@@ -731,6 +735,12 @@ class Untuple(Module):
     def __init__(self):
         Module.__init__(self)
         self.output_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.output_ports_order = [p.name for p in module.output_port_specs]
+        # output_ports are reversed for display purposes...
+        self.output_ports_order.reverse()
 
     def compute(self):
         if self.has_input("tuple"):
@@ -808,6 +818,10 @@ class List(Constant):
     def __init__(self):
         Constant.__init__(self)
         self.input_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
 
     @staticmethod
     def validate(x):
@@ -911,6 +925,12 @@ class CodeRunnerMixin(object):
         self.output_ports_order = []
         super(CodeRunnerMixin, self).__init__()
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.output_ports_order = [p.name for p in module.output_port_specs]
+        # output_ports are reversed for display purposes...
+        self.output_ports_order.reverse()
+
     def run_code(self, code_str,
                  use_input=False,
                  use_output=False):
@@ -973,7 +993,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
 
 ##############################################################################
 
-class SmartSource(NotCacheable, Module):
+class SmartSource(CodeRunnerMixin, NotCacheable, Module):
     _settings = ModuleSettings(
         configure_widget=("vistrails.gui.modules.python_source_configure:"
                              "PythonSourceConfigurationWidget"))

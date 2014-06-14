@@ -340,12 +340,6 @@ class Module(Serializable):
     def transfer_attrs(self, module):
         if module.cache != 1:
             self.is_cacheable = lambda *args: False
-        if hasattr(self, 'input_ports_order'):
-            self.input_ports_order = [p.name for p in module.input_port_specs]
-        if hasattr(self, 'output_ports_order'):
-            self.output_ports_order = [p.name for p in module.output_port_specs]
-            # output_ports are reversed for display purposes...
-            self.output_ports_order.reverse()
         self.list_depth = module.list_depth
         self.is_breakpoint = module.is_breakpoint
 

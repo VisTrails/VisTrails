@@ -213,6 +213,10 @@ class BuildTable(Module):
         Module.__init__(self)
         self.input_ports_order = []
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
     def compute(self):
         items = None
         if self.input_ports_order: # pragma: no branch
