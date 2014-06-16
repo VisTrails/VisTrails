@@ -462,6 +462,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         # Update **all** modules in the current pipeline
         for i, obj in tmp_id_to_module_map.iteritems():
+            obj.in_pipeline = True # set flag to indicate in pipeline
             obj.logging = logging_obj
             obj.change_parameter = make_change_parameter(obj)
             

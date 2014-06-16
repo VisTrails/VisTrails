@@ -309,6 +309,7 @@ class Module(Serializable):
         self.streamed_ports = {}
         self.input_port_depths = {}
         self.output_port_depths = {}
+        self.in_pipeline = False
         
         # Pipeline info that a module should know about This is useful
         # for a spreadsheet cell to know where it is from. It will be
@@ -1151,7 +1152,8 @@ class Module(Serializable):
         # FIXME why do we check value not self?
         if value is not self:
             from vistrails.core.modules.basic_modules import Iterator
-            if (not isinstance(value, Iterator) and 
+            if (self.in_pipeline and 
+                    not isinstance(value, Iterator) and 
                     port_name in self.output_port_depths and
                     self.output_port_depths[port_name] + self.list_depth != 0):
                 value = Iterator(value, (self.output_port_depths[port_name] + 
@@ -1693,31 +1695,35 @@ def new_module(base_module, name, dict={}, docstring=None):
 import unittest
 
 class TestImplicitLooping(unittest.TestCase):
-    def test_features(self):
+    def run_vt(self, vt_basename):
         from vistrails.core.system import vistrails_root_directory
         from vistrails.core.db.locator import FileLocator
         from vistrails.core.db.io import load_vistrail
         from vistrails.core.console_mode import run
         from vistrails.tests.utils import capture_stdout
         import os
-        resources = vistrails_root_directory() + '/tests/resources/'
-        files = ['test-implicit-while.vt',
-                 'test-streaming.vt',
-                 'test-list-custom.vt']
-        for vtfile in files:
-            try:
-                errs = []
-                filename = os.path.join(resources, vtfile)
-                locator = FileLocator(os.path.abspath(filename))
-                (v, _, _, _) = load_vistrail(locator)
-                w_list = []
-                for version, _ in v.get_tagMap().iteritems():
-                    w_list.append((locator,version))
-                if len(w_list) > 0:
-                    with capture_stdout() as c:
-                        errs = run(w_list, update_vistrail=False)
-                    for err in errs:
-                        self.fail(str(err))
-            except Exception, e:
-                self.fail(debug.format_exception(e))
-            
+        filename = os.path.join(vistrails_root_directory(), "tests", 
+                                "resources", vt_basename)
+        try:
+            errs = []
+            locator = FileLocator(os.path.abspath(filename))
+            (v, _, _, _) = load_vistrail(locator)
+            w_list = []
+            for version, _ in v.get_tagMap().iteritems():
+                w_list.append((locator,version))
+            if len(w_list) > 0:
+                with capture_stdout() as c:
+                    errs = run(w_list, update_vistrail=False)
+                for err in errs:
+                    self.fail(str(err))
+        except Exception, e:
+            self.fail(debug.format_exception(e))
+        
+    def test_implicit_while(self):
+        self.run_vt("test-implicit-while.vt")
+    
+    def test_streaming(self):
+        self.run_vt("test-streaming.vt")
+        
+    def test_list_custom(self):
+        self.run_vt("test-list-custom.vt")
