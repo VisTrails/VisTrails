@@ -1220,10 +1220,14 @@ class Iterator(object):
         # return next value - the generator
         value = self.module.get_output(self.port)
         if isinstance(value, Iterator):
-            raise ModuleError(self.module, "Iterator generator cannot contain an iterator")
+            raise ModuleError(self.module,
+                              "Iterator generator cannot contain an iterator")
         return self.module.get_output(self.port)
     
     def all(self):
+        """ Returns self.values for Iterators and exhausts next() for Streams
+        
+        """
         if self.values is not None:
             return self.values
         items = []
@@ -1235,8 +1239,10 @@ class Iterator(object):
 
     @staticmethod
     def stream():
-        # execute all generators until inputs are exhausted
-        # this makes sure branching and multiple sinks are executed correctly
+        """ executes all generators until inputs are exhausted
+            this makes sure branching and multiple sinks are executed correctly
+
+        """
         result = True
         if not Iterator.generators:
             return
