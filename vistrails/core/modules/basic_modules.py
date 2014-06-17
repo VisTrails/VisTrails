@@ -1201,7 +1201,7 @@ class Iterator(object):
         self.generator = generator
         self.port = port
         self.size = size
-        if size is None and values is not None:
+        if size is None and isinstance(values, List):
             self.size = len(values)
         self.pos = 0
         if generator and generator not in Iterator.generators:
@@ -1210,7 +1210,7 @@ class Iterator(object):
             Iterator.generators.append(self.generator)
             
     def next(self):
-        if self.values is not None:
+        if self.module is None:
             try:
                 item = self.values[self.pos]
                 self.pos += 1
@@ -1228,7 +1228,7 @@ class Iterator(object):
         """ Returns self.values for Iterators and exhausts next() for Streams
         
         """
-        if self.values is not None:
+        if self.module is None:
             return self.values
         items = []
         item = self.next()

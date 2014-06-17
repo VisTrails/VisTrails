@@ -296,7 +296,6 @@ class Module(Serializable):
         self.was_suspended = False
         self.is_while = False
         self.list_depth = 0
-        self.set_output("self", self) # every object can return itself
         self.logging = _dummy_logging
 
         # isMethod stores whether a certain input port is a method.
@@ -311,6 +310,7 @@ class Module(Serializable):
         self.iterated_ports = []
         self.streamed_ports = {}
         self.in_pipeline = False
+        self.set_output("self", self) # every object can return itself
         
         # Pipeline info that a module should know about This is useful
         # for a spreadsheet cell to know where it is from. It will be
@@ -572,7 +572,7 @@ class Module(Serializable):
         suspended = []
 
         # only iterate max depth and leave the rest for later
-        ports = [port for port, depth, value in self.iterated_ports
+        ports = [port for port, depth, _ in self.iterated_ports
                  if depth == self.list_depth]
         inputs = {}
         for port in ports:
@@ -633,7 +633,6 @@ class Module(Serializable):
                 if nameOutput not in outputs:
                     outputs[nameOutput] = []
                 output = module.get_output(nameOutput)
-                from vistrails.core.modules.basic_modules import Iterator
                 if isinstance(output, Iterator):
                     output = output.all()
                 outputs[nameOutput].append(output)
@@ -995,7 +994,7 @@ class Module(Serializable):
                                   'are not the same.')
             for element, inputPort in izip(elementList, inputPorts):
                 if isinstance(element, Iterator):
-                    if element.values:
+                    if element.module is None:
                         return
                     else:
                         raise ModuleError(self, "Iterator is not allowed here")
@@ -1110,7 +1109,6 @@ class Module(Serializable):
                 ports.append(value)
                 continue
             input_specs = dict([(spec.name, spec) for spec in self.input_specs])
-            from vistrails.core.modules.basic_modules import Iterator
             # wrap depths that are too shallow
             while depth - self.list_depth - input_specs[port_name].depth < 0:
                 value = [value]
@@ -1594,7 +1592,7 @@ class ModuleConnector(object):
         from vistrails.core.modules.basic_modules import Iterator
         value = result
         if isinstance(result, Iterator):
-            if result.values is None:
+            if result.module is not None:
                 return result
             result = result.all()
             value = result
