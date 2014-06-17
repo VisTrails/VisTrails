@@ -1149,7 +1149,7 @@ class Module(Serializable):
         :param value: the value to be assigned to the port
 
         """
-        # FIXME why do we check value not self?
+        # skip self because this method is called by its constructor
         if value is not self:
             from vistrails.core.modules.basic_modules import Iterator
             if (self.in_pipeline and 
