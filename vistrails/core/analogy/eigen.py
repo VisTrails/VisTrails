@@ -39,7 +39,6 @@ import operator
 import scipy
 import tempfile
 
-from vistrails.core.bundles import py_import
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.utils import append_to_dict_of_lists
 
@@ -53,15 +52,11 @@ from .pipeline_utils import pipeline_bbox, pipeline_centroid
 # EigenBase
 
 def mzeros(*args, **kwargs):
-    nkwargs = copy.copy(kwargs)
-    nkwargs['dtype'] = float
-    az = scipy.zeros(*args, **nkwargs)
+    az = scipy.zeros(*args, dtype=float, **kwargs)
     return scipy.matrix(az)
 
 def mones(*args, **kwargs):
-    nkwargs = copy.copy(kwargs)
-    nkwargs['dtype'] = float
-    az = scipy.ones(*args, **nkwargs)
+    az = scipy.ones(*args, dtype=float, **kwargs)
     return scipy.matrix(az)
 
 #mzeros = lambda *args, **kwargs: scipy.matrix(scipy.zeros(*args, **kwargs))
@@ -404,10 +399,9 @@ class EigenPipelineSimilarity(EigenBase):
 class EigenPipelineSimilarity2(EigenBase):
 
     def __init__(self, *args, **kwargs):
-        basekwargs = copy.copy(kwargs)
-        del basekwargs['alpha']
-        EigenBase.__init__(self, *args, **basekwargs)
-        self.init_operator(alpha=kwargs['alpha'])
+        alpha = kwargs.pop('alpha')
+        EigenBase.__init__(self, *args, **kwargs)
+        self.init_operator(alpha=alpha)
 
     def init_operator(self, alpha):
         def edges(pip, v_id):

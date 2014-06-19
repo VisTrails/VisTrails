@@ -201,7 +201,7 @@ class TestLinux(unittest.TestCase):
         link_or_copy(name1, name2)
         try:
             os.unlink(name1)
-        except:
+        except OSError:
             self.fail("Should not throw")
         os.unlink(name2)
 

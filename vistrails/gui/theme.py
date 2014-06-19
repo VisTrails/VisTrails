@@ -72,6 +72,9 @@ class DefaultTheme(DefaultCoreTheme):
         ######################
         #### MEASUREMENTS ####
 
+        # pipeline view bounding rect
+        self.BOUNDING_RECT_MINIMUM = 512
+
         # Port shape
         self.PORT_RECT = QtCore.QRectF(0, 0, self.PORT_WIDTH, self.PORT_HEIGHT)
 
@@ -623,6 +626,15 @@ class DefaultTheme(DefaultCoreTheme):
         self.MULTILINE_STRING_ICON = QtGui.QIcon(QtGui.QPixmap(
                 vistrails.core.system.vistrails_root_directory() +
                 '/gui/resources/images/multiline_string_icon.png'))
+
+        # icons for the port list combination modes
+        self.DOT_PRODUCT_ICON = QtGui.QIcon(QtGui.QPixmap(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/macro.png'))
+
+        self.CROSS_PRODUCT_ICON = QtGui.QIcon(QtGui.QPixmap(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/remove_param.png'))
 
         #### COLORS ####
         # Color for the PIP frame

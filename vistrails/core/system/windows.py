@@ -84,7 +84,7 @@ def parse_meminfo():
         result = WIN32MEMORYSTATUSEX()
         result.dwLength = sizeof(WIN32MEMORYSTATUSEX)
         kernel32.GlobalMemoryStatusEx(byref(result))
-    except:
+    except Exception:
         return -1
     return long(result.dwTotalPhys / 1024)
 

@@ -881,16 +881,24 @@ class QPathChooserToolButton(QtGui.QToolButton):
         return self.lineEdit.text() or self.defaultPath
 
     def openChooser(self):
-        return QtGui.QFileDialog.getOpenFileName(self,
+        path = QtGui.QFileDialog.getOpenFileName(self,
                                                  'Select Path...',
                                                  self.getDefaultText(),
                                                  'All files '
                                                  '(*.*)')
+        return self.setDataDirectory(path)
 
     def runDialog(self):
         path = self.openChooser()
         self.setPath(path)
 
+    def setDataDirectory(self, path):
+        if path:
+            absPath = os.path.abspath(str(QtCore.QFile.encodeName(path)))
+            dirName = os.path.dirname(absPath)
+            system.set_vistrails_data_directory(dirName)
+            return absPath
+        return path
 
 class QFileChooserToolButton(QPathChooserToolButton):
     def __init__(self, parent=None, lineEdit=None, toolTip=None,
@@ -901,11 +909,12 @@ class QFileChooserToolButton(QPathChooserToolButton):
                                         defaultPath)
 
     def openChooser(self):
-        return QtGui.QFileDialog.getOpenFileName(self,
+        path = QtGui.QFileDialog.getOpenFileName(self,
                                                  'Select File...',
                                                  self.getDefaultText(),
                                                  'All files '
                                                  '(*.*)')
+        return self.setDataDirectory(path)
 
 class QDirectoryChooserToolButton(QPathChooserToolButton):
     def __init__(self, parent=None, lineEdit=None, toolTip=None,
@@ -916,9 +925,10 @@ class QDirectoryChooserToolButton(QPathChooserToolButton):
                                        defaultPath)
 
     def openChooser(self):
-        return QtGui.QFileDialog.getExistingDirectory(self,
+        path = QtGui.QFileDialog.getExistingDirectory(self,
                                                       'Select Directory...',
                                                       self.getDefaultText())
+        return self.setDataDirectory(path)
 
 class QOutputPathChooserToolButton(QPathChooserToolButton):
     def __init__(self, parent=None, lineEdit=None, toolTip=None,
@@ -929,9 +939,10 @@ class QOutputPathChooserToolButton(QPathChooserToolButton):
                                        defaultPath)
     
     def openChooser(self):
-        return QtGui.QFileDialog.getSaveFileName(self,
+        path = QtGui.QFileDialog.getSaveFileName(self,
                                                  'Select Output Location...',
                                                  self.getDefaultText(),
                                                  'All files (*.*)')
+        return self.setDataDirectory(path)
     
     

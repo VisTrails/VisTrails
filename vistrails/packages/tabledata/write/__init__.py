@@ -19,6 +19,7 @@ _modules = make_modules_dict(numpy_modules, csv_modules, excel_modules,
 ###############################################################################
 
 import unittest
+from .write_excel import get_xlwt
 
 
 class BaseWriteTestCase(object):
@@ -83,13 +84,8 @@ class BaseWriteTestCase(object):
         self.assertEqual(results[0], ['a', '2', 'c'])
 
 
+@unittest.skipIf(get_xlwt() is None, "xlwt not available")
 class ExcelWriteTestCase(unittest.TestCase, BaseWriteTestCase):
-    @classmethod
-    def setUpClass(cls):
-        from .write_excel import get_xlwt
-        if get_xlwt() is None: # pragma: no cover
-            raise unittest.SkipTest("xlwt not available")
-
     WRITER_MODULE = 'write|WriteExcelSpreadsheet'
     READER_MODULE = 'read|ExcelSpreadsheet'
 

@@ -165,7 +165,7 @@ class QControlFlowAssistDialog(QtGui.QDialog):
             try:
                 function_pos = [f.name for f in input_module.functions].index(input_portspec.name)
                 self.controller.delete_method(function_pos, input_module.id)
-            except:
+            except Exception:
                 pass
             # Disconnect connections to selected input ports
             for connection in input_connections:

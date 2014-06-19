@@ -1,9 +1,10 @@
 # https://gist.github.com/remram44/6540454
 
 from HTMLParser import HTMLParser
-import urllib2
 import os
 import re
+
+from .https_if_available import build_opener
 
 
 re_url = re.compile(r'^(([a-zA-Z_-]+)://([^/]+))(/.*)?$')
@@ -53,7 +54,7 @@ class ListingParser(HTMLParser):
                     break
 
 
-def download_directory(url, target):
+def download_directory(url, target, insecure=False):
     def mkdir():
         if not mkdir.done:
             try:
@@ -63,7 +64,8 @@ def download_directory(url, target):
             mkdir.done = True
     mkdir.done = False
 
-    response = urllib2.urlopen(url)
+    opener = build_opener(insecure=insecure)
+    response = opener.open(url)
 
     if response.info().type == 'text/html':
         contents = response.read()
@@ -80,7 +82,7 @@ def download_directory(url, target):
             if '?' in name:
                 continue
             mkdir()
-            download_directory(link, os.path.join(target, name))
+            download_directory(link, os.path.join(target, name), insecure)
         if not mkdir.done:
             # We didn't find anything to write inside this directory
             # Maybe it's a HTML file?

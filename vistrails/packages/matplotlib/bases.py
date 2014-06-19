@@ -36,30 +36,24 @@ import matplotlib
 import pylab
 import urllib
 
+from matplotlib.backend_bases import FigureCanvasBase
+
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 
 ################################################################################
 
 class MplProperties(Module):
-    _output_ports = [("self", "(MplProperties)")]
-    
-    def update_props(self, objs):
-        # must implement in subclass
+    def compute(self, artist):
         pass
-        
-    def update_sub_props(self, objs):
-        # must implement in subclass
-        pass
+
+    class Artist(object):
+        def update_sub_props(self, objs):
+            # must implement in subclass
+            pass
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
-    # _input_ports = [("subfigRow", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("subfigCol", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]})]
-    _output_ports = [("self", "(MplPlot)")]
-
     def __init__(self):
         Module.__init__(self)
         self.figInstance = None
@@ -85,6 +79,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
     
     """
     _input_ports = [('source', '(basic:String)')]
+    _output_ports = [('value', '(MplSource)')]
 
     def compute(self):
         """ compute() -> None
@@ -96,21 +91,15 @@ class MplSource(CodeRunnerMixin, MplPlot):
              urllib.unquote(source))
 
         self.run_code(s, use_input=True, use_output=True)
+        self.set_output('value', None)
 
 class MplFigure(Module):
-    # _input_ports = [("addPlot", "(MplPlot)"),
-    #                 ("numSubfigRows", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("numSubfigCols", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ]
     _input_ports = [("addPlot", "(MplPlot)"),
                     ("axesProperties", "(MplAxesProperties)"),
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
 
-    _output_ports = [("file", "(basic:File)"),
-                     ("self", "(MplFigure)")]
+    _output_ports = [("self", "(MplFigure)")]
 
     def __init__(self):
         Module.__init__(self)
@@ -144,9 +133,35 @@ class MplFigure(Module):
             legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 
-        #FIXME write file out if File port is attached!
 
         self.set_output("self", self)
+
+class MplFigureToFile(Module):
+    _input_ports = [('figure', 'MplFigure'),
+                    ('format', 'basic:String', {"defaults": ["pdf"]}),
+                    ('width', 'basic:Integer', {"defaults": ["800"]}),
+                    ('height', 'basic:Integer', {"defaults": ["600"]})]
+    _output_ports = [('imageFile', 'basic:File')]
+
+    def compute(self):
+        figure = self.get_input('figure')
+        format = self.get_input('format')
+        width = self.get_input('width')
+        height = self.get_input('height')
+        imageFile = self.interpreter.filePool.create_file(suffix=".%s" % format)
+
+        fig = figure.figInstance
+        w_inches = width / 72.0
+        h_inches = height / 72.0
+
+        previous_size = tuple(fig.get_size_inches())
+        fig.set_size_inches(w_inches, h_inches)
+        canvas = FigureCanvasBase(fig)
+        canvas.print_figure(imageFile.name, dpi=72, format=format)
+        fig.set_size_inches(previous_size[0],previous_size[1])
+        canvas.draw()
+
+        self.set_output('imageFile', imageFile)
 
 class MplContourSet(Module):
     pass
@@ -160,5 +175,6 @@ _modules = [(MplProperties, {'abstract': True}),
                              ('vistrails.packages.matplotlib.widgets',
                               'MplSourceConfigurationWidget')}),
             MplFigure,
+            MplFigureToFile,
             MplContourSet,
             MplQuadContourSet]

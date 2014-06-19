@@ -50,6 +50,7 @@ from vistrails.db import VistrailsDBException
 import vistrails.db.services.io
 from vistrails.gui import qt
 import vistrails.gui.theme
+from ast import literal_eval
 import os.path
 import getpass
 import re
@@ -182,7 +183,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             debug.critical("Main instance reports: %s" % res)
             return False
 
-    def init(self, optionsDict=None, args=None):
+    def init(self, optionsDict=None, args=[]):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
@@ -246,6 +247,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return APP_SUCCESS
 
     def ask_update_default_application(self, dont_ask_checkbox=True):
+        if hasattr(self, 'splashScreen') and self.splashScreen:
+            self.splashScreen.hide()
         dialog = QtGui.QDialog()
         dialog.setWindowTitle(u"Install .vt .vtl handler")
         layout = QtGui.QVBoxLayout()
@@ -390,7 +393,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             for m in self.notifications[notification_id]:
                 try:
                     m(*args)
-                except Exception:
+                except Exception, e:
+                    debug.unexpected_exception(e)
                     import traceback
                     traceback.print_exc()
         notifications = {}
@@ -405,7 +409,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 for m in notifications[notification_id]:
                     try:
                         m(*args)
-                    except Exception:
+                    except Exception, e:
+                        debug.unexpected_exception(e)
                         import traceback
                         traceback.print_exc()
 
@@ -421,7 +426,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 for m in notifications[notification_id]:
                     try:
                         m(*args)
-                    except Exception:
+                    except Exception, e:
+                        debug.unexpected_exception(e)
                         import traceback
                         traceback.print_exc()
 
@@ -722,7 +728,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         options_re = re.compile(r"^(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])$")
         if options_re.match(msg):
             #it's safe to eval as a list
-            args = eval(msg)
+            args = literal_eval(msg)
             if isinstance(args, list):
                 #print "args from another instance %s"%args
                 try:
@@ -880,7 +886,7 @@ MimeType=application/x-vistrails
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
-def start_application(optionsDict=None, args=None):
+def start_application(optionsDict=None, args=[]):
     """Initializes the application singleton."""
     VistrailsApplication = get_vistrails_application()
     if VistrailsApplication:

@@ -32,15 +32,54 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-"""HTTP provides packages for HTTP-based file fetching. This provides
-a location-independent way of referring to files. This package uses a
-local cache of the files, inside the per-user VisTrails
-directory. This way, files that haven't been changed do not need
-downloading. The check is performed efficiently using the HTTP GET
-headers.
-"""
 
-identifier = 'org.vistrails.vistrails.http'
-name = 'HTTP'
-version = '0.9.1'
-old_identifiers = ['edu.utah.sci.vistrails.http']
+import copy
+
+class IdScope:
+    def __init__(self, beginId=0L, remap=None):
+        self.ids = {}
+        self.beginId = beginId
+        if remap is None:
+            self.remap = {}
+        else:
+            self.remap = remap
+
+    def __copy__(self):
+        cp = IdScope(beginId=self.beginId)
+        cp.ids = copy.copy(self.ids)
+        cp.remap = copy.copy(self.remap)
+        return cp
+
+    def __str__(self):
+        return str(self.ids)
+
+    def getNewId(self, objType):
+        try:
+            objType = self.remap[objType]
+        except KeyError:
+            pass
+        try:
+            id = self.ids[objType]
+            self.ids[objType] += 1
+            return id
+        except KeyError:
+            self.ids[objType] = self.beginId + 1
+            return self.beginId
+
+    def updateBeginId(self, objType, beginId):
+        try:
+            objType = self.remap[objType]
+        except KeyError:
+            pass
+        try:
+            if self.ids[objType] <= beginId:
+                self.ids[objType] = beginId
+        except KeyError:
+            self.ids[objType] = beginId
+        
+    def setBeginId(self, objType, beginId):
+        try:
+            objType = self.remap[objType]
+        except KeyError:
+            pass
+        self.ids[objType] = beginId

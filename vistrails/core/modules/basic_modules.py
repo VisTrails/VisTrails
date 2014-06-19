@@ -47,12 +47,13 @@ from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
 
 from abc import ABCMeta
+from ast import literal_eval
 from itertools import izip
 import os
 import pickle
 import re
 import shutil
-#import zipfile
+import zipfile
 import urllib
 
 try:
@@ -64,7 +65,7 @@ except ImportError:
 
 ###############################################################################
 
-version = '2.1'
+version = '2.1.1'
 name = 'Basic Modules'
 identifier = 'org.vistrails.vistrails.basic'
 old_identifiers = ['edu.utah.sci.vistrails.basic']
@@ -248,7 +249,7 @@ def string_compare(value_a, value_b, query_method):
             m = re.match(value_b, value_a)
             if m is not None:
                 return (m.end() ==len(value_a))
-        except:
+        except re.error:
             pass
     return False
 
@@ -285,6 +286,14 @@ String._output_ports.append(OPort("value_as_string", "String", optional=True))
     
 ##############################################################################
 
+class PathObject(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return "PathObject(%r)" % self.name
+    __str__ = __repr__
+
 class Path(Constant):
     _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" % \
                                                 constant_config_path))
@@ -292,14 +301,9 @@ class Path(Constant):
                     IPort("name", "String", optional=True)]
     _output_ports = [OPort("value", "Path")]
 
-    name = ""
-
     @staticmethod
     def translate_to_python(x):
-        result = Path()
-        result.name = x
-        result.set_output("value", result)
-        return result
+        return PathObject(x)
 
     @staticmethod
     def translate_to_string(x):
@@ -307,9 +311,7 @@ class Path(Constant):
 
     @staticmethod
     def validate(v):
-        #print 'validating', v
-        #print 'isinstance', isinstance(v, Path)
-        return isinstance(v, Path)
+        return isinstance(v, PathObject)
 
     def get_name(self):
         n = None
@@ -321,36 +323,34 @@ class Path(Constant):
         return n
 
     def set_results(self, n):
-        self.name = n
-        self.set_output("value", self)
-        self.set_output("value_as_string", self.translate_to_string(self))
+        self.set_output("value", PathObject(n))
+        self.set_output("value_as_string", n)
 
     def compute(self):
         n = self.get_name()
         self.set_results(n)
 
-Path.default_value = Path()
+Path.default_value = PathObject('')
 
 def path_parameter_hasher(p):
     def get_mtime(path):
-        v_list = [int(os.path.getmtime(path))]
+        t = int(os.path.getmtime(path))
         if os.path.isdir(path):
             for subpath in os.listdir(path):
                 subpath = os.path.join(path, subpath)
                 if os.path.isdir(subpath):
-                    v_list.extend(get_mtime(subpath))
-        return v_list
+                    t = max(t, get_mtime(subpath))
+        return t
 
     h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
     try:
         # FIXME: This will break with aliases - I don't really care that much
-        v_list = get_mtime(p.strValue)
+        t = get_mtime(p.strValue)
     except OSError:
         return h
     hasher = sha_hash()
     hasher.update(h)
-    for v in v_list:
-        hasher.update(str(v))
+    hasher.update(str(t))
     return hasher.digest()
 
 class File(Path):
@@ -363,15 +363,7 @@ class File(Path):
     _input_ports = [IPort("value", "File"),
                     IPort("create_file", "Boolean", optional=True)]
     _output_ports = [OPort("value", "File"),
-                     OPort("self", "File", optional=True),
                      OPort("local_filename", "String", optional=True)]
-
-    @staticmethod
-    def translate_to_python(x):
-        result = File()
-        result.name = x
-        result.set_output("value", result)
-        return result
 
     def compute(self):
         n = self.get_name()
@@ -382,8 +374,6 @@ class File(Path):
         self.set_results(n)
         self.set_output("local_filename", n)
 
-File.default_value = File()
-    
 class Directory(Path):
 
     _settings = ModuleSettings(constant_signature=path_parameter_hasher,
@@ -393,13 +383,6 @@ class Directory(Path):
                     IPort("create_directory", "Boolean", optional=True)]
     _output_ports = [OPort("value", "Directory"),
                      OPort("itemList", "List")]
-
-    @staticmethod
-    def translate_to_python(x):
-        result = Directory()
-        result.name = x
-        result.set_output("value", result)
-        return result
 
     def compute(self):
         n = self.get_name()
@@ -417,25 +400,15 @@ class Directory(Path):
         output_list = []
         for item in dir_list:
             full_path = os.path.join(n, item)
-            if os.path.isfile(full_path):
-                file_item = File()
-                file_item.name = full_path
-                file_item.upToDate = True
-                output_list.append(file_item)
-            elif os.path.isdir(full_path):
-                dir_item = Directory()
-                dir_item.name = full_path
-                dir_item.upToDate = True
-                output_list.append(dir_item)
+            output_list.append(PathObject(full_path))
         self.set_output('itemList', output_list)
-            
-Directory.default_value = Directory()
 
 ##############################################################################
 
 class OutputPath(Path):
     _settings = ModuleSettings(constant_widget=("%s:OutputPathChooserWidget" % \
                                                 constant_config_path))
+    _input_ports = [IPort("value", "OutputPath")]
     _output_ports = [OPort("value", "OutputPath")]
 
     def get_name(self):
@@ -446,17 +419,14 @@ class OutputPath(Path):
             self.check_input("name")
             n = self.get_input("name")
         return n
-        
+
     def set_results(self, n):
-        self.name = n
-        self.set_output("value", self)
-        self.set_output("value_as_string", self.translate_to_string(self))
+        self.set_output("value", PathObject(n))
+        self.set_output("value_as_string", n)
 
     def compute(self):
         n = self.get_name()
         self.set_results(n)
-        
-OutputPath.default_value = OutputPath()
 
 class FileSink(NotCacheable, Module):
     """FileSink takes a file and writes it to a user-specified
@@ -566,16 +536,38 @@ class WriteFile(Converter):
     """Writes a String to a temporary File.
     """
     _input_ports = [IPort('in_value', String),
-                    IPort('suffix', String, optional=True, default="")]
+                    IPort('suffix', String, optional=True, default=""),
+                    IPort('encoding', String, optional=True)]
     _output_ports = [OPort('out_value', File)]
 
     def compute(self):
         contents = self.get_input('in_value')
         suffix = self.force_get_input('suffix', '')
         result = self.interpreter.filePool.create_file(suffix=suffix)
+        if self.has_input('encoding'):
+            contents = contents.decode('utf-8') # VisTrails uses UTF-8
+                                                # internally (I hope)
+            contents = contents.encode(self.get_input('encoding'))
         with open(result.name, 'wb') as fp:
             fp.write(contents)
         self.set_output('out_value', result)
+
+class ReadFile(Converter):
+    """Reads a File to a String.
+    """
+    _input_ports = [IPort('in_value', File),
+                    IPort('encoding', String, optional=True)]
+    _output_ports = [OPort('out_value', String)]
+
+    def compute(self):
+        filename = self.get_input('in_value').name
+        with open(filename, 'rb') as fp:
+            contents = fp.read()
+        if self.has_input('encoding'):
+            contents = contents.decode(self.get_input('encoding'))
+            contents = contents.encode('utf-8') # VisTrails uses UTF-8
+                                                # internally (for now)
+        self.set_output('out_value', contents)
 
 ##############################################################################
 
@@ -697,7 +689,7 @@ class StandardOutput(NotCacheable, Module):
     value connected on its port to standard output. It is intended
     mostly as a debugging device."""
 
-    _input_ports = [IPort("value", Module)]
+    _input_ports = [IPort("value", 'Variant')]
     
     def compute(self):
         v = self.get_input("value")
@@ -788,6 +780,7 @@ class Not(Module):
         self.set_output('value', not value)
 
 ##############################################################################
+
 # List
 
 # If numpy is available, we consider numpy arrays to be lists as well
@@ -806,7 +799,7 @@ class List(Constant):
     _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
     _input_ports = [IPort("value", "List"),
-                    IPort("head", "Module"),
+                    IPort("head", "Variant"),
                     IPort("tail", "List")]
     _output_ports = [OPort("value", "List")]
 
@@ -822,7 +815,7 @@ class List(Constant):
 
     @staticmethod
     def translate_to_python(v):
-        return eval(v)
+        return literal_eval(v)
 
     @staticmethod
     def translate_to_string(v, dims=None):
@@ -866,7 +859,7 @@ class List(Constant):
 # Dictionary
                     
 def dict_conv(v):
-    v_dict = eval(v)
+    v_dict = literal_eval(v)
     return v_dict
 
 def dict_compute(self):
@@ -946,7 +939,8 @@ class CodeRunnerMixin(object):
                         'self': self})
         if 'source' in locals_:
             del locals_['source']
-        exec code_str in locals_, locals_
+        # Python 2.6 needs code to end with newline
+        exec code_str + '\n' in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
                 if locals_.get(k) != None:
@@ -1065,21 +1059,23 @@ class SmartSource(NotCacheable, Module):
 ##############################################################################
 
 def zip_extract_file(archive, filename_in_archive, output_filename):
-    return os.system(
-            "%s > %s" % (
-                    vistrails.core.system.list2cmdline([
-                            vistrails.core.system.get_executable_path('unzip'),
-                            '-p', archive,
-                            filename_in_archive]),
-                    vistrails.core.system.list2cmdline([output_filename])))
+    z = zipfile.ZipFile(archive)
+    try:
+        fileinfo = z.getinfo(filename_in_archive) # Might raise KeyError
+        output_dirname, output_filename = os.path.split(output_filename)
+        fileinfo.filename = output_filename
+        z.extract(fileinfo, output_dirname)
+    finally:
+        z.close()
 
 
 def zip_extract_all_files(archive, output_path):
-    return os.system(
-            vistrails.core.system.list2cmdline([
-                    vistrails.core.system.get_executable_path('unzip'),
-                    archive,
-                    '-d', output_path]))
+    z = zipfile.ZipFile(archive)
+    try:
+        z.extractall(output_path)
+    finally:
+        z.close()
+
 
 class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
@@ -1096,11 +1092,9 @@ class Unzip(Module):
             raise ModuleError(self, "archive file does not exist")
         suffix = self.interpreter.filePool.guess_suffix(filename_in_archive)
         output = self.interpreter.filePool.create_file(suffix=suffix)
-        s = zip_extract_file(archive_file.name,
-                             filename_in_archive,
-                             output.name)
-        if s != 0:
-            raise ModuleError(self, "unzip command failed with status %d" % s)
+        zip_extract_file(archive_file.name,
+                         filename_in_archive,
+                         output.name)
         self.set_output("file", output)
 
 
@@ -1115,10 +1109,8 @@ class UnzipDirectory(Module):
         if not os.path.isfile(archive_file.name):
             raise ModuleError(self, "archive file does not exist")
         output = self.interpreter.filePool.create_directory()
-        s = zip_extract_all_files(archive_file.name,
-                                  output.name)
-        if s != 0:
-            raise ModuleError(self, "unzip command failed with status %d" % s)
+        zip_extract_all_files(archive_file.name,
+                              output.name)
         self.set_output("directory", output)
 
 ##############################################################################
@@ -1173,6 +1165,68 @@ class Variant(Module):
 
 ##############################################################################
 
+class Iterator(object):
+    """
+    Used to keep track if list iteration, it will execute a module once for
+    each input in the list/generator.
+    """
+    _settings = ModuleSettings(abstract=True)
+
+    generators = []
+    def __init__(self, values=None, depth=1, size=None,
+                 module=None, generator=None, port=None):
+        self.list_depth = depth
+        self.values = values
+        self.module = module
+        self.generator = generator
+        self.port = port
+        self.size = size
+        if size is None and values is not None:
+            self.size = len(values)
+        self.pos = 0
+        if generator and generator not in Iterator.generators:
+            # add to global list of generators
+            # they will be uniquely ordered topologically
+            Iterator.generators.append(self.generator)
+            
+    def next(self):
+        if self.values is not None:
+            try:
+                item = self.values[self.pos]
+                self.pos += 1
+                return item
+            except KeyError:
+                return None
+        # return next value - the generator
+        value = self.module.get_output(self.port)
+        if isinstance(value, Iterator):
+            raise ModuleError(self.module, "Iterator generator cannot contain an iterator")
+        return self.module.get_output(self.port)
+    
+    def all(self):
+        if self.values is not None:
+            return self.values
+        items = []
+        item = self.next()
+        while item is not None:
+            items.append(item)
+            item = self.next()
+        return items
+
+    @staticmethod
+    def stream():
+        # execute all generators until inputs are exhausted
+        # this makes sure branching and multiple sinks are executed correctly
+        result = True
+        if not Iterator.generators:
+            return
+        while result is not None:
+            for g in Iterator.generators:
+                result = g.next()
+        Iterator.generators = []
+
+##############################################################################
+
 class Assert(Module):
     """
     Assert is a simple module that conditionally stops the execution.
@@ -1193,8 +1247,8 @@ class AssertEqual(Module):
     It is provided for convenience.
     """
 
-    _input_ports = [IPort('value1', 'Module'),
-                    IPort('value2', 'Module')]
+    _input_ports = [IPort('value1', 'Variant'),
+                    IPort('value2', 'Variant')]
 
     def compute(self):
         values = (self.get_input('value1'),
@@ -1256,7 +1310,12 @@ def init_constant(m):
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
 
-_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List, Path, File, Directory, OutputPath, FileSink, DirectorySink, WriteFile, StandardOutput, Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant, Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color, Round, TupleToList, Assert, AssertEqual, StringFormat]
+_modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List,
+            Path, File, Directory, OutputPath,
+            FileSink, DirectorySink, WriteFile, ReadFile, StandardOutput,
+            Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant,
+            Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color,
+            Round, TupleToList, Assert, AssertEqual, StringFormat]
 
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
@@ -1316,11 +1375,77 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                           {'dst_port_remap': {'old_name': None}})],
                     'PythonSource':
                         [(None, '1.6', None, {})],
+                    'Tuple':
+                        [(None, '2.1.1', None, {})],
+                    'StandardOutput':
+                        [(None, '2.1.1', None, {})],
+                    'List':
+                        [(None, '2.1.1', None, {})],
+                    'AssertEqual':
+                        [(None, '2.1.1', None, {})],
+                    'Converter':
+                        [(None, '2.1.1', None, {})],
                     }
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                                module_remap)
 
+###############################################################################
+
+class NewConstant(Constant):
+    """
+    A new Constant module to be used inside the FoldWithModule module.
+    """
+    def setValue(self, v):
+        self.set_output("value", v)
+        self.upToDate = True
+
+def create_constant(value):
+    """
+    Creates a NewConstant module, to be used for the ModuleConnector.
+    """
+    constant = NewConstant()
+    constant.setValue(value)
+    return constant
+
+def get_module(value, signature):
+    """
+    Creates a module for value, in order to do the type checking.
+    """
+    if isinstance(value, Constant):
+        return type(value)
+    if isinstance(value, bool):
+        return Boolean
+    if isinstance(value, str):
+        return String
+    #if isinstance(value, int):
+    # any object that can be cast as int without losing digits
+    try:
+        if value == int(value):
+            return Integer
+    except:
+        pass
+    #if isinstance(value, float):
+    # any object that can be cast as float except int
+    try:
+        float(value)
+        return Float
+    except:
+        pass
+    if isinstance(value, list):
+        return List
+    elif isinstance(value, tuple):
+        if len(signature) == 1 and signature[0][0] == Variant:
+            return (Variant,)*len(value)
+        v_modules = ()
+        for element in xrange(len(value)):
+            v_modules += (get_module(value[element], signature[element]),)
+        return v_modules
+    else: # pragma: no cover
+        debug.warning("Could not identify the type of the list element.")
+        debug.warning("Type checking is not going to be done inside"
+                      "FoldWithModule module.")
+        return None
 
 ###############################################################################
 

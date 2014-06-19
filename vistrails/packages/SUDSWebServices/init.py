@@ -136,10 +136,10 @@ def initialize(*args, **keywords):
         try:
             debug.log("Creating SUDS cache directory...")
             os.mkdir(location)
-        except:
+        except OSError, e:
             debug.critical(
 """Could not create SUDS cache directory. Make sure
-'%s' does not exist and parent directory is writable""" % location)
+'%s' does not exist and parent directory is writable""" % location, e)
             sys.exit(1)
     # the number of days to cache wsdl files
     days = 1
@@ -605,6 +605,7 @@ It is a WSDL type with signature:
                     #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
                 except Exception, e:
+                    debug.unexpected_exception(e)
                     raise ModuleError(self, "Error invoking method %s: %s" % (
                             name, debug.format_exception(e)))
                 for name, qtype in self.wsmethod.outputs.iteritems():
@@ -684,7 +685,8 @@ def load_from_signature(signature):
     if not wsdl in wsdlList:
         try:
             service = Service(wsdl)
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return False
         if not service.service:
             return False
@@ -742,7 +744,8 @@ def handle_missing_module(controller, module_id, pipeline):
         try:
             wsdl = m_namespace.split("|")
             return wsdl[0]
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return None
     
     m = pipeline.modules[module_id]

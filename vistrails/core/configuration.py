@@ -518,7 +518,10 @@ base_config = {
                                  "label": "Default view after loading vistrail:",
                                  "remap": {"appropriate": "Most Appropriate",
                                            "history": "Always History",
-                                           "pipeline": "Always Pipeline"}})],
+                                           "pipeline": "Always Pipeline"}}),
+     ConfigField('enableCustomVersionColors', False, bool, ConfigType.ON_OFF),
+     ConfigField('fixedCustomVersionColorSaturation', False, 
+                 bool, ConfigType.ON_OFF)],
     "Thumbnails":
     [ConfigFieldParent('thumbs', 
         [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
@@ -553,11 +556,11 @@ base_config = {
      ConfigField('webRepositoryUser', None, str)],
     "Internal":
     [ConfigField('recentVistrailList', None, str, ConfigType.STORAGE),
-     ConfigField('runningJobsList', None, str, ConfigType.STORAGE),
      ConfigField('isInServerMode', False, bool, ConfigType.INTERNAL),
      ConfigField('isRunningGUI', True, bool, ConfigType.INTERNAL),
      ConfigField('spawned', False, bool, ConfigType.INTERNAL),
-     ConfigField('rootDirectory', None, ConfigPath, ConfigType.INTERNAL)],
+     ConfigField('rootDirectory', None, ConfigPath, ConfigType.INTERNAL),
+     ConfigField('developerDebugger', False, bool, ConfigType.INTERNAL)],
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),

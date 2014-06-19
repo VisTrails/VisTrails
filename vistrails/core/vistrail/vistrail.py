@@ -294,9 +294,9 @@ class Vistrail(DBVistrail):
             if self.has_upgrade(max_ver):
                 max_ver = long(self.get_upgrade(max_ver))
             return max_ver
-        except:
+        except Exception:
             return 0
-                   
+
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
         Return a pipeline object given a version number or a version name. 
@@ -456,6 +456,8 @@ class Vistrail(DBVistrail):
                     [v1 not v2 modules],
                     [v2 not v1 modules],
                     [parameter-changed modules (see-below)],
+                    [controlParameter-changed modules (see-below)],
+                    [annotation-changed modules (see-below)],
                     [shared connections (id in v1, id in v2) ...],
                     [shared connections [heuristic] (id in v1, id in v2)],
                     [c1 not in v2 connections],
@@ -463,6 +465,12 @@ class Vistrail(DBVistrail):
 
         parameter-changed modules = [((module id in v1, module id in v2),
                                       [(function in v1, function in v2)...]),
+                                      ...]
+        controlParameter-changed modules = [((module id in v1, module id in v2),
+                                             [(cparam in v1, cparam in v2)...]),
+                                             ...]
+        annotation-changed modules = [((module id in v1, module id in v2),
+                                      [(annotation in v1, annotation in v2)...]),
                                       ...]
         
         """
@@ -485,11 +493,20 @@ class Vistrail(DBVistrail):
                     [shared modules [heuristic match] (id in v1, id in v2)],
                     [v1 not v2 modules],
                     [v2 not v1 modules],
-                    [parameter-changed modules (see-below)])
+                    [parameter-changed modules (see-below)],
+                    [controlParameter-changed modules (see-below)],
+                    [annotation-changed modules (see-below)])
 
         parameter-changed modules = [((module id in v1, module id in v2),
                                       [(function in v1, function in v2)...]),
                                       ...]
+        controlParameter-changed modules = [((module id in v1, module id in v2),
+                                             [(cparam in v1, cparam in v2)...]),
+                                             ...]
+        annotation-changed modules = [((module id in v1, module id in v2),
+                                       [(annotation in v1, annotation in v2)...]),
+                                       ...]
+
         
         """
         return vistrails.core.db.io.get_workflow_diff((self, v1), (self, v2))
@@ -903,15 +920,18 @@ class Vistrail(DBVistrail):
             added_parameters = 0
             added_connections = 0
             added_annotations = 0
+            added_control_parameters = 0
             added_ports = 0
             moved_modules = 0
             changed_parameters = 0
             changed_annotations = 0
+            changed_control_parameters = 0
             deleted_modules = 0
             deleted_connections = 0
             deleted_parameters = 0
             deleted_functions = 0
             deleted_annotations = 0
+            deleted_control_parameters = 0
             deleted_ports = 0
             for op in ops:
                 if op.vtType == 'add':
@@ -923,6 +943,8 @@ class Vistrail(DBVistrail):
                         added_functions+=1
                     elif op.what == 'parameter':
                         added_parameters+=1
+                    elif op.what == 'controlParameter':
+                        added_control_parameters+=1
                     elif op.what == 'annotation':
                         added_annotations+=1
                     elif op.what == 'portSpec':
@@ -934,6 +956,8 @@ class Vistrail(DBVistrail):
                         moved_modules+=1
                     elif op.what == 'annotation':
                         changed_annotations+=1
+                    elif op.what == 'controlParameter':
+                        changed_control_parameters+=1
                 elif op.vtType == 'delete':
                     if op.what == 'module':
                         deleted_modules+=1
@@ -945,6 +969,8 @@ class Vistrail(DBVistrail):
                         deleted_parameters+=1
                     elif op.what == 'annotation':
                         deleted_annotations+=1
+                    elif op.what == 'controlParameter':
+                        deleted_control_parameters+=1
                     elif op.what == 'portSpec':
                         deleted_ports += 1
                 else:
@@ -962,6 +988,10 @@ class Vistrail(DBVistrail):
                 description = "Added parameter"
                 if added_functions > 1 or added_parameters > 1:
                     description += "s"
+            elif added_control_parameters:
+                description = "Added control parameter"
+                if added_control_parameters > 1:
+                    description += "s"
             elif added_annotations:
                 description = "Added annotation"
                 if added_annotations > 1:
@@ -973,6 +1003,10 @@ class Vistrail(DBVistrail):
             elif changed_parameters:
                 description = "Changed parameter"
                 if changed_parameters > 1:
+                    description += "s"
+            elif changed_control_parameters:
+                description = "Changed control parameter"
+                if changed_control_parameters > 1:
                     description += "s"
             elif moved_modules:
                 description = "Moved module"
@@ -993,6 +1027,10 @@ class Vistrail(DBVistrail):
             elif deleted_parameters or deleted_functions:
                 description = "Deleted parameter"
                 if deleted_parameters > 1 or deleted_functions > 1:
+                    description += "s"
+            elif deleted_control_parameters:
+                description = "Deleted control parameter"
+                if deleted_control_parameters > 1:
                     description += "s"
             elif deleted_annotations:
                 description = "Deleted annotation"
@@ -1125,8 +1163,8 @@ class Vistrail(DBVistrail):
                 try:
                     if isinstance(op, AddOp) and op.what == 'module':
                         package_list[op.data.package] = op.data.package
-                except:
-                    pass
+                except AttributeError, e:
+                    debug.unexpected_exception(e)
         return package_list
                     
 
@@ -1235,7 +1273,6 @@ class TestVistrail(unittest.TestCase):
         # FIXME add checks for equality
 
     def test1(self):
-        import vistrails.core.vistrail
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
@@ -1258,7 +1295,6 @@ class TestVistrail(unittest.TestCase):
             self.fail("vistrails tree is not single rooted.")
 
     def test2(self):
-        import vistrails.core.vistrail
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
@@ -1269,6 +1305,8 @@ class TestVistrail(unittest.TestCase):
         v3 = 22
         v.get_pipeline_diff(v1,v2)
         v.get_pipeline_diff(v1,v3)
+        v.get_pipeline_diff_with_connections(v1,v2)
+        v.get_pipeline_diff_with_connections(v1,v3)
 
     def test_empty_action_chain(self):
         """Tests calling action chain on empty version."""

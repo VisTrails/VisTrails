@@ -613,6 +613,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.annotateAct)
         menu.addAction(self.viewDocumentationAct)
         menu.addAction(self.changeModuleLabelAct)
+        menu.addAction(self.editLoopingAct)
         menu.addAction(self.setBreakpointAct)
         menu.addAction(self.setWatchedAct)
         menu.addAction(self.runModuleAct)
@@ -641,6 +642,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.viewDocumentationAct,
                                QtCore.SIGNAL("triggered()"),
                                self.viewDocumentation)
+        self.editLoopingAct = QtGui.QAction("Looping Options", self.scene())
+        self.editLoopingAct.setStatusTip("Edit looping options")
+        QtCore.QObject.connect(self.editLoopingAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.editLooping)
         self.changeModuleLabelAct = QtGui.QAction("Set Module Label...", self.scene())
         self.changeModuleLabelAct.setStatusTip("Set or remove module label")
         QtCore.QObject.connect(self.changeModuleLabelAct,
@@ -717,6 +723,13 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """
         assert self.moduleId >= 0
         self.scene().open_documentation_window(self.moduleId)
+
+    def editLooping(self):
+        """ editLooping() -> None
+        Show the looping options for the module
+        """
+        assert self.moduleId >= 0
+        self.scene().open_looping_window(self.moduleId)
 
     def changeModuleLabel(self):
         """ changeModuleLabel() -> None
@@ -824,6 +837,8 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         Create the shape, initialize its pen and brush accordingly
 
         """
+        self.srcPortItem = srcPortItem
+        self.dstPortItem = dstPortItem
         path = self.create_path(srcPortItem.getPosition(), 
                                 dstPortItem.getPosition())
         QtGui.QGraphicsPathItem.__init__(self, path, parent)
@@ -831,8 +846,6 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         # Bump it slightly higher than the highest module
         self.setZValue(max(srcModule.id,
                            dstModule.id) + 0.1)
-        self.srcPortItem = srcPortItem
-        self.dstPortItem = dstPortItem
         self.connectionPen = CurrentTheme.CONNECTION_PEN
         self.connectingModules = (srcModule, dstModule)
         self.ghosted = False
@@ -868,8 +881,9 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
             painter.setPen(self.connectionPen)
         painter.drawPath(self.path())
 
-    def setupConnection(self, startPos, endPos):
-        path = self.create_path(startPos, endPos)
+    def setupConnection(self, startPos=None, endPos=None):
+        path = self.create_path(startPos or self.startPos,
+                                endPos or self.endPos)
         self.setPath(path)
 
     def create_path(self, startPos, endPos):
@@ -936,8 +950,28 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         # self._control_2 = endPos - displacement
 
 
-        path = QtGui.QPainterPath(self.startPos)
-        path.cubicTo(self._control_1, self._control_2, self.endPos)
+        # draw multiple connections depending on list depth
+        def diff(i, depth):
+            return QtCore.QPointF((5.0 + 10.0*i)/depth - 5.0, 0.0)
+        
+        srcParent = self.srcPortItem.parentItem()
+        startDepth = srcParent.module.list_depth + 1 if srcParent else 1
+        dstParent = self.dstPortItem.parentItem()
+        endDepth = dstParent.module.list_depth + 1 if dstParent else 1
+        starts = [diff(i, startDepth) for i in xrange(startDepth)]
+        ends = [diff(i, endDepth) for i in xrange(endDepth)]
+    
+        first = True
+        for start in starts:
+            for end in ends:
+                if first:
+                    path = QtGui.QPainterPath(self.startPos + start)
+                    first = False
+                else:
+                    path.moveTo(self.startPos + start)
+                path.cubicTo(self._control_1, self._control_2,
+                             self.endPos + end)
+            
         return path
 
     def itemChange(self, change, value):
@@ -1098,14 +1132,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         else:
             before_names = self._cur_function_names
             after_names = set([f.name for f in core_module.functions])
-            # print "before_names:", before_names
-            # print "after_names:", after_names
             added_functions = after_names - before_names
             deleted_functions = before_names - after_names
             self._cur_function_names = copy.copy(after_names)
 
-        # print "added_functions:", added_functions
-        # print "deleted_functions:", deleted_functions
         if len(deleted_functions) > 0:
             for function_name in deleted_functions:
                 try:
@@ -1117,9 +1147,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     item = self.getInputPortItem(f_spec)
                     if item is not None:
                         item.disconnect()
-                except:
-                    # import traceback
-                    # traceback.print_exc()
+                except Exception:
                     pass
 
         if len(added_functions) > 0:
@@ -1187,7 +1215,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         try:
             r = self.paddedRect.adjusted(-2, -2, 2, 2)
-        except:
+        except Exception:
             r = QtCore.QRectF()
         return r
 
@@ -1551,21 +1579,20 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     port_klass = QGraphicsPortTriangleItem
                     try:
                         kwargs['angle'] = int(shape[8:])
-                    except:
+                    except ValueError:
                         kwargs['angle'] = 0
                 elif shape == "diamond":
                     port_klass = QGraphicsPortDiamondItem
                 elif shape == "circle" or shape == "ellipse":
                     port_klass = QGraphicsPortEllipseItem
             else:
-                is_iterable = False
                 try:
-                    shape.__iter__()
-                    is_iterable = True
+                    iter(shape)
+                except TypeError:
+                    pass
+                else:
                     port_klass = QGraphicsPortPolygonItem
                     kwargs['points'] = shape
-                except:
-                    pass
 
         portShape = port_klass(port, x, y, self.ghosted, self, **kwargs)
         # portShape = QGraphicsPortRectItem(port, x, y, self.ghosted, self)
@@ -1727,6 +1754,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 yield (item, False)
             else:
                 yield (item, True)
+
+    def mouseReleaseEvent(self, event):
+        super(QGraphicsModuleItem, self).mouseReleaseEvent(event)
+        if not self.controller.changed and self.controller.has_move_actions():
+            self.controller.set_changed(True)
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: value) -> value
@@ -1942,7 +1974,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if srcModule.module.is_vistrail_var():
             connectionItem.hide()
             var_uuid = srcModule.module.get_vistrail_var()
+            dstPortItem.addVistrailVar(
+                self.controller.get_vistrail_variable_by_uuid(var_uuid))
             dstPortItem.addVistrailVar(var_uuid)
+        self.update_connections()
         return connectionItem
 
     def selected_subgraph(self):
@@ -2002,6 +2037,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.removeItem(self.connections[c_id])
         del self.connections[c_id]
         self._old_connection_ids.remove(c_id)
+        self.update_connections()
         
 
     def recreate_module(self, pipeline, m_id):
@@ -2049,7 +2085,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
             # clear things
             self.clear()
         if not pipeline: return 
-            
+        
+        self.pipeline.mark_list_depth()
+
         needReset = len(self.items())==0
         try:
             new_modules = set(pipeline.modules)
@@ -2130,6 +2168,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.reset_module_colors()
             for m_id in selected_modules:
                 self.modules[m_id].setSelected(True)
+
         except ModuleRegistryException, e:
             import traceback
             traceback.print_exc()
@@ -2546,6 +2585,15 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         return self.tmp_module_item
 
+    def update_connections(self):
+        for module_id, list_depth in \
+                           self.controller.current_pipeline.mark_list_depth():
+            if module_id in self.modules:
+                self.modules[module_id].module.list_depth = list_depth 
+        for c in self.connections.itervalues():
+            c.setupConnection()
+
+    
     def delete_tmp_module(self):
         if self.tmp_module_item is not None:
             self.removeItem(self.tmp_module_item)
@@ -2860,6 +2908,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         from vistrails.gui.vistrails_window import _app
         _app.show_documentation()
+
+    def open_looping_window(self, id):
+        """ open_looping_window(int) -> None
+        Opens the modal module looping options window for module with given id
+        """
+        from vistrails.gui.vistrails_window import _app
+        _app.show_looping_options()
 
     def toggle_breakpoint(self, id):
         """ toggle_breakpoint(int) -> None

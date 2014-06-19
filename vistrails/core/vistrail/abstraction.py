@@ -40,6 +40,7 @@ from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.db.domain import DBAbstraction
 
@@ -98,6 +99,8 @@ class Abstraction(DBAbstraction, Module):
             ModuleFunction.convert(_function)
         for _annotation in _abstraction.db_get_annotations():
             Annotation.convert(_annotation)
+        for _control_parameter in _abstraction.db_get_controlParameters():
+            ModuleControlParam.convert(_control_parameter)
         _abstraction.set_defaults()
 
     ##########################################################################
@@ -107,6 +110,7 @@ class Abstraction(DBAbstraction, Module):
     id = DBAbstraction.db_id
     cache = DBAbstraction.db_cache
     annotations = DBAbstraction.db_annotations
+    control_parameters = DBAbstraction.db_controlParameters
     location = DBAbstraction.db_location
     center = DBAbstraction.db_location
     name = DBAbstraction.db_name
@@ -124,7 +128,7 @@ class Abstraction(DBAbstraction, Module):
         try:
             desc = reg.get_descriptor_by_name(self.package, self.name, 
                                               self.namespace)
-        except:
+        except Exception:
             # Should only get here if the abstraction's descriptor was
             # removed from the registry which only happens when the
             # abstraction should be destroyed.

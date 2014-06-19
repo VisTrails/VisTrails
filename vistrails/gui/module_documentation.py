@@ -76,14 +76,17 @@ class QModuleDocumentation(QtGui.QDialog, QVistrailsPaletteInterface):
         self.update_descriptor()
 
     def set_controller(self, controller):
-        scene = controller.current_pipeline_scene
-        selected_ids = scene.get_selected_module_ids() 
-        modules = [controller.current_pipeline.modules[i] 
-                   for i in selected_ids]
-        if len(modules) == 1:
-            self.update_module(modules[0])
+        if controller is not None:
+            scene = controller.current_pipeline_scene
+            selected_ids = scene.get_selected_module_ids() 
+            modules = [controller.current_pipeline.modules[i] 
+                       for i in selected_ids]
+            if len(modules) == 1:
+                self.update_module(modules[0])
+            else:
+                self.update_module(None)
         else:
-            self.update_module(None)
+            self.update_descriptor()
 
     def update_module(self, module=None):
         descriptor = None

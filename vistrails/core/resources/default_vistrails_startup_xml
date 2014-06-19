@@ -9,7 +9,7 @@
     <package name="pythonCalc"/>
     <package name="spreadsheet"/>
     <package name="dialogs"/>
-    <package name="HTTP"/>
+    <package name="URL"/>
     <package name="controlflow"/>
     <package name="tabledata"/>
   </packages>
@@ -40,7 +40,7 @@
     <package name="spreadsheet"/>
     <package name="pythonCalc"/>
     <package name="ImageMagick"/>
-    <package name="HTTP"/>
+    <package name="URL"/>
     <package name="teem"/>
     <package name="ectmc"/>
     <package name="macet"/>

@@ -56,8 +56,10 @@ class QCellWidget(QtGui.QWidget):
     """
     QCellWidget is the base cell class. All types of spreadsheet cells
     should inherit from this.
-    
+
     """
+    save_formats = ["Images (*.png *.xpm *.jpg)",
+                    "Portable Document Format (*.pdf)"]
 
     def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
         """ QCellWidget(parent: QWidget) -> QCellWidget
@@ -222,8 +224,14 @@ class QCellWidget(QtGui.QWidget):
         """ dumpToFile(filename: str, dump_as_pdf: bool) -> None
         Dumps itself as an image to a file, calling grabWindowPixmap """
         pixmap = self.grabWindowPixmap()
-        pixmap.save(filename,"PNG")
-            
+        ext = os.path.splitext(filename)[1].lower()
+        if not ext:
+            pixmap.save(filename, 'PNG')
+        elif ext == '.pdf':
+            self.saveToPDF(filename)
+        else:
+            pixmap.save(filename)
+
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
 
@@ -280,37 +288,28 @@ class QCellToolBar(QtGui.QToolBar):
 
     def addSaveCellAction(self):
         if not hasattr(self, 'saveActionVar'):
-            self.saveActionVar = QCellToolBarSelectedCell("Save cell", self)
+            self.saveActionVar = QCellToolBarSelectedCell(
+                    QtGui.QIcon(":/images/camera.png"),
+                    "Save cell",
+                    self)
             self.saveActionVar.setStatusTip("Export this cell only")
 
-            saveMenu = QtGui.QMenu(self)
-            saveImage = saveMenu.addAction("As an image")
-            savePDF = saveMenu.addAction("As PDF")
-            self.saveActionVar.setMenu(saveMenu)
-
             self.connect(self.saveActionVar, QtCore.SIGNAL('triggered(bool)'),
-                         self.saveAsImageTriggered)
-            self.connect(saveImage, QtCore.SIGNAL('triggered(bool)'),
-                         self.saveAsImageTriggered)
-            self.connect(savePDF, QtCore.SIGNAL('triggered(bool)'),
-                         self.saveAsPDFTriggered)
+                         self.exportCell)
         self.appendAction(self.saveActionVar)
 
-    def saveAsImageTriggered(self, checked=False):
+    def exportCell(self, checked=False):
         cell = self.sheet.getCell(self.row, self.col)
+        if not cell.save_formats:
+            QtGui.QMessageBox.information(
+                    self, "Export cell",
+                    "This cell type doesn't provide any export option")
+            return
         filename = QtGui.QFileDialog.getSaveFileName(
-            self, "Select a File to Export the Sheet",
-            ".", "Images (*.png *.xpm *.jpg)")
+            self, "Select a File to Export the Cell",
+            ".", ';;'.join(cell.save_formats))
         if filename:
             cell.dumpToFile(filename)
-
-    def saveAsPDFTriggered(self, checked=False):
-        cell = self.sheet.getCell(self.row, self.col)
-        filename = QtGui.QFileDialog.getSaveFileName(
-            self, "Select a File to Export the Sheet",
-            ".", "PDF files (*.pdf)")
-        if filename:
-            cell.saveToPDF(filename)
 
     def createToolBar(self):
         """ createToolBar() -> None
