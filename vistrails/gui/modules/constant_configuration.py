@@ -277,16 +277,19 @@ class PathChooserToolButton(QtGui.QToolButton):
                                                      text,
                                                      'All files '
                                                      '(*.*)')
-        if not fileName:
-            return None
-        filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
-        dirName = os.path.dirname(filename)
-        system.set_vistrails_data_directory(dirName)
-        return filename
+        return self.setDataDirectory(fileName)
 
     def runDialog(self):
         path = self.openChooser()
         self.setPath(path)
+
+    def setDataDirectory(self, path):
+        if path:
+            absPath = os.path.abspath(str(QtCore.QFile.encodeName(path)))
+            dirName = os.path.dirname(absPath)
+            system.set_vistrails_data_directory(dirName)
+            return absPath
+        return path
 
 class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
     """
@@ -357,19 +360,13 @@ class FileChooserToolButton(PathChooserToolButton):
         
     def openChooser(self):
         text = self.lineEdit.text() or system.vistrails_data_directory()
-        fileName = QtGui.QFileDialog.getOpenFileName(self,
-                                                     'Use Filename '
-                                                     'as Value...',
-                                                     text,
-                                                     'All files '
-                                                     '(*.*)')
-        if not fileName:
-            return None
-        filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
-        dirName = os.path.dirname(filename)
-        system.set_vistrails_data_directory(dirName)
-        return filename
-
+        path = QtGui.QFileDialog.getOpenFileName(self,
+                                                 'Use Filename '
+                                                 'as Value...',
+                                                 text,
+                                                 'All files '
+                                                 '(*.*)')
+        return self.setDataDirectory(path)
 
 class FileChooserWidget(PathChooserWidget):
     def create_browse_button(self):
@@ -383,17 +380,11 @@ class DirectoryChooserToolButton(PathChooserToolButton):
 
     def openChooser(self):
         text = self.lineEdit.text() or system.vistrails_data_directory()
-        fileName = QtGui.QFileDialog.getExistingDirectory(self,
-                                                          'Use Directory '
-                                                          'as Value...',
-                                                          text)
-        if not fileName:
-            return None
-        filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
-        dirName = os.path.dirname(filename)
-        system.set_vistrails_data_directory(dirName)
-        return filename
-
+        path = QtGui.QFileDialog.getExistingDirectory(self,
+                                                      'Use Directory '
+                                                      'as Value...',
+                                                      text)
+        return self.setDataDirectory(path)
 
 class DirectoryChooserWidget(PathChooserWidget):
     def create_browse_button(self):
@@ -406,16 +397,11 @@ class OutputPathChooserToolButton(PathChooserToolButton):
     
     def openChooser(self):
         text = self.lineEdit.text() or system.vistrails_data_directory()
-        fileName = QtGui.QFileDialog.getSaveFileName(self,
-                                                     'Save Path',
-                                                     text,
-                                                     'All files (*.*)')
-        if not fileName:
-            return None
-        filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
-        dirName = os.path.dirname(filename)
-        system.set_vistrails_data_directory(dirName)
-        return filename
+        path = QtGui.QFileDialog.getSaveFileName(self,
+                                                 'Save Path',
+                                                 text,
+                                                 'All files (*.*)')
+        return self.setDataDirectory(path)
 
 class OutputPathChooserWidget(PathChooserWidget):
     def create_browse_button(self):
