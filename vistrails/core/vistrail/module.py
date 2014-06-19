@@ -198,7 +198,7 @@ class Module(DBModule):
     def has_control_parameter_with_name(self, name):
         return self.db_has_controlParameter_with_name(name)
     def get_control_parameter_by_name(self, name):
-        return self.db_get_controlParameter_by_name(name)        
+        return self.db_get_controlParameter_by_name(name)
     def toggle_breakpoint(self):
         self.is_breakpoint = not self.is_breakpoint
     def toggle_watched(self):

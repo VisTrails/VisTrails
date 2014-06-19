@@ -39,6 +39,14 @@ import copy
 
 class ModuleControlParam(DBControlParameter):
 
+    # Valid control parameters should be put here
+    LOOP_KEY = 'loop_type'
+    WHILE_COND_KEY = 'while_cond'
+    WHILE_INPUT_KEY = 'while_input'
+    WHILE_OUTPUT_KEY = 'while_output'
+    WHILE_MAX_KEY = 'while_max'
+    WHILE_DELAY_KEY = 'while_delay'
+
     ##########################################################################
     # Constructors and copy
 
