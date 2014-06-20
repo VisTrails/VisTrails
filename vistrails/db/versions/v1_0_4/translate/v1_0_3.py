@@ -299,7 +299,7 @@ def translateStartup(_startup):
         if _config is not None:
             config = DBConfiguration.update_version(_config, t_dict)
             if _startup_pkg.db_name in package_config:
-                for new_key in package_config[config.db_name]:
+                for new_key in package_config[_startup_pkg.db_name]:
                     if new_key.db_name in config.db_config_keys_name_index:
                         # already have, don't replace new setting
                         continue
