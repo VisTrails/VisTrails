@@ -329,8 +329,8 @@ class VistrailsApplicationInterface(object):
             registry.set_global()
         return registry
 
-    def init(self, optionsDict=None, args=[]):
-        """ VistrailsApplicationSingleton(optionDict: dict)
+    def init(self, options_dict=None, args=[]):
+        """ VistrailsApplicationSingleton(options_dict: dict, args: list)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
         
