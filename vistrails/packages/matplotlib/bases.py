@@ -203,7 +203,6 @@ _modules = [(MplProperties, {'abstract': True}),
                              ('vistrails.packages.matplotlib.widgets',
                               'MplSourceConfigurationWidget')}),
             MplFigure,
-            MplFigureToFile,
             MplContourSet,
             MplQuadContourSet,
             MplFigureOutput]
