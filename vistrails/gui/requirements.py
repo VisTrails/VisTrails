@@ -64,5 +64,5 @@ def require_pyqt4_api2():
             'linux-fedora': ['PyQt4'],
             'pip': ['PyQt<5.0']})
         if not r:
-            raise
+            raise MissingRequirement('PyQt4')
         setNewPyQtAPI()

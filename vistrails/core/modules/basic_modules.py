@@ -1278,17 +1278,26 @@ class StringFormat(Module):
         while i < n:
             if fmt[i] == '{':
                 i += 1
-                if fmt[i] == '}': # KeyError
+                if fmt[i] == '{': # KeyError:
+                    i += 1
+                    continue
+                e = fmt.index('}', i) # KeyError
+                f = e
+                for c in (':', '!', '[', '.'):
+                    c = fmt.find(c, i)
+                    if c != -1:
+                        f = min(f, c)
+                if i == f:
                     nb += 1
-                elif fmt[i] != '{': # KeyError
-                    e = fmt.index('}', i + 1) # KeyError
-                    f = e
-                    for c in (':', '!', '[', '.'):
-                        c = fmt.find(c, i + 1)
-                        if c != -1:
-                            f = min(f, c)
-                    placeholders.add(fmt[i:f])
-                    i = e
+                else:
+                    arg = fmt[i:f]
+                    try:
+                        arg = int(arg)
+                    except ValueError:
+                        placeholders.add(arg)
+                    else:
+                        nb = max(nb, arg + 1)
+                i = e
             i += 1
         return nb, placeholders
 
@@ -1849,3 +1858,7 @@ class TestStringFormat(unittest.TestCase):
         self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',
                         a=('Integer', '42'), _0=('String', 'b'),
                         b=('Integer', '12'))
+        self.run_format('{} {} {!r}{ponc} {:.2f}', "hello dear 'world'! 1.33",
+                        _0=('String', 'hello'), _1=('String', 'dear'),
+                        _2=('String', 'world'), _3=('Float', '1.333333333'),
+                        ponc=('String', '!'))
