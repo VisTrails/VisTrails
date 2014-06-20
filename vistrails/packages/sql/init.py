@@ -153,8 +153,8 @@ class SQLSource(Module):
             cached = self.get_input('cacheResults')
             self.is_cacheable = lambda: cached
         connection = self.get_input('connection')
-        inputs = [self.get_input(k) for k in self.inputPorts.iterkeys()
-                  if k not in ('source', 'connection', 'cacheResults')]
+        inputs = dict((k, self.get_input(k)) for k in self.inputPorts.iterkeys()
+                  if k not in ('source', 'connection', 'cacheResults'))
         s = urllib.unquote(str(self.get_input('source')))
 
         try:
@@ -257,10 +257,44 @@ class TestSQL(unittest.TestCase):
                     VALUES(:name, :lastname, :age)
                     ''',
                     [{'name': 'John', 'lastname': 'Smith', 'age': 25},
-                     {'name': 'Lara', 'lastname': 'Croft', 'age': 21},
-                     {'name': 'Michael', 'lastname': 'Buck', 'age': 78}])
+                     {'name': 'Lara', 'lastname': 'Croft', 'age': 21}])
             conn.commit()
             conn.close()
+
+            source = ('''
+                    INSERT INTO test(name, lastname, age)
+                    VALUES(:name, :lastname, :age)
+                    ''')
+
+            with intercept_results(DBConnection, 'connection', SQLSource, 'result') as (connection, table):
+                self.assertFalse(execute([
+                        ('DBConnection', identifier, [
+                            ('protocol', [('String', 'sqlite')]),
+                            ('db_name', [('String', test_db)]),
+                        ]),
+                        ('SQLSource', identifier, [
+                            ('source', [('String', urllib2.quote(source))]),
+                            ('name', [('String', 'Michael')]),
+                            ('lastname', [('String', 'Buck')]),
+                            ('age', [('Integer', '78')]),
+                        ]),
+                    ],
+                    [
+                        (0, 'connection', 1, 'connection'),
+                    ],
+                    add_port_specs=[
+                        (1, 'input', 'name',
+                         'org.vistrails.vistrails.basic:String'),
+                        (1, 'input', 'lastname',
+                         'org.vistrails.vistrails.basic:String'),
+                        (1, 'input', 'age',
+                         'org.vistrails.vistrails.basic:Integer'),
+                    ]))
+
+            self.assertEqual(len(connection), 1)
+            connection[0].close()
+            self.assertEqual(len(table), 1)
+            self.assertIsNone(table[0])
 
             source = "SELECT name, lastname, age FROM test WHERE age > :age"
 

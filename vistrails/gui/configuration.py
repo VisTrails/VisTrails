@@ -48,7 +48,7 @@ from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
     QFileChooserToolButton, QDirectoryChooserToolButton
 from vistrails.gui.utils import YES_BUTTON, NO_BUTTON, show_question, show_warning
 
-import vistrails.core.system
+from vistrails.core import system
 
 ##############################################################################
 
@@ -266,7 +266,7 @@ class QConfigurationWidgetItem(object):
     def get_label_text(self):
         return self.get_desc()
 
-    def set_value(self, value):
+    def set_value(self, value, signal=True):
         raise NotImplementedError("Subclass needs to implement this method")
 
     def value_changed(self, value):
@@ -285,8 +285,12 @@ class QConfigurationCheckBox(QtGui.QCheckBox, QConfigurationWidgetItem):
         self.setText(self.get_desc())
         self.toggled.connect(self.value_changed)
 
-    def set_value(self, value):
+    def set_value(self, value, signal=True):
+        if not signal:
+            self.toggled.disconnect(self.value_changed)
         self.setChecked(value)
+        if not signal:
+            self.toggled.connect(self.value_changed)
 
     def get_label_text(self):
         return ""
@@ -301,10 +305,14 @@ class QConfigurationLineEdit(QtGui.QLineEdit, QConfigurationWidgetItem):
     def value_changed(self):
         QConfigurationWidgetItem.value_changed(self, self.text())
 
-    def set_value(self, value):
+    def set_value(self, value, signal=True):
         if value is None:
             value = ""
+        if not signal:
+            self.editingFinished.disconnect(self.value_changed)
         self.setText(unicode(value))
+        if not signal:
+            self.editingFinished.connect(self.value_changed)
 
 class QConfigurationLineEditButton(QtGui.QWidget, QConfigurationWidgetItem):
     def __init__(self, key, field, callback_f, button, parent=None):
@@ -331,10 +339,14 @@ class QConfigurationLineEditButton(QtGui.QWidget, QConfigurationWidgetItem):
     def value_changed(self):
         QConfigurationWidgetItem.value_changed(self, self.line_edit.text())
 
-    def set_value(self, value):
+    def set_value(self, value, signal=True):
         if value is None:
             value = ""
+        if not signal:
+            self.line_edit.editingFinished.disconnect(self.value_changed)
         self.line_edit.setText(unicode(value))
+        if not signal:
+            self.line_edit.editingFinished.connect(self.value_changed)
 
 class QConfigurationPathEdit(QConfigurationLineEditButton):
     def __init__(self, key, field, callback_f, 
@@ -353,10 +365,10 @@ class QConfigurationThumbnailCache(QConfigurationLineEditButton):
                                               button, parent)
 
     def clear_clicked(self, checked=False):
-        cache_dir = get_vistrails_configuration().thumbs.cacheDirectory
+        thumbnail_dir = system.get_vistrails_directory("thumbs.cacheDir")
         res = show_question('VisTrails',
                             ("All files in %s will be removed. "
-                             "Are you sure? " % cache_dir),
+                             "Are you sure? " % thumbnail_dir),
                             buttons = [YES_BUTTON,NO_BUTTON],
                             default = NO_BUTTON)
         if res == YES_BUTTON:
@@ -389,7 +401,7 @@ class QConfigurationLabelButton(QtGui.QWidget, QConfigurationWidgetItem):
         self.label = label
         self.layout().insertWidget(0, self.label)
 
-    def set_value(self, value):
+    def set_value(self, value, signal=True):
         # nothing to do here
         pass
 
@@ -433,21 +445,21 @@ class QConfigurationComboBox(QtGui.QComboBox, QConfigurationWidgetItem):
 
         self.currentIndexChanged[int].connect(self.value_changed)
 
-    def set_value(self, value):
+    def set_value(self, value, signal=True):
         options = self.get_widget_options()
-        print "SETTING VALUE:", value
+        if not signal:
+            self.currentIndexChanged[int].disconnect(self.value_changed)
         if value is not None and "allowed_values" in options:
             if "remap" in options:
                 remap = options["remap"]
                 cur_text = remap[value]
-                print "USING REMAP:", remap
             else:
-                print "NO REMAP"
                 cur_text = value
-            print "CUR TEXT:", value
             self.setCurrentIndex(self.findText(cur_text))
         else:
             self.setCurrentIndex(-1)
+        if not signal:
+            self.currentIndexChanged[int].connect(self.value_changed)
 
 class QConfigurationPane(QtGui.QWidget):
     def __init__(self, parent, persistent_config, temp_config, cat_fields):
@@ -562,7 +574,7 @@ class QConfigurationPane(QtGui.QWidget):
             config_val = bool(config_val)
             widget = QConfigurationCheckBox(config_key, field,
                                             self.field_changed)
-        widget.set_value(config_val)
+        widget.set_value(config_val, False)
 
         label_text = widget.get_label_text()
         if not label_text and category:

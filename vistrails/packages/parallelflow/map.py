@@ -18,8 +18,10 @@ from vistrails.core.db.io import serialize, unserialize
 from vistrails.core.log.module_exec import ModuleExec
 from vistrails.core.log.group_exec import GroupExec
 from vistrails.core.log.machine import Machine
+from vistrails.core.utils import xor, long2bytes
 from vistrails.db.domain import IdScope
 
+from base64 import b16encode, b16decode
 import copy
 import inspect
 from itertools import izip
@@ -31,6 +33,13 @@ import tempfile
 from IPython.parallel.error import CompositeError
 
 from .api import get_client
+
+try:
+    import hashlib
+    sha1_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha1_hash = sha.new
 
 
 ###############################################################################
@@ -229,7 +238,7 @@ class Map(Module):
 
                 # checking type and setting input in the module
                 self.typeChecking(connector.obj, nameInput, inputList)
-                self.setInputValues(connector.obj, nameInput, element)
+                self.setInputValues(connector.obj, nameInput, element, i)
 
                 pipeline_db_module = original_pipeline.modules[module_id].do_copy()
 
@@ -317,7 +326,7 @@ class Map(Module):
         for eng in engines:
             try:
                 rc[eng]['init']
-            except:
+            except Exception:
                 uninitialized.append(eng)
         if uninitialized:
             init_view = rc[uninitialized]
@@ -458,7 +467,7 @@ class Map(Module):
 
         return serialize(pipeline)
 
-    def setInputValues(self, module, inputPorts, elementList):
+    def setInputValues(self, module, inputPorts, elementList, iteration):
         """
         Function used to set a value inside 'module', given the input port(s).
         """
@@ -468,6 +477,13 @@ class Map(Module):
                 del module.inputPorts[inputPort]
             new_connector = ModuleConnector(create_constant(element), 'value')
             module.set_input_port(inputPort, new_connector)
+            # Affix a fake signature on the module
+            inputPort_hash = sha1_hash()
+            inputPort_hash.update(inputPort)
+            module.signature = b16encode(xor(
+                    b16decode(self.signature.upper()),
+                    long2bytes(iteration, 20),
+                    inputPort_hash.digest()))
 
     def typeChecking(self, module, inputPorts, inputList):
         """

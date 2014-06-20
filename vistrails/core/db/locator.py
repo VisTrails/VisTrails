@@ -304,7 +304,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 f.write("\nConnect to db with username [%s]: "%self._user)
                 f.close()
                 user = raw_input()
-            except:
+            except IOError:
                 debug.warning("Couldn't write to terminal. Will try stdout")
                 user = raw_input("Connecting to db with username[%s]: "%self._user)
             try:
@@ -677,7 +677,7 @@ class FileLocator(CoreLocator):
             showSpreadsheetOnly = False
         try:
             version = int(version)
-        except:
+        except ValueError:
             pass
 
         if tag is None:

@@ -38,6 +38,7 @@
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
 ################################################################################
 import vtk
+import os
 from PyQt4 import QtCore, QtGui
 import sip
 from vistrails.core import system
@@ -45,7 +46,6 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-import vtkcell_rc
 import gc
 from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
@@ -103,7 +103,7 @@ class VTKCell(SpreadsheetCell):
         iHandlers = self.force_get_input_list('InteractionHandler')
         iStyle = self.force_get_input('InteractorStyle')
         picker = self.force_get_input('AddPicker')
-        self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
+        self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -152,6 +152,8 @@ class QVTKWidget(QCellWidget):
     vtkRenderer inside a Qt QWidget
     
     """
+    save_formats = ["PNG image (*.png)", "PDF files (*.pdf)"]
+
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         """ QVTKWidget(parent: QWidget, f: WindowFlags) -> QVTKWidget
         Initialize QVTKWidget with a toolbar with its own device
@@ -252,7 +254,7 @@ class QVTKWidget(QCellWidget):
             if renderView==None:
                 vtkInstance = renderer.vtkInstance
                 renWin.AddRenderer(vtkInstance)
-                self.renderer_maps[vtkInstance] = renderer.moduleInfo['moduleId']
+                self.renderer_maps[vtkInstance] = renderer.vt_module_id
             else:
                 vtkInstance = renderer
             if hasattr(vtkInstance, 'IsActiveCameraCreated'):
@@ -946,7 +948,7 @@ class QVTKWidget(QCellWidget):
         """ saveToPNG(filename: str) -> filename or vtkUnsignedCharArray
         
         Save the current widget contents to an image file. If
-        str==None, then it returns the vtkUnsignedCharArray containing
+        filename is None, then it returns the vtkUnsignedCharArray containing
         the PNG image. Otherwise, the filename is returned.
         
         """
@@ -968,25 +970,10 @@ class QVTKWidget(QCellWidget):
         else:
             writer.WriteToMemoryOn()
         writer.Write()
-        if filename:
+        if filename is not None:
             return filename
         else:
             return writer.GetResult()
-
-    def captureWindow(self):
-        """ captureWindow() -> None        
-        Capture the window contents to file
-        
-        """
-        fn = QtGui.QFileDialog.getSaveFileName(None,
-                                               "Save file as...",
-                                               "screenshot.png",
-                                               "Images (*.png);;PDF files (*.pdf)")
-        if fn:
-            if fn.lower().endswith("png"):
-                self.saveToPNG(fn)
-            elif fn.lower().endswith("pdf"):
-                self.saveToPDF(fn)
         
     def grabWindowPixmap(self):
         """ grabWindowImage() -> QPixmap
@@ -1011,32 +998,11 @@ class QVTKWidget(QCellWidget):
         """dumpToFile() -> None
         Dumps itself as an image to a file, calling saveToPNG
         """
-        self.saveToPNG(filename)
-
-class QVTKWidgetCapture(QtGui.QAction):
-    """
-    QVTKWidgetCapture is the action to capture the vtk rendering
-    window to an image
-    
-    """
-    def __init__(self, parent=None):
-        """ QVTKWidgetCapture(parent: QWidget) -> QVTKWidgetCapture
-        Setup the image, status tip, etc. of the action
-        
-        """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/camera.png"),
-                               "&Capture image to file",
-                               parent)
-        self.setStatusTip("Capture the rendered image to a file")
-
-    def triggeredSlot(self, checked=False):
-        """ toggledSlot(checked: boolean) -> None
-        Execute the action when the button is clicked
-        
-        """
-        cellWidget = self.toolBar.getSnappedWidget()
-        cellWidget.captureWindow()
+        ext = os.path.splitext(filename)[1].lower()
+        if ext == '.pdf':
+            self.saveToPDF(filename)
+        else:
+            self.saveToPNG(filename)
 
 class QVTKWidgetSaveCamera(QtGui.QAction):
     """
@@ -1082,9 +1048,9 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                 ops.append(('add', camera))
 
                 # Connect camera to renderer
-                camera_conn = controller.create_connection(camera, 'self',
-                                                           renderer, 
-                                                           'SetActiveCamera')
+                camera_conn = controller.create_connection(
+                        camera, 'Instance',
+                        renderer, 'SetActiveCamera')
                 ops.append(('add', camera_conn))
             # update functions
             def convert_to_str(arglist):
@@ -1120,8 +1086,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                         controller = view.controller
                         controller.change_selected_version(info['version'])
                         self.setCamera(controller)
-                        
-                
+
 class QVTKWidgetToolBar(QCellToolBar):
     """
     QVTKWidgetToolBar derives from QCellToolBar to give the VTKCell
@@ -1133,7 +1098,6 @@ class QVTKWidgetToolBar(QCellToolBar):
         This will get call initiallly to add customizable widgets
         
         """
-        self.appendAction(QVTKWidgetCapture(self))
         self.addAnimationButtons()
         self.appendAction(QVTKWidgetSaveCamera(self))
 
@@ -1159,5 +1123,3 @@ def registerSelf():
         except Exception, e:
             debug.warning("Got an exception adding VTKCell's %s input "
                           "port" % port, e)
-
-    registry.add_output_port(VTKCell, "self", VTKCell)

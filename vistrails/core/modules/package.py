@@ -34,21 +34,22 @@
 ###############################################################################
 import copy
 import inspect
-from itertools import chain
 import os
 import re
 import sys
 import traceback
-import xml.dom
 
+import vistrails
 from vistrails.core import debug
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import ConfigurationObject
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.utils import versions_increasing, VistrailsInternalError
 from vistrails.core.utils.uxml import (named_elements, enter_named_element)
-
 from vistrails.db.domain import DBPackage
+
+
+vistrails_dir = os.path.dirname(os.path.realpath(vistrails.__file__))
 
 ##############################################################################
 
@@ -279,6 +280,8 @@ class Package(DBPackage):
                 pkg_fname = pkg.__file__
             except AttributeError:
                 return True
+            if os.path.realpath(pkg_fname).startswith(vistrails_dir):
+                return False
             if "site-packages" in pkg_fname:
                 return True
             if os.sep != '/':
@@ -447,7 +450,8 @@ class Package(DBPackage):
 
             if hasattr(self._init_module, 'initialize'):
                 self._init_module.initialize()
-        except Exception:
+        except Exception, e:
+            debug.unexpected_exception(e)
             self.unload()
             raise
 

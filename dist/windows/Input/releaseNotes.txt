@@ -1,6 +1,38 @@
 RELEASE NOTES
 -------------
-Release Name: v2.1.1 build 90975fc00211 from v2.1 branch
+Release Name: v2.1.2 build 7d8a4ed2feeb from v2.1 branch
+
+Enhancements: 
+ - Ticket 846: File Selection Dialog (78e8d01bd7ab)
+ - Ticket 824: Workflow execution output in console (8ea1231e736f)
+ - Adds PromptIsOkay module (WIP) (a1bad0cc2d46)
+ - Adds a YesNoDialog module (b267d2bed5eb)
+
+Bug fixes: 
+ - Ticket 849: Autosave for existing vistrails not working (671eade8a9b8)
+ - Saving mashups to DB corrupts them (5be2ed41d33f)
+ - CLTools wizard does not show list type field (df8ef413aff4)
+ - Date error in workspace when using 8-bit characters (af83742a98ec)
+ - Ticket 850: Pipeline/history view scrollbars too sensitive (9e68064627c1)
+ - Ticket 686: Deleting a vistrail variable breaks workflows (1870f481103d)
+ - Ticket 830: Deleting a module does not delete vistrail variables connected to it (a197eba35396)
+ - Ticket 825: Vistrail Variables are not copied with modules (a197eba35396)
+ - Wrong view mode when switching between open vistrails (29bc0e1f47b7)
+ - Ticket 828: [Windows] Pinning a panel causes it to disappear (287e77ec7afd)
+ - Saving new vistrail caused view change (a95026c25968)
+ - Could not drop module in detached vistrail variables widget (63957fe80711)
+ - Vistrail Variables palette closed before it could be stickied (670f81d5eaff)
+ - Ticket 822: Exception if PyQt is installed but PyQt.QtOpenGL isn't (e4c1ded9d649)
+ - Ticket 783: Enabling packages automatically can make a different package fail (244084e837ec)
+ - Old-style imports did not work on vistrails server (eaded21310ee)
+ - Fixes adding a webservice through the context menu (d42e90689af2)
+ - Old mashuptrails were not deleted correctly in DB (5ada9ce79bcb)
+ - Mashups: Fixes alias copy bug (b5276f4c159e)
+ - SaveBundle did not copy mashups (ea12b6a1e2b3)
+ - Fixes date formatting in core.collection (1aaef5de72fb)
+ - Fixes major ImageViewerCell bug (d8ca797bf8b9)
+
+From Release: v2.1.1 build 90975fc00211 from v2.1 branch
 
 Bug fixes: 
  - Ticket 816: Saved vistrail doesn't appear in 'my vistrails' (784414a617d2)

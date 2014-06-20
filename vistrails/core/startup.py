@@ -43,7 +43,8 @@ from vistrails.db.domain import DBStartup, DBStartupPackage, \
     DBEnabledPackages, DBDisabledPackages
 import vistrails.db.services.io
 import vistrails.core.packagemanager
-from vistrails.core.system import get_elementtree_library
+from vistrails.core.system import get_elementtree_library, \
+    get_vistrails_directory
 import vistrails.core.utils
 from vistrails.core.utils import version_string_to_list
 
@@ -53,6 +54,7 @@ from distutils.version import LooseVersion
 import os.path
 import re
 import shutil
+import string
 import sys
 import tempfile
 import vistrails.core.configuration
@@ -111,10 +113,10 @@ class VistrailsStartup(DBStartup):
     """
 
     # !!! IMPORTANT: keep logDirectory first!
-    DIRECTORIES = [('logDirectory', 'logs', False),
-                   ('userPackageDirectory', 'userpackages', True),
-                   ('subworkflowsDirectory', 'subworkflows', False),
-                   ('thumbs.cacheDirectory', 'thumbs', False)]
+    DIRECTORIES = [('logDir', 'logs', False),
+                   ('userPackageDir', 'userpackages', True),
+                   ('subworkflowsDir', 'subworkflows', False),
+                   ('thumbs.cacheDir', 'thumbs', False)]
     DOT_VISTRAILS_PREFIX = "$DOT_VISTRAILS"
     DOT_VISTRAILS_PREFIX_RE = re.compile("%s([%s/\\\\]|$)" % 
                                          (re.escape(DOT_VISTRAILS_PREFIX),
@@ -239,12 +241,13 @@ class VistrailsStartup(DBStartup):
         # load options from startup.xml
         self.load_persisted_startup()
 
-        # check the dot_vistrails paths
-        if self._dot_vistrails is not None:
-            self.update_dir_paths()
+        # # check the dot_vistrails paths
+        # if self._dot_vistrails is not None:
+        #     self.update_dir_paths()
 
         # set up temporary configuration with options and command-line
-        self.temp_configuration = copy.copy(self.configuration)        
+        self.temp_configuration = copy.copy(self.configuration)
+
         if options_config is not None:
             self.temp_configuration.update(options_config)
         if command_line_config is not None:
@@ -337,15 +340,10 @@ class VistrailsStartup(DBStartup):
         return False
 
     def setup_directory(self, config_key, default_dir, setup_init_file=False):
-        # FIXME need to deal with case where config value is
-        # $DOT_VISTRAILS and that doesn't exist
-        dir_name, abs_dir_name, is_default = \
-                                self.resolve_dir_name(config_key, default_dir)
+        abs_dir_name = get_vistrails_directory(config_key, 
+                                               self.temp_configuration)        
         if abs_dir_name is not None:
             self.create_directory(abs_dir_name)
-        if is_default:
-            self.update_deep_configs(config_key, dir_name)
-        self.temp_configuration.set_deep_value(config_key, abs_dir_name)
         if abs_dir_name is not None and setup_init_file:
             self.setup_init_file(abs_dir_name)
         return abs_dir_name
@@ -563,13 +561,14 @@ class VistrailsStartup(DBStartup):
         try:
             os.mkdir(self.temp_configuration.dotVistrails)
             debug.log('Succeeded!')
-        except:
+        except Exception, e:
             debug.critical("""Failed to create initialization directory.
                     This could be an indication of a permissions problem.
                     Make sure parent directory of '%s' is writable."""
-                    % self.temp_configuration.dotVistrails)
+                    % self.temp_configuration.dotVistrails,
+                    e)
             sys.exit(1)
-                
+
     def runDotVistrails(self):
         """ runDotVistrails() -> None
         Setup to run user .vistrails file
@@ -593,11 +592,11 @@ class VistrailsStartup(DBStartup):
                 f = open(name, 'w')
                 f.write('pass\n')
                 f.close()
-            except:
+            except Exception, e:
                 msg = ("""Failed to create file '%s'. This could indicate a
                 rare combination of a race condition and a permissions problem.
                 Please make sure it is writable.""" % name)
-                debug.critical(msg)
+                debug.critical(msg, e)
                 sys.exit(1)
 
         def create_user_packages_dir(userpackagesname=None):
@@ -611,13 +610,13 @@ class VistrailsStartup(DBStartup):
                     self.configuration.userPackageDirectory = userpackagesname
                     self.temp_configuration.userPackageDirectory = \
                         userpackagesname
-                except:
+                except Exception, e:
                     msg = ("""Failed to create userpackages directory: '%s'.
                     This could be an indication of a permissions problem.
                     Make sure directory '%s' in writable.""" %
                            (userpackagesname,
                             self.configuration.dotVistrails))
-                    debug.critical(msg)
+                    debug.critical(msg, e)
                     sys.exit(1)
             create_user_packages_init(userpackagesname)
                 
@@ -633,13 +632,13 @@ class VistrailsStartup(DBStartup):
                     self.configuration.thumbs.cacheDirectory = thumbnails_dir
                     self.temp_configuration.thumbs.cacheDirectory = \
                         thumbnails_dir
-                except:
+                except Exception, e:
                     msg = ("Failed to create thumbnails cache directory: '%s'.  "
                            "This could be an indication of a permissions "
                            "problem.  Make sure directory '%s' is writable." % \
                                (thumbnails_dir, 
                                 self.configuration.dotVistrails))
-                    debug.critical(msg)
+                    debug.critical(msg, e)
                     sys.exit(1)   
                                 
         def create_abstractions_dir(abstractions_dir=None):
@@ -653,13 +652,13 @@ class VistrailsStartup(DBStartup):
                     self.configuration.subworkflowsDirectory = abstractions_dir
                     self.temp_configuration.subworkflowsDirectory = \
                         abstractions_dir
-                except:
+                except Exception, e:
                     msg = ("Failed to create subworkflows directory: '%s'.  "
                            "This could be an indication of a permissions "
                            "problem.  Make sure directory '%s' is writable." % \
                                (abstractions_dir, 
                                 self.configuration.dotVistrails))
-                    debug.critical(msg)
+                    debug.critical(msg, e)
                     sys.exit(1)
 #             try:
 #                 root_dir = core.system.vistrails_root_directory()
@@ -687,11 +686,12 @@ class VistrailsStartup(DBStartup):
                                          'startup.py')
                 shutil.copyfile(default_file,user_file)
                 debug.log('Succeeded!')
-            except:
+            except Exception, e:
                 debug.critical("""Failed to copy default file %s.
                 This could be an indication of a permissions problem.
                 Make sure directory '%s' is writable"""
-                % (user_file,self.temp_configuration.dotVistrails))
+                % (user_file,self.temp_configuration.dotVistrails),
+                e)
                 sys.exit(1)
 
         def install_default_startupxml_if_needed():
@@ -705,7 +705,7 @@ class VistrailsStartup(DBStartup):
                         d = self.startup_dom()
                         v = str(d.getElementsByTagName('startup')[0].attributes['version'].value)
                         return LooseVersion('0.1') <= LooseVersion(v)
-                    except:
+                    except Exception:
                         return False
                 else:
                     return False
@@ -714,12 +714,12 @@ class VistrailsStartup(DBStartup):
             try:
                 shutil.copyfile(origin, fname)
                 debug.log('Succeeded!')
-            except:
+            except Exception, e:
                 debug.critical("""Failed to copy default configuration
                 file to %s. This could be an indication of a
                 permissions problem. Please make sure '%s' is writable."""
                                % (fname,
-                                  self.temp_configuration.dotVistrails))
+                                  self.temp_configuration.dotVistrails), e)
 
         def execDotVistrails(tried_once=False):
             """ execDotVistrails() -> None
@@ -736,30 +736,32 @@ class VistrailsStartup(DBStartup):
                     shutil.copyfile(self.temp_configuration.dotVistrails, name)
                     try:
                         os.unlink(self.temp_configuration.dotVistrails)
-                    except:
+                    except Exception, e:
                         debug.critical("""Failed to remove old initialization file.
                         This could be an indication of a permissions problem.
                         Make sure file '%s' is writable."""
-                        % self.temp_configuration.dotVistrails)
+                        % self.temp_configuration.dotVistrails,
+                        e)
                         sys.exit(1)
                     self.create_default_directory()
                     try:
                         destiny = os.path.join(self.temp_configuration.dotVistrails,
                                                'startup.py')
                         shutil.copyfile(name, destiny)
-                    except:
+                    except Exception, e:
                         debug.critical("""Failed to copy old initialization file to
                         newly-created initialization directory. This must have been
                         a race condition. Please remove '%s' and
                         restart VisTrails."""
-                        % self.temp_configuration.dotVistrails)
+                        % self.temp_configuration.dotVistrails,
+                        e)
                         sys.exit(1)
                     debug.critical("Successful move!")
                 finally:
                     try:
                         os.unlink(name)
-                    except:
-                        debug.warning("Failed to erase temporary file.")
+                    except Exception, e:
+                        debug.warning("Failed to erase temporary file.", e)
 
             if os.path.isdir(self.temp_configuration.dotVistrails):
                 if self.temp_configuration.check('userPackageDirectory'):
@@ -837,12 +839,10 @@ class VistrailsStartup(DBStartup):
         """
         if self.temp_configuration.has('rootDirectory'):
             system.set_vistrails_root_directory(self.temp_configuration.rootDirectory)
-        if self.temp_configuration.has('dataDirectory'):
-            system.set_vistrails_data_directory( \
-                self.temp_configuration.dataDirectory)
-        if self.temp_configuration.has('fileDirectory'):
-            system.set_vistrails_file_directory( \
-                self.temp_configuration.fileDirectory)
+        if self.temp_configuration.has('dataDir'):
+            system.set_vistrails_data_directory(self.temp_configuration.dataDir)
+        if self.temp_configuration.has('fileDir'):
+            system.set_vistrails_file_directory(self.temp_configuration.fileDir)
         if (self.temp_configuration.has('debugLevel') and
             self.temp_configuration.debugLevel != -1):
             verbose = self.temp_configuration.debugLevel
@@ -912,10 +912,10 @@ class TestStartup(unittest.TestCase):
         log_dir = tempfile.mkdtemp()
         config = vistrails.core.configuration.default()
         config.dotVistrails = dir_name
-        config.userPackageDirectory = user_pkg_dir
-        config.subworkflowsDirectory = abstractions_dir
-        config.thumbs.cacheDirectory = thumbs_dir
-        config.logDirectory = log_dir
+        config.userPackageDir = user_pkg_dir
+        config.subworkflowsDir= abstractions_dir
+        config.thumbs.cacheDir = thumbs_dir
+        config.logDir = log_dir
         try:
             startup = VistrailsStartup(config, None)
             self.assertTrue(os.path.isfile(os.path.join(dir_name, 
@@ -943,10 +943,10 @@ class TestStartup(unittest.TestCase):
         log_dir = os.path.join(outer_log_dir, 'logs')
         config = vistrails.core.configuration.default()
         config.dotVistrails = dir_name
-        config.userPackageDirectory = user_pkg_dir
-        config.subworkflowsDirectory = abstractions_dir
-        config.thumbs.cacheDirectory = thumbs_dir
-        config.logDirectory = log_dir
+        config.userPackageDir = user_pkg_dir
+        config.subworkflowsDir = abstractions_dir
+        config.thumbs.cacheDir = thumbs_dir
+        config.logDir = log_dir
         try:
             startup = VistrailsStartup(config, None)
             self.assertTrue(os.path.isfile(os.path.join(dir_name, 
@@ -1001,9 +1001,18 @@ class TestStartup(unittest.TestCase):
         import vistrails.core.db.io
         root_dir = system.vistrails_root_directory()
         # has old nested shell settings that don't match current naming
-        old_default_fname = os.path.join(root_dir,'tests','resources',
-                                            'startup-0.1.xml')
-        startup1 = vistrails.core.db.io.load_startup(old_default_fname)
+        startup_tmpl = os.path.join(system.vistrails_root_directory(),
+                                    'tests', 'resources', 
+                                    'startup-0.1.xml.tmpl')
+        f = open(startup_tmpl, 'r')
+        template = string.Template(f.read())
+        
+        startup_dir = tempfile.mkdtemp(prefix="vt_startup")
+        old_startup_fname = os.path.join(startup_dir, "startup.xml")
+        with open(old_startup_fname, 'w') as f:
+            f.write(template.substitute({'startup_dir': startup_dir}))
+
+        startup1 = vistrails.core.db.io.load_startup(old_startup_fname)
 
         (h, fname) = tempfile.mkstemp(suffix=".xml")
         os.close(h)
@@ -1013,6 +1022,7 @@ class TestStartup(unittest.TestCase):
             self.assertEqual(startup1, startup2)
         finally:
             os.remove(fname)
+            shutil.rmtree(startup_dir)
 
     # def test_load_packages(self):
     #     from vistrails.core.system import default_dot_vistrails

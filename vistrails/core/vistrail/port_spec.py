@@ -41,12 +41,11 @@ from vistrails.core.system import get_vistrails_basic_pkg_id, \
     get_module_registry
 from vistrails.core.utils import enum, VistrailsInternalError
 from vistrails.core.vistrail.port_spec_item import PortSpecItem
-from vistrails.db.domain import DBPortSpec
+from vistrails.db.domain import DBPortSpec, IdScope
 
+from ast import literal_eval
 import unittest
 import copy
-from vistrails.db.domain import IdScope
-import vistrails.core
 
 PortEndPoint = enum('PortEndPoint',
                     ['Invalid', 'Source', 'Destination'])
@@ -121,6 +120,8 @@ class PortSpec(DBPortSpec):
             
         if 'sort_key' not in kwargs:
             kwargs['sort_key'] = -1
+        if 'depth' not in kwargs:
+            kwargs['depth'] = 0
         if 'id' not in kwargs:
             kwargs['id'] = -1
         if 'tooltip' in kwargs:
@@ -216,6 +217,7 @@ class PortSpec(DBPortSpec):
     sort_key = DBPortSpec.db_sort_key
     min_conns = DBPortSpec.db_min_conns
     max_conns = DBPortSpec.db_max_conns
+    _depth = DBPortSpec.db_depth
     port_spec_items = DBPortSpec.db_portSpecItems
     items = DBPortSpec.db_portSpecItems
 
@@ -247,6 +249,12 @@ class PortSpec(DBPortSpec):
             signature.append((i.descriptor.module, i.label))
         return signature
     signature = property(_get_signature)
+
+    def _get_depth(self):
+        return self._depth or 0
+    def _set_depth(self, depth):
+        self._depth = depth
+    depth = property(_get_depth, _set_depth)
 
     def toolTip(self):
         if self._tooltip is None:
@@ -287,19 +295,19 @@ class PortSpec(DBPortSpec):
         if defaults is None:
             defaults = []
         elif isinstance(defaults, basestring):
-            defaults = eval(defaults)
+            defaults = literal_eval(defaults)
         if labels is None:
             labels = []
         elif isinstance(labels, basestring):
-            labels = eval(labels)
+            labels = literal_eval(labels)
         if values is None:
             values = []
         elif isinstance(values, basestring):
-            values = eval(values)
+            values = literal_eval(values)
         if entry_types is None:
             entry_types = []
         elif isinstance(entry_types, basestring):
-            entry_types = eval(entry_types)
+            entry_types = literal_eval(entry_types)
         attrs = [defaults, labels, values, entry_types]
         if items:
             self.set_items(items, *attrs)
@@ -394,9 +402,11 @@ class PortSpec(DBPortSpec):
             port_string = self.type.capitalize()
         else:
             port_string = 'Invalid'
-        self._tooltip = "%s port %s\n%s" % (port_string,
+        _depth = " (depth %s)" % self.depth if self.depth else ''
+        self._tooltip = "%s port %s\n%s%s" % (port_string,
                                             self.name,
-                                            self._short_sigstring)
+                                            self._short_sigstring,
+                                            _depth)
         
     ##########################################################################
     # Operators
@@ -406,9 +416,9 @@ class PortSpec(DBPortSpec):
         object. 
 
         """
-        rep = "<portSpec id=%s name=%s type=%s signature=%s />"
+        rep = "<portSpec id=%s name=%s type=%s signature=%s depth=%s />"
         return  rep % (str(self.id), str(self.name), 
-                       str(self.type), str(self.sigstring))
+                       str(self.type), str(self.sigstring), str(self.depth))
 
     def __eq__(self, other):
         """ __eq__(other: PortSpec) -> boolean

@@ -35,6 +35,7 @@
 from getpass import getuser
 
 from PyQt4 import QtCore, QtGui
+from ast import literal_eval
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape, unescape
 from vistrails.gui.theme import CurrentTheme
@@ -264,19 +265,21 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                                   'HSV Interpolation']:
                                 try:
                                     # Set min/max
-                                    i_range = eval('%s' % unescape(p.value,
-                                                               unescape_dict))
+                                    i_range = literal_eval('%s' % unescape(
+                                                           p.value,
+                                                           unescape_dict))
                                     p_min = str(i_range[0])
                                     p_max =str(i_range[1])
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
-                                except:
+                                except Exception:
                                     pass
                             elif p.interpolator == 'List':
                                 p_values = '%s' % unescape(p.value,
                                                         unescape_dict)
                                 # Set internal list structure
-                                interpolator._str_values = eval(p_values)
+                                interpolator._str_values = \
+                                        literal_eval(p_values)
                                 # Update UI list
                                 if interpolator.type == 'String':
                                     interpolator.listValues.setText(p_values)
@@ -299,17 +302,18 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         # Parse/validate the xml
         try:
             xmlDoc = parseString(xmlString).documentElement
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Parameter Exploration load failed because of "
                            "invalid XML:\n\n%s" % xmlString)
             return
         palette = self.get_palette()
         paramView = self.get_param_view()
         # Set the exploration dimensions
-        dims = eval(str(xmlDoc.attributes['dims'].value))
+        dims = literal_eval(xmlDoc.attributes['dims'].value)
         self.table.label.setCounts(dims)
         # Set the virtual cell layout
-        layout = eval(str(xmlDoc.attributes['layout'].value))
+        layout = literal_eval(xmlDoc.attributes['layout'].value)
         palette.virtual_cell.setConfiguration(layout)
         # Populate parameter exploration window with stored functions and aliases
         for f in xmlDoc.getElementsByTagName('function'):
@@ -349,12 +353,12 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                     p_max = str(p.attributes['max'].value)
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
-                                except:
+                                except Exception:
                                     pass
                             elif p_intType == 'List':
                                 p_values = str(p.attributes['values'].value)
                                 # Set internal list structure
-                                interpolator._str_values = eval(p_values)
+                                interpolator._str_values = literal_eval(p_values)
                                 # Update UI list
                                 if interpolator.type == 'String':
                                     interpolator.listValues.setText(p_values)

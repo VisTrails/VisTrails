@@ -3,8 +3,10 @@ try:
 except ImportError: # pragma: no cover
     numpy = None
 
+from vistrails.core.modules.basic_modules import List, ListType
 from vistrails.core.modules.config import ModuleSettings
-from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.modules.vistrails_module import Module, ModuleError, \
+    Converter
 
 
 class InternalModuleError(Exception):
@@ -146,7 +148,7 @@ def choose_columns(nb_columns, column_names=None, names=None, indexes=None):
             except ValueError:
                 try:
                     idx = column_names.index(name.strip())
-                except:
+                except ValueError:
                     raise ValueError("Column name was not found: %r" % name)
             result.append(idx)
         if indexes is not None:
@@ -254,4 +256,20 @@ class BuildTable(Module):
         self.set_output('value', TableObject(cols, nb_rows, names))
 
 
-_modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable]
+class SingleColumnTable(Converter):
+    """Automatic Converter module from List to Table.
+    """
+    _input_ports = [('in_value', List)]
+    _output_ports = [('out_value', Table)]
+    def compute(self):
+        column = self.get_input('in_value')
+        if not isinstance(column, ListType):
+            column = list(column)
+        self.set_output('out_value', TableObject(
+                [column],               # columns
+                len(column),            # nb_rows
+                ['converted_list']))    # names
+
+
+_modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable,
+            (SingleColumnTable, {'hide_descriptor': True})]

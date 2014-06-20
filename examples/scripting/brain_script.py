@@ -17,20 +17,20 @@ vt_app = vt_init()
 vt_app.new_vistrail()
 api = get_api()
 
-httppkg = 'edu.utah.sci.vistrails.http'
+urlpkg = 'org.vistrails.vistrails.url'
 vtkpkg = 'edu.utah.sci.vistrails.vtk'
 
-http = Package(httppkg)
+url = Package(urlpkg)
 vtk = Package(vtkpkg)
 
-#start with http file module
-httpFA = http.HTTPFile()
-httpFA.url = \
+#start with download file module
+dlFA = url.DownloadFile()
+dlFA.url = \
     'http://www.vistrails.org/download/download.php?type=DATA&id=gktbhFA.vtk'
 
 #add and connect vtkDataSetReader
 dataFA = api.add_and_connect_module(vtkpkg, 'vtkDataSetReader', 'SetFile',
-                                    httpFA, 'file')
+                                    dlFA, 'file')
 
 #add contour filter
 contour = api.add_and_connect_module(vtkpkg, 'vtkContourFilter',
@@ -68,10 +68,10 @@ dataL123 = api.add_and_connect_module(vtkpkg, 'vtkDataSetReader',
                                       'GetOutputPort0',
                                       colors, 'SetInputConnection0', True)
 
-httpL123 = api.add_and_connect_module(httppkg, 'HTTPFile', 'file',
+dlL123 = api.add_and_connect_module(urlpkg, 'DownloadFile', 'file',
                                       dataL123, 'SetFile', True)
 
-httpL123.url = \
+dlL123.url = \
     'http://www.vistrails.org/download/download.php?type=DATA&id=gktbhL123.vtk'
 
 #finish bottom section

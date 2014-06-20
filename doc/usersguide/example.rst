@@ -50,6 +50,8 @@ Intermediate Concepts and VisTrails Packages
 
    controlflow
    cfassistant
+   list_handling
+   streaming
    parallelflow
    database
    example_webservices

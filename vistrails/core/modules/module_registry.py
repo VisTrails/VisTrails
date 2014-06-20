@@ -33,13 +33,14 @@
 ##
 ###############################################################################
 from itertools import izip, chain
-import ast
+from ast import literal_eval
 import collections
 import copy
 import os
 import tempfile
 import traceback
 import uuid
+import warnings
 
 from vistrails.core import debug, get_vistrails_application
 from vistrails.core.data_structures.graph import Graph
@@ -53,7 +54,7 @@ from vistrails.core.modules.package import Package
 import vistrails.core.modules.utils
 from vistrails.core.utils import VistrailsInternalError, memo_method, \
     InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
-    all, profile, versions_increasing, InvalidPipeline
+    all, profile, versions_increasing, InvalidPipeline, VistrailsDeprecation
 from vistrails.core.system import vistrails_root_directory, vistrails_version, \
     get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.port_spec import PortSpec
@@ -987,9 +988,10 @@ class ModuleRegistry(DBRegistry):
                 desc = self.get_descriptor_by_name(*sig)
             else:
                 desc = self.get_descriptor(cls)
-        except:
-            raise Exception('Cannot convert value "%s" due to missing '
-                            'descriptor for port' % val)
+        except Exception, e:
+            debug.unexpected_exception(e)
+            raise VistrailsInternalError("Cannot convert value %r due to "
+                                         "missing descriptor for port" % val)
         constant_desc = self.get_descriptor_by_name(basic_pkg, 'Constant')
         if not self.is_descriptor_subclass(desc, constant_desc):
             raise TypeError("Cannot convert value for non-constant type")
@@ -1410,7 +1412,7 @@ class ModuleRegistry(DBRegistry):
                          optional=False, sort_key=-1, labels=None, 
                          defaults=None, values=None, entry_types=None,
                          docstring=None, shape=None, 
-                         min_conns=0, max_conns=-1):
+                         min_conns=0, max_conns=-1, depth=0):
         if signature is None and sigstring is None:
             raise VistrailsInternalError("create_port_spec: one of signature "
                                          "and sigstring must be specified")
@@ -1434,7 +1436,7 @@ class ModuleRegistry(DBRegistry):
             if defaults is not None:
                 new_defaults = []
                 if isinstance(defaults, basestring):
-                    defaults = ast.literal_eval(defaults)
+                    defaults = literal_eval(defaults)
                 if not isinstance(defaults, list):
                     raise ValueError('Defaults for port "%s" must be a list' %
                                      name)
@@ -1453,13 +1455,13 @@ class ModuleRegistry(DBRegistry):
             if values is not None:
                 new_values = []
                 if isinstance(values, basestring):
-                    values = ast.literal_eval(values)
+                    values = literal_eval(values)
                 if not isinstance(values, list):
                     raise ValueError('Values for port "%s" must be a list '
                                      'of lists' % name)
                 for i, values_list in enumerate(values):
                     if isinstance(values_list, basestring):
-                        values_list = ast.literal_eval(values_list)
+                        values_list = literal_eval(values_list)
                     if values_list is not None:
                         if not isinstance(values_list, list):
                             raise ValueError('Values for port "%s" must be '
@@ -1491,7 +1493,8 @@ class ModuleRegistry(DBRegistry):
                         docstring=docstring,
                         shape=shape,
                         min_conns=min_conns,
-                        max_conns=max_conns)
+                        max_conns=max_conns,
+                        depth=depth)
 
         # don't know how many port spec items are created until after...
         for psi in spec.port_spec_items:
@@ -1542,19 +1545,20 @@ class ModuleRegistry(DBRegistry):
     def add_port(self, descriptor, port_name, port_type, port_sig=None, 
                  port_sigstring=None, optional=False, sort_key=-1,
                  labels=None, defaults=None, values=None, entry_types=None, 
-                 docstring=None, shape=None, min_conns=0, max_conns=-1):
+                 docstring=None, shape=None, min_conns=0, max_conns=-1,
+                 depth=0):
         spec = self.create_port_spec(port_name, port_type, port_sig,
                                      port_sigstring, optional, sort_key,
                                      labels, defaults, values, entry_types,
                                      docstring, shape,
-                                     min_conns, max_conns)
+                                     min_conns, max_conns, depth)
 
         self.add_port_spec(descriptor, spec)
 
     def add_input_port(self, module, portName, portSignature, optional=False, 
-                       sort_key=-1, labels=None, defaults=None, values=None,
-                       entry_types=None, docstring=None, shape=None, 
-                       min_conns=0, max_conns=-1):
+                       sort_key=-1, labels=None, defaults=None,
+                       values=None, entry_types=None, docstring=None,
+                       shape=None, min_conns=0, max_conns=-1, depth=0):
         """add_input_port(module: class,
                           portName: string,
                           portSignature: string,
@@ -1567,7 +1571,8 @@ class ModuleRegistry(DBRegistry):
                           docstring: string,
                           shape: tuple,
                           min_conns: int,
-                          max_conns: int) -> None
+                          max_conns: int,
+                          depth: int) -> None
 
         Registers a new input port with VisTrails. Receives the module
         that will now have a certain port, a string representing the
@@ -1576,18 +1581,20 @@ class ModuleRegistry(DBRegistry):
         input port is optional."""
         descriptor = self.get_descriptor(module)
         if isinstance(portSignature, basestring):
-            self.add_port(descriptor, portName, 'input', None, portSignature, 
+            self.add_port(descriptor, portName, 'input', None, portSignature,
                           optional, sort_key, labels, defaults, values,
-                          entry_types, docstring, shape, min_conns, max_conns)
+                          entry_types, docstring, shape, min_conns, max_conns,
+                          depth)
         else:
             self.add_port(descriptor, portName, 'input', portSignature, None, 
                           optional, sort_key, labels, defaults, values,
-                          entry_types, docstring, shape, min_conns, max_conns)
+                          entry_types, docstring, shape, min_conns, max_conns,
+                          depth)
 
 
     def add_output_port(self, module, portName, portSignature, optional=False, 
                         sort_key=-1, docstring=None, shape=None, 
-                        min_conns=0, max_conns=-1):
+                        min_conns=0, max_conns=-1, depth=0):
         """add_output_port(module: class,
                            portName: string,
                            portSignature: string,
@@ -1596,7 +1603,8 @@ class ModuleRegistry(DBRegistry):
                            docstring: string,
                            shape: tuple,
                            min_conns: int,
-                           max_conns: int) -> None
+                           max_conns: int,
+                           depth: int) -> None
 
         Registers a new output port with VisTrails. Receives the
         module that will now have a certain port, a string
@@ -1607,11 +1615,11 @@ class ModuleRegistry(DBRegistry):
         if isinstance(portSignature, basestring):
             self.add_port(descriptor, portName, 'output', None, portSignature, 
                           optional, sort_key, None, None, None, None, 
-                          docstring, shape, min_conns, max_conns)
+                          docstring, shape, min_conns, max_conns, depth)
         else:
             self.add_port(descriptor, portName, 'output', portSignature, None, 
                           optional, sort_key, None, None, None, None, 
-                          docstring, shape, min_conns, max_conns)
+                          docstring, shape, min_conns, max_conns, depth)
 
     def create_package(self, codepath, load_configuration=True):
         package_id = self.idScope.getNewId(Package.vtType)
@@ -1879,12 +1887,32 @@ class ModuleRegistry(DBRegistry):
         self._conversions[key] = converters
         return converters
 
+    def is_descriptor_list_subclass(self, sub_descs, super_descs):
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
+        module_desc = self.get_descriptor_by_name(basic_pkg, 'Module')
+
+        for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+            if sub_desc == variant_desc or super_desc == variant_desc:
+                continue
+            if super_desc == module_desc and sub_desc != module_desc:
+                warnings.warn(
+                        "Connecting any type on a Module input port is "
+                        "deprecated\nPlease make the output port a Variant to "
+                        "get this behavior.",
+                        category=VistrailsDeprecation)
+                #return False
+            if not self.is_descriptor_subclass(sub_desc, super_desc):
+                return False
+        return True
+
     def are_specs_matched(self, sub, super, allow_conversion=False,
                           out_converters=None):
         """ are_specs_matched(sub: Port, super: Port) -> bool        
         Check if specs of sub and super port are matched or not
         
         """
+        # For a connection, this gets called for sub -> super
         basic_pkg = get_vistrails_basic_pkg_id()
         variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
         # sometimes sub is coming None
@@ -1904,16 +1932,8 @@ class ModuleRegistry(DBRegistry):
         elif super_descs == [variant_desc]:
             return True
 
-        def check_types(sub_descs, super_descs):
-            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
-                if (sub_desc == variant_desc or super_desc == variant_desc):
-                    continue
-                if not self.is_descriptor_subclass(sub_desc, super_desc):
-                    return False
-            return True
-
         if (len(sub_descs) == len(super_descs) and
-                check_types(sub_descs, super_descs)):
+                self.is_descriptor_list_subclass(sub_descs, super_descs)):
             return True
 
         if allow_conversion:

@@ -43,6 +43,7 @@ from vistrails.core.system import vistrails_root_directory, systemType
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
 from vistrails.gui.requirements import qt_available
+import imp
 import subprocess
 import sys
 
@@ -50,7 +51,9 @@ import sys
 
 pip_installed = True
 try:
-    import pip
+    imp.find_module('pip')
+    # Here we do not actually import pip, to avoid pip issue #1314
+    # https://github.com/pypa/pip/issues/1314
 except ImportError:
     pip_installed = False
 

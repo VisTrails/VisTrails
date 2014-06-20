@@ -203,7 +203,7 @@ def getBuilderWindow():
     """
     try:
         return QtCore.QCoreApplication.instance().builderWindow
-    except:
+    except AttributeError:
         return None
 
 def getCurrentVersion():

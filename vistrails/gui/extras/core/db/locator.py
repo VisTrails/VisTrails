@@ -147,8 +147,8 @@ def get_load_file_locator_from_gui(parent, obj_type):
         return None
     filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
     dirName = os.path.dirname(filename)
-    setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
-    setattr(get_vistrails_configuration(), 'fileDirectory', dirName)
+    setattr(get_vistrails_persistent_configuration(), 'fileDir', dirName)
+    setattr(get_vistrails_configuration(), 'fileDir', dirName)
     vistrails.core.system.set_vistrails_file_directory(dirName)
     return FileLocator(filename)
 
@@ -189,8 +189,8 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         if msg.exec_() == QtGui.QMessageBox.No:
             return None
     dirName = os.path.dirname(f)
-    setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
-    setattr(get_vistrails_configuration(), 'fileDirectory', dirName)
+    setattr(get_vistrails_persistent_configuration(), 'fileDir', dirName)
+    setattr(get_vistrails_configuration(), 'fileDir', dirName)
     vistrails.core.system.set_vistrails_file_directory(dirName)
     return FileLocator(f)
    

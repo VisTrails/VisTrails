@@ -156,10 +156,10 @@ class QBaseViewWindow(QtGui.QMainWindow):
                     else:
                         self.connect(qaction, QtCore.SIGNAL("triggered()"),
                                      callback)
-        
+
     def init_action_list(self):
         global _app
-        
+
         self._actions = [("file", "&File",
                    [("export", "Export",
                       [('savePDF', "PDF...",
@@ -167,6 +167,12 @@ class QBaseViewWindow(QtGui.QMainWindow):
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_tab,
                                                        'save_pdf')}),
+                       ('saveDOT', "Version tree to Graphviz DOT...",
+                        {'statusTip': "Save the version view to a Graphviz "
+                             "DOT file",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_view,
+                                                       'save_version_graph')}),
                        "---",
                        ('saveWorkflow', "Workflow To XML...",
                         {'statusTip': "Save the current workflow to a file",
@@ -567,6 +573,12 @@ class QVistrailViewWindow(QBaseViewWindow):
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_tab,
                                                        'save_pdf')}),
+                       ('saveDOT', "Version tree to Graphviz DOT...",
+                        {'statusTip': "Save the version view to a Graphviz "
+                             "DOT file",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_view,
+                                                       'save_version_graph')}),
                        "---",
                        ('saveWorkflow', "Workflow To XML...",
                         {'statusTip': "Save the current workflow to a file",
@@ -959,7 +971,12 @@ class QVistrailsWindow(QVistrailViewWindow):
             window = self.windows[view]
             window.close()
         QWorkspaceWindow.instance().remove_vt_window(view)
-        self.current_view = None
+
+        # DK: **Do not** set current_view here because remove_vistrail
+        # calls change_view which sends notifications that there is
+        # not current controller
+        #
+        # self.current_view = None
 
     def view_triggered(self, action):
         #print "VIEW_TRIGGERED", action
@@ -1005,6 +1022,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         from vistrails.gui.debugger import QDebugger
         from vistrails.gui.module_configuration import QModuleConfiguration
         from vistrails.gui.module_documentation import QModuleDocumentation
+        from vistrails.gui.module_iteration import QModuleIteration
         from vistrails.gui.module_palette import QModulePalette
         from vistrails.gui.module_info import QModuleInfo
         from vistrails.gui.paramexplore.param_view import QParameterView
@@ -1069,6 +1087,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module'),
                  ('descriptor_changed', 'update_descriptor'))),
+               ((QModuleIteration, True),
+                (('controller_changed', 'set_controller'),
+                 ('module_changed', 'update_module'))),
                ((QShellDialog, True),
                 (('controller_changed', 'set_controller'),)),
                ((QDebugger, True),
@@ -1374,7 +1395,6 @@ class QVistrailsWindow(QVistrailViewWindow):
         self._first_view = self.get_current_view()
 
     def change_view(self, view):
-        #print 'changing view', id(view), view
         if isinstance(view, QVistrailView) or view is None:
             self.view_changed(view)
             if view and view not in self.windows:
@@ -1433,6 +1453,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 self.notify('controller_changed', new_view.get_controller())
                 if new_view.current_tab:
                     self.set_action_defaults(new_view.current_tab)
+            else:
+                self.notify('controller_changed', None)
         
         if new_view is not None:
             window = None
@@ -1671,7 +1693,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             pe = vistrail.get_paramexp(pe_id)
         except ValueError:
             pe= vistrail.get_named_paramexp(pe_id)
-        except Exception:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return
         self.current_view.open_parameter_exploration(pe.id)
         self.qactions['execute'].trigger()
@@ -2419,6 +2442,13 @@ class QVistrailsWindow(QVistrailViewWindow):
         from vistrails.gui.module_documentation import QModuleDocumentation
         action_name = QModuleDocumentation.instance().get_title()
         # easy way to make sure that documentation window is raised
+        self.qactions[action_name].setChecked(False)
+        self.qactions[action_name].setChecked(True)
+
+    def show_looping_options(self):
+        from vistrails.gui.module_iteration import QModuleIteration
+        action_name = QModuleIteration.instance().get_title()
+        # easy way to make sure that looping options window is raised
         self.qactions[action_name].setChecked(False)
         self.qactions[action_name].setChecked(True)
 

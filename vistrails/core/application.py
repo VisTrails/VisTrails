@@ -85,7 +85,7 @@ def is_running_gui():
     app = get_vistrails_application()
     return app.is_running_gui()
 
-def init(options_dict={}, args=None):
+def init(options_dict={}, args=[]):
     app = VistrailsCoreApplication()
     set_vistrails_application(app)
     app.init(options_dict=options_dict, args=args)
@@ -96,7 +96,7 @@ class VistrailsApplicationInterface(object):
         self._initialized = False
         self.notifications = {}
 
-    def setup_options(self, args=None):
+    def setup_options(self, args=[]):
         """ setup_options() -> None
         Check and store all command-line arguments
         
@@ -329,8 +329,8 @@ class VistrailsApplicationInterface(object):
             registry.set_global()
         return registry
 
-    def init(self, options_dict=None, args=None):
-        """ VistrailsApplicationSingleton(optionDict: dict)
+    def init(self, options_dict=None, args=[]):
+        """ VistrailsApplicationSingleton(options_dict: dict, args: list)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
         
@@ -385,10 +385,6 @@ class VistrailsApplicationInterface(object):
                 'linux-ubuntu': 'python-scipy',
                 'linux-fedora': 'scipy',
                 'pip': 'scipy'})
-
-        # ZIP manipulations use the command-line executables
-        vistrails.core.requirements.require_executable('zip')
-        vistrails.core.requirements.require_executable('unzip')
 
     def get_python_environment(self):
         """get_python_environment(): returns an environment that includes
@@ -606,7 +602,8 @@ class VistrailsApplicationInterface(object):
             try:
                 version = \
                     self.get_controller().vistrail.get_version_number(version)
-            except:
+            except Exception, e:
+                debug.unexpected_exception(e)
                 version = None
         return version
 
@@ -708,9 +705,11 @@ class VistrailsApplicationInterface(object):
             return False
         old_locator = controller.locator
 
+        controller.flush_delayed_actions()
         try:
             controller.write_vistrail(locator, export=export)
-        except Exception:
+        except Exception, e:
+            debug.unexpected_exception(e)
             import traceback
             debug.critical("Failed to save vistrail", traceback.format_exc())
             raise
@@ -758,7 +757,7 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
         self._controllers = {}
         self._cur_controller = None
 
-    def init(self, options_dict=None, args=None):
+    def init(self, options_dict=None, args=[]):
         VistrailsApplicationInterface.init(self, options_dict=options_dict, 
                                            args=args)
         self.package_manager.initialize_packages()

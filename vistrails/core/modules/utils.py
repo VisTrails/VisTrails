@@ -144,9 +144,19 @@ def parse_port_spec_string(p_string, cur_package=None):
 
 
 def create_port_spec_string(specs_list, old_style=False):
-    return '(' + ','.join(create_port_spec_item_string(
-            *(specs + ((None, old_style) if len(specs) < 3 else (old_style,))))
-                          for specs in specs_list) + ')'
+    spec_items = []
+    for specs in specs_list:
+        if len(specs) == 3:
+            pkg, name, ns = specs
+        elif len(specs) == 2:
+            pkg, name = specs
+            ns = None
+        else:
+            raise TypeError("create_port_spec_string() got spec tuple "
+                            "with %d elements" % len(specs))
+        spec_items.append(create_port_spec_item_string(pkg, name, ns,
+                                                       old_style))
+    return '(%s)' % ','.join(spec_items)
 
 def expand_port_spec_string(p_string, cur_package=None, 
                             old_style=False):

@@ -40,14 +40,13 @@ from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, 
                                       DBPEParameter, DBPEFunction, \
                                       IdScope, DBAbstraction, \
                                       DBModule, DBGroup, DBAnnotation, \
-                                      DBActionAnnotation, DBStartup, \
-                                      DBConfigKey, DBConfigBool, DBConfigStr, \
-                                      DBConfigInt, DBConfigFloat
+                                      DBActionAnnotation
 
 from vistrails.db.services.vistrail import materializeWorkflow
 
 import os
 from itertools import izip
+from ast import literal_eval
 import unittest
 from xml.dom.minidom import parseString
 
@@ -61,7 +60,7 @@ def update_portSpec(old_obj, translate_dict):
         for sig in sigstring[1:-1].split(','):
             sigs.append(sig.split(':', 2))
     # not great to use eval...
-    defaults = eval(old_obj.db_defaults) if old_obj.db_defaults else []
+    defaults = literal_eval(old_obj.db_defaults) if old_obj.db_defaults else []
     if isinstance(defaults, basestring):
         defaults = (defaults,)
     else:
@@ -70,7 +69,7 @@ def update_portSpec(old_obj, translate_dict):
         except TypeError:
             defaults = (defaults,)
     # not great to use eval...
-    labels = eval(old_obj.db_labels) if old_obj.db_labels else []
+    labels = literal_eval(old_obj.db_labels) if old_obj.db_labels else []
     if isinstance(labels, basestring):
         labels = (labels,)
     else:
@@ -125,7 +124,7 @@ def createParameterExploration(action_id, xmlString, vistrail):
         striplen = len("<paramexps>")
         xmlString = xmlString[striplen:-(striplen+1)].strip()
         xmlDoc = parseString(xmlString).documentElement
-    except:
+    except Exception:
         return None
     # we need the pipeline to look up function/paramater id:s
     pipeline = materializeWorkflow(vistrail, action_id)
@@ -234,7 +233,7 @@ def translateVistrail(_vistrail):
         new_annotations = []
         for a in old_obj.db_annotations:
             if a.db_key == '__vistrail_vars__':
-                for name, data in dict(eval(a.db_value)).iteritems():
+                for name, data in dict(literal_eval(a.db_value)).iteritems():
                     uuid, identifier, value = data
                     package, module, namespace = identifier
                     var = DBVistrailVariable(name, uuid, package, module, 
@@ -305,151 +304,6 @@ def translateRegistry(_registry):
     registry.db_version = '1.0.3'
     return registry
 
-def translateStartup(_startup):
-    # format is {<old_name>: <new_name>} or 
-    # {<old_name>: (<new_name> | None, [conversion_f | None, inner_d | None])
-    # conversion_f is a function that mutates the value and
-    # inner_d recurses the translation for inner configurations
-
-    def change_value(cls, conv_f, _key, t_dict):
-        cls_name = cls.__name__
-        old_t_value = None
-        if cls_name in t_dict:
-            if 'value' in t_dict[cls_name]:
-                old_t_value = t_dict[cls_name]['value']
-        else:
-            t_dict[cls_name] = {}
-        t_dict[cls_name]['value'] = conv_f
-        new_value = cls.update_version(_key.db_value, t_dict)
-        del t_dict[cls_name]['value']
-        if old_t_value is not None:
-            t_dict[cls_name]['value'] = old_t_value
-        if len(t_dict[cls_name]) < 1:
-            del t_dict[cls_name]
-        return new_value
-
-    def invert_bool(_key, t_dict):
-        def invert_value(_value, t):
-            return unicode(not (_value.db_value.lower() == 'true'))
-        return change_value(DBConfigBool, invert_value, _key, t_dict)
-
-    def use_dirname(_key, t_dict):
-        print "calling use_dirname"
-        def get_dirname(_value, t):
-            return os.path.dirname(_value.db_value)
-        return change_value(DBConfigStr, get_dirname, _key, t_dict)
-
-    t = {'alwaysShowDebugPopup': 'showDebugPopups',
-         'autosave': 'autoSave',
-         'errorOnConnectionTypeerror': 'showConnectionErrors',
-         'errorOnVariantTypeerror': 'showVariantErrors',
-         'interactiveMode': ('batch', invert_bool),
-         'logFile': ('logDirectory', use_dirname),
-         'logger': None, # DELETE
-         'maxMemory': None,
-         'minMemory': None, 
-         'nologger': ('executionLog', invert_bool),
-         'pythonPrompt': None,
-         'reviewMode': None, # unknown what this was/is
-         'shell': ('shell', None, {'font_face': 'fontFace',
-                                   'font_size': 'fontSize'}),
-         'showMovies': None,
-         'showSpreadsheetOnly': ('showWindow', invert_bool),
-         # FIXME need to figure out how to move these to pkg config
-         # and check that the settings are there
-         # TODO
-         # 'spreadsheetDumpPDF': 'spreadsheet.outputPDF' ,
-         'spreadsheetDumpCells': 'outputDirectory',
-         # TODO
-         # 'fixedSpreadsheetCells': 'spreadsheet.fixedCellSize',
-         'upgradeOn': 'upgrades',
-         'useCache': 'cache',
-         'verbosenessLevel': 'debugLevel',
-         'webRepositoryLogin': 'webRespositoryUser',
-         'evolutionGraph': 'withVersionTree',
-         'workflowGraph': 'withWorkflow',
-         # 'workflowInfo': 'outputWorkflowInfo',
-         'workflowInfo': 'outputDirectory',
-         'executeWorkflows': 'execute',
-         'abstractionsDirectory': 'subworkflowsDirectory',
-         }
-
-    def get_key_name_update(new_name):
-        def update_key_name(_key, t_dict):
-            return new_name
-        return update_key_name
-
-    def update_config_keys(_config, t_dict):
-        # just update __startup_translate__ as we recurse,
-        # update_key_name and update_key_value take care of the rest
-        cur_t = t_dict['__startup_translate__']
-        new_keys = []
-        for key in _config.db_config_keys:
-            to_delete = False
-            new_name = None
-            conv_f = None
-            inner_t = None
-            if key.db_name in cur_t:
-                t_obj = cur_t[key.db_name]
-                if type(t_obj) == tuple:
-                    new_name = t_obj[0]
-                    if len(t_obj) > 1:
-                        conv_f = t_obj[1]
-                    if len(t_obj) > 2:
-                        inner_t = t_obj[2]
-                elif t_obj is None:
-                    to_delete = True
-                else:
-                    new_name = t_obj
-
-            if not to_delete:
-                # always overwrite DBConfigKey settings so recursion
-                # doesn't wrap over itself
-                key_t_dict = {}
-                if new_name is not None and new_name != key.db_name:
-                    key_t_dict['name'] = get_key_name_update(new_name)
-                if conv_f is not None:
-                    key_t_dict['value'] = conv_f
-                old_t_name = None
-                old_t_value = None
-                if len(key_t_dict) > 0:
-                    if 'DBConfigKey' in t_dict:
-                        if 'name' in t_dict['DBConfigKey']:
-                            old_t_name = t_dict['DBConfigKey']['name']
-                            del t_dict['DBConfigKey']['name']
-                        if 'value' in t_dict['DBConfigKey']:
-                            old_t_value = t_dict['DBConfigKey']['value']
-                            del t_dict['DBConfigKey']['value']
-                        t_dict['DBConfigKey'].update(key_t_dict)
-                    else:
-                        t_dict['DBConfigKey'] = key_t_dict
-                if inner_t is not None:
-                    t_dict['__startup_translate__'] = inner_t
-                new_keys.append(DBConfigKey.update_version(key, t_dict))
-                if inner_t is not None:
-                    t_dict['__startup_translate__'] = cur_t
-                if len(key_t_dict) > 0:
-                    if 'name' in t_dict['DBConfigKey']:
-                        del t_dict['DBConfigKey']['name']
-                    if 'value' in t_dict['DBConfigKey']:
-                        del t_dict['DBConfigKey']['value']
-                    if old_t_name is not None:
-                        t_dict['DBConfigKey']['name'] = old_t_name
-                    if old_t_value is not None:
-                        t_dict['DBConfigKey']['value'] = old_t_value
-                    if len(t_dict['DBConfigKey']) < 1:
-                        del t_dict['DBConfigKey']
-        return new_keys
-
-    # need to recurse both key name changes and key value changes
-    # (could also change types...)
-    translate_dict = {'DBConfiguration': {'config_keys': update_config_keys},
-                      '__startup_translate__': t}
-    startup = DBStartup()
-    startup = DBStartup.update_version(_startup, translate_dict, startup)
-    startup.db_version = '1.0.3'
-    return startup
-
 class TestTranslate(unittest.TestCase):
     def testParamexp(self):
         """test translating parameter explorations from 1.0.2 to 1.0.3"""
@@ -481,18 +335,6 @@ class TestTranslate(unittest.TestCase):
         self.assertEqual(len(visvars), 2)
         self.assertNotEqual(visvars[0].db_name, visvars[1].db_name)
 
-    def test_startup_update(self):
-        from vistrails.db.services.io import open_startup_from_xml
-        from vistrails.core.system import vistrails_root_directory
-        import os
-        startup = open_startup_from_xml(os.path.join(vistrails_root_directory(),
-                                                     'tests', 'resources', 
-                                                     'startup-0.1.xml'))
-        name_idx = startup.db_configuration.db_config_keys_name_index
-        self.assertNotIn('nologger', name_idx)
-        self.assertIn('executionLog', name_idx)
-        self.assertFalse(name_idx['executionLog'].db_value.db_value.lower() == 'true')
-        self.assertNotIn('showMovies', name_idx)
 
 if __name__ == '__main__':
     import vistrails.core.application

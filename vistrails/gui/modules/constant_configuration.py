@@ -45,6 +45,8 @@ from vistrails.core.utils import any, expression, versions_increasing
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme
 
+import os
+
 ############################################################################
 
 def setPlaceholderTextCompat(self, value):
@@ -373,7 +375,7 @@ class ColorChooserButton(QtGui.QPushButton):
         self.setStyleSheet("border: 1px solid black; "
                            "background-color: rgb(%d, %d, %d);" %
                            (qcolor.red(), qcolor.green(), qcolor.blue()))
-        self.repaint()
+        self.update()
         if not silent:
             self.emit(QtCore.SIGNAL("color_selected"))
 

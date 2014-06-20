@@ -42,27 +42,27 @@ def layoutAndAdd(module, connections):
     addToPipeline([module] + connections, ops)
 
 #========================== package prefixes ===================================
-httppkg = 'edu.utah.sci.vistrails.http'
+urlpkg = 'org.vistrails.vistrails.url'
 vtkpkg = 'edu.utah.sci.vistrails.vtk'
 
 #============================ start script =====================================
 
-#start with http file module
-httpFA = newModule(httppkg, 'HTTPFile')
+#start with download file module
+dlFA = newModule(urlpkg, 'DownloadFile')
 url = 'http://www.vistrails.org/download/download.php?type=DATA&id=gktbhFA.vtk'
-setPortValue(httpFA, 'url', url)
+setPortValue(dlFA, 'url', url)
 
 #add to pipeline
-addToPipeline([httpFA])
+addToPipeline([dlFA])
 
 #create data set reader module for the gktbhFA.vtk file
 dataFA = newModule(vtkpkg, 'vtkDataSetReader')
 
 #connect modules
-http_dataFA = newConnection(httpFA, 'file', dataFA, 'SetFile')
+dl_dataFA = newConnection(dlFA, 'file', dataFA, 'SetFile')
 
 #layout new modules before adding
-layoutAndAdd(dataFA, http_dataFA)
+layoutAndAdd(dataFA, dl_dataFA)
 
 #add contour filter
 contour = newModule(vtkpkg, 'vtkContourFilter')
@@ -108,12 +108,12 @@ dataL123_colors = newConnection(dataL123, 'GetOutputPort0',
                                 colors, 'SetInputConnection0')
 layoutAndAdd(dataL123, dataL123_colors)
 
-httpL123 = newModule(httppkg, 'HTTPFile')
+dlL123 = newModule(urlpkg, 'DownloadFile')
 url = 'http://www.vistrails.org/download/download.php?type=DATA&id=gktbhL123.vtk'
-setPortValue(httpL123, 'url', url)
-httpL123_dataL123 = newConnection(httpL123, 'file',
+setPortValue(dlL123, 'url', url)
+dlL123_dataL123 = newConnection(dlL123, 'file',
                                   dataL123, 'SetFile')
-layoutAndAdd(httpL123, httpL123_dataL123)
+layoutAndAdd(dlL123, dlL123_dataL123)
 
 #finish bottom section
 mapper = newModule(vtkpkg, 'vtkPolyDataMapper')

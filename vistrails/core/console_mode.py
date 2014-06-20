@@ -68,6 +68,7 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
     """
     elements = parameters.split("$&$")
     aliases = {}
+    params = []
     result = []
     for locator, workflow in w_list:
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
@@ -92,7 +93,14 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
             
                 if controller.current_pipeline.has_alias(key):
                     aliases[key] = value
-                    
+                elif 'mashup_id' in extra_info:
+                    # new-style mashups can have aliases not existing in pipeline
+                    for mashuptrail in mashups:
+                        if mashuptrail.vtVersion == version:
+                            mashup = mashuptrail.getMashup(extra_info['mashup_id'])
+                            c = mashup.getAliasByName(key).component
+                            params.append((c.vttype, c.vtid, value))
+
         if output_dir is not None and controller.current_pipeline is not None:
             # FIXME DAK: why is this always done?!? there is a flag for it...
             if is_running_gui():
@@ -129,6 +137,7 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
         try:
             (results, _) = \
             controller.execute_current_workflow(custom_aliases=aliases,
+                                                custom_params=params,
                                                 extra_info=extra_info,
                                                 reason=reason)
         finally:
@@ -379,14 +388,13 @@ class TestConsoleMode(unittest.TestCase):
                            package='org.vistrails.vistrails.console_mode_test',
                            version='0.9.1')
         module.add_function(function)
-        
+
         p.add_module(module)
-        
-        kwargs = {'locator': XMLFileLocator('foo'),
-                  'current_version': 1L,
-                  'view': v,
-                  }
-        interpreter.execute(p, **kwargs)
+
+        interpreter.execute(p,
+                            locator=XMLFileLocator('foo'),
+                            current_version=1L,
+                            view=v)
 
     def test_python_source(self):
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +

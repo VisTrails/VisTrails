@@ -35,6 +35,7 @@
 from vistrails.core import debug
 import os
 import vistrails.core.configuration
+from vistrails.core import system
 import shutil
 import urllib2
 import tempfile
@@ -50,11 +51,12 @@ import os.path
 class PackageRepository(object):
 
     def __init__(self):
-        conf = vistrails.core.configuration.get_vistrails_configuration()
-        if conf.check('userPackageDirectory'):
-            self._upd = conf.userPackageDirectory
+        upd = system.get_vistrails_directory('userPackageDir')
+        if upd is not None:
+            self._upd = upd
         else:
-            self._upd = conf.get('dotVistrails') + '/.userpackages/'
+            conf = vistrails.core.configuration.get_vistrails_configuration()
+            self._upd = os.path.join(conf.get('dotVistrails'), '.userpackages')
 
     def create_main_directory(self, codepath):
         debug.log("Makedir '%s'" % (os.path.join(self._upd, codepath)))

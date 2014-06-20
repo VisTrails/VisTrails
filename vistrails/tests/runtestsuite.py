@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pragma: no testimport
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -43,26 +44,18 @@ any unit tests, as a crude measure of code coverage.
 
 """
 
-# First, import unittest, replacing it with unittest2 if necessary
-import sys
-try:
-    import unittest2
-except ImportError:
-    pass
-else:
-    sys.modules['unittest'] = unittest2
-import unittest
-
 import atexit
 from distutils.version import LooseVersion
 #import doctest
 import locale
 import os
+import sys
 import traceback
 import os.path
 import optparse
 from optparse import OptionParser
 import platform
+import re
 import shutil
 import tempfile
 
@@ -75,19 +68,27 @@ sys.path.insert(0, os.path.realpath(os.path.join(root_directory, '..')))
 # Use a different temporary directory
 test_temp_dir = tempfile.mkdtemp(prefix='vt_testsuite_')
 tempfile.tempdir = test_temp_dir
-@atexit.register
-def clean_tempdir():
-    nb_dirs = 0
-    nb_files = 0
-    for f in os.listdir(test_temp_dir):
-        if os.path.isdir(f):
-            nb_dirs += 1
-        else:
-            nb_files += 1
-    if nb_dirs > 0 or nb_files > 0:
-        sys.stdout.write("Warning: %d dirs and %d files were left behind in "
-                         "tempdir, cleaning up\n" % (nb_dirs, nb_files))
-    shutil.rmtree(test_temp_dir, ignore_errors=True)
+@apply
+class clean_tempdir(object):
+    def __init__(self):
+        atexit.register(self.clean)
+        self.listdir = os.listdir
+        self.isdir = os.path.isdir
+        self.test_temp_dir = test_temp_dir
+        self.rmtree = shutil.rmtree
+        self.out = sys.stdout.write
+    def clean(self):
+        nb_dirs = 0
+        nb_files = 0
+        for f in self.listdir(self.test_temp_dir):
+            if self.isdir(f):
+                nb_dirs += 1
+            else:
+                nb_files += 1
+        if nb_dirs > 0 or nb_files > 0:
+            self.out("Warning: %d dirs and %d files were left behind in "
+                     "tempdir, cleaning up\n" % (nb_dirs, nb_files))
+        self.rmtree(self.test_temp_dir, ignore_errors=True)
 
 def setNewPyQtAPI():
     try:
@@ -95,7 +96,7 @@ def setNewPyQtAPI():
         # We now use the new PyQt API - IPython needs it
         sip.setapi('QString', 2)
         sip.setapi('QVariant', 2)
-    except:
+    except Exception:
         print "Could not set PyQt API, is PyQt4 installed?"
 setNewPyQtAPI()
 
@@ -107,6 +108,11 @@ from vistrails.core import debug
 import vistrails.gui.application
 from vistrails.core.system import vistrails_root_directory, \
                                   vistrails_examples_directory
+from vistrails.core.packagemanager import get_package_manager
+
+# VisTrails does funny stuff with unittest/unittest2, be sure to load that
+# after vistrails
+import unittest
 
 ###############################################################################
 # Testing Examples
@@ -171,6 +177,9 @@ parser.add_option("-S", "--startup", action="store", type="str", default=None,
 parser.add_option('-L', '--locale', action='store', type='str', default='',
                   dest='locale',
                   help="set locale to this string")
+parser.add_option('-D', '--debug', action='store_true',
+                  default=False,
+                  help="start interactive debugger on unexpected error")
 
 (options, args) = parser.parse_args()
 # remove empty strings
@@ -181,10 +190,11 @@ test_examples = options.examples
 test_images = options.images
 installbundles = options.installbundles
 dotVistrails = options.dotVistrails
+debug_mode = options.debug
 test_modules = None
 if len(args) > 0:
     test_modules = args
-else:
+elif os.path.exists(EXAMPLES_PATH):
     test_images = True
 
 def module_filter(name):
@@ -206,10 +216,10 @@ optionsDict = {
         'batch': False,
         'executionLog': False,
         'singleInstance': False,
-        'fixedSpreadsheetCells': True,
         'installBundles': installbundles,
         'enablePackagesSilently': True,
         'handlerDontAsk': True,
+        'developperDebugger': debug_mode,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
@@ -221,6 +231,10 @@ if v != 0:
     if app:
         app.finishSession()
     sys.exit(v)
+
+# make sure that fixedCellSize is turned on
+spreadsheet_conf = get_package_manager().get_package_configuration("spreadsheet")
+spreadsheet_conf.fixedCellSize = True
 
 # disable first vistrail
 app = vistrails.gui.application.get_vistrails_application()
@@ -256,6 +270,8 @@ tests_passed = True
 main_test_suite = unittest.TestSuite()
 test_loader = unittest.TestLoader()
 
+import_skip_regex = re.compile(r'(?i)# *pragma[: ]*no *testimport')
+
 if test_modules:
     sub_print("Trying to import some of the modules")
 else:
@@ -269,6 +285,7 @@ for (p, subdirs, files) in os.walk(root_directory):
         # skip files that don't look like VisTrails python modules
         if not filename.endswith('.py'):
             continue
+        module_file = os.path.join(p, filename)
         module = os.path.join("vistrails", p[len(root_directory)+1:],
                               filename[:-3])
         if (module.startswith(os.sep) or
@@ -291,8 +308,15 @@ for (p, subdirs, files) in os.walk(root_directory):
         if ('.system.' in module and not
             module.endswith('__init__')):
             continue
-
-        msg = ("%s %s |" % (" " * (40 - len(module)), module))
+        with open(module_file) as fp:
+            l = fp.readline()
+            if l.startswith('#!'): # shebang
+                l = fp.readline()
+            if import_skip_regex.match(l):
+                if verbose >= 1:
+                    print >>sys.stderr, ("Skipping %s, not an importable "
+                                         "module" % module)
+                continue
 
         m = None
         try:
@@ -300,14 +324,10 @@ for (p, subdirs, files) in os.walk(root_directory):
                 m = __import__(module, globals(), locals(), ['foo'])
             else:
                 m = __import__(module)
-        except vistrails.tests.NotModule:
+        except BaseException:
+            print >>sys.stderr, "ERROR: Could not import module: %s" % module
             if verbose >= 1:
-                print "Skipping %s, not an importable module" % filename
-            continue
-        except:
-            print msg, "ERROR: Could not import module!"
-            if verbose >= 1:
-                traceback.print_exc(file=sys.stdout)
+                traceback.print_exc(file=sys.stderr)
             continue
 
         # Load the unittest TestCases
@@ -327,9 +347,11 @@ for (p, subdirs, files) in os.walk(root_directory):
         main_test_suite.addTests(suite)
 
         if suite.countTestCases() == 0 and verbose >= 1:
-            print msg, "WARNING: %s has no tests!" % filename
+            print >>sys.stderr, "WARNING: module has no tests: %s" % module
         elif verbose >= 2:
-            print msg, "Ok: %d test cases." % suite.countTestCases()
+            print >>sys.stderr, "OK: module as %d test cases: %s" % (
+                    suite.countTestCases(),
+                    module)
 
 sub_print("Imported modules. Running %d tests%s..." % (
           main_test_suite.countTestCases(),
