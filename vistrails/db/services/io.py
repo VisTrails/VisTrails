@@ -1780,16 +1780,12 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
 def open_startup_from_xml(filename):
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
-    old_version = False
     if version == '0.1':
-        old_version = True
         version = '1.0.3'
     daoList = getVersionDAO(version)
     startup = daoList.open_from_xml(filename, DBStartup.vtType, tree)
     # need this for translation...
     startup._filename = filename
-    if old_version:
-        version = '1.0.2'
     startup = translate_startup(startup, version)
     # vistrails.db.services.startup.update_id_scope(startup)
     return startup
