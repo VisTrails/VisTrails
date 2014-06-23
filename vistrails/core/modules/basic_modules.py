@@ -1204,10 +1204,11 @@ class Iterator(object):
         if size is None and isinstance(values, List):
             self.size = len(values)
         self.pos = 0
-        if generator and generator not in Iterator.generators:
+        if generator and module not in Iterator.generators:
             # add to global list of generators
-            # they will be uniquely ordered topologically
-            Iterator.generators.append(self.generator)
+            # they will be topologically ordered
+            module.generator = generator
+            Iterator.generators.append(module)
             
     def next(self):
         if self.module is None:
@@ -1220,9 +1221,8 @@ class Iterator(object):
         # return next value - the generator
         value = self.module.get_output(self.port)
         if isinstance(value, Iterator):
-            raise ModuleError(self.module,
-                              "Iterator generator cannot contain an iterator")
-        return self.module.get_output(self.port)
+            value = value.all()
+        return value
     
     def all(self):
         """ Returns self.values for Iterators and exhausts next() for Streams

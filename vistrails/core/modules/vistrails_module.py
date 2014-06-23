@@ -590,8 +590,7 @@ class Module(Serializable):
             # next iteration
             if depth != self.list_depth:
                 continue
-            value = self.get_input_list(port_name)
-            value = [item for sublist in value for item in sublist]
+            value = self.get_input(port_name)
             if depth > 1:
                 # wrap values in Iterator of 1 less list depth
                 d = iterator.list_depth - 1
@@ -617,8 +616,8 @@ class Module(Serializable):
             module.had_error = False
 
             if not self.upToDate: # pragma: no partial
-                ## Type checking
-                if i == 0:
+                ## Type checking if first iteration and last iteration level
+                if i == 0 and self.list_depth == 1:
                     module.typeChecking(module, port_names, elements)
 
                 module.upToDate = False
@@ -770,7 +769,7 @@ class Module(Serializable):
         # the generator will read next from each iterated input port and
         # compute the module again
         module = copy.copy(self)
-        module.list_depth = self.list_depth
+        module.list_depth = -1 # make list be treated as depth 1 by default
         module.had_error = False
         module.upToDate = False
         module.computed = False
@@ -834,7 +833,7 @@ class Module(Serializable):
         # the generator will read next from each iterated input port and
         # compute the module again
         module = copy.copy(self)
-        module.list_depth = self.list_depth
+        module.list_depth = self.list_depth - 1
         module.had_error = False
         module.upToDate = False
         module.computed = False
@@ -1081,15 +1080,17 @@ class Module(Serializable):
         for conn in self.inputPorts[port_name]:
             if isinstance(conn.obj, InputPort):
                 return conn()
-        value = self.inputPorts[port_name][0]() 
-        if not self.input_specs:
-            return value
-        depth = self.inputPorts[port_name][0].depth()
-
-        # wrap depths that are too shallow
-        while depth - self.list_depth - self.input_specs[port_name].depth < 0:
-            value = [value]
-            depth += 1
+        from vistrails.core.modules.basic_modules import Iterator
+        # Check for generator
+        raw = self.inputPorts[port_name][0].get_raw()
+        if isinstance(raw, Iterator) and raw.module:
+            return raw
+        # join connections if a depth > 0
+        if self.input_specs and \
+           self.input_specs[port_name].depth + self.list_depth > 0:
+            return [j for i in self.get_input_list(port_name) for j in i]
+        # else return first connector item
+        value = self.inputPorts[port_name][0]()
         return value
 
     def get_input_list(self, port_name):
@@ -1118,6 +1119,7 @@ class Module(Serializable):
             value = connector()
             depth = connector.depth()
             if not self.input_specs:
+                # cannot do depth wrapping
                 ports.append(value)
                 continue
             # wrap depths that are too shallow
@@ -1129,9 +1131,11 @@ class Module(Serializable):
             root = value
             for i in xrange(1, depth):
                 try:
+                    # convert Iterators
                     root = [(item.all() if isinstance(item, Iterator)
                              else item) for item in root]
-                    root = [item for sublist in root for item in sublist] 
+                    # flatten
+                    root = [item for sublist in root for item in sublist]
                 except TypeError:
                     raise ModuleError(self, "List on port %s has wrong"
                                             " depth %s, expected %s." %
@@ -1410,7 +1414,7 @@ class Module(Serializable):
 
         if size:
             milestones = [i*size/10 for i in xrange(1,11)]
-        def _generator():
+        def Generator():
             i = 0
             while 1:
                 try:
@@ -1435,9 +1439,10 @@ class Module(Serializable):
                     self.logging.update_progress(self, 0.5)
                 i += 1
                 yield True
+        _generator = Generator()
         self.set_output(port, Iterator(size=size,
                                        module=module,
-                                       generator=_generator(),
+                                       generator=_generator,
                                        port=port))
 
     @classmethod

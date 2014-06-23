@@ -530,22 +530,15 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         if not logging_obj.errors and not logging_obj.suspended and \
                                                           Iterator.generators:
             result = True
+            abort = False
             while result is not None:
-                for g in Iterator.generators:
+                for m in Iterator.generators:
                     abort = False
                     try:
-                        result = g.next()
+                        result = m.generator.next()
                         continue
-                    except ModuleWasSuspended:
-                        continue
-                    except ModuleHadError:
-                        pass
                     except AbortExecution:
                         break
-                    except ModuleSuspended, ms:
-                        ms.module.logging.end_update(ms.module, ms,
-                                                     was_suspended=True)
-                        continue
                     except ModuleErrors, mes:
                         for me in mes.module_errors:
                             me.module.logging.end_update(me.module, me)
@@ -559,8 +552,14 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                         mb.module.logging.end_update(mb.module)
                         logging_obj.signalError(mb.module, mb)
                         abort = True
+                    except Exception, e:
+                        import traceback
+                        traceback.print_exc()
+                        abort = True
                     if stop_on_error or abort:
                         break
+                if abort:
+                    break
         Iterator.generators = self._streams.pop()
 
         if self.done_update_hook:
