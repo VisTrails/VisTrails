@@ -1440,37 +1440,30 @@ def get_module(value, signature):
     """
     if isinstance(value, Constant):
         return type(value)
-    if isinstance(value, bool):
+    elif isinstance(value, bool):
         return Boolean
-    if isinstance(value, str):
+    elif isinstance(value, str):
         return String
-    #if isinstance(value, int):
-    # any object that can be cast as int without losing digits
-    try:
-        if value == int(value):
-            return Integer
-    except:
-        pass
-    #if isinstance(value, float):
-    # any object that can be cast as float except int
-    try:
-        float(value)
+    elif isinstance(value, int):
+        return Integer
+    elif isinstance(value, float):
         return Float
-    except:
-        pass
     if isinstance(value, list):
         return List
     elif isinstance(value, tuple):
+        # Variant supports signatures of any length
         if len(signature) == 1 and signature[0][0] == Variant:
             return (Variant,)*len(value)
         v_modules = ()
         for element in xrange(len(value)):
             v_modules += (get_module(value[element], signature[element]),)
+        if None in v_modules: # Identification failed
+            return None
         return v_modules
     else: # pragma: no cover
         debug.warning("Could not identify the type of the list element.")
-        debug.warning("Type checking is not going to be done inside"
-                      "FoldWithModule module.")
+        debug.warning("Type checking is not going to be done inside "
+                      "iterated module.")
         return None
 
 ###############################################################################

@@ -998,6 +998,7 @@ class Module(Serializable):
         """
         from vistrails.core.modules.basic_modules import Iterator
         from vistrails.core.modules.basic_modules import get_module
+        from vistrails.core.vistrail.connection import getTypeCheck
         if not module.input_specs:
             return
         for elementList in inputList:
@@ -1012,8 +1013,10 @@ class Module(Serializable):
                     else:
                         raise ModuleError(self, "Iterator is not allowed here")
                 port_spec = module.input_specs[inputPort]
+                typecheck = getTypeCheck(port_spec)
                 v_module = get_module(element, port_spec.signature)
-                if v_module is not None:
+                # typecheck only if all params should be type-checked
+                if False not in typecheck and v_module is not None:
                     if not self.compare(port_spec, v_module, inputPort):
                         raise ModuleError(self,
                                           'The type of a list element does '
@@ -1631,7 +1634,8 @@ class ModuleConnector(object):
                 if not typecheck[0]:
                     return result
                 mod = descs[0].module
-                if hasattr(mod, 'validate') and value and not mod.validate(value):
+                if value is not None and hasattr(mod, 'validate') \
+                   and not mod.validate(value):
                     raise ModuleError(self.obj, "Type passed on Variant port "
                                       "%s does not match destination type "
                                       "%s" % (self.port, descs[0].name))
