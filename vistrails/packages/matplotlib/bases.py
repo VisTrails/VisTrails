@@ -54,8 +54,7 @@ class MplProperties(Module):
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
-    def compute(self):
-        self.set_output('value', self.plot_figure)
+    pass
 
 class MplSource(CodeRunnerMixin, MplPlot):
     """
@@ -70,15 +69,16 @@ class MplSource(CodeRunnerMixin, MplPlot):
     _input_ports = [('source', '(basic:String)')]
     _output_ports = [('value', '(MplSource)')]
 
-    def plot_figure(self, figure):
-        """ compute() -> None
-        """
+    def compute(self):
         source = self.get_input('source')
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 source))
+
+    def plot_figure(self, figure, source):
         s = ('from pylab import *\n'
              'from numpy import *\n' +
              'figure(%d)\n' % figure.number +
              urllib.unquote(source))
-
         self.run_code(s, use_input=True, use_output=True)
 
 class MplFigure(Module):

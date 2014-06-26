@@ -128,7 +128,7 @@ class ${spec.name}(${spec.superklass}):
     ${spec.get_init()}
     % endif
 
-    def plot_figure(self, figure):
+    def compute(self):
         # get args into args, kwargs
         # write out translations
         args = []
@@ -147,17 +147,21 @@ ${get_port_val(spec, ps)}\
         % endif
         % endfor
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         % if spec.get_compute_before():
         ${spec.get_compute_before()}
         % endif
         % if spec.get_compute_inner():
         ${spec.get_compute_inner()}
         % elif spec.output_type is None:
-        ${spec.code_ref}(*args, **kwargs)        
+        ${spec.code_ref}(*args, **kwargs)
         % elif spec.output_type == "object":
         ${spec.get_returned_output_port_specs()[0].compute_name} = ${spec.code_ref}(*args, **kwargs)
         % else:
-        output = ${spec.code_ref}(*args, **kwargs)        
+        output = ${spec.code_ref}(*args, **kwargs)
         % endif
         % if spec.get_compute_after():
         ${spec.get_compute_after()}
@@ -193,8 +197,8 @@ ${get_port_val(spec, ps)}\
         % endif
         % endfor
 
-% endfor        
-          
+% endfor
+
 _modules = [
 % for spec in specs.module_specs:
             ${spec.name},
