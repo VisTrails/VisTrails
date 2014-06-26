@@ -32,6 +32,7 @@
 ##
 ###############################################################################
 
+import itertools
 import matplotlib
 import pylab
 import urllib
@@ -39,6 +40,7 @@ import urllib
 from matplotlib.backend_bases import FigureCanvasBase
 
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
+from vistrails.core.modules.config import IPort
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 
 ################################################################################
@@ -82,7 +84,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
         self.run_code(s, use_input=True, use_output=True)
 
 class MplFigure(Module):
-    _input_ports = [("addPlot", "(MplPlot)"),
+    _input_ports = [IPort("addPlot", "(MplPlot)", depth=1),
                     ("axesProperties", "(MplAxesProperties)"),
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
@@ -95,7 +97,7 @@ class MplFigure(Module):
         pylab.hold(True)
 
         # Run the plots
-        plots = self.get_input_list("addPlot")
+        plots = self.get_input("addPlot")
         for plot in plots:
             plot(self.figInstance)
 
