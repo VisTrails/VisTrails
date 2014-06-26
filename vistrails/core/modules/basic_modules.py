@@ -809,7 +809,7 @@ class List(Constant):
     _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
     _input_ports = [IPort("value", "List"),
-                    IPort("head", "Variant"),
+                    IPort("head", "Variant", depth=1),
                     IPort("tail", "List")]
     _output_ports = [OPort("value", "List")]
 
@@ -855,7 +855,7 @@ class List(Constant):
             middle = self.outputPorts['value']
             got_value = True
         if self.has_input('head'):
-            head = self.get_input_list('head')
+            head = self.get_input('head')
             got_value = True
         if self.input_ports_order:
             items = [self.get_input(p)
@@ -871,7 +871,7 @@ class List(Constant):
 
 ##############################################################################
 # Dictionary
-                    
+
 def dict_conv(v):
     v_dict = literal_eval(v)
     return v_dict
