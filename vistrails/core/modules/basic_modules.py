@@ -1185,51 +1185,38 @@ class Variant(Module):
 
 ##############################################################################
 
-class Iterator(object):
+class Generator(object):
     """
-    Used to keep track if list iteration, it will execute a module once for
+    Used to keep track of list iteration, it will execute a module once for
     each input in the list/generator.
     """
     _settings = ModuleSettings(abstract=True)
 
     generators = []
-    def __init__(self, values=None, depth=1, size=None,
-                 module=None, generator=None, port=None):
-        self.list_depth = depth
-        self.values = values
+    def __init__(self, size=None, module=None, generator=None, port=None,
+                 accumulated=False):
         self.module = module
         self.generator = generator
         self.port = port
         self.size = size
-        if size is None and isinstance(values, List):
-            self.size = len(values)
-        self.pos = 0
-        if generator and module not in Iterator.generators:
+        self.accumulated = accumulated
+        if generator and module not in Generator.generators:
             # add to global list of generators
             # they will be topologically ordered
             module.generator = generator
-            Iterator.generators.append(module)
+            Generator.generators.append(module)
             
     def next(self):
-        if self.module is None:
-            try:
-                item = self.values[self.pos]
-                self.pos += 1
-                return item
-            except KeyError:
-                return None
-        # return next value - the generator
+        """ return next value - the generator """
         value = self.module.get_output(self.port)
-        if isinstance(value, Iterator):
+        if isinstance(value, Generator):
             value = value.all()
         return value
     
     def all(self):
-        """ Returns self.values for Iterators and exhausts next() for Streams
+        """ exhausts next() for Streams
         
         """
-        if self.module is None:
-            return self.values
         items = []
         item = self.next()
         while item is not None:
@@ -1244,12 +1231,12 @@ class Iterator(object):
 
         """
         result = True
-        if not Iterator.generators:
+        if not Generator.generators:
             return
         while result is not None:
-            for g in Iterator.generators:
+            for g in Generator.generators:
                 result = g.next()
-        Iterator.generators = []
+        Generator.generators = []
 
 ##############################################################################
 
@@ -1434,7 +1421,7 @@ def create_constant(value):
     constant.setValue(value)
     return constant
 
-def get_module(value, signature):
+def get_module(value, signature=None):
     """
     Creates a module for value, in order to do the type checking.
     """
@@ -1452,7 +1439,8 @@ def get_module(value, signature):
         return List
     elif isinstance(value, tuple):
         # Variant supports signatures of any length
-        if len(signature) == 1 and signature[0][0] == Variant:
+        if signature is None or \
+           (len(signature) == 1 and signature[0][0] == Variant):
             return (Variant,)*len(value)
         v_modules = ()
         for element in xrange(len(value)):
@@ -1593,7 +1581,8 @@ class TestList(unittest.TestCase):
 
         # Multiple values on 'value'
         res = self.build_list(value=['["a", "b"]', '["c", "d"]'])
-        self.assertIn(res, [["a", "b"], ["c", "d"]])
+        # Connections of List type are merged
+        self.assertEqual(res, ["a", "b", "c", "d"])
 
     def test_items(self):
         """Tests the multiple 'itemN' ports"""

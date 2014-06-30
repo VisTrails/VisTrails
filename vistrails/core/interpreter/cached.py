@@ -47,7 +47,7 @@ from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg, \
-                                                 Iterator
+                                                 Generator
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
     ModuleConnector, ModuleError, ModuleErrors, ModuleHadError, \
@@ -163,8 +163,8 @@ class ViewUpdatingLogController(object):
         if i in self.ids:
             self.ids.remove(i)
             self.view.set_execution_progress(
-                    1.0 - ((len(self.ids) + len(Iterator.generators)) * 1.0 /
-                           (self.nb_modules + len(Iterator.generators))))
+                    1.0 - ((len(self.ids) + len(Generator.generators)) * 1.0 /
+                           (self.nb_modules + len(Generator.generators))))
 
         msg = '' if error is None else error.msg
         self.log.finish_execution(obj, msg, errorTrace,
@@ -295,7 +295,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         def create_null():
             """Creates a Null value"""
-            getter = get_module_registry().get_descriptor_by_name
+            getter = reg.get_descriptor_by_name
             descriptor = getter(basic_pkg, 'Null')
             return descriptor.module()
         
@@ -357,12 +357,14 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             for f in module.functions:
                 connector = None
                 if len(f.params) == 0:
-                    connector = ModuleConnector(create_null(), 'value')
+                    connector = ModuleConnector(create_null(), 'value',
+                                                f.get_spec('output'))
                 elif len(f.params) == 1:
                     p = f.params[0]
                     try:
                         constant = create_constant(p, module)
-                        connector = ModuleConnector(constant, 'value')
+                        connector = ModuleConnector(constant, 'value',
+                                                    f.get_spec('output'))
                     except Exception, e:
                         debug.unexpected_exception(e)
                         err = ModuleError(
@@ -380,7 +382,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                         try:
                             constant = create_constant(p, module)
                             constant.update()
-                            connector = ModuleConnector(constant, 'value')
+                            connector = ModuleConnector(constant, 'value',
+                                                        f.get_spec('output'))
                             tupleModule.set_input_port(j, connector)
                         except Exception, e:
                             debug.unexpected_exception(e)
@@ -392,7 +395,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                                     debug.format_exception(e)))
                             errors[i] = err
                             to_delete.append(obj.id)
-                    connector = ModuleConnector(tupleModule, 'value')
+                    connector = ModuleConnector(tupleModule, 'value',
+                                                f.get_spec('output'))
                 if connector:
                     obj.set_input_port(f.name, connector, is_method=True)
 
@@ -490,8 +494,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
 
-        self._streams.append(Iterator.generators)
-        Iterator.generators = []
+        self._streams.append(Generator.generators)
+        Generator.generators = []
 
         # Update new sinks
         for obj in persistent_sinks:
@@ -528,39 +532,37 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         # execute all generators until inputs are exhausted
         # this makes sure branching and multiple sinks are executed correctly
         if not logging_obj.errors and not logging_obj.suspended and \
-                                                          Iterator.generators:
+                                                          Generator.generators:
             result = True
             abort = False
             while result is not None:
-                for m in Iterator.generators:
-                    abort = False
-                    try:
+                try:
+                    for m in Generator.generators:
                         result = m.generator.next()
-                        continue
-                    except AbortExecution:
-                        break
-                    except ModuleErrors, mes:
-                        for me in mes.module_errors:
-                            me.module.logging.end_update(me.module, me)
-                            logging_obj.signalError(me.module, me)
-                            abort = abort or me.abort
-                    except ModuleError, me:
-                        me.module.logging.end_update(me.module, me, me.errorTrace)
-                        logging_obj.signalError(me.module, me)
-                        abort = me.abort
-                    except ModuleBreakpoint, mb:
-                        mb.module.logging.end_update(mb.module)
-                        logging_obj.signalError(mb.module, mb)
-                        abort = True
-                    except Exception, e:
-                        import traceback
-                        traceback.print_exc()
-                        abort = True
-                    if stop_on_error or abort:
-                        break
-                if abort:
+                    continue
+                except AbortExecution:
                     break
-        Iterator.generators = self._streams.pop()
+                except ModuleErrors, mes:
+                    for me in mes.module_errors:
+                        me.module.logging.end_update(me.module, me)
+                        logging_obj.signalError(me.module, me)
+                        abort = abort or me.abort
+                except ModuleError, me:
+                    me.module.logging.end_update(me.module, me, me.errorTrace)
+                    logging_obj.signalError(me.module, me)
+                    abort = me.abort
+                except ModuleBreakpoint, mb:
+                    mb.module.logging.end_update(mb.module)
+                    logging_obj.signalError(mb.module, mb)
+                    abort = True
+                except Exception, e:
+                    import traceback
+                    traceback.print_exc()
+                    abort = True
+                if stop_on_error or abort:
+                    break
+
+        Generator.generators = self._streams.pop()
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)

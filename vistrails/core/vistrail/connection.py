@@ -102,7 +102,7 @@ def moduleConnection(conn):
             typecheck = getTypeCheck(conn.source.spec)
         dst.set_input_port(
                 iport,
-                ModuleConnector(src, oport, conn.destination.spec, typecheck))
+                ModuleConnector(src, oport, conn.source.spec, typecheck))
     return theFunction
 
 ################################################################################
