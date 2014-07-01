@@ -105,16 +105,17 @@ class While(Module):
 
                 # Set state on input ports
                 if i > 0 and name_state_input:
-                    for value, port in izip(state, name_state_input):
-                        if port in module.inputPorts:
-                            del module.inputPorts[port]
+                    for value, input_port, output_port \
+                    in izip(state, name_state_input, name_state_output):
+                        if input_port in module.inputPorts:
+                            del module.inputPorts[input_port]
                         new_connector = ModuleConnector(
-                                create_constant(value),
-                                'value')
-                        module.set_input_port(port, new_connector)
+                                           create_constant(value), 'value',
+                                           module.output_specs.get(output_port, None))
+                        module.set_input_port(input_port, new_connector)
                         # Affix a fake signature on the module
                         inputPort_hash = sha1_hash()
-                        inputPort_hash.update(port)
+                        inputPort_hash.update(input_port)
                         module.signature = b16encode(xor(
                                 b16decode(self.signature.upper()),
                                 inputPort_hash.digest()))
@@ -222,9 +223,8 @@ class For(Module):
                 if name_input is not None:
                     if name_input in module.inputPorts:
                         del module.inputPorts[name_input]
-                    new_connector = ModuleConnector(
-                            create_constant(i),
-                            'value')
+                    new_connector = ModuleConnector(create_constant(i),
+                                                    'value')
                     module.set_input_port(name_input, new_connector)
                     # Affix a fake signature on the module
                     inputPort_hash = sha1_hash()

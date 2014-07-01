@@ -49,36 +49,60 @@ from vistrails.db.domain import IdScope
 Variant_desc = None
 InputPort_desc = None
 
+def getDescs():
+    """ getDescs() -> [Variant_desc, InputPort_desc]
+        caches the descs so that they are fetched from the registry only once
+    """
+    global Variant_desc, InputPort_desc
+    if Variant_desc is None:
+        reg = get_module_registry()
+        Variant_desc = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.basic', 'Variant')
+        InputPort_desc = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.basic', 'InputPort')
+    return Variant_desc, InputPort_desc
+    
+
+def getTypeCheck(source_spec):
+    """getTypeCheck(source_spec: Spec) -> [Boolean]
+    Returns a list with a Boolean for each parameter indicating whether to
+    type-check that parameter
+
+    """
+    Variant_desc, InputPort_desc = getDescs()
+    if Variant_desc is None:
+        reg = get_module_registry()
+        Variant_desc = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.basic', 'Variant')
+        InputPort_desc = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.basic', 'InputPort')
+    conf = get_vistrails_configuration()
+    error_on_others = getattr(conf, 'errorOnConnectionTypeerror')
+    error_on_variant = (error_on_others or
+                        getattr(conf, 'errorOnVariantTypeerror'))
+    errors = [error_on_others, error_on_variant]
+    return [errors[desc is Variant_desc]
+            for desc in source_spec.descriptors()]
+
+
 def moduleConnection(conn):
     """moduleConnection(conn)-> function
     Returns a function to build a module connection
 
     """
+    _, InputPort_desc = getDescs()
     def theFunction(src, dst):
-        global Variant_desc, InputPort_desc
-        if Variant_desc is None:
-            reg = get_module_registry()
-            Variant_desc = reg.get_descriptor_by_name(
-                    'org.vistrails.vistrails.basic', 'Variant')
-            InputPort_desc = reg.get_descriptor_by_name(
-                    'org.vistrails.vistrails.basic', 'InputPort')
 
         iport = conn.destination.name
         oport = conn.source.name
         src.enable_output_port(oport)
-        conf = get_vistrails_configuration()
-        error_on_others = getattr(conf, 'errorOnConnectionTypeerror')
-        error_on_variant = (error_on_others or
-                            getattr(conf, 'errorOnVariantTypeerror'))
-        errors = [error_on_others, error_on_variant]
         if isinstance(src, InputPort_desc.module):
             typecheck = [False]
         else:
-            typecheck = [errors[desc is Variant_desc]
-                         for desc in conn.source.spec.descriptors()]
+            typecheck = getTypeCheck(conn.source.spec)
         dst.set_input_port(
                 iport,
-                ModuleConnector(src, oport, conn.destination.spec, typecheck))
+                ModuleConnector(src, oport, conn.source.spec, typecheck))
     return theFunction
 
 ################################################################################
