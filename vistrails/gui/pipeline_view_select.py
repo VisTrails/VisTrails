@@ -61,7 +61,7 @@ class QReadOnlyPortSelectPipelineView(QPipelineView):
         # Create custom scene
         scene_copy = QPipelineScene(self)
         scene_copy.controller = scene.controller
-        scene_copy.setupScene(scene.pipeline)
+        scene_copy.setupScene(scene.current_pipeline)
         scene_copy.selectAll()
         if include_module_ids:
             # Remove modules not in the include list and associated connections
