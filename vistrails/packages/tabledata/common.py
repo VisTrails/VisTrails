@@ -89,7 +89,7 @@ class Table(Module):
     _output_ports = [('value', 'Table')]
 
     def set_output(self, port_name, value):
-        if value is not None and port_name == 'value':
+        if self.list_depth == 0 and value is not None and port_name == 'value':
             if value.name is None:
                 value.name = self.force_get_input('name', None)
         Module.set_output(self, port_name, value)
