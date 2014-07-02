@@ -460,6 +460,10 @@ class Module(Serializable):
                        len(dest_descs) == 1 and dest_descs[0].module == Variant:
                         # special case - Treat Variant as list
                         src_depth -= 1
+                    if len(src_descs) == 1 and src_descs[0].module == Variant and \
+                       len(dest_descs) == 1 and dest_descs[0].module == List:
+                        # special case - Treat Variant as list
+                        dest_depth -= 1
                 
                 # store connector with greatest depth
                 # if value depth > port depth
@@ -1158,7 +1162,11 @@ class Module(Serializable):
                 if len(src_descs) == 1 and src_descs[0].module == List and \
                    len(dest_descs) == 1 and dest_descs[0].module == Variant:
                     # special case - Treat Variant as list
-                    dest_depth += 1
+                    src_depth -= 1
+                if len(src_descs) == 1 and src_descs[0].module == Variant and \
+                   len(dest_descs) == 1 and dest_descs[0].module == List:
+                    # special case - Treat Variant as list
+                    dest_depth -= 1
             # wrap depths that are too shallow
             while (src_depth - dest_depth) < 0:
                 value = [value]
