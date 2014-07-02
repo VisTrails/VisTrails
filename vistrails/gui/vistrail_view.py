@@ -422,7 +422,6 @@ class QVistrailView(QtGui.QWidget):
                         newPipelineView
                     module.pipeline.ensure_connection_specs()
                     newPipelineView.scene().setupScene(module.pipeline)
-                    newPipelineView.scene().current_pipeline = module.pipeline
 
     def create_view(self, klass, add_tab=True):
         view = klass(self)

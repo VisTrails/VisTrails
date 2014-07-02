@@ -1915,7 +1915,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self._old_module_ids = set()
         self._old_connection_ids = set()
         self._var_selected_port = None
-        self.pipeline = None
         self.read_only_mode = False
         self.current_pipeline = None
         self.current_version = -1
@@ -2075,8 +2074,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Construct the scene to view a pipeline
         
         """
-        old_pipeline = self.pipeline
-        self.pipeline = pipeline
+        old_pipeline = self.current_pipeline
+        self.current_pipeline = pipeline
 
         if self.noUpdate: return
         if (pipeline is None or 
@@ -2086,7 +2085,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.clear()
         if not pipeline: return 
         
-        self.pipeline.mark_list_depth()
+        self.current_pipeline.mark_list_depth()
 
         needReset = len(self.items())==0
         try:
