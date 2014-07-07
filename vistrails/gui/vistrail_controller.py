@@ -36,6 +36,7 @@
 import copy
 import math
 import os
+import uuid
 
 from PyQt4 import QtCore, QtGui
 
@@ -1458,6 +1459,7 @@ class VistrailController(QtCore.QObject, BaseController):
                         pe.collectParameterActions(self.current_pipeline)
 
         if self.current_pipeline and actions:
+            pe_log_id = uuid.uuid1()
             explorer = ActionBasedParameterExploration()
             (pipelines, performedActions) = explorer.explore(
                 self.current_pipeline, actions, pre_actions)
@@ -1471,7 +1473,10 @@ class VistrailController(QtCore.QObject, BaseController):
                     dim[2], dim[1], dim[0], pipelines, pe.layout, self)
                 QParamExploreView.explorationId += 1
             else:
+                from vistrails.core.param_explore import _pipelinePositions
                 modifiedPipelines = pipelines
+                pipelinePositions = _pipelinePositions(
+                    dim[2], dim[1], dim[0], pipelines)
 
             mCount = []
             for p in modifiedPipelines:
@@ -1512,9 +1517,11 @@ class VistrailController(QtCore.QObject, BaseController):
                     if 'pathDumpCells' in extra_info:
                         images[pipelinePositions[pi]] = \
                                    os.path.join(extra_info['pathDumpCells'], name)
+                pe_cell_id = (pe_log_id,) + pipelinePositions[pi]
                 kwargs = {'locator': self.locator,
                           'current_version': self.current_version,
-                          'reason': 'Parameter Exploration',
+                          'reason': 'Parameter Exploration %s %s_%s_%s' % pe_cell_id,
+                          'logger': self.get_logger(),
                           'actions': performedActions[pi],
                           'extra_info': extra_info
                           }
@@ -1541,6 +1548,8 @@ class VistrailController(QtCore.QObject, BaseController):
                 filename = os.path.join(extra_info['pathDumpCells'],
                                         os.path.splitext(self.name)[0])
                 assembleThumbnails(images, filename)
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('execution_updated')
             return errors
 
 ################################################################################
