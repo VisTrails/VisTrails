@@ -952,26 +952,15 @@ class QVistrailView(QtGui.QWidget):
         """ Exports vistrail without updating the current vistrail """
         self.save_vistrail(locator_class, force_choose_locator=True, export=True)
 
-    def export_stable(self, locator_class=XMLFileLocator,
-                      force_choose_locator=True):
-        """ save vistrail to previous stable version """
+    def export_stable(self, locator_class=XMLFileLocator):
+        """ save workflow to previous stable version """
         self.flush_changes()
         gui_get = locator_class.save_from_gui
-        if force_choose_locator:
-            locator = gui_get(self, Vistrail.vtType,
-                              self.controller.locator)
-        else:
-            locator = (self.controller.locator or
-                      gui_get(self, Vistrail.vtType, self.controller.locator))
-        if locator is not None and locator.is_untitled():
-            locator = gui_get(self, Vistrail.vtType,
-                              self.controller.locator)
+        locator = gui_get(self, Pipeline.vtType)
         if not locator:
             return False
-        self.controller.write_vistrail(locator, '1.0.2', True)
+        self.controller.write_workflow(locator, '1.0.3')
         return True
-
-
 
     # FIXME normalize workflow/log/registry!!!
     def save_workflow(self, locator_class, force_choose_locator=True):

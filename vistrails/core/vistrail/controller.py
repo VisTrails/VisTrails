@@ -3794,7 +3794,7 @@ class VistrailController(object):
             return result
 
 
-    def write_workflow(self, locator):
+    def write_workflow(self, locator, version=None):
         if self.current_pipeline:
             pipeline = Pipeline()
             # pipeline.set_abstraction_map(self.vistrail.abstractionMap)
@@ -3807,7 +3807,7 @@ class VistrailController(object):
             for connection in self.current_pipeline.connections.itervalues():
                 pipeline.add_connection(connection)
             save_bundle = SaveBundle(pipeline.vtType,workflow=pipeline)
-            locator.save_as(save_bundle)
+            locator.save_as(save_bundle, version)
 
     def write_log(self, locator):
         if self.log:
