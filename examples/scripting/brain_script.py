@@ -58,7 +58,7 @@ colors = api.add_and_connect_module(vtkpkg, 'vtkImageMapToColors',
                                     probe, 'SetInputConnection1', True)
 colors.SetOutputFormatToRGBA = True
 
-lookup = api.add_and_connect_module(vtkpkg, 'vtkLookupTable', 'self',
+lookup = api.add_and_connect_module(vtkpkg, 'vtkLookupTable', 'Instance',
                                     colors, 'SetLookupTable', True)
 lookup.SetHueRange = (0.0, 0.8)
 lookup.SetSaturationRange = (0.3, 0.7)
@@ -81,9 +81,9 @@ mapper = api.add_and_connect_module(vtkpkg, 'vtkPolyDataMapper',
 mapper.ScalarVisibilityOn = True
 
 actor = api.add_and_connect_module(vtkpkg, 'vtkActor', 'SetMapper',
-                                   mapper, 'self')
+                                   mapper, 'Instance')
 
-prop = api.add_and_connect_module(vtkpkg, 'vtkProperty', 'self',
+prop = api.add_and_connect_module(vtkpkg, 'vtkProperty', 'Instance',
                                   actor, 'SetProperty', True)
 prop.SetDiffuseColor = (1.0, 0.49, 0.25)
 prop.SetOpacity = 0.7
@@ -91,12 +91,12 @@ prop.SetSpecular = 0.3
 prop.SetSpecularPower = 2.0
 
 renderer = api.add_and_connect_module(vtkpkg, 'vtkRenderer', 'AddActor',
-                                      actor, 'self')
+                                      actor, 'Instance')
 
 # Thought this used to work. Right now fails to convert to color when executed
 #renderer.SetBackgroundWidget = 'white'
 
-camera = api.add_and_connect_module(vtkpkg, 'vtkCamera', 'self',
+camera = api.add_and_connect_module(vtkpkg, 'vtkCamera', 'Instance',
                                     renderer, 'SetActiveCamera', True)
 camera.SetFocalPoint = (15.666, 40.421, 39.991)
 camera.SetPosition = (207.961, 34.197, 129.680)
@@ -104,7 +104,7 @@ camera.SetViewUp = (0.029, 1.0, 0.008)
 
 
 cell = api.add_and_connect_module(vtkpkg, 'VTKCell', 'AddRenderer',
-                                  renderer, 'self')
+                                  renderer, 'Instance')
 
 #write to file
 api.save_vistrail('brain_from_script.vt')
