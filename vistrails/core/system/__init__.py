@@ -324,7 +324,7 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "7d8a4ed2feeb"
+        release = "8262f078ed3b"
         import vistrails.core.requirements
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []

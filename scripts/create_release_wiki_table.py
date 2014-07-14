@@ -7,7 +7,7 @@ wiki page
 from datetime import date
 #Release version
 VT_VERSION = "2.1.3"
-VT_REVISION = "7d8a4ed2feeb"
+VT_REVISION = "8262f078ed3b"
 
 #Sourceforge information
 SF_ROOT_URL = "http://downloads.sourceforge.net/project/vistrails/vistrails/"
