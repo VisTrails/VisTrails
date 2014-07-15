@@ -45,7 +45,7 @@ EXPORT_DIR_PREFIX = "vistrails-src-nightly"
 EXPORT_DIR_SUFFIX = "-?"
 
 # Paths of files and/or directories to be removed from the exported repository (relative to export dir)
-EXPORT_DELETE_PATHS = [".git", ".gitignore", "dist", "packages"]
+EXPORT_DELETE_PATHS = [".git", ".gitignore", "scripts/dist", "packages"]
 
 # Distribution Tarball name (Do not add ".tar.gz")
 TARBALL_NAME = "vistrails-src-nightly"
@@ -115,7 +115,7 @@ def last_minute_changes():
     global SF_DO_UPLOAD
 
     # Copy License
-    srcfile = "dist/mac/Input/LICENSE"
+    srcfile = "scripts/dist/mac/Input/LICENSE"
     info("Copying '%s' to export base dir ..." % srcfile)
     try:
         shutil.copy(os.path.join(EXPORT_DIRNAME, srcfile), os.path.join(EXPORT_DIRNAME, os.path.basename(srcfile)))
