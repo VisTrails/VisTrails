@@ -963,6 +963,16 @@ class QVistrailView(QtGui.QWidget):
         self.controller.write_workflow(locator, '1.0.3')
         return True
 
+    def export_python(self):
+        """ save workflow to previous stable version """
+        self.flush_changes()
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self, "Select file name to export workflow to",
+            ".", filter="Python script (*.py)")
+        if filename:
+            self.controller.write_workflow_to_python(filename)
+        return True
+
     # FIXME normalize workflow/log/registry!!!
     def save_workflow(self, locator_class, force_choose_locator=True):
         self.flush_changes()
