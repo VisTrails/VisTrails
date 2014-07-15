@@ -776,18 +776,18 @@ To make |vistrails| aware of these new widgets, developers should specifying the
     :linenos:
     
     class TestWidgets(Constant):
-        _settings = ModuleSettings(configureWidget="widgets:MyWidget",
-	                           constantWidget="widgets:ConstWgt")
+        _settings = ModuleSettings(configure_widget="widgets:MyWidget",
+	                           constant_widget="widgets:ConstWgt")
 
 Note that the ``PathString`` is best specified relative to the base path of the package.  **Important:** If ``MyWidget`` is defined in the ``widgets`` module of the ``test_widgets`` package in ``userpackages``, its full path might be ``userpackages.test_widgets.widgets:MyWidget``, but we only include the inner path (``widgets:MyWidget``).  (The full path is used for internal packages, but this should be avoided for third-party packages.)
 
-For constant widgets, |vistrails| allows users to associate different widgets with different *uses*.  A widget used for query may differ from the default display & edit widget, and developers may specify different widgets for these uses.  Current uses include "query" and "paramexp" (parameter exploration). In addition, individual ports may specify different constant widgets using the :py:attr:`.InputPort.entry_type` setting.  These specifications are tied to the widget's *type*.  To specify these associations, developers should use the :py:class:`.ConstantWidgetConfig` settings. Also, :py:class:`.QueryWidgetConfig` and :py:class:`.ParamExpWidgetConfig` provide shortcuts for configurations for query and parameter exploration uses, respectively. Multiple widgets can be specified via the :py:attr:`ModuleSettings.constantWidgets` setting.  For example,
+For constant widgets, |vistrails| allows users to associate different widgets with different *uses*.  A widget used for query may differ from the default display & edit widget, and developers may specify different widgets for these uses.  Current uses include "query" and "paramexp" (parameter exploration). In addition, individual ports may specify different constant widgets using the :py:attr:`.InputPort.entry_type` setting.  These specifications are tied to the widget's *type*.  To specify these associations, developers should use the :py:class:`.ConstantWidgetConfig` settings. Also, :py:class:`.QueryWidgetConfig` and :py:class:`.ParamExpWidgetConfig` provide shortcuts for configurations for query and parameter exploration uses, respectively. Multiple widgets can be specified via the :py:attr:`ModuleSettings.constant_widgets` setting.  For example,
 
 .. code-block:: python
     :linenos:
 
     class TestWidgets(Constant):
-        _settings = ModuleSettings(constantWidgets=[
+        _settings = ModuleSettings(constant_widgets=[
             ConstantWidgetConfig(widget="widgets:MyEnumWidget",
                                  widget_type="enum"),
             QueryWidgetConfig(widget="widgets:MyQueryWidget")])
