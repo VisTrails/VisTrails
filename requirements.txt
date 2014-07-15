@@ -11,6 +11,7 @@ paramiko
 # PyQt<5.0
 pyth
 python-dateutil
+redbaron
 scipy
 scp
 Sphinx
