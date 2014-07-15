@@ -48,6 +48,7 @@ from vistrails.core.modules.config import ConstantWidgetConfig, \
 import vistrails.core.system
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
+from vistrails.core.scripting import Script
 
 from abc import ABCMeta
 from ast import literal_eval
@@ -1076,13 +1077,11 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
         self.run_code(s, use_input=True, use_output=True)
 
     @staticmethod
-    def to_python_script(module, indent):
+    def to_python_script(module, input_vars, output_vars):
         for f in module.functions:
             if f.name == 'source':
                 code = urllib.unquote(str(f.parameters[0].strValue))
-
-                code = ''.join([indent + i + '\n' for i in code.split('\n')])
-                return code
+                return Script(code, inputs='variables', outputs='variables')
         return ''
 
 ##############################################################################
