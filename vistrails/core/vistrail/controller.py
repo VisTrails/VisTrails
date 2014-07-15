@@ -72,6 +72,7 @@ from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
 from vistrails.core.utils import VistrailsInternalError, PortAlreadyExists, DummyView, \
     InvalidPipeline
+from vistrails.core.modules.basic_modules import PythonSource
 from vistrails.core.system import vistrails_default_file_type, \
     get_vistrails_directory
 from vistrails.core.vistrail.abstraction import Abstraction
@@ -4071,6 +4072,48 @@ class VistrailController(object):
                 pipeline.add_connection(connection)
             save_bundle = SaveBundle(pipeline.vtType,workflow=pipeline)
             locator.save_as(save_bundle, version)
+
+    def write_workflow_to_python(self, filename, ident=""):
+        text = ""
+        if not self.current_pipeline:
+            return
+        p = self.current_pipeline
+        for module_id in p.graph.vertices_topological_sort():
+            module = p.modules[module_id]
+            m = module.summon()
+            text += ident + "# Module %s(%s)" % (module.name, module_id) + '\n'
+            # add functions
+            for function in p.modules[module_id].functions:
+                # skip pythonsource src ports
+                if isinstance(m, PythonSource) and function.name == 'source':
+                    continue
+                value = [repr(param.value()) for param in function.params]
+                if len(function.params) == 1:
+                    value = value[0]
+                else:
+                    value = tuple(value)
+                text += ident + "%s = %s" % (function.name, value) + '\n'
+            # set input connections
+            for _, conn_id in p.graph.edges_to(module_id):
+                conn = p.connections[conn_id]
+                src = conn.source
+                dst = conn.destination
+                srcName = "%s%s" % (src.name, src.moduleId)
+                text += ident + "%s = %s" % (dst.name, srcName) + '\n'
+            # compute
+            if not hasattr(m, "to_python_script"):
+                debug.critical("%s cannot be exported to Python" % module.name)
+            text += m.to_python_script(module, ident) + '\n'
+            # set output connections
+            # appends module id to port name to make it unique
+            for _, conn_id in p.graph.edges_from(module_id):
+                conn = p.connections[conn_id]
+                src = conn.source
+                srcName = "%s%s" % (src.name, src.moduleId)
+                text += ident + "%s = %s" % (srcName, src.name) + '\n'
+        f = open(filename, 'w')
+        f.write(text)
+        f.close()
 
     def write_log(self, locator):
         if self.log:
