@@ -55,6 +55,7 @@ from vistrails.core.log.log import Log
 from vistrails.core.modules.abstraction import identifier as abstraction_pkg, \
     version as abstraction_ver
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.module_descriptor import ModuleDescriptor
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.module_registry import ModuleRegistryException, \
     MissingModuleVersion, MissingModule, MissingPackageVersion, MissingPort, \
