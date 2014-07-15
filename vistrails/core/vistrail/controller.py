@@ -58,7 +58,6 @@ from vistrails.core.log.log import Log
 from vistrails.core.modules.abstraction import identifier as abstraction_pkg, \
     version as abstraction_ver
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
-from vistrails.core.modules.basic_modules import PythonSource
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.module_registry import ModuleRegistryException, \
@@ -97,6 +96,7 @@ from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
 from vistrails.db.services.vistrail import getSharedRoot
 from vistrails.core.utils import any
+from vistrails.core.scripting import write_workflow_to_python
 
 
 def vt_action(description_or_f=None):
@@ -4073,48 +4073,10 @@ class VistrailController(object):
             save_bundle = SaveBundle(pipeline.vtType,workflow=pipeline)
             locator.save_as(save_bundle, version)
 
-    def write_workflow_to_python(self, filename, indent=""):
-        text = ""
+    def write_workflow_to_python(self, filename):
         if not self.current_pipeline:
             return
-        p = self.current_pipeline
-        for module_id in p.graph.vertices_topological_sort():
-            module = p.modules[module_id]
-            module_class = module.module_descriptor.module
-            text += indent + "# Module %s(%s)" % (module.name, module_id) + '\n'
-            # add functions
-            for function in p.modules[module_id].functions:
-                # skip pythonsource src ports
-                if (issubclass(module_class, PythonSource) and
-                        function.name == 'source'):
-                    continue
-                value = [repr(param.value()) for param in function.params]
-                if len(function.params) == 1:
-                    value = value[0]
-                else:
-                    value = tuple(value)
-                text += indent + "%s = %s" % (function.name, value) + '\n'
-            # set input connections
-            for _, conn_id in p.graph.edges_to(module_id):
-                conn = p.connections[conn_id]
-                src = conn.source
-                dst = conn.destination
-                srcName = "%s%s" % (src.name, src.moduleId)
-                text += indent + "%s = %s" % (dst.name, srcName) + '\n'
-            # compute
-            if not hasattr(module_class, 'to_python_script'):
-                debug.critical("%s cannot be exported to Python" % module.name)
-            text += module_class.to_python_script(module, indent) + '\n'
-            # set output connections
-            # appends module id to port name to make it unique
-            for _, conn_id in p.graph.edges_from(module_id):
-                conn = p.connections[conn_id]
-                src = conn.source
-                srcName = "%s%s" % (src.name, src.moduleId)
-                text += indent + "%s = %s" % (srcName, src.name) + '\n'
-        f = open(filename, 'w')
-        f.write(text)
-        f.close()
+        write_workflow_to_python(self.current_pipeline, filename)
 
     def write_log(self, locator):
         if self.log:
