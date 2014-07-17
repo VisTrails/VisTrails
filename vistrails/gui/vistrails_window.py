@@ -560,13 +560,6 @@ class QVistrailViewWindow(QBaseViewWindow):
                              _app.pass_through_locator(self.get_current_view,
                                                        'export_vistrail', 
                                                        reverse=True)}),
-                       ('exportStable', "To Stable Version...",
-                        {'statusTip': "Save vistrail as XML according to " \
-                             "the older (stable) schema",
-                         'enabled': True,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'export_stable')}),
                        "---",
                        ('savePDF', "PDF...",
                         {'statusTip': "Save the current view to a PDF file",
@@ -594,6 +587,13 @@ class QVistrailViewWindow(QBaseViewWindow):
                              _app.pass_through_locator(self.get_current_view,
                                                        'save_workflow',
                                                        DBLocator)}),
+                       ('exportStable', "Workflow to VisTrails 2.1 XML...",
+                        {'statusTip': "Save workflow as XML according to " \
+                             "the previous schema",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'export_stable')}),
                        "---",
                        ('saveOpm', "OPM XML...",
                         {'statusTip': "Save provenance according to the " \

@@ -59,6 +59,7 @@ from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.utils import VistrailsDeprecation
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
@@ -73,6 +74,7 @@ from vistrails.gui.variable_dropbox import QDragVariableLabel
 import copy
 import math
 import operator
+import warnings
 
 import vistrails.api
 import vistrails.gui.utils
@@ -1915,7 +1917,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self._old_module_ids = set()
         self._old_connection_ids = set()
         self._var_selected_port = None
-        self.pipeline = None
         self.read_only_mode = False
         self.current_pipeline = None
         self.current_version = -1
@@ -1923,6 +1924,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.tmp_module_item = None
         self.tmp_input_conn = None
         self.tmp_output_conn = None
+
+    def _get_pipeline(self):
+        warnings.warn("Use of deprecated field 'pipeline' replaced by "
+                      "'current_pipeline'",
+                      category=VistrailsDeprecation)
+        return self.current_pipeline
+    pipeline = property(_get_pipeline)
 
     def addModule(self, module, moduleBrush=None):
         """ addModule(module: Module, moduleBrush: QBrush) -> QGraphicsModuleItem
@@ -2075,8 +2083,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Construct the scene to view a pipeline
         
         """
-        old_pipeline = self.pipeline
-        self.pipeline = pipeline
+        old_pipeline = self.current_pipeline
+        self.current_pipeline = pipeline
 
         if self.noUpdate: return
         if (pipeline is None or 
@@ -2086,7 +2094,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.clear()
         if not pipeline: return 
         
-        self.pipeline.mark_list_depth()
+        self.current_pipeline.mark_list_depth()
 
         needReset = len(self.items())==0
         try:

@@ -90,7 +90,7 @@ class Table(Module):
     _output_ports = [('value', 'Table')]
 
     def set_output(self, port_name, value):
-        if value is not None and port_name == 'value':
+        if self.list_depth == 0 and value is not None and port_name == 'value':
             if value.name is None:
                 value.name = self.force_get_input('name', None)
         Module.set_output(self, port_name, value)
@@ -213,6 +213,10 @@ class BuildTable(Module):
     def __init__(self):
         Module.__init__(self)
         self.input_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
 
     def compute(self):
         items = None

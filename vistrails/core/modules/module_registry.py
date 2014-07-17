@@ -1915,6 +1915,7 @@ class ModuleRegistry(DBRegistry):
         # For a connection, this gets called for sub -> super
         basic_pkg = get_vistrails_basic_pkg_id()
         variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
+        list_desc = self.get_descriptor_by_name(basic_pkg, 'List')
         # sometimes sub is coming None
         # I don't know if this is expected, so I will put a test here
         sub_descs = []
@@ -1931,6 +1932,17 @@ class ModuleRegistry(DBRegistry):
             return False
         elif super_descs == [variant_desc]:
             return True
+        elif [list_desc] in [super_descs, sub_descs]:
+            # Allow Lists to connect to anything
+            return True
+        #elif super_descs == [list_desc] and sub_descs != [list_desc] \
+        #     and sub.depth > 0:
+        #    # List is handled as Variant with depth 1
+        #    return True
+        #elif sub_descs == [list_desc] and super_descs != [list_desc] \
+        #     and super.depth > 0:
+        #    # List is handled as Variant with depth 1
+        #    return True
 
         if (len(sub_descs) == len(super_descs) and
                 self.is_descriptor_list_subclass(sub_descs, super_descs)):

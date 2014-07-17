@@ -34,19 +34,19 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.1.2
-WizardImageFile=resources\images\vistrails_icon.bmp
+AppVerName=VisTrails 2.1.3
+WizardImageFile=..\resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$009D5942
 DefaultDirName={code:CustomAppDir}\VisTrails
-SetupIconFile=resources\icons\vistrails_install2.ico
+SetupIconFile=..\resources\icons\vistrails_install2.ico
 DefaultGroupName=VisTrails
-InfoAfterFile=Input\releaseNotes.txt
+InfoAfterFile=..\Input\releaseNotes.txt
 PrivilegesRequired=none
 RestartIfNeededByRun=false
 ChangesAssociations=true
-LicenseFile=Input\license.txt
-OutputBaseFilename=vistrails-setup
+LicenseFile=..\Input\license.txt
+OutputBaseFilename=vistrails-gdal-setup
 
 [Files]
 Source: C:\Python27\w9xpopen.exe; DestDir: {app}\Python27
@@ -61,25 +61,25 @@ Source: C:\Python27\libs\*; DestDir: {app}\Python27\libs
 Source: C:\Python27\Scripts\*; DestDir: {app}\Python27\Scripts
 Source: C:\Python27\tcl\*; DestDir: {app}\Python27\tcl; Flags: recursesubdirs
 Source: C:\Python27\Tools\*; DestDir: {app}\Python27\Tools; Flags: recursesubdirs
-Source: ..\..\examples\*; DestDir: {app}\examples; Components: examples; Flags: recursesubdirs
-Source: ..\..\scripts\*; DestDir: {app}\scripts; Flags: recursesubdirs
-Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
-Source: ..\..\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
-Source: Input\unzip.exe; DestDir: {app}
-Source: Input\zip.exe; DestDir: {app}
-Source: Input\git.exe; DestDir: {app}
-Source: Input\tar.exe; DestDir: {app}
-Source: Input\runvistrails.py; DestDir: {app}
-Source: Input\*.dll; DestDir: {app}
-Source: Input\license.txt; DestDir: {app}
-Source: Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
-Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
-Source: Input\qt.conf; DestDir: {app}\Python27
+Source: ..\..\..\examples\*; DestDir: {app}\examples; Components: examples; Flags: recursesubdirs
+Source: ..\..\..\scripts\*; DestDir: {app}\scripts; Flags: recursesubdirs
+Source: ..\..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
+Source: ..\..\..\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
+Source: ..\Input\unzip.exe; DestDir: {app}
+Source: ..\Input\zip.exe; DestDir: {app}
+Source: ..\Input\git.exe; DestDir: {app}
+Source: ..\Input\tar.exe; DestDir: {app}
+Source: ..\Input\runvistrails.py; DestDir: {app}
+Source: ..\Input\*.dll; DestDir: {app}
+Source: ..\Input\license.txt; DestDir: {app}
+Source: ..\Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
+Source: ..\Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
+Source: ..\Input\qt.conf; DestDir: {app}\Python27
 
 ;;;; ------- QT LIBS ------- ;;;;
 ;;;; -- Already included in PyQt4 binary ---- ;;;;
-;Source: D:\Qt\4.6.2\bin\*.dll; DestDir: {app}\vistrails
-;Source: D:\Qt\4.6.3\bin\phonon4.dll; DestDir: {app}\vistrails
+;Source: D:\Qt\4.6.2\bin\*.dll; DestDir: {app}
+;Source: D:\Qt\4.6.3\bin\phonon4.dll; DestDir: {app}
 ;Source: D:\Qt\4.6.3\bin\Qt3Support4.dll; DestDir: {app}\vistrails
 ;Source: D:\Qt\4.6.3\bin\QtAssistantClient4.dll; DestDir: {app}\vistrails
 ;Source: D:\Qt\4.6.3\bin\QtCLucene4.dll; DestDir: {app}\vistrails
@@ -102,17 +102,17 @@ Source: Input\qt.conf; DestDir: {app}\Python27
 ;Source: D:\Qt\4.6.3\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
 ;Source: D:\Qt\4.6.3\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
-Source: Input\x86\python27.dll; DestDir: {app}
-Source: Input\x86\python27.dll; DestDir: {app}\Python27
+Source: ..\Input\x86\python27.dll; DestDir: {app}
+Source: ..\Input\x86\python27.dll; DestDir: {app}\Python27
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.dll; DestDir: {app}
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.pyd; DestDir: {app}
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 
 ;-->Source: I:\emanuele\src\netcdf-3.6.1\src\lib\*.dll; DestDir: {app}\vistrails
 ;;;; --------    ALPS FILES    ----------;;;;
-Source: Input\x86\alps_libs\*; DestDir: {app}; Flags: recursesubdirs
+Source: ..\Input\x86\alps_libs\*; DestDir: {app}; Flags: recursesubdirs
 ;;;; --------    ITK FILES    ----------;;;;
-;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}; Flags: recursesubdirs
+;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\itkExtras\*; DestDir: {app}\itkExtras; Flags: recursesubdirs
 ;Source: E:\src\itk\Wrapping\WrapITK\Python\Release\Configuration\*; DestDir: {app}\Configuration; Flags: recursesubdirs
 ;Source: E:\src\itk\bin\Release\*.dll; DestDir: {app}
@@ -121,6 +121,8 @@ Source: Input\x86\alps_libs\*; DestDir: {app}; Flags: recursesubdirs
 ;;;; --------- END OF ITK FILES --------- ;;;;
 Source: C:\Users\vistrails\src\fftw-3.3.3-dll32\libfftw3-3.dll; DestDir: {app}
 Source: C:\Users\vistrails\src\hdf5-1.8.4-32bit-VS2008-IVF101\*; DestDir: {app}\libsrc\hdf5-1.8.4-32bit-VS2008-IVF101; Flags: recursesubdirs
+;;;; --- GDAL Files ----;;;;
+Source: C:\Users\vistrails\code\extra_packages\gdal\x86\site-packages\*; DestDir: {app}\Python27\Lib\site-packages; Flags: recursesubdirs
 
 [Dirs]
 ;Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
@@ -134,9 +136,10 @@ Name: {app}\scripts
 Name: {app}\scripts\gen_vtk_examples
 Name: {app}\libsrc
 Name: {app}\Python27
-Name: {app}\Python27\DLLs
+Name: {app}\vtk
 Name: {app}\Python27\include
 Name: {app}\Python27\Lib
+Name: {app}\Python27\Lib\site-packages
 Name: {app}\Python27\libs
 Name: {app}\Python27\Scripts
 Name: {app}\Python27\sip
@@ -149,8 +152,8 @@ Name: extensions; Description: Extension Files; Types: full
 Name: usersguide; Description: User's Guide PDF document; Types: full
 
 [Icons]
-Name: {group}\VisTrails; Filename: {app}\Python27\python.exe; WorkingDir: {app}; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails\run.py
-Name: {commondesktop}\VisTrails; Filename: {app}\Python27\python.exe; WorkingDir: {app}; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: vistrails\run.py; Components: main; Tasks: desktopicon
+Name: {group}\VisTrails; Filename: {app}\Python27\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: run.py
+Name: {commondesktop}\VisTrails; Filename: {app}\Python27\python.exe; WorkingDir: {app}; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: run.py; Components: main; Tasks: desktopicon
 Name: {group}\Uninstall VisTrails; Filename: {uninstallexe}
 Name: {group}\VisTrails.pdf; Filename: {app}\doc\VisTrails.pdf; Components: usersguide
 [Tasks]
@@ -166,7 +169,7 @@ LogFileAppend=false
 Root: HKCR; Subkey: .vt; ValueType: string; ValueData: VisTrailsFile; Flags: uninsdeletevalue; Tasks: associatefiles
 Root: HKCR; Subkey: VisTrailsFile; ValueType: string; ValueData: VisTrails File; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKCR; Subkey: VisTrailsFile\DefaultIcon; ValueType: string; ValueData: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; Tasks: associatefiles; Flags: uninsdeletekey
-Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\Python27\python.exe"" ""{app}\runvistrails.py"" ""{app}\Python27\python.exe"" ""{app}\vistrails\run.py"" ""{app}"" ""%1"""; Tasks: associatefiles; Flags: uninsdeletekey
+Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\Python27\python.exe"" ""{app}\runvistrails.py"" ""{app}\vistrails\Python27\python.exe"" ""{app}\vistrails\run.py"" ""{app}"" ""%1"""; Tasks: associatefiles; Flags: uninsdeletekey
 Root: HKCR; Subkey: .vtl; ValueType: string; ValueData: VisTrailsFile; Flags: uninsdeletevalue; Tasks: associatefiles
 [InstallDelete]
 Name: {app}\dot.exe; Type: files
@@ -177,14 +180,15 @@ Name: {app}\libexpatw.dll; Type: files
 Name: {app}\png.dll; Type: files
 Name: {app}\z.dll; Type: files
 Name: {app}\zlib1.dll; Type: files
+Name: {app}\python27.dll; Type: files
 Name: {app}\Python27; Type: filesandordirs
+Name: {app}\vtk; Type: filesandordirs
 Name: {app}\*.pyd; Type: files
 Name: {app}\dgnlib.dll; Type: files
 Name: {app}\_Xdmf.dll; Type: files
 Name: {app}\geotiff.dll; Type: files
 Name: {app}\libmysql.dll; Type: files
 Name: {app}\vistrails; Type: filesandordirs
-Name: {app}\vistrails\packages\gridfield; Type: filesandordirs
 Name: {app}\lib\site-packages; Type: filesandordirs
 [Run]
 Filename: {tmp}\vcredist_x86.exe; Parameters: /Q; Components: ; Tasks: 
@@ -195,10 +199,7 @@ CompileLogFile=Output\build.log
 CompileLogMethod=append
 
 [PreCompile]
-Name: "C:\Python27\python.exe"; Parameters: "C:\Users\vistrails\code\vistrails\dist\windows\Input\download_usersguide.py"; Flags: abortonerror cmdprompt
-
-[PreCompile]
-Name: "C:\Python27\python.exe"; Parameters: "-m compileall C:\Users\vistrails\code"; Flags: abortonerror cmdprompt
+Name: "C:\Python27\python.exe"; Parameters: "C:\Users\vistrails\code\vistrails\scripts\dist\windows\Input\download_usersguide.py"; Flags: abortonerror cmdprompt
 
 [Code]
 var
@@ -308,4 +309,4 @@ LogFile=Output\build.log
 LogFileOverwrite=false
 
 [InnoIDE_PreCompile]
-Name: C:\Python27\python.exe; Parameters: C:\Users\vistrails\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 
+Name: C:\Python27\python.exe; Parameters: C:\Users\vistrails\code\vistrails\scripts\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 

@@ -713,6 +713,10 @@ class Tuple(Module):
         self.input_ports_order = []
         self.values = tuple()
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
     def compute(self):
         values = tuple([self.get_input(p)
                         for p in self.input_ports_order])
@@ -731,6 +735,12 @@ class Untuple(Module):
     def __init__(self):
         Module.__init__(self)
         self.output_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.output_ports_order = [p.name for p in module.output_port_specs]
+        # output_ports are reversed for display purposes...
+        self.output_ports_order.reverse()
 
     def compute(self):
         if self.has_input("tuple"):
@@ -808,6 +818,10 @@ class List(Constant):
     def __init__(self):
         Constant.__init__(self)
         self.input_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
 
     @staticmethod
     def validate(x):
@@ -911,6 +925,12 @@ class CodeRunnerMixin(object):
         self.output_ports_order = []
         super(CodeRunnerMixin, self).__init__()
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.output_ports_order = [p.name for p in module.output_port_specs]
+        # output_ports are reversed for display purposes...
+        self.output_ports_order.reverse()
+
     def run_code(self, code_str,
                  use_input=False,
                  use_output=False):
@@ -973,7 +993,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
 
 ##############################################################################
 
-class SmartSource(NotCacheable, Module):
+class SmartSource(CodeRunnerMixin, NotCacheable, Module):
     _settings = ModuleSettings(
         configure_widget=("vistrails.gui.modules.python_source_configure:"
                              "PythonSourceConfigurationWidget"))
@@ -1165,47 +1185,38 @@ class Variant(Module):
 
 ##############################################################################
 
-class Iterator(object):
+class Generator(object):
     """
-    Used to keep track if list iteration, it will execute a module once for
+    Used to keep track of list iteration, it will execute a module once for
     each input in the list/generator.
     """
     _settings = ModuleSettings(abstract=True)
 
     generators = []
-    def __init__(self, values=None, depth=1, size=None,
-                 module=None, generator=None, port=None):
-        self.list_depth = depth
-        self.values = values
+    def __init__(self, size=None, module=None, generator=None, port=None,
+                 accumulated=False):
         self.module = module
         self.generator = generator
         self.port = port
         self.size = size
-        if size is None and values is not None:
-            self.size = len(values)
-        self.pos = 0
-        if generator and generator not in Iterator.generators:
+        self.accumulated = accumulated
+        if generator and module not in Generator.generators:
             # add to global list of generators
-            # they will be uniquely ordered topologically
-            Iterator.generators.append(self.generator)
+            # they will be topologically ordered
+            module.generator = generator
+            Generator.generators.append(module)
             
     def next(self):
-        if self.values is not None:
-            try:
-                item = self.values[self.pos]
-                self.pos += 1
-                return item
-            except KeyError:
-                return None
-        # return next value - the generator
+        """ return next value - the generator """
         value = self.module.get_output(self.port)
-        if isinstance(value, Iterator):
-            raise ModuleError(self.module, "Iterator generator cannot contain an iterator")
-        return self.module.get_output(self.port)
+        if isinstance(value, Generator):
+            value = value.all()
+        return value
     
     def all(self):
-        if self.values is not None:
-            return self.values
+        """ exhausts next() for Streams
+        
+        """
         items = []
         item = self.next()
         while item is not None:
@@ -1215,15 +1226,17 @@ class Iterator(object):
 
     @staticmethod
     def stream():
-        # execute all generators until inputs are exhausted
-        # this makes sure branching and multiple sinks are executed correctly
+        """ executes all generators until inputs are exhausted
+            this makes sure branching and multiple sinks are executed correctly
+
+        """
         result = True
-        if not Iterator.generators:
+        if not Generator.generators:
             return
         while result is not None:
-            for g in Iterator.generators:
+            for g in Generator.generators:
                 result = g.next()
-        Iterator.generators = []
+        Generator.generators = []
 
 ##############################################################################
 
@@ -1278,17 +1291,26 @@ class StringFormat(Module):
         while i < n:
             if fmt[i] == '{':
                 i += 1
-                if fmt[i] == '}': # KeyError
+                if fmt[i] == '{': # KeyError:
+                    i += 1
+                    continue
+                e = fmt.index('}', i) # KeyError
+                f = e
+                for c in (':', '!', '[', '.'):
+                    c = fmt.find(c, i)
+                    if c != -1:
+                        f = min(f, c)
+                if i == f:
                     nb += 1
-                elif fmt[i] != '{': # KeyError
-                    e = fmt.index('}', i + 1) # KeyError
-                    f = e
-                    for c in (':', '!', '[', '.'):
-                        c = fmt.find(c, i + 1)
-                        if c != -1:
-                            f = min(f, c)
-                    placeholders.add(fmt[i:f])
-                    i = e
+                else:
+                    arg = fmt[i:f]
+                    try:
+                        arg = int(arg)
+                    except ValueError:
+                        placeholders.add(arg)
+                    else:
+                        nb = max(nb, arg + 1)
+                i = e
             i += 1
         return nb, placeholders
 
@@ -1410,43 +1432,37 @@ def create_constant(value):
     constant.setValue(value)
     return constant
 
-def get_module(value, signature):
+def get_module(value, signature=None):
     """
     Creates a module for value, in order to do the type checking.
     """
     if isinstance(value, Constant):
         return type(value)
-    if isinstance(value, bool):
+    elif isinstance(value, bool):
         return Boolean
-    if isinstance(value, str):
+    elif isinstance(value, str):
         return String
-    #if isinstance(value, int):
-    # any object that can be cast as int without losing digits
-    try:
-        if value == int(value):
-            return Integer
-    except:
-        pass
-    #if isinstance(value, float):
-    # any object that can be cast as float except int
-    try:
-        float(value)
+    elif isinstance(value, int):
+        return Integer
+    elif isinstance(value, float):
         return Float
-    except:
-        pass
     if isinstance(value, list):
         return List
     elif isinstance(value, tuple):
-        if len(signature) == 1 and signature[0][0] == Variant:
+        # Variant supports signatures of any length
+        if signature is None or \
+           (len(signature) == 1 and signature[0][0] == Variant):
             return (Variant,)*len(value)
         v_modules = ()
         for element in xrange(len(value)):
             v_modules += (get_module(value[element], signature[element]),)
+        if None in v_modules: # Identification failed
+            return None
         return v_modules
     else: # pragma: no cover
         debug.warning("Could not identify the type of the list element.")
-        debug.warning("Type checking is not going to be done inside"
-                      "FoldWithModule module.")
+        debug.warning("Type checking is not going to be done inside "
+                      "iterated module.")
         return None
 
 ###############################################################################
@@ -1576,7 +1592,8 @@ class TestList(unittest.TestCase):
 
         # Multiple values on 'value'
         res = self.build_list(value=['["a", "b"]', '["c", "d"]'])
-        self.assertIn(res, [["a", "b"], ["c", "d"]])
+        # Connections of List type are merged
+        self.assertEqual(res, ["a", "b", "c", "d"])
 
     def test_items(self):
         """Tests the multiple 'itemN' ports"""
@@ -1851,3 +1868,7 @@ class TestStringFormat(unittest.TestCase):
         self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',
                         a=('Integer', '42'), _0=('String', 'b'),
                         b=('Integer', '12'))
+        self.run_format('{} {} {!r}{ponc} {:.2f}', "hello dear 'world'! 1.33",
+                        _0=('String', 'hello'), _1=('String', 'dear'),
+                        _2=('String', 'world'), _3=('Float', '1.333333333'),
+                        ponc=('String', '!'))

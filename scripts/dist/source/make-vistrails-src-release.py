@@ -39,13 +39,13 @@ GIT_URL = "git://www.vistrails.org/vistrails.git"
 GIT_ARGS = ""
 
 # VisTrails Release Version
-VT_VERSION = '2.1.2'
+VT_VERSION = '2.1.3'
 
 # Branch to be used to build release
 VT_BRANCH = 'v2.1'
 
 # Hash used in the release
-VT_HASH = '7d8a4ed2feeb'
+VT_HASH = '8262f078ed3b'
 
 # Prefix of target git export dir (also used as prefix for log files)
 EXPORT_DIR_PREFIX = "vistrails-src-%s"%VT_VERSION
@@ -54,7 +54,7 @@ EXPORT_DIR_PREFIX = "vistrails-src-%s"%VT_VERSION
 EXPORT_DIR_SUFFIX = "-?"
 
 # Paths of files and/or directories to be removed from the exported repository (relative to export dir)
-EXPORT_DELETE_PATHS = [".git", ".gitignore", "dist", "packages"]
+EXPORT_DELETE_PATHS = [".git", ".gitignore", "scripts/dist", "packages"]
 
 # Distribution Tarball name (Do not add ".tar.gz")
 # For releases, Tarball name will be always EXPORT_DIR_PREFIX+EXPORT_DIR_SUFFIX 
@@ -128,7 +128,7 @@ def last_minute_changes():
     global SF_DO_UPLOAD
 
     # Copy License
-    srcfile = "dist/mac/Input/LICENSE"
+    srcfile = "scripts/dist/mac/Input/LICENSE"
     info("Copying '%s' to export base dir ..." % srcfile)
     try:
         shutil.copy(os.path.join(EXPORT_DIRNAME, srcfile), os.path.join(EXPORT_DIRNAME, os.path.basename(srcfile)))
@@ -165,7 +165,7 @@ def last_minute_changes():
             f.close()
     if RELEASE:
         #Copy Release Notes
-        srcfile = "dist/windows/Input/releaseNotes.txt"
+        srcfile = "scripts/dist/windows/Input/releaseNotes.txt"
         destfile = "RELEASE"
         info("Copying '%s' to export base dir ..." % srcfile)
         try:

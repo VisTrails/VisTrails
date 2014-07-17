@@ -87,6 +87,10 @@ def initialize(*args,**keywords):
     reg.add_input_port(FoldWithModule, 'InputPort', (List, ""))
     reg.add_input_port(FoldWithModule, 'OutputPort', (String, ""))
 
+    reg.add_output_port(Map, 'Result', (List, ""))
+
+    reg.add_output_port(Filter, 'Result', (List, ""))
+
     reg.add_input_port(If, 'Condition', (Boolean, ""))
     reg.add_input_port(If, 'TruePort', (Module, ""))
     reg.add_input_port(If, 'FalsePort', (Module, ""))
