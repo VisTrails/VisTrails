@@ -69,7 +69,8 @@ def write_workflow_to_python(pipeline, filename):
             debug.critical("Module %s cannot be converted to Python")
             code = ("# <Missing code>\n"
                     "# %s doesn't define a function to_python_script()\n"
-                    "# VisTrails cannot currently export such modules\n")
+                    "# VisTrails cannot currently export such modules\n" %
+                    module.name)
             input_ports = output_ports = set()
             input_vars = output_vars = dict()
         else:
