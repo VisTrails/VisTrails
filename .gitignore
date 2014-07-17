@@ -8,5 +8,11 @@
 # vim
 *.swp
 
+# install
+build/
+dist/
+vistrails.egg-info/
+vistrails/build/
+
 # pycharm
 .idea/
