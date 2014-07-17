@@ -46,7 +46,6 @@ class OutputModeConfig(dict):
         cls_list = [cls]
         while len(cls_list) > 0:
             c = cls_list.pop(0)
-            print "class:", c
             if issubclass(c, OutputModeConfig):
                 c.ensure_field_dict()
                 if k in c._field_dict:

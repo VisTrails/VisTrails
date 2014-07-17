@@ -313,7 +313,6 @@ class TableToFileMode(FileMode):
     def compute_output(self, output_module, configuration=None):
         value = output_module.get_input("value")
         filename = self.get_filename(configuration, suffix='.html')
-        print "WRITING TO:", filename
         with open(filename, 'wb') as fp:
             fp.write(self.write_html(value))
 

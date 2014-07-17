@@ -190,13 +190,11 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
 
         if mode is None:
             for k, v in mode_config.iteritems():
-                print "ADD UNSPECIFIED FIELD:", k
                 dummy_field = ConfigField(k, None, str)
                 self.add_field(group_layout, dummy_field, mode_config,
                                         k)
         else:
             for field in mode.config_cls.get_all_fields():
-                print "ADD FIELD:", mode.mode_type, field.name
                 self.add_field(group_layout, field, mode_config, 
                                mode.mode_type)
         self.setLayout(group_layout)
@@ -392,7 +390,6 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
             combo.setCurrentIndex(-1)
 
     def field_changed(self, config_key, field, val):
-        print "field changed:", config_key, val
         if config_key[0] not in self._changed_config:
             self._changed_config[config_key[0]] = {}
         # TODO support arbitrary nesting?
