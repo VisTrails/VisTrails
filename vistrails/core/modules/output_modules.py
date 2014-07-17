@@ -84,6 +84,10 @@ class OutputModeConfig(dict):
         return fields
 
     @classmethod
+    def get_local_fields(cls):
+        return sorted(cls._fields)
+
+    @classmethod
     def get_default(cls, k):
         f = cls.get_field(k)
         if f is not None:
@@ -246,6 +250,29 @@ class OutputModule(NotCacheable, Module):
         for c in reversed(cls_list):
             c.ensure_mode_dict()
 
+    def get_mode_config(self, mode_cls):
+        mode_config_cls = mode_cls.config_cls
+        mode_config_dict = {}
+        configuration = self.force_get_input('configuration')
+        if configuration is not None:
+            # want to search through all mode classes in case we have
+            # base class settings that should trump
+            cls_list = [mode_config_cls]
+            mode_config_cls_list = []
+            while len(cls_list) > 0:
+                c = cls_list.pop(0)
+                if issubclass(c, OutputModeConfig):
+                    mode_config_cls_list.append(c)
+                    cls_list.extend(c.__bases__)
+            mode_config_cls_list.reverse()
+
+            for mode_config_cls in mode_config_cls_list:
+                for k, v in configuration.iteritems():
+                    if k == mode_config_cls.mode_type:
+                        mode_config_dict.update(v)
+        mode_config = mode_config_cls(mode_config_dict)
+        return mode_config
+
     def compute(self):
         mode_cls = None
         self.ensure_mode_dict()
@@ -270,29 +297,8 @@ class OutputModule(NotCacheable, Module):
             raise ModuleError(self, "No output mode is valid, output cannot "
                               "be generated")
 
+        mode_config = self.get_mode_config(mode_cls)
         mode = mode_cls()
-        mode_config_cls = mode_cls.config_cls
-        mode_config = None
-        mode_config_dict = {}
-        configuration = self.force_get_input('configuration')
-        if configuration is not None:
-            # want to search through all mode classes in case we have
-            # base class settings that should trump
-            cls_list = [mode_config_cls]
-            mode_config_cls_list = []
-            while len(cls_list) > 0:
-                c = cls_list.pop(0)
-                if issubclass(c, OutputModeConfig):
-                    mode_config_cls_list.append(c)
-                    cls_list.extend(c.__bases__)
-            mode_config_cls_list.reverse()
-        
-            for mode_config_cls in mode_config_cls_list:
-                for k, v in configuration.iteritems():
-                    if k == mode_config_cls.mode_type:
-                        mode_config_dict.update(v)
-        mode_config = mode_config_cls(mode_config_dict)
-
         self.annotate({"output_mode": mode.mode_type})
         mode.compute_output(self, mode_config)
                 
@@ -319,12 +325,14 @@ class FileModeConfig(OutputModeConfig):
                ConfigField('series', False, bool),
                ConfigField('overwrite', True, bool),
                ConfigField('seriesPadding', 3, int),
-               ConfigField('seriesStart', 0, int)]
+               ConfigField('seriesStart', 0, int),
+               ConfigField('format', None, str)]
 
 class FileMode(OutputMode):
     mode_type = "file"
     priority = 1
     config_cls = FileModeConfig
+    formats = []
     
     # need to reset this after each execution!
     series_next = 0
@@ -333,11 +341,42 @@ class FileMode(OutputMode):
     def can_compute(cls):
         return True
 
+    @classmethod
+    def get_formats(cls):
+        formats = []
+        cls_list = [cls]
+        while len(cls_list) > 0:
+            c = cls_list.pop(0)
+            if issubclass(c, FileMode):
+                if 'formats' in c.__dict__:
+                    return c.formats
+                cls_list.extend(c.__bases__)
+        return []
+
+    def get_format(self, configuration=None):
+        format_map = {'png': 'png',
+                      'jpeg': 'jpg',
+                      'jpg': 'jpg',
+                      'tif': 'tif',
+                      'tiff': 'tif'}
+        if configuration is not None and 'format' in configuration:
+            conf_format = configuration['format']
+            if conf_format.lower() in format_map:
+                return format_map[conf_format.lower()]
+            return conf_format
+
+        # default is the first listed if it exists
+        format_list = self.get_formats()
+        if len(format_list) > 0:
+            return format_list[0]
+        return None
+
     def get_series_num(self):
         retval = FileMode.series_next 
         FileMode.series_next += 1
         return retval
-
+        
+    # FIXME should add format into this computation
     def get_filename(self, configuration, full_path=None, filename=None,
                      dirname=None, basename=None, prefix=None, suffix=None,
                      overwrite=True, series=False, series_padding=3):
@@ -462,25 +501,11 @@ class FileOutput(OutputModule):
 class ImageFileModeConfig(FileModeConfig):
     mode_type = "imageFile"
     _fields = [ConfigField('width', 800, int),
-               ConfigField('height', 600, int),
-               ConfigField('format', None, str)]
+               ConfigField('height', 600, int)]
 
 class ImageFileMode(FileMode):
     config_cls = ImageFileModeConfig
     mode_type = "imageFile"
-
-    def get_format(self, configuration=None):
-        format_map = {'png': 'png',
-                      'jpeg': 'jpg',
-                      'jpg': 'jpg',
-                      'tif': 'tif',
-                      'tiff': 'tif'}
-        if configuration is not None:
-            img_format = configuration['format']
-            if img_format.lower() in format_map:
-                return format_map[img_format.lower()]
-            return img_format
-        return 'png'
 
 class RichTextOutput(OutputModule):
     # need specific spreadsheet richtext mode here
@@ -488,7 +513,7 @@ class RichTextOutput(OutputModule):
 
 _modules = [OutputModule, GenericOutput, FileOutput]
 
-# need to put WebOutput, ImageOutput, RichTextOutput, SVGOutput, VTKOutput, MplOutput, etc. elsewhere
+# need to put WebOutput, ImageOutput, RichTextOutput, SVGOutput, etc. elsewhere
 
 class TestOutputModeConfig(unittest.TestCase):
     def test_fields(self):
@@ -519,7 +544,6 @@ class TestOutputModeConfig(unittest.TestCase):
 
     def test_get_default(self):
         self.assertEqual(FileModeConfig.get_default("seriesStart"), 0)
-        
 
 if __name__ == '__main__':
     import vistrails.core.application

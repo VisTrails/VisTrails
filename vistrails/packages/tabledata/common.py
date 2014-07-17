@@ -272,6 +272,7 @@ class SingleColumnTable(Converter):
                 ['converted_list']))    # names
 
 class TableToFileMode(FileMode):
+    formats = ['html']
     def write_html(self, table):
         document = ['<!DOCTYPE html>\n'
                     '<html>\n  <head>\n'

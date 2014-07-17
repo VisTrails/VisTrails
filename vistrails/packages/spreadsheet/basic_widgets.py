@@ -310,7 +310,10 @@ class SpreadsheetMode(OutputMode):
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         if spreadsheetWindow.echoMode == False:
             spreadsheetWindow.configShow(show=True)
-        return spreadsheetWindow.displayCellEvent(e)
+        cell = spreadsheetWindow.displayCellEvent(e)
+        if cell is not None:
+            cell.set_output_module(output_module, configuration)
+        return cell
 
 
 class SingleCellSheetReference(SheetReference):

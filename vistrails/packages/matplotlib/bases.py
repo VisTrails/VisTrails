@@ -174,6 +174,7 @@ class MplQuadContourSet(MplContourSet):
 
 class MplFigureToFile(ImageFileMode):
     config_cls = ImageFileModeConfig
+    formats = ['pdf', 'png', 'jpg']
 
     def compute_output(self, output_module, configuration=None):
         value = output_module.get_input('value')
