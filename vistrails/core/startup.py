@@ -979,6 +979,7 @@ class TestStartup(unittest.TestCase):
 
     def test_cannot_create(self):
         (fd, fname) = tempfile.mkstemp()
+        os.close(fd)
         config = ConfigurationObject(dotVistrails=fname)
         try:
             with self.assertRaises(ValueError):
