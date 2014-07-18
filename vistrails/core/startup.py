@@ -44,7 +44,7 @@ from vistrails.db.domain import DBStartup, DBStartupPackage, \
 import vistrails.db.services.io
 import vistrails.core.packagemanager
 from vistrails.core.system import get_elementtree_library, \
-    get_vistrails_directory
+    get_vistrails_directory, systemType
 import vistrails.core.utils
 from vistrails.core.utils import version_string_to_list
 
@@ -998,6 +998,8 @@ class TestStartup(unittest.TestCase):
             os.unlink(fname)
         
     def test_permissions(self):
+        if systemType in ['Windows', 'Microsoft']:
+            self.skipTest("chmod on Windows is limited")
         dir_name = tempfile.mkdtemp()
         config = ConfigurationObject(dotVistrails=dir_name)
         try:
@@ -1005,7 +1007,6 @@ class TestStartup(unittest.TestCase):
             with self.assertRaises(IOError):
                 startup = VistrailsStartup(config, None)
         finally:
-            self.close_logger()
             os.chmod(dir_name, stat.S_IRWXU)
             shutil.rmtree(dir_name)
             
