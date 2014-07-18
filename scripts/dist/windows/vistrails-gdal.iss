@@ -40,8 +40,13 @@
 [Setup]
 AppName=VisTrails
 AppVerName=VisTrails 2.1.3
-OutputBaseFilename=vistrails-setup
+OutputBaseFilename=vistrails-gdal-setup
 DefaultGroupName=VisTrails
 
 #include "common1.iss"
+
+;;;; --- GDAL Files ----;;;;
+Source: C:\Users\vistrails\code\extra_packages\gdal\x86\site-packages\*; DestDir: {app}\Python27\Lib\site-packages; Flags: recursesubdirs
+
 #include "common2.iss"
+

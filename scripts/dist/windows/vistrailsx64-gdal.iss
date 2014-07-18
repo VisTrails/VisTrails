@@ -34,14 +34,19 @@
 ;###############################################################################
 
 #define root "../../.."
-#define python "Python27"
-#define bits "x86"
+#define python "Python27_64"
+#define bits "x64"
 
 [Setup]
-AppName=VisTrails
-AppVerName=VisTrails 2.1.3
-OutputBaseFilename=vistrails-setup
-DefaultGroupName=VisTrails
+AppName=VisTrails x64
+AppVerName=VisTrails x64 2.1.3
+OutputBaseFilename=vistrails-x64-gdal-setup
+DefaultGroupName=VisTrails x64
 
 #include "common1.iss"
+
+;;;; --- GDAL Files ----;;;;
+Source: C:\Users\vistrails\code\extra_packages\gdal\x64\site-packages\*; DestDir: {app}\Python27_64\Lib\site-packages; Flags: recursesubdirs
+
 #include "common2.iss"
+
