@@ -44,6 +44,7 @@ from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
 from vistrails.gui.requirements import qt_available
 import imp
+import os
 import subprocess
 import sys
 
@@ -69,7 +70,7 @@ def shell_escape(arg):
     return '"%s"' % arg.replace('\\', '\\\\').replace('"', '\\"')
 
 
-def run_install_command_as_root(graphical, cmd, args):
+def run_install_command(graphical, cmd, args, as_root=True):
     if isinstance(args, str):
         cmd += ' %s' % shell_escape(args)
     elif isinstance(args, list):
@@ -80,27 +81,29 @@ def run_install_command_as_root(graphical, cmd, args):
     else:
         raise TypeError("Expected string or list of strings")
 
-    if graphical:
-        sucmd, escape = guess_graphical_sudo()
-    else:
-        debug.warning("VisTrails wants to install package(s) %r" %
-                      args)
-        if get_executable_path('sudo'):
-            sucmd, escape = "sudo %s", False
-        elif systemType not in ['Darwin', 'Windows']:
-            sucmd, escape = "su -c %s", True
+    debug.warning("VisTrails wants to install package(s) %r" %
+                  args)
+
+    if as_root and systemType != 'Windows':
+        if graphical:
+            sucmd, escape = guess_graphical_sudo()
         else:
-            sucmd, escape = '%s', False
+            if get_executable_path('sudo'):
+                sucmd, escape = "sudo %s", False
+            elif systemType != 'Darwin':
+                sucmd, escape = "su -c %s", True
+            else:
+                sucmd, escape = '%s', False
 
-    if escape:
-        sucmd = sucmd % shell_escape(cmd)
-    else:
-        sucmd = sucmd % cmd
+        if escape:
+            cmd = sucmd % shell_escape(cmd)
+        else:
+            cmd = sucmd % cmd
 
-    print "about to run: %s" % sucmd
-    p = subprocess.Popen(sucmd, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT,
-                                shell=True)
+    print "about to run: %s" % cmd
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT,
+                              shell=True)
     lines = []
     try:
         for line in iter(p.stdout.readline, ''):
@@ -133,7 +136,7 @@ def linux_debian_install(package_name):
                                  if executable_is_in_path('aptitude')
                                  else 'apt-get')
 
-    return run_install_command_as_root(qt, cmd, package_name)
+    return run_install_command(qt, cmd, package_name)
 
 linux_ubuntu_install = linux_debian_install
 
@@ -148,7 +151,7 @@ def linux_fedora_install(package_name):
     else:
         cmd = 'yum -y install'
 
-    return run_install_command_as_root(qt, cmd, package_name)
+    return run_install_command(qt, cmd, package_name)
 
 
 def pip_install(package_name):
@@ -158,7 +161,19 @@ def pip_install(package_name):
         cmd = '%s install' % shell_escape(get_executable_path('pip'))
     else:
         cmd = shell_escape(sys.executable) + ' -m pip install'
-    return run_install_command_as_root(qt_available(), cmd, package_name)
+
+    if systemType != 'Windows':
+        use_root = True
+        try:
+            from distutils.sysconfig import get_python_lib
+            f = get_python_lib()
+        except Exception:
+            f = sys.executable
+        use_root = os.stat(f).st_uid == 0
+    else:
+        use_root = False
+
+    return run_install_command(qt_available(), cmd, package_name, use_root)
 
 def show_question(which_files, has_distro_pkg, has_pip):
     if isinstance(which_files, str):
