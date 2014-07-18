@@ -52,8 +52,8 @@ plist = dict(
     CFBundleIdentifier='org.vistrails',
 )
 
-sys.path.append('../..')
-APP = ['../../vistrails/run.py']
+sys.path.append('../../..')
+APP = ['../../../vistrails/run.py']
 #comma-separated list of additional data files and
 #folders to include (not for code!)
 #DATA_FILES = ['/usr/local/graphviz-2.12/bin/dot',]
@@ -64,10 +64,14 @@ OPTIONS = {'argv_emulation': True,
                         multifile,shelve,uuid,sine,st,Numeric,pexpect,\
                         sqlite3,suds,shapelib,dbflib,\
                         mpl_toolkits.mplot3d,_mysql_exceptions,readline,\
-                        HTMLParser',
+                        HTMLParser,sqlalchemy,sqlalchemy.dialects.sqlite,\
+                        sqlalchemy.dialects.mysql,sqlalchemy.dialects.postgresql,\
+                        sqlalchemy.dialects.firebird,sqlalchemy.dialects.mssql,\
+                        sqlalchemy.dialects.oracle,sqlalchemy.dialects.sybase,\
+                        sqlalchemy.dialects.drizzle,certifi,backports.ssl_match_hostname',
            'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,scipy,\
                         api,twisted,Scientific,distutils,h5py,batchq,osgeo,\
-                        nose,IPython,zmq,pygments,pyth,psycopg2',
+                        nose,IPython,zmq,pygments,pyth,psycopg2,remoteq',
            'excludes': 'mpl_toolkits.basemap,PyQt4.uic,PyQt4.uic.Compiler,\
                         PyQt4.uic.Loader,PyQt4.uic.port_v2,PyQt4.uic.port_v3',
            'plist': plist,
