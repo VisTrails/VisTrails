@@ -165,7 +165,8 @@ class OutputModule(NotCacheable, Module):
     _input_ports = [IPort('value', "Variant"),
                     IPort('mode_type', "String"),
                     IPort('configuration', "Dictionary")]
-    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget",
+                               abstract=True)
 
     # configuration is a dictionary of dictionaries where root-level
     # keys are mode_types and the inner dictionaries are
