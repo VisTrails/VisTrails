@@ -1005,6 +1005,7 @@ class TestStartup(unittest.TestCase):
             with self.assertRaises(IOError):
                 startup = VistrailsStartup(config, None)
         finally:
+            self.close_logger()
             os.chmod(dir_name, stat.S_IRWXU)
             shutil.rmtree(dir_name)
             
