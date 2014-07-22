@@ -315,6 +315,7 @@ class vtkRendererToFile(ImageFileMode):
 
 class vtkRendererOutput(OutputModule):
     # DAK: no render view here, use a separate module for this...
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'vtkRenderer')]
                     # DK: these ports can be enabled, I think, just
                     # have to be laoded without the spreadsheet being
@@ -323,4 +324,3 @@ class vtkRendererOutput(OutputModule):
                     # ('interactorStyle', 'vtkInteractorStyle'), 
                     # ('picker', 'vtkAbstractPicker')]
     _output_modes = [vtkRendererToFile]
-    _settings = OutputModule._settings

@@ -40,6 +40,7 @@ import urllib
 from matplotlib.backend_bases import FigureCanvasBase
 
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
+from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.output_modules import ImageFileMode, \
     ImageFileModeConfig, OutputModule
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
@@ -168,6 +169,7 @@ class MplFigureToFile(ImageFileMode):
         canvas.draw()
 
 class MplFigureOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'MplFigure')]
     _output_modes = [MplFigureToFile]
 
