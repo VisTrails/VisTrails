@@ -35,11 +35,13 @@
 """ This common widgets using on the interface of VisTrails. These are
 only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
+import os
+
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot, pyqtSignal
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
-from vistrails.core.system import systemType
+from vistrails.core.system import systemType, set_vistrails_data_directory
 ################################################################################
 
 class QToolWindow(QtGui.QDockWidget):
@@ -896,7 +898,7 @@ class QPathChooserToolButton(QtGui.QToolButton):
         if path:
             absPath = os.path.abspath(str(QtCore.QFile.encodeName(path)))
             dirName = os.path.dirname(absPath)
-            system.set_vistrails_data_directory(dirName)
+            set_vistrails_data_directory(dirName)
             return absPath
         return path
 
