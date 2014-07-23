@@ -165,8 +165,7 @@ class OutputModule(NotCacheable, Module):
     _input_ports = [IPort('value', "Variant"),
                     IPort('mode_type', "String"),
                     IPort('configuration', "Dictionary")]
-    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget",
-                               abstract=True)
+    _settings = ModuleSettings(abstract=True)
 
     # configuration is a dictionary of dictionaries where root-level
     # keys are mode_types and the inner dictionaries are
@@ -491,9 +490,11 @@ class GenericToFileMode(FileMode):
             print >>f, value
 
 class GenericOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _output_modes = [GenericToStdoutMode, GenericToFileMode]
 
 class FileOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     # should set file as a higher priority here...
     _input_ports = [('value', 'File')]
     _output_modes = [FileToStdoutMode, FileToFileMode]
@@ -508,6 +509,7 @@ class ImageFileMode(FileMode):
     mode_type = "imageFile"
 
 class RichTextOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     # need specific spreadsheet richtext mode here
     pass
 

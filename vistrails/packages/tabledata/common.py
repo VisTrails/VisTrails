@@ -317,6 +317,7 @@ class TableToFileMode(FileMode):
             fp.write(self.write_html(value))
 
 class TableOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'Table')]
     _output_modes = [TableToFileMode]
 
