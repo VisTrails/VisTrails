@@ -1037,6 +1037,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         else:
             self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable |
                           QtGui.QGraphicsItem.ItemIsMovable)
+        self.setAcceptHoverEvents(True)
         self.setZValue(0)
         self.labelFont = CurrentTheme.MODULE_FONT
         self.labelFontMetric = CurrentTheme.MODULE_FONT_METRIC
@@ -1069,6 +1070,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.progressBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
         self.connectionItems = {}
         self._cur_function_names = set()
+        self.function_overview = 'No functions set'
         self.handlePositionChanges = True
 
     def moduleHasChanged(self, core_module):
@@ -1165,6 +1167,24 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 if item is not None:
                     item.connect()
         
+        if core_module.functions:
+            function_overview = []
+            for f in core_module.functions:
+                if len(f.params)>1:
+                    params = ', '.join([p.strValue for p in f.params])
+                elif len(f.params)>0:
+                    params = f.params[0].strValue
+                else:
+                    params = ''
+                if len(params)>100:
+                    params = params[:97] + '...'
+                function_template = "<b>%s(</b>%s<b>)</b>"
+                function_overview.append(function_template % (f.name, params))
+                template = '<html>%s</html>'
+            self.function_overview = template % '<br/>'.join(function_overview)
+        else:
+            self.function_overview = 'No functions set'
+
         self.module = core_module
 
     def setProgress(self, progress):
@@ -1761,6 +1781,13 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         super(QGraphicsModuleItem, self).mouseReleaseEvent(event)
         if not self.controller.changed and self.controller.has_move_actions():
             self.controller.set_changed(True)
+
+    def hoverEnterEvent(self, event):
+        if QtGui.QApplication.keyboardModifiers() == QtCore.Qt.ControlModifier:
+            QtGui.QToolTip.hideText()
+            QtGui.QToolTip.showText(event.screenPos(), self.function_overview)
+            self.setToolTip(self.function_overview)
+        return QtGui.QGraphicsItem.hoverEnterEvent(self, event)
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: value) -> value
