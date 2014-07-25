@@ -45,8 +45,8 @@ from datetime import datetime
 import inspect
 import os
 
-from vistrails.db.versions.v1_0_4 import version as my_version
-from vistrails.db.versions.v1_0_4.domain import DBVistrail, \
+from vistrails.db.versions.v1_0_5 import version as my_version
+from vistrails.db.versions.v1_0_5.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, DBAbstraction, DBMashuptrail, DBAnnotation
 
 import alchemy

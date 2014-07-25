@@ -42,14 +42,14 @@ if __name__ == '__main__':
 
 from itertools import izip
 
-from vistrails.db.versions.v1_0_4.persistence.xml.auto_gen import XMLDAOListBase
-from vistrails.db.versions.v1_0_4.persistence.sql.auto_gen import SQLDAOListBase
-from vistrails.db.versions.v1_0_4.persistence.sql import alchemy
+from vistrails.db.versions.v1_0_5.persistence.xml.auto_gen import XMLDAOListBase
+from vistrails.db.versions.v1_0_5.persistence.sql.auto_gen import SQLDAOListBase
+from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
 
 from vistrails.core.system import get_elementtree_library
 from vistrails.db import VistrailsDBException
-from vistrails.db.versions.v1_0_4 import version as my_version
-from vistrails.db.versions.v1_0_4.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
+from vistrails.db.versions.v1_0_5 import version as my_version
+from vistrails.db.versions.v1_0_5.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
     DBRegistry, DBMashuptrail
 
 root_set = set([DBVistrail.vtType, DBWorkflow.vtType, 
@@ -373,7 +373,7 @@ class TestPersistence(unittest.TestCase):
 
     def run_sql_save_vistrail(self, test_db):
         from vistrails.db.domain import DBVistrail
-        from vistrails.db.versions.v1_0_4.persistence.sql.sql_dao import SQLDAO
+        from vistrails.db.versions.v1_0_5.persistence.sql.sql_dao import SQLDAO
         import sqlalchemy
         dao_list = DAOList()
 

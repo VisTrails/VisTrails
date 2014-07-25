@@ -39,7 +39,7 @@ from vistrails.core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 
 from xml_dao import XMLDAO
-from vistrails.db.versions.v1_0_4.domain import *
+from vistrails.db.versions.v1_0_5.domain import *
 
 class DBOpmProcessIdEffectXMLDAOBase(XMLDAO):
 

@@ -36,7 +36,7 @@
 """generated automatically by auto_dao.py"""
 
 from sql_dao import SQLDAO
-from vistrails.db.versions.v1_0_4.domain import *
+from vistrails.db.versions.v1_0_5.domain import *
 
 class DBVistrailVariableSQLDAOBase(SQLDAO):
 
