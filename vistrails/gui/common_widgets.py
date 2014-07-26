@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,11 +35,13 @@
 """ This common widgets using on the interface of VisTrails. These are
 only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
+import os
+
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot, pyqtSignal
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
-from vistrails.core.system import systemType
+from vistrails.core.system import systemType, set_vistrails_data_directory
 ################################################################################
 
 class QToolWindow(QtGui.QDockWidget):
@@ -89,6 +91,10 @@ class QToolWindow(QtGui.QDockWidget):
         self.mwindow.addToolBar(self.toolbar)
                    
     def setDefaultPinStatus(self, topLevel):
+        # Fixes QTBUG-30276
+        if self.acceptDrops():
+            self.setAcceptDrops(False)
+            self.setAcceptDrops(True)
         if topLevel:
             self.setPinStatus(False)
             self.pinButton.setEnabled(False)
@@ -147,7 +153,7 @@ class QToolWindowInterface(object):
         
         """
         if not hasattr(self, '_toolWindow'):
-            self._toolWindow = QToolWindow(self, self.parent())
+            self._toolWindow = QToolWindow(self, self.parent and self.parent())
         elif self._toolWindow.centralwidget!=self:
             self._toolWindow.window.setCentralWidget(self)
         return self._toolWindow
@@ -831,3 +837,114 @@ class QDockPushButton(QtGui.QPushButton):
         QtGui.QPushButton.__init__(self, text, parent) 
         if systemType in ['Darwin']:
             self.setMinimumHeight(32)
+
+class QPathChooserToolButton(QtGui.QToolButton):
+    """
+    QPathChooserToolButton is a toolbar button that opens a browser for
+    paths.  The lineEdit is updated with the pathname that is selected.
+    
+    emits pathChanged when the path is changed
+
+    """
+    pathChanged = pyqtSignal()
+
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        """
+        PathChooserToolButton(parent: QWidget, 
+                              lineEdit: StandardConstantWidget) ->
+                 PathChooserToolButton
+
+        """
+        QtGui.QToolButton.__init__(self, parent)
+        self.setIcon(QtGui.QIcon(
+                self.style().standardPixmap(QtGui.QStyle.SP_DirOpenIcon)))
+        self.setIconSize(QtCore.QSize(12,12))
+        if toolTip is None:
+            toolTip = 'Open a path chooser'
+        self.defaultPath = defaultPath
+        self.setToolTip(toolTip)
+        self.setAutoRaise(True)
+        self.lineEdit = lineEdit
+        self.connect(self,
+                     QtCore.SIGNAL('clicked()'),
+                     self.runDialog)
+
+    def setPath(self, path):
+        """
+        setPath() -> None
+
+        """
+        if self.lineEdit and path:
+            self.lineEdit.setText(path)
+            self.pathChanged.emit()
+    
+    def getDefaultText(self):
+        return self.lineEdit.text() or self.defaultPath
+
+    def openChooser(self):
+        path = QtGui.QFileDialog.getOpenFileName(self,
+                                                 'Select Path...',
+                                                 self.getDefaultText(),
+                                                 'All files '
+                                                 '(*.*)')
+        return self.setDataDirectory(path)
+
+    def runDialog(self):
+        path = self.openChooser()
+        self.setPath(path)
+
+    def setDataDirectory(self, path):
+        if path:
+            absPath = os.path.abspath(str(QtCore.QFile.encodeName(path)))
+            dirName = os.path.dirname(absPath)
+            set_vistrails_data_directory(dirName)
+            return absPath
+        return path
+
+class QFileChooserToolButton(QPathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        if toolTip is None:
+            toolTip = "Open a file chooser dialog"
+        QPathChooserToolButton.__init__(self, parent, lineEdit, toolTip,
+                                        defaultPath)
+
+    def openChooser(self):
+        path = QtGui.QFileDialog.getOpenFileName(self,
+                                                 'Select File...',
+                                                 self.getDefaultText(),
+                                                 'All files '
+                                                 '(*.*)')
+        return self.setDataDirectory(path)
+
+class QDirectoryChooserToolButton(QPathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        if toolTip is None:
+            toolTip = "Open a directory chooser dialog"
+        QPathChooserToolButton.__init__(self, parent, lineEdit, toolTip,
+                                       defaultPath)
+
+    def openChooser(self):
+        path = QtGui.QFileDialog.getExistingDirectory(self,
+                                                      'Select Directory...',
+                                                      self.getDefaultText())
+        return self.setDataDirectory(path)
+
+class QOutputPathChooserToolButton(QPathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        if toolTip is None:
+            toolTip = "Open a path chooser dialog"
+        QPathChooserToolButton.__init__(self, parent, lineEdit, toolTip,
+                                       defaultPath)
+    
+    def openChooser(self):
+        path = QtGui.QFileDialog.getSaveFileName(self,
+                                                 'Select Output Location...',
+                                                 self.getDefaultText(),
+                                                 'All files (*.*)')
+        return self.setDataDirectory(path)
+    
+    

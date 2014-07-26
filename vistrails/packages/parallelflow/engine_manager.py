@@ -348,6 +348,7 @@ class EngineManager(object):
                 for fqdn, info in engine_tree.iteritems():
                     node = QtGui.QTreeWidgetItem([fqdn])
                     tree.addTopLevelItem(node)
+                    tree.setFirstItemColumnSpanned(node, True)
                     for ip_id, pid, system in info:
                         node.addChild(QtGui.QTreeWidgetItem([
                                 str(ip_id),
@@ -355,6 +356,7 @@ class EngineManager(object):
                                 system]))
                 for i in xrange(tree.columnCount()):
                     tree.resizeColumnToContents(i)
+                tree.expandAll()
                 layout.addWidget(tree)
 
             ok = QtGui.QPushButton("Ok")

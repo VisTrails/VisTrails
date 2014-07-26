@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,7 +41,7 @@ from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.module_registry import get_module_registry, \
-    ModuleRegistryException, MissingModuleVersion, PortMismatch
+    ModuleRegistryException, MissingModuleVersion, MissingPackage, PortMismatch
 from vistrails.core.system import get_vistrails_default_pkg_prefix, \
     get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
@@ -51,6 +51,7 @@ from vistrails.core.vistrail.abstraction import Abstraction
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.plugin_data import PluginData
@@ -58,7 +59,7 @@ from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
 import vistrails.core.vistrail.action
-from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
+from vistrails.core.utils import profile, InvalidPipeline
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
@@ -102,6 +103,21 @@ class MissingVistrailVariable(Exception):
             return "%s|%s" % (self._namespace, self._name)
         return self._name
     _module_name = property(_get_module_name)
+
+class MissingFunction(Exception):
+    def __init__(self, name, module_name, module_id=None):
+        self.name = name
+        self.module_name = module_name
+        self.module_id = module_id
+
+    def __str__(self):
+        return ("Missing Function '%s' on module '%s'%s" % 
+                (self.name, self.module_name, " (id %d)" % self.module_id if
+                 self.module_id is not None else ""))
+
+class CycleInPipeline(Exception):
+    def __str__(self):
+        return "Pipeline contains a cycle"
 
 class Pipeline(DBWorkflow):
     """ A Pipeline is a set of modules and connections between them. """
@@ -803,15 +819,21 @@ class Pipeline(DBWorkflow):
 
     # Subpipelines
 
-    def subpipeline_signature(self, module_id):
+    def subpipeline_signature(self, module_id, visited_ids=None):
         """subpipeline_signature(module_id): string
         Returns the signature for the subpipeline whose sink id is module_id."""
+        if visited_ids is None:
+            visited_ids = set([module_id])
+        elif module_id in visited_ids:
+            raise CycleInPipeline()
         try:
             return self._subpipeline_signatures[module_id]
         except KeyError:
-            upstream_sigs = [(self.subpipeline_signature(m) +
+            upstream_sigs = [(self.subpipeline_signature(
+                                      m,
+                                      visited_ids | set([module_id])) +
                               Hasher.connection_signature(
-                                  self.connections[edge_id]))
+                                      self.connections[edge_id]))
                              for (m, edge_id) in
                              self.graph.edges_to(module_id)]
             module_sig = self.module_signature(module_id)
@@ -875,24 +897,15 @@ class Pipeline(DBWorkflow):
         elif isinstance(module_set, Graph):
             subgraph = module_set
         else:
-            raise Exception("Expected list of ints or graph")
+            raise TypeError("Expected list of ints or graph")
         result = Pipeline()
         for module_id in subgraph.iter_vertices():
             result.add_module(copy.copy(self.modules[module_id]))
         for (conn_from, conn_to, conn_id) in subgraph.iter_all_edges():
             result.add_connection(copy.copy(self.connections[conn_id]))
-                # I haven't finished this yet. -cscheid
-        raise Exception("Incomplete implementation!")
+                # TODO : I haven't finished this yet. -cscheid
+        raise NotImplementedError
         return result
-
-    def dump_actions(self):
-        """dump_actions() -> [Action].
-
-        Returns a list of actions that can be used to create a copy of the
-        pipeline."""
-
-        # FIXME: Remove this call so we can find who calls it
-        raise Exception('broken')
 
     ##########################################################################
     # Registry-related
@@ -926,7 +939,7 @@ class Pipeline(DBWorkflow):
                         desc = module.module_descriptor
                         if long(module.internal_version) != long(desc.version):
                             exceptions.add(MissingModuleVersion(desc.package, desc.name, desc.namespace, desc.version, desc.package_version, module.id))
-                    except:
+                    except Exception:
                         pass
         try:
             self.ensure_port_specs()
@@ -953,6 +966,8 @@ class Pipeline(DBWorkflow):
             else:
                 self.is_valid = False
                 return False
+
+        self.mark_list_depth()
 
         self.is_valid = True
         return True
@@ -1063,7 +1078,12 @@ class Pipeline(DBWorkflow):
         for module in self.modules.itervalues():
             for function in module.functions:
                 is_valid = True
-                # FIXME also check for the corresponding spec for a function?
+                if module.is_valid and not module.has_port_spec(function.name, 
+                                                                'input'):
+                    is_valid = False
+                    e = MissingFunction(function.name, module.name, module.id)
+                    e._module_id = module.id
+                    exceptions.add(e)
                 pos_map = {}
                 for p in function.parameters:
                     if p.identifier == '':
@@ -1125,14 +1145,16 @@ class Pipeline(DBWorkflow):
             try:
                 for port_spec in module.port_specs.itervalues():
                     try:
-                        # port_spec.create_entries_and_descriptors()
                         port_spec.descriptors()
+                    except MissingPackage, e:
+                        port_spec.is_valid = False
+                        e._module_id = module.id
+                        exceptions.add(e)
                     except ModuleRegistryException, e:
                         e = PortMismatch(module.package, module.name,
                                          module.namespace, port_spec.name,
                                          port_spec.type, port_spec.sigstring)
                         port_spec.is_valid = False
-                        is_valid = False
                         e._module_id = module.id
                         exceptions.add(e)
             except ModuleRegistryException, e:
@@ -1147,7 +1169,59 @@ class Pipeline(DBWorkflow):
         for module in self.modules.itervalues():
             if module.is_valid and module.is_abstraction():
                 module.check_latest_version()
-                
+
+    def mark_list_depth(self):
+        """mark_list_depth() -> list
+
+        Updates list_depth variable on each module according to list depth of
+        connecting port specs. This decides at what list depth the module
+        needs to be executed.
+        List ports have default depth 1
+        """
+        result = []
+        for module_id in self.graph.vertices_topological_sort():
+            module = self.get_module_by_id(module_id)
+            module.list_depth = 0
+            ports = []
+            for module_from_id, conn_id in self.graph.edges_to(module_id):
+                prev_depth = self.get_module_by_id(module_from_id).list_depth
+                conn = self.get_connection_by_id(conn_id)
+                source_depth = 0
+                from vistrails.core.modules.basic_modules import List, Variant
+                if conn.source.spec:
+                    source_depth = conn.source.spec.depth
+                    src_descs = conn.source.spec.descriptors()
+                    # Lists have depth 1 if dest has depth>1 or is a list
+                    if len(src_descs) == 1 and src_descs[0].module == List:
+                        source_depth += 1
+                dest_depth = 0
+                if conn.destination.spec:
+                    dest_depth = conn.destination.spec.depth
+                    dest_descs = conn.destination.spec.descriptors()
+                    # Lists have depth 1
+                    if len(dest_descs) == 1 and dest_descs[0].module == List:
+                        dest_depth += 1
+                    # special case: if src is List and dst is Variant
+                    # we should treat the Variant as having depth 0
+                    if len(src_descs)==1 and src_descs[0].module == List and \
+                       len(dest_descs)==1 and dest_descs[0].module == Variant:
+                        source_depth -= 1
+                    if len(src_descs)==1 and src_descs[0].module == Variant and \
+                       len(dest_descs)==1 and dest_descs[0].module == List:
+                        dest_depth -= 1
+                depth = prev_depth + source_depth - dest_depth
+                if depth > 0 and conn.destination.spec.name not in ports:
+                    ports.append(conn.destination.spec.name)
+                # if dest depth is greater the input will be wrapped in a
+                # list to match its depth
+                # if source depth is greater this module will be executed
+                # once for each input in the (possibly nested) list
+                module.list_depth = max(module.list_depth, depth)
+            result.append((module_id, module.list_depth))
+            module.iterated_ports = ports
+        return result
+
+
     ##########################################################################
     # Debugging
 
@@ -1250,6 +1324,13 @@ class Pipeline(DBWorkflow):
 
 
 class TestPipeline(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # make sure pythonCalc is loaded
+        from vistrails.core.packagemanager import get_package_manager
+        pm = get_package_manager()
+        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no branch
+            pm.late_enable_package('pythonCalc')
 
     def create_default_pipeline(self, id_scope=None):
         if id_scope is None:
@@ -1289,11 +1370,18 @@ class TestPipeline(unittest.TestCase):
                 param.strValue = '4.0'
                 f.params.append(param)
                 return f
+            def cp1():
+                f = ModuleControlParam()
+                f.id = id_scope.getNewId(ModuleControlParam.vtType)
+                f.name = 'cpname1'
+                f.value = 'cpvalue[]'
+                return f
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
             m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
             m.functions.append(f1())
+            m.control_parameters.append(cp1())
             return m
         
         def module2(p):

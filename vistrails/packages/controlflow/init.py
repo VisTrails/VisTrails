@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,14 +35,15 @@
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.basic_modules import Boolean, String, Variant, \
-    List, Not
+    List, Not, Integer, Float
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 
 from fold import Fold, FoldWithModule
 from utils import Map, Filter, Sum, And, Or
 from conditional import If, Default
-from products import ElementwiseProduct, Dot, Cross
+from products import ElementwiseProduct, Dot, Cross, CartesianProduct
 from order import ExecuteInOrder
+from looping import For, While
 
 
 #################################################################################
@@ -72,6 +73,12 @@ def initialize(*args,**keywords):
     registerControl(Or)
     registerControl(If)
     registerControl(Default)
+    registerControl(ExecuteInOrder)
+    registerControl(While)
+    registerControl(For)
+
+    reg.add_output_port(Or, 'Result', (Boolean, ""))
+    reg.add_output_port(And, 'Result', (Boolean, ""))
 
     reg.add_input_port(Fold, 'InputList', (List, ""))
     reg.add_output_port(Fold, 'Result', (Variant, ""))
@@ -79,6 +86,10 @@ def initialize(*args,**keywords):
     reg.add_input_port(FoldWithModule, 'FunctionPort', (Module, ""))
     reg.add_input_port(FoldWithModule, 'InputPort', (List, ""))
     reg.add_input_port(FoldWithModule, 'OutputPort', (String, ""))
+
+    reg.add_output_port(Map, 'Result', (List, ""))
+
+    reg.add_output_port(Filter, 'Result', (List, ""))
 
     reg.add_input_port(If, 'Condition', (Boolean, ""))
     reg.add_input_port(If, 'TruePort', (Module, ""))
@@ -95,7 +106,7 @@ def initialize(*args,**keywords):
     reg.add_input_port(ElementwiseProduct, 'List1', (List, ""))
     reg.add_input_port(ElementwiseProduct, 'List2', (List, ""))
     reg.add_input_port(ElementwiseProduct, 'NumericalProduct', (Boolean, ""),
-                       optional=True, defaults='[True]')
+                       optional=True, defaults="['True']")
     reg.add_output_port(ElementwiseProduct, 'Result', (List, ""))
 
     reg.add_module(Dot)
@@ -108,9 +119,39 @@ def initialize(*args,**keywords):
     reg.add_input_port(Cross, 'List2', (List, ""))
     reg.add_output_port(Cross, 'Result', (List, ""))
 
-    reg.add_module(ExecuteInOrder)
+    reg.add_module(CartesianProduct)
+    reg.add_input_port(CartesianProduct, 'List1', (List, ""))
+    reg.add_input_port(CartesianProduct, 'List2', (List, ""))
+    reg.add_input_port(CartesianProduct, 'CombineTuple', (Boolean, ""),
+                       optional=True, defaults="['True']")
+    reg.add_output_port(CartesianProduct, 'Result', (List, ""))
+
     reg.add_input_port(ExecuteInOrder, 'module1', (Module, ""))
     reg.add_input_port(ExecuteInOrder, 'module2', (Module, ""))
+
+    reg.add_input_port(While, 'FunctionPort', (Module, ""))
+    reg.add_input_port(While, 'OutputPort', (String, ""),
+                       optional=True, defaults="['self']")
+    reg.add_input_port(While, 'ConditionPort', (String, ""))
+    reg.add_input_port(While, 'StateInputPorts', (List, ""),
+                       optional=True)
+    reg.add_input_port(While, 'StateOutputPorts', (List, ""),
+                       optional=True)
+    reg.add_input_port(While, 'MaxIterations', (Integer, ""),
+                       optional=True, defaults="['20']")
+    reg.add_input_port(While, 'Delay', (Float, ""),
+                       optional=True)
+    reg.add_output_port(While, 'Result', (Variant, ""))
+
+    reg.add_input_port(For, 'FunctionPort', (Module, ""))
+    reg.add_input_port(For, 'InputPort', (String, ""),
+                       optional=True)
+    reg.add_input_port(For, 'OutputPort', (String, ""),
+                       optional=True, defaults="['self']")
+    reg.add_input_port(For, 'LowerBound', (Integer, ""),
+                       optional=True, defaults="['0']")
+    reg.add_input_port(For, 'HigherBound', (Integer, ""))
+    reg.add_output_port(For, 'Result', (List, ""))
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     reg = get_module_registry()
@@ -162,12 +203,16 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 }),
             ],
             'Cross': [
-                # I can't figure out what CombineTuple used to do
-                (None, '0.2.2', Cross, {
+                (None, '0.2.2', CartesianProduct, {
                     'dst_port_remap': {
                         'List_1': 'List1',
                         'List_2': 'List2',
                     },
+                }),
+            ],
+            'Map': [
+                (None, '0.2.4', None, {
+                    'src_port_remap': {'Result': 'Result'}
                 }),
             ],
         }

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,7 +34,6 @@
 ###############################################################################
 from vistrails.core.utils import \
      InstanceObject, \
-     lock_method, \
      enum, \
      trace_method_args, trace_method_args, bump_trace, report_stack, \
      memo_method, \

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -189,9 +189,9 @@ class Mashup(DBMashup):
                 alias.component.vtparent_id = new_pid
                 new_id = id_remap[(alias.component.vttype,alias.component.vtid)]
                 alias.component.vtid = new_id
-            except:
+            except Exception:
                 pass
-            
+
     def validateForPipeline(self, pipeline):
         """validateForPipeline(pipeline) -> None
         This will make sure that the parameters in the alias list are present
@@ -202,7 +202,7 @@ class Mashup(DBMashup):
             try:
                 param = pipeline.db_get_object(alias.component.vttype,
                                                alias.component.vtid)
-            except:
+            except Exception:
                 to_remove.append(alias)
         for a in to_remove:
             self.alias_list.remove(a)    
@@ -290,12 +290,12 @@ layout='%s' geometry='%s' alias_list='%s')@%X" %
 
 class TestMashup(unittest.TestCase):
     def create_mashup(self, id_scope=IdScope()):
-        c1 = Component(id=id_scope.getNewId('component'),
+        c1 = Component(id=id_scope.getNewId('mashup_component'),
                           vttype='parameter', param_id=15L, 
                           parent_vttype='function', parent_id=3L, mid=4L,
                           type='String', value='test', p_pos=0, pos=1, 
                           strvaluelist='test1,test2', widget="text")
-        a1 = Alias(id=id_scope.getNewId('alias'), name='alias1', component=c1)
+        a1 = Alias(id=id_scope.getNewId('mashup_alias'), name='alias1', component=c1)
         
         m = Mashup(id=id_scope.getNewId('mashup'), name='mashup1', vtid='empty.vt', 
                    version=15L, alias_list=[a1])

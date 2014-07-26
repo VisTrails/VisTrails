@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -229,7 +229,7 @@ class Connection(object):
         elif self.target_port == port:
             return self.source_port
         else:
-            raise Exception("oppositePort problem: no opposite port")
+            raise ValueError("oppositePort problem: no opposite port")
 
 
 

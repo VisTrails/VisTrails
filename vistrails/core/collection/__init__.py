@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -87,25 +87,33 @@ class Collection(object):
                 [cur.execute(s) for s in schema]
                 self.conn.commit()
             except Exception, e:
-                debug.critical("Could not create vistrail index schema",
-                               str(e))
+                debug.critical("Could not create vistrail index schema", e)
         else:
             self.conn = sqlite3.connect(self.database)
         self.load_entities()
 
     #Singleton technique
     _instance = None
-    class CollectionSingleton():
-        def __call__(self, *args, **kw):
-            if Collection._instance is None:
-                self.dotVistrails = vistrails.core.system.current_dot_vistrails()
 
-                path = os.path.join(self.dotVistrails, "index.db")
-                obj = Collection(path)
-                Collection._instance = obj
-            return Collection._instance
+    @staticmethod
+    def getInstance():
+        if Collection._instance is False:
+            debug.critical("Collection.getInstance() called but the "
+                           "Collection has been deleted!")
+            raise RuntimeError("Collection has been deleted!")
+        elif Collection._instance is None:
+            dotVistrails = vistrails.core.system.current_dot_vistrails()
 
-    getInstance = CollectionSingleton()
+            path = os.path.join(dotVistrails, "index.db")
+            obj = Collection(path)
+            Collection._instance = obj
+        return Collection._instance
+
+    @staticmethod
+    def clearInstance():
+        if Collection._instance:
+            Collection._instance.conn.close()
+        Collection._instance = False
 
     def add_listener(self, c):
         """ Add objects that listen to entity creation/removal
@@ -179,7 +187,7 @@ class Collection(object):
 
     def load_entity(self, *args):
         if args[1] in Collection.entity_types:
-            entity = Collection.entity_types[args[1]].load(*args)
+            entity = Collection.entity_types[args[1]].create(*args)
             return entity
         else:
             debug.critical("Cannot find entity type '%s'" % args[1])
@@ -294,8 +302,9 @@ class Collection(object):
         for row in rows:
             if row[0] in [1,]:
                 continue
-            kwargs = {'obj_type': 'vistrail', 'obj_id': row[0]}
-            locator = DBLocator(*[x[1] for x in config], **kwargs)
+            locator = DBLocator(config['host'], config['port'], config['db'],
+                                config['user'], config['passwd'],
+                                obj_type='vistrail', obj_id=row[0])
             (vistrail, abstractions, thumbnails, mashups) = load_vistrail(locator)
             vistrail.abstractions = abstractions
             vistrail.thumbnails = thumbnails

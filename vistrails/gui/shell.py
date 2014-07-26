@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -55,6 +55,7 @@ from vistrails.core.interpreter.default import get_default_interpreter
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.utils import create_port_spec_string
 import vistrails.core.system
+from vistrails.core.system import strftime
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.core.utils import all
@@ -86,23 +87,23 @@ class QShellDialog(QtGui.QWidget, QVistrailsPaletteInterface):
         Creates a menu bar and adds it to the main layout.
 
         """
-        self.newSessionAct = QtGui.QAction(self.tr("&Restart"),self)
-        self.newSessionAct.setShortcut(self.tr("Ctrl+R"))
+        self.newSessionAct = QtGui.QAction("&Restart",self)
+        self.newSessionAct.setShortcut("Ctrl+R")
         self.connect(self.newSessionAct, QtCore.SIGNAL("triggered()"),
                      self.newSession)
 
-        self.saveSessionAct = QtGui.QAction(self.tr("&Save"), self)
-        self.saveSessionAct.setShortcut(self.tr("Ctrl+S"))
+        self.saveSessionAct = QtGui.QAction("&Save", self)
+        self.saveSessionAct.setShortcut("Ctrl+S")
         self.connect(self.saveSessionAct, QtCore.SIGNAL("triggered()"),
                      self.saveSession)
 
-        self.closeSessionAct = QtGui.QAction(self.tr("Close"), self)
-        self.closeSessionAct.setShortcut(self.tr("Ctrl+W"))
+        self.closeSessionAct = QtGui.QAction("Close", self)
+        self.closeSessionAct.setShortcut("Ctrl+W")
         self.connect(self.closeSessionAct,QtCore.SIGNAL("triggered()"), 
                      self.closeSession)
         
         self.menuBar = QtGui.QMenuBar(self)
-        menu = self.menuBar.addMenu(self.tr("&Session"))
+        menu = self.menuBar.addMenu("&Session")
         menu.addAction(self.newSessionAct)
         menu.addAction(self.saveSessionAct)
         menu.addAction(self.closeSessionAct)
@@ -142,7 +143,7 @@ class QShellDialog(QtGui.QWidget, QVistrailsPaletteInterface):
         Opens a File Save dialog and passes the filename to shell's saveSession.
 
         """
-        default = 'visTrails' + '-' + time.strftime("%Y%m%d-%H%M.log")
+        default = 'visTrails' + '-' + strftime("%Y%m%d-%H%M.log")
         default = os.path.join(vistrails.core.system.vistrails_file_directory(),default)
         fileName = QtGui.QFileDialog.getSaveFileName(self,
                                                      "Save Session As..",
@@ -239,7 +240,7 @@ class vistrails_module(object):
                 port_spec = \
                     self._module.get_port_spec(port_spec.name, 'input')
             else:
-                raise Exception("cannot update an output port spec")
+                raise TypeError("cannot update an output port spec")
 
         # FIXME deal with kwargs
         num_ports = 0
@@ -297,7 +298,7 @@ class vistrails_module(object):
                             other_module.get_port_spec(port_spec.name, 
                                                         'output')
                     else:
-                        raise Exception("cannot update an input "
+                        raise TypeError("cannot update an input "
                                         "port spec")
                 else:
                     other_port_spec = other._port_spec
@@ -370,7 +371,7 @@ class QShell(QtGui.QTextEdit):
         conf = get_vistrails_configuration()
         shell_conf = conf.shell
         # font
-        font = QtGui.QFont(shell_conf.font_face, shell_conf.font_size)
+        font = QtGui.QFont(shell_conf.fontFace, shell_conf.fontSize)
         font.setFixedPitch(1)
         self.setFont(font)
         self.reset(locals)
@@ -833,8 +834,8 @@ class QShell(QtGui.QTextEdit):
 ################################################################################
 
 def getIPythonDialog():
-    from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-    from IPython.frontend.qt.inprocess import QtInProcessKernelManager
+    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+    from IPython.qt.inprocess import QtInProcessKernelManager
 #    from IPython.kernel.inprocess.ipkernel import InProcessKernel
 
     km = QtInProcessKernelManager()
@@ -854,6 +855,7 @@ def getIPythonDialog():
         VisTrails environment"""
         def __init__(self, parent=None):
             RichIPythonWidget.__init__(self, parent)
+            self.running_workflow = False
             self.kernel_manager = km
             self.kernel_client = kernel_client
             self.exit_requested.connect(stop)
@@ -871,6 +873,92 @@ def getIPythonDialog():
             # self.setTitleBarWidget(QtGui.QLabel(self.shell.windowTitle()))
             # self.monitorWindowTitle(self.shell)
             self.vistrails_interpreter = get_default_interpreter()
+
+        def visibility_changed(self, visible):
+            QVistrailsPaletteInterface.visibility_changed(self, visible)
+            if visible:
+                self.show()
+            else:
+                self.hide()
+
+        def hide(self):
+            """suspend() -> None
+            Called when hiding the parent window in order to recover the previous
+            state.
+    
+            """
+            #recovering the state
+            sys.stdout   = sys.__stdout__
+            sys.stderr   = sys.__stderr__
+            sys.stdin    = sys.__stdin__
+            RichIPythonWidget.hide(self)
+    
+        def show(self):
+            """show() -> None
+            Store previous state and starts capturing all interactive input and 
+            output.
+            
+            """
+            # capture all interactive input/output
+            sys.stdout   = self
+            sys.stderr   = self
+            sys.stdin    = self
+            RichIPythonWidget.show(self)
+
+        def showEvent(self, e):
+            """showEvent(e) -> None
+            Event handler called when the dialog acquires focus 
+    
+            """
+            self.show()
+
+        def flush(self):
+            """flush() -> None. 
+            Simulate stdin, stdout, and stderr.
+            
+            """
+            pass
+    
+        def isatty(self):
+            """isatty() -> int
+            Simulate stdin, stdout, and stderr.
+            
+            """
+            return 1
+    
+        def readline(self):
+            """readline() -> str
+            
+            Simulate stdin, stdout, and stderr.
+            
+            """
+            return ""
+        
+        def write(self, text):
+            """write(text: str) -> None
+            Simulate stdin, stdout, and stderr.
+            
+            """
+            self.input_buffer = ''
+            if not self.running_workflow:
+                self.running_workflow = True
+                # make text blue
+                self._append_plain_text("\n\x1b[34m<STANDARD OUTPUT>\x1b[0m\n", True)
+            self._append_plain_text(text, True)
+            self._prompt_pos = self._get_end_cursor().position()
+            self._control.ensureCursorVisible()
+            self._control.moveCursor(QtGui.QTextCursor.End)
+
+
+        def eventFilter(self, obj, event):
+            """ Reimplemented to ensure a console-like behavior in the underlying
+                text widgets.
+            """
+            etype = event.type()
+            if etype == QtCore.QEvent.KeyPress:
+                self.running_workflow = False
+            return RichIPythonWidget.eventFilter(self, obj, event)
+
     return IPythonDialog
 
 #install_attempted = False
@@ -884,13 +972,13 @@ def getIPythonDialog():
 #    print "installed!"
 #    QShellDialog = getIPythonDialog()
 
-# FIXME: For now this requires installing IPython from github
+# This is tested with IPython 1.0.0 and its beta versions
+# TODO: Once IPython 1.0 is included in the distro we should add auto-install
 try:
-    from IPython.frontend.qt.inprocess import QtInProcessKernelManager
+    from IPython.qt.inprocess import QtInProcessKernelManager
     try:
         QShellDialog = getIPythonDialog()
     except Exception, e:
         import traceback; traceback.print_exc()
-        print str(e)
-except:
+except Exception:
     pass

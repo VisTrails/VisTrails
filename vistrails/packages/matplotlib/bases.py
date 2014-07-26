@@ -32,91 +32,45 @@
 ##
 ###############################################################################
 
-import copy
-import time
+import matplotlib
+from matplotlib.backend_bases import FigureCanvasBase
+import pylab
 import urllib
 
-import vistrails.core.modules
-from vistrails.core.modules.basic_modules import CodeRunnerMixin
-import vistrails.core.modules.module_registry
-from vistrails.core import debug
-from vistrails.core.modules.basic_modules import File, String, Boolean
-from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
+from matplotlib.backend_bases import FigureCanvasBase
 
-from vistrails.core.bundles import py_import
-try:
-    mpl_dict = {'pip': 'matplotlib',
-                'linux-debian': 'python-matplotlib',
-                'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    matplotlib = py_import('matplotlib', mpl_dict)
-    matplotlib.use('Qt4Agg', warn=False)
-    pylab = py_import('pylab', mpl_dict)
-    import matplotlib.transforms as mtransforms
-except Exception, e:
-    debug.critical("Exception: %s" % e)
+from vistrails.core.modules.basic_modules import CodeRunnerMixin
+from vistrails.core.modules.config import ModuleSettings
+from vistrails.core.modules.output_modules import ImageFileMode, \
+    ImageFileModeConfig, OutputModule
+from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 
 ################################################################################
 
 class MplProperties(Module):
-    _output_ports = [("self", "(MplProperties)")]
-    
-    def update_props(self, objs):
-        # must implement in subclass
+    def compute(self, artist):
         pass
-        
+
+    class Artist(object):
+        def update_sub_props(self, objs):
+            # must implement in subclass
+            pass
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
-    # _input_ports = [("subfigRow", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("subfigCol", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]})]
-    _output_ports = [("self", "(MplPlot)")]
-
     def __init__(self):
         Module.__init__(self)
-        # self.figInstance = None
+        self.figInstance = None
 
-    # def set_fig(self, fig):
-    #     self.figInstance = fig
+    def set_figure(self, fig):
+        if self.figInstance is None:
+            self.figInstance = fig
+        else:
+            raise ModuleError(self,
+                              "matplotlib plots can only be in one figure")
 
-    # def get_fig(self):
-    #     if self.figInstance is None:
-    #         self.figInstance = pylab.figure()
-    #     return self.figInstance
-
-    # def get_translation(self, port, val):
-    #     '''doing translation for enum type of the input ports'''
-        
-    #     for klass in self.__class__.mro():
-    #         if '_mpl_translations' in klass.__dict__ and \
-    #                 port in klass._mpl_translations:
-    #             obj = klass._mpl_translations[port]
-    #             if isinstance(obj, dict):
-    #                 if val in obj:
-    #                     return obj[val]
-    #                 else:
-    #                     raise ArtistException(
-    #                         "Value '%s' for input '%s' invalid." % (val, port))
-    #             else:
-    #                 print "trying to call"
-    #                 return obj(val)
-    #     return None
-    
-    # def get_kwargs_except(self, listExcepts):
-    #     ''' getting all the input ports except those ports listed inside listExcepts
-    #         return format: {port_name:value,...}'''
-    #     kwargs = {}
-    #     for port in self.inputPorts:
-    #         if port not in listExcepts:
-    #             val = self.getInputFromPort(port)
-    #             translation = self.get_translation(port, val)
-    #             if translation is not None:
-    #                 kwargs[port] = translation
-    #             else:
-    #                 kwargs[port] = val
-    #     return kwargs
+    def compute(self):
+        matplotlib.pyplot.figure(self.figInstance.number)
 
 class MplSource(CodeRunnerMixin, MplPlot):
     """
@@ -129,176 +83,96 @@ class MplSource(CodeRunnerMixin, MplPlot):
     
     """
     _input_ports = [('source', '(basic:String)')]
+    _output_ports = [('value', '(MplSource)')]
 
     def compute(self):
         """ compute() -> None
         """
-        source = self.getInputFromPort('source')
-        s = ('from pylab import *\n' +
+        source = self.get_input('source')
+        s = ('from pylab import *\n'
              'from numpy import *\n' +
+             'figure(%d)\n' % self.figInstance.number +
              urllib.unquote(source))
 
         self.run_code(s, use_input=True, use_output=True)
+        self.set_output('value', None)
 
 class MplFigure(Module):
-    # _input_ports = [("addPlot", "(MplPlot)"),
-    #                 ("numSubfigRows", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ("numSubfigCols", "(edu.utah.sci.vistrails.basic:Integer)",
-    #                  {"defaults": ["1"]}),
-    #                 ]
     _input_ports = [("addPlot", "(MplPlot)"),
                     ("axesProperties", "(MplAxesProperties)"),
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
 
-    _output_ports = [("file", "(basic:File)"),
-                     ("self", "(MplFigure)")]
+    _output_ports = [("self", "(MplFigure)")]
 
     def __init__(self):
         Module.__init__(self)
         self.figInstance = None
 
-    def updateUpstream(self):
+    def update_upstream(self):
+        # Create a figure
         if self.figInstance is None:
             self.figInstance = pylab.figure()
         pylab.hold(True)
-        Module.updateUpstream(self)
+
+        # Set it on the plots
+        connectorList = self.inputPorts.get('addPlot', [])
+        connectorList.extend(self.inputPorts.get('setLegend', []))
+        for connector in connectorList:
+            connector.obj.set_figure(self.figInstance)
+
+        # Now we can run upstream modules
+        super(MplFigure, self).update_upstream()
 
     def compute(self):
-        plots = self.getInputListFromPort("addPlot")
-        # num_rows = self.getInputFromPort("numSubfigRows")
-        # if num_rows < 1:
-        #     raise ModuleError(self, "numSubfigRows must be at least 1.")
-        # num_cols = self.getInputFromPort("numSubfigCols")
-        # if num_cols < 1:
-        #     raise ModuleError(self, "numSubfigCols must be at least 1.")
-        # if len(plots) < 1:
-        #     raise ModuleError(self, "Must add at least one plot to figure.")
+        plots = self.get_input_list("addPlot")
 
-        # FIXME just take the fig instance from the first plot
-        # self.figInstance = plots[0].figInstance
-
-        if self.hasInputFromPort("figureProperties"):
-            figure_props = self.getInputFromPort("figureProperties")
+        if self.has_input("figureProperties"):
+            figure_props = self.get_input("figureProperties")
             figure_props.update_props(self.figInstance)
-        if self.hasInputFromPort("axesProperties"):
-            axes_props = self.getInputFromPort("axesProperties")
+        if self.has_input("axesProperties"):
+            axes_props = self.get_input("axesProperties")
             axes_props.update_props(self.figInstance.gca())
-        if self.hasInputFromPort("setLegend"):
-            legend = self.getInputFromPort("setLegend")
+        if self.has_input("setLegend"):
+            legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 
-        #FIXME write file out if File port is attached!
 
-        # if num_rows > 1 or num_cols > 1:
-        #     # need to reconstruct plot...
-        #     self.figInstance = pylab.figure()
-        # else:
-        #     self.figInstance = plots[0].figInstance
-
-        # for plot in plots:
-        #     p_axes = plot.get_fig().gca()
-        #     print "DPI:", plot.get_fig().dpi
-        #     for c in p_axes.collections:
-        #         print "TRANSFORM:", c._transform
-        #         print "DATALIM:", c.get_datalim(p_axes.transData)
-        #         print "PREPARE POINTS:", c._prepare_points()
-
-        # self.figInstance = pylab.figure()
-        # axes = self.figInstance.gca()
-        # x0 = None
-        # x1 = None
-        # y0 = None
-        # y1 = None
-        # dataLim = None
-        # for plot in plots:
-        #     p_axes = plot.get_fig().gca()
-        #     dataLim = p_axes.dataLim.frozen()
-        #     p_x0, p_x1 = p_axes.get_xlim()
-        #     if x0 is None or p_x0 < x0:
-        #         x0 = p_x0
-        #     if x1 is None or p_x1 > x1:
-        #         x1 = p_x1
-        #     p_y0, p_y1 = p_axes.get_ylim()
-        #     if y0 is None or p_y0 < y0:
-        #         y0 = p_y0
-        #     if y1 is None or p_y1 > y1:
-        #         y1 = p_y1
-
-        # print x0, x1, y0, y1
-        # axes.set_xlim(x0, x1, emit=False, auto=None)
-        # axes.set_ylim(y0, y1, emit=False, auto=None)
-
-        # # axes.dataLim = dataLim
-        # # axes.ignore_existing_data_limits = False
-        # # axes.autoscale_view()
-
-        # for plot in plots:
-        #     p_axes = plot.get_fig().gca()
-        #     # axes.lines.extend(p_axes.lines)
-        #     for line in p_axes.lines:
-        #         print "adding line!"
-        #         line = copy.copy(line)
-        #         line._transformSet = False
-        #         axes.add_line(line)
-        #     # axes.patches.extend(p_axes.patches)
-        #     for patch in p_axes.patches:
-        #         print "adding patch!"
-        #         patch = copy.copy(patch)
-        #         patch._transformSet = False
-        #         axes.add_patch(patch)
-        #     axes.texts.extend(p_axes.texts)
-        #     # axes.tables.extend(p_axes.tables)
-        #     for table in p_axes.tables:
-        #         table = copy.copy(table)
-        #         table._transformSet = False
-        #         axes.add_table(table)
-        #     # axes.artists.extend(p_axes.artists)
-        #     for artist in p_axes.artists:
-        #         artist = copy.copy(artist)
-        #         artist._transformSet = False
-        #         axes.add_artist(artist)
-        #     axes.images.extend(p_axes.images)
-        #     # axes.collections.extend(p_axes.collections)
-        #     for collection in p_axes.collections:
-        #         print "adding collection!"
-        #         # print "collection:", collection.__class__.__name__
-        #         # print "datalim:", p_axes.dataLim
-        #         # transOffset = axes.transData
-        #         collection = copy.copy(collection)
-        #         # collection._transformSet = False
-        #         # print dir(mtransforms)
-        #         collection.set_transform(mtransforms.IdentityTransform())
-        #         collection._transOffset = axes.transData
-        #         # collection._transformSet = False
-        #         collection._label = None
-        #         collection._clippath = None
-        #         axes.add_collection(collection)
-        #         # collection.set_transform(mtransforms.IdentityTransform())
-        #         # axes.collections.append(collection)
-        #     # axes.containers.extend(p_axes.containers)
-        # print "transFigure start:", self.figInstance.transFigure
-        # # axes.dataLim = dataLim
-        # # axes.ignore_existing_data_limits = False
-        # # print "datalim after:", axes.dataLim
-
-
-        # # print "DPI:", self.figInstance.dpi
-        # # for c in axes.collections:
-        # #     print "TRANSFORM:", c._transform
-        # #     print "DATALIM:", c.get_datalim(p_axes.transData)
-        # #     print "PREPARE POINTS:", c._prepare_points()
-
-
-        self.setResult("self", self)
+        self.set_output("self", self)
 
 class MplContourSet(Module):
     pass
 
 class MplQuadContourSet(MplContourSet):
     pass
+
+class MplFigureToFile(ImageFileMode):
+    config_cls = ImageFileModeConfig
+    formats = ['pdf', 'png', 'jpg']
+
+    def compute_output(self, output_module, configuration=None):
+        value = output_module.get_input('value')
+        w = configuration["width"]
+        h = configuration["height"]
+        img_format = self.get_format(configuration)
+        filename = self.get_filename(configuration, suffix='.%s' % img_format)
+
+        w_inches = w / 72.0
+        h_inches = h / 72.0
+        figure = value.figInstance
         
+        previous_size = tuple(figure.get_size_inches())
+        figure.set_size_inches(w_inches, h_inches)
+        canvas = FigureCanvasBase(figure)
+        canvas.print_figure(filename, dpi=72, format=img_format)
+        figure.set_size_inches(previous_size[0],previous_size[1])
+        canvas.draw()
+
+class MplFigureOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _input_ports = [('value', 'MplFigure')]
+    _output_modes = [MplFigureToFile]
+
 _modules = [(MplProperties, {'abstract': True}),
             (MplPlot, {'abstract': True}), 
             (MplSource, {'configureWidgetType': \
@@ -306,4 +180,6 @@ _modules = [(MplProperties, {'abstract': True}),
                               'MplSourceConfigurationWidget')}),
             MplFigure,
             MplContourSet,
-            MplQuadContourSet]
+            MplQuadContourSet,
+            MplFigureOutput]
+

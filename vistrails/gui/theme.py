@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -71,6 +71,9 @@ class DefaultTheme(DefaultCoreTheme):
         DefaultCoreTheme.__init__(self)
         ######################
         #### MEASUREMENTS ####
+
+        # pipeline view bounding rect
+        self.BOUNDING_RECT_MINIMUM = 512
 
         # Port shape
         self.PORT_RECT = QtCore.QRectF(0, 0, self.PORT_WIDTH, self.PORT_HEIGHT)
@@ -624,6 +627,15 @@ class DefaultTheme(DefaultCoreTheme):
                 vistrails.core.system.vistrails_root_directory() +
                 '/gui/resources/images/multiline_string_icon.png'))
 
+        # icons for the port list combination modes
+        self.DOT_PRODUCT_ICON = QtGui.QIcon(QtGui.QPixmap(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/macro.png'))
+
+        self.CROSS_PRODUCT_ICON = QtGui.QIcon(QtGui.QPixmap(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/remove_param.png'))
+
         #### COLORS ####
         # Color for the PIP frame
         self.PIP_FRAME_COLOR = QtGui.QColor(
@@ -640,11 +652,12 @@ class DefaultTheme(DefaultCoreTheme):
             *ColorByName.get_int('blue'))
         
         # colors for debug messages
-        #self.DEBUG_INFO_COLOR = QtGui.QColor(QtCore.Qt.darkGray)
-        #self.DEBUG_WARNING_COLOR = QtGui.QColor(QtCore.Qt.black)
-        self.DEBUG_INFO_COLOR = QtGui.QColor(QtCore.Qt.black)
-        self.DEBUG_WARNING_COLOR = QtGui.QColor("#707000")
-        self.DEBUG_CRITICAL_COLOR = QtGui.QColor(QtCore.Qt.red)
+        self.DEBUG_COLORS = {
+                'DEBUG': QtGui.QColor("#777777"),
+                'INFO': QtGui.QColor(QtCore.Qt.black),
+                'WARNING': QtGui.QColor("#707000"),
+                'CRITICAL': QtGui.QColor(QtCore.Qt.red),
+            }
         class QTransparentColor(QtGui.QColor):
             def name(self):
                 return 'transparent'

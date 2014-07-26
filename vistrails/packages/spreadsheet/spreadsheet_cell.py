@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,12 +41,15 @@
 from PyQt4 import QtCore, QtGui
 import datetime
 import os
-from vistrails.core import system, debug
+import tempfile
+from vistrails.core import debug
 import cell_rc
 import celltoolbar_rc
 import spreadsheet_controller
 import analogy_api
-from vistrails.core.configuration import get_vistrails_configuration
+from spreadsheet_config import configuration
+from vistrails.core.system import strftime
+from vistrails.core.modules.output_modules import FileMode
 
 ################################################################################
 
@@ -54,8 +57,10 @@ class QCellWidget(QtGui.QWidget):
     """
     QCellWidget is the base cell class. All types of spreadsheet cells
     should inherit from this.
-    
+
     """
+    save_formats = ["Images (*.png *.xpm *.jpg)",
+                    "Portable Document Format (*.pdf)"]
 
     def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
         """ QCellWidget(parent: QWidget) -> QCellWidget
@@ -75,10 +80,12 @@ class QCellWidget(QtGui.QWidget):
         # cell can be captured if it re-implements saveToPNG
         self._capturingEnabled = (not isinstance(self, QCellWidget) and
                                   hasattr(self, 'saveToPNG'))
+        self._output_module = None
+        self._output_configuration = None
         self.connect(self._playerTimer,
                      QtCore.SIGNAL('timeout()'),
                      self.playNextFrame)
-        if getattr(get_vistrails_configuration(),'fixedSpreadsheetCells',False):
+        if configuration.fixedCellSize:
             self.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
             self.setFixedSize(200, 180)
 
@@ -106,10 +113,10 @@ class QCellWidget(QtGui.QWidget):
         """
         # Generate filename
         current = datetime.datetime.now()
-        tmpDir = system.temporary_directory()
-        fn = (tmpDir + "hist_" +
-              current.strftime("%Y_%m_%d__%H_%M_%S") +
-              "_" + str(current.microsecond)+".png")
+        tmpDir = tempfile.gettempdir()
+        fn = ( "hist_" + strftime(current, "%Y_%m_%d__%H_%M_%S") +
+               "_" + str(current.microsecond)+".png")
+        fn = os.path.join(tmpDir, fn)
         if self.saveToPNG(fn):
             self._historyImages.append(fn)
 
@@ -220,8 +227,14 @@ class QCellWidget(QtGui.QWidget):
         """ dumpToFile(filename: str, dump_as_pdf: bool) -> None
         Dumps itself as an image to a file, calling grabWindowPixmap """
         pixmap = self.grabWindowPixmap()
-        pixmap.save(filename,"PNG")
-            
+        ext = os.path.splitext(filename)[1].lower()
+        if not ext:
+            pixmap.save(filename, 'PNG')
+        elif ext == '.pdf':
+            self.saveToPDF(filename)
+        else:
+            pixmap.save(filename)
+
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
 
@@ -240,6 +253,40 @@ class QCellWidget(QtGui.QWidget):
         painter.drawPixmap(0, 0, pixmap)
         painter.end()
         
+    def set_output_module(self, output_module, configuration=None):
+        self._output_module = output_module
+        self._output_configuration = configuration
+
+    def has_file_output_mode(self):
+        # from vistrails.core.modules.output_modules import FileMode
+        if self._output_module is None:
+            return False
+        for mode in self._output_module.get_sorted_mode_list():
+            if issubclass(mode, FileMode):
+                return True
+        return False
+
+    def get_file_output_modes(self):
+        modes = []
+        if self._output_module is not None:
+            for mode_cls in self._output_module.get_sorted_mode_list():
+                if issubclass(mode_cls, FileMode):
+                    modes.append(mode_cls)
+        return modes
+
+    def get_conf_file_format(self):
+        if (self._output_configuration is not None and 
+            'format' in self._output_configuration):
+            return self._output_configuration['format']
+        return None
+
+    def save_via_file_output(self, filename, mode_cls, save_format=None):
+        mode_config = self._output_module.get_mode_config(mode_cls)
+        mode_config['file'] = filename
+        if save_format is not None:
+            mode_config['format'] = save_format
+        mode = mode_cls()
+        mode.compute_output(self._output_module, mode_config)
         
 ################################################################################
 
@@ -263,6 +310,7 @@ class QCellToolBar(QtGui.QToolBar):
         self.layout().setMargin(0)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
+        self.addSaveCellAction()
         self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
         self.appendAction(QCellToolBarMergeCells(QtGui.QIcon(':celltoolbar/mergecells.png'), self))
         self.createToolBar()
@@ -275,8 +323,54 @@ class QCellToolBar(QtGui.QToolBar):
         self.appendAction(QCellToolBarPlayHistory(self))
         self.appendAction(QCellToolBarClearHistory(self))
 
+    def addSaveCellAction(self):
+        if not hasattr(self, 'saveActionVar'):
+            self.saveActionVar = QCellToolBarSelectedCell(
+                    QtGui.QIcon(":/images/camera.png"),
+                    "Save cell",
+                    self)
+            self.saveActionVar.setStatusTip("Export this cell only")
+
+            self.connect(self.saveActionVar, QtCore.SIGNAL('triggered(bool)'),
+                         self.exportCell)
+        self.appendAction(self.saveActionVar)
+
+    def exportCell(self, checked=False):
+        cell = self.sheet.getCell(self.row, self.col)
+        if cell.has_file_output_mode():
+            modes = cell.get_file_output_modes()
+            formats = []
+            format_map = {}
+            for mode in modes:
+                for m_format in mode.get_formats():
+                    if m_format not in format_map:
+                        formats.append(m_format)
+                        format_map[m_format] = mode
+            selected_filter = None
+            if cell.get_conf_file_format() is not None:
+                selected_filter = '(*.%s)' % cell.get_conf_file_format()
+            (filename, save_format) = \
+                    QtGui.QFileDialog.getSaveFileNameAndFilter(
+                        self, "Select a File to Export the Cell",
+                        ".", ';;'.join(['(*.%s)' % f for f in formats]), 
+                        selected_filter)
+            if filename:
+                save_mode = format_map[save_format[3:-1]]
+                cell.save_via_file_output(filename, save_mode)
+        else:
+            if not cell.save_formats:
+                QtGui.QMessageBox.information(
+                        self, "Export cell",
+                        "This cell type doesn't provide any export option")
+                return
+            filename = QtGui.QFileDialog.getSaveFileName(
+                self, "Select a File to Export the Cell",
+                ".", ';;'.join(cell.save_formats))
+            if filename:
+                cell.dumpToFile(filename)
+
     def createToolBar(self):
-        """ createToolBar() -> None        
+        """ createToolBar() -> None
         A user-defined method for customizing the toolbar. This is
         going to be an empty method here for inherited classes to
         override.
@@ -351,7 +445,19 @@ class QCellToolBar(QtGui.QToolBar):
         else:
             return None
 
-class QCellToolBarRemoveCell(QtGui.QAction):
+class QCellToolBarSelectedCell(QtGui.QAction):
+    """
+    QCellToolBarSelectedCell is an action only visible if the cell isn't empty.
+    """
+    def updateStatus(self, info):
+        """ updateStatus(info: tuple) -> None
+        Updates the status of the button based on the input info
+
+        """
+        (sheet, row, col, cellWidget) = info
+        self.setVisible(cellWidget != None)
+
+class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
     """
     QCellToolBarRemoveCell is the action to clear the current cell
 
@@ -360,12 +466,12 @@ class QCellToolBarRemoveCell(QtGui.QAction):
         """ QCellToolBarRemoveCell(icon: QIcon, parent: QWidget)
                                    -> QCellToolBarRemoveCell
         Setup the image, status tip, etc. of the action
-        
+
         """
-        QtGui.QAction.__init__(self,
-                               icon,
-                               "&Clear the current cell",
-                               parent)
+        QCellToolBarSelectedCell.__init__(self,
+                                          icon,
+                                          "&Clear the current cell",
+                                          parent)
         self.setStatusTip("Clear the current cell")
 
     def triggeredSlot(self, checked=False):
@@ -382,14 +488,6 @@ class QCellToolBarRemoveCell(QtGui.QAction):
         if (r==QtGui.QMessageBox.Yes):
             self.toolBar.sheet.deleteCell(self.toolBar.row, self.toolBar.col)
 
-    def updateStatus(self, info):
-        """ updateStatus(info: tuple) -> None
-        Updates the status of the button based on the input info
-        
-        """
-        (sheet, row, col, cellWidget) = info
-        self.setVisible(cellWidget!=None)
-        
 class QCellToolBarMergeCells(QtGui.QAction):
     """
     QCellToolBarMergeCells is the action to merge selected cells to a

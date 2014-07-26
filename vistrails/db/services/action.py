@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -136,7 +136,7 @@ def create_action(action_list):
       parent_type=None,
       parent_id=None,
     )
-    Example: create_action([('add', module1), ('delete', connection2)]
+    Example: create_action([('add', module1), ('delete', connection2)])
 
     """
     ops = []
@@ -160,7 +160,7 @@ def create_action(action_list):
                 ops.extend(create_change_op_chain(tuple[1], tuple[2]))
         else:
             msg = "unable to interpret action tuple " + tuple.__str__()
-            raise Exception(msg)
+            raise ValueError(msg)
     action = DBAction(id=-1,
                       operations=ops)
     return action

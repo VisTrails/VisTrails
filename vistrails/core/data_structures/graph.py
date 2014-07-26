@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -91,7 +91,7 @@ class Graph(object):
         """
         result = Graph()
         if vertex_map is None:
-            vertex_map = dict((v, v) for v in self.vertices)
+            vertex_map = dict((v, v) for v in graph.vertices)
         if edge_map is None:
             edge_map = {}
             for vfrom, lto in graph.adjacency_list.iteritems():
@@ -678,14 +678,15 @@ class Graph(object):
         """
         vs = self.vertices.keys()
         vs.sort()
-        al = []
-        for i in [map(lambda (t, i): (f, t, i), l)
-                  for (f, l) in self.adjacency_list.items()]:
-            al.extend(i)
-        al.sort(edge_cmp)
-        return "digraph G { " \
-               + ";".join([str(s) for s in vs]) + ";" \
-               + ";".join(["%s -> %s [label=\"%s\"]" % s for s in al]) + "}"
+        al = [(vfrom, vto, edgeid)
+              for vfrom, lto in self.adjacency_list.iteritems()
+              for vto, edgeid in lto]
+        al.sort()
+        return ("digraph G {\n"
+                + ";".join([str(s) for s in vs])
+                + ";\n"
+                + "\n".join(["%s -> %s [label=\"%s\"];" % s for s in al])
+                + "\n}")
 
     def __repr__(self):
         """ __repr__() -> str
@@ -721,53 +722,6 @@ class Graph(object):
 
     def __ne__(self, other):
         return not (self == other)
-
-    ##########################################################################
-    # Etc
-
-    @staticmethod
-    def from_random(size):
-        """ from_random(size:int) -> Graph
-        Create a DAG with approximately size/e vertices and 3*|vertex| edges
-        and return a Graph
-
-        Keyword arguments:
-        size -- the estimated size of the graph to generate
-
-        """
-        result = Graph()
-        verts = filter(lambda x: x>0, peckcheck.a_list(peckcheck.an_int)(size))
-        for v in verts:
-            result.add_vertex(v)
-        k = size / math.e
-        p = (6*k) / ((k+1)*(k+2))
-        eid = 0
-        for v in verts:
-            for k in verts:
-                if v < k and random.random() > p:
-                    result.add_edge(v, k, eid)
-                    eid = eid + 1
-        return result
-
-def edge_cmp(v1, v2):
-    """ edge_cmp(v1: id type, v2:id type) -> int
-    Defines how the comparison must be done between edges  and return a boolean
-
-    Keyword arguments:
-    v1 -- 'sequence' edge information
-    v2 -- 'sequence' other edge information
-    
-    """
-    (from1, to1, id1) = v1
-    (from2, to2, id2) = v2
-    c1 = cmp(from1, from2)
-    if c1:
-        return c1
-    c2 = cmp(to1, to2)
-    if c2:
-        return c2
-    else:
-        return cmp(id1, id2)
 
 ################################################################################
 # Unit testing
@@ -927,12 +881,8 @@ class TestGraph(unittest.TestCase):
          g.add_edge(0, 1)
          g.add_edge(1, 2)
          g.add_edge(2, 0)
-         try:
+         with self.assertRaises(Graph.GraphContainsCycles):
              g.dfs(raise_if_cyclic=True)
-         except Graph.GraphContainsCycles, e:
-             pass
-         else:
-             raise Exception("Should have thrown")
 
      def test_call_inverse(self):
          """Test if calling inverse methods work."""

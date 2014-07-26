@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -102,7 +102,7 @@ def getCurrentOperationDict(actions, currentOperations=None):
                     del currentOperations[t]
                 except KeyError:
                     msg = "Illegal delete operation: %d" % d['_db_id']
-                    raise Exception(msg)
+                    raise RuntimeError(msg)
             elif operationvtType == 'change':
                 what = d['_db_what']
                 objectId = d['_db_oldObjId']
@@ -111,12 +111,12 @@ def getCurrentOperationDict(actions, currentOperations=None):
                     del currentOperations[t]
                 except KeyError:
                     msg = "Illegal change operation: %d" % d['_db_id']
-                    raise Exception(msg)
+                    raise RuntimeError(msg)
                 currentOperations[(what,
                                    d['_db_newObjId'])] = operation
             else:
                 msg = "Unrecognized operation '%s'" % operation.vtType
-                raise Exception(msg)
+                raise TypeError(msg)
 
     return currentOperations
 

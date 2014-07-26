@@ -23,7 +23,7 @@ Notice that a pipeline can have multiple modules of the same type or name, makin
    :width: 2.5in
    :align: center
 
-   Numbered Modules - The HTTPFile modules 1 and 2 appear in the annotated pipeline and in the parameter aliases.  The annotated pipeline also, numbers the vtkDataSetReader modules (which appear below the respective HTTPFile modules in the pipeline).  Their parameters have not been exposed to the mashup, so they do not appear in the Parameter Aliases section.
+   Numbered Modules - The DownloadFile modules 1 and 2 appear in the annotated pipeline and in the parameter aliases.  The annotated pipeline also, numbers the vtkDataSetReader modules (which appear below the respective HTTPFile modules in the pipeline).  Their parameters have not been exposed to the mashup, so they do not appear in the Parameter Aliases section.
 
 Finally, not all modules in the ``Annotated Pipeline`` will show up in the ``Parameter Aliases`` section.  Only modules whose parameters have been set in the pipeline will appear.
 
@@ -65,7 +65,7 @@ A Simple Example
 ================
 .. topic:: Try it now!
 
-   * Open "brain_vistrail.vt"
+   * Open :vtl:`brain_vistrail.vt`
    * Choose ``Save As`` and rename the file if you do not want to overwrite the original.
    * Select the "counter 4" version
    * Press execute to ensure any necessary upgrades are made
@@ -79,8 +79,8 @@ A Simple Example
    * Set the ``Values List`` to [0.3, 0.5].  See figure :ref:`Configuring the Opacity Alias <fig-opacity>`.
    * Select the ``Background`` alias and make sure the display widget is a ``combobox``.
    * Select ``Preview``.  See figure :ref:`The resulting mashup <fig-mashupcomp>`.
-   * Select ``Keep``, ``No``, and then enter "one" as the new tag name.
-   * Save the file.
+   * Select ``Tag``, ``No``, and then enter "one" as the new tag name.
+   * Save the file. :vtl:`(Open result) <mashups1.vt>`
 
 .. _fig-opacityalias:
 

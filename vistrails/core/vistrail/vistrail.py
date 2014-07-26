@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -294,9 +294,9 @@ class Vistrail(DBVistrail):
             if self.has_upgrade(max_ver):
                 max_ver = long(self.get_upgrade(max_ver))
             return max_ver
-        except:
+        except Exception:
             return 0
-                   
+
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
         Return a pipeline object given a version number or a version name. 
@@ -456,6 +456,8 @@ class Vistrail(DBVistrail):
                     [v1 not v2 modules],
                     [v2 not v1 modules],
                     [parameter-changed modules (see-below)],
+                    [controlParameter-changed modules (see-below)],
+                    [annotation-changed modules (see-below)],
                     [shared connections (id in v1, id in v2) ...],
                     [shared connections [heuristic] (id in v1, id in v2)],
                     [c1 not in v2 connections],
@@ -463,6 +465,12 @@ class Vistrail(DBVistrail):
 
         parameter-changed modules = [((module id in v1, module id in v2),
                                       [(function in v1, function in v2)...]),
+                                      ...]
+        controlParameter-changed modules = [((module id in v1, module id in v2),
+                                             [(cparam in v1, cparam in v2)...]),
+                                             ...]
+        annotation-changed modules = [((module id in v1, module id in v2),
+                                      [(annotation in v1, annotation in v2)...]),
                                       ...]
         
         """
@@ -485,11 +493,20 @@ class Vistrail(DBVistrail):
                     [shared modules [heuristic match] (id in v1, id in v2)],
                     [v1 not v2 modules],
                     [v2 not v1 modules],
-                    [parameter-changed modules (see-below)])
+                    [parameter-changed modules (see-below)],
+                    [controlParameter-changed modules (see-below)],
+                    [annotation-changed modules (see-below)])
 
         parameter-changed modules = [((module id in v1, module id in v2),
                                       [(function in v1, function in v2)...]),
                                       ...]
+        controlParameter-changed modules = [((module id in v1, module id in v2),
+                                             [(cparam in v1, cparam in v2)...]),
+                                             ...]
+        annotation-changed modules = [((module id in v1, module id in v2),
+                                       [(annotation in v1, annotation in v2)...]),
+                                       ...]
+
         
         """
         return vistrails.core.db.io.get_workflow_diff((self, v1), (self, v2))
@@ -831,8 +848,9 @@ class Vistrail(DBVistrail):
     def get_upgrade(self, action_id, root_level=True):
         a = self.get_action_annotation(action_id, Vistrail.UPGRADE_ANNOTATION)
         if a is not None:
-            # Recurse to get the newest upgrade in case there are multiple chained upgrades
-            return self.get_upgrade(a.value, False)
+            # Recurse to get the newest upgrade in case there are
+            # multiple chained upgrades
+            return self.get_upgrade(long(a.value), False)
         if root_level:
             return None
         return action_id
@@ -888,8 +906,10 @@ class Vistrail(DBVistrail):
         Compute the description of a version
         
         """
-        description = ""
-        if version_number in self.actionMap:
+        description = "Other action"
+        if not version_number:
+            description = "" # Root node
+        elif version_number in self.actionMap:
             action = self.actionMap[version_number]
             # if a description has been manually set, return that value
             if action.description is not None:
@@ -900,15 +920,18 @@ class Vistrail(DBVistrail):
             added_parameters = 0
             added_connections = 0
             added_annotations = 0
+            added_control_parameters = 0
             added_ports = 0
             moved_modules = 0
             changed_parameters = 0
             changed_annotations = 0
+            changed_control_parameters = 0
             deleted_modules = 0
             deleted_connections = 0
             deleted_parameters = 0
             deleted_functions = 0
             deleted_annotations = 0
+            deleted_control_parameters = 0
             deleted_ports = 0
             for op in ops:
                 if op.vtType == 'add':
@@ -920,6 +943,8 @@ class Vistrail(DBVistrail):
                         added_functions+=1
                     elif op.what == 'parameter':
                         added_parameters+=1
+                    elif op.what == 'controlParameter':
+                        added_control_parameters+=1
                     elif op.what == 'annotation':
                         added_annotations+=1
                     elif op.what == 'portSpec':
@@ -931,6 +956,8 @@ class Vistrail(DBVistrail):
                         moved_modules+=1
                     elif op.what == 'annotation':
                         changed_annotations+=1
+                    elif op.what == 'controlParameter':
+                        changed_control_parameters+=1
                 elif op.vtType == 'delete':
                     if op.what == 'module':
                         deleted_modules+=1
@@ -942,10 +969,12 @@ class Vistrail(DBVistrail):
                         deleted_parameters+=1
                     elif op.what == 'annotation':
                         deleted_annotations+=1
-                    elif op.what == 'port':
+                    elif op.what == 'controlParameter':
+                        deleted_control_parameters+=1
+                    elif op.what == 'portSpec':
                         deleted_ports += 1
                 else:
-                    raise Exception("Unknown operation type '%s'" % op.vtType)
+                    raise TypeError("Unknown operation type '%s'" % op.vtType)
 
             if added_modules:
                 description = "Added module"
@@ -959,6 +988,10 @@ class Vistrail(DBVistrail):
                 description = "Added parameter"
                 if added_functions > 1 or added_parameters > 1:
                     description += "s"
+            elif added_control_parameters:
+                description = "Added control parameter"
+                if added_control_parameters > 1:
+                    description += "s"
             elif added_annotations:
                 description = "Added annotation"
                 if added_annotations > 1:
@@ -970,6 +1003,10 @@ class Vistrail(DBVistrail):
             elif changed_parameters:
                 description = "Changed parameter"
                 if changed_parameters > 1:
+                    description += "s"
+            elif changed_control_parameters:
+                description = "Changed control parameter"
+                if changed_control_parameters > 1:
                     description += "s"
             elif moved_modules:
                 description = "Moved module"
@@ -990,6 +1027,10 @@ class Vistrail(DBVistrail):
             elif deleted_parameters or deleted_functions:
                 description = "Deleted parameter"
                 if deleted_parameters > 1 or deleted_functions > 1:
+                    description += "s"
+            elif deleted_control_parameters:
+                description = "Deleted control parameter"
+                if deleted_control_parameters > 1:
                     description += "s"
             elif deleted_annotations:
                 description = "Deleted annotation"
@@ -1027,7 +1068,6 @@ class Vistrail(DBVistrail):
 
     def getDate(self):
         """ getDate() -> str - Returns the current date and time. """
-    #    return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
         return datetime.datetime.now()
     
     def getUser(self):
@@ -1102,36 +1142,6 @@ class Vistrail(DBVistrail):
     class InvalidAbstraction(Exception):
         pass
 
-    def create_abstraction(self,
-                           pipeline_version,
-                           subgraph,
-                           abstraction_name):
-        pipeline = self.getPipeline(pipeline_version)
-        current_graph = pipeline.graph
-        if not current_graph.topologically_contractible(subgraph):
-            msg = "Abstraction violates DAG constraints."
-            raise self.InvalidAbstraction(msg)
-        input_ports = current_graph.connections_to_subgraph(subgraph)
-        output_ports = current_graph.connections_from_subgraph(subgraph)
-
-        # Recreate pipeline from empty version
-        sub_pipeline = pipeline.get_subpipeline(subgraph)
-        actions = sub_pipeline.dump_actions()
-
-        for (frm, to, conn_id) in input_ports:
-            fresh_id = sub_pipeline.fresh_module_id()
-            m = Module()
-            m.id = fresh_id
-            m.location = copy.copy(pipeline.modules[frm].location)
-            m.name = "InputPort"
-            actions.append(m)
-
-            c = vistrails.core.vistrail.connection.Connection()
-            fresh_id = sub_pipeline.fresh_connection_id()
-            c.id = fresh_id
-
-        raise Exception("not finished")
-    
     def get_persisted_log(self):
         """
         Returns the log object for this vistrail if available
@@ -1153,8 +1163,8 @@ class Vistrail(DBVistrail):
                 try:
                     if isinstance(op, AddOp) and op.what == 'module':
                         package_list[op.data.package] = op.data.package
-                except:
-                    pass
+                except AttributeError, e:
+                    debug.unexpected_exception(e)
         return package_list
                     
 
@@ -1263,7 +1273,6 @@ class TestVistrail(unittest.TestCase):
         # FIXME add checks for equality
 
     def test1(self):
-        import vistrails.core.vistrail
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
@@ -1286,7 +1295,6 @@ class TestVistrail(unittest.TestCase):
             self.fail("vistrails tree is not single rooted.")
 
     def test2(self):
-        import vistrails.core.vistrail
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
@@ -1297,6 +1305,8 @@ class TestVistrail(unittest.TestCase):
         v3 = 22
         v.get_pipeline_diff(v1,v2)
         v.get_pipeline_diff(v1,v3)
+        v.get_pipeline_diff_with_connections(v1,v2)
+        v.get_pipeline_diff_with_connections(v1,v3)
 
     def test_empty_action_chain(self):
         """Tests calling action chain on empty version."""
@@ -1404,20 +1414,6 @@ class TestVistrail(unittest.TestCase):
 
         do_test('/tests/resources/dummy.xml', XMLFileLocator)
         do_test('/tests/resources/terminator.vt', FileLocator)
-
-#     def test_abstraction(self):
-#         import core.vistrail
-#         import core.xml_parser
-#         parser = core.xml_parser.XMLParser()
-#         parser.openVistrail(core.system.vistrails_root_directory() +
-#                             '/tests/resources/ect.xml')
-#         v = parser.getVistrail()
-#         parser.closeVistrail()
-#         #testing diff
-#         p = v.getPipeline('WindowedSync (lambda-mu) Error')
-#         version = v.get_version_number('WindowedSync (lambda-mu) Error')
-#         sub = p.graph.subgraph([43, 45])
-#         v.create_abstraction(version, sub, "FOOBAR")
 
 if __name__ == '__main__':
     unittest.main()

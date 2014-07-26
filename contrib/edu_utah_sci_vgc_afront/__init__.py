@@ -61,20 +61,20 @@ class Afront(Module, AfrontRun):
     def compute(self):
         o = self.interpreter.filePool.create_file(suffix='.m')
         args = []
-        if not self.hasInputFromPort("file"):
+        if not self.has_input("file"):
             raise ModuleError(self, "Needs input file")
-        args.append(self.getInputFromPort("file").name)
-        if self.hasInputFromPort("rho"):
+        args.append(self.get_input("file").name)
+        if self.has_input("rho"):
             args.append("-rho")
-            args.append(str(self.getInputFromPort("rho")))
-        if self.hasInputFromPort("eta"):
+            args.append(str(self.get_input("rho")))
+        if self.has_input("eta"):
             args.append("-reduction")
-            args.append(str(self.getInputFromPort("eta")))
+            args.append(str(self.get_input("eta")))
         args.append("-outname")
         args.append(o.name)
         args.append("-tri")
         self.run(args)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 
 class MeshQualityHistogram(Module, AfrontRun):
@@ -82,35 +82,35 @@ class MeshQualityHistogram(Module, AfrontRun):
     def compute(self):
         o = self.interpreter.filePool.create_file(suffix='.csv')
         args = []
-        self.checkInputPort("file")
-        args.append(self.getInputFromPort("file").name)
+        self.check_input("file")
+        args.append(self.get_input("file").name)
         args.append('-histname')
         args.append(o.name)
         args.append('-histogram')
         self.run(args)
-        self.setResult("output", o)
+        self.set_output("output", o)
 
 class AfrontIso(Afront):
 
     def compute(self):
         o = self.interpreter.filePool.create_file(suffix='.m')
         args = []
-        if not self.hasInputFromPort("file"):
+        if not self.has_input("file"):
             raise ModuleError(self, "Needs input file")
-        args.append(self.getInputFromPort("file").name)
-        if self.hasInputFromPort("rho"):
+        args.append(self.get_input("file").name)
+        if self.has_input("rho"):
             args.append("-rho")
-            args.append(str(self.getInputFromPort("rho")))
-        if self.hasInputFromPort("eta"):
+            args.append(str(self.get_input("rho")))
+        if self.has_input("eta"):
             args.append("-eta")
-            args.append(str(self.getInputFromPort("eta")))
-        self.checkInputPort("iso")
+            args.append(str(self.get_input("eta")))
+        self.check_input("iso")
         args.append("-outname")
         args.append(o.name)
         args.append("-tri")
-        args.append(str(self.getInputFromPort("iso")))
+        args.append(str(self.get_input("iso")))
         self.run(args)
-        self.setResult("output", o)
+        self.set_output("output", o)
         
 
 ################################################################################

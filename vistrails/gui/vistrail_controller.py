@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,53 +32,65 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+import copy
+import math
+import os
+import uuid
+
 from PyQt4 import QtCore, QtGui
-from vistrails.core.common import *
+
+import vistrails.core.analogy
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 import vistrails.core.db.action
-import vistrails.core.db.locator
-import vistrails.core.modules.vistrails_module
-from vistrails.core.utils import VistrailsInternalError, InvalidPipeline
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.interpreter.job import Workflow as JobWorkflow
 from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
 from vistrails.core.log.opm_graph import OpmGraph
 from vistrails.core.log.prov_document import ProvDocument
 from vistrails.core.modules.abstraction import identifier as abstraction_pkg
-from vistrails.core.modules.module_registry import get_module_registry, MissingPort
-from vistrails.core.modules.package import Package
-from vistrails.core.packagemanager import PackageManager
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.param_explore import ActionBasedParameterExploration
 from vistrails.core.query.version import TrueSearch
 from vistrails.core.query.visual import VisualQuery
-from vistrails.core.param_explore import ActionBasedParameterExploration
+from vistrails.core.utils import DummyView, VistrailsInternalError, InvalidPipeline
 import vistrails.core.system
-
-from vistrails.core.vistrail.annotation import Annotation
-from vistrails.core.vistrail.controller import VistrailController as BaseController, \
-    vt_action
-from vistrails.core.vistrail.location import Location
-from vistrails.core.vistrail.module import Module
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.controller import VistrailController as BaseController
 from vistrails.core.vistrail.pipeline import Pipeline
-from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.vistrail import Vistrail, TagExists
-from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
-from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
-
-import vistrails.core.analogy
-import copy
-import os.path
-import math
-
-import unittest
 import vistrails.gui.utils
-import vistrails.api
-import os
-from vistrails.core.utils import DummyView
+from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
+from vistrails.gui.version_prop import QVersionProp
+
 
 ################################################################################
+
+class ExecutionProgressDialog(QtGui.QProgressDialog):
+    def __init__(self, parent=None):
+        QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
+                                       '&Cancel',
+                                       0, 100,
+                                       parent, QtCore.Qt.Dialog)
+        self.setWindowTitle('Executing')
+        self.setWindowModality(QtCore.Qt.WindowModal)
+        self._last_set_value = 0
+        self._progress_canceled = False
+        # if suspended is true we should not wait for a job to complete
+        self.suspended = False
+
+    def setValue(self, value):
+        self._last_set_value = value
+        super(ExecutionProgressDialog, self).setValue(value)
+
+    def goOn(self):
+        self.reset()
+        self.show()
+        super(ExecutionProgressDialog, self).setValue(self._last_set_value)
+
 
 class VistrailController(QtCore.QObject, BaseController):
     """
@@ -134,6 +146,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_pipeline_view = False
         self.reset_version_view = True
         self.quiet = False
+        self.progress = None
         
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
@@ -251,9 +264,9 @@ class VistrailController(QtCore.QObject, BaseController):
     def get_locator(self):
         from vistrails.gui.application import get_vistrails_application
         if (self._auto_save and 
-            get_vistrails_application().configuration.check('autosave')):
+            get_vistrails_application().configuration.check('autoSave')):
             if self.locator is None:
-                raise Exception("locator is None")
+                raise ValueError("locator is None")
             return self.locator
         else:
             return None
@@ -264,6 +277,12 @@ class VistrailController(QtCore.QObject, BaseController):
             locator.clean_temporaries()
         if self._auto_save or self.timer:
             self.stop_timer()
+        # close associated mashup apps
+        version_prop = QVersionProp.instance()
+        for app in version_prop.versionMashups.apps.values():
+            if app and app.view == self.vistrail_view:
+                app.close()
+
 
     ##########################################################################
     # Actions, etc
@@ -351,7 +370,8 @@ class VistrailController(QtCore.QObject, BaseController):
         return (results, changed)
 
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 reason='Pipeline Execution', sinks=None):
+                                 extra_info=None, reason='Pipeline Execution',
+                                 sinks=None):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
@@ -362,23 +382,78 @@ class VistrailController(QtCore.QObject, BaseController):
             if locator:
                 locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
-            return self.execute_workflow_list([(self.locator,
-                                         self.current_version,
-                                         self.current_pipeline,
-                                         self.current_pipeline_scene,
-                                         custom_aliases,
-                                         custom_params,
-                                         reason,
-                                         sinks,
-                                         None)])
+            try:
+                return self.execute_workflow_list([(self.locator,
+                                             self.current_version,
+                                             self.current_pipeline,
+                                             self.current_pipeline_scene,
+                                             custom_aliases,
+                                             custom_params,
+                                             reason,
+                                             sinks,
+                                             extra_info)])
+            except Exception, e:
+                debug.unexpected_exception(e)
+                raise
         return ([], False)
-    
+
+
+    def execute_user_workflow(self, reason='Pipeline Execution', sinks=None):
+        """ execute_user_workflow() -> None
+        Execute the current workflow (if exists) and monitors it if it contains jobs
+        
+        """
+        # reset job view
+        from vistrails.gui.job_monitor import QJobView
+        jobView = QJobView.instance()
+        if jobView.updating_now:
+            debug.critical("Execution Aborted: Job Monitor is updating. "
+                           "Please wait a few seconds and try again.")
+            return
+        jobView.updating_now = True
+
+        if not jobView.jobMonitor.currentWorkflow():
+            version_id = self.current_version
+            url = self.locator.to_url()
+            # check if a job for this workflow exists
+            current_workflow = None
+            for job in jobView.jobMonitor._running_workflows.itervalues():
+                try:
+                    job_version = int(job.version)
+                except ValueError:
+                    job_version = self.vistrail.get_version_number(job.version)
+                if version_id == job_version and url == job.vistrail:
+                    current_workflow = job
+                    jobView.jobMonitor.startWorkflow(job)
+            if not current_workflow:
+                current_workflow = JobWorkflow(url, version_id)
+                jobView.jobMonitor.startWorkflow(current_workflow)
+        try:
+            self.progress = ExecutionProgressDialog(self.vistrail_view)
+            self.progress.show()
+
+            result =  self.execute_current_workflow(reason=reason, sinks=sinks)
+
+            self.progress.setValue(100)
+        finally:
+            self.progress.hide()
+            self.progress.deleteLater()
+            self.progress = None
+            jobView.jobMonitor.finishWorkflow()
+            jobView.updating_now = False
+
+        return result
+
     def enable_missing_package(self, identifier, deps):
-        from vistrails.gui.application import get_vistrails_application
+        configuration = get_vistrails_configuration()
+        if getattr(configuration, 'enablePackagesSilently', False):
+            return True
+
         msg = "VisTrails needs to enable package '%s'." % identifier
         if len(deps) > 0:
             msg += (" This will also enable the dependencies: %s." 
-                    " Do you want to enable these packages?") % str(deps)
+                    " Do you want to enable these packages?" % (
+                    ", ".join(deps),))
         else:
             msg += " Do you want to enable this package?"
         res = show_question('Enable package?',
@@ -386,9 +461,6 @@ class VistrailController(QtCore.QObject, BaseController):
                             [YES_BUTTON, NO_BUTTON], 
                             YES_BUTTON)
         if res == NO_BUTTON:
-#             QtGui.QMessageBox.warning(get_vistrails_application().builderWindow,
-#                                       'Missing modules',
-#                                       'Some necessary modules will be missing.')
             return False
         return True
 
@@ -476,11 +548,11 @@ class VistrailController(QtCore.QObject, BaseController):
 #                                           "construct this workflow.")
 #                msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
 #                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
-#                msg_box.setDetailedText(str(e))
+#                msg_box.setDetailedText(debug.format_exception(e))
 #                msg_box.exec_()
                 # text = "The current workflow could not be validated."
-                # debug.critical('%s\n%s' % (text, str(e)))
-                debug.critical(str(e))
+                # debug.critical(text, e)
+                debug.critical("Error changing version", e)
 
 #                 print 'got to exception set'
 #                 # Process all errors as usual
@@ -493,7 +565,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
         except Exception, e:
             import traceback
-            debug.critical('Unexpected Exception\n%s' % str(e), 
+            debug.critical('Unexpected Exception',
                            traceback.format_exc())
         
         # FIXME: this code breaks undo/redo, and seems to be ok with normal
@@ -1131,7 +1203,7 @@ class VistrailController(QtCore.QObject, BaseController):
         if dir_name:
             return None
         dir_name = os.path.abspath(str(dir_name))
-        setattr(get_vistrails_configuration(), 'fileDirectory', dir_name)
+        setattr(get_vistrails_configuration(), 'fileDir', dir_name)
         vistrails.core.system.set_vistrails_file_directory(dir_name)
         return dir_name
     
@@ -1375,9 +1447,11 @@ class VistrailController(QtCore.QObject, BaseController):
         corresponding to each dimension
         
         """
-        reg = vistrails.core.modules.module_registry.get_module_registry()
+        reg = get_module_registry()
         spreadsheet_pkg = '%s.spreadsheet' % \
                 vistrails.core.system.get_vistrails_default_pkg_prefix()
+        use_spreadsheet = reg.has_module(spreadsheet_pkg, 'CellLocation') and\
+                          reg.has_module(spreadsheet_pkg, 'SheetReference')
 
         if pe.action_id != self.current_version:
             self.change_selected_version(pe.action_id)
@@ -1385,20 +1459,24 @@ class VistrailController(QtCore.QObject, BaseController):
                         pe.collectParameterActions(self.current_pipeline)
 
         if self.current_pipeline and actions:
+            pe_log_id = uuid.uuid1()
             explorer = ActionBasedParameterExploration()
             (pipelines, performedActions) = explorer.explore(
                 self.current_pipeline, actions, pre_actions)
             
             dim = [max(1, len(a)) for a in actions]
-            if (reg.has_module(spreadsheet_pkg, 'CellLocation') and
-                reg.has_module(spreadsheet_pkg, 'SheetReference')):
+            if use_spreadsheet:
                 from vistrails.gui.paramexplore.virtual_cell import positionPipelines, assembleThumbnails
                 from vistrails.gui.paramexplore.pe_view import QParamExploreView
                 modifiedPipelines, pipelinePositions = positionPipelines(
                     'PE#%d %s' % (QParamExploreView.explorationId, self.name),
                     dim[2], dim[1], dim[0], pipelines, pe.layout, self)
+                QParamExploreView.explorationId += 1
             else:
+                from vistrails.core.param_explore import _pipelinePositions
                 modifiedPipelines = pipelines
+                pipelinePositions = _pipelinePositions(
+                    dim[2], dim[1], dim[0], pipelines)
 
             mCount = []
             for p in modifiedPipelines:
@@ -1418,7 +1496,6 @@ class VistrailController(QtCore.QObject, BaseController):
                 progress.setWindowModality(QtCore.Qt.WindowModal)
                 progress.show()
 
-            QParamExploreView.explorationId += 1
             interpreter = get_default_interpreter()
             
             images = {}
@@ -1433,15 +1510,18 @@ class VistrailController(QtCore.QObject, BaseController):
                         if not progress.wasCanceled():
                             progress.setValue(progress.value()+1)
                             QtCore.QCoreApplication.processEvents()
-                name = os.path.splitext(self.name)[0] + \
+                if use_spreadsheet:
+                    name = os.path.splitext(self.name)[0] + \
                                          ("_%s_%s_%s" % pipelinePositions[pi])
-                extra_info['nameDumpCells'] = name
-                if 'pathDumpCells' in extra_info:
-                    images[pipelinePositions[pi]] = \
-                               os.path.join(extra_info['pathDumpCells'], name)
+                    extra_info['nameDumpCells'] = name
+                    if 'pathDumpCells' in extra_info:
+                        images[pipelinePositions[pi]] = \
+                                   os.path.join(extra_info['pathDumpCells'], name)
+                pe_cell_id = (pe_log_id,) + pipelinePositions[pi]
                 kwargs = {'locator': self.locator,
                           'current_version': self.current_version,
-                          'reason': 'Parameter Exploration',
+                          'reason': 'Parameter Exploration %s %s_%s_%s' % pe_cell_id,
+                          'logger': self.get_logger(),
                           'actions': performedActions[pi],
                           'extra_info': extra_info
                           }
@@ -1456,8 +1536,11 @@ class VistrailController(QtCore.QObject, BaseController):
                     kwargs['vistrail_variables'] = lambda x: vars.get(x, None)
                 result = interpreter.execute(modifiedPipelines[pi], **kwargs)
                 for error in result.errors.itervalues():
-                    pp = pipelinePositions[pi]
-                    errors.append(((pp[1], pp[0], pp[2]), error))
+                    if use_spreadsheet:
+                        pp = pipelinePositions[pi]
+                        errors.append(((pp[1], pp[0], pp[2]), error))
+                    else:
+                        errors.append(((0,0,0), error))
 
             if showProgress:
                 progress.setValue(totalProgress)
@@ -1465,6 +1548,8 @@ class VistrailController(QtCore.QObject, BaseController):
                 filename = os.path.join(extra_info['pathDumpCells'],
                                         os.path.splitext(self.name)[0])
                 assembleThumbnails(images, filename)
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('execution_updated')
             return errors
 
 ################################################################################
@@ -1477,12 +1562,10 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
     #     v = api.new_vistrail()
        
     def tearDown(self):
-        from vistrails.core.configuration import get_vistrails_configuration
         vistrails.gui.utils.TestVisTrailsGUI.tearDown(self)
 
-        config = get_vistrails_configuration()
-        filename = os.path.join(config.abstractionsDirectory,
-                                '__TestFloatList.xml')
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, '__TestFloatList.xml')
         if os.path.exists(filename):
             os.remove(filename)
 
@@ -1515,11 +1598,8 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
 
     def test_abstraction_create(self):
         from vistrails.core.db.locator import XMLFileLocator
-        import vistrails.core.db.io
-        from vistrails.core.configuration import get_vistrails_configuration
-        config = get_vistrails_configuration()
-        filename = os.path.join(config.abstractionsDirectory,
-                                '__TestFloatList.xml')
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, '__TestFloatList.xml')
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/test_abstraction.xml')
         v = locator.load()
@@ -1529,15 +1609,16 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         # controller.change_selected_version(9L)
         controller.select_latest_version()
         self.assertNotEqual(controller.current_pipeline, None)
-        
-        # DAK: changed these because of upgrades...
-        # module_ids = [1, 2, 3]
-        # connection_ids = [1, 2, 3]
-        module_ids = [8, 10, 11]
-        #connection_ids = [6, 8, 9]
-        # TE: changed again because upgrades produced different id:s
-        # also saved upgrade in test_abstraction.xml
-        connection_ids = [13,14,15]
+
+        # If getting a KeyError here, run the upgrade on the vistrail and
+        # update the ids
+        # TODO : rewrite test so we don't have to update this unrelated code
+        # each time new upgrades are introduced
+        # Original ids:
+        #     module_ids = [1, 2, 3]
+        #     connection_ids = [1, 2, 3]
+        module_ids = [15, 13, 14]
+        connection_ids = [21, 18, 20]
         controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))

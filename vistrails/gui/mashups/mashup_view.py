@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +35,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.mashups.mashups_manager import MashupsManager
 from vistrails.gui.mashups.alias_list import QAliasListPanel
@@ -131,12 +132,17 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         from vistrails.gui.vistrails_window import _app
         if self.vtversion > 0:
             if self.mshpController is not None:
-                self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
-                self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
-                if self.mshpController.vtController is not None:
-                    self.disconnect(self.mshpController.vtController,
-                                    QtCore.SIGNAL('vistrailChanged()'),
-                                    self.mshpControllerVistrailChanged)
+                try:
+                    self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
+                    self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
+                    if self.mshpController.vtController is not None:
+                        self.disconnect(self.mshpController.vtController,
+                                        QtCore.SIGNAL('vistrailChanged()'),
+                                        self.mshpControllerVistrailChanged)
+                except Exception, e:
+                    debug.unexpected_exception(e)
+                    import traceback
+                    traceback.print_exc()
             self.controller.flush_delayed_actions()
             self.vtversion = self.controller.current_version
             self.mshpController = self.manager.createMashupController(self.controller,
@@ -270,10 +276,11 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         (pid, pname) = self.mshpController.findFirstTaggedParent(self.mshpController.currentVersion)
         if pid >= 1:
             res = show_question("VisTrails::Mashups", 
-                """You've decided to keep a modified version of '%s'.
-Would you like to update it (this will move the tag to the current version)?
-Click on No to create a new tag.""" %pname,
-                [CANCEL_BUTTON, YES_BUTTON, NO_BUTTON], 0)
+                                "You've decided to keep a modified version "
+                                "of '%s'. Would you like to update it (this "
+                                "will move the tag to the current version)? "
+                                "Click on No to create a new tag." % pname,
+                                [CANCEL_BUTTON, YES_BUTTON, NO_BUTTON], 0)
             if res == YES_BUTTON:
                 #move tag
                 self.mshpController.moveTag(pid, 

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -200,7 +200,7 @@ class TestTranslate(unittest.TestCase):
 
 if __name__ == '__main__':
     from vistrails.gui.application import start_application
-    v = start_application({'interactiveMode': False,
+    v = start_application({'batch': True,
                            'nologger': True,
                            'singleInstance': False,
                            'fixedSpreadsheetCells': True})

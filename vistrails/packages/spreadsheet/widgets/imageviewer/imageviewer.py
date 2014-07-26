@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,14 +35,23 @@
 ################################################################################
 # ImageViewer widgets/toolbar implementation
 ################################################################################
+import os
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import Module
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
 import imageviewer_rc
 
 ################################################################################
+
+class ImageFileToSpreadsheet(SpreadsheetMode):
+    def compute_output(self, output_module, configuration=None):
+        fname = output_module.get_input('value').name
+        window = spreadsheetController.findSpreadsheetWindow()
+        local_file = window.file_pool.make_local_copy(fname)
+        self.display_and_wait(output_module, configuration,
+                              ImageViewerCellWidget, (local_file,))
 
 class ImageViewerCell(SpreadsheetCell):
     """
@@ -54,13 +63,13 @@ class ImageViewerCell(SpreadsheetCell):
         Dispatch the display event to the spreadsheet with images and labels
         
         """
-        if self.hasInputFromPort("File"):
+        if self.has_input("File"):
             window = spreadsheetController.findSpreadsheetWindow()
-            file_to_display = self.getInputFromPort("File")
+            file_to_display = self.get_input("File")
             fileValue = window.file_pool.make_local_copy(file_to_display.name)
         else:
             fileValue = None
-        self.cellWidget = self.displayAndWait(ImageViewerCellWidget, (fileValue, ))
+        self.displayAndWait(ImageViewerCellWidget, (fileValue, ))
 
 class ImageViewerCellWidget(QCellWidget):
     """
@@ -99,7 +108,7 @@ class ImageViewerCellWidget(QCellWidget):
             img = QtGui.QImage()
             if img.load(fileValue.name):
                 self.originalPix = QtGui.QPixmap.fromImage(img)
-                self.label.setPixmap(self.originalPix.scaled(len(self.label),
+                self.label.setPixmap(self.originalPix.scaled(self.label.size(),
                                                          QtCore.Qt.KeepAspectRatio,
                                                          QtCore.Qt.SmoothTransformation))
             else:
@@ -116,7 +125,19 @@ class ImageViewerCellWidget(QCellWidget):
         if pixmap and (not pixmap.isNull()):
             return pixmap.save(filename)
         return False
-    
+
+    def dumpToFile(self, filename):
+        """ dumpToFile(filename: str) -> None
+        Dumps the cell as an image file
+
+        """
+        pixmap = self.label.pixmap()
+        if pixmap and (not pixmap.isNull()):
+            if not os.path.splitext(filename)[1]:
+                pixmap.save(filename, 'PNG')
+            else:
+                pixmap.save(filename)
+
     def saveToPDF(self, filename):
         """ saveToPDF(filename: str) -> bool
         Save the current widget contents to a pdf file
@@ -183,40 +204,6 @@ class ImageViewerFitToCellAction(QtGui.QAction):
         (sheet, row, col, cellWidget) = info
         self.setChecked(cellWidget.label.hasScaledContents())
 
-class ImageViewerSaveAction(QtGui.QAction):
-    """
-    ImageViewerSaveAction is the action to save the image to file
-    
-    """
-    def __init__(self, parent=None):
-        """ ImageViewerSaveAction(parent: QWidget) -> ImageViewerSaveAction
-        Setup the image, status tip, etc. of the action
-        
-        """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/save.png"),
-                               "&Save image as...",
-                               parent)
-        self.setStatusTip("Save image to file")
-        
-    def triggeredSlot(self, checked=False):
-        """ toggledSlot(checked: boolean) -> None
-        Execute the action when the button is clicked
-        
-        """
-        cellWidget = self.toolBar.getSnappedWidget()
-        if not cellWidget.label.pixmap() or cellWidget.label.pixmap().isNull():
-            return
-        fn = QtGui.QFileDialog.getSaveFileName(None, "Save image as...",
-                                               "screenshot.png",
-                                               "Images (*.png);;PDF files (*.pdf)")
-        if not fn:
-            return
-        if fn.lower().endswith("png"):
-            cellWidget.label.pixmap().toImage().save(fn, "png")
-        elif fn.lower().endswith("pdf"):
-            cellWidget.saveToPDF(str(fn))
-        
 
 class ImageViewerZoomSlider(QtGui.QSlider):
     """
@@ -359,7 +346,6 @@ class ImageViewerToolBar(QCellToolBar):
         
         """
         self.appendAction(ImageViewerFitToCellAction(self))
-        self.appendAction(ImageViewerSaveAction(self))
         self.appendAction(ImageViewerRotateAction(self))
         self.appendAction(ImageViewerFlipAction(self))
         self.slider = ImageViewerZoomSlider(self)

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,6 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from ast import literal_eval
 import copy
 import sys
 from vistrails.core.system import get_vistrails_default_pkg_prefix, \
@@ -46,8 +47,6 @@ from vistrails.db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBConnection, DBGroup, DBPortSpec, DBOpmWasTriggeredBy, DBFunction, \
     DBParameter
 from vistrails.db.services.vistrail import materializeWorkflow
-
-sys.path.append('/vistrails/src/trunk/vistrails')
 
 def create_process(item_exec, account, id_scope):
     return DBOpmProcess(id='p' + str(id_scope.getNewId(DBOpmProcess.vtType)),
@@ -237,8 +236,8 @@ def create_opm(workflow, version, log, reg):
                                 pkg.db_module_descriptors_id_index[base_id]
                             break
                     if module_desc is None:
-                        raise Exception("Cannot find base descriptor id %d" % \
-                                            base_id)
+                        raise KeyError("Cannot find base descriptor id %d" %
+                                       base_id)
                     # pkg = get_package(reg, module_desc.db_package,
                     #                   module_desc.db_package_version)
                     # module_desc = pkg.db_module_descriptors_id_index[base_id]
@@ -267,7 +266,7 @@ def create_opm(workflow, version, log, reg):
             input_list_artifact = found_input_ports['InputList']
             result_artifact = found_output_ports.get('Result', None)
             input_port_list = \
-                eval(found_input_ports['InputPort'].db_parameters[0].db_val)
+                literal_eval(found_input_ports['InputPort'].db_parameters[0].db_val)
             output_port = \
                 found_input_ports['OutputPort'].db_parameters[0].db_val
 
@@ -384,7 +383,7 @@ def create_opm(workflow, version, log, reg):
             elif false_id in module_processes:
                 cond_process = module_processes[false_id][1]
             else:
-                raise Exception("cannot process if")
+                raise RuntimeError("cannot process if")
             # FIXME: assume true for now
             # eventually need to check which module_id was execed for this
             # current item exec
@@ -469,7 +468,7 @@ def create_opm(workflow, version, log, reg):
                 return artifact
 
             if annotation.db_key == 'used_files':
-                used_files = eval(annotation.db_value)
+                used_files = literal_eval(annotation.db_value)
                 for fname in used_files:
                     if fname not in file_artifacts:
                         artifact = create_artifact_from_filename(fname,
@@ -485,7 +484,7 @@ def create_opm(workflow, version, log, reg):
                     dependencies.append(create_used(process, artifact,
                                                     account, id_scope))
             elif annotation.db_key == 'generated_tables':
-                generated_tables = eval(annotation.db_value)
+                generated_tables = literal_eval(annotation.db_value)
                 for db_tuple in generated_tables:
                     artifact = process_db_tuple(db_tuple)
                     dependencies.append(create_was_generated_by(artifact,
@@ -493,7 +492,7 @@ def create_opm(workflow, version, log, reg):
                                                                 account,
                                                                 id_scope))
             elif annotation.db_key == 'used_tables':
-                used_tables = eval(annotation.db_value)
+                used_tables = literal_eval(annotation.db_value)
                 for db_tuple in used_tables:
                     artifact = process_db_tuple(db_tuple)
                     dependencies.append(create_used(process, artifact,

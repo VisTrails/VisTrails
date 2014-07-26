@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -43,9 +43,9 @@ class WorkflowEntity(Entity):
         self.update(workflow)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = WorkflowEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
 
     def update(self, workflow):
@@ -54,8 +54,8 @@ class WorkflowEntity(Entity):
             self.name = workflow.name \
             if workflow.name else "Version #" + str(workflow.id)
             self.user = 'testing'
-            self.mod_time = 'test'
-            self.create_time = 'test'
+            self.mod_time = self.now()
+            self.create_time = self.now()
             self.size = len(self.workflow.modules)
             self.description = ""
             self.url = 'test'
@@ -71,39 +71,39 @@ class WorkflowEntity(Entity):
         
 #     # returns string
 #     def get_name(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns datetime
 #     def get_mod_time(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns datetime
 #     def get_create_time(self):
-#         raise Exception("Method is abstract")        
+#         raise RuntimeError("Method is abstract")
     
 #     # returns string
 #     # FIXME: perhaps this should be a User object at some point
 #     def get_user(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
     
 #     # returns tuple (<entity_type>, <entity_id>)
 #     def get_id(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns integer
 #     def get_size(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
     
 #     # returns possibly empty list of Entity objects
 #     def get_children(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns list of strings representing paths
 #     # FIXME: should this be uris for database access?
 #     def get_image_fnames(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
     
     # returns boolean, True if search input is satisfied else False
     def match(self, search):
-        raise Exception("Not implemented")
+        raise RuntimeError("Not implemented")
 

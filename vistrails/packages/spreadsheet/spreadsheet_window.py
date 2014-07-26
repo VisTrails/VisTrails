@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -314,7 +314,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         self.adjustSize()
                         self.move(r.center()-self.rect().center()-frameDiff)
                         break
-            if not self.visApp.temp_configuration.interactiveMode:
+            if self.visApp.temp_configuration.batch:
                 self.shownConfig = True
                 if show:
                     self.show()
@@ -324,13 +324,13 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 self.showMaximized()
                 ### When the builder is hidden, the spreadsheet window does
                 ### not have focus. We have to force it
-                if self.visApp.temp_configuration.showSpreadsheetOnly:
+                if not self.visApp.temp_configuration.showWindow:
                     self.raise_()
             else:
                 self.show()
                 ### When the builder is hidden, the spreadsheet window does
                 ### not have focus. We have to force it to have the focus
-                if self.visApp.temp_configuration.showSpreadsheetOnly:
+                if not self.visApp.temp_configuration.showWindow:
                     self.raise_()                
         else:
             self.show()
@@ -408,9 +408,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             if isinstance(q, QCellContainer):
                 return q.containedWidget!=None
             p = q
-            while (p and (not p.isModal()) and not isinstance(p, StandardWidgetSheet)):
+            while (p and (not p.isModal()) and not isinstance(p, StandardWidgetSheet) and p.parent):
                 p = p.parent()
-            if p and not p.isModal():
+            if p and isinstance(p, StandardWidgetSheet) and not p.isModal():
                 pos = p.viewport().mapFromGlobal(e.globalPos())
                 p.emit(QtCore.SIGNAL('cellActivated(int, int, bool)'),
                        p.rowAt(pos.y()), p.columnAt(pos.x()),

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,18 +32,20 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+import itertools
 
 """ Utilities for dealing with the thumbnails """
 import os
 import os.path
 import shutil
+import tempfile
 import time
 import uuid
 import mimetypes
 # mimetypes are broken by default on windows so use the builtins
 # Remove line below when it is fixed here: http://bugs.python.org/issue15207
 mimetypes.init(files=[])
-from vistrails.core import debug
+from vistrails.core import debug, system
 from vistrails.core.configuration import get_vistrails_configuration, \
       get_vistrails_persistent_configuration
 from vistrails.core.utils import VistrailsInternalError
@@ -60,16 +62,20 @@ class ThumbnailCache(object):
     _instance = None
     IMAGE_MAX_WIDTH = 200 
     SUPPORTED_TYPES = ['image/png','image/jpeg','image/bmp','image/gif']
-    class ThumbnailCacheSingleton(object):
-        def __call__(self, *args, **kw):
-            if ThumbnailCache._instance is None:
-                obj = ThumbnailCache(*args, **kw)
-                ThumbnailCache._instance = obj
-            return ThumbnailCache._instance
-        
-    getInstance = ThumbnailCacheSingleton()
-    
+    @staticmethod
+    def getInstance(*args, **kwargs):
+        if ThumbnailCache._instance is None:
+            obj = ThumbnailCache(*args, **kwargs)
+            ThumbnailCache._instance = obj
+        return ThumbnailCache._instance
+
+    @staticmethod
+    def clearInstance():
+        if ThumbnailCache._instance is not None:
+            ThumbnailCache._instance.destroy()
+
     def __init__(self):
+        self._temp_directory = None
         self.elements = {}
         self.vtelements = {}
         self.conf = None
@@ -77,17 +83,24 @@ class ThumbnailCache(object):
         if conf.has('thumbs'):
             self.conf = conf.thumbs
         self.init_cache()
+
+    def destroy(self):
+        if self._temp_directory is not None:
+            print "removing thumbnail directory"
+            shutil.rmtree(self._temp_directory)
         
     def get_directory(self):
-        if self.conf.check('cacheDirectory'):
-            thumbnail_dir = self.conf.cacheDirectory
+        thumbnail_dir = system.get_vistrails_directory('thumbs.cacheDir')
+        if thumbnail_dir is not None:
             if not os.path.exists(thumbnail_dir):
                 raise VistrailsInternalError("Cannot find %s" % thumbnail_dir)
             return thumbnail_dir
         
-        raise VistrailsInternalError("'thumbs.cacheDirectory' not"
-                                     " specified in configuration")
-        return None
+        # raise VistrailsInternalError("'thumbs.cacheDir' not"
+        #                              " specified in configuration")
+        if self._temp_directory is None:
+            self._temp_directory = tempfile.mkdtemp(prefix='vt_thumbs_')
+        return self._temp_directory
     
     def init_cache(self):
         for root,dirs, files in os.walk(self.get_directory()):
@@ -133,8 +146,9 @@ class ThumbnailCache(object):
                     entry.abs_name = dstname
                         
                 except shutil.Error, e:
-                    debug.warning("Could not move thumbnail from %s to %s: %s" \
-                                  % (sourcedir, destdir, str(e)))
+                    debug.warning("Could not move thumbnail from %s to %s" % (
+                                  sourcedir, destdir),
+                                  e)
                     
     def remove_lru(self,n=1):
         elements = self.elements.values()
@@ -143,13 +157,13 @@ class ThumbnailCache(object):
         debug.debug("Will remove %s elements from cache..."%num)
         debug.debug("Cache has %s elements and %s bytes"%(len(elements),
                                                              self.size()))
-        for i in range(num):
+        for elem in itertools.islice(elements, num):
             try:
-                del self.elements[elements[i].name]    
-                os.unlink(elements[i].abs_name)
+                del self.elements[elem.name]
+                os.unlink(elem.abs_name)
             except os.error, e:
-                debug.warning("Could not remove file %s: %s" % \
-                                 (elements[i].abs_name, str(e)))
+                debug.warning("Could not remove file %s" % elem.abs_name, e)
+
     def remove(self,key):
         if key in self.elements.keys():
             entry = self.elements[key]
@@ -214,13 +228,15 @@ class ThumbnailCache(object):
         Deletes all files inside dirname
     
         """
+        if dirname is None:
+            return
         try:
             for root, dirs, files in os.walk(dirname):
                 for fname in files:
                     os.unlink(os.path.join(root,fname))
                     
         except OSError, e:
-            debug.warning("Error when removing thumbnails: %s"%str(e))
+            debug.warning("Error when removing thumbnails", e)
     
     @staticmethod
     def _get_thumbnail_fnames(folder):

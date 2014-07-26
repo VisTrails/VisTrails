@@ -1,6 +1,6 @@
 --#############################################################################
 --
--- Copyright (C) 2011-2013, NYU-Poly.
+-- Copyright (C) 2011-2014, NYU-Poly.
 -- Copyright (C) 2006-2011, University of Utah. 
 -- All rights reserved.
 -- Contact: contact@vistrails.org
@@ -140,9 +140,13 @@ CREATE TABLE log_tbl(
     vistrail_id int
 ) engine=InnoDB;
 
-CREATE TABLE mashup_alias(
+CREATE TABLE loop_iteration(
     id int,
-    name varchar(255),
+    ts_start datetime,
+    ts_end datetime,
+    iteration int,
+    completed int,
+    error varchar(1023),
     parent_id int,
     entity_id int,
     entity_type char(16)
@@ -221,6 +225,18 @@ CREATE TABLE location(
     parent_id int
 ) engine=InnoDB;
 
+CREATE TABLE pe_parameter(
+    id int,
+    pos int,
+    interpolator varchar(255),
+    value mediumtext,
+    dimension int,
+    parent_type char(32),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
 CREATE TABLE parameter(
     id int,
     pos int,
@@ -277,6 +293,14 @@ CREATE TABLE abstraction(
     entity_id int,
     entity_type char(16),
     parent_id int
+) engine=InnoDB;
+
+CREATE TABLE mashup_alias(
+    id int,
+    name varchar(255),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE workflow(
@@ -428,9 +452,6 @@ CREATE TABLE loop_exec(
     id int,
     ts_start datetime,
     ts_end datetime,
-    iteration int,
-    completed int,
-    error varchar(1023),
     parent_type char(32),
     entity_id int,
     entity_type char(16),
@@ -455,6 +476,17 @@ CREATE TABLE connection_tbl(
     entity_id int,
     entity_type char(16),
     parent_id int
+) engine=InnoDB;
+
+CREATE TABLE pe_function(
+    id int,
+    module_id int,
+    port_name varchar(255),
+    is_alias int,
+    parent_type char(32),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE action(

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,21 +41,12 @@ import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules
 import traceback
 from vistrails.core.packagemanager import get_package_manager
-from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.package import Package
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from vistrails.core import debug
 
-from vistrails.core.bundles import py_import
-try:
-    mpl_dict = {'pip': 'suds',
-                'linux-debian': 'python-suds',
-                'linux-ubuntu': 'python-suds',
-                'linux-fedora': 'python-suds'}
-    suds = py_import('suds', mpl_dict)
-except Exception, e:
-    debug.critical("Exception: %s" % e)
+import suds
 
 
 package_cache = None
@@ -145,10 +136,10 @@ def initialize(*args, **keywords):
         try:
             debug.log("Creating SUDS cache directory...")
             os.mkdir(location)
-        except:
+        except OSError, e:
             debug.critical(
 """Could not create SUDS cache directory. Make sure
-'%s' does not exist and parent directory is writable""" % location)
+'%s' does not exist and parent directory is writable""" % location, e)
             sys.exit(1)
     # the number of days to cache wsdl files
     days = 1
@@ -184,7 +175,7 @@ def finalize():
         if s.package:
             reg.remove_package(s.package)
 
-class WSMethod:
+class WSMethod(object):
     """ A WSDL method
     """
     def __init__(self, qname=('','')):
@@ -193,7 +184,7 @@ class WSMethod:
         self.inputs = {}
         self.outputs = {}
 
-class WSElement:
+class WSElement(object):
     """ A part of a WSDL type
     """
     def __init__(self, name='', type=('',''), optional=False, min=0,
@@ -205,7 +196,7 @@ class WSElement:
         self.max = max
         self.enum = enum
 
-class WSType:
+class WSType(object):
     """ A WSDL type definition
     """
     def __init__(self, qname=('',''), enum=False):
@@ -214,7 +205,7 @@ class WSType:
         "name: WSElement"
         self.parts = {}
  
-class Service:
+class Service(object):
     def __init__(self, address):
         """ Process WSDL and add all Types and Methods
         """
@@ -238,20 +229,20 @@ class Service:
         try:
             self.service = suds.client.Client(address, **options)
             self.backUpCache()
-        except Exception, e:
+        except Exception:
             self.service = None
             # We may be offline and the cache may have expired,
             # try to use backup
             if self.restoreFromBackup():
                 try:
                     self.service = suds.client.Client(address, **options)
-                except Exception, e:
+                except Exception:
                     self.service = None
                     debug.critical("Could not load WSDL: %s" % address,
-                           str(e) + '\n' + str(traceback.format_exc()))
+                                   traceback.format_exc())
             else:
                 debug.critical("Could not load WSDL: %s" % address,
-                       str(e) + '\n' + str(traceback.format_exc()))
+                               traceback.format_exc())
         if self.service:
             try:
                 self.createPackage()
@@ -259,9 +250,9 @@ class Service:
                 self.setMethods()
                 self.createTypeClasses()
                 self.createMethodClasses()
-            except Exception, e:
+            except Exception:
                 debug.critical("Could not create Web Service: %s" % address,
-                               str(e) + '\n' + str(traceback.format_exc()))
+                               traceback.format_exc())
                 self.service = None
         if self.wsdlHash == '-1':
             # create empty package so that it can be reloaded/deleted
@@ -487,21 +478,21 @@ class Service:
                 if self.wstype.enum:
                     # only makes sure the enum is one of the valid values
                     p = self.wstype.parts['value']
-                    if self.hasInputFromPort(p.name):
-                        obj = self.getInputFromPort(p.name)
+                    if self.has_input(p.name):
+                        obj = self.get_input(p.name)
                     else:
                         obj = p.enum[0] if len(p.enum) else ''
-                    if self.hasInputFromPort('value'):
-                        obj = self.getInputFromPort('value')
+                    if self.has_input('value'):
+                        obj = self.get_input('value')
                     if obj not in p.enum:
                         raise ModuleError(self,
                                  "'%s' is not one of the valid enums: %s" %
                                  (obj, str(p.enum)) )
-                    self.setResult(self.wstype.qname[0], obj)
-                    self.setResult('value', obj)
+                    self.set_output(self.wstype.qname[0], obj)
+                    self.set_output('value', obj)
                     return
-                if self.hasInputFromPort(self.wstype.qname[0]):
-                    obj = self.getInputFromPort(self.wstype.qname[0])
+                if self.has_input(self.wstype.qname[0]):
+                    obj = self.get_input(self.wstype.qname[0])
                 else:
                     obj = {}
                     s = "{%s}%s"%(self.wstype.qname[1],self.wstype.qname[0])
@@ -520,8 +511,8 @@ class Service:
                             # update each attribute
                             if hasattr(obj.value, part.name):
                                 setattr(obj, part.name, getattr(obj.value, part.name))
-                    if self.hasInputFromPort(part.name):
-                        p = self.getInputFromPort(part.name)
+                    if self.has_input(part.name):
+                        p = self.get_input(part.name)
                         if hasattr(obj, part.name):
                             setattr(obj, part.name, p)
                         else:
@@ -530,8 +521,8 @@ class Service:
                     if hasattr(obj, part.name):
                         # 
                         res = getattr(obj, part.name)
-                        self.setResult(part.name, res)
-                self.setResult(self.wstype.qname[0], obj)
+                        self.set_output(part.name, res)
+                self.set_output(self.wstype.qname[0], obj)
 
             # create docstring
             parts = ", ".join([i.type[0]+' '+i.name for i in t.parts.itervalues()])
@@ -590,48 +581,57 @@ It is a WSDL type with signature:
         for m in self.wsmethods.itervalues():
             def compute(self):
                 # create dict of inputs
+                cacheable = False
+                if self.has_input('cacheable'):
+                    cacheable = self.get_input('cacheable')
+                self.is_cacheable = lambda *args, **kwargs: cacheable            
                 params = {}
                 mname = self.wsmethod.qname[0]
                 for name in self.wsmethod.inputs:
                     name = str(name)
-                    if self.hasInputFromPort(name):
-                        params[name] = self.getInputFromPort(name)
+                    if self.has_input(name):
+                        params[name] = self.get_input(name)
                         if params[name].__class__.__name__ == 'UberClass':
                             params[name] = params[name].value
                         params[name] = self.service.makeDictType(params[name])
                 try:
-#                    print "params:", str(params)[:400]
-#                    self.service.service.set_options(retxml = True)
-#                    result = getattr(self.service.service.service, mname)(**params)
-#                    print "result:", str(result)[:400]
-#                    self.service.service.set_options(retxml = False)
+                    #import logging
+                    #logging.basicConfig(level=logging.INFO)
+                    #logging.getLogger('suds.client').setLevel(logging.DEBUG)
+                    #print "params:", str(params)[:400]
+                    #self.service.service.set_options(retxml = True)
+                    #result = getattr(self.service.service.service, mname)(**params)
+                    #print "result:", str(result)[:400]
+                    #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
                 except Exception, e:
-                    raise ModuleError(self, "Error invoking method %s: %s"%(name, str(e)))
+                    debug.unexpected_exception(e)
+                    raise ModuleError(self, "Error invoking method %s: %s" % (
+                            name, debug.format_exception(e)))
                 for name, qtype in self.wsmethod.outputs.iteritems():
                     if isinstance(result, list):
                         # if result is a list just set the output
-                        self.setResult(name, result)
+                        self.set_output(name, result)
                     elif qtype[0] == 'Array':
                         # if result is a type but type is a list try to extract the correct element
                         if len(result.__keylist__):
-                            self.setResult(name, getattr(result, result.__keylist__[0]))
+                            self.set_output(name, getattr(result, result.__keylist__[0]))
                         else:
-                            self.setResult(name, result)
+                            self.set_output(name, result)
                     elif result.__class__.__name__ == 'Text':
                         # only text returned so we assume each output wants all of it
-                        self.setResult(name, str(result.trim()))
+                        self.set_output(name, str(result.trim()))
                     elif result.__class__.__name__ == qtype[0]:
                         # the return value is this type
-                        self.setResult(name, result)
+                        self.set_output(name, result)
                     elif hasattr(result, name):
-                        self.setResult(name, getattr(result, name))
+                        self.set_output(name, getattr(result, name))
                     else:
                         # nothing matches - assume it is an attribute of the correct class
-                        class UberClass:
+                        class UberClass(object):
                             def __init__(self, value):
                                 self.value = value
-                        self.setResult(name, UberClass(result))
+                        self.set_output(name, UberClass(result))
 
             # create docstring
             inputs = ", ".join([t[0]+' '+i for i,t in m.inputs.iteritems()])
@@ -653,6 +653,9 @@ Outputs:
             reg.add_module(M, **{'namespace':'Methods',
                                  'package':self.signature,
                                  'package_version':self.wsdlHash})
+            reg.add_input_port(self.methodClasses[m.qname], 'cacheable',
+                               wsdlTypesDict['boolean'], optional=True)
+
             # add ports
             for p, ptype in m.inputs.iteritems():
                 if ptype[1] in wsdlSchemas:
@@ -682,7 +685,8 @@ def load_from_signature(signature):
     if not wsdl in wsdlList:
         try:
             service = Service(wsdl)
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return False
         if not service.service:
             return False
@@ -740,7 +744,8 @@ def handle_missing_module(controller, module_id, pipeline):
         try:
             wsdl = m_namespace.split("|")
             return wsdl[0]
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return None
     
     m = pipeline.modules[module_id]
@@ -850,9 +855,10 @@ def callContextMenu(signature):
         s = Service(wsdl)
         if s.service:
             webServicesDict[wsdl] = s
-            wsdlList = configuration.wsdlList.split(";")
-            wsdlList.append(wsdl)
-            configuration.wsdlList = ';'.join(wsdlList)
+            if configuration.wsdlList:
+                configuration.wsdlList += ';' + wsdl
+            else:
+                configuration.wsdlList = wsdl
     elif signature.startswith('SUDS#'):
         address = toAddress(signature)
         from PyQt4 import QtGui 

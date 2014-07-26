@@ -9,9 +9,11 @@ ${specs.custom_code}
 
 <%def name="get_props(t_ps)">\
 % if t_ps.constructor_arg:
-self.constructor_props['${t_ps.arg}']\
+artist.constructor_props['${t_ps.arg}']\
+% elif t_ps.not_setp:
+artist.not_setp_props['${t_ps.arg}']\
 % else:
-self.props['${t_ps.arg}']\
+artist.props['${t_ps.arg}']\
 % endif
 </%def>
 
@@ -63,35 +65,71 @@ class ${spec.name}(${spec.superklass}):
         % endfor
         ]
 
-    # no output ports except self
-    _output_ports = [("self", "(${spec.name})")]
+    # only one output port: 'value'
+    _output_ports = [("value", "(${spec.name})")]
 
-    def __init__(self):
-        ${spec.superklass}.__init__(self)
-        self.props = {}
-        self.constructor_props = {}
-        self.sub_props = {}
-        % if spec.get_init():
-        ${spec.get_init()}
-        % endif
+    class Artist(${spec.superklass}.Artist):
+        def __init__(self):
+            self.props = {}
+            self.constructor_props = {}
+            self.not_setp_props = {}
+            self.sub_props = {}
+            % if spec.get_init():
+            ${spec.get_init()}
+            % endif
 
-    def compute(self):
+        def update_props(self, objs):
+            matplotlib.artist.setp(objs, **self.props)
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                for attr_name, attr_val in self.not_setp_props.iteritems():
+                    setattr(obj, attr_name, attr_val)
+            self.update_sub_props(objs)
+
+        def update_sub_props(self, objs):
+            ${spec.superklass}.Artist.update_sub_props(self, objs)
+            % if any(ps.is_property() for ps in spec.output_port_specs):
+            if not matplotlib.cbook.iterable(objs):
+                objs_iter = [objs]
+            else:
+                objs_iter = matplotlib.cbook.flatten(objs)
+            for obj in objs_iter:
+                % for ps in spec.output_port_specs:
+                % if ps.is_property():
+                if '${ps.arg}' in self.sub_props:
+                    self.sub_props['${ps.arg}'].update_props(obj.${ps.compute_parent})
+                % endif
+                % endfor
+            % endif
+
+        def update_kwargs(self, kwargs):
+            kwargs.update(self.constructor_props)
+            kwargs.update(self.props)
+
+    def compute(self, artist=None):
+        if artist is None:
+            artist = ${spec.name}.Artist()
+            self.setResult("value", artist)
+
         % if spec.get_compute_before():
         ${spec.get_compute_before()}
         % endif
-        ${spec.superklass}.compute(self)
+        ${spec.superklass}.compute(self, artist)
         % for ps in spec.port_specs:
         % if not ps.hide and ps.in_kwargs:
         % if ps.required:
         % if ps.has_alternate_versions():
-        if self.hasInputFromPort('${ps.name}'):
-            ${get_props(ps)} = self.getInputFromPort('${ps.name}')
+        if self.has_input('${ps.name}'):
+            ${get_props(ps)} = self.get_input('${ps.name}')
             % if ps.translations:
             ${do_translate(spec, ps)}
             % endif
         % for alt_ps in ps.alternate_specs:
-        elif self.hasInputFromPort('${alt_ps.name}'):
-            ${get_props(ps)} = self.getInputFromPort('${alt_ps.name}')
+        elif self.has_input('${alt_ps.name}'):
+            ${get_props(ps)} = self.get_input('${alt_ps.name}')
             % if alt_ps.translations:
             ${do_translate(spec, alt_ps, ps)}
             % endif
@@ -100,66 +138,37 @@ class ${spec.name}(${spec.superklass}):
             raise ModuleError(self, 'Must set one of "${ps.name}", ' \
                                   '${', '.join('"%s"' % alt_ps.name for alt_ps in ps.alternate_specs)}')
         % else:
-        ${get_props(ps)} = self.getInputFromPort('${ps.name}')
+        ${get_props(ps)} = self.get_input('${ps.name}')
         % if ps.translations:
         ${do_translate(spec, ps)}
         % endif
         % endif
-        ## self.props['${ps.arg}'] = self.getInputFromPort('${ps.name}')
-        ## % if ps.translations:
-        ## ${do_translate(spec, ps)}
-        ## % endif
         % else:
-        if self.hasInputFromPort('${ps.name}'):
-            ${get_props(ps)} = self.getInputFromPort('${ps.name}')
+        if self.has_input('${ps.name}'):
+            ${get_props(ps)} = self.get_input('${ps.name}')
             % if ps.translations:
             ${do_translate(spec, ps)}
             % endif
         % for alt_ps in ps.alternate_specs:
-        elif self.hasInputFromPort('${alt_ps.name}'):
-            ${get_props(ps)} = self.getInputFromPort('${alt_ps.name}')
+        elif self.has_input('${alt_ps.name}'):
+            ${get_props(ps)} = self.get_input('${alt_ps.name}')
             % if alt_ps.translations:
             ${do_translate(spec, alt_ps, ps)}
             % endif
         % endfor
-        ## if self.hasInputFromPort('${ps.name}'):
-        ##     self.props['${ps.arg}'] = self.getInputFromPort('${ps.name}')
-        ##     % if ps.translations:
-        ##     ${do_translate(spec, ps)}
-        ##     % endif
         % endif
         % endif
         % endfor
         % for ps in spec.output_port_specs:
         % if ps.is_property():
-        if self.hasInputFromPort('${ps.name}'):
-            self.sub_props['${ps.arg}'] = self.getInputFromPort('${ps.name}')
+        if self.has_input('${ps.name}'):
+            artist.sub_props['${ps.arg}'] = self.get_input('${ps.name}')
         % endif
         % endfor            
 
         % if spec.get_compute_after():
         ${spec.get_compute_after()}
         % endif
-        
-    def update_props(self, objs):
-        matplotlib.artist.setp(objs, **self.props)
-        % if any(ps.is_property() for ps in spec.output_port_specs):
-        if not matplotlib.cbook.iterable(objs):
-            objs = [objs]
-        else:
-            objs = matplotlib.cbook.flatten(objs)
-        for obj in objs:
-            % for ps in spec.output_port_specs:
-            % if ps.is_property():
-            if '${ps.arg}' in self.sub_props:
-                self.sub_props['${ps.arg}'].update_props(obj.${ps.compute_parent})
-            % endif
-            % endfor
-        % endif
-
-    def update_kwargs(self, kwargs):
-        kwargs.update(self.constructor_props)
-        kwargs.update(self.props)
 
 % endfor
 

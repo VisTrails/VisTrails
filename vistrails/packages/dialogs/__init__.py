@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,7 +35,18 @@
 """dialogs provides modules for user-based interaction on execution.
 Users can then enter file names, numbers, strings, etc."""
 
+from vistrails.core.packagemanager import get_package_manager
+
+
 identifier = 'org.vistrails.vistrails.dialogs'
 name = 'Dialogs'
-version = '0.9.1'
+version = '0.9.2'
 old_identifiers = ['edu.utah.sci.vistrails.dialogs']
+
+
+def package_dependencies():
+    pm = get_package_manager()
+    if pm.has_package('org.vistrails.vistrails.spreadsheet'):
+        return ['org.vistrails.vistrails.spreadsheet']
+    else:
+        return []

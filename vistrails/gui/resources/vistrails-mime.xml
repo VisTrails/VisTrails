@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
+  <mime-type type="application/x-vistrails">
+
+    <comment>VisTrails</comment>
+
+    <glob pattern="*.vt"/>
+    <glob pattern="*.vtl"/>
+
+  </mime-type>
+</mime-info>

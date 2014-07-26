@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -200,6 +200,10 @@ def translate_log(log, version=None, target_version=None):
 
 def translate_registry(registry, version=None, target_version=None):
     return translate_object(registry, 'translateRegistry', version, 
+                            target_version)
+
+def translate_startup(startup, version=None, target_version=None):
+    return translate_object(startup, 'translateStartup', version,
                             target_version)
 
 def get_version_name(version_no):

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,13 +33,19 @@
 ##
 ###############################################################################
 
-import sys
-import os
+if __name__ == '__main__':
+    import sip
+    sip.setapi('QString', 2)
+    sip.setapi('QVariant', 2)
+
 import json
-import subprocess
+import os
 import platform
-from PyQt4 import QtCore, QtGui
 import string
+import subprocess
+import sys
+import threading
+from PyQt4 import QtCore, QtGui
 
 encode_list = [['\xe2\x80\x90', '-'],
                ['\xe2\x80\x9d', '"'],
@@ -67,6 +73,48 @@ def quote_arg(arg):
         return '"%s"' % arg.replace('"', '\\"')
     else:
         return arg
+
+# From: https://gist.github.com/kirpit/1306188
+class Command(object):
+    """
+    Enables to run subprocess commands in a different thread with TIMEOUT option.
+ 
+    Based on jcollado's solution:
+    http://stackoverflow.com/questions/1191374/subprocess-with-timeout/4825933#4825933
+    """
+    command = None
+    process = None
+    status = None
+    output, error = '', ''
+ 
+    def __init__(self, command):
+        self.command = command
+ 
+    def run(self, timeout=5, **kwargs):
+        """ Run a command then return: (status, output, error). """
+        def target(**kwargs):
+            try:
+                self.process = subprocess.Popen(self.command, **kwargs)
+                self.output, self.error = self.process.communicate()
+                self.status = self.process.returncode
+            except Exception:
+                import traceback
+                self.error = traceback.format_exc()
+                self.status = -1
+        # default stdout and stderr
+        if 'stdout' not in kwargs:
+            kwargs['stdout'] = subprocess.PIPE
+        if 'stderr' not in kwargs:
+            kwargs['stderr'] = subprocess.PIPE
+        # thread
+        print "calling with kwargs", target, kwargs
+        thread = threading.Thread(target=target, kwargs=kwargs)
+        thread.start()
+        thread.join(timeout)
+        if thread.is_alive():
+            self.process.terminate()
+            thread.join()
+        return self.status, self.output, self.error
 
 class QCLToolsWizard(QtGui.QWidget):
     def __init__(self, parent, reload_scripts=None):
@@ -623,18 +671,19 @@ class QCLToolsWizard(QtGui.QWidget):
         
     def runProcess(self, args):
         try:
-            text, stderr = subprocess.Popen(args,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, shell=True).communicate()
+            command = Command(args)
+            status, text, stderr = command.run(stdout=subprocess.PIPE,
+                                               stderr=subprocess.PIPE,
+                                               shell=True)
             if not (text and len(text)):
                 text = stderr
-                if not (text and len(text)) or (text and text.beginswith('No ')):
+                if not (text and len(text)) or (text and text.startswith('No ')):
                     return None
             # fix weird formatting
             for a, b in encode_list:
                 text = text.replace(a, b)
             return text
-        except:
+        except Exception:
             return None
     
     def generateFromManPage(self):
@@ -658,7 +707,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '-h'])
+        text = self.runProcess(['-c', command + ' -h'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (-h) not found",
                                       "For command '%s'" % command)
@@ -676,7 +725,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '--help'])
+        text = self.runProcess(['-c', command + ' --help'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (--help) not found",
                                       "For command '%s'" % command)
@@ -707,7 +756,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '-h'])
+        text = self.runProcess(['-c', command + ' -h'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (-h) not found",
                                       "For command '%s'" % command)
@@ -720,7 +769,7 @@ class QCLToolsWizard(QtGui.QWidget):
         command = self.command.text()
         if command == '':
             return
-        text = self.runProcess([command, '--help'])
+        text = self.runProcess(['-c', command + ' --help'])
         if not text:
             QtGui.QMessageBox.warning(self, "Help page (--help) not found",
                                       "For command '%s'" % command)
@@ -739,7 +788,8 @@ class QCLToolsWizard(QtGui.QWidget):
 class QArgWidget(QtGui.QWidget):
     """ Widget for configuring an argument """
     KLASSES = {
-            'input': ['flag', 'file', 'string', 'integer', 'float', 'list'],
+            'input': ['flag', 'file', 'path', 'directory',
+                      'string', 'integer', 'float', 'list'],
             'output': ['file', 'string'],
             'inputoutput': ['file'],
             'stdin': ['file', 'string'],
@@ -752,6 +802,8 @@ class QArgWidget(QtGui.QWidget):
             'integer': 'Integer',
             'float': 'Float',
             'file': 'File',
+            'path': 'Path',
+            'directory': 'Directory',
             'list': 'List',
         }
 
@@ -817,7 +869,7 @@ class QArgWidget(QtGui.QWidget):
             self.klassDict[n] = i
         self.klassList.setCurrentIndex(self.klassDict.get(self.klass, 0))
         #label = QtGui.QLabel('Class:')
-        tt = 'Port Type. Can be String, Integer, Float, File or Boolean Flag. List means an input list of one of the other types. Only File and String should be used for output ports.'
+        tt = 'Port Type. Can be String, Integer, Float, File/Directory/Path or Boolean Flag. List means an input list of one of the other types. Only File and String should be used for output ports.'
         self.klassList.setToolTip(tt)
         #label.setToolTip(tt)
         #layout1.addWidget(label)
@@ -862,7 +914,7 @@ class QArgWidget(QtGui.QWidget):
         layout2.addWidget(self.required)
         
         # subtype
-        self.subList = ['String', 'Integer', 'Float', 'File']
+        self.subList = ['String', 'Integer', 'Float', 'File', 'Directory', 'Path']
         self.subDict = dict(zip(self.subList, xrange(len(self.subList))))
         self.subDict.update(dict(zip([s.lower() for s in self.subList], xrange(len(self.subList)))))
         self.subtype = QtGui.QComboBox()
@@ -959,15 +1011,17 @@ class QArgWidget(QtGui.QWidget):
             
     def fromList(self, arg):
         if self.argtype not in self.stdTypes:
-            self.argtype, self.name, self.klass, self.options = arg
+            self.argtype, self.name, klass, self.options = arg
         else:
-            self.name, self.klass, self.options = arg
+            self.name, klass, self.options = arg
+        self.klass = klass.lower()
         self.setValues()
 
     def klassChanged(self, index=None):
         if self.argtype in self.stdTypes:
             return
         klass = self.klassList.itemData(self.klassList.currentIndex())
+        type = self.typeList.itemData(self.typeList.currentIndex())
         self.listLabel.setVisible(klass == "list" and type == 'input')
         self.subtype.setVisible(klass == "list" and type == 'input')
 
@@ -994,9 +1048,15 @@ class QArgWidget(QtGui.QWidget):
 
     def guess(self, name, count=0):
         """ add argument by guessing what the arg might be """
-        if '.' in name or '/' in name or '\\' in name: # guess file
-            self.fromList(['Input', 'file%s' % count, 'File',
-                           {'desc':'"%s" guessed to be an Input file' % name}])
+        if '.' in name or '/' in name or '\\' in name: # guess path
+            if os.path.isfile(name):
+                guessed, type_ = 'file', 'File'
+            elif os.path.isdir(name):
+                guessed, type_ = 'directory', 'Directory'
+            else:
+                guessed, type_ = 'path', 'Path'
+            self.fromList(['Input', '%s%d' % (guessed, count), type_,
+                           {'desc':'"%s" guessed to be an Input %s' % (name, guessed)}])
         elif name.startswith('-'): # guess flag
             self.fromList(['Input', 'flag%s' % name, 'Flag',
                            {'desc':'"%s" guessed to be a flag' % name,

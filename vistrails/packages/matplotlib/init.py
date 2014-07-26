@@ -32,33 +32,15 @@
 ##
 ###############################################################################
 
-import copy
-import time
-import urllib
+import matplotlib
+matplotlib.use('Qt4Agg', warn=False)
 
-import vistrails.core.modules
 import vistrails.core.modules.module_registry
-from vistrails.core import debug
 import vistrails.core.db.action
-from vistrails.core.modules.basic_modules import File, String, Boolean
-from vistrails.core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.operation import AddOp
 
-from vistrails.core.bundles import py_import
-try:
-    mpl_dict = {'pip': 'matplotlib',
-                'linux-debian': 'python-matplotlib',
-                'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    matplotlib = py_import('matplotlib', mpl_dict)
-    matplotlib.use('Qt4Agg', warn=False)
-    pylab = py_import('pylab', mpl_dict)
-    import matplotlib.transforms as mtransforms
-except Exception, e:
-    debug.critical("Exception: %s" % e)
-
-from bases import _modules as _base_modules
+from bases import _modules as _base_modules, MplFigureOutput
 from plots import _modules as _plot_modules
 from artists import _modules as _artist_modules
 from identifiers import identifier
@@ -72,8 +54,9 @@ def initialize(*args, **kwargs):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     if reg.has_module('org.vistrails.vistrails.spreadsheet',
                       'SpreadsheetCell'):
-        from figure_cell import MplFigureCell
+        from figure_cell import MplFigureCell, MplFigureToSpreadsheet
         _modules.append(MplFigureCell)
+        MplFigureOutput.register_output_mode(MplFigureToSpreadsheet)
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
@@ -104,7 +87,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         return (functions, connections)
 
     def find_figure(m):
-        has_new_module = False
         for edge in pipeline.graph.iter_edges_from(m.id):
             to_m = pipeline.modules[edge[1]]
             if to_m.name == 'MplFigure':
@@ -164,12 +146,13 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         old_loc = module.location
         old_figure = find_figure(module)
 
-    module_remap = {'MplPlot': 
+    module_remap = {'MplPlot':
                     [(None, '1.0.0', 'MplSource',
                       {'dst_port_remap': {'source': 'source',
                                           'Hide Toolbar': None},
-                       'src_port_remap': {'source': 'self'}})],
-                    'MplFigure': 
+                       'src_port_remap': {'source': 'value',
+                                          'self': 'value'}})],
+                    'MplFigure':
                     [(None, '1.0.0', None,
                       {'dst_port_remap': {'Script': 'addPlot'},
                        'src_port_remap': {'FigureManager': 'self',
@@ -185,8 +168,9 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                           'facecolor': None,
                                           'title': None,
                                           'xlabel': None,
-                                          'ylabel': None},
-                       'src_port_remap': {'source': 'self'}})],
+                                          'ylabel': None,
+                                          'self': 'value'},
+                       'src_port_remap': {'source': 'value'}})],
                     'MplHistogram':
                     [(None, '1.0.0', 'MplHist',
                       {'dst_port_remap': {'columnData': 'x',
@@ -194,9 +178,19 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                           'facecolor': None,
                                           'title': None,
                                           'xlabel': None,
-                                          'ylabel': None},
-                       'src_port_remap': {'source': 'self'}})],
+                                          'ylabel': None,
+                                          'self': 'value'},
+                       'src_port_remap': {'source': 'value'}})],
                 }
+
+    # '1.0.2' -> '1.0.3' changes 'self' output port to 'value'
+    module_remap.setdefault('MplSource', []).append(
+                (None, '1.0.3', None, {
+                 'src_port_remap': {'self': 'value'}}))
+    if module.name in (m.__name__ for m in _plot_modules + _artist_modules):
+        module_remap.setdefault(module.name, []).append(
+                (None, '1.0.3', None, {
+                 'src_port_remap': {'self': 'value'}}))
 
     action_list = []
     if old_figure[1] is not None and \
@@ -280,9 +274,5 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                          fig_module,
                                          'axesProperties')
         more_ops.append(('add', new_conn))
-    
-    # for action in action_list:
-    #     for op in action.operations:
-    #         print "@+>:", op
+
     return action_list
-            

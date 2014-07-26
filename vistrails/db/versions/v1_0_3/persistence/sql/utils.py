@@ -39,6 +39,7 @@ import os
 
 from vistrails.core import debug
 from vistrails.core.bundles import py_import
+from vistrails.core.system import strftime
 
 from vistrails.db.versions.v1_0_3 import version as my_version
 from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBWorkflow, DBLog, \
@@ -214,7 +215,7 @@ def translate_to_tbl_name(obj_type):
     return map[obj_type]
 
 def date_to_str(date):
-    return date.strftime('%Y-%m-%d %H:%M:%S')
+    return strftime(date, '%Y-%m-%d %H:%M:%S')
 
 def get_db_object_list(db_connection, obj_type):
     
@@ -514,7 +515,7 @@ def insert_thumbnails_into_db(db_connection, abs_fnames):
             image_file = open(absfname, 'rb')
             image_bytes = image_file.read()
             image_file.close()
-            c.execute(prepared_statement, (os.path.basename(absfname), image_bytes, get_current_time(db_connection).strftime('%Y-%m-%d %H:%M:%S')))
+            c.execute(prepared_statement, (os.path.basename(absfname), image_bytes, strftime(get_current_time(db_connection), '%Y-%m-%d %H:%M:%S')))
             db_connection.commit()
         c.close()
     except IOError, e:

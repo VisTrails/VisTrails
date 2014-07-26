@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,16 +37,18 @@ from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, 
                                       DBAdd, DBChange, DBDelete, \
                                       DBPortSpec, DBPortSpecItem, \
                                       DBParameterExploration, \
-                                      DBParameter, DBFunction, \
+                                      DBPEParameter, DBPEFunction, \
                                       IdScope, DBAbstraction, \
                                       DBModule, DBGroup, DBAnnotation, \
                                       DBActionAnnotation
 
 from vistrails.db.services.vistrail import materializeWorkflow
-from xml.dom.minidom import parseString
-from itertools import izip
 
+import os
+from itertools import izip
+from ast import literal_eval
 import unittest
+from xml.dom.minidom import parseString
 
 id_scope = None
 
@@ -58,7 +60,7 @@ def update_portSpec(old_obj, translate_dict):
         for sig in sigstring[1:-1].split(','):
             sigs.append(sig.split(':', 2))
     # not great to use eval...
-    defaults = eval(old_obj.db_defaults) if old_obj.db_defaults else []
+    defaults = literal_eval(old_obj.db_defaults) if old_obj.db_defaults else []
     if isinstance(defaults, basestring):
         defaults = (defaults,)
     else:
@@ -67,7 +69,7 @@ def update_portSpec(old_obj, translate_dict):
         except TypeError:
             defaults = (defaults,)
     # not great to use eval...
-    labels = eval(old_obj.db_labels) if old_obj.db_labels else []
+    labels = literal_eval(old_obj.db_labels) if old_obj.db_labels else []
     if isinstance(labels, basestring):
         labels = (labels,)
     else:
@@ -122,7 +124,7 @@ def createParameterExploration(action_id, xmlString, vistrail):
         striplen = len("<paramexps>")
         xmlString = xmlString[striplen:-(striplen+1)].strip()
         xmlDoc = parseString(xmlString).documentElement
-    except:
+    except Exception:
         return None
     # we need the pipeline to look up function/paramater id:s
     pipeline = materializeWorkflow(vistrail, action_id)
@@ -168,16 +170,18 @@ def createParameterExploration(action_id, xmlString, vistrail):
             elif p_intType == 'User-defined Function':
                 # Set function code
                 value = str(p.attributes['code'].value)
-            param = DBParameter(id=int(p.attributes['dim'].value),
-                                pos=p_pos,
-                                type=p_intType,
-                                val=value)
+            param = DBPEParameter(id=vistrail.idScope.getNewId(DBPEParameter.vtType),
+                                  pos=p_pos,
+                                  interpolator=p_intType,
+                                  value=value,
+                                  dimension=int(p.attributes['dim'].value))
             parameters.append(param)
         f_is_alias = (str(f.attributes['alias'].value) == 'True')
-        function = DBFunction(id=module_id,
-                              name=f_name,
-                              pos=1 if f_is_alias else 0,
-                              parameters=parameters)
+        function = DBPEFunction(id=vistrail.idScope.getNewId(DBPEFunction.vtType),
+                                module_id=module_id,
+                                port_name=f_name,
+                                is_alias=1 if f_is_alias else 0,
+                                parameters=parameters)
         functions.append(function)
     pe = DBParameterExploration(id=vistrail.idScope.getNewId(DBParameterExploration.vtType),
                                 action_id=action_id,
@@ -229,7 +233,7 @@ def translateVistrail(_vistrail):
         new_annotations = []
         for a in old_obj.db_annotations:
             if a.db_key == '__vistrail_vars__':
-                for name, data in dict(eval(a.db_value)).iteritems():
+                for name, data in dict(literal_eval(a.db_value)).iteritems():
                     uuid, identifier, value = data
                     package, module, namespace = identifier
                     var = DBVistrailVariable(name, uuid, package, module, 
@@ -313,7 +317,7 @@ class TestTranslate(unittest.TestCase):
         pes = vistrail.db_get_parameter_explorations()
         self.assertEqual(len(pes), 1)
         funs = pes[0].db_functions
-        self.assertEqual(set([f.db_name for f in funs]),
+        self.assertEqual(set([f.db_port_name for f in funs]),
                          set(['SetCoefficients', 'SetBackgroundWidget']))
         parameters = funs[0].db_parameters
         self.assertEqual(len(parameters), 10)
@@ -331,10 +335,8 @@ class TestTranslate(unittest.TestCase):
         self.assertEqual(len(visvars), 2)
         self.assertNotEqual(visvars[0].db_name, visvars[1].db_name)
 
+
 if __name__ == '__main__':
-    from vistrails.gui.application import start_application
-    v = start_application({'interactiveMode': False,
-                           'nologger': True,
-                           'singleInstance': False,
-                           'fixedSpreadsheetCells': True})
+    import vistrails.core.application
+    vistrails.core.application.init()
     unittest.main()

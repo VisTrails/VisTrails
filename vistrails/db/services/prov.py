@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,7 +35,6 @@
 import copy
 import sys
 import os
-#sys.path.append(os.getenv('VISTRAILS', ''))
 import vistrails.db.services.io
 from vistrails.db.domain import DBProvDocument, DBProvEntity, DBProvActivity, \
     DBProvAgent, DBProvGeneration, DBProvUsage, DBProvAssociation, \
@@ -407,7 +406,7 @@ def create_prov(workflow, version, log):
             
             try:
                 functions = module_functions[exec_._db_module_id]
-            except:
+            except Exception:
                 activities.append(prov_activity)
                 return True
                 

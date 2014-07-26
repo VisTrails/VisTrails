@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,13 +37,15 @@
 QParameterExplorationTab
 """
 from PyQt4 import QtCore, QtGui
+from ast import literal_eval
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape
 from vistrails.core import debug
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.param_explore import ActionBasedParameterExploration
-from vistrails.core.system import current_time, get_vistrails_default_pkg_prefix
+from vistrails.core.system import current_time, strftime, \
+    get_vistrails_default_pkg_prefix
 from vistrails.gui.common_widgets import QDockContainer, QToolWindowInterface
 from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget, QParameterSetEditor
 from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow
@@ -127,7 +129,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         """
         # Construct xml for persisting parameter exploration
         escape_dict = { "'":"&apos;", '"':'&quot;', '\n':'&#xa;' }
-        timestamp = current_time().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp = strftime(current_time(), '%Y-%m-%d %H:%M:%S')
         # TODO: For now, we use the timestamp as the 'name' - Later, we should set 'name' based on a UI input field
         xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.peWidget.table.label.getCounts()), str(self.virtualCell.getConfiguration()[2]), timestamp, timestamp)
         for i in xrange(self.peWidget.table.layout().count()):
@@ -166,15 +168,15 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         # Parse/validate the xml
         try:
             xmlDoc = parseString(xmlString).documentElement
-        except:
+        except Exception:
             debug.critical("Parameter Exploration load failed because of "
                            "invalid XML:\n\n%s" % xmlString)
             return
         # Set the exploration dimensions
-        dims = eval(str(xmlDoc.attributes['dims'].value))
+        dims = literal_eval(xmlDoc.attributes['dims'].value)
         self.peWidget.table.label.setCounts(dims)
         # Set the virtual cell layout
-        layout = eval(str(xmlDoc.attributes['layout'].value))
+        layout = literal_eval(xmlDoc.attributes['layout'].value)
         self.virtualCell.setConfiguration(layout)
         # Populate parameter exploration window with stored functions and aliases
         for f in xmlDoc.getElementsByTagName('function'):
@@ -215,7 +217,8 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                             elif p_intType == 'List':
                                 p_values = str(p.attributes['values'].value)
                                 # Set internal list structure
-                                interpolator._str_values = eval(p_values)
+                                interpolator._str_values = \
+                                        literal_eval(p_values)
                                 # Update UI list
                                 if interpolator.type == 'String':
                                     interpolator.listValues.setText(p_values)

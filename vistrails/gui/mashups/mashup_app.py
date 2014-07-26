@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,9 +35,10 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal
 
+from vistrails.core import debug
 from vistrails.gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
                                          QAliasNumericStepperWidget)
-from vistrails.gui.utils import show_warning
+from vistrails.gui.utils import show_warning, TestVisTrailsGUI
 
 spreadsheet = __import__('vistrails.packages.spreadsheet', globals(), locals(), 
                          ['spreadsheet_controller'], -1) 
@@ -86,8 +87,10 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             self.setWindowTitle('Mashup')
 
         # Assign "hidden" shortcut
-        self.editingModeAct = QtGui.QAction("Chang&e Layout", self, shortcut="Ctrl+E",
-               statusTip="Change the layout of the widgets", triggered=self.toggleEditingMode)
+        self.editingModeAct = QtGui.QAction("Chang&e Layout",
+                                 self, shortcut="Ctrl+E",
+                                 statusTip="Change the layout of the widgets",
+                                 triggered=self.toggleEditingMode)
         #self.editingModeShortcut = QtGui.QShortcut(QtGui.QKeySequence('Ctrl+E'), self)
         #self.connect(self.editingModeShortcut, QtCore.SIGNAL('activated()'),
         #             self.toggleEditingMode)
@@ -105,7 +108,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             self.initCells(cellEvents)
         if len(errors) > 0:
             show_warning("VisTrails::Mashup Preview", 
-                         "There was a problem executing the pipeline: %s."%errors)
+                         "There was a problem executing the pipeline: %s." %
+                         errors)
         # Construct the controllers for aliases
         self.controlDocks = {}
         self.cellControls = {}
@@ -118,7 +122,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         
         if self.currentMashup.geometry != None:
             self.restoreGeometry(QtCore.QByteArray.fromPercentEncoding(
-                                QtCore.QByteArray(self.currentMashup.geometry)))
+                              QtCore.QByteArray(self.currentMashup.geometry)))
         else:
             self.resize(self.sizeHint())
                     
@@ -130,18 +134,25 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         buttonLayout = QtGui.QGridLayout()
         buttonWidget.setLayout(buttonLayout)
         buttonLayout.setMargin(5)
-        self.cb_auto_update = QtGui.QCheckBox("Turn on auto-update", self.centralWidget())
+        self.cb_auto_update = QtGui.QCheckBox("Turn on auto-update",
+                                              self.centralWidget())
         self.cb_auto_update.setChecked(False)
-        self.cb_loop_sequence = QtGui.QCheckBox("Render all steps in '%s'" % self.sequenceOption.alias.name, self.centralWidget())
+        self.cb_loop_sequence = QtGui.QCheckBox("Render all steps in '%s'" % \
+           (self.sequenceOption.alias.name if self.sequenceOption else 'None'),
+            self.centralWidget())
         self.cb_loop_sequence.setChecked(False)
         self.cb_loop_sequence.setVisible(self.sequenceOption is not False)
-        self.cb_loop_sequence.setToolTip("Render each step of this stepper for fast switching")
-        self.cb_loop_int = QtGui.QCheckBox("Interactive Steps", self.centralWidget())
+        self.cb_loop_sequence.setToolTip(
+                        "Render each step of this stepper for fast switching")
+        self.cb_loop_int = QtGui.QCheckBox("Interactive Steps",
+                                           self.centralWidget())
         self.cb_loop_int.setChecked(False)
         self.cb_loop_int.setVisible(False)
-        self.cb_loop_int.setToolTip("Show complete result of each step instead of static images")
+        self.cb_loop_int.setToolTip(
+                 "Show complete result of each step instead of static images")
         self.cb_loop_sequence.clicked.connect(self.cb_loop_int.setVisible)
-        self.cb_keep_camera = QtGui.QCheckBox("Keep camera position", self.centralWidget())
+        self.cb_keep_camera = QtGui.QCheckBox("Keep camera position",
+                                              self.centralWidget())
         self.cb_keep_camera.setChecked(True)
         self.connect(self.cb_auto_update,
                      QtCore.SIGNAL("stateChanged(int)"),
@@ -225,7 +236,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 cellEvents = spreadsheetController.getEchoCellEvents()
         except Exception, e:
             import traceback
-            print "Executing pipeline failed:", str(e), traceback.format_exc()
+            debug.unexpected_exception(e)
+            print "Executing pipeline failed:", debug.format_exception(e), traceback.format_exc()
         finally:
             spreadsheetController.setEchoMode(False)
             
@@ -239,8 +251,12 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         (cellEvents, errors) = self.runAndGetCellEvents()
         self.is_executing = False
         if len(cellEvents) != self.numberOfCells:
-            raise Exception('The number of cells has changed (unexpectedly) (%d vs. %d)!\n \
-Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
+            raise RuntimeError(
+                    "The number of cells has changed (unexpectedly) "
+                    "(%d vs. %d)!\n"
+                    "Pipeline results: %s" % (len(cellEvents),
+                                              self.numberOfCells,
+                                              errors))
         #self.SaveCamera()
         for i in xrange(self.numberOfCells):
             camera = []
@@ -281,8 +297,12 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
         while True:
             (cellEvents, errors) = self.runAndGetCellEvents()
             if len(cellEvents) != self.numberOfCells:
-                raise Exception('The number of cells has changed (unexpectedly) (%d vs. %d)!\n \
-    Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
+                raise RuntimeError(
+                        "The number of cells has changed (unexpectedly) "
+                        "(%d vs. %d)!\n"
+                        "Pipeline results: %s" % (len(cellEvents),
+                                                  self.numberOfCells,
+                                                  errors))
             if interactive:
                 self.steps.append([])
             else:
@@ -463,13 +483,13 @@ Pipeline results: %s' % (len(cellEvents), self.numberOfCells, errors))
             cellWidget = event.cellType(self.centralWidget())
             if event.cellType.__name__ == 'QVTKWidget':
                 vtkCells.append(cellWidget)
-            cellWidget.updateContents(event.inputPorts)
             cellWidget.show()
             cellWidget.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                       QtGui.QSizePolicy.Expanding)
             cellWidget.setMinimumSize(300, 100)
             cellLayout.addWidget(cellWidget)
             self.cellWidgets.append(cellWidget)
+            cellWidget.updateContents(event.inputPorts)
         def getSelectedCellWidgets():
             return vtkCells
         for cellWidget in self.vtkCells:
@@ -587,3 +607,23 @@ class QCustomDockWidget(QtGui.QDockWidget):
             self.hideTitleBar()
         else:
             self.showTitleBar()
+
+################################################################################
+# Testing
+
+
+class TestMashupApp(TestVisTrailsGUI):
+
+    def test_load_mashup(self):
+        import vistrails.core.system
+        filename = (vistrails.core.system.vistrails_root_directory() + 
+                    '/tests/resources/spx_loop.vt')
+        view = vistrails.api.open_vistrail_from_file(filename)
+        view.controller.flush_delayed_actions()
+        id = "d5026457-de6c-11e2-b074-3c07543dba07"
+        mashup = view.get_mashup_from_mashuptrail_id(id, "loop")
+        self.assert_(mashup)
+        view.open_mashup(mashup)
+        mashup = view.get_mashup_from_mashuptrail_id(id, "no loop")
+        self.assert_(mashup)
+        view.open_mashup(mashup)

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -203,7 +203,7 @@ def getBuilderWindow():
     """
     try:
         return QtCore.QCoreApplication.instance().builderWindow
-    except:
+    except AttributeError:
         return None
 
 def getCurrentVersion():

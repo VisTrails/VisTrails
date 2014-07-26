@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,8 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.db import VistrailsDBException
+
+from datetime import date, datetime
+
 from vistrails.core import debug
+from vistrails.core.system import strftime, time_strptime
+from vistrails.db import VistrailsDBException
 
 class SQLDAO:
     def __init__(self):
@@ -53,13 +57,13 @@ class SQLDAO:
                 if db_type == 'date':
                     return value
                 else:
-                    return date(*strptime(str(value), '%Y-%m-%d')[0:3])
+                    return date(*time_strptime(str(value), '%Y-%m-%d')[0:3])
             elif type == 'datetime':
                 if db_type == 'datetime':
                     return value
                 else:
-                    return datetime(*strptime(str(value), 
-                                              '%Y-%m-%d %H:%M:%S')[0:6])
+                    return datetime(*time_strptime(str(value),
+                                                   '%Y-%m-%d %H:%M:%S')[0:6])
         return None
 
     def convertWarning(self, before, after, _from, to):
@@ -116,7 +120,7 @@ class SQLDAO:
             elif type == 'date':
                 return value.isoformat()
             elif type == 'datetime':
-                return value.strftime('%Y-%m-%d %H:%M:%S')
+                return strftime(value, '%Y-%m-%d %H:%M:%S')
             else:
                 return str(value)
 

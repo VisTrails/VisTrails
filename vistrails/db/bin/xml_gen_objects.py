@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -188,7 +188,7 @@ def convert_schema_order(objects, root_type):
             cur_objects = [obj]
             break
     if len(ref_objects) < 1:
-        raise Exception("Cannot find root %s" % root_type)
+        raise ValueError("Cannot find root %s" % root_type)
     while len(cur_objects) > 0:
         next_objects = []
         for obj in cur_objects:

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -42,7 +42,7 @@ def smart_sum(v):
     try:
         fst = v.next()
         return sum(v, fst)
-    except:
+    except Exception:
         pass
     fst = v[0]
     return sum(v[1:], fst)

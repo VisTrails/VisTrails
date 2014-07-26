@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,7 +35,8 @@
 ################################################################################
 # ImageViewer plugin for VisTrails Spreadsheet
 ################################################################################
-from imageviewer import ImageViewerCell
+from imageviewer import ImageViewerCell, ImageFileToSpreadsheet
+from vistrails.core.modules.output_modules import ImageFileOutput
 
 ################################################################################
 
@@ -56,3 +57,5 @@ def registerWidget(reg, basicModules, basicWidgets):
     reg.add_module(ImageViewerCell)
     reg.add_input_port(ImageViewerCell, "Location", basicWidgets.CellLocation)
     reg.add_input_port(ImageViewerCell, "File", basicModules.File)    
+    
+    ImageFileOutput.register_output_mode(ImageFileToSpreadsheet)

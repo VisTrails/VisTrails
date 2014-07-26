@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,20 +34,19 @@
 ###############################################################################
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleError
-from vistrails.core.modules.basic_modules import NotCacheable
 import copy
 
 #################################################################################
 ## If Operator
 
-class If(Module, NotCacheable):
+class If(Module):
     """
     The If Module alows the user to choose the part of the workflow to be
     executed through the use of a condition.
     """
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update_upstream(self):
+        """A modified version of the update_upstream method."""
 
         # everything is the same except that we don't update anything
         # upstream of TruePort or FalsePort
@@ -62,14 +61,14 @@ class If(Module, NotCacheable):
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
                             InvalidOutput:
-                        self.removeInputConnector(port_name, connector)
+                        self.remove_input_connector(port_name, connector)
 
     def compute(self):
         """ The compute method for the If module."""
 
-        if not self.hasInputFromPort('Condition'):
+        if not self.has_input('Condition'):
             raise ModuleError(self, 'Must set condition')
-        cond = self.getInputFromPort('Condition')
+        cond = self.get_input('Condition')
 
         if cond:
             port_name = 'TruePort'
@@ -78,33 +77,32 @@ class If(Module, NotCacheable):
             port_name = 'FalsePort'
             output_ports_name = 'FalseOutputPorts'
 
-        if self.hasInputFromPort(output_ports_name):
+        if self.has_input(output_ports_name):
             for connector in self.inputPorts.get(output_ports_name):
                 connector.obj.update()
 
-        if not self.hasInputFromPort(port_name):
+        if not self.has_input(port_name):
             raise ModuleError(self, 'Must set ' + port_name)
 
         for connector in self.inputPorts.get(port_name):
-            connector.obj.upToDate = False
             connector.obj.update()
 
-            if self.hasInputFromPort(output_ports_name):
-                output_ports = self.getInputFromPort(output_ports_name)
+            if self.has_input(output_ports_name):
+                output_ports = self.get_input(output_ports_name)
                 result = []
                 for output_port in output_ports:
                     result.append(connector.obj.get_output(output_port))
 
                 # FIXME can we just make this a list?
                 if len(output_ports) == 1:
-                    self.setResult('Result', result[0])
+                    self.set_output('Result', result[0])
                 else:
-                    self.setResult('Result', result)
+                    self.set_output('Result', result)
 
 #################################################################################
 ## Default module
 
-class Default(Module, NotCacheable):
+class Default(Module):
     """
     The Default module allows the user to provide a default value.
 
@@ -115,7 +113,86 @@ class Default(Module, NotCacheable):
     """
 
     def compute(self):
-        if self.hasInputFromPort('Input'):
-            self.setResult('Result', self.getInputFromPort('Input'))
+        if self.has_input('Input'):
+            self.set_output('Result', self.get_input('Input'))
         else:
-            self.setResult('Result', self.getInputFromPort('Default'))
+            self.set_output('Result', self.get_input('Default'))
+
+
+###############################################################################
+
+import unittest
+import urllib2
+
+from vistrails.tests.utils import intercept_result, execute
+
+class TestIf(unittest.TestCase):
+    def do_if(self, val):
+        with intercept_result(If, 'Result') as results:
+            interp_dict = execute([
+                    ('If', 'org.vistrails.vistrails.control_flow', [
+                        ('FalseOutputPorts', [('List', "['value']")]),
+                        ('TrueOutputPorts', [('List', "['value']")]),
+                        ('Condition', [('Boolean', str(val))]),
+                    ]),
+                    ('Integer', 'org.vistrails.vistrails.basic', [
+                        ('value', [('Integer', '42')]),
+                    ]),
+                    ('Integer', 'org.vistrails.vistrails.basic', [
+                        ('value', [('Integer', '28')]),
+                    ]),
+                ],
+                [
+                    (1, 'self', 0, 'TruePort'),
+                    (2, 'self', 0, 'FalsePort'),
+                ],
+                full_results=True)
+            self.assertFalse(interp_dict.errors)
+        if val:
+            self.assertEqual(results, [42])
+        else:
+            self.assertEqual(results, [28])
+        self.assertEqual(interp_dict.executed, {0: True, 1: val, 2: not val})
+
+    def test_if_true(self):
+        self.do_if(True)
+
+    def test_if_false(self):
+        self.do_if(False)
+
+
+class TestDefault(unittest.TestCase):
+    def do_default(self, val):
+        if val:
+            src = 'o = 42'
+        else:
+            src = ('from vistrails.core.modules.vistrails_module import '
+                   'InvalidOutput\n'
+                   'o = InvalidOutput')
+        src = urllib2.quote(src)
+        with intercept_result(Default, 'Result') as results:
+            self.assertFalse(execute([
+                    ('Default', 'org.vistrails.vistrails.control_flow', [
+                        ('Default', [('Integer', '28')]),
+                    ]),
+                    ('PythonSource', 'org.vistrails.vistrails.basic', [
+                        ('source', [('String', src)]),
+                    ]),
+                ],
+                [
+                    (1, 'o', 0, 'Input'),
+                ],
+                add_port_specs=[
+                    (1, 'output', 'o',
+                     'org.vistrails.vistrails.basic:Integer'),
+                ]))
+        if val:
+            self.assertEqual(results, [42])
+        else:
+            self.assertEqual(results, [28])
+
+    def test_default_set(self):
+        self.do_default(True)
+
+    def test_default_unset(self):
+        self.do_default(False)

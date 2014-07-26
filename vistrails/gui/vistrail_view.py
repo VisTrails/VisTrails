@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,16 +38,15 @@ from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
 from vistrails.core.collection import Collection
-from vistrails.core.debug import critical
-from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.system import vistrails_default_file_type
+from vistrails.core.system import vistrails_default_file_type, \
+    vistrails_file_directory
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.log.log import Log
 from vistrails.core.log.opm_graph import OpmGraph
 from vistrails.core.log.prov_document import ProvDocument
-from vistrails.core.db.locator import FileLocator, XMLFileLocator
+from vistrails.core.db.locator import XMLFileLocator
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.configuration import get_vistrails_configuration
 
@@ -58,7 +57,6 @@ from vistrails.gui.version_view import QVersionTreeView
 from vistrails.gui.query_view import QQueryView
 from vistrails.gui.paramexplore.pe_view import QParamExploreView
 from vistrails.gui.vis_diff import QDiffView
-from vistrails.gui.paramexplore.param_view import QParameterView
 from vistrails.gui.vistrail_controller import VistrailController
 from vistrails.gui.mashups.mashup_view import QMashupView
 from vistrails.gui.ports_pane import ParameterEntry
@@ -231,8 +229,8 @@ class QVistrailView(QtGui.QWidget):
         try:
             qaction = self.tab_state[self.tabs.currentIndex()]
             qaction.trigger()
-        except:
-            pass
+        except Exception, e:
+            debug.unexpected_exception(e)
         
     def reset_tab_view_to_current(self):
         index = self.tabs.currentIndex()
@@ -356,7 +354,8 @@ class QVistrailView(QtGui.QWidget):
             self.mashup_view.updateView()
             self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
         except Exception, e:
-            print "EXCEPTION: ", str(e)
+            debug.unexpected_exception(e)
+            print "EXCEPTION: ", debug.format_exception(e)
     def mashup_unselected(self):
         #print "MASHUP UN"
         self.stack.setCurrentIndex(
@@ -423,7 +422,6 @@ class QVistrailView(QtGui.QWidget):
                         newPipelineView
                     module.pipeline.ensure_connection_specs()
                     newPipelineView.scene().setupScene(module.pipeline)
-                    newPipelineView.scene().current_pipeline = module.pipeline
 
     def create_view(self, klass, add_tab=True):
         view = klass(self)
@@ -597,12 +595,12 @@ class QVistrailView(QtGui.QWidget):
 
     def view_changed(self):
         from vistrails.gui.vistrails_window import _app
-        _app.closeNotPinPalettes()
         #view = self.stack.currentWidget()
         view = self.get_current_outer_tab()
         #print "changing tab from: ",self.current_tab, " to ", view
         #print self.tab_to_stack_idx
         if view != self.current_tab:
+            _app.closeNotPinPalettes()
             #print "!!unset_action_links of ", self.current_tab
             _app.unset_action_links(self.current_tab)
             self.current_tab = view
@@ -616,10 +614,10 @@ class QVistrailView(QtGui.QWidget):
             #print "\n!!set_action_links of ", self.current_tab 
             _app.set_action_links(self.current_tab.action_links, self.current_tab,
                                   self)
+            self.showCurrentViewPalettes()
 
         #else:
            # print "tabs the same. do nothing"
-        self.showCurrentViewPalettes()
         if isinstance(view, QQueryView):
             _app.notify("controller_changed", view.p_controller)
             _app.notify("entry_klass_changed", QueryEntry)
@@ -889,16 +887,12 @@ class QVistrailView(QtGui.QWidget):
         #print "CALLED SAVE VISTRAIL", locator_class
 
         self.flush_changes()
+        self.controller.flush_delayed_actions()
         gui_get = locator_class.save_from_gui
         # get a locator to write to
+        if not locator or locator.is_untitled():
+            force_choose_locator = True
         if force_choose_locator:
-            locator = gui_get(self, Vistrail.vtType,
-                              self.controller.locator)
-        else:
-            locator = (self.controller.locator or
-                       gui_get(self, Vistrail.vtType,
-                               self.controller.locator))
-        if locator is not None and locator.is_untitled():
             locator = gui_get(self, Vistrail.vtType,
                               self.controller.locator)
         # if couldn't get one, ignore the request
@@ -908,12 +902,16 @@ class QVistrailView(QtGui.QWidget):
             self.controller.write_vistrail(locator, export=export)
         except Exception, e:
             import traceback
-            debug.critical('Failed to save vistrail: %s' % str(e),
-                           traceback.format_exc())
+            debug.critical('Failed to save vistrail', traceback.format_exc())
             raise
-            return False
         if export:
             return self.controller.locator
+        
+        if not force_choose_locator:
+            from vistrails.gui.vistrails_window import _app
+            _app.view_changed(self)
+            _app.notify("vistrail_saved")
+            return locator
         # update collection
         try:
             thumb_cache = ThumbnailCache.getInstance()
@@ -954,26 +952,15 @@ class QVistrailView(QtGui.QWidget):
         """ Exports vistrail without updating the current vistrail """
         self.save_vistrail(locator_class, force_choose_locator=True, export=True)
 
-    def export_stable(self, locator_class=XMLFileLocator,
-                      force_choose_locator=True):
-        """ save vistrail to previous stable version """
+    def export_stable(self, locator_class=XMLFileLocator):
+        """ save workflow to previous stable version """
         self.flush_changes()
         gui_get = locator_class.save_from_gui
-        if force_choose_locator:
-            locator = gui_get(self, Vistrail.vtType,
-                              self.controller.locator)
-        else:
-            locator = (self.controller.locator or
-                      gui_get(self, Vistrail.vtType, self.controller.locator))
-        if locator is not None and locator.is_untitled():
-            locator = gui_get(self, Vistrail.vtType,
-                              self.controller.locator)
+        locator = gui_get(self, Pipeline.vtType)
         if not locator:
             return False
-        self.controller.write_vistrail(locator, '1.0.2', True)
+        self.controller.write_workflow(locator, '1.0.3')
         return True
-
-
 
     # FIXME normalize workflow/log/registry!!!
     def save_workflow(self, locator_class, force_choose_locator=True):
@@ -1024,6 +1011,16 @@ class QVistrailView(QtGui.QWidget):
         if not locator:
             return False
         self.controller.write_registry(locator)
+
+    def save_version_graph(self):
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self.window(),
+            "Save DOT...",
+            vistrails_file_directory(),
+            "Graphviz DOT files (*.dot)")
+        if not filename:
+            return
+        self.controller.save_version_graph(filename)
 
 
     def save_opm(self, locator_class=XMLFileLocator, 
@@ -1100,12 +1097,22 @@ class QVistrailView(QtGui.QWidget):
         if hasattr(view, 'publish_to_paper'):
             view.publish_to_paper()
 
-    def open_mashup_from_mashuptrail_id(self, mashuptrail_id, mashupVersion):
+    def get_mashup_from_mashuptrail_id(self, mashuptrail_id, mashupVersion):
+        """get_mashup_from_mashuptrail_id(mashuptrail_id: int,
+                                           mashupVersion: int/str) -> None
+        It will find the matching mashuptrail and return the mashup
+        mashupVersion can be either version number or version tag
+
+        """
         for mashuptrail in self.controller._mashups:
             if str(mashuptrail.id) == mashuptrail_id:
+                try:
+                    mashupVersion = int(mashupVersion)
+                except ValueError:
+                    mashupVersion = mashuptrail.getTagMap()[mashupVersion]
                 mashup = mashuptrail.getMashup(mashupVersion)
-                self.open_mashup(mashup)
-                break
+                return mashup
+        return None
 
     def open_mashup(self, mashup):
         """open_mashup(mashup: Mashup) -> None

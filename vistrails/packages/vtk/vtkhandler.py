@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,11 +33,9 @@
 ##
 ###############################################################################
 """Modules for handling vtkRenderWindowInteractor events"""
-from PyQt4 import QtCore, QtGui
-from vistrails.core.modules.basic_modules import String
+from vistrails.core.modules.basic_modules import String, Variant
 from vistrails.core.modules.vistrails_module import Module, NotCacheable
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.vistrail.module_function import ModuleFunction, ModuleParam
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 from vistrails.gui.modules.python_source_configure import PythonEditor
 import urllib
@@ -137,9 +135,9 @@ class vtkInteractionHandler(NotCacheable, Module):
         """ compute() -> None
         Actually compute nothing
         """        
-        self.observer = self.forceGetInputFromPort('Observer')
-        self.handler = self.forceGetInputFromPort('Handler', '')
-        self.shareddata = self.forceGetInputListFromPort('SharedData')
+        self.observer = self.force_get_input('Observer')
+        self.handler = self.force_get_input('Handler', '')
+        self.shareddata = self.force_get_input_list('SharedData')
         if len(self.shareddata)==1:
             self.shareddata = self.shareddata[0]
         if self.observer:
@@ -215,6 +213,6 @@ def registerSelf():
     registry.add_module(vtkInteractionHandler, configureWidgetType=HandlerConfigurationWidget)
     registry.add_input_port(vtkInteractionHandler, 'Observer', vIO)
     registry.add_input_port(vtkInteractionHandler, 'Handler', String, True)
-    registry.add_input_port(vtkInteractionHandler, 'SharedData', Module)
+    registry.add_input_port(vtkInteractionHandler, 'SharedData', Variant)
     registry.add_output_port(vtkInteractionHandler, 'self',
                              vtkInteractionHandler)

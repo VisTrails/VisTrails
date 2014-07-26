@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -91,7 +91,10 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
     def set_controller(self, controller):
         self.controller = controller
         self.pe_properties.updateController(controller)
-        self.set_pipeline(self.controller.current_pipeline)
+        if self.controller is not None:
+            self.set_pipeline(self.controller.current_pipeline)
+        else:
+            self.set_pipeline(None)
 
     def set_pipeline(self, pipeline):
         self.pipeline = pipeline

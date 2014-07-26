@@ -58,12 +58,6 @@ class SpecList(object):
             elif elt.tag == "customCode":
                 custom_code = elt.text
         retval = SpecList(module_specs, custom_code)
-        # for spec in retval.module_specs:
-        #     print "==", spec.name, "=="
-        #     for ps in spec.port_specs:
-        #         print " ", ps.arg, ps.name
-        #         for alt_ps in ps.alternate_specs:
-        #             print "  !!!", ps.arg, ps.name, alt_ps.name
         return retval
 
 class ModuleSpec(object):
@@ -127,7 +121,7 @@ class ModuleSpec(object):
         args = [ps for ps in self.port_specs if ps.in_args]
         args.sort(key=lambda ps: ps.arg_pos)
         if len(args) > 1 and len(args) != (args[-1].arg_pos + 1):
-            raise Exception("Argument positions are numbered incorrectly")
+            raise ValueError("Argument positions are numbered incorrectly")
         return args
 
     def get_output_port_spec(self, compute_name):
@@ -179,7 +173,7 @@ class PortSpec(object):
              "required": (False, False, True),
              "show_port": (False, False, True),
              "hide": (False, False, True),
-             "property_type": ""}
+             "property_type": "",}
 
     def __init__(self, arg, **kwargs):
         self.arg = arg
@@ -225,20 +219,6 @@ class PortSpec(object):
                     elt.set(attr, str(attr_val))
         return elt
 
-        # if self.name != "":
-        #     elt.set("name", self.name)
-        # if self.port_type is not None:
-        #     elt.set("port_type", self.port_type)
-        # else:
-        #     elt.set("port_type", "__unknown__")
-        # if self.port_type == "__property__":
-        #     elt.set("property_type", self.property_type)
-        # if self.required != False:
-        #     elt.set("required", str(self.required))
-        # if self.
-        # elt.set("hide", str(self.hide))
-        # elt.set("show_port", str(self.show_port))
-
     @classmethod
     def internal_from_xml(cls, elt, obj=None):
         arg = elt.get("arg", "")
@@ -249,8 +229,6 @@ class PortSpec(object):
 
         child_elts = {}
         for child in elt.getchildren():
-            # if child.tag not in obj.attrs:
-            #     raise Exception('Cannot deal with tag "%s"' % child.tag)
             if child.tag not in child_elts:
                 child_elts[child.tag] = []
             child_elts[child.tag].append(child)
@@ -277,7 +255,7 @@ class PortSpec(object):
                     attr_vals = [attr_val]
             
             if len(attr_vals) > 1:
-                raise Exception('Should have only one value for '
+                raise ValueError('Should have only one value for '
                                 'attribute "%s"' % attr)
             if len(attr_vals) > 0:
                 attr_val = attr_vals[0]
@@ -304,30 +282,9 @@ class PortSpec(object):
             return OutputPortSpec.from_xml(elt)
         elif elt.tag == "alternateSpec":
             return AlternatePortSpec.from_xml(elt)
-        raise Exception('Cannot create spec from element of type "%s"' % \
-                            elt.tag)
+        raise TypeError('Cannot create spec from element of type "%s"' %
+                        elt.tag)
 
-
-    # @staticmethod
-    # def from_xml(elt, obj=None):
-    #     arg = elt.get("arg", "")
-    #     if obj is None:
-    #         obj = PortSpec(arg)
-    #     else:
-    #         obj.arg = arg
-    #     obj.port_type = elt.get("port_type", "")
-    #     if obj.port_type == "__unknown__":
-    #         obj.port_type = None
-
-    #     if obj.port_type is not None and \
-    #             obj.port_type.lower() == "__property__":
-    #         obj.name = elt.get("name", obj.arg + "Properties")
-    #     else:
-    #         obj.name = elt.get("name", obj.arg)
-    #     obj.required = eval(elt.get("required", "False"))
-    #     obj.hide = eval(elt.get("hide", "False"))
-    #     obj.show_port = eval(elt.get("show_port", "False"))
-    #     return obj
 
     def is_property(self):
         return self.port_type == "__property__"
@@ -350,6 +307,7 @@ class InputPortSpec(PortSpec):
              "in_kwargs": (True, False, True),
              "in_args": (False, False, True),
              "constructor_arg": (False, False, True),
+             "not_setp": (False, False, True),
              "arg_pos": (-1, False, True),
              }
     attrs.update(PortSpec.attrs)
@@ -403,14 +361,7 @@ class InputPortSpec(PortSpec):
     def has_alternate_versions(self):
         return len(self.alternate_specs) > 0
 
-    # def is_property_input(self):
-    #     return self.get_port_type().lower() == "__property__"
-
 class AlternatePortSpec(InputPortSpec):
-    # attrs = ["name", "port_type", "docstring", "required", "hide", 
-    #          "entry_types", "values", "defaults", "translations", 
-    #          "property_type"]
-
     xml_name = "alternateSpec"
     def __init__(self, *args, **kwargs):
         if len(args) < 1:
@@ -432,11 +383,6 @@ class AlternatePortSpec(InputPortSpec):
             else:
                 self.name = base_name + "Scalar"
         self.arg = self._parent.arg
-            
-    # def to_xml(self, elt=None):
-    #     if elt is None:
-    #         elt = ET.Element("alternateSpec")
-    #     return PortSpec.to_xml(self, elt)
 
     def get_port_attr_dict(self):
         print "CALLING AlternatePortSpec.get_port_attr_dict", self.arg

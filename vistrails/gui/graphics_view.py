@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -123,10 +123,10 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             else:
                 self.sceneBoundingRect.adjust(0, -diff/2, 0, diff/2)
         panRect = self.sceneBoundingRect.adjusted(
-            -self.sceneBoundingRect.width()*100,
-            -self.sceneBoundingRect.height()*100,
-            self.sceneBoundingRect.width()*100,
-            self.sceneBoundingRect.height()*100)
+            -self.sceneBoundingRect.width()*2,
+            -self.sceneBoundingRect.height()*2,
+            self.sceneBoundingRect.width()*2,
+            self.sceneBoundingRect.height()*2)
         if panRect.width()<1e-6 and panRect.height()<1e-6:
             panRect = QtCore.QRectF(-1000,-1000,2000,2000)
         self.setSceneRect(panRect)
@@ -213,7 +213,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             pixmap.save(filename)
             self.setBackgroundBrush(brush)
         except Exception, e:
-            debug.critical("Exception: %s"%str(e))
+            debug.critical("Exception saving to PNG", e)
 
 class QInteractiveGraphicsView(QtGui.QGraphicsView):
     """

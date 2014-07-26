@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,10 +36,11 @@
 ############################################################################
 # web browser view implementation
 ############################################################################
-from vistrails.core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui, QAxContainer
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
+    QCellToolBar
+import os
 import shutil
 ############################################################################
 
@@ -52,22 +53,24 @@ class IECell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the URL to the spreadsheet
         """
-        if self.hasInputFromPort("url"):
-            urlValue = self.getInputFromPort("url")
+        if self.has_input("url"):
+            urlValue = self.get_input("url")
             fileValue = None
-        elif self.hasInputFromPort("file"):
-            fileValue = self.getInputFromPort("file")
+        elif self.has_input("file"):
+            fileValue = self.get_input("file")
             urlValue = None
         else:
             fileValue = None
             urlValue = None
-        self.display(IECellWidget, (urlValue, fileValue))
+        self.displayAndWait(IECellWidget, (urlValue, fileValue))
 
 class IECellWidget(QCellWidget):
     """
     IECellWidget has a QAxContainer to display supported documents
     
     """
+    save_formats = QCellWidget.save_formats + ["HTML files (*.html)"]
+
     def __init__(self, parent=None):
         """ IECellWidget(parent: QWidget) -> IECellWidget
         Create a ActiveX Container pointing to the IE Cell
@@ -100,9 +103,12 @@ class IECellWidget(QCellWidget):
             self.browser.dynamicCall('Navigate(const QString&)', 'about:blank')
 
     def dumpToFile(self, filename):
-        if self.urlSrc is not None:
-            shutil.copyfile(str(self.urlSrc.toLocalFile()), filename)
-            
+        if os.path.splitext(filename)[1].lower() in ('.html', '.htm'):
+            if self.urlSrc is not None:
+                shutil.copyfile(str(self.urlSrc.toLocalFile()), filename)
+        else:
+            super(IECellWidget, self).dumpToFile(filename)
+
     def saveToPDF(self, filename):
         printer = QtGui.QPrinter()
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)

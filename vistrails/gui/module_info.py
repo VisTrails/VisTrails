@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -48,6 +48,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.module = None
         self.pipeline_view = None # pipeline_view
         self.read_only = False
+        self.is_updating = False
 
     def build_widget(self):
         name_label = QtGui.QLabel("Name:")
@@ -61,6 +62,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         package_label = QtGui.QLabel("Package:")
         self.package_edit = QtGui.QLabel("")
         # self.package_edit.setReadOnly(True)
+        id = QtGui.QLabel("Id:")
+        self.module_id = QtGui.QLabel("")
+        # self.module_id.setReadOnly(True)
         self.configure_button = QDockPushButton("Configure")
         self.connect(self.configure_button, QtCore.SIGNAL('clicked()'),
                      self.configure)
@@ -71,34 +75,23 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         layout = QtGui.QVBoxLayout()
         layout.setMargin(2)
         layout.setSpacing(4)
+        def add_line(left, right):
+            h_layout = QtGui.QHBoxLayout()
+            h_layout.setMargin(2)
+            h_layout.setSpacing(2)
+            h_layout.setAlignment(QtCore.Qt.AlignLeft)
+            h_layout.addWidget(left)
+            h_layout.addWidget(right)
+            h_widget = QtGui.QWidget()
+            h_widget.setLayout(h_layout)
+            h_widget.setSizePolicy(QtGui.QSizePolicy.Ignored,
+                                   QtGui.QSizePolicy.Preferred)
+            layout.addWidget(h_widget)
+        add_line(name_label, self.name_edit)
+        add_line(type_label, self.type_edit)
+        add_line(package_label, self.package_edit)
+        add_line(id, self.module_id)
         h_layout = QtGui.QHBoxLayout()
-        h_layout.setMargin(2)
-        h_layout.setSpacing(2)
-        h_layout.setAlignment(QtCore.Qt.AlignLeft)
-        h_layout.addWidget(name_label)
-        h_layout.addWidget(self.name_edit)
-        layout.addLayout(h_layout)
-        h_layout = QtGui.QHBoxLayout()        
-        h_layout.setMargin(2)
-        h_layout.setSpacing(2)
-        h_layout.setAlignment(QtCore.Qt.AlignLeft)
-        h_layout.addWidget(type_label)
-        h_layout.addWidget(self.type_edit)
-        h_widget = QtGui.QWidget()
-        h_widget.setLayout(h_layout)
-        h_widget.setSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Preferred)
-        layout.addWidget(h_widget)
-        h_layout = QtGui.QHBoxLayout()        
-        h_layout.setMargin(2)
-        h_layout.setSpacing(2)
-        h_layout.setAlignment(QtCore.Qt.AlignLeft)
-        h_layout.addWidget(package_label)
-        h_layout.addWidget(self.package_edit)
-        h_widget = QtGui.QWidget()
-        h_widget.setLayout(h_layout)
-        h_widget.setSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Preferred)
-        layout.addWidget(h_widget)
-        h_layout = QtGui.QHBoxLayout()        
         h_layout.setMargin(2)
         h_layout.setSpacing(5)
         h_layout.setAlignment(QtCore.Qt.AlignCenter)
@@ -136,14 +129,17 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             ports_list.set_controller(controller)
         self.annotations.set_controller(controller)
 
-        scene = self.controller.current_pipeline_scene
-        selected_ids = scene.get_selected_module_ids() 
-        modules = [self.controller.current_pipeline.modules[i] 
-                   for i in selected_ids]
-        if len(modules) == 1:
-            self.update_module(modules[0])
+        if self.controller is not None:
+            scene = self.controller.current_pipeline_scene
+            selected_ids = scene.get_selected_module_ids() 
+            modules = [self.controller.current_pipeline.modules[i] 
+                       for i in selected_ids]
+            if len(modules) == 1:
+                self.update_module(modules[0])
+            else:
+                self.update_module(None)
         else:
-            self.update_module(None)
+            self.update_module()
 
     def update_module(self, module=None):
         self.module = module
@@ -159,6 +155,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.type_edit.setText("")
             # self.type_edit.setEnabled(False)
             self.package_edit.setText("")
+            self.module_id.setText("")
         else:
             if module.has_annotation_with_key('__desc__'):
                 label = module.get_annotation_by_key('__desc__').value.strip()
@@ -167,7 +164,6 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.name_edit.setText(label)
             if not label and not versions_increasing(QtCore.QT_VERSION_STR, 
                                                      '4.7.0'):
-                #print QtCore.QT_VERSION_STR, versions_increasing(QtCore.QT_VERSION_STR, '4.7.0')
                 self.name_edit.setPlaceholderText(self.module.name)
 
             # self.name_edit.setEnabled(True)
@@ -175,27 +171,31 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             # self.type_edit.setEnabled(True)
             self.package_edit.setText(self.module.package)
             # self.package_edit.setEnabled(True)
-            
+            self.module_id.setText('%d' % self.module.id)
+            # self.module_id.setEnabled(True)
+
     def name_editing_finished(self):
-        if self.module is not None:
+        # updating module may trigger a second call so we check for that
+        if self.is_updating or self.module is None:
+            return
+        try:
+            self.is_updating = True
             old_text = ''
             if self.module.has_annotation_with_key('__desc__'):
                 old_text = self.module.get_annotation_by_key('__desc__').value
             new_text = str(self.name_edit.text()).strip()
             if not new_text:
                 if old_text:
-                    #print 'delete annotation'
                     self.controller.delete_annotation('__desc__', 
                                                       self.module.id)
             elif old_text != new_text:
-                #print 'add annotation', old_text, new_text
                 self.controller.add_annotation(('__desc__', new_text), 
                                                self.module.id)
-                
-
             scene = self.controller.current_pipeline_scene
             scene.recreate_module(self.controller.current_pipeline, 
                                   self.module.id)
+        finally:
+            self.is_updating = False
             
     def configure(self):
         from vistrails.gui.vistrails_window import _app

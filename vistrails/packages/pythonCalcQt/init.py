@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,6 +34,7 @@
 ###############################################################################
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
+from ast import literal_eval
 from PyQt4 import QtCore, QtGui
 import vistrails.api
 
@@ -91,9 +92,9 @@ class QPythonCalc(QtGui.QWidget):
         similar to the PythonCalc module, but through the GUI.
 
         """
-        result = eval(str(self.value1Edit.text() +
-                          self.opCombo.currentText() +
-                          self.value2Edit.text()))
+        result = literal_eval(self.value1Edit.text() +
+                              self.opCombo.currentText() +
+                              self.value2Edit.text())
         self.resultLabel.setText(str(result))
 
     def createModule(self):

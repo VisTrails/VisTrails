@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -103,8 +103,12 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def set_controller(self, controller):
         self.controller = controller
-        self.set_pipeline(self.controller.current_pipeline)
-        self.pipeline_view.setScene(self.controller.current_pipeline_scene)
+        if self.controller is not None:
+            self.set_pipeline(self.controller.current_pipeline)
+            self.pipeline_view.setScene(self.controller.current_pipeline_scene)
+        else:
+            self.set_pipeline(None)
+            self.pipeline_view.setScene(None)
 
     def set_pipeline(self, pipeline):
         self.pipeline = pipeline
@@ -202,8 +206,12 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     continue
                 port_spec_items = port_spec.port_spec_items
 
+                if not controller.has_vistrail_variable_with_uuid(
+                                        module.get_vistrail_var()):
+                    continue
                 vv = controller.get_vistrail_variable_by_uuid(
                                         module.get_vistrail_var())
+
 
                 label = ['%s = %s' % (vv.name, vv.value)]
                 pList = [ParameterInfo(module_id=mId,
@@ -262,13 +270,10 @@ class QParameterTreeWidget(QSearchTreeWidget):
             # Add available parameters
             if module.is_valid:
                 for port_spec in module.destinationPorts():
-                    if port_spec.name in function_names or \
-                        not len(port_spec.port_spec_items) or \
-                        False in [issubclass(
-                            reg.get_module_by_name(p.package,
-                                                   p.module,
-                                                   p.namespace),
-                            Constant) for p in port_spec.port_spec_items]:
+                    if (port_spec.name in function_names or
+                        not port_spec.is_valid or 
+                        not len(port_spec.port_spec_items) or
+                        not reg.is_constant(port_spec)):
                         # The function already exists or is empty
                         # or contains non-constant modules
                         continue

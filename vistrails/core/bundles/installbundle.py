@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -42,4 +42,3 @@ def install(dependency_dictionary):
 
     import vistrails.gui.bundles.installbundle
     return vistrails.gui.bundles.installbundle.install(dependency_dictionary)
-
