@@ -38,7 +38,6 @@ from datetime import date, datetime
 from vistrails.core import debug
 from vistrails.core.system import strftime, time_strptime
 from vistrails.db import VistrailsDBException
-from vistrails.db.services.io import get_db_lib
 
 class SQLDAO:
     def __init__(self):

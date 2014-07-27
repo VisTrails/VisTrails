@@ -38,7 +38,7 @@ import os
 from vistrails.core.system import vistrails_root_directory
 from vistrails.db import VistrailsDBException
 
-currentVersion = '1.0.4'
+currentVersion = '1.0.5'
 
 version_map = {
     '0.3.0': '0.3.1',
@@ -58,9 +58,11 @@ version_map = {
     '1.0.1': '1.0.2',
     '1.0.2': '1.0.3',
     '1.0.3': '1.0.4',
+    '1.0.4': '1.0.5',
     }
 
 rev_version_map = {
+    '1.0.5': '1.0.4',
     '1.0.4': '1.0.3',
     '1.0.3': '1.0.2',
     '1.0.2': '1.0.1',
