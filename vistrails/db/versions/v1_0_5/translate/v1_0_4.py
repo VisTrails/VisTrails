@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.db.versions.v1_0_4.domain import DBVistrail, \
+from vistrails.db.versions.v1_0_5.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, IdScope, DBAbstraction, \
     DBModule, DBGroup, DBStartup
 
@@ -42,30 +42,29 @@ def update_workflow(old_obj, translate_dict):
 def translateVistrail(_vistrail):
     translate_dict = {'DBGroup': {'workflow': update_workflow}}
     vistrail = DBVistrail.update_version(_vistrail, translate_dict)
-    vistrail.db_version = '1.0.4'
+    vistrail.db_version = '1.0.5'
     return vistrail
 
 def translateWorkflow(_workflow):
     translate_dict = {'DBGroup': {'workflow': update_workflow}}
     workflow = DBWorkflow.update_version(_workflow, translate_dict)
-    workflow.db_version = '1.0.4'
+    workflow.db_version = '1.0.5'
     return workflow
 
 def translateLog(_log):
     translate_dict = {}
     log = DBLog.update_version(_log, translate_dict)
-    log.db_version = '1.0.4'
+    log.db_version = '1.0.5'
     return log
 
 def translateRegistry(_registry):
     translate_dict = {}
     registry = DBRegistry.update_version(_registry, translate_dict)
-    registry.db_version = '1.0.4'
+    registry.db_version = '1.0.5'
     return registry
 
 def translateStartup(_startup):
     translate_dict = {}
     startup = DBStartup.update_version(_startup, translate_dict)
-    startup.db_version = '1.0.4'
+    startup.db_version = '1.0.5'
     return startup
-    
