@@ -41,8 +41,8 @@ from vistrails.core import debug
 from vistrails.core.bundles import py_import
 from vistrails.core.system import strftime
 
-from vistrails.db.versions.v1_0_3 import version as my_version
-from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBWorkflow, DBLog, \
+from vistrails.db.versions.v1_0_4 import version as my_version
+from vistrails.db.versions.v1_0_4.domain import DBVistrail, DBWorkflow, DBLog, \
     DBRegistry, DBAbstraction, DBAnnotation
 
 
@@ -193,7 +193,7 @@ def drop_db_tables(db_connection):
         c.close()
         f.close()
     except get_db_lib().Error, e:
-        raise VistrailsDBException("unable to create tables: " + str(e))
+        raise VistrailsDBException("unable to drop tables: " + str(e))
 
 def start_transaction(db_connection):
     return db_connection.begin()

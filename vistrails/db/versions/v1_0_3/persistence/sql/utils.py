@@ -193,7 +193,7 @@ def drop_db_tables(db_connection):
         c.close()
         f.close()
     except get_db_lib().Error, e:
-        raise VistrailsDBException("unable to create tables: " + str(e))
+        raise VistrailsDBException("unable to drop tables: " + str(e))
 
 def start_transaction(db_connection):
     return db_connection.begin()
