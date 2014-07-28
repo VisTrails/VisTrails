@@ -70,9 +70,9 @@ def translateVistrail(_vistrail):
                       'DBGroup': {'workflow': update_workflow}
                       }
 
-    if _vistrail.db_control_parameters:
+    if _vistrail.db_controlParameters:
         debug.warning(("Vistrail contains %s control parameters that "
-                      "cannot be converted") % len(_vistrail.db_control_parameters))
+                      "cannot be converted") % len(_vistrail.db_controlParameters))
     vistrail = DBVistrail.update_version(_vistrail, translate_dict, vistrail)
 
     vistrail.db_version = '1.0.3'
