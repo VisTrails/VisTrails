@@ -1071,6 +1071,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.connectionItems = {}
         self._cur_function_names = set()
         self.function_overview = 'No functions set'
+        self.function_widget = None
         self.handlePositionChanges = True
 
     def moduleHasChanged(self, core_module):
@@ -1180,7 +1181,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     params = params[:97] + '...'
                 function_template = "<b>%s(</b>%s<b>)</b>"
                 function_overview.append(function_template % (f.name, params))
-                template = '<html>%s</html>'
+                template = '<html><p style="background:#FFFFFF;">%s</p></html>'
             self.function_overview = template % '<br/>'.join(function_overview)
         else:
             self.function_overview = 'No functions set'
@@ -1784,10 +1785,22 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
     def hoverEnterEvent(self, event):
         if QtGui.QApplication.keyboardModifiers() == QtCore.Qt.ControlModifier:
-            QtGui.QToolTip.hideText()
-            QtGui.QToolTip.showText(event.screenPos(), self.function_overview)
-            self.setToolTip(self.function_overview)
+            if self.function_widget:
+                self.scene().removeItem(self.function_widget)
+            self.function_widget = QtGui.QGraphicsTextItem()
+            pos = self.abstRect.bottomLeft()+self.pos()
+            self.function_widget.setPos(pos)
+            self.function_widget.setAcceptHoverEvents(False)
+            self.scene().addItem(self.function_widget)
+            self.function_widget.setHtml(self.function_overview)
+            self.function_widget.setZValue(1000000)
         return QtGui.QGraphicsItem.hoverEnterEvent(self, event)
+
+    def hoverLeaveEvent(self, event):
+        if self.function_widget:
+            self.scene().removeItem(self.function_widget)
+            self.function_widget = None
+        return QtGui.QGraphicsItem.hoverLeaveEvent(self, event)
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: value) -> value
