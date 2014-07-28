@@ -395,6 +395,11 @@ class TestPersistence(unittest.TestCase):
         vt2.db_actionAnnotations.sort(key=lambda x: x.db_id)
         dao_list.save_to_xml(vt2, '/vistrails/tmp/terminator/vistrail.out', {})
 
+        # cleanup
+        trans = conn.begin()
+        SQLDAO.metadata.drop_all(conn)
+        trans.commit()
+
     def test_save_vistrail_mysql(self):
         test_db = 'mysql+mysqldb://vt_test@localhost/vt_test'
         self.run_sql_save_vistrail(test_db)

@@ -1707,8 +1707,12 @@ def get_alternate_tests(version):
     alternate_dict = {None:
                       {('DBVistrail', 'db_entity_type'): None,
                        ('DBGroup', 'db_workflow'): test_group_workflow},
+                      ('1.0.3', '1.0.4'):
+                      {('DBPortSpec', 'db_depth'): None},
                       ('1.0.2', '1.0.3'): 
                       {('DBPortSpecItem', 'db_id'): None,
+                       ('DBPortSpecItem', 'db_values'): None,
+                       ('DBPortSpecItem', 'db_entry_type'): None,
                        ('DBPortSpec', 'db_min_conns'): None,
                        ('DBPortSpec', 'db_max_conns'): None,
                        ('DBVistrail', 'db_parameter_explorations'): None},
@@ -1870,6 +1874,9 @@ class TestMySQLDatabase_v1_0_3(TestMySQLDatabase, unittest.TestCase):
 class TestMySQLDatabase_v1_0_4(TestMySQLDatabase, unittest.TestCase):
     db_version = '1.0.4'
 
+class TestMySQLDatabase_v1_0_5(TestMySQLDatabase, unittest.TestCase):
+    db_version = '1.0.5'
+
 class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
     db_fname = None
 
@@ -1887,7 +1894,7 @@ class TestSQLite3Database(TestSQLDatabase, unittest.TestCase):
     def get_config(cls):
         return {"dialect": "sqlite",
                 "db": cls.get_db_fname(),
-                "version": "1.0.4"}
+                "version": "1.0.5"}
 
     @classmethod
     def tearDownClass(cls):
@@ -1922,7 +1929,7 @@ class TestTranslations(unittest.TestCase):
             # 20 is the executed version in test_basics.vt
             wf1 = vistrails.db.services.vistrail.materializeWorkflow(vt, 20)
             # FIXME may set db_version in materializeWorkflow?
-            wf1.db_version = '1.0.4'
+            wf1.db_version = '1.0.5'
             wf2 = translate_workflow(wf1, currentVersion, version)
             wf2 = translate_workflow(wf2, version, currentVersion)
             wf1.deep_eq_test(wf2, self, get_alternate_tests(version))
@@ -1935,7 +1942,7 @@ class TestTranslations(unittest.TestCase):
         try:
             log1 = open_log_from_xml(bundle.vistrail.db_log_filename, True)
             # FIXME may need to update db_version in open_log_from_xml?
-            log1.db_version = '1.0.4'
+            log1.db_version = '1.0.5'
             log2 = translate_log(log1, currentVersion, version)
             log2 = translate_log(log2, version, currentVersion)
             log1.deep_eq_test(log2, self, get_alternate_tests(version))
