@@ -869,7 +869,7 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
                     kwargs["nargs"] = field.nargs
 
                 cat_group.add_argument(*args, **kwargs)
-                if cat_group == "Command-Line":
+                if category == "Command-Line":
                     _usage_args.add(field.name)
     return parser
 
