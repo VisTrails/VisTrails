@@ -37,21 +37,12 @@
 import argparse
 import ast
 import copy
-import os.path
 import re
 import shlex
-import shutil
-import sys
-import tempfile
 import weakref
 
-from vistrails.core import debug
 from vistrails.core import system
-from vistrails.core.utils import (InstanceObject, Ref, append_to_dict_of_lists,
-                        VistrailsInternalError)
-from vistrails.core.utils.uxml import (named_elements,
-                             elements_filter, eval_xml_value,
-                             quote_xml_value)
+from vistrails.core.utils import Ref, append_to_dict_of_lists
 from vistrails.db.domain import DBConfiguration, DBConfigKey, DBConfigStr, \
     DBConfigInt, DBConfigFloat, DBConfigBool
 
@@ -411,7 +402,7 @@ outputDefaultSettings: ConfigurationObject
     One or more comma-separated key=value parameters
 
 """
-    
+
 class ConfigType(object):
     NORMAL = 0
     SHOW_HIDE = 1
@@ -440,9 +431,9 @@ class ConfigURL(ConfigString):
     pass
 
 class ConfigField(object):
-    def __init__(self, name, default_val, val_type, 
+    def __init__(self, name, default_val, val_type,
                  field_type=ConfigType.NORMAL, category=None, flag=None,
-                 nargs=None, widget_type=None, 
+                 nargs=None, widget_type=None,
                  widget_options=None, depends_on=None):
         self.name = name
         self.default_val = default_val
@@ -481,9 +472,9 @@ class ConfigFieldParent(object):
 
 base_config = {
     "Command-Line":
-    [ConfigField("execute", False, bool, ConfigType.COMMAND_LINE_FLAG, 
+    [ConfigField("execute", False, bool, ConfigType.COMMAND_LINE_FLAG,
                  flag='-e'),
-     ConfigField("batch", False, bool, ConfigType.COMMAND_LINE_FLAG, 
+     ConfigField("batch", False, bool, ConfigType.COMMAND_LINE_FLAG,
                  flag='-b'),
      ConfigField("outputDirectory", None, ConfigPath, flag='-o'),
      ConfigField('outputDefaultSettings', [], str,
@@ -507,7 +498,7 @@ base_config = {
                  widget_options={"allowed_values": [".vt", ".xml"],
                                  "label": "Default File Type/Extension"}),
      ConfigField('debugLevel', 0, int, widget_type="combo",
-                 widget_options={"allowed_values": [0,1,2], 
+                 widget_options={"allowed_values": [0,1,2],
                                  "label": "Show alerts for",
                                  "remap": {0: "Critical Errors Only",
                                            1: "Critical Errors and Warnings",
@@ -519,7 +510,7 @@ base_config = {
      ConfigField('showSplash', True, bool, ConfigType.SHOW_HIDE)],
     "Upgrades":
     [ConfigField('upgrades', True, bool, ConfigType.ON_OFF),
-     ConfigField('migrateTags', False, bool, ConfigType.ON_OFF, 
+     ConfigField('migrateTags', False, bool, ConfigType.ON_OFF,
                  depends_on="upgrades"),
      ConfigField('upgradeDelay', True, bool, ConfigType.ON_OFF,
                  depends_on="upgrades"),
@@ -532,7 +523,7 @@ base_config = {
      ConfigField('showVariantErrors', True, bool, ConfigType.SHOW_HIDE),
      ConfigField('showDebugPopups', False, bool, ConfigType.SHOW_HIDE),
      ConfigField('showScrollbars', True, bool, ConfigType.SHOW_HIDE),
-     ConfigFieldParent('shell', 
+     ConfigFieldParent('shell',
         [ConfigField('fontFace', system.shell_font_face(), str),
          ConfigField('fontSize', system.shell_font_size(), int)]),
      ConfigField('maxRecentVistrails', 5, int),
@@ -545,14 +536,14 @@ base_config = {
                                            "history": "Always History",
                                            "pipeline": "Always Pipeline"}}),
      ConfigField('enableCustomVersionColors', False, bool, ConfigType.ON_OFF),
-     ConfigField('fixedCustomVersionColorSaturation', False, 
+     ConfigField('fixedCustomVersionColorSaturation', False,
                  bool, ConfigType.ON_OFF)],
     "Thumbnails":
-    [ConfigFieldParent('thumbs', 
+    [ConfigFieldParent('thumbs',
         [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
          ConfigField('mouseHover', False, bool, ConfigType.ON_OFF),
          ConfigField('tagsOnly', False, bool, ConfigType.ON_OFF),
-         ConfigField('cacheDir', "thumbs", ConfigPath, 
+         ConfigField('cacheDir', "thumbs", ConfigPath,
                      ConfigType.NORMAL),
          ConfigField('cacheSize', 20, int, widget_type='thumbnailcache')])],
     "Packages":
@@ -561,10 +552,10 @@ base_config = {
      ConfigField('installBundlesWithPip', False, bool, ConfigType.ON_OFF,
                  depends_on="installBundles"),
      ConfigField('repositoryLocalPath', None, ConfigPath),
-     ConfigField('repositoryHTTPURL', "http://www.vistrails.org/packages", 
+     ConfigField('repositoryHTTPURL', "http://www.vistrails.org/packages",
                  ConfigURL)],
     "Paths":
-    [ConfigField('dotVistrails', system.default_dot_vistrails(), 
+    [ConfigField('dotVistrails', system.default_dot_vistrails(),
                  ConfigPath, flag="-S"),
      ConfigField('subworkflowsDir', "subworkflows", ConfigPath),
      ConfigField('dataDir', None, ConfigPath),
@@ -591,8 +582,8 @@ base_config = {
      ConfigField('jobAutorun', False, bool),
      ConfigField('jobRun', None, str),
      ConfigField('jobList', False, bool)],
-}                
-                
+}
+
 # FIXME make sure that the platform-specific configs are added!
 mac_config = {
     "Interface":
@@ -601,7 +592,7 @@ mac_config = {
 
 win_config = { }
 
-linux_config = { 
+linux_config = {
     "General":
     [ConfigField('handlerCheck', None, str, ConfigType.INTERNAL,
                  widget_type="linuxext",
@@ -618,14 +609,14 @@ def build_config_obj(d):
             if isinstance(field, ConfigFieldParent):
                 new_d[field.name] = build_config_obj({category:
                                                       field.sub_fields})
-            elif (field.field_type == ConfigType.SUBOBJECT or 
+            elif (field.field_type == ConfigType.SUBOBJECT or
                   field.field_type == ConfigType.INTERNAL_SUBOBJECT):
                 new_d[field.name] = ConfigurationObject()
             else:
                 v = field.default_val
                 if v is None:
                     val_type = field.val_type
-                    if (field.val_type == ConfigPath or 
+                    if (field.val_type == ConfigPath or
                         field.val_type == ConfigURL):
                         val_type = basestring
                     new_d[field.name] = (v, val_type)
@@ -662,7 +653,6 @@ def parse_documentation():
     for line in line_iter:
         arg_path, arg_type = line.strip().split(':', 1)
         doc_lines = []
-        done_with_doc = False
         line = line_iter.next()
         while True:
             line = line_iter.next()
@@ -673,7 +663,7 @@ def parse_documentation():
 
 def parse_simple_docs():
     global _simple_docs
- 
+
     line_iter = iter(_simple_documentation.splitlines())
     line = line_iter.next()
     for line in line_iter:
@@ -695,7 +685,7 @@ def find_simpledoc(arg_path):
     if arg_path in _simple_docs:
         return _simple_docs[arg_path]
     return find_help(arg_path)
-    
+
 def set_field_labels(fields, prefix=""):
     for field in fields:
         if isinstance(field, ConfigFieldParent):
@@ -768,19 +758,19 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
     # if k is show/hide, add --show-, --hide- options
     # if k is an on/off, add --option, --no-option flags
     # otherwise, run with k converted to dashed form and store res
-        
+
 
     def camel_to_dashes(s):
         # from http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case/1176023#1176023
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1-\2', s)
         return re.sub('([a-z0-9])([A-Z])', r'\1-\2', s1).lower()
 
-        
+
     if parser is None:
         parser = argparse.ArgumentParser(prog='vistrails',
                                          **parser_args)
         parser._my_arg_groups = {}
-        parser.add_argument('vistrails', metavar='vistrail', type=str, 
+        parser.add_argument('vistrails', metavar='vistrail', type=str,
                             nargs='*', help="Vistrail to open")
         _usage_args.add('vistrails')
 
@@ -800,11 +790,11 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
                 parser._my_arg_groups[category] = \
                                         parser.add_argument_group(category)
             cat_group = parser._my_arg_groups[category]
-        
+
         for field in fields:
             if isinstance(field, ConfigFieldParent):
                 build_command_line_parser({category: field.sub_fields},
-                                          parser, 
+                                          parser,
                                           '%s%s.' % (prefix, field.name),
                                           **parser_args)
                 continue
@@ -822,32 +812,32 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
                 continue
             elif config_type == ConfigType.ON_OFF:
                 k_dashes = camel_to_dashes(field.name)
-                group = cat_group.add_mutually_exclusive_group()                
-                group.add_argument('--%s%s' % (prefix_dashes, k_dashes), 
+                group = cat_group.add_mutually_exclusive_group()
+                group.add_argument('--%s%s' % (prefix_dashes, k_dashes),
                                    # action="store_true",
                                    action=nested_action(group, "store_true"),
                                    dest=dest_name, help=help_str,
                                    default=argparse.SUPPRESS)
-                group.add_argument('--no-%s%s' % (prefix_dashes, k_dashes), 
+                group.add_argument('--no-%s%s' % (prefix_dashes, k_dashes),
                                    # action="store_false",
                                    action=nested_action(group, "store_false"),
-                                   dest=dest_name, 
-                                   help=("Inverse of --%s%s" % 
+                                   dest=dest_name,
+                                   help=("Inverse of --%s%s" %
                                          (prefix_dashes, k_dashes)),
                                    default=argparse.SUPPRESS)
             elif config_type == ConfigType.SHOW_HIDE:
                 k_dashes = camel_to_dashes(field.name[4:])
                 group = cat_group.add_mutually_exclusive_group()
-                group.add_argument('--show-%s%s' % (prefix_dashes, k_dashes), 
+                group.add_argument('--show-%s%s' % (prefix_dashes, k_dashes),
                                    # action="store_true",
                                    action = nested_action(group, "store_true"),
                                    dest=dest_name, help=help_str,
                                    default=argparse.SUPPRESS)
-                group.add_argument('--hide-%s%s' % (prefix_dashes, k_dashes), 
+                group.add_argument('--hide-%s%s' % (prefix_dashes, k_dashes),
                                    # action="store_false",
                                    action=nested_action(group, "store_false"),
-                                   dest=dest_name, 
-                                   help=("Inverse of --show-%s%s" % 
+                                   dest=dest_name,
+                                   help=("Inverse of --show-%s%s" %
                                          (prefix_dashes, k_dashes)),
                                    default=argparse.SUPPRESS)
             else:
@@ -860,9 +850,9 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
                 kwargs = {'dest': dest_name,
                           'help': help_str,
                           'default': argparse.SUPPRESS}
-                if (field.val_type != ConfigPath and 
-                    field.val_type != ConfigURL and 
-                    field.val_type != str and 
+                if (field.val_type != ConfigPath and
+                    field.val_type != ConfigURL and
+                    field.val_type != str and
                     field.val_type != bool):
                     kwargs["type"] = field.val_type
                 if config_type == ConfigType.SUBOBJECT:
@@ -920,10 +910,10 @@ class ConfigValue(object):
 
     def set_value(self, val):
         self.db_value = val
-        
+
 class ConfigBool(DBConfigBool, ConfigValue):
     def __copy__(self):
-        """ __copy__() -> ConfigBool - Returns a clone of itself """ 
+        """ __copy__() -> ConfigBool - Returns a clone of itself """
         return ConfigBool.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -943,7 +933,7 @@ class ConfigBool(DBConfigBool, ConfigValue):
 
 class ConfigInt(DBConfigInt, ConfigValue):
     def __copy__(self):
-        """ __copy__() -> ConfigInt - Returns a clone of itself """ 
+        """ __copy__() -> ConfigInt - Returns a clone of itself """
         return ConfigInt.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -957,7 +947,7 @@ class ConfigInt(DBConfigInt, ConfigValue):
 
 class ConfigStr(DBConfigStr, ConfigValue):
     def __copy__(self):
-        """ __copy__() -> ConfigStr - Returns a clone of itself """ 
+        """ __copy__() -> ConfigStr - Returns a clone of itself """
         return ConfigStr.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -971,7 +961,7 @@ class ConfigStr(DBConfigStr, ConfigValue):
 
 class ConfigFloat(DBConfigFloat, ConfigValue):
     def __copy__(self):
-        """ __copy__() -> ConfigFloat - Returns a clone of itself """ 
+        """ __copy__() -> ConfigFloat - Returns a clone of itself """
         return ConfigFloat.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -985,7 +975,7 @@ class ConfigFloat(DBConfigFloat, ConfigValue):
 
 class ConfigList(DBConfigStr, ConfigValue):
     def __copy__(self):
-        """ __copy__() -> ConfigList - Returns a clone of itself """ 
+        """ __copy__() -> ConfigList - Returns a clone of itself """
         return ConfigList.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -1009,12 +999,12 @@ class ConfigKey(DBConfigKey):
             DBConfigKey.__init__(self, name=name)
             self.set_type(value[1])
         else:
-            DBConfigKey.__init__(self, name=name, 
+            DBConfigKey.__init__(self, name=name,
                                  value=ConfigValue.create(value))
             self.set_type(type(value))
 
     def __copy__(self):
-        """ __copy__() -> ConfigKey - Returns a clone of itself """ 
+        """ __copy__() -> ConfigKey - Returns a clone of itself """
         return ConfigKey.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -1022,7 +1012,7 @@ class ConfigKey(DBConfigKey):
         cp.__class__ = ConfigKey
         cp._type = self._type
         return cp
-        
+
     @staticmethod
     def convert(_key):
         _key.__class__ = ConfigKey
@@ -1038,7 +1028,7 @@ class ConfigKey(DBConfigKey):
             ConfigFloat.convert(_key.db_value)
         #FIXME add ConfigList to db and here
         _key.set_type(type(_key.value))
-    
+
     def _get_value(self):
         if self.db_value is not None:
             return self.db_value.get_value()
@@ -1081,13 +1071,13 @@ class ConfigurationObject(DBConfiguration):
             else:
                 key = ConfigKey(name=k, value=v)
                 self.db_add_config_key(key)
-            
+
         # InstanceObject.__init__(self, *args, **kwargs)
         self.__subscribers__ = {}
         self.vistrails = []
 
     def __copy__(self):
-        """ __copy__() -> ConfigurationObject - Returns a clone of itself """ 
+        """ __copy__() -> ConfigurationObject - Returns a clone of itself """
         return ConfigurationObject.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
@@ -1108,10 +1098,10 @@ class ConfigurationObject(DBConfiguration):
         _config_obj.__subscribers__ = {}
         _config_obj._unset_keys = {}
         _config_obj.vistrails = []
-   
+
     def get_value(self):
         return self
-        
+
     def set_value(self, val):
         # it itself is the value already
         pass
@@ -1145,9 +1135,9 @@ class ConfigurationObject(DBConfiguration):
                 if name not in self._unset_keys:
                     self._unset_keys[name] = (None, type(value))
                     # raise AttributeError('Key "%s" was not defined when '
-                    #                      'ConfigurationObject was created' % 
+                    #                      'ConfigurationObject was created' %
                     #                      name)
-                if (value is not None and 
+                if (value is not None and
                       not self.matches_type(value, self._unset_keys[name][1])):
                     raise TypeError('Value "%s" does match type "%s" for "%s"' %
                                     (value, self._unset_keys[name][1], name))
@@ -1199,7 +1189,7 @@ class ConfigurationObject(DBConfiguration):
 
     def update(self, other):
         for name, other_key in other.db_config_keys_name_index.iteritems():
-            if (isinstance(other_key.value, ConfigurationObject) and 
+            if (isinstance(other_key.value, ConfigurationObject) and
                     self.has(name)):
                 self.get(name).update(other_key.value)
             else:
@@ -1209,20 +1199,20 @@ class ConfigurationObject(DBConfiguration):
         """unsubscribe(field, callable_): remove observer from subject
         """
         self.__subscribers__[field].remove(weakref.ref(callable_))
-        
+
     def subscribe(self, field, callable_):
         """subscribe(field, callable_): call observer callable_ when
         self.field is set.
         """
         append_to_dict_of_lists(self.__subscribers__, field,
                                 Ref(callable_))
-                  
+
     def has(self, key):
         """has(key) -> bool.
 
         Returns true if key has valid value in the object.
         """
-        
+
         return key in self.db_config_keys_name_index
 
     def get(self, key):
@@ -1277,7 +1267,7 @@ class ConfigurationObject(DBConfiguration):
         Returns False if key is absent in object, and returns object
         otherwise.
         """
-        
+
         return self.has(key) and getattr(self, key)
 
     def allkeys(self):
@@ -1285,7 +1275,7 @@ class ConfigurationObject(DBConfiguration):
 
         Returns all options stored in this object.
         """
-        
+
         return self.db_config_keys_name_index.keys()
 
     def keys(self):
@@ -1295,11 +1285,11 @@ class ConfigurationObject(DBConfiguration):
         """
         return [k for k in self.db_config_keys_name_index
                 if not k.startswith('_')]
-    
+
 # def default():
 #     """ default() -> ConfigurationObject
 #     Returns the default configuration of VisTrails
-    
+
 #     """
 
 #     base_dir = {
@@ -1371,7 +1361,7 @@ class ConfigurationObject(DBConfiguration):
 # def default_logger():
 #     """default_logger() -> ConfigurationObject
 #     Returns the default configuration for the VisTrails logger
-    
+
 #     """
 #     logger_dir = {
 #         'dbHost': '',
@@ -1385,7 +1375,7 @@ class ConfigurationObject(DBConfiguration):
 # def default_shell():
 #     """default_shell() -> ConfigurationObject
 #     Returns the default configuration for the VisTrails shell
-#    
+#
 #     """
 #     if system.systemType == 'Linux':
 #         shell_dir = {
@@ -1408,7 +1398,7 @@ class ConfigurationObject(DBConfiguration):
 
 # def default_thumbs():
 #     """default_thumbs() -> ConfigurationObject
-#     Returns the default configuration for VisTrails Pipelines Thumbnails    
+#     Returns the default configuration for VisTrails Pipelines Thumbnails
 #     """
 #     thumbs_dir = {
 #                   'autoSave': True,
@@ -1420,17 +1410,17 @@ class ConfigurationObject(DBConfiguration):
 #     return ConfigurationObject(**thumbs_dir)
 
 def add_specific_config(base_dir):
-     """add_specific_config() -> dict
+    """add_specific_config() -> dict
 
-     Returns a dict with other specific configuration to the current
-     platform added to base_dir
+    Returns a dict with other specific configuration to the current
+    platform added to base_dir
 
-     """
-     newdir = dict(base_dir)
-     if system.systemType == 'Darwin':
-         newdir['useMacBrushedMetalStyle'] = True
-         
-     return newdir
+    """
+    newdir = dict(base_dir)
+    if system.systemType == 'Darwin':
+        newdir['useMacBrushedMetalStyle'] = True
+
+    return newdir
 
 def get_vistrails_persistent_configuration():
     """get_vistrails_persistent_configuration() -> ConfigurationObject or None
@@ -1448,15 +1438,15 @@ def get_vistrails_persistent_configuration():
         return app.configuration
     else:
         return None
-    
+
 def get_vistrails_configuration():
     """get_vistrails_configuration() -> ConfigurationObject or None
     Returns the current configuration of the application. It returns None if
     configuration was not found (when running as a bogus application
     for example. This configuration is the one that is used just for the
-    current session and is not persistent. To make changes persistent, 
+    current session and is not persistent. To make changes persistent,
     use get_vistrails_persistent_configuration() instead.
-    
+
     """
     from vistrails.core.application import get_vistrails_application
     app = get_vistrails_application()
@@ -1470,9 +1460,9 @@ def get_vistrails_temp_configuration():
     Returns the temp configuration of the application. It returns None if
     configuration was not found (when running as a bogus application
     for example. The temp configuration is the one that is used just for the
-    current session and is not persistent. To make changes persistent, 
+    current session and is not persistent. To make changes persistent,
     use get_vistrails_persistent_configuration() instead.
-    
+
     """
     from vistrails.core.application import get_vistrails_application
     app = get_vistrails_application()
@@ -1502,7 +1492,7 @@ class TestConfiguration(unittest.TestCase):
         conf = default()
         self.assertTrue(conf.has("showWindow"))
         self.assertFalse(conf.has("reallyDoesNotExist"))
-    
+
     def test_check(self):
         conf = default()
         self.assertTrue(conf.check("showWindow"))
@@ -1511,7 +1501,7 @@ class TestConfiguration(unittest.TestCase):
 
     def test_update(self):
         conf1 = default()
-        conf2 = ConfigurationObject(showDebugPopups=True, 
+        conf2 = ConfigurationObject(showDebugPopups=True,
                                     logDir="/tmp",
                                     thumbs=ConfigurationObject(
                                         autoSave=True,
@@ -1524,7 +1514,7 @@ class TestConfiguration(unittest.TestCase):
         self.assertTrue(conf1.showDebugPopups)
         self.assertEqual(conf1.logDir, "/tmp")
         self.assertEqual(conf1.thumbs.mouseHover, True)
-        
+
         conf2.showWindow = False
         self.assertTrue(conf1.showWindow)
 
@@ -1556,7 +1546,7 @@ class TestConfiguration(unittest.TestCase):
         conf1 = default()
         conf2 = copy.copy(conf1)
         self.assertEqual(conf1, conf2)
-        self.assertItemsEqual(conf1._unset_keys.keys(), 
+        self.assertItemsEqual(conf1._unset_keys.keys(),
                               conf2._unset_keys.keys())
 
     def test_parser(self):
@@ -1572,7 +1562,7 @@ class TestConfiguration(unittest.TestCase):
         p = build_command_line_parser(base_config)
         config = default()
         self.assertFalse(config.dbDefault)
-        p.parse_args(args=["--db-default", "--dot-vistrails", "/tmp"], 
+        p.parse_args(args=["--db-default", "--dot-vistrails", "/tmp"],
                      namespace=config)
         self.assertTrue(config.dbDefault)
         self.assertEqual(config.dotVistrails, "/tmp")
@@ -1595,7 +1585,7 @@ class TestConfiguration(unittest.TestCase):
         self.assertTrue(config.outputSettings.has("file"))
         self.assertTrue(config.outputSettings.file.has("series"))
         self.assertTrue(config.outputSettings.file.has("suffix"))
-        self.assertEqual(config.outputSettings.file.series, "false")        
+        self.assertEqual(config.outputSettings.file.series, "false")
         self.assertEqual(config.outputSettings.file.suffix, ".png")
 
     def test_comma_sep_params(self):
@@ -1605,11 +1595,11 @@ class TestConfiguration(unittest.TestCase):
                      namespace=config)
         self.assertTrue(config.outputSettings.has("file"))
         self.assertTrue(config.outputSettings.file.has("series"))
-        self.assertEqual(config.outputSettings.file.series, "false")        
+        self.assertEqual(config.outputSettings.file.series, "false")
         self.assertTrue(config.outputSettings.has("other"))
         self.assertTrue(config.outputSettings.other.has("separator"))
         self.assertEqual(config.outputSettings.other.separator, ",")
-        
+
 
 if __name__ == '__main__':
     unittest.main()
