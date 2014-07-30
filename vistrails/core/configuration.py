@@ -1560,6 +1560,8 @@ class TestConfiguration(unittest.TestCase):
                               conf2._unset_keys.keys())
 
     def test_parser(self):
+        if sys.version_info < (2, 7):
+            self.skipTest("argparse on Python 2.6: bug 10680")
         p = build_command_line_parser(base_config)
         with self.assertRaises(SystemExit) as e:
             p.parse_args(["-h"])
