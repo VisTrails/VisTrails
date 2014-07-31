@@ -587,7 +587,7 @@ class QOutputConfigurationPane(QtGui.QWidget):
                 self.inner_layout.addWidget(widget)
                 self.mode_widgets[mode_type] = widget
         
-        for mode_type, widget in self.mode_widgets.iteritems():
+        for mode_type, widget in self.mode_widgets.items():
             if mode_type not in found_modes:
                 self.inner_layout.removeWidget(self.mode_widgets[mode_type])
                 del self.mode_widgets[mode_type]
