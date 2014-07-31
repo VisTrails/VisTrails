@@ -67,6 +67,8 @@ from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QGraphicsItemInterface)
 from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
+from vistrails.gui.modules.utils import get_widget_class
+from vistrails.gui.ports_pane import Parameter
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
 from vistrails.gui.variable_dropbox import QDragVariableLabel
@@ -1038,6 +1040,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable |
                           QtGui.QGraphicsItem.ItemIsMovable)
         self.setAcceptHoverEvents(True)
+        self.setFlag(self.ItemIsFocusable)
         self.setZValue(0)
         self.labelFont = CurrentTheme.MODULE_FONT
         self.labelFontMetric = CurrentTheme.MODULE_FONT_METRIC
@@ -1051,6 +1054,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.labelRect = QtCore.QRectF()
         self.descRect = QtCore.QRectF()
         self.abstRect = QtCore.QRectF()
+        self.editRect = QtCore.QRectF()
         self.id = -1
         self.label = ''
         self.description = ''
@@ -1072,6 +1076,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self._cur_function_names = set()
         self.function_overview = 'No functions set'
         self.function_widget = None
+        self.value_edit = None
+        self.edit_rect = QtCore.QRectF(0.0, 0.0, 0.0, 0.0)
         self.handlePositionChanges = True
 
     def moduleHasChanged(self, core_module):
@@ -1187,6 +1193,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.function_overview = 'No functions set'
 
         self.module = core_module
+        if self.value_edit:
+            for f in self.module.functions:
+                if f.name == 'value':
+                    self.value_edit.setContents(f.parameters[0].strValue)
 
     def setProgress(self, progress):
         self.progress = progress
@@ -1206,18 +1216,25 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         else:
             descRect = QtCore.QRectF(0, 0, 0, 0)
 
+        edit_width = int(self.edit_rect.width()) + 4
+        if edit_width:
+            labelRect = labelRect.united(
+                QtCore.QRect(0, 0,
+                             int(edit_width) -
+                             CurrentTheme.MODULE_LABEL_MARGIN[0]*2, 0))
+
         labelRect.translate(-labelRect.center().x(), -labelRect.center().y())
         self.paddedRect = QtCore.QRectF(
             labelRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0],
                                 -CurrentTheme.MODULE_LABEL_MARGIN[1]
-                                -descRect.height()/2,
+                                -descRect.height()/2-self.edit_rect.height()/2,
                                 CurrentTheme.MODULE_LABEL_MARGIN[2],
                                 CurrentTheme.MODULE_LABEL_MARGIN[3]
-                                +descRect.height()/2))
+                                +descRect.height()/2+self.edit_rect.height()/2))
         
         self.labelRect = QtCore.QRectF(
             self.paddedRect.left(),
-            -(labelRect.height()+descRect.height())/2,
+            -(labelRect.height()+descRect.height()+self.edit_rect.height())/2,
             self.paddedRect.width(),
             labelRect.height())
         self.descRect = QtCore.QRectF(
@@ -1225,6 +1242,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.labelRect.bottom(),
             self.paddedRect.width(),
             descRect.height())
+        self.editRect = QtCore.QRectF(
+            self.paddedRect.left()+2,
+            self.descRect.bottom(),
+            self.paddedRect.width(),
+            self.edit_rect.height())
         self.abstRect = QtCore.QRectF(
             self.paddedRect.left(),
             -self.labelRect.top()-CurrentTheme.MODULE_PORT_MARGIN[3],
@@ -1416,7 +1438,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             diff = minWidth - self.paddedRect.width() + 1
             self.paddedRect.adjust(-diff/2, 0, diff/2, 0)
 
-    def setupModule(self, module):
+    def setupModule(self, module, read_only=False):
         """ setupModule(module: Module) -> None
         Set up the item to reflect the info in 'module'
         
@@ -1432,6 +1454,48 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         else:
             self.label = module.label
             self.description = ''
+
+        if module.is_valid and not read_only and get_module_registry(
+                ).is_constant_module(self.module.module_descriptor.module):
+                desc = self.module.module_descriptor
+                Widget = get_widget_class(desc)
+                self.edit_widget = Widget
+                param = Parameter(desc)
+                for function in self.module.functions:
+                    if function.name == 'value':
+                        param = function.parameters[0]
+                if hasattr(Widget, 'GraphicsItem'):
+                    self.value_edit = Widget.GraphicsItem(param, self)
+                    # resize to 150
+                    rect = self.value_edit.boundingRect()
+                    self.value_edit.setZValue(self.zValue()+0.2)
+                    bg = QtGui.QGraphicsRectItem(rect, self.value_edit)
+                    # TODO COLOR
+                    bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
+                    bg.setZValue(-1)
+                    scale = max(rect.width(), rect.height())
+                    transform = self.value_edit.transform()
+                    # transfer function needs to be inverted right now
+                    transform.scale(150.0/scale,-150.0/scale)
+                    transform.translate(0, -rect.height())
+                    self.value_edit.setTransform(transform)
+                    rect.setSize(rect.size()*150.0/scale)
+                    rect.setHeight(rect.height()+5)
+                    self.edit_rect = rect
+                else:
+                    self.value_edit = Widget(param)
+                    self.value_edit.setMaximumSize(150, 150)
+                    proxy = QtGui.QGraphicsProxyWidget(self)
+                    proxy.setWidget(self.value_edit)
+                    rect = proxy.boundingRect()
+                    rect.moveTo(0.0,0.0)
+                    rect.setHeight(rect.height()+5)
+                    self.edit_rect = rect
+                self.value_edit.connect(self.value_edit,
+                                        QtCore.SIGNAL('contentsChanged'),
+                                        self.value_changed)
+                    
+        
         self.setToolTip(self.description)
         self.computeBoundingRect()
         self.setPos(module.center.x, -module.center.y)
@@ -1538,9 +1602,25 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 error = e
 
             self.update_function_ports()
+            
+            if self.value_edit:
+                if hasattr(self.edit_widget, 'GraphicsItem'):
+                    self.value_edit.setPos(self.editRect.topLeft())
+                else:
+                    proxy.setPos(self.editRect.topLeft())
+                
         else:
             self.setInvalid(True)
-            
+           
+    def value_changed(self, values):
+        widget, value = values
+        controller = self.scene().controller
+        controller.update_function(self.module, 'value', [value])
+        self.update_function_ports(controller.current_pipeline.modules[self.module.id])
+        if self.isSelected():
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('module_changed', self.module)
+
     def create_shape_from_fringe(self, fringe):
         left_fringe, right_fringe = fringe
         if left_fringe[0] != (0.0, 0.0):
@@ -1777,6 +1857,19 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 yield (item, False)
             else:
                 yield (item, True)
+
+    def keyPressEvent(self, event):
+        """ keyPressEvent(event: QKeyEvent) -> None
+        Capture 'Del', 'Backspace' for deleting modules.
+        Ctrl+C, Ctrl+V, Ctrl+A for copy, paste and select all
+        
+        """        
+        if (self.scene().controller and
+            event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
+            if not self.scene().read_only_mode:
+                self.scene().delete_selected_items()
+        else:
+            QtGui.QGraphicsItem.keyPressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         super(QGraphicsModuleItem, self).mouseReleaseEvent(event)
@@ -2626,7 +2719,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                         namespace=desc.namespace,
                         )
         module.is_valid = True
-        self.tmp_module_item.setupModule(module)
+        self.tmp_module_item.setupModule(module, True)
         self.addItem(self.tmp_module_item)
         self.tmp_module_item.hide()
         self.tmp_module_item.update()
@@ -2763,8 +2856,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Capture 'Del', 'Backspace' for deleting modules.
         Ctrl+C, Ctrl+V, Ctrl+A for copy, paste and select all
         
-        """        
-        if (self.controller and
+        """
+        if (not self.focusItem() and self.controller and
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
             if not self.read_only_mode:
                 self.delete_selected_items()

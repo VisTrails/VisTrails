@@ -175,7 +175,7 @@ class TransferFunction(object):
             
         return ElementTree.tostring(node)
    
-    @staticmethod         
+    @staticmethod
     def parse(strNode):
         """parse(strNode: str) -> TransferFunction
         Parses a string representing a TransferFunction and returns a 
@@ -261,7 +261,7 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
 
     def refresh(self):
         dx = self._fsx * 0.025 / self._sx
-        dy = self._fsy * 0.025/ self._sy
+        dy = self._fsy * 0.025 / self._sy
         # this is the setup
         self.setBrush(QtGui.QBrush(self._color))
         self.setRect(-dx,
@@ -303,8 +303,8 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
                 self._left_line.refresh()
             if self._right_line:
                 self._right_line.refresh()
-            if self.scene():
-                self.scene()._tf_poly.setup()
+            if self.parentItem():
+                self.parentItem()._tf_poly.setup()
             self.setToolTip("Double-click to change color\n"
                         "Right-click to remove point\n"
                         "Scalar: %.5f, Opacity: %.5f" % (self._scalar,
@@ -316,15 +316,15 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
         if not self._left_line or not self._right_line:
             # Ignore, self is a corner node that can't be removed
             return
-        
+
         # Removes the right line and self, re-ties data structure
         self._left_line._point_right = self._right_line._point_right
         self._left_line._point_right._left_line = self._left_line
-        
+
         # be friends with garbage collector
         self._right_line._point_left = None
         self._right_line._point_right = None
-        self.scene()._tf_poly.setup()
+        self.parentItem()._tf_poly.setup()
         self.scene().removeItem(self._right_line)
         self.scene().removeItem(self)
         self._left_line.refresh()
@@ -339,8 +339,10 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
         if self._right_line:
             self._right_line.refresh()
         self.refresh()
-        self.scene()._tf_poly.setup()
-        QtGui.QGraphicsEllipseItem.mouseDoubleClickEvent(self, event)
+        # sometimes the graphicsitem gets recreated, and we need to abort
+        if self.parentItem():
+            self.parentItem()._tf_poly.setup()
+            QtGui.QGraphicsEllipseItem.mouseDoubleClickEvent(self, event)
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.RightButton:
@@ -348,18 +350,18 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
             self.remove_self()
         else:
             QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
-        
+
     def paint(self, painter, option, widget=None):
         """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
                   widget: QWidget) -> None
         Peform painting of the point without the ugly default dashed-line black
         square
-        
+
         """
         painter.setBrush(self.brush())
         painter.setPen(self.pen())
         painter.drawEllipse(self.rect())
-        
+
     def add_self_to_transfer_function(self, tf):
         tf.add_point(self._scalar,
                      self._opacity,
@@ -369,16 +371,15 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
 
 class TransferFunctionPolygon(QtGui.QGraphicsPolygonItem):
 
-    def __init__(self):
-        QtGui.QGraphicsPolygonItem.__init__(self)
+    def __init__(self, scene, parent=None):
+        QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
 
     def setup(self):
         # This inspects the scene, finds the left-most point, and
         # then builds the polygon traversing the linked list structure
-        if not self.scene():
+        pt = self.parentItem().get_leftmost_point()
+        if not pt:
             return
-        pt = self.scene().get_leftmost_point()
-        first_pt = pt
         self.setZValue(1.25)
         g = QtGui.QLinearGradient()
         g.setStart(0.0, 0.5)
@@ -468,7 +469,7 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
         self.setup(self._sx, self._sy)
 
     def mouseDoubleClickEvent(self, event):
-        p = event.scenePos()
+        p = event.pos()
         c_left = self._point_left._color
         c_right = self._point_right._color
         u = ((p.x() - self._point_left._point.x()) /
@@ -476,12 +477,12 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
         new_c = (u * c_right.redF() + (1-u) * c_left.redF(),
                  u * c_right.greenF() + (1-u) * c_left.greenF(),
                  u * c_right.blueF() + (1-u) * c_left.blueF())
-        new_point = TransferFunctionPoint(p.x()/ self._fsx, p.y()/self._fsy, new_c)
-        new_line = TransferFunctionLine(new_point, self._point_right)
+        new_point = TransferFunctionPoint(p.x()/ self._fsx, p.y()/self._fsy, new_c, self.parentItem())
+        self.parentItem()._tf_items.append(new_point)
+        new_line = TransferFunctionLine(new_point, self._point_right, self.parentItem())
+        self.parentItem()._tf_items.append(new_line)
         new_point._left_line = self
         self._point_right = new_point
-        self.scene().addItem(new_line)
-        self.scene().addItem(new_point)
         new_line.update_scale(self._point_left._sx,
                               self._point_left._sy)
         new_point.update_scale(self._point_left._sx,
@@ -493,21 +494,25 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
         # This needs to be here, otherwise mouseDoubleClickEvent does
         # not get called.
         event.accept()
-        
 
 ##############################################################################
 # Scene, view, widget
 
-class TransferFunctionScene(QtGui.QGraphicsScene):
+class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
 
-    def __init__(self, tf, parent=None):
-        QtGui.QGraphicsScene.__init__(self, parent)
+    def __init__(self, param, parent=None):
+        QtGui.QGraphicsWidget.__init__(self, parent)
+        ConstantWidgetMixin.__init__(self, param.strValue)
+        self.setAcceptHoverEvents(True)
+        if not param.strValue:
+            self._tf = copy.copy(default_tf)
+        else:
+            self._tf = TransferFunction.parse(param.strValue)
         self._tf_items = []
-        poly = TransferFunctionPolygon()
+        poly = TransferFunctionPolygon(self.scene(), self)
         poly.setup()
         self._tf_poly = poly
-        self.addItem(poly)
-        self.create_tf_items(tf)
+        self.create_tf_items(self._tf)
         self._tf_poly.setup()
         #current scale
         self._sx = 1.0
@@ -519,54 +524,45 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
               QtCore.QPointF(GLOBAL_SCALE, 0.0),
               QtCore.QPointF(GLOBAL_SCALE, GLOBAL_SCALE),
               QtCore.QPointF(0.0, GLOBAL_SCALE)]
-        outline = QtGui.QPolygonF(ps)
-        self.addPolygon(outline, pen)
+        polygon = QtGui.QGraphicsPolygonItem(QtGui.QPolygonF(ps), self)
+        polygon.setPen(pen)
 
         for i in xrange(51):
             u = GLOBAL_SCALE * float(i) / 50.0
-            self.addLine(QtCore.QLineF(u, 0.0, u, GLOBAL_SCALE), pen)
-            self.addLine(QtCore.QLineF(0.0, u, GLOBAL_SCALE, u), pen)
+            
+            line = QtGui.QGraphicsLineItem(QtCore.QLineF(u, 0.0, u, GLOBAL_SCALE), self)
+            line.setPen(pen)
+            line = QtGui.QGraphicsLineItem(QtCore.QLineF(0.0, u, GLOBAL_SCALE, u), self)
+            line.setPen(pen)
+
+        self.setGeometry(self.boundingRect())
+
+    def boundingRect(self):
+        return QtCore.QRectF(0.0, 0.0, GLOBAL_SCALE, GLOBAL_SCALE)
 
     def reset_transfer_function(self, tf):
         self.create_tf_items(tf)
         self.update_scale(self._sx, self._sy)
         self._tf_poly.setup()
         
-    def removeItem(self, item):
-        if item in self._tf_items:
-            self._tf_items.remove(item)
-        QtGui.QGraphicsScene.removeItem(self, item)
-
-    def addItem(self, item):
-        # Ugly, but hey
-        if isinstance(item, TransferFunctionLine) or \
-           isinstance(item, TransferFunctionPoint):
-            self._tf_items.append(item)
-        QtGui.QGraphicsScene.addItem(self, item)
-
     def create_tf_items(self, tf):
         items = copy.copy(self._tf_items)
         for item in items:
-            self.removeItem(item)
+            self.scene().removeItem(item)
         self._tf_items = []
         if len(tf._pts) == 0:
-            pt_left = TransferFunctionPoint(0.0, 0.0, (0.0, 0.0, 0.0))
-            pt_right = TransferFunctionPoint(1.0, 0.0, (0.0, 0.0, 0.0))
-            line = TransferFunctionLine(pt_left, pt_right)
-            
-            self.addItem(pt_left)
-            self.addItem(pt_right)
-            self.addItem(line)
-            
+            pt_left = TransferFunctionPoint(0.0, 0.0, (0.0, 0.0, 0.0), self)
+            self._tf_items.append(pt_left)
+            pt_right = TransferFunctionPoint(1.0, 0.0, (0.0, 0.0, 0.0), self)
+            self._tf_items.append(pt_right)
+            self._tf_items.append(TransferFunctionLine(pt_left, pt_right, self))
         else:
-            pts = [TransferFunctionPoint(*pt)
+            pts = [TransferFunctionPoint(*pt, parent=self)
                    for pt in tf._pts]
-            lines = [TransferFunctionLine(pt_l, pt_r)
-                     for (pt_l, pt_r) in zip(pts[:-1], pts[1:])]
-            for pt in pts:
-                self.addItem(pt)
-            for line in lines:
-                self.addItem(line)
+            self._tf_items.extend(pts)
+            lns = [TransferFunctionLine(pt_l, pt_r, self)
+                   for (pt_l, pt_r) in zip(pts[:-1], pts[1:])]
+            self._tf_items.extend(lns)
 
     def add_knot(self, scalar, opacity):
         pass
@@ -584,8 +580,7 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
             if hasattr(item, '_left_line') and not item._left_line:
                 pt = item
                 break
-        assert pt
-        return pt        
+        return pt
 
     def get_transfer_function(self):
         result = TransferFunction()
@@ -598,6 +593,29 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
                 break
         return result
 
+    def contents(self):
+        return self.get_transfer_function().serialize()
+
+    def setContents(self, strValue, silent=True):
+        if not strValue:
+            self._tf = copy.copy(default_tf)
+        else:
+            self._tf = TransferFunction.parse(strValue)
+        self.reset_transfer_function(self._tf)
+        if not silent:
+            self.update_parent()    
+
+    def hoverLeaveEvent(self, event):
+        self.update_parent()
+        QtGui.QGraphicsWidget.hoverLeaveEvent(self, event)
+
+class TransferFunctionScene(QtGui.QGraphicsScene):
+
+    def __init__(self, param, parent=None):
+        QtGui.QGraphicsScene.__init__(self, parent)
+        self.tf = QGraphicsTransferFunction(param)
+        self.addItem(self.tf)
+
 class TransferFunctionView(QtGui.QGraphicsView):
     def __init__(self, parent=None):
         QtGui.QGraphicsView.__init__(self, parent)
@@ -609,7 +627,7 @@ class TransferFunctionView(QtGui.QGraphicsView):
         self.resetMatrix()
         self.setMatrix(QtGui.QMatrix(event.size().width() / (GLOBAL_SCALE *10.0/9) , 0,
                                      0, -event.size().height() / (GLOBAL_SCALE*10.0/9), 0, 0))
-        self.scene().update_scale(event.size().width()/(2000.0/9), event.size().height()/(2000.0/9))
+        self.scene().tf.update_scale(event.size().width()/(2000.0/9), event.size().height()/(2000.0/9))
         
     def focusOutEvent(self, event):
         self.parent().update_parent()
@@ -618,17 +636,15 @@ class TransferFunctionView(QtGui.QGraphicsView):
 default_tf = TransferFunction()
 default_tf.add_point(0.0, 0.0, (0.0, 0.0, 0.0))
 default_tf.add_point(1.0, 0.0, (0.0, 0.0, 0.0))
-    
+
 class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
+
+    GraphicsItem = QGraphicsTransferFunction
 
     def __init__(self, param, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self, param.strValue)
-        if not param.strValue:
-            self._tf = copy.copy(default_tf)
-        else:
-            self._tf = TransferFunction.parse(param.strValue)
-        self._scene = TransferFunctionScene(self._tf, self)
+        self._scene = TransferFunctionScene(param, self)
+        self._scene.tf.update_parent = self.update_parent
         layout = QtGui.QVBoxLayout()
         self.setLayout(layout)
         self._view = TransferFunctionView(self)
@@ -648,17 +664,17 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
         layout.addWidget(caption)
 
     def contents(self):
-        return self._scene.get_transfer_function().serialize()
-    
+        return self._scene.tf.contents()
+
     def setContents(self, strValue, silent=True):
-        if not strValue:
-            self._tf = copy.copy(default_tf)
-        else:
-            self._tf = TransferFunction.parse(strValue)
-        self._scene.reset_transfer_function(self._tf)
-        if not silent:
-            self.update_parent()    
-            
+        self._scene.tf.setContents(strValue, silent)
+
+    def set_last_contents(self, contents):
+        self._scene.tf._last_contents = contents
+    def get_last_contents(self):
+        return self._scene.tf._last_contents
+    _last_contents = property(get_last_contents, set_last_contents)
+
 ##############################################################################
 # Helper module to adjust range
 
@@ -679,18 +695,18 @@ class vtkScaledTransferFunction(Module):
             (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
         else:
             (new_tf._min_range, new_tf._max_range) = self.get_input('Range')
-            
+
         self.set_output('TransferFunction', new_tf)
         (of,cf) = new_tf.get_vtk_transfer_functions()
-        
+
         of_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
                                                'vtkPiecewiseFunction').module()
         of_module.vtkInstance  = of
-        
+
         cf_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
                                                'vtkColorTransferFunction').module()
         cf_module.vtkInstance  = cf
-        
+
         self.set_output('vtkPicewiseFunction', of_module)
         self.set_output('vtkColorTransferFunction', cf_module)
 
