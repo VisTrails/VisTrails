@@ -1440,22 +1440,6 @@ def get_vistrails_persistent_configuration():
     else:
         return None
 
-def get_vistrails_configuration():
-    """get_vistrails_configuration() -> ConfigurationObject or None
-    Returns the current configuration of the application. It returns None if
-    configuration was not found (when running as a bogus application
-    for example. This configuration is the one that is used just for the
-    current session and is not persistent. To make changes persistent,
-    use get_vistrails_persistent_configuration() instead.
-
-    """
-    from vistrails.core.application import get_vistrails_application
-    app = get_vistrails_application()
-    if hasattr(app, 'temp_configuration'):
-        return app.temp_configuration
-    else:
-        return None
-
 def get_vistrails_temp_configuration():
     """get_vistrails_temp_configuration() -> ConfigurationObject or None
     Returns the temp configuration of the application. It returns None if
@@ -1471,6 +1455,8 @@ def get_vistrails_temp_configuration():
         return app.temp_configuration
     else:
         return None
+
+get_vistrails_configuration = get_vistrails_temp_configuration
 
 import os
 import tempfile
