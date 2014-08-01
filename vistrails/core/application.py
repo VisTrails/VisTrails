@@ -769,13 +769,14 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
         return self._cur_controller
     get_controller = get_current_controller
 
-    def add_vistrail(self, *objs):
-        (vistrail, locator, abstraction_files, thumbnail_files, mashups) = objs
+    def add_vistrail(self, vistrail, locator,
+            abstraction_files=None,  thumbnail_files=None, mashups=None):
+        objs = vistrail, locator, abstraction_files, thumbnail_files, mashups
         controller = VistrailController(*objs)
         self._controllers[locator] = controller
         self._cur_controller = controller
         return self._cur_controller
-        
+
     def remove_vistrail(self, locator=None):
         if locator is None and self._cur_controller is not None:
             locator = self._cur_controller.locator
