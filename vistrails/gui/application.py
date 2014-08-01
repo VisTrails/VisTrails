@@ -753,7 +753,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     result = self.runJob(self.temp_configuration.jobRun)
                     self.configuration.autoRun = autoRun
                     return result == APP_SUCCESS
-                interactive = self.temp_configuration.check('batch')
+                interactive = not self.temp_configuration.check('batch')
                 if interactive:
                     result = self.process_interactive_input()
                     if self.temp_configuration.showWindow:
