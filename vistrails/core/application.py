@@ -655,7 +655,7 @@ class VistrailsApplicationInterface(object):
             version = controller.current_version
         self.select_version(version)
         return True
-        
+
     def open_workflow(self, locator):
         if isinstance(locator, basestring):
             locator = BaseLocator.from_url(locator)
@@ -676,8 +676,7 @@ class VistrailsApplicationInterface(object):
                 vistrail.update_id_scope()
                 vistrail.addTag("Imported workflow", action.id)
 
-                # FIXME might need different locator?                
-                controller = self.add_vistrail(vistrail, locator)
+                controller = self.add_vistrail(vistrail, UntitledLocator())
         except VistrailsDBException, e:
             import traceback
             debug.critical("Exception from the database",
