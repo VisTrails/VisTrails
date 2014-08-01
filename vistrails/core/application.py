@@ -624,7 +624,7 @@ class VistrailsApplicationInterface(object):
                 controller = self.add_vistrail(loaded_objs[0], locator, 
                                                *loaded_objs[1:])
                 if locator.is_untitled():
-                    return True
+                    return controller
                 controller.is_abstraction = is_abstraction
                 thumb_cache = ThumbnailCache.getInstance()
                 controller.vistrail.thumbnails = controller.find_thumbnails(
@@ -644,51 +644,43 @@ class VistrailsApplicationInterface(object):
                 debug.critical("Exception from the database",
                                traceback.format_exc())
                 return None
-            except Exception, e:
-                #debug.critical('An error has occurred', e)
-                #print "An error has occurred", str(e)
-                raise
 
         version = self.convert_version(version)
         if version is None:
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
-        return True
+        return controller
 
     def open_workflow(self, locator):
         if isinstance(locator, basestring):
             locator = BaseLocator.from_url(locator)
 
-        vistrail = Vistrail()
+        new_locator = UntitledLocator()
+        controller = self.open_vistrail(new_locator)
         try:
             if locator is None:
                 return False
-            if locator is not None:
-                workflow = locator.load(Pipeline)
-                action_list = []
-                for module in workflow.module_list:
-                    action_list.append(('add', module))
-                for connection in workflow.connection_list:
-                    action_list.append(('add', connection))
-                action = vistrails.core.db.action.create_action(action_list)
-                vistrail.add_action(action, 0L)
-                vistrail.update_id_scope()
-                vistrail.addTag("Imported workflow", action.id)
-
-                controller = self.add_vistrail(vistrail, UntitledLocator())
+            workflow = locator.load(Pipeline)
+            action_list = []
+            for module in workflow.module_list:
+                action_list.append(('add', module))
+            for connection in workflow.connection_list:
+                action_list.append(('add', connection))
+            action = vistrails.core.db.action.create_action(action_list)
+            controller.add_new_action(action)
+            controller.perform_action(action)
+            controller.vistrail.set_tag(action.id, "Imported workflow")
+            controller.change_selected_version(action.id)
         except VistrailsDBException, e:
             import traceback
             debug.critical("Exception from the database",
                            traceback.format_exc())
             return None
-        except Exception, e:
-            #debug.critical('An error has occurred', e)
-            raise
 
         controller.select_latest_version()
         controller.set_changed(True)
-        return True
+        return controller
 
     def save_vistrail(self, locator=None, controller=None, export=False):
         if controller is None:
