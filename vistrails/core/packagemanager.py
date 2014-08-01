@@ -44,13 +44,13 @@ import sys
 import warnings
 
 from vistrails.core import debug, get_vistrails_application, system
-from vistrails.core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject, \
+    get_vistrails_configuration
 import vistrails.core.data_structures.graph
-import vistrails.core.db.io
-from vistrails.core.modules.module_registry import ModuleRegistry, \
-                                         MissingPackage, MissingPackageVersion
+from vistrails.core.modules.module_registry import MissingPackage, \
+    MissingPackageVersion
 from vistrails.core.modules.package import Package
-from vistrails.core.utils import VistrailsInternalError, InstanceObject, \
+from vistrails.core.utils import VistrailsInternalError, \
     versions_increasing, VistrailsDeprecation
 import vistrails.packages
 ##############################################################################
@@ -176,8 +176,9 @@ class PackageManager(object):
         self._orig_import = __builtin__.__import__
         __builtin__.__import__ = self._import_override
 
-        for pkg in self._startup.enabled_packages.itervalues():
-            self.add_package(pkg.name, prefix=pkg.prefix)
+        if get_vistrails_configuration().loadPackages:
+            for pkg in self._startup.enabled_packages.itervalues():
+                self.add_package(pkg.name, prefix=pkg.prefix)
 
     def _import_override(self,
                          name, globals={}, locals={}, fromlist=[], level=-1):

@@ -91,6 +91,7 @@ dataDir: Default data directory
 packageDir: System packages directory
 userPackageDir: Local packages directory
 logDir: Log files directory
+loadPackages: Whether to load the packages enabled in the configuration file
 fileDir: Default vistrail directory
 temporaryDir: Temporary files directory
 webRepositoryURL: Web repository URL
@@ -175,6 +176,10 @@ installBundlesWithPip: Boolean
 batch: Boolean
 
     Run vistrails in batch mode instead of interactive mode
+
+loadPackages: Boolean
+
+    Whether to load the packages enabled in the configuration file
 
 logDir: Path
 
@@ -549,6 +554,7 @@ base_config = {
          ConfigField('cacheSize', 20, int, widget_type='thumbnailcache')])],
     "Packages":
     [ConfigField('enablePackagesSilently', False, bool, ConfigType.ON_OFF),
+     ConfigField('loadPackages', True, bool, ConfigType.ON_OFF),
      ConfigField('installBundles', True, bool, ConfigType.ON_OFF),
      ConfigField('installBundlesWithPip', False, bool, ConfigType.ON_OFF,
                  depends_on="installBundles"),
