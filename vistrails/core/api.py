@@ -12,11 +12,19 @@ __all__ = ['Vistrail', 'Pipeline', 'Module', 'Package',
            'load_vistrail', 'load_pipeline', 'output_mode', 'run_vistrail']
 
 
+class NoSuchVersion(ValueError): pass
+
+
 is_initialized = False
 _application = None
 
 
 def initialize():
+    """Initializes VisTrails.
+
+    You don't have to call this directly. Initialization will happen when you
+    start using the API.
+    """
     global is_initialized
     global _application
 
@@ -38,7 +46,14 @@ def initialize():
 
 class Vistrail(object):
     """This class wraps both Vistrail and VistrailController.
+
+    From it, you can get any pipeline from a tag name or version number.
+
+    It has a concept of "current version", from which you can create new
+    versions by performing actions.
     """
+    _current_pipeline = None
+
     def __init__(self, arg=None):
         initialize()
         if arg is None:
@@ -70,6 +85,86 @@ class Vistrail(object):
             raise TypeError("Vistrail was constructed from unexpected "
                             "argument type %r" % type(arg).__name__)
 
+    def get_pipeline(self, version):
+        vistrail = self.controller.vistrail
+        if isinstance(version, (int, long)):
+            if not vistrail.db_has_action_with_id(version):
+                raise NoSuchVersion("Vistrail doesn't have a version %r" %
+                                    version)
+            return Pipeline(vistrail.getPipelineVersionNumber(version))
+        elif isinstance(version, basestring):
+            if not vistrail.has_tag_str(version):
+                raise NoSuchVersion("Vistrail doesn't have a tag %r" % version)
+            return Pipeline(vistrail.getPipelineVersionName(version))
+        else:
+            raise TypeError("get_pipeline() argument must be a string or "
+                            "integer, not %r" % type(version).__name__)
+
+    def set_current_pipeline(self, version):
+        """Sets a different version as current.
+
+        The current workflow is accessible via current_workflow; it is the one
+        that gets executed when calling execute(), and the version from which
+        new versions are created if you perform actions.
+        """
+        vistrail = self.controller.vistrail
+        if isinstance(version, (int, long)):
+            if not vistrail.db_has_action_with_id(version):
+                raise NoSuchVersion("Vistrail doesn't have a version %r" %
+                                    version)
+        elif (isinstance(version, basestring)):
+            if not vistrail.has_tag_str(version):
+                raise NoSuchVersion("Vistrail doesn't have a tag %r" % version)
+        else:
+            raise TypeError("set_current_pipeline() argument must be a string "
+                            "or integer, not %r" % type(version).__name__)
+        self.controller.change_selected_version(version)
+        self._current_pipeline = None
+
+    @property
+    def current_pipeline(self):
+        if self._current_pipeline is None:
+            self._current_pipeline = Pipeline(self.controller.current_pipeline)
+        return self._current_pipeline
+
+    @property
+    def current_version(self):
+        return self.controller.current_version
+
+    def set_tag(self, *args):
+        """Sets a tag for the current or specified version.
+        """
+        if len(args) == 1:
+            version, (tag,) = self.controller.current_version, args
+        elif len(args) == 2:
+            version, tag = args
+        else:
+            raise TypeError("set_tag() takes 1 or 2 arguments (%r given)" %
+                            len(args))
+        if isinstance(version, (int, long)):
+            if not self.controller.vistrail.db_has_action_with_id(version):
+                raise NoSuchVersion("Vistrail doesn't have a version %r" %
+                                    version)
+        elif isinstance(version, basestring):
+            if not self.controller.vistrail.has_tag_str(version):
+                raise NoSuchVersion("Vistrail doesn't have a tag %r" % version)
+        else:
+            raise TypeError("set_tag() expects the version to be a string or "
+                            "integer, not %r" % type(version).__name__)
+        self.controller.vistrail.set_tag(version, tag)
+
+    def tag(self, tag):
+        """Sets a tag for the current version.
+        """
+        self.set_tag(tag)
+
+    def execute(self, *args, **kwargs):
+        """Executes the current workflow.
+        """
+        return self.current_pipeline.execute(*args, **kwargs)
+
+    # TODO : vistrail modification methods
+
 
 class Pipeline(object):
     """This class represents a single Pipeline.
@@ -90,25 +185,36 @@ class Pipeline(object):
             raise TypeError("Pipeline was constructed from unexpected "
                             "argument type %r" % type(pipeline).__name__)
 
+    @property
+    def modules(self):
+        pass  # TODO
+
+    def execute(self, *args, **kwargs):
+        pass  # TODO : magic
+
 
 class Module(object):
     """Wrapper for a module, which can be in a Pipeline or not yet.
     """
+    # TODO
 
 
 class Package(object):
     """Wrapper for an enabled package.
     """
+    # TODO
 
 
 class Results(object):
     """Contains the results of a pipeline execution.
     """
+    # TODO
 
 
 class Function(object):
     """A function, essentially a value with an explicit module type.
     """
+    # TODO
 
 
 def load_vistrail(filename, version=None):
@@ -139,13 +245,21 @@ def load_pipeline(filename):
     return Pipeline(pipeline)
 
 
+def load_package(identifier):
+    """Gets a package by identifier, enabling it if necessary.
+    """
+    # TODO
+
+
 @contextlib.contextmanager
 def output_mode(output, mode, **kwargs):
     """Context manager that makes an output use a specific mode.
     """
+    # TODO
     yield
 
 
-def run_vistrail(filename, version=None):
+def run_vistrail(filename, version=None, *args, **kwargs):
     """Shortcut for load_vistrail(filename).execute(...)
     """
+    return load_vistrail(filename, version).execute(*args, **kwargs)
