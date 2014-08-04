@@ -39,7 +39,6 @@ initializations to the theme, packages and the builder...
 from PyQt4 import QtGui, QtCore, QtNetwork
 from vistrails.core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
-from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import system
 from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
