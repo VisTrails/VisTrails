@@ -104,16 +104,18 @@ class VistrailsApplicationInterface(object):
         print system.about_string()
         sys.exit(0)
 
-    def read_options(self):
+    def read_options(self, args=None):
         """ read_options() -> None
         Read arguments from the command line
         
         """
-        
+        if args is None:
+            args = sys.argv[1:]
+
         parser = vistrails.core.configuration.build_default_parser()
         command_line_config = vistrails.core.configuration.ConfigurationObject()
         try:
-            parser.parse_args(sys.argv[1:], namespace=command_line_config)
+            parser.parse_args(args, namespace=command_line_config)
         except SystemError, e:
             print "GOT SYSTEM ERROR!"
             import traceback
@@ -228,7 +230,7 @@ class VistrailsApplicationInterface(object):
             options_config = None
 
         # command line options override both
-        command_line_config = self.read_options()
+        command_line_config = self.read_options(args)
 
         # startup takes care of all configurations
         self.startup = VistrailsStartup(options_config, command_line_config)

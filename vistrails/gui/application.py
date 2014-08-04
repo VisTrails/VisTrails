@@ -83,7 +83,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             release = platform.mac_ver()[0].split('.')
             if len(release)>=2 and int(release[0])*100+int(release[1])>=1009:
                 QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
-        QtGui.QApplication.__init__(self, sys.argv)
+        QtGui.QApplication.__init__(self, [])
         VistrailsApplicationInterface.__init__(self)
 
         if system.systemType in ['Darwin']:
@@ -101,7 +101,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus)
         qt.allowQObjects()
 
-    def run_single_instance(self):
+    def run_single_instance(self, args):
         # code for single instance of the application
         # based on the C++ solution available at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
@@ -127,7 +127,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                        self._unique_key, e)
 
                 else:
-                    if self.found_another_instance_running(local_socket):
+                    if self.found_another_instance_running(local_socket, args):
                         return APP_DONE # success, we should shut down
                     else:
                         return APP_FAIL  # error, we should shut down
@@ -169,9 +169,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         return None
 
-    def found_another_instance_running(self, local_socket):
+    def found_another_instance_running(self, local_socket, args):
         debug.critical("Found another instance of VisTrails running")
-        msg = bytes(sys.argv[1:])
+        msg = bytes(args)
         debug.critical("Will send parameters to main instance %s" % msg)
         res = self.send_message(local_socket, msg)
         if res is True:
@@ -199,7 +199,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
         if singleInstance:
-            finished = self.run_single_instance()
+            finished = self.run_single_instance(args)
             if finished is not None:
                 return finished
 
