@@ -32,15 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import copy
 import os
-import shutil
 import sys
-import tempfile
+import traceback
 import weakref
 import warnings
 
-from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import keychain
 from vistrails.core import system
@@ -54,10 +51,9 @@ import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.packagemanager import PackageManager
-from vistrails.core.startup import VistrailsStartup, StartupPackage
+from vistrails.core.startup import VistrailsStartup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject, VistrailsWarning
-from vistrails.core.utils.uxml import enter_named_element
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.controller import VistrailController
@@ -116,80 +112,9 @@ class VistrailsApplicationInterface(object):
         command_line_config = vistrails.core.configuration.ConfigurationObject()
         try:
             parser.parse_args(args, namespace=command_line_config)
-        except SystemError, e:
+        except SystemError:
             print "GOT SYSTEM ERROR!"
-            import traceback
             traceback.print_exc()
-        # get = command_line.CommandLineParser().get_option
-        # if get('nosplash')!=None:
-        #     command_line_config.showSplash = bool(get('nosplash'))
-        # # if get('debugsignals')!=None:
-        # #     command_line_config.debugSignals = bool(get('debugsignals'))
-        # if get('dotVistrails')!=None:
-        #     command_line_config.dotVistrails = get('dotVistrails')
-        # if get('multiheads')!=None:
-        #     command_line_config.multiHeads = bool(get('multiheads'))
-        # if get('maximized')!=None:
-        #     command_line_config.maximizeWindows = bool(get('maximized'))
-        # if get('movies')!=None:
-        #     command_line_config.showMovies = bool(get('movies'))
-        # if get('cache')!=None:
-        #     command_line_config.useCache = bool(get('cache'))
-        # if get('verbose')!=None:
-        #     command_line_config.verbosenessLevel = get('verbose')
-        # if get('fixedcells') != None:
-        #     command_line_config.fixedSpreadsheetCells = str(get('fixedcells'))
-        # if get('noninteractive')!=None:
-        #     command_line_config.interactiveMode = \
-        #                                           not bool(get('noninteractive'))
-        #     if get('workflowinfo') != None:
-        #         command_line_config.workflowInfo = str(get('workflowinfo'))
-        #     if get('dumpcells') != None:
-        #         command_line_config.spreadsheetDumpCells = get('dumpcells')
-        #     if get('pdf') != None:
-        #         command_line_config.spreadsheetDumpPDF = get('pdf')
-        #     if get('workflowgraph') != None:
-        #         command_line_config.workflowGraph = str(get('workflowgraph'))
-        #     if get('evolutiongraph') != None:
-        #         command_line_config.evolutionGraph = str(get('evolutiongraph'))
-        # if get('executeworkflows') != None:
-        #     command_line_config.executeWorkflows = \
-        #                                     bool(get('executeworkflows'))
-        # if get('showspreadsheetonly') != None:
-        #     command_line_config.showSpreadsheetOnly = \
-        #                                     bool(get('showspreadsheetonly'))
-        #     # asking to show only the spreadsheet will force the workflows to
-        #     # be executed
-        #     if get('reviewmode') != None:
-        #         command_line_config.reviewMode = bool(get('reviewmode'))
-
-        #     if command_line_config.showSpreadsheetOnly and not command_line_config.reviewMode:
-        #         command_line_config.execute = True
-            
-        # self.temp_db_options = InstanceObject(host=get('host'),
-        #                                          port=get('port'),
-        #                                          db=get('db'),
-        #                                          user=get('user'),
-        #                                          parameters=get('parameters')
-        #                                          )
-        # if get('nologger')!=None:
-        #     command_line_config.nologger = bool(get('nologger'))
-        # if get('quickstart') != None:
-        #     command_line_config.staticRegistry = str(get('quickstart'))
-        # if get('parameterExploration')!= None:
-        #     command_line_config.parameterExploration = \
-        #         str(get('parameterExploration'))
-        # if get('detachHistoryView')!= None:
-        #     command_line_config.detachHistoryView = bool(get('detachHistoryView'))
-        # if get('noSingleInstance')!=None:
-        #     command_line_config.singleInstance = not bool(get('noSingleInstance'))
-        # if get('installBundles')!=None:
-        #     command_line_config.installBundles = bool(get('installBundles'))
-        # if get('runJob')!=None:
-        #     self.temp_configuration.jobRun = get('runJob')
-        # if get('listJobs')!=None:
-        #     self.temp_configuration.jobList = bool(get('listJobs'))
-        # self.input = command_line.CommandLineParser().positional_arguments()
 
         self.input = command_line_config.vistrails
         if len(self.input) == 0:
@@ -437,10 +362,9 @@ class VistrailsApplicationInterface(object):
                 try:
                     #print "  m: ", m
                     m(*args)
-                except Exception, e:
-                    import traceback
+                except Exception:
                     traceback.print_exc()
-       
+
     def showBuilderWindow(self):
         pass
  
@@ -523,15 +447,10 @@ class VistrailsApplicationInterface(object):
                 if not controller.is_abstraction:
                     collection.add_to_workspace(entity)
                 collection.commit()
-            except VistrailsDBException, e:
-                import traceback
+            except VistrailsDBException:
                 debug.critical("Exception from the database",
                                traceback.format_exc())
                 return None
-            except Exception, e:
-                #debug.critical('An error has occurred', e)
-                #print "An error has occurred", str(e)
-                raise
 
         version = self.convert_version(version)
         if version is None:
@@ -562,14 +481,10 @@ class VistrailsApplicationInterface(object):
 
                 # FIXME might need different locator?                
                 controller = self.add_vistrail(vistrail, locator)
-        except VistrailsDBException, e:
-            import traceback
+        except VistrailsDBException:
             debug.critical("Exception from the database",
                            traceback.format_exc())
             return None
-        except Exception, e:
-            #debug.critical('An error has occurred', e)
-            raise
 
         controller.select_latest_version()
         controller.set_changed(True)
@@ -594,7 +509,6 @@ class VistrailsApplicationInterface(object):
             controller.write_vistrail(locator, export=export)
         except Exception, e:
             debug.unexpected_exception(e)
-            import traceback
             debug.critical("Failed to save vistrail", traceback.format_exc())
             raise
         if export:
@@ -617,7 +531,6 @@ class VistrailsApplicationInterface(object):
             collection.add_to_workspace(entity)
             collection.commit()
         except Exception, e:
-            import traceback
             debug.critical('Failed to index vistrail', traceback.format_exc())
         return controller.locator
 
