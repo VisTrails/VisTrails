@@ -687,7 +687,7 @@ def open_vistrail_from_xml(filename):
     try:
         daoList = getVersionDAO(version)
         vistrail = daoList.open_from_xml(filename, DBVistrail.vtType, tree)
-        if vistrails is None:
+        if vistrail is None:
             raise VistrailsDBException("Couldn't read vistrail from XML")
         vistrail = translate_vistrail(vistrail, version)
         vistrails.db.services.vistrail.update_id_scope(vistrail)
