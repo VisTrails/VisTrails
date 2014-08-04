@@ -106,7 +106,7 @@ class Vistrail(object):
             raise TypeError("get_pipeline() argument must be a string or "
                             "integer, not %r" % type(version).__name__)
 
-    def set_current_pipeline(self, version):
+    def select_version(self, version):
         """Sets a different version as current.
 
         The current workflow is accessible via current_workflow; it is the one
@@ -125,6 +125,12 @@ class Vistrail(object):
             raise TypeError("set_current_pipeline() argument must be a string "
                             "or integer, not %r" % type(version).__name__)
         self.controller.change_selected_version(version)
+        self._current_pipeline = None
+
+    def select_latest_version(self):
+        """Sets the most recent version in the vistrail as current.
+        """
+        self.controller.select_latest_version()
         self._current_pipeline = None
 
     @property
