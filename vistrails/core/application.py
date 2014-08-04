@@ -96,122 +96,6 @@ class VistrailsApplicationInterface(object):
         self._initialized = False
         self.notifications = {}
 
-    def setup_options(self, args=[]):
-        """ setup_options() -> None
-        Check and store all command-line arguments
-        
-        """
-        pass
-
-#         add = command_line.CommandLineParser.add_option
-#         add("-S", "--startup", action="store", type="str", default=None,
-#             dest="dotVistrails",
-#             help="Set startup file (default is ~/.vistrails)")
-#         add("-?", action="help",
-#             help="show this help message and exit")
-#         add("-v", "--version", action="callback",
-#             callback=lambda option, opt, value, parser: self.printVersion(),
-#             help="print version information and quit")
-#         add("-V", "--verbose", action="store", type="int", default=None,
-#             dest="verbose", help="set verboseness level (0--2, "
-#             "default=0, higher means more verbose)")
-#         add("-n", "--nosplash", action="store_false",
-#             default = None,
-#             help="don't display splash on startup")
-#         add("-c", "--cache", action="store", type="int", default=None,
-#             dest="cache", help="enable/disable caching")
-#         add("-m", "--movies", action="store", type="int", default=None,
-#             dest="movies", help="set automatic movie creation on spreadsheet "
-#             "(0 or 1, default=1. Set this to zero to work around vtk bug with "
-#             "offscreen renderer and opengl texture3d mappers)")
-#         add("-s", "--multiheads", action="store_true",
-#             default = None,
-#             help="display the builder and spreadsheet on different screens "
-#             "(if available)")
-#         add("-x", "--maximized", action="store_true",
-#             default = None,
-#             help="Maximize VisTrails windows at startup")
-#         add("-b", "--noninteractive", action="store_true",
-#             default = None,
-#             help="run in non-interactive mode")
-#         add("-e", "--dumpcells", action="store", dest="dumpcells",
-#             default = None,
-#             help="when running in non-interactive mode, directory to dump "
-#             "spreadsheet cells before exiting")
-#         add("-p", "--pdf", action="store_true",
-#             default = None,
-#             help="dump files in pdf format (non-interactive mode only)")
-#         add("-l", "--nologger", action="store_true",
-#             default = None,
-#             help="disable the logging")
-#         add('--no-logfile', action='store_true',
-#             dest='nologfile',
-#             default=None,
-#             help="Disable the log file (output still happens in terminal)")
-#         add("-d", "--debugsignals", action="store_true",
-#             default = None,
-#             help="debug Qt Signals")
-#         add("-a", "--parameters", action="store", dest="parameters",
-#             help="workflow parameter settings (non-interactive mode only)")
-#         add("-t", "--host", action="store", dest="host",
-#             help="hostname or ip address of database server")
-#         add("-r", "--port", action="store", type="int", default=3306,
-#             dest="port", help="database port")
-#         add("-f", "--db", action="store", dest="db",
-#             help="database name")
-#         add("-u", "--user", action="store", dest="user",
-#             help="database username")
-#         add("-i", "--showspreadsheetonly", action="store_true",
-#             default = None,
-#             help="only the spreadsheet will be shown. This implies -w was given.\
-# The builder window can be accessed by a spreadsheet menu option.")
-#         add("-w", "--executeworkflows", action="store_true",
-#             default = None,
-#             help="The workflows will be executed")
-#         add("-F", "--fixedcells", action="store_true",
-#             default = None,
-#             help="Use a fixed spreadsheet cell size of 200*180")
-#         add("-I", "--workflowinfo", action="store",
-#             default = None,
-#             help=("Save workflow graph and spec in specified directory "
-#                   "(only valid in console mode)."))
-#         add("-E", "--reviewmode", action="store_true",
-#             default = None,
-#             help="Show the spreadsheet in the reviewing mode")
-#         add("-q", "--quickstart", action="store",
-#             help="Start VisTrails using the specified static registry")
-#         add("-D", "--detachHistoryView", action="store_true",
-#             help="Detach the history view from the builder windows")
-#         add("-P", "--parameterExploration", action="store_true",
-#             help="Execute Parameter Exploration")
-#         add("-G", "--workflowgraph", action="store",
-#             default = None,
-#             help=("Save workflow graph in specified directory without running "
-#                   "the workflow (only valid in console mode)."))
-#         add("-U", "--evolutiongraph", action="store",
-#             default = None,
-#             help=("Save evolution graph in specified directory without running "
-#                   "any workflow (only valid in console mode)."))
-#         add("-g", "--noSingleInstance", action="store_true",
-#             help=("Run VisTrails without the single instance restriction."))
-#         add("--no-bundleinstall", action='store_false',
-#             dest='installBundles',
-#             help=("Do not try to install missing Python packages "
-#                   "automatically"))
-#         add("--runJob", action="store",
-#             help=("Run job with specified id."))
-#         add("--listJobs", action="store_true",
-#             help=("List all jobs."))
-#         add('--spawned-mode', '--spawned', action='store_true',
-#             dest='spawned',
-#             help=("Do not use the .vistrails directory, and load packages "
-#                   "automatically when needed"))
-#
-#         if args != None:
-#             command_line.CommandLineParser.parse_options(args=args)
-#         else:
-#             command_line.CommandLineParser.parse_options()
-
     def printVersion(self):
         """ printVersion() -> None
         Print version of Vistrail and exit
@@ -336,8 +220,6 @@ class VistrailsApplicationInterface(object):
         
         """
         warnings.simplefilter('once', VistrailsWarning, append=True)
-
-        self.setup_options(args)
 
         # options_dict overrides startup configuration
         if options_dict is not None:
