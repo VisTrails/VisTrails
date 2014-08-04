@@ -261,7 +261,7 @@ class VistrailsApplicationInterface(object):
     def process_interactive_input(self):
         pe = None
         usedb = False
-        if self.temp_db_options.host:
+        if self.temp_db_options is not None and self.temp_db_options.host:
             usedb = True
         if self.input:
             #check if versions are embedded in the filename

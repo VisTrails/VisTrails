@@ -466,7 +466,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         usedb = False
-        if self.temp_db_options.host:
+        if self.temp_db_options is not None and self.temp_db_options.host:
             usedb = True
             passwd = ''
         if usedb and self.temp_db_options.user:
@@ -521,9 +521,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 w_list.append((locator, version))
                 vt_list.append(locator)
             import vistrails.core.console_mode
-            if self.temp_db_options.parameters == None:
-                self.temp_db_options.parameters = ''
-            
+
             errs = []
             if self.temp_configuration.check('workflowGraph'):
                 workflow_graph = self.temp_configuration.workflowGraph
@@ -559,10 +557,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     vistrails.core.console_mode.run_parameter_explorations(
                         w_list, extra_info=extra_info))
             else:
-                errs.extend(vistrails.core.console_mode.run(w_list,
-                                      self.temp_db_options.parameters,
-                                      output_dir, update_vistrail=True,
-                                      extra_info=extra_info))
+                errs.extend(vistrails.core.console_mode.run(
+                        w_list,
+                        self.temp_db_option is not None and
+                            self.temp_db_option.parameters
+                            or '',
+                        output_dir, update_vistrail=True,
+                        extra_info=extra_info))
             if len(errs) > 0:
                 for err in errs:
                     debug.critical("*** Error in %s:%s:%s -- %s" % err)
@@ -730,13 +731,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             #it's safe to eval as a list
             args = literal_eval(msg)
             if isinstance(args, list):
-                #print "args from another instance %s"%args
                 try:
-                    command_line.CommandLineParser.init_options(args)
+                    self.read_options(args)
                 except SystemExit:
                     debug.critical("Invalid options: %s" % ' '.join(args))
                     return False
-                self.readOptions()
                 if self.temp_configuration.check('jobList'):
                     job = JobMonitor.getInstance()
                     return '\n'.join(
