@@ -2094,7 +2094,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.clear()
         if not pipeline: return 
         
-        self.current_pipeline.mark_list_depth()
+        if pipeline and pipeline.is_valid:
+            pipeline.mark_list_depth()
 
         needReset = len(self.items())==0
         try:

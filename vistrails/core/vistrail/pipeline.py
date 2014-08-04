@@ -1203,12 +1203,13 @@ class Pipeline(DBWorkflow):
                         dest_depth += 1
                     # special case: if src is List and dst is Variant
                     # we should treat the Variant as having depth 0
-                    if len(src_descs)==1 and src_descs[0].module == List and \
-                       len(dest_descs)==1 and dest_descs[0].module == Variant:
-                        source_depth -= 1
-                    if len(src_descs)==1 and src_descs[0].module == Variant and \
-                       len(dest_descs)==1 and dest_descs[0].module == List:
-                        dest_depth -= 1
+                    if conn.source.spec:
+                        if len(src_descs)==1 and src_descs[0].module == List and \
+                           len(dest_descs)==1 and dest_descs[0].module == Variant:
+                            source_depth -= 1
+                        if len(src_descs)==1 and src_descs[0].module == Variant and \
+                           len(dest_descs)==1 and dest_descs[0].module == List:
+                            dest_depth -= 1
                 depth = prev_depth + source_depth - dest_depth
                 if depth > 0 and conn.destination.spec.name not in ports:
                     ports.append(conn.destination.spec.name)

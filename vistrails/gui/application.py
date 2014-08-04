@@ -39,7 +39,6 @@ initializations to the theme, packages and the builder...
 from PyQt4 import QtGui, QtCore, QtNetwork
 from vistrails.core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
-from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import system
 from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
@@ -83,7 +82,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             release = platform.mac_ver()[0].split('.')
             if len(release)>=2 and int(release[0])*100+int(release[1])>=1009:
                 QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
-        QtGui.QApplication.__init__(self, sys.argv)
+        QtGui.QApplication.__init__(self, [])
         VistrailsApplicationInterface.__init__(self)
 
         if system.systemType in ['Darwin']:
@@ -101,7 +100,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus)
         qt.allowQObjects()
 
-    def run_single_instance(self):
+    def run_single_instance(self, args):
         # code for single instance of the application
         # based on the C++ solution available at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
@@ -127,7 +126,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                        self._unique_key, e)
 
                 else:
-                    if self.found_another_instance_running(local_socket):
+                    if self.found_another_instance_running(local_socket, args):
                         return APP_DONE # success, we should shut down
                     else:
                         return APP_FAIL  # error, we should shut down
@@ -169,9 +168,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         return None
 
-    def found_another_instance_running(self, local_socket):
+    def found_another_instance_running(self, local_socket, args):
         debug.critical("Found another instance of VisTrails running")
-        msg = bytes(sys.argv[1:])
+        msg = bytes(args)
         debug.critical("Will send parameters to main instance %s" % msg)
         res = self.send_message(local_socket, msg)
         if res is True:
@@ -199,7 +198,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
         if singleInstance:
-            finished = self.run_single_instance()
+            finished = self.run_single_instance(args)
             if finished is not None:
                 return finished
 
@@ -466,7 +465,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         usedb = False
-        if self.temp_db_options.host:
+        if self.temp_db_options is not None and self.temp_db_options.host:
             usedb = True
             passwd = ''
         if usedb and self.temp_db_options.user:
@@ -521,9 +520,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 w_list.append((locator, version))
                 vt_list.append(locator)
             import vistrails.core.console_mode
-            if self.temp_db_options.parameters == None:
-                self.temp_db_options.parameters = ''
-            
+
             errs = []
             if self.temp_configuration.check('workflowGraph'):
                 workflow_graph = self.temp_configuration.workflowGraph
@@ -559,10 +556,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     vistrails.core.console_mode.run_parameter_explorations(
                         w_list, extra_info=extra_info))
             else:
-                errs.extend(vistrails.core.console_mode.run(w_list,
-                                      self.temp_db_options.parameters,
-                                      output_dir, update_vistrail=True,
-                                      extra_info=extra_info))
+                errs.extend(vistrails.core.console_mode.run(
+                        w_list,
+                        self.temp_db_option is not None and
+                            self.temp_db_option.parameters
+                            or '',
+                        output_dir, update_vistrail=True,
+                        extra_info=extra_info))
             if len(errs) > 0:
                 for err in errs:
                     debug.critical("*** Error in %s:%s:%s -- %s" % err)
@@ -730,13 +730,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             #it's safe to eval as a list
             args = literal_eval(msg)
             if isinstance(args, list):
-                #print "args from another instance %s"%args
                 try:
-                    command_line.CommandLineParser.init_options(args)
+                    self.read_options(args)
                 except SystemExit:
                     debug.critical("Invalid options: %s" % ' '.join(args))
                     return False
-                self.readOptions()
                 if self.temp_configuration.check('jobList'):
                     job = JobMonitor.getInstance()
                     return '\n'.join(
