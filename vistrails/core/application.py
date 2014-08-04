@@ -671,7 +671,9 @@ class VistrailsApplicationInterface(object):
             controller.add_new_action(action)
             controller.perform_action(action)
             controller.vistrail.set_tag(action.id, "Imported workflow")
-            controller.change_selected_version(action.id)
+            # from_root=True works around bug #886
+            controller.change_selected_version(action.id,
+                                               from_root=True)
         except VistrailsDBException, e:
             import traceback
             debug.critical("Exception from the database",
