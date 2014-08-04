@@ -9,10 +9,14 @@ from vistrails.core.vistrail.vistrail import Vistrail as _Vistrail
 
 __all__ = ['Vistrail', 'Pipeline', 'Module', 'Package',
            'Results', 'Function',
-           'load_vistrail', 'load_pipeline', 'output_mode', 'run_vistrail']
+           'load_vistrail', 'load_pipeline', 'load_package',
+           'output_mode', 'run_vistrail',
+           'NoSuchVersion']
 
 
-class NoSuchVersion(ValueError): pass
+class NoSuchVersion(ValueError):
+    """The version number or tag you specified doesn't exist in the vistrail.
+    """
 
 
 is_initialized = False
@@ -40,6 +44,8 @@ def initialize():
                 'loadPackages': False,
                 'enablePackagesSilently': True},
             args=[])
+
+    is_initialized = True
 
     return True
 
@@ -220,13 +226,16 @@ class Function(object):
 def load_vistrail(filename, version=None):
     """Loads a Vistrail from a filename.
     """
+    initialize()
     if not isinstance(filename, basestring):
         raise TypeError("load_vistrails() expects a filename, got %r" %
                         type(filename).__name__)
-    locator = FileLocator(filename)
 
+    locator = FileLocator(filename)
+    # Copied from VistrailsApplicationInterface#open_vistrail()
     loaded_objs = vistrails.core.db.io.load_vistrail(locator)
-    controller = VistrailController(*loaded_objs)
+    controller = VistrailController(loaded_objs[0], locator,
+                                    *loaded_objs[1:])
 
     return Vistrail(controller)
 
@@ -234,6 +243,7 @@ def load_vistrail(filename, version=None):
 def load_pipeline(filename):
     """Loads a single pipeline from a filename.
     """
+    initialize()
     if not isinstance(filename, basestring):
         raise TypeError("load_vistrails() expects a filename, got %r" %
                         type(filename).__name__)
@@ -248,6 +258,7 @@ def load_pipeline(filename):
 def load_package(identifier):
     """Gets a package by identifier, enabling it if necessary.
     """
+    initialize()
     # TODO
 
 
