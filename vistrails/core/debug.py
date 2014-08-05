@@ -184,7 +184,7 @@ class DebugPrint(object):
 
         """
         # Setup root logger
-        self.logger = logging.getLogger('VisLog')
+        self.logger = logging.getLogger('vistrails')
         self.logger.setLevel(logging.DEBUG)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
 
