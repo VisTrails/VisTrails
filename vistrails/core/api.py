@@ -143,7 +143,8 @@ class Vistrail(object):
     @property
     def current_pipeline(self):
         if self._current_pipeline is None:
-            self._current_pipeline = Pipeline(self.controller.current_pipeline)
+            self._current_pipeline = Pipeline(self.controller.current_pipeline,
+                                              vistrail=self)
         return self._current_pipeline
 
     @property
@@ -182,6 +183,17 @@ class Vistrail(object):
         """
         return self.current_pipeline.execute(*args, **kwargs)
 
+    @property
+    def changed(self):
+        return self.controller.changed
+
+    # TODO : vistrail modification methods
+
+    def get_module(self, module_id):
+        # TODO : module ids are global to a vistrail, so, we should be able to
+        # get modules that are not part of the current pipeline as well
+        return self.current_pipeline.get_module(module_id)
+
     def __repr__(self):
         version_nb = self.controller.current_version
         if self.controller.vistrail.has_tag(version_nb):
@@ -196,19 +208,15 @@ class Vistrail(object):
                 version,
                 ('not changed', 'changed')[self.controller.changed])
 
-    @property
-    def changed(self):
-        return self.controller.changed
-
-    # TODO : vistrail modification methods
-
 
 class Pipeline(object):
     """This class represents a single Pipeline.
 
     It doesn't have a controller.
     """
-    def __init__(self, pipeline=None):
+    vistrail = None
+
+    def __init__(self, pipeline=None, vistrail=None):
         initialize()
         if pipeline is None:
             self.pipeline = _Pipeline()
@@ -221,6 +229,12 @@ class Pipeline(object):
         else:
             raise TypeError("Pipeline was constructed from unexpected "
                             "argument type %r" % type(pipeline).__name__)
+        if vistrail is not None:
+            if isinstance(vistrail, Vistrail):
+                self.vistrail = vistrail
+            else:
+                raise TypeError("Pipeline got unknown type %r as 'vistrail' "
+                                "argument" % type(vistrail).__name__)
 
     @property
     def modules(self):
@@ -235,11 +249,59 @@ class Pipeline(object):
                 len(self.pipeline.modules),
                 len(self.pipeline.connections))
 
+    def get_module(self, module_id):
+        if isinstance(module_id, (int, long)):  # module id
+            module = self.pipeline.modules[module_id]
+            return Module(descriptor=module.module_descriptor,
+                          module_id=module_id,
+                          pipeline=self)
+        elif isinstance(module_id, basestring):  # module name
+            pass  # TODO
+        else:
+            raise TypeError("get_module() expects a string or integer, not "
+                            "%r" % type(module_id).__name__)
+
 
 class Module(object):
     """Wrapper for a module, which can be in a Pipeline or not yet.
     """
-    # TODO
+    module_id = None
+    pipeline = None
+    vistrail = None
+
+    def __init__(self, descriptor, **kwargs):
+        self.descriptor = descriptor
+        if 'module_id' in kwargs:
+            if 'pipeline' in kwargs and 'vistrail' in kwargs:
+                raise TypeError("Please pass either pipeline or vistrail "
+                                "arguments")
+            self.module_id = kwargs['module_id']
+            if 'pipeline' in kwargs:
+                pipeline = kwargs['pipeline']
+                if pipeline.vistrail is not None:
+                    self.vistrail = pipeline.vistrail
+                else:
+                    self.pipeline = pipeline
+            elif 'vistrail' in kwargs:
+                self.vistrail = kwargs['vistrail']
+            else:
+                raise TypeError("Module was given an id but no pipeline or "
+                                "vistrail")
+        else:
+            if kwargs:
+                raise TypeError("Module was given unexpected argument: %r" %
+                                next(iter(kwargs)))
+
+    def __repr__(self):
+        if self.module_id is None:
+            return "<Module %r>" % self.descriptor.name
+        elif self.vistrail is not None:
+            return "<Module %r, id %d in %r>" % (self.descriptor.name,
+                                                 self.module_id,
+                                                 self.vistrail.controller.name)
+        else:  # self.pipeline is not None
+            return "<Module %r, id %d>" % (self.descriptor.name,
+                                                 self.module_id)
 
 
 class ModuleNamespace(object):
@@ -263,9 +325,10 @@ class ModuleNamespace(object):
             name, = name
             namespace = self._namespace
         reg = get_module_registry()
-        return reg.get_descriptor_by_name(self.identifier,
-                                          name,
-                                          namespace)
+        descr = reg.get_descriptor_by_name(self.identifier,
+                                           name,
+                                           namespace)
+        return Module(descriptor=descr)
 
     def __repr__(self):
         return "<Namespace %s of package %s>" % (self._namespace,
