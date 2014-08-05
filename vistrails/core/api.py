@@ -1,7 +1,11 @@
 import contextlib
 
+import vistrails.core.application
 import vistrails.core.db.io
 from vistrails.core.db.locator import UntitledLocator, FileLocator
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.package import Package as _Package
+from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.pipeline import Pipeline as _Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail as _Vistrail
@@ -16,6 +20,11 @@ __all__ = ['Vistrail', 'Pipeline', 'Module', 'Package',
 
 class NoSuchVersion(ValueError):
     """The version number or tag you specified doesn't exist in the vistrail.
+    """
+
+
+class NoSuchPackage(ValueError):
+    """Couldn't find a package with the given identifier.
     """
 
 
@@ -34,8 +43,6 @@ def initialize():
 
     if is_initialized:
         return False
-
-    import vistrails.core.application
 
     # Creates a core application
     _application = vistrails.core.application.init(
@@ -235,10 +242,61 @@ class Module(object):
     # TODO
 
 
-class Package(object):
+class ModuleNamespace(object):
+    def __init__(self, identifier, namespace=''):
+        self.identifier = identifier
+        self._namespace = namespace
+        self._namespaces = {}
+
+    def __getattr__(self, name):
+        if name in self._namespaces:
+            return self._namespaces[name]
+        else:
+            return self[name]
+
+    def __getitem__(self, name):
+        reg = get_module_registry()
+        return reg.get_descriptor_by_name(self.identifier,
+                                          name,
+                                          self._namespace)
+
+    def __repr__(self):
+        return "<Namespace %s of package %s>" % (self._namespace,
+                                                 self.identifier)
+
+
+class Package(ModuleNamespace):
     """Wrapper for an enabled package.
     """
-    # TODO
+    def __init__(self, package):
+        if not isinstance(package, _Package):
+            raise TypeError("Can't construct a package from "
+                            "%r" % type(package).__name__)
+        ModuleNamespace.__init__(self, package.identifier)
+        self._package = package
+
+        # Builds namespaces
+        for mod, namespaces in self._package.descriptors.iterkeys():
+            if not namespaces:
+                continue
+            ns = self
+            fullname = None
+            for name in namespaces.split('|'):
+                if fullname is not None:
+                    fullname += '|' + name
+                else:
+                    fullname = name
+                if name not in ns._namespaces:
+                    ns_ = ns._namespaces[name] = ModuleNamespace(
+                            self.identifier,
+                            fullname)
+                    ns = ns_
+                else:
+                    ns = ns._namespaces[name]
+
+    def __repr__(self):
+        return "<Package: %s, %d modules>" % (self.identifier,
+                                              len(self._package.descriptors))
 
 
 class Results(object):
@@ -285,11 +343,50 @@ def load_pipeline(filename):
     return Pipeline(pipeline)
 
 
-def load_package(identifier):
+def load_package(identifier, autoload=True):
     """Gets a package by identifier, enabling it if necessary.
     """
     initialize()
-    # TODO
+    pm = get_package_manager()
+    pkg = pm.identifier_is_available(identifier)
+    if pm.has_package(identifier):
+        pass  # TODO
+    elif pkg is None:
+        raise NoSuchPackage("Package %r not found" % identifier)
+
+    # Copied from VistrailController#try_to_enable_package()
+    dep_graph = pm.build_dependency_graph([identifier])
+    deps = pm.get_ordered_dependencies(dep_graph)
+    for pkg_id in deps:
+        if not do_enable_package(pm, pkg_id):
+            raise NoSuchPackage("Package %r not found" % pkg_id)
+
+    return Package(pkg)
+
+
+# Copied from VistrailController#try_to_enable_package()
+def do_enable_package(pm, identifier):
+    pkg = pm.identifier_is_available(identifier)
+    if pm.has_package(pkg.identifier):
+        return True
+    if pkg and not pm.has_package(pkg.identifier):
+        pm.late_enable_package(pkg.codepath)
+        pkg = pm.get_package_by_codepath(pkg.codepath)
+        if pkg.identifier != identifier:
+            # pkg is probably a parent of the "identifier" package
+            # try to load it
+            if (hasattr(pkg.module, 'can_handle_identifier') and
+                    pkg.module.can_handle_identifier(identifier)):
+                pkg.init_module.load_from_identifier(identifier)
+        return True
+    # identifier may refer to a subpackage
+    if (pkg and pkg.identifier != identifier and
+            hasattr(pkg.module, 'can_handle_identifier') and
+            pkg.module.can_handle_identifier(identifier) and
+            hasattr(pkg.init_module, 'load_from_identifier')):
+        pkg.init_module.load_from_identifier(identifier)
+        return True
+    return False
 
 
 @contextlib.contextmanager
