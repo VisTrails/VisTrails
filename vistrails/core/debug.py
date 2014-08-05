@@ -134,6 +134,19 @@ class EmitWarnings(logging.Handler):
 
 ################################################################################
 
+class LevelCheckerLogger(logging.Logger):
+    def callHandlers(self, record):
+        """Variant that checks the parents' levels when propagating.
+        """
+        for hdlr in self.handlers:
+            if record.levelno >= hdlr.level:
+                hdlr.handle(record)
+        if (self.propagate and self.parent and
+                self.parent.isEnabledFor(record.levelno)):
+            self.parent.handle(record)
+
+################################################################################
+
 class DebugPrint(object):
     """ Class to be used for debugging information.
 
@@ -184,7 +197,11 @@ class DebugPrint(object):
 
         """
         # Setup root logger
+        oldLoggerClass = logging.getLoggerClass()
+        logging.setLoggerClass(LevelCheckerLogger)
         self.logger = logging.getLogger('VisLog')
+        assert isinstance(self.logger, LevelCheckerLogger)
+        logging.setLoggerClass(oldLoggerClass)
         self.logger.setLevel(logging.DEBUG)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
 
