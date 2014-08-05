@@ -255,10 +255,17 @@ class ModuleNamespace(object):
             return self[name]
 
     def __getitem__(self, name):
+        name = name.rsplit('|', 1)
+        if len(name) == 2:
+            namespace = self._namespace + '|' + name[0]
+            name = name[1]
+        else:
+            name, = name
+            namespace = self._namespace
         reg = get_module_registry()
         return reg.get_descriptor_by_name(self.identifier,
                                           name,
-                                          self._namespace)
+                                          namespace)
 
     def __repr__(self):
         return "<Namespace %s of package %s>" % (self._namespace,
@@ -267,6 +274,9 @@ class ModuleNamespace(object):
 
 class Package(ModuleNamespace):
     """Wrapper for an enabled package.
+
+    You can get modules from a Package using either the
+    ``pkg['namespace|module']`` or ``pkg.namespace.module`` syntax.
     """
     def __init__(self, package):
         if not isinstance(package, _Package):
