@@ -175,6 +175,24 @@ class Vistrail(object):
         """
         return self.current_pipeline.execute(*args, **kwargs)
 
+    def __repr__(self):
+        version_nb = self.controller.current_version
+        if self.controller.vistrail.has_tag(version_nb):
+            version = "%s (tag %s)" % (
+                    version_nb,
+                    self.controller.vistrail.get_tag(version_nb))
+        else:
+            version = version_nb
+        return "<%s: %s, version %s, %s>" % (
+                self.__class__.__name__,
+                self.controller.name,
+                version,
+                ('not changed', 'changed')[self.controller.changed])
+
+    @property
+    def changed(self):
+        return self.controller.changed
+
     # TODO : vistrail modification methods
 
 
@@ -203,6 +221,12 @@ class Pipeline(object):
 
     def execute(self, *args, **kwargs):
         pass  # TODO : magic
+
+    def __repr__(self):
+        return "<%s: %d modules, %d connections>" % (
+                self.__class__.__name__,
+                len(self.pipeline.modules),
+                len(self.pipeline.connections))
 
 
 class Module(object):
