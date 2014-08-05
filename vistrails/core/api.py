@@ -243,12 +243,6 @@ class Pipeline(object):
     def execute(self, *args, **kwargs):
         pass  # TODO : magic
 
-    def __repr__(self):
-        return "<%s: %d modules, %d connections>" % (
-                self.__class__.__name__,
-                len(self.pipeline.modules),
-                len(self.pipeline.connections))
-
     def get_module(self, module_id):
         if isinstance(module_id, (int, long)):  # module id
             module = self.pipeline.modules[module_id]
@@ -260,6 +254,13 @@ class Pipeline(object):
         else:
             raise TypeError("get_module() expects a string or integer, not "
                             "%r" % type(module_id).__name__)
+
+    def __repr__(self):
+        # TODO : should show InputPort and OutputPort modules' names
+        return "<%s: %d modules, %d connections>" % (
+                self.__class__.__name__,
+                len(self.pipeline.modules),
+                len(self.pipeline.connections))
 
 
 class Module(object):
@@ -293,6 +294,7 @@ class Module(object):
                                 next(iter(kwargs)))
 
     def __repr__(self):
+        # TODO : Should show module's name. Also, package identifier?
         if self.module_id is None:
             return "<Module %r>" % self.descriptor.name
         elif self.vistrail is not None:
@@ -319,7 +321,10 @@ class ModuleNamespace(object):
     def __getitem__(self, name):
         name = name.rsplit('|', 1)
         if len(name) == 2:
-            namespace = self._namespace + '|' + name[0]
+            if self._namespace:
+                namespace = self._namespace + '|' + name[0]
+            else:
+                namespace = name[0]
             name = name[1]
         else:
             name, = name
@@ -416,6 +421,7 @@ def load_pipeline(filename):
     return Pipeline(pipeline)
 
 
+# TODO : provide a shortcut for basic_modules
 def load_package(identifier, autoload=True):
     """Gets a package by identifier, enabling it if necessary.
     """
