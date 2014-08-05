@@ -280,7 +280,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         else:
             typecheck = src.get_type_checks(conn.source.spec)
         dst.set_input_port(iport,
-                           ModuleConnector(src, oport, conn.destination.spec, 
+                           ModuleConnector(src, oport, conn.source.spec,
                                            typecheck))
 
     def setup_pipeline(self, pipeline, **kwargs):
