@@ -42,6 +42,7 @@ import warnings
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.utils import VistrailsDeprecation, deprecated, \
@@ -1012,6 +1013,30 @@ class Module(Serializable):
                     long2bytes(iteration, 20),
                     inputPort_hash.digest()))
 
+    Variant_desc = None
+    InputPort_desc = None
+
+    @staticmethod
+    def load_type_check_descs():
+        from vistrails.core.modules.module_registry import get_module_registry
+        reg = get_module_registry()
+        Module.Variant_desc = reg.get_descriptor_by_name(
+            'org.vistrails.vistrails.basic', 'Variant')
+        Module.InputPort_desc = reg.get_descriptor_by_name(
+            'org.vistrails.vistrails.basic', 'InputPort')
+
+    @staticmethod
+    def get_type_checks(source_spec):
+        if Module.Variant_desc is None:
+            Module.load_type_check_descs()
+        conf = get_vistrails_configuration()
+        error_on_others = getattr(conf, 'showConnectionErrors')
+        error_on_variant = (error_on_others or
+                            getattr(conf, 'showVariantErrors'))
+        errors = [error_on_others, error_on_variant]
+        return [errors[desc is Module.Variant_desc]
+                for desc in source_spec.descriptors()]
+
     def typeChecking(self, module, inputPorts, inputList):
         """
         Function used to check if the types of the input list element and of the
@@ -1019,7 +1044,6 @@ class Module(Serializable):
         """
         from vistrails.core.modules.basic_modules import Generator
         from vistrails.core.modules.basic_modules import get_module
-        from vistrails.core.vistrail.connection import getTypeCheck
         if not module.input_specs:
             return
         for elementList in inputList:
@@ -1032,7 +1056,7 @@ class Module(Serializable):
                     raise ModuleError(self, "Generator is not allowed here")
                 port_spec = module.input_specs[inputPort]
                 # typecheck only if all params should be type-checked
-                if False in getTypeCheck(port_spec):
+                if False in self.get_type_checks(port_spec):
                     break
                 v_module = get_module(element, port_spec.signature)
                 if v_module is not None:
