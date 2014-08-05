@@ -208,7 +208,7 @@ class DebugPrint(object):
         try:
             oldLoggerClass = logging.getLoggerClass()
             logging.setLoggerClass(LevelCheckerLogger)
-            self.logger = logging.getLogger('VisLog')
+            self.logger = logging.getLogger('vistrails')
             logging.setLoggerClass(oldLoggerClass)
         finally:
             logging._releaseLock()
