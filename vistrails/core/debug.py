@@ -34,7 +34,6 @@
 ###############################################################################
 import inspect
 import logging
-import logging.handlers
 import os
 import pdb
 import re
@@ -197,11 +196,16 @@ class DebugPrint(object):
 
         """
         # Setup root logger
-        oldLoggerClass = logging.getLoggerClass()
-        logging.setLoggerClass(LevelCheckerLogger)
-        self.logger = logging.getLogger('VisLog')
+        logging._acquireLock()
+        try:
+            oldLoggerClass = logging.getLoggerClass()
+            logging.setLoggerClass(LevelCheckerLogger)
+            self.logger = logging.getLogger('VisLog')
+            logging.setLoggerClass(oldLoggerClass)
+        finally:
+            logging._releaseLock()
         assert isinstance(self.logger, LevelCheckerLogger)
-        logging.setLoggerClass(oldLoggerClass)
+
         self.logger.setLevel(logging.DEBUG)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
 
