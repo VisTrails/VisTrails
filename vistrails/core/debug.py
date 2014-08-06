@@ -34,7 +34,6 @@
 ###############################################################################
 import inspect
 import logging
-import logging.handlers
 import os
 import pdb
 import re
@@ -134,6 +133,27 @@ class EmitWarnings(logging.Handler):
 
 ################################################################################
 
+class LevelCheckerLogger(logging.Logger):
+    def callHandlers(self, record):
+        """Variant that checks the parents' levels when propagating.
+        """
+        for hdlr in self.handlers:
+            if record.levelno >= hdlr.level:
+                hdlr.handle(record)
+        if (self.propagate and self.parent and
+                self.parent.isEnabledFor(record.levelno)):
+            c = self.parent
+            while c:
+                for hdlr in c.handlers:
+                    if record.levelno >= hdlr.level:
+                        hdlr.handle(record)
+                if not c.propagate:
+                    c = None    #break out
+                else:
+                    c = c.parent
+
+################################################################################
+
 class DebugPrint(object):
     """ Class to be used for debugging information.
 
@@ -184,7 +204,16 @@ class DebugPrint(object):
 
         """
         # Setup root logger
-        self.logger = logging.getLogger('vistrails')
+        logging._acquireLock()
+        try:
+            oldLoggerClass = logging.getLoggerClass()
+            logging.setLoggerClass(LevelCheckerLogger)
+            self.logger = logging.getLogger('vistrails')
+            logging.setLoggerClass(oldLoggerClass)
+        finally:
+            logging._releaseLock()
+        assert isinstance(self.logger, LevelCheckerLogger)
+
         self.logger.setLevel(logging.DEBUG)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
 
