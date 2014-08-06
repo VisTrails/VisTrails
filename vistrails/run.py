@@ -142,8 +142,8 @@ def main():
             app.finishSession()
         import traceback
         print >>sys.stderr, "Uncaught exception on initialization: %s" % (
-                traceback._format_final_exc_line(type(e).__name__, e))
-        traceback.print_exc(sys.stderr)
+                traceback._format_final_exc_line(type(e).__name__, e).strip())
+        traceback.print_exc(None, sys.stderr)
         sys.exit(255)
     if (not app.temp_configuration.batch and
         not app.temp_configuration.check('outputDirectory')):
