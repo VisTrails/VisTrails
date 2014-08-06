@@ -436,7 +436,8 @@ class DBConfigKey(object):
     def db_delete_name(self, name):
         self._db_name = None
     
-
+    def getPrimaryKey(self):
+        return self._db_name
 
 class DBMashupAlias(object):
 
@@ -6324,12 +6325,28 @@ class DBConfiguration(object):
         self.db_config_keys_name_index[config_key.db_name] = config_key
     def db_change_config_key(self, config_key):
         self.is_dirty = True
-        self._db_config_keys.append(config_key)
+        found = False
+        for i in xrange(len(self._db_config_keys)):
+            if self._db_config_keys[i].db_name == config_key.db_name:
+                self._db_config_keys[i] = config_key
+                found = True
+                break
+        if not found:
+            self._db_config_keys.append(config_key)
         self.db_config_keys_name_index[config_key.db_name] = config_key
     def db_delete_config_key(self, config_key):
         self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
+        for i in xrange(len(self._db_config_keys)):
+            if self._db_config_keys[i].db_name == config_key.db_name:
+                if not self._db_config_keys[i].is_new:
+                    self.db_deleted_config_keys.append(self._db_config_keys[i])
+                del self._db_config_keys[i]
+                break
+        del self.db_config_keys_name_index[config_key.db_name]
     def db_get_config_key(self, key):
+        for i in xrange(len(self._db_config_keys)):
+            if self._db_config_keys[i].db_name == key:
+                return self._db_config_keys[i]
         return None
     def db_get_config_key_by_name(self, key):
         return self.db_config_keys_name_index[key]

@@ -239,7 +239,11 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         else:
             config_val = field.default_val
 
-        config_desc = field.name
+        if field.widget_type == "checkbox":
+            config_val = bool(config_val)
+        self.set_value(widget, field, config_val)
+
+    def set_value(self, widget, field, val):
         widget_type = field.widget_type
         if widget_type is None:
             if field.val_type == bool:
@@ -250,14 +254,13 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
                 widget_type = "lineedit"
 
         if widget_type == "combo":
-            self.set_combo_value(widget, config_val)
+            self.set_combo_value(widget, val)
         elif widget_type == "lineedit":
-            self.set_line_edit_value(widget, config_val)
+            self.set_line_edit_value(widget, val)
         elif widget_type == "pathedit":
-            self.set_path_edit_value(widget, config_val)
+            self.set_path_edit_value(widget, val)
         else:
-            config_val = bool(config_val)
-            self.set_checkbox_value(widget, config_val)
+            self.set_checkbox_value(widget, val)
 
     def add_checkbox(self, layout, field, config_key, config_desc, config_val):
         cb = QtGui.QCheckBox(config_desc)
@@ -266,7 +269,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         layout.addWidget(cb, row, 1)
 
         def call_field_changed(val):
-            self.field_changed(config_key, field, val)
+            self.field_changed(config_key, field, val, config_val)
         cb.toggled.connect(call_field_changed)
         return cb
 
@@ -290,9 +293,10 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         self.set_line_edit_value(line_edit, config_val)
         layout.addWidget(line_edit, row, 1)
 
-        def call_field_changed(val):
-            self.field_changed(config_key, field, val)
-        line_edit.textEdited.connect(call_field_changed)
+        def call_field_changed():
+            val = line_edit.text()
+            self.field_changed(config_key, field, val, config_val)
+        line_edit.editingFinished.connect(call_field_changed)
         return line_edit
 
     def set_line_edit_value(self, line_edit, config_val):
@@ -333,9 +337,10 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         path_edit.setLayout(sub_layout)
         layout.addWidget(path_edit, row, 1)
 
-        def call_field_changed(val):
-            self.field_changed(config_key, field, val)
-        line_edit.textEdited.connect(call_field_changed)
+        def call_field_changed():
+            val = line_edit.text()
+            self.field_changed(config_key, field, val, config_val)
+        line_edit.editingFinished.connect(call_field_changed)
         return path_edit
 
     def set_path_edit_value(self, path_edit, config_val):
@@ -374,7 +379,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         def call_field_changed(val):
             if inv_remap is not None:
                 val = inv_remap[val]
-            self.field_changed(config_key, field, val)
+            self.field_changed(config_key, field, val, config_val)
         combo.currentIndexChanged[unicode].connect(call_field_changed)
         return combo
 
@@ -389,11 +394,16 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         else:
             combo.setCurrentIndex(-1)
 
-    def field_changed(self, config_key, field, val):
-        if config_key[0] not in self._changed_config:
-            self._changed_config[config_key[0]] = {}
+    def field_changed(self, config_key, field, val, orig_val):
         # TODO support arbitrary nesting?
-        val = field.from_string(val)
-        self._changed_config[config_key[0]][config_key[1]] = val
-        self._changed_fields[config_key] = field
-        self.fieldChanged.emit(self)
+        try:
+            val = field.from_string(val)
+            if config_key[0] not in self._changed_config:
+                self._changed_config[config_key[0]] = {}
+            self._changed_config[config_key[0]][config_key[1]] = val
+            self._changed_fields[config_key] = field
+            self.fieldChanged.emit(self)
+        except:
+            widget = self.field_widgets[config_key]
+            self.set_value(widget, field, orig_val)
+
