@@ -142,7 +142,15 @@ class LevelCheckerLogger(logging.Logger):
                 hdlr.handle(record)
         if (self.propagate and self.parent and
                 self.parent.isEnabledFor(record.levelno)):
-            self.parent.handle(record)
+            c = self.parent
+            while c:
+                for hdlr in c.handlers:
+                    if record.levelno >= hdlr.level:
+                        hdlr.handle(record)
+                if not c.propagate:
+                    c = None    #break out
+                else:
+                    c = c.parent
 
 ################################################################################
 
