@@ -687,15 +687,17 @@ def open_vistrail_from_xml(filename):
     try:
         daoList = getVersionDAO(version)
         vistrail = daoList.open_from_xml(filename, DBVistrail.vtType, tree)
+        if vistrail is None:
+            raise VistrailsDBException("Couldn't read vistrail from XML")
         vistrail = translate_vistrail(vistrail, version)
         vistrails.db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
         if str(e).startswith('VistrailsDBException: Cannot find DAO for'):
-            msg = "This vistrail was created by a newer version of VisTrails "
-            msg += "and cannot be opened."
-            raise VistrailsDBException(msg)
+            raise VistrailsDBException(
+                "This vistrail was created by a newer version of VisTrails "
+                "and cannot be opened.")
         raise e
-        
+
     return vistrail
 
 def open_vistrail_bundle_from_zip_xml(filename):
@@ -1098,6 +1100,8 @@ def open_workflow_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
     workflow = daoList.open_from_xml(filename, DBWorkflow.vtType, tree)
+    if workflow is None:
+        raise VistrailsDBException("Couldn't read workflow from XML")
     workflow = translate_workflow(workflow, version)
     vistrails.db.services.workflow.update_id_scope(workflow)
     return workflow
@@ -1376,6 +1380,8 @@ def open_registry_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
     registry = daoList.open_from_xml(filename, DBRegistry.vtType, tree)
+    if registry is None:
+        raise VistrailsDBException("Couldn't read registry from XML")
     registry = translate_registry(registry, version)
     vistrails.db.services.registry.update_id_scope(registry)
     return registry

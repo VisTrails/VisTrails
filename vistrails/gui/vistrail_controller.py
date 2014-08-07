@@ -503,9 +503,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.do_version_switch(new_version, report_all_errors,
                                    do_validate, from_root)
         except InvalidPipeline, e:
-            from vistrails.gui.application import get_vistrails_application
-
-
+#            from vistrails.gui.application import get_vistrails_application
+#
 #             def process_err(err):
 #                 if isinstance(err, Package.InitializationFailed):
 #                     QtGui.QMessageBox.critical(
@@ -860,7 +859,6 @@ class VistrailController(QtCore.QObject, BaseController):
         Unprune (graft?) all pruned versions
 
         """
-        full = self.vistrail.getVersionGraph()
         am = self.vistrail.actionMap
         for a in am.iterkeys():
             self.vistrail.showVersion(a)
@@ -1111,7 +1109,6 @@ class VistrailController(QtCore.QObject, BaseController):
         remove_duplicate_aliases(pipeline)
 
         modules = []
-        connections = []
         if pipeline:
             def process_group(group):
                 # reset pipeline id for db
@@ -1137,10 +1134,7 @@ class VistrailController(QtCore.QObject, BaseController):
                        if (op.what == 'module' or 
                            op.what == 'abstraction' or
                            op.what == 'group')]
-            connections = [op.objectId
-                           for op in action.operations
-                           if op.what == 'connection']
-                
+
             self.add_new_action(action)
             self.vistrail.change_description("Paste", action.id)
             self.perform_action(action)

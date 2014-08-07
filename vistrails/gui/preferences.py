@@ -599,6 +599,8 @@ class QOutputConfigurationPane(QtGui.QWidget):
                 k = "%s.%s" % (k1, k2)
                 self.persistent_config.outputDefaultSettings.set_deep_value(
                     k, v, True)
+                self.temp_config.outputDefaultSettings.set_deep_value(
+                    k, v, True)
 
 class QPreferencesDialog(QtGui.QDialog):
 

@@ -419,10 +419,14 @@ class ConfigType(object):
 class ConfigString(object):
     @classmethod
     def from_string(cls, val):
+        if not val:
+            return None
         return val
 
     @classmethod
     def to_string(cls, val):
+        if val is None:
+            return ""
         return val
 
 class ConfigPath(ConfigString):
@@ -453,6 +457,8 @@ class ConfigField(object):
     def from_string(self, str_val):
         if hasattr(self.val_type, "from_string"):
             return self.val_type.from_string(str_val)
+        if not str_val:
+            return None
         if issubclass(self.val_type, basestring):
             return str_val
         val = ast.literal_eval(str_val)
@@ -464,6 +470,8 @@ class ConfigField(object):
     def to_string(self, val):
         if hasattr(self.val_type, "to_string"):
             return self.val_type.to_string(val)
+        elif val is None:
+            return ""
         return unicode(val)
 
 class ConfigFieldParent(object):
