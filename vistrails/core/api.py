@@ -18,7 +18,7 @@ __all__ = ['Vistrail', 'Pipeline', 'Module', 'Package',
            'NoSuchVersion']
 
 
-class NoSuchVersion(ValueError):
+class NoSuchVersion(KeyError):
     """The version number or tag you specified doesn't exist in the vistrail.
     """
 
