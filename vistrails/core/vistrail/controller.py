@@ -3419,9 +3419,12 @@ class VistrailController(object):
             if from_root:
                 result = self.vistrail.getPipeline(version)
             elif version == self.current_version:
-                # we don't even need to check connection specs or
-                # registry
-                return self.current_pipeline
+                # Changing to current pipeline
+                # We only need to run validation if it was previously invalid
+                # (or didn't get validated)
+                result = self.current_pipeline
+                if self.current_pipeline.is_valid:
+                    return result
             # Fast check: if target is cached, copy it and we're done.
             elif version in self._pipelines:
                 result = copy.copy(self._pipelines[version])
