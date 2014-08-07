@@ -99,6 +99,10 @@ class Vistrail(object):
                             "argument type %r" % type(arg).__name__)
 
     def get_pipeline(self, version):
+        """Returns a pipeline from a version number of tag.
+
+        This does not change the currently selected version in this Vistrail.
+        """
         vistrail = self.controller.vistrail
         if isinstance(version, (int, long)):
             if not vistrail.db_has_action_with_id(version):
@@ -190,6 +194,8 @@ class Vistrail(object):
     # TODO : vistrail modification methods
 
     def get_module(self, module_id):
+        """Gets a Module from a module id number or description (if unique).
+        """
         # TODO : module ids are global to a vistrail, so, we should be able to
         # get modules that are not part of the current pipeline as well
         return self.current_pipeline.get_module(module_id)
@@ -246,14 +252,28 @@ class Pipeline(object):
     def get_module(self, module_id):
         if isinstance(module_id, (int, long)):  # module id
             module = self.pipeline.modules[module_id]
-            return Module(descriptor=module.module_descriptor,
-                          module_id=module_id,
-                          pipeline=self)
         elif isinstance(module_id, basestring):  # module name
-            pass  # TODO
+            def desc(mod):
+                if '__desc__' in mod.db_annotations_key_index:
+                    return mod.get_annotation_by_key('__desc__').value
+                else:
+                    return None
+            modules = [mod
+                       for mod in self.pipeline.modules.itervalues()
+                       if desc(mod) == module_id]
+            if not modules:
+                raise KeyError("No module with description %r" % module_id)
+            elif len(modules) > 1:
+                raise ValueError("Multiple modules with description %r" %
+                                 module_id)
+            else:
+                module, = modules
         else:
             raise TypeError("get_module() expects a string or integer, not "
                             "%r" % type(module_id).__name__)
+        return Module(descriptor=module.module_descriptor,
+                      module_id=module.id,
+                      pipeline=self)
 
     def __repr__(self):
         # TODO : should show InputPort and OutputPort modules' names
