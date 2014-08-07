@@ -556,15 +556,20 @@ class VistrailController(object):
             self.recompute_terse_graph()
             self.invalidate_version_tree(False)
 
-    def perform_action(self, action):
+    def perform_action(self, action, do_validate=True, raise_exception=False):
         """ performAction(action: Action) -> timestep
-        
+
         Performs given action on current pipeline.
-        
+
+        By default, the resulting pipeline will get validated, but no exception
+        will be raised if it is invalid. However you will get these on your
+        next call to change_selected_version().
         """
         if action is not None:
             self.current_pipeline.perform_action(action)
             self.current_version = action.db_id
+            if do_validate:
+                self.validate(self.current_pipeline, raise_exception)
             return action.db_id
         return None
 
