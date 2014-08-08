@@ -431,6 +431,12 @@ class Package(ModuleNamespace):
         return "<Package: %s, %d modules>" % (self.identifier,
                                               len(self._package.descriptors))
 
+    def __eq__(self, other):
+        return isinstance(other, Package) and self._package is other._package
+
+    def __ne__(self, other):
+        return not self == other
+
 
 class Results(object):
     """Contains the results of a pipeline execution.
@@ -484,7 +490,7 @@ def load_package(identifier, autoload=True):
     pm = get_package_manager()
     pkg = pm.identifier_is_available(identifier)
     if pm.has_package(identifier):
-        pass  # TODO
+        return Package(pkg)
     elif pkg is None:
         raise NoSuchPackage("Package %r not found" % identifier)
 
