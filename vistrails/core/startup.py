@@ -122,6 +122,8 @@ class VistrailsStartup(DBStartup):
                                          (re.escape(DOT_VISTRAILS_PREFIX),
                                           os.path.sep))
 
+    first_run = False
+
     def __init__(self, options_config, command_line_config, 
                  use_dot_vistrails=True):
         """VistrailsStartup(dot_vistrails: str) -> None
@@ -715,6 +717,7 @@ class VistrailsStartup(DBStartup):
                 shutil.copyfile(origin, fname)
                 debug.log('Succeeded!')
             except Exception, e:
+                self.first_run = True
                 debug.critical("""Failed to copy default configuration
                 file to %s. This could be an indication of a
                 permissions problem. Please make sure '%s' is writable."""

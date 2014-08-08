@@ -557,7 +557,8 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
     def init(self, options_dict=None, args=[]):
         VistrailsApplicationInterface.init(self, options_dict=options_dict, 
                                            args=args)
-        self.package_manager.initialize_packages()
+        self.package_manager.initialize_packages(
+                report_missing_dependencies=not self.startup.first_run)
 
     def is_running_gui(self):
         return False
