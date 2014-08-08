@@ -553,7 +553,8 @@ class PackageManager(object):
         for dep_pkg in reversed(reverse_deps):
             self.late_enable_package(dep_pkg.codepath, prefix_dictionary)
 
-    def initialize_packages(self,prefix_dictionary={}):
+    def initialize_packages(self, prefix_dictionary={},
+                            report_missing_dependencies=True):
         """initialize_packages(prefix_dictionary={}): None
 
         Initializes all installed packages. If prefix_dictionary is
@@ -623,13 +624,15 @@ class PackageManager(object):
             try:
                 self.add_dependencies(package)
             except Package.MissingDependency, e:
-                debug.critical("Dependencies of package %s are missing "
-                               "so it will be disabled" % package.name,
-                               e)
+                if report_missing_dependencies:
+                    debug.critical("Dependencies of package %s are missing "
+                                   "so it will be disabled" % package.name,
+                                   e)
             except Exception, e:
-                debug.critical("Got an exception while getting dependencies "
-                               "of %s so it will be disabled" % package.name,
-                               e)
+                if report_missing_dependencies:
+                    debug.critical("Got an exception while getting dependencies "
+                                   "of %s so it will be disabled" % package.name,
+                                   e)
             else:
                 continue
             self._startup.set_package_to_disabled(package.codepath)
@@ -639,7 +642,7 @@ class PackageManager(object):
                 del self._package_versions[package.identifier]
             self.remove_old_identifiers(package.identifier)
             failed.append(package)
-        
+
         for pkg in failed:
             del self._package_list[pkg.codepath]
 
