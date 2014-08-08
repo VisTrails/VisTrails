@@ -246,7 +246,10 @@ class Pipeline(object):
 
     @property
     def modules(self):
-        pass  # TODO
+        for module in self.pipeline.module_list:
+            yield Module(descriptor=module.module_descriptor,
+                         module_id=module.id,
+                         pipeline=self)
 
     def execute(self, *args, **kwargs):
         pass  # TODO : magic
