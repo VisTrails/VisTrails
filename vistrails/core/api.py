@@ -305,11 +305,17 @@ class Pipeline(object):
         return self._outputs
 
     def __repr__(self):
-        # TODO : should show InputPort and OutputPort modules' names
-        return "<%s: %d modules, %d connections>" % (
+        desc = "<%s: %d modules, %d connections" % (
                 self.__class__.__name__,
                 len(self.pipeline.modules),
                 len(self.pipeline.connections))
+        inputs = self.inputs
+        if inputs:
+            desc += "; inputs: %s" % ", ".join(inputs)
+        outputs = self.outputs
+        if outputs:
+            desc += "; outputs: %s" % ", ".join(outputs)
+        return desc + ">"
 
 
 class Module(object):
