@@ -633,10 +633,11 @@ class Package(DBPackage):
         self._initialized = False
 
     def dependencies(self):
+        deps = []
         try:
             callable_ = self._module.package_dependencies
         except AttributeError:
-            deps = []
+            pass
         else:
             try:
                 deps = callable_()
