@@ -221,6 +221,8 @@ class Pipeline(object):
     It doesn't have a controller.
     """
     vistrail = None
+    _inputs = None
+    _outputs = None
 
     def __init__(self, pipeline=None, vistrail=None):
         initialize()
@@ -274,6 +276,33 @@ class Pipeline(object):
         return Module(descriptor=module.module_descriptor,
                       module_id=module.id,
                       pipeline=self)
+
+    def _get_inputs_or_outputs(self, module_name):
+        reg = get_module_registry()
+        InputPort_desc = reg.get_descriptor_by_name(
+                'org.vistrails.vistrails.basic',
+                module_name)
+        names = []
+        for module in self.pipeline.modules.itervalues():
+            if module.module_descriptor is InputPort_desc:
+                for function in module.functions:
+                    if function.name == 'name':
+                        if len(function.params) == 1:
+                            names.append(function.params[0].strValue)
+                            break
+        return names
+
+    @property
+    def inputs(self):
+        if self._inputs is None:
+            self._inputs = self._get_inputs_or_outputs('InputPort')
+        return self._inputs
+
+    @property
+    def outputs(self):
+        if self._outputs is None:
+            self._outputs = self._get_inputs_or_outputs('OutputPort')
+        return self._outputs
 
     def __repr__(self):
         # TODO : should show InputPort and OutputPort modules' names
