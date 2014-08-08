@@ -339,8 +339,7 @@ class Module(object):
                 pipeline = kwargs['pipeline']
                 if pipeline.vistrail is not None:
                     self.vistrail = pipeline.vistrail
-                else:
-                    self.pipeline = pipeline
+                self.pipeline = pipeline
             elif 'vistrail' in kwargs:
                 self.vistrail = kwargs['vistrail']
             else:
@@ -352,16 +351,18 @@ class Module(object):
                                 next(iter(kwargs)))
 
     def __repr__(self):
-        # TODO : Should show module's name. Also, package identifier?
-        if self.module_id is None:
-            return "<Module %r>" % self.descriptor.name
-        elif self.vistrail is not None:
-            return "<Module %r, id %d in %r>" % (self.descriptor.name,
-                                                 self.module_id,
-                                                 self.vistrail.controller.name)
-        else:  # self.pipeline is not None
-            return "<Module %r, id %d>" % (self.descriptor.name,
-                                                 self.module_id)
+        desc = "<Module %r from %s" % (self.descriptor.name,
+                                       self.descriptor.identifier)
+        if self.module_id is not None:
+            desc += ", id %d" % self.module_id
+            if self.vistrail is not None:
+                desc += " in %r" % self.vistrail.controller.name
+            if self.pipeline is not None:
+                mod = self.pipeline.pipeline.modules[self.module_id]
+                if '__desc__' in mod.db_annotations_key_index:
+                    desc += (", label \"%s\"" %
+                             mod.get_annotation_by_key('__desc__').value)
+        return desc + ">"
 
 
 class ModuleNamespace(object):
