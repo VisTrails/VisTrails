@@ -2618,10 +2618,10 @@ class VistrailController(object):
                     extra_info = {}
                 extra_info['pathDumpCells'] = create_temp_folder(prefix='vt_thumb')
                 temp_folder_used = True
-#           
+
             kwargs = {'locator': locator,
                       'current_version': version,
-                      'view': view,
+                      'view': view if view is not None else DummyView(),
                       'logger': self.get_logger(),
                       'controller': self,
                       'aliases': aliases,
@@ -2719,12 +2719,11 @@ class VistrailController(object):
                 locator.clean_temporaries()
                 if self._auto_save:
                     locator.save_temporary(self.vistrail)
-            view = DummyView()
             try:
                 return self.execute_workflow_list([(self.locator,
                                                     self.current_version,
                                                     self.current_pipeline,
-                                                    view,
+                                                    None,
                                                     custom_aliases,
                                                     custom_params,
                                                     reason,

@@ -1,11 +1,14 @@
 import contextlib
+import warnings
 
 import vistrails.core.application
 import vistrails.core.db.io
 from vistrails.core.db.locator import UntitledLocator, FileLocator
+from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package as _Package
 from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.utils import DummyView
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.pipeline import Pipeline as _Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail as _Vistrail
@@ -147,8 +150,9 @@ class Vistrail(object):
     @property
     def current_pipeline(self):
         if self._current_pipeline is None:
-            self._current_pipeline = Pipeline(self.controller.current_pipeline,
-                                              vistrail=self)
+            self._current_pipeline = Pipeline(
+                    self.controller.current_pipeline,
+                    vistrail=(self, self.current_version))
         return self._current_pipeline
 
     @property
@@ -229,6 +233,7 @@ class Pipeline(object):
     It doesn't have a controller.
     """
     vistrail = None
+    version = None
     _inputs = None
     _outputs = None
 
@@ -246,8 +251,9 @@ class Pipeline(object):
             raise TypeError("Pipeline was constructed from unexpected "
                             "argument type %r" % type(pipeline).__name__)
         if vistrail is not None:
-            if isinstance(vistrail, Vistrail):
-                self.vistrail = vistrail
+            if (isinstance(vistrail, tuple) and len(vistrail) == 2 and
+                    isinstance(vistrail[0], Vistrail)):
+                self.vistrail, self.version = vistrail
             else:
                 raise TypeError("Pipeline got unknown type %r as 'vistrail' "
                                 "argument" % type(vistrail).__name__)
@@ -260,7 +266,75 @@ class Pipeline(object):
                          pipeline=self)
 
     def execute(self, *args, **kwargs):
-        pass  # TODO : magic
+        """Execute the pipeline.
+
+        Positional arguments are either input values (created from
+        ``module == value``, where `module` is a Module from the pipeline and
+        `value` is some value or Function instance) for the pipeline's
+        InputPorts, or Module instances (to select sink modules).
+
+        Keyword arguments are also used to set InputPort by looking up inputs
+        by name.
+
+        Example::
+
+           input_bound = pipeline.get_input('higher_bound')
+           input_url = pipeline.get_input('url')
+           sinkmodule = pipeline.get_module(32)
+           pipeline.execute(sinkmodule,
+                            input_bound == vt.Function(Integer, 10),
+                            input_url == 'http://www.vistrails.org/',
+                            resolution=15)  # kwarg: only one equal sign
+        """
+        sinks = set()
+        inputs = {}
+
+        # Read args
+        for arg in args:
+            if isinstance(arg, ModuleValuePair):
+                if arg.module.id in inputs:
+                    raise ValueError(
+                            "Multiple values set for InputPort %r" %
+                            get_inputoutput_name(arg.module))
+                inputs[arg.module.id] = arg
+            elif isinstance(arg, Module):
+                sinks.add(arg.module_id)
+
+        # Read kwargs
+        for key, value in kwargs.iteritems():
+            key = self.get_input(key)  # Might raise KeyError
+            if key.module.id in inputs:
+                raise ValueError("Multiple values set for InputPort %r" %
+                                 get_inputoutput_name(key.module))
+            inputs[key.module.id] = value
+
+        reason = "API pipeline execution"
+
+        if (not inputs and self.vistrail is not None and
+                self.vistrail.current_version == self.version):
+            results, changed = self.vistrail.controller.execute_workflow_list([
+                    self.vistrail.controller.locator,  # locator
+                    self.version,  # version
+                    self.pipeline,  # pipeline
+                    DummyView(),  # view
+                    None,  # custom_aliases
+                    None,  # custom_params
+                    reason,  # reason
+                    sinks,  # sinks
+                    None,  # extra_info
+                    ])
+            result, = results
+        else:
+            if inputs:
+                # TODO : set input
+                warnings.warn("execute() does not yet support setting "
+                              "input ports")
+
+            interpreter = get_default_interpreter()
+            result = interpreter.execute(self.pipeline,
+                                         reason=reason)
+
+        return result  # TODO : get output
 
     def get_module(self, module_id):
         if isinstance(module_id, (int, long)):  # module id
@@ -327,6 +401,14 @@ class Pipeline(object):
         return desc + ">"
 
 
+class ModuleValuePair(object):
+    """Internal object returned by Module == value expressions.
+    """
+    def __init__(self, module, value):
+        self.module = module
+        self.value = value
+
+
 class Module(object):
     """Wrapper for a module, which can be in a Pipeline or not yet.
     """
@@ -369,6 +451,12 @@ class Module(object):
                     desc += (", label \"%s\"" %
                              mod.get_annotation_by_key('__desc__').value)
         return desc + ">"
+
+    def __eq__(self, value):
+        if isinstance(value, Module):
+            return self.module == value.module
+        else:
+            return ModuleValuePair(self.module, value)
 
 
 class ModuleNamespace(object):
