@@ -215,6 +215,14 @@ class Vistrail(object):
                 ('not changed', 'changed')[self.controller.changed])
 
 
+def get_inputoutput_name(module):
+    for function in module.functions:
+        if function.name == 'name':
+            if len(function.params) == 1:
+                return function.params[0].strValue
+    return None
+
+
 class Pipeline(object):
     """This class represents a single Pipeline.
 
@@ -282,17 +290,15 @@ class Pipeline(object):
 
     def _get_inputs_or_outputs(self, module_name):
         reg = get_module_registry()
-        InputPort_desc = reg.get_descriptor_by_name(
+        desc = reg.get_descriptor_by_name(
                 'org.vistrails.vistrails.basic',
                 module_name)
         names = []
         for module in self.pipeline.modules.itervalues():
-            if module.module_descriptor is InputPort_desc:
-                for function in module.functions:
-                    if function.name == 'name':
-                        if len(function.params) == 1:
-                            names.append(function.params[0].strValue)
-                            break
+            if module.module_descriptor is desc:
+                name = get_inputoutput_name(module)
+                if name is not None:
+                    names.append(name)
         return names
 
     @property
