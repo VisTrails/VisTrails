@@ -15,10 +15,10 @@ from vistrails.core.vistrail.vistrail import Vistrail as _Vistrail
 
 
 __all__ = ['Vistrail', 'Pipeline', 'Module', 'Package',
-           'Results', 'Function',
+           'ExecutionResults', 'ExecutionErrors', 'Function',
            'load_vistrail', 'load_pipeline', 'load_package',
            'output_mode', 'run_vistrail',
-           'NoSuchVersion']
+           'NoSuchVersion', 'NoSuchPackage']
 
 
 class NoSuchVersion(KeyError):
@@ -309,11 +309,13 @@ class Pipeline(object):
             inputs[key.module.id] = value
 
         reason = "API pipeline execution"
+        sinks = sinks or None
 
         if (not inputs and self.vistrail is not None and
                 self.vistrail.current_version == self.version):
-            results, changed = self.vistrail.controller.execute_workflow_list([
-                    self.vistrail.controller.locator,  # locator
+            controller = self.vistrail.controller
+            results, changed = controller.execute_workflow_list([[
+                    controller.locator,  # locator
                     self.version,  # version
                     self.pipeline,  # pipeline
                     DummyView(),  # view
@@ -322,7 +324,7 @@ class Pipeline(object):
                     reason,  # reason
                     sinks,  # sinks
                     None,  # extra_info
-                    ])
+                    ]])
             result, = results
         else:
             if inputs:
@@ -332,9 +334,13 @@ class Pipeline(object):
 
             interpreter = get_default_interpreter()
             result = interpreter.execute(self.pipeline,
-                                         reason=reason)
+                                         reason=reason,
+                                         sinks=sinks)
 
-        return result  # TODO : get output
+        if result.errors:
+            raise ExecutionErrors(self, result)
+        else:
+            return ExecutionResults(self, result)
 
     def get_module(self, module_id):
         if isinstance(module_id, (int, long)):  # module id
@@ -367,24 +373,44 @@ class Pipeline(object):
         desc = reg.get_descriptor_by_name(
                 'org.vistrails.vistrails.basic',
                 module_name)
-        names = []
+        modules = {}
         for module in self.pipeline.modules.itervalues():
             if module.module_descriptor is desc:
                 name = get_inputoutput_name(module)
                 if name is not None:
-                    names.append(name)
-        return names
+                    modules[name] = module
+        return modules
+
+    def get_input(self, name):
+        try:
+            module = self._get_inputs_or_outputs('InputPort')[name]
+        except KeyError:
+            raise KeyError("No InputPort module with name %r" % name)
+        else:
+            return Module(descriptor=module.module_descriptor,
+                          module_id=module.id,
+                          pipeline=self)
+
+    def get_output(self, name):
+        try:
+            module = self._get_inputs_or_outputs('OutputPort')[name]
+        except KeyError:
+            raise KeyError("No OutputPort module with name %r" % name)
+        else:
+            return Module(descriptor=module.module_descriptor,
+                          module_id=module.id,
+                          pipeline=self)
 
     @property
     def inputs(self):
         if self._inputs is None:
-            self._inputs = self._get_inputs_or_outputs('InputPort')
+            self._inputs = self._get_inputs_or_outputs('InputPort').keys()
         return self._inputs
 
     @property
     def outputs(self):
         if self._outputs is None:
-            self._outputs = self._get_inputs_or_outputs('OutputPort')
+            self._outputs = self._get_inputs_or_outputs('OutputPort').keys()
         return self._outputs
 
     def __repr__(self):
@@ -536,16 +562,52 @@ class Package(ModuleNamespace):
         return not self == other
 
 
-class Results(object):
+class ExecutionErrors(Exception):
+    """Errors raised during a pipeline execution.
+    """
+    def __init__(self, pipeline, resultobj):
+        self.pipeline = pipeline
+        self._errors = resultobj.errors
+
+    def __str__(self):
+        return "Pipeline execution failed: %d error%s:\n%s" % (
+                len(self._errors),
+                's' if len(self._errors) >= 2 else '',
+                '\n'.join('%d: %s' % p for p in self._errors.iteritems()))
+
+
+class ExecutionResults(object):
     """Contains the results of a pipeline execution.
     """
-    # TODO
+    def __init__(self, pipeline, resultobj):
+        self.pipeline = pipeline
+        self._objects = resultobj.objects
+
+    def output_port(self, output):
+        """Gets the value passed to an OutputPort module with that name.
+        """
+        if isinstance(output, basestring):
+            outputs = self.pipeline._get_inputs_or_outputs('OutputPort')
+            module_id = outputs[output].id
+        else:
+            raise TypeError("output_port() expects a string, not %r" %
+                            type(output).__name__)
+        return self._objects[module_id].get_output('ExternalPipe')
+
+    def module_output(self, module):
+        """Gets all the output ports of a specified module.
+        """
+        module_id = self.pipeline.get_module(module).module_id
+        return self._objects[module_id].outputPorts
+
+    def __repr__(self):
+        return "<ExecutionResult: %d modules>" % len(self._objects)
 
 
 class Function(object):
     """A function, essentially a value with an explicit module type.
     """
-    # TODO
+    # TODO : Function
 
 
 def load_vistrail(filename, version=None):
@@ -631,7 +693,7 @@ def do_enable_package(pm, identifier):
 def output_mode(output, mode, **kwargs):
     """Context manager that makes an output use a specific mode.
     """
-    # TODO
+    # TODO : Output mode selection
     yield
 
 
