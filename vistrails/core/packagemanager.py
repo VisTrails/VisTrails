@@ -50,9 +50,11 @@ import vistrails.core.db.io
 from vistrails.core.modules.module_registry import ModuleRegistry, \
                                          MissingPackage, MissingPackageVersion
 from vistrails.core.modules.package import Package
+from vistrails.core.requirements import MissingRequirement
 from vistrails.core.utils import VistrailsInternalError, InstanceObject, \
     versions_increasing, VistrailsDeprecation
 import vistrails.packages
+
 ##############################################################################
 
 
@@ -661,6 +663,11 @@ class PackageManager(object):
                 #pkg.check_requirements()
                 try:
                     self._registry.initialize_package(pkg)
+                except MissingRequirement, e:
+                    if report_missing_dependencies:
+                        debug.critical("Package <codepath %s> is missing a "
+                                       "requirement and will be disabled" %
+                                       pkg.codepath, str(e))
                 except Package.InitializationFailed, e:
                     debug.critical("Initialization of package <codepath %s> "
                                    "failed and will be disabled" %

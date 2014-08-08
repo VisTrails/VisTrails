@@ -51,6 +51,7 @@ from vistrails.core.modules.config import ConstantWidgetConfig, \
 import vistrails.core.modules.vistrails_module
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.package import Package
+from vistrails.core.requirements import MissingRequirement
 import vistrails.core.modules.utils
 from vistrails.core.utils import VistrailsInternalError, memo_method, \
     InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
@@ -1682,6 +1683,8 @@ class ModuleRegistry(DBRegistry):
                     if hasattr(descriptor, 'module'):
                         self.auto_add_ports(descriptor.module)
                         added_descriptors.add(descriptor)
+        except MissingRequirement:
+            raise
         except Exception, e:
             raise package.InitializationFailed(package, 
                                                [traceback.format_exc()])
