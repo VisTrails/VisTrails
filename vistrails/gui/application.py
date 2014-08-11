@@ -230,6 +230,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return APP_SUCCESS
 
     def ask_update_default_application(self, dont_ask_checkbox=True):
+        if hasattr(self, 'splashScreen') and self.splashScreen:
+            self.splashScreen.hide()
         dialog = QtGui.QDialog()
         dialog.setWindowTitle(u"Install .vt .vtl handler")
         layout = QtGui.QVBoxLayout()

@@ -158,10 +158,10 @@ def pip_install(package_name):
     return run_install_command_as_root(qt_available(), cmd, package_name)
 
 def show_question(which_files, has_distro_pkg, has_pip):
+    if isinstance(which_files, str):
+        which_files = [which_files]
     if qt_available():
         from PyQt4 import QtCore, QtGui
-        if isinstance(which_files, str):
-            which_files = [which_files]
         dialog = QtGui.QDialog()
         dialog.setWindowTitle("Required packages missing")
         layout = QtGui.QVBoxLayout()
@@ -217,11 +217,11 @@ def show_question(which_files, has_distro_pkg, has_pip):
                     return 'pip'
             return 'distro'
     else:
-        print "\nRequired package missing"
-        print ("A required package is missing, but VisTrails can " +
-               "automatically install it. " +
-               "If you say Yes, VisTrails will need "+
-               "administrator privileges, and you" +
+        print "\nRequired package(s) missing: %s" % (" ".join(which_files))
+        print ("A required package is missing, but VisTrails can "
+               "automatically install it. "
+               "If you say Yes, VisTrails will need "
+               "administrator privileges, and you "
                "might be asked for the administrator password.")
         if has_distro_pkg:
             print "(VisTrails will use your distribution's package manager)"

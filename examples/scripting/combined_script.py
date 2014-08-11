@@ -1,5 +1,13 @@
+import os
 import sys
-sys.path.append('/Users/benbu/src/vistrails/vistrails/')
+
+try:
+    import vistrails
+except:
+    #try to append vistrails source dir relative to examples/scripting
+    this_dir = os.path.split(__file__)[0]
+    sys.path.append(os.path.join(this_dir, '../..'))
+    import vistrails
 
 import vistrails.core.application
 import vistrails.core.db.action
@@ -9,6 +17,7 @@ import vistrails.core.modules.module_registry
 
 #init vistrails
 vt_app = vistrails.core.application.init()
+vt_app.new_vistrail()
 controller = vt_app.get_controller()
 registry = vistrails.core.modules.module_registry.get_module_registry()
 

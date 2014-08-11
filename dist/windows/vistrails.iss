@@ -34,7 +34,7 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.1.2
+AppVerName=VisTrails 2.1.3
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$009D5942
@@ -61,7 +61,7 @@ Source: C:\Python27\libs\*; DestDir: {app}\Python27\libs
 Source: C:\Python27\Scripts\*; DestDir: {app}\Python27\Scripts
 Source: C:\Python27\tcl\*; DestDir: {app}\Python27\tcl; Flags: recursesubdirs
 Source: C:\Python27\Tools\*; DestDir: {app}\Python27\Tools; Flags: recursesubdirs
-Source: ..\..\examples\*; DestDir: {app}\examples; Components: examples Flags: recursesubdirs
+Source: ..\..\examples\*; DestDir: {app}\examples; Components: examples; Flags: recursesubdirs
 Source: ..\..\scripts\*; DestDir: {app}\scripts; Flags: recursesubdirs
 Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 Source: ..\..\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
