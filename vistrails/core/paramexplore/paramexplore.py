@@ -264,9 +264,12 @@ class ParameterExploration(DBParameterExploration):
         if len(self.functions) != len(other.functions):
             return False
         for p,q in zip(self.functions, other.functions):
-            if p.real_id != q.real_id or p != q:
+            if p != q:
                 return False
         return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 # Testing
 
