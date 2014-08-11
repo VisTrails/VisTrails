@@ -37,20 +37,16 @@
 from vistrails.core import debug
 from vistrails.core import system
 from vistrails.core.configuration import ConfigurationObject
-from vistrails.core.utils.uxml import named_elements, elements_filter, \
-     eval_xml_value, enter_named_element
 from vistrails.db.domain import DBStartup, DBStartupPackage, \
     DBEnabledPackages, DBDisabledPackages
 import vistrails.db.services.io
-import vistrails.core.packagemanager
+import vistrails.core.db.io
 from vistrails.core.system import get_elementtree_library, \
     get_vistrails_directory, systemType
-import vistrails.core.utils
 from vistrails.core.utils import version_string_to_list
 
 import atexit
 import copy
-from distutils.version import LooseVersion
 import os.path
 import re
 import shutil
@@ -156,8 +152,6 @@ class VistrailsStartup(DBStartup):
             # this machine's configuration file as it would slow down the
             # startup time, but we'll load any needed package without
             # confirmation
-            spawned = True
-
             tmpdir = tempfile.mkdtemp(prefix='vt_spawned_')
             @atexit.register
             def clean_dotvistrails():
@@ -570,9 +564,9 @@ class VistrailsStartup(DBStartup):
             sys.exit(1)
 
     def setupDefaultFolders(self):
-        """ setupDefaultFolders() -> None        
+        """ setupDefaultFolders() -> None
         Give default values to folders when there are no values specified
-        
+
         """
         if self.temp_configuration.has('rootDirectory'):
             system.set_vistrails_root_directory(self.temp_configuration.rootDirectory)
@@ -597,11 +591,9 @@ class VistrailsStartup(DBStartup):
             levels = [dbg.WARNING, dbg.INFO, dbg.DEBUG]
             dbg.set_message_level(levels[verbose])
             debug.log("Set verboseness level to %s" % verbose)
-        
+
 import unittest
-import shutil
 import stat
-import tempfile
 
 class TestStartup(unittest.TestCase):
     def check_structure(self, dir_name):
@@ -746,13 +738,11 @@ class TestStartup(unittest.TestCase):
         finally:
             os.chmod(dir_name, stat.S_IRWXU)
             shutil.rmtree(dir_name)
-            
+
     def test_load_old_startup_xml(self):
-        import vistrails.core.db.io
-        root_dir = system.vistrails_root_directory()
         # has old nested shell settings that don't match current naming
         startup_tmpl = os.path.join(system.vistrails_root_directory(),
-                                    'tests', 'resources', 
+                                    'tests', 'resources',
                                     'startup-0.1.xml.tmpl')
         f = open(startup_tmpl, 'r')
         template = string.Template(f.read())
