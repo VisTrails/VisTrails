@@ -268,11 +268,11 @@ class PackageManager(object):
         global _package_manager
         _package_manager = None
 
-    def get_available_package(self, codepath):
+    def get_available_package(self, codepath, prefix=None):
         try:
             pkg = self._available_packages[codepath]
         except KeyError:
-            pkg = self._registry.create_package(codepath)
+            pkg = self._registry.create_package(codepath, prefix=prefix)
             self._available_packages[codepath] = pkg
         return pkg
 
@@ -777,8 +777,40 @@ class PackageManager(object):
         # Finds standard packages
         packages = self.import_packages_module()
         search(os.path.dirname(packages.__file__))
+
+        # Finds user packages
         userpackages = self.import_user_packages_module()
         search(os.path.dirname(userpackages.__file__))
+
+        # Finds plugin packages
+        try:
+            from pkg_resources import iter_entry_points
+        except ImportError:
+            pass
+        else:
+            for entry_point in iter_entry_points('vistrails.packages'):
+                # Reads module name and turns it into prefix and codepath
+                name = entry_point.module_name.rsplit('.', 1)
+                if len(name) > 1:
+                    prefix, name = name
+                else:
+                    prefix = ''
+                    name, = name
+
+                # Check that the module is importable and get path
+                # FIXME: packages are not zip-safe because of this logic!
+                path = entry_point.load().__file__
+                if path.endswith('.py'):
+                    path = path[:-3]
+                elif path.endswith('.pyc'):
+                    path = path[:-4]
+                if path.endswith('__init__'):
+                    path = path[:-9]
+                if is_vistrails_package(path):
+                    # Ok, accept the name
+                    pkg_name_set.add(name)
+                    # Mke sure a Package gets created, with the right prefix
+                    self.get_available_package(name, prefix=prefix)
 
         pkg_name_set.update(self._package_list)
         return list(pkg_name_set)
