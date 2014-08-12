@@ -677,7 +677,7 @@ class FileLocator(CoreLocator):
             showSpreadsheetOnly = False
         try:
             version = int(version)
-        except ValueError:
+        except (ValueError, TypeError):
             pass
 
         if tag is None:
