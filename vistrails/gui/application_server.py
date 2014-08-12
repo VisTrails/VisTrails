@@ -2265,7 +2265,6 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                                               self.temp_xml_rpc_options.port)
         self.load_config(self.temp_xml_rpc_options.config_file)
         self.start_other_instances(self.temp_xml_rpc_options.instances)
-        self._python_environment = self.vistrailsStartup.get_python_environment()
         self._initialized = True
         return True
 

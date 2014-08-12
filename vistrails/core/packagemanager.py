@@ -279,14 +279,6 @@ class PackageManager(object):
         if prefix is not None:
             self._default_prefix_dict[codepath] = prefix
 
-    def initialize_abstraction_pkg(self, prefix_dictionary):
-        if self._abstraction_pkg is None:
-            raise RuntimeError("Subworkflows packages is None")
-        self.add_to_package_list(self._abstraction_pkg.codepath,
-                                 self._abstraction_pkg)
-        self.late_enable_package(self._abstraction_pkg.codepath, 
-                                 prefix_dictionary, False)
-
     def remove_old_identifiers(self, identifier):
         # remove refs in old_identifier_map
         old_ids = []
