@@ -641,24 +641,7 @@ class ModuleRegistry(DBRegistry):
         # this can be slow
         self.setup_indices()
 
-    def create_default_package(self):
-        basic_pkg = get_vistrails_basic_pkg_id()
-        default_codepath = os.path.join(vistrails_root_directory(), 
-                                        "core", "modules", "basic_modules.py")
-        self._default_package = \
-            Package(id=self.idScope.getNewId(Package.vtType),
-                    codepath=default_codepath,
-                    load_configuration=False,
-                    identifier=basic_pkg,
-                    name='Basic Modules',
-                    version=vistrails_version(),
-                    description="Basic modules for VisTrails")
-        # FIXME need to serialize old_identifiers!
-        self._default_package.old_identifiers = ['edu.utah.sci.vistrails.basic']
-        self.add_package(self._default_package)
-        return self._default_package
-
-    def has_abs_upgrade(self, identifier, name, namespace='', 
+    def has_abs_upgrade(self, identifier, name, namespace='',
                         package_version='', module_version=''):
 
         # if this fails, we want to raise the exception
