@@ -142,11 +142,12 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
                                          'gui/resources/images/plus.png'))
     minus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                           'gui/resources/images/minus.png'))
-    def __init__(self, port_spec, function=None, parent=None):
+    def __init__(self, port_spec, function=None, types_visible=True, parent=None):
         QtGui.QTreeWidgetItem.__init__(self, parent)
         self.setFirstColumnSpanned(True)
         self.port_spec = port_spec
         self.function = function
+        self.types_visible = types_visible
 
     def build_widget(self, widget_accessor, with_alias=True):
         reg = get_module_registry()
@@ -224,7 +225,9 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             else:
                 obj = Parameter(psi.descriptor)
             obj.port_spec_item = psi
-            if with_alias:
+            if not self.types_visible:
+                label = QtGui.QLabel('')
+            elif with_alias:
                 label = AliasLabel(obj.alias, obj.type, psi.label)
                 self.my_labels.append(label)
             else:
@@ -368,6 +371,8 @@ class PortsList(QtGui.QTreeWidget):
         self.module = None
         self.port_spec_items = {}
         self.entry_klass = ParameterEntry
+        self.portsVisible = True
+        self.typesVisible = True
 
     def setReadOnly(self, read_only):
         self.setEnabled(not read_only)
@@ -384,6 +389,7 @@ class PortsList(QtGui.QTreeWidget):
         # this is strange but if you try to clear the widget when the focus is 
         # in one of the items (after setting a parameter for example), 
         # VisTrails crashes on a Mac (Emanuele) This is probably a Qt bug
+        self.setColumnHidden(0, not self.portsVisible)
         w =  QtGui.QApplication.focusWidget()
         if self.isAncestorOf(w):
             w.clearFocus()
@@ -420,11 +426,12 @@ class PortsList(QtGui.QTreeWidget):
                     if not function.is_valid:
                         continue
                     port_spec, item = self.port_spec_items[function.name]
-                    subitem = self.entry_klass(port_spec, function)
+                    subitem = self.entry_klass(port_spec, function,
+                                               self.typesVisible)
                     self.function_map[function.real_id] = subitem
                     item.addChild(subitem)
                     subitem.setFirstColumnSpanned(True)
-                    self.setItemWidget(subitem, 0, subitem.get_widget())
+                    self.setItemWidget(subitem, 1, subitem.get_widget())
                     item.setExpanded(True)
                 
                     # self.setItemWidget(item, 0, item.get_visible())
@@ -502,7 +509,7 @@ class PortsList(QtGui.QTreeWidget):
                 self.function_map[function.real_id] = subitem
                 item.addChild(subitem)
                 subitem.setFirstColumnSpanned(True)
-                self.setItemWidget(subitem, 0, subitem.get_widget())
+                self.setItemWidget(subitem, 1, subitem.get_widget())
                 item.setExpanded(True)
 
     def item_clicked(self, item, col):
@@ -600,7 +607,7 @@ class PortsList(QtGui.QTreeWidget):
         subitem = self.entry_klass(port_spec)
         item.addChild(subitem)
         subitem.setFirstColumnSpanned(True)
-        self.setItemWidget(subitem, 0, subitem.get_widget())
+        self.setItemWidget(subitem, 1, subitem.get_widget())
         item.setExpanded(True)
         if len(port_spec.descriptors()) == 0:
             self.update_method(subitem, port_spec.name, [], [])
