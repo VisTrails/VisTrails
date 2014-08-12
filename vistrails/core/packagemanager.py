@@ -668,6 +668,7 @@ class PackageManager(object):
                         debug.critical("Package <codepath %s> is missing a "
                                        "requirement and will be disabled" %
                                        pkg.codepath, str(e))
+                    self.late_disable_package(pkg.codepath)
                 except Package.InitializationFailed, e:
                     debug.critical("Initialization of package <codepath %s> "
                                    "failed and will be disabled" %
@@ -677,7 +678,6 @@ class PackageManager(object):
                     # we know will not be necessary - the only thing needed is
                     # the reference in the package list
                     self.late_disable_package(pkg.codepath)
-#                     failed.append(package)
                 else:
                     self.add_menu_items(pkg)
                     app = get_vistrails_application()
