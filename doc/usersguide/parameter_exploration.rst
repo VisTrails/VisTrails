@@ -271,6 +271,23 @@ to.
 
    The panels of the Parameter Exploration window.  ``Set Methods`` (Top) will appear in the right panel and the others will be on the left.  The numbered red circles in the ``Annotated Pipeline`` (Middle) distinguish duplicate modules, and the cells in the ``Spreadsheet Virtual Cell`` (Bottom) determine the layout for spreadsheet results.
 
+Saving Parameter Explorations
+=============================
+
+.. index::
+   pair: spreadsheet; parameter exploration
+   pair: spreadsheet; saving parameter exploration
+
+New parameter explorations are saved automatically when they are executed. The :ref:`inspector (below) <fig-paramexp-inspector>` has buttons for moving back and forward through the history of parameter explorations. Explorations can be tagged with a name, which will make them visible in the workspace view.
+
+.. _fig-paramexp-inspector:
+
+.. figure:: figures/parameter_exploration/inspector.png
+   :align: center
+   :width: 30%
+
+   The parameter exploration inspector
+
 "Virtual Cell" Layout
 =====================
 
