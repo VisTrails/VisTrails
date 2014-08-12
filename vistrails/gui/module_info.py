@@ -100,6 +100,8 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.addLayout(h_layout)
         
         self.tab_widget = QtGui.QTabWidget()
+        # keep from overflowing on mac
+        self.tab_widget.tabBar().setStyleSheet('font-size: 12pt')
         # this causes a crash when undocking the palette in Mac OS X
         # see https://bugreports.qt-project.org/browse/QTBUG-16851
         # self.tab_widget.setDocumentMode(True)

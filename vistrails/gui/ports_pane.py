@@ -346,6 +346,13 @@ class PortItem(QtGui.QTreeWidgetItem):
         widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         widget.exec_()
 
+    def __lt__( self, other ):
+        # put set (expanded) functions first
+        if self.isExpanded() != other.isExpanded():
+            return self.isExpanded() and not other.isExpanded()
+        # otherwise use port name
+        return self.port_spec.name < other.port_spec.name
+
 class PortsList(QtGui.QTreeWidget):
     def __init__(self, port_type, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
@@ -431,6 +438,8 @@ class PortsList(QtGui.QTreeWidget):
                     # connceted_checkbox = QtGui.QCheckBox()
                     # connected_checkbox.setEnabled(False)
                     # self.setItemWidget(i, 1, connected_checkbox)
+                self.sortItems(0, QtCore.Qt.AscendingOrder)
+
                 
 
             # base_items = {}

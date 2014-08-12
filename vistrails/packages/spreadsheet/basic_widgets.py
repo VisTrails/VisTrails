@@ -39,6 +39,9 @@
 #   SingleCellSheetReference
 #   SpreadsheetCell
 ################################################################################
+from vistrails.core.configuration import ConfigField, \
+    get_vistrails_configuration
+from vistrails.core.modules.output_modules import OutputMode, OutputModeConfig
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 from spreadsheet_base import (StandardSheetReference,
                               StandardSingleCellSheetReference)
@@ -223,6 +226,95 @@ class SpreadsheetCell(NotCacheable, Module):
         return self.cellWidget
 
     display = displayAndWait
+
+class SpreadsheetModeConfig(OutputModeConfig):
+    mode_type = "spreadsheet"
+    _fields = [ConfigField('row', None, int),
+               ConfigField('col', None, int),
+               ConfigField('sheetName', None, str),
+               ConfigField('sheetRowCount', None, int),
+               ConfigField('sheetColCount', None, int),
+               ConfigField('rowSpan', None, int),
+               ConfigField('colSpan', None, int)]
+
+class SpreadsheetMode(OutputMode):
+    mode_type = "spreadsheet"
+    priority = 3
+    config_cls = SpreadsheetModeConfig
+
+    @classmethod
+    def can_compute(cls):
+        if get_vistrails_configuration().batch:
+            return False
+        return True
+
+    def create_display_event(self, output_module, configuration,
+                             cell_cls, input_ports):
+        """create_display_event(output_module: Module,
+                                configuration: OutputModeConfig,
+                                cell_cls: class,
+                                input_ports: tuple) -> None
+        Create a DisplayEvent with all the parameters from the cell
+        locations and inputs
+
+        """
+        e = DisplayCellEvent()
+        if configuration is not None:
+            e.row = configuration['row']
+            e.col = configuration['col']
+            if (configuration['sheetName'] or configuration['sheetRowCount'] or
+                configuration['sheetColCount']):
+                ref = StandardSheetReference()
+                if configuration['sheetName']:
+                    ref.sheetName = configuration['sheetName']
+                if configuration['sheetRowCount']:
+                    ref.minimumRowCount = configuration['sheetRowCount']
+                if configuration['sheetColCount']:
+                    ref.minimumColumnCount = configuration['sheetColCount']
+                e.sheetReference = ref
+            e.rowSpan = configuration['rowSpan']
+            e.colSpan = configuration['colSpan']
+        e.vistrail = output_module.moduleInfo
+        e.cellType = cell_cls
+        e.inputPorts = input_ports
+        return e
+
+    def display(self, output_module, configuration, cell_type, input_ports):
+        """display(output_module: Module,
+                   configuration: OutputModeConfig,
+                   cell_cls: class,
+                   input_ports: tuple) -> None
+        Dispatch the cellType to the spreadsheet with appropriate input data
+        to display it
+
+        """
+        if spreadsheetController.echoMode():
+            return self.display_and_wait(output_module, configuration,
+                                         cell_type, input_ports)
+        e = self.create_display_event(cell_type, input_ports)
+        spreadsheetController.postEventToSpreadsheet(e)
+
+    def display_and_wait(self, output_module, configuration, cell_type,
+                         input_ports):
+        """display_and_wait(output_module: Module,
+                            configuration: OutputModeConfig,
+                            cell_cls: class,
+                            input_ports: tuple) -> None
+        Send the message and wait for the cell to complete its movement
+        constructed to return it
+
+        """
+        e = self.create_display_event(output_module, configuration,
+                                      cell_type, input_ports)
+        QtCore.QCoreApplication.processEvents()
+        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
+        if spreadsheetWindow.echoMode == False:
+            spreadsheetWindow.configShow(show=True)
+        cell = spreadsheetWindow.displayCellEvent(e)
+        if cell is not None:
+            cell.set_output_module(output_module, configuration)
+        return cell
+
 
 class SingleCellSheetReference(SheetReference):
     """

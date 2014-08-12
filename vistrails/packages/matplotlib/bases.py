@@ -33,12 +33,16 @@
 ###############################################################################
 
 import matplotlib
+from matplotlib.backend_bases import FigureCanvasBase
 import pylab
 import urllib
 
 from matplotlib.backend_bases import FigureCanvasBase
 
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
+from vistrails.core.modules.config import ModuleSettings
+from vistrails.core.modules.output_modules import ImageFileMode, \
+    ImageFileModeConfig, OutputModule
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 
 ################################################################################
@@ -136,45 +140,46 @@ class MplFigure(Module):
 
         self.set_output("self", self)
 
-class MplFigureToFile(Module):
-    _input_ports = [('figure', 'MplFigure'),
-                    ('format', 'basic:String', {"defaults": ["pdf"]}),
-                    ('width', 'basic:Integer', {"defaults": ["800"]}),
-                    ('height', 'basic:Integer', {"defaults": ["600"]})]
-    _output_ports = [('imageFile', 'basic:File')]
-
-    def compute(self):
-        figure = self.get_input('figure')
-        format = self.get_input('format')
-        width = self.get_input('width')
-        height = self.get_input('height')
-        imageFile = self.interpreter.filePool.create_file(suffix=".%s" % format)
-
-        fig = figure.figInstance
-        w_inches = width / 72.0
-        h_inches = height / 72.0
-
-        previous_size = tuple(fig.get_size_inches())
-        fig.set_size_inches(w_inches, h_inches)
-        canvas = FigureCanvasBase(fig)
-        canvas.print_figure(imageFile.name, dpi=72, format=format)
-        fig.set_size_inches(previous_size[0],previous_size[1])
-        canvas.draw()
-
-        self.set_output('imageFile', imageFile)
-
 class MplContourSet(Module):
     pass
 
 class MplQuadContourSet(MplContourSet):
     pass
+
+class MplFigureToFile(ImageFileMode):
+    config_cls = ImageFileModeConfig
+    formats = ['pdf', 'png', 'jpg']
+
+    def compute_output(self, output_module, configuration=None):
+        value = output_module.get_input('value')
+        w = configuration["width"]
+        h = configuration["height"]
+        img_format = self.get_format(configuration)
+        filename = self.get_filename(configuration, suffix='.%s' % img_format)
+
+        w_inches = w / 72.0
+        h_inches = h / 72.0
+        figure = value.figInstance
         
+        previous_size = tuple(figure.get_size_inches())
+        figure.set_size_inches(w_inches, h_inches)
+        canvas = FigureCanvasBase(figure)
+        canvas.print_figure(filename, dpi=72, format=img_format)
+        figure.set_size_inches(previous_size[0],previous_size[1])
+        canvas.draw()
+
+class MplFigureOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _input_ports = [('value', 'MplFigure')]
+    _output_modes = [MplFigureToFile]
+
 _modules = [(MplProperties, {'abstract': True}),
             (MplPlot, {'abstract': True}), 
             (MplSource, {'configureWidgetType': \
                              ('vistrails.packages.matplotlib.widgets',
                               'MplSourceConfigurationWidget')}),
             MplFigure,
-            MplFigureToFile,
             MplContourSet,
-            MplQuadContourSet]
+            MplQuadContourSet,
+            MplFigureOutput]
+

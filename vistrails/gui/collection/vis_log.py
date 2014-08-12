@@ -53,7 +53,7 @@ import vistrails.core.db.io
 class QExecutionItem(QtGui.QTreeWidgetItem):
     """
     QExecutionItem represents a workflow or module execution.
-    
+
     """
     def __init__(self, execution, parent=None, prev=None):
         QtGui.QTreeWidgetItem.__init__(self, parent)
@@ -71,7 +71,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
                 brush = CurrentTheme.SUCCESS_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
-                
+
             if execution.db_name:
                 self.setText(0, execution.db_name)
             else:
@@ -133,12 +133,28 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, 'Iteration #%s' % execution.iteration)
 
-        self.setText(1, '%s' % execution.ts_start)
-        self.setText(2, '%s' % execution.ts_end)
+        self.setText(1, execution.ts_start.strftime(
+                    '%H:%M %d/%m').replace(' 0', ' ').replace('/0', '/'))
+        self.setData(1, QtCore.Qt.UserRole, str(execution.ts_start))
+        #self.setText(2, '%s' % execution.ts_end) end is hidden
         pixmap = QtGui.QPixmap(10,10)
         pixmap.fill(brush.color())
         icon = QtGui.QIcon(pixmap)
         self.setIcon(0, icon)
+
+
+    def __lt__( self, other ):
+
+        tree = self.treeWidget()
+        if ( not tree ):
+            column = 0
+        else:
+            column = tree.sortColumn()
+
+        if column != 1: # only use special sorting for date
+            return super(QExecutionItem, self).__lt__(other)
+
+        return self.data(1, QtCore.Qt.UserRole) < other.data(1, QtCore.Qt.UserRole)
 
 class QExecutionListWidget(QtGui.QTreeWidget):
     """
@@ -148,8 +164,9 @@ class QExecutionListWidget(QtGui.QTreeWidget):
     def __init__(self, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.setColumnCount(3)
-        self.setHeaderLabels(['Pipeline', 'Start', 'End'])
+        self.setColumnCount(2)
+        self.setHeaderLabels(['Pipeline', 'Start']) # end is hidden
+        self.header().setDefaultSectionSize(200)
         self.sortByColumn(1, QtCore.Qt.AscendingOrder)
         self.setSortingEnabled(True)
 

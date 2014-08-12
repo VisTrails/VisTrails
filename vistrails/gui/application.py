@@ -39,7 +39,6 @@ initializations to the theme, packages and the builder...
 from PyQt4 import QtGui, QtCore, QtNetwork
 from vistrails.core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application
-from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import system
 from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
@@ -83,7 +82,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             release = platform.mac_ver()[0].split('.')
             if len(release)>=2 and int(release[0])*100+int(release[1])>=1009:
                 QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
-        QtGui.QApplication.__init__(self, sys.argv)
+        QtGui.QApplication.__init__(self, sys.argv[:1])
         VistrailsApplicationInterface.__init__(self)
 
         if system.systemType in ['Darwin']:
@@ -101,7 +100,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus)
         qt.allowQObjects()
 
-    def run_single_instance(self):
+    def run_single_instance(self, args):
         # code for single instance of the application
         # based on the C++ solution available at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
@@ -127,7 +126,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                        self._unique_key, e)
 
                 else:
-                    if self.found_another_instance_running(local_socket):
+                    if self.found_another_instance_running(local_socket, args):
                         return APP_DONE # success, we should shut down
                     else:
                         return APP_FAIL  # error, we should shut down
@@ -169,9 +168,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         return None
 
-    def found_another_instance_running(self, local_socket):
+    def found_another_instance_running(self, local_socket, args):
         debug.critical("Found another instance of VisTrails running")
-        msg = bytes(sys.argv[1:])
+        msg = bytes(args)
         debug.critical("Will send parameters to main instance %s" % msg)
         res = self.send_message(local_socket, msg)
         if res is True:
@@ -199,17 +198,19 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
         if singleInstance:
-            finished = self.run_single_instance()
+            finished = self.run_single_instance(args)
             if finished is not None:
                 return finished
 
-        interactive = self.temp_configuration.check('interactiveMode')
+        interactive = not self.temp_configuration.check('batch')
         if interactive:
             self.setIcon()
             self.createWindows()
             self.processEvents()
+            
+        # self.vistrailsStartup.init()
+        self.package_manager.initialize_packages()
 
-        self.vistrailsStartup.init()
         # ugly workaround for configuration initialization order issue
         # If we go through the configuration too late,
         # The window does not get maximized. If we do it too early,
@@ -219,7 +220,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 self.builderWindow.showMaximized()
             if self.temp_configuration.check('dbDefault'):
                 self.builderWindow.setDBDefault(True)
-        self._python_environment = self.vistrailsStartup.get_python_environment()
+        # self._python_environment = self.vistrailsStartup.get_python_environment()
+
         self._initialized = True
 
         # default handler installation
@@ -451,7 +453,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         self.builderWindow.check_running_jobs()
         self.process_interactive_input()
-        if not self.temp_configuration.showSpreadsheetOnly:
+        if self.temp_configuration.showWindow:
             self.showBuilderWindow()
         else:
             self.builderWindow.hide()
@@ -463,7 +465,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         usedb = False
-        if self.temp_db_options.host:
+        if self.temp_db_options is not None and self.temp_db_options.host:
             usedb = True
             passwd = ''
         if usedb and self.temp_db_options.user:
@@ -518,14 +520,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 w_list.append((locator, version))
                 vt_list.append(locator)
             import vistrails.core.console_mode
-            if self.temp_db_options.parameters == None:
-                self.temp_db_options.parameters = ''
-            
+
             errs = []
             if self.temp_configuration.check('workflowGraph'):
                 workflow_graph = self.temp_configuration.workflowGraph
                 results = vistrails.core.console_mode.get_wf_graph(w_list, workflow_graph,
-                                     self.temp_configuration.spreadsheetDumpPDF)
+                                                                   self.temp_configuration.graphsAsPdf)
                 for r in results:
                     if r[0] == False:
                         errs.append("Error generating workflow graph: %s" % \
@@ -535,36 +535,34 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             if self.temp_configuration.check('evolutionGraph'):
                 evolution_graph = self.temp_configuration.evolutionGraph
                 results = vistrails.core.console_mode.get_vt_graph(vt_list, evolution_graph,
-                                     self.temp_configuration.spreadsheetDumpPDF)
+                                                                   self.temp_configuration.graphsAsPdf)
                 for r in results:
                     if r[0] == False:
                         errs.append("Error generating vistrail graph: %s" % \
                                     r[1])
                         debug.critical("*** Error in get_vt_graph: %s" % r[1])
                 
-            if self.temp_configuration.check('workflowInfo'):
-                workflow_info = self.temp_configuration.workflowInfo
+            if self.temp_configuration.check('outputDirectory'):
+                output_dir = self.temp_configuration.outputDirectory
             else:
-                workflow_info = None
+                output_dir = None
 
             extra_info = None
-            if self.temp_configuration.check('spreadsheetDumpCells'):
+            if self.temp_configuration.check('outputDirectory'):
                 extra_info = \
-                {'pathDumpCells': self.temp_configuration.spreadsheetDumpCells}
-            if self.temp_configuration.check('spreadsheetDumpPDF'):
-                if extra_info is None:
-                    extra_info = {}
-                extra_info['pdf'] = self.temp_configuration.spreadsheetDumpPDF
-
+                {'pathDumpCells': self.temp_configuration.outputDirectory}
             if self.temp_configuration.check('parameterExploration'):
                 errs.extend(
                     vistrails.core.console_mode.run_parameter_explorations(
                         w_list, extra_info=extra_info))
             else:
-                errs.extend(vistrails.core.console_mode.run(w_list,
-                                      self.temp_db_options.parameters,
-                                      workflow_info, update_vistrail=True,
-                                      extra_info=extra_info))
+                errs.extend(vistrails.core.console_mode.run(
+                        w_list,
+                        self.temp_db_option is not None and
+                            self.temp_db_option.parameters
+                            or '',
+                        output_dir, update_vistrail=True,
+                        extra_info=extra_info))
             if len(errs) > 0:
                 for err in errs:
                     debug.critical("*** Error in %s:%s:%s -- %s" % err)
@@ -615,7 +613,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         # self.builderWindow = QBuilderWindow()
         self.builderWindow = QVistrailsWindow()
-        if not self.temp_configuration.showSpreadsheetOnly:
+        if self.temp_configuration.showWindow:
             # self.builderWindow.show()
             # self.setActiveWindow(self.builderWindow)
             pass
@@ -666,12 +664,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             byte_array = local_socket.readAll()
             self.temp_db_options = None
             self.temp_configuration.workflowGraph = None
-            self.temp_configuration.workflowInfo = None
             self.temp_configuration.evolutionGraph = None
+            self.temp_configuration.outputDirectory = None
             self.temp_configuration.spreadsheetDumpPDF = False
-            self.temp_configuration.spreadsheetDumpCells = None
-            self.temp_configuration.executeWorkflows = False
-            self.temp_configuration.interactiveMode = True
+            self.temp_configuration.execute = False
+            self.temp_configuration.batch = False
             
             try:
                 # redirect stdout
@@ -733,13 +730,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             #it's safe to eval as a list
             args = literal_eval(msg)
             if isinstance(args, list):
-                #print "args from another instance %s"%args
                 try:
-                    command_line.CommandLineParser.init_options(args)
+                    self.read_options(args)
                 except SystemExit:
                     debug.critical("Invalid options: %s" % ' '.join(args))
                     return False
-                self.readOptions()
                 if self.temp_configuration.check('jobList'):
                     job = JobMonitor.getInstance()
                     return '\n'.join(
@@ -756,10 +751,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     result = self.runJob(self.temp_configuration.jobRun)
                     self.configuration.autoRun = autoRun
                     return result == APP_SUCCESS
-                interactive = self.temp_configuration.check('interactiveMode')
+                interactive = not self.temp_configuration.check('batch')
                 if interactive:
                     result = self.process_interactive_input()
-                    if not self.temp_configuration.showSpreadsheetOnly:
+                    if self.temp_configuration.showWindow:
                         # in some systems (Linux and Tiger) we need to make both calls
                         # so builderWindow is activated
                         self.builderWindow.raise_()

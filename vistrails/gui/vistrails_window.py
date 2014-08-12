@@ -560,13 +560,6 @@ class QVistrailViewWindow(QBaseViewWindow):
                              _app.pass_through_locator(self.get_current_view,
                                                        'export_vistrail', 
                                                        reverse=True)}),
-                       ('exportStable', "To Stable Version...",
-                        {'statusTip': "Save vistrail as XML according to " \
-                             "the older (stable) schema",
-                         'enabled': True,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'export_stable')}),
                        "---",
                        ('savePDF', "PDF...",
                         {'statusTip': "Save the current view to a PDF file",
@@ -594,6 +587,13 @@ class QVistrailViewWindow(QBaseViewWindow):
                              _app.pass_through_locator(self.get_current_view,
                                                        'save_workflow',
                                                        DBLocator)}),
+                       ('exportStable', "Workflow to VisTrails 2.1 XML...",
+                        {'statusTip': "Save workflow as XML according to " \
+                             "the previous schema",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'export_stable')}),
                        "---",
                        ('saveOpm', "OPM XML...",
                         {'statusTip': "Save provenance according to the " \
@@ -1641,10 +1641,11 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         """
         old_view = self.getViewFromLocator(locator)
-        self.close_first_vistrail_if_necessary()
         
-        get_vistrails_application().open_vistrail(locator, version, 
-                                                  is_abstraction)
+        if not get_vistrails_application().open_vistrail(locator, version, 
+                                                         is_abstraction):
+            return None
+        self.close_first_vistrail_if_necessary()
         view = self.get_current_view()
         view.is_abstraction = view.controller.is_abstraction
         if not old_view:
@@ -1753,16 +1754,22 @@ class QVistrailsWindow(QVistrailViewWindow):
                     if not locator.prompt_autosave(self):
                         locator.clean_temporaries()
             view = self.open_vistrail(locator, version, is_abstraction)
+            if view is None:
+                return
             view.version_view.select_current_version()
             conf = get_vistrails_configuration()
-            has_tag = len(view.controller.vistrail.get_tagMap()) > 0
-            if (not conf.check('showPipelineViewOnLoad')) and \
-               (conf.check('showHistoryViewOnLoad') or has_tag):
+            if conf.check('viewOnLoad') and conf.viewOnLoad == 'history':
                 self.qactions['history'].trigger()
-
-            if version:
+            elif conf.check('viewOnLoad') and conf.viewOnLoad == 'pipeline':
                 self.qactions['pipeline'].trigger()
-                
+            else:
+                # appropriate
+                has_tag = len(view.controller.vistrail.get_tagMap()) > 0
+                if has_tag:
+                    self.qactions['history'].trigger()
+                else:
+                    self.qactions['pipeline'].trigger()
+                            
             if mashuptrail is not None and mashupVersion is not None:
                 mashup = view.get_mashup_from_mashuptrail_id(mashuptrail,
                                                              mashupVersion)
@@ -1831,10 +1838,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.import_workflow(DBLocator)
 
     def open_workflow(self, locator):
-        self.close_first_vistrail_if_necessary()
-
         get_vistrails_application().open_workflow(locator)
-
+        self.close_first_vistrail_if_necessary()
         self.qactions['pipeline'].trigger()
     
     def close_vistrail(self, current_view=None, quiet=False):

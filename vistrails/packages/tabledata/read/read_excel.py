@@ -120,12 +120,10 @@ from vistrails.tests.utils import execute, intercept_result
 from ..identifiers import identifier
 from ..common import ExtractColumn
 
-
+@unittest.skipIf(get_xlrd() is None, "xlrd not available")
 class ExcelTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if get_xlrd() is None: # pragma: no cover
-            raise unittest.SkipTest("xlrd not available")
         import os
         cls._test_dir = os.path.join(
                 os.path.dirname(__file__),

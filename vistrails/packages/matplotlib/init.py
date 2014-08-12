@@ -40,7 +40,7 @@ import vistrails.core.db.action
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.operation import AddOp
 
-from bases import _modules as _base_modules
+from bases import _modules as _base_modules, MplFigureOutput
 from plots import _modules as _plot_modules
 from artists import _modules as _artist_modules
 from identifiers import identifier
@@ -54,8 +54,9 @@ def initialize(*args, **kwargs):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     if reg.has_module('org.vistrails.vistrails.spreadsheet',
                       'SpreadsheetCell'):
-        from figure_cell import MplFigureCell
+        from figure_cell import MplFigureCell, MplFigureToSpreadsheet
         _modules.append(MplFigureCell)
+        MplFigureOutput.register_output_mode(MplFigureToSpreadsheet)
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler

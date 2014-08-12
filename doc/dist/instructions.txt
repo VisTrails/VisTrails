@@ -39,11 +39,9 @@ If there is a version upgrade from 2.0 to 2.1 you need to update the
    scripts/release_notes.py (release_name)
    scripts/create_release_wiki_table.py (VT_VERSION)
    vistrails/core/system/__init__.py (function vistrails_version())
-   dist/mac/setup.py (VERSION)
-   dist/windows/vistrails.iss (AppVerName)
-   dist/windows/vistrailsx64.iss (AppVerName)
-   dist/windows/custom/*.iss (AppVerName)
-   dist/source/make-vistrails-src-release.py (VT_VERSION)
+   scripts/dist/mac/setup.py (VERSION)
+   scripts/dist/windows/vistrails*.iss (AppVerName)
+   scripts/dist/source/make-vistrails-src-release.py (VT_VERSION)
    doc/usersguide/conf.py
    
 The splash screen also needs to be updated: 
@@ -70,20 +68,20 @@ $ python release_notes.py
 
 This will checkout the branch, process all commits and match them with the trac tickets. It will ask for your login and password on trac to do that. At the end, it will print out a release notes section. Just copy from Release Name.... down to the last item in Bug fixes. All the log messages that were not identified with <bugfix> or <feature> will be print out at the end but they can be ignored. Sometimes just take a look and see if there is something important there that should go as bugfix ou enhancement.
 
-You should paste the text into the dist/mac/Input/README file, just below
+You should paste the text into the scripts/dist/mac/Input/README file, just below
 RELEASE NOTES
 -----------------------
 
 Also take a look if there aren't repeated items... They might happen when there are merges across the branches and the commit messages got repeated.
 
-Then do the same into dist/windows/Input/releaseNotes.txt
+Then do the same into scripts/dist/windows/Input/releaseNotes.txt
 
 Then commit and push your changes. Now you are ready to generate the binaries on each platform.
 
 == Mac Binary Instructions ==
 ALPS
 Make sure the latest version of ALPS will be included in the binary.
-Go to http://archive.comp-phys.org/software/vistrails/ and look for the latest version and update dist/mac/make_app (ALPS_VERSION). If there were any changes, commit and push them before following next instructions.
+Go to http://archive.comp-phys.org/software/vistrails/ and look for the latest version and update scripts/dist/mac/make_app (ALPS_VERSION). If there were any changes, commit and push them before following next instructions.
 
 Updating revision numbers
 
@@ -91,9 +89,9 @@ Run git log to know what is the latest hash tag on the release branch and copy t
 
 Update the following files with the "revision number"
   vistrails/core/system/__init__.py (function vistrails_revision())
-  dist/mac/Input/README (Release Name...)
-  dist/source/make-vistrails-src-release.py (VT_HASH)
-  dist/windows/Input/releaseNotes.txt
+  scripts/dist/mac/Input/README (Release Name...)
+  scripts/dist/source/make-vistrails-src-release.py (VT_HASH)
+  scripts/dist/windows/Input/releaseNotes.txt
   scripts/create_release_wiki_table.py
   scripts/release_notes.py
 add and commit the changes. This will be the version released.
@@ -104,9 +102,10 @@ Make sure the generated users guide is saved to the correct path by
 editing the following file:
 scripts/build_usersguide.py
 By default it is configured for mac
+Make sure the correct branch is used (by default in ~/code/vistrails)
 
 Now run the following:
-$ cd dist/mac/
+$ cd scripts/dist/mac/
 $ ./make_app vistrails-mac-10.6-intel-[VER]-[REV]
 where [VER] should be the vistrails version, and [REV] the revision hash.
 
@@ -130,17 +129,17 @@ the 64-bit version of python, vtk, etc. (if you run vistrails 64-bit).
 ALPS
 Make sure the latest version of ALPS will be included in the binary.
 Go to http://archive.comp-phys.org/software/vistrails/
-Download and uncompress the alps package for windows 32 bit available on  http://archive.comp-phys.org/software/vistrails/  into dist/windows/Input/x86/alps_libs folder (it will create a bin and a vistrails folder inside it)
+Download and uncompress the alps package for windows 32 bit available on  http://archive.comp-phys.org/software/vistrails/  into scripts/dist/windows/Input/x86/alps_libs folder (it will create a bin and a vistrails folder inside it)
 
-Open dist\windows\vistrails.iss by double-clicking it
+Open scripts\dist\windows\vistrails.iss by double-clicking it
 This will launch InnoSetup
 Press the compile script button
-When it finishes a file called dist\windows\Output\vistrails-setup.exe will be created. Rename it according to the release name and create a zip file from it.
+When it finishes a file called scripts\dist\windows\Output\vistrails-setup.exe will be created. Rename it according to the release name and create a zip file from it.
 Upload the file to sourceForge (I use WinFTP for this).
 
 Custom 32-bit builds
-For every vistrails-*.iss file in dist/windows/custom folder, run
-InnoSetup. Binaries will be generated in custom/Output folder. Rename it according to the release name and create a zip file from it.
+For every vistrails-*.iss file in scripts/dist/windows/ folder, run
+InnoSetup. Binaries will be generated in Output folder. Rename it according to the release name and create a zip file from it.
 Upload the file to sourceForge (I use WinFTP for this). 
 
 == Windows 64-bit Binary Instructions ==
@@ -148,22 +147,22 @@ Upload the file to sourceForge (I use WinFTP for this).
 ALPS
 Make sure the latest version of ALPS will be included in the binary.
 Go to http://archive.comp-phys.org/software/vistrails/
-Download and uncompress the alps package for windows 64 bit available on http://archive.comp-phys.org/software/vistrails/  into dist/windows/Input/x64/alps_libs folder (it will create a bin and a vistrails folder inside it)
+Download and uncompress the alps package for windows 64 bit available on http://archive.comp-phys.org/software/vistrails/  into scripts/dist/windows/Input/x64/alps_libs folder (it will create a bin and a vistrails folder inside it)
 
-Open dist\windows\vistrails_x64.iss by double-clicking it
+Open scripts\dist\windows\vistrails_x64.iss by double-clicking it
 This will launch InnoSetup
 Press the compile script button
-When it finishes a file called dist\windows\Output\vistrails-setup.exe will be created. Rename it according to the release name and create a zip file from it.
+When it finishes a file called scripts\dist\windows\Output\vistrails-setup.exe will be created. Rename it according to the release name and create a zip file from it.
 Upload the file to sourceForge (I use WinFTP for this).
 
 Custom 64-bit builds
-For every vistrailsx64-*.iss file in dist/windows/custom folder, run
-InnoSetup. Binaries will be generated in custom/Output folder. Rename it according to the release name and create a zip file from it.
+For every vistrailsx64-*.iss file in scripts/dist/windows/ folder, run
+InnoSetup. Binaries will be generated in Output folder. Rename it according to the release name and create a zip file from it.
 Upload the file to sourceForge (I use WinFTP for this). 
 
 
 == Source Distribution Instructions ==
-cd path/to/dist/source
+cd path/to/scripts/dist/source
 make sure make-vistrails-src-release.py is updated with the right
 branch VT_BRANCH, VT_VERSION and VT_HASH.
 Also update the SF_USERNAME with the vistrails build username if you

@@ -228,3 +228,14 @@ def create_temp_folder(prefix='vt_save'):
 
 def remove_temp_folder(temp_dir):
     vistrails.db.services.io.remove_temp_folder(temp_dir)
+
+def load_startup(startup_fname):
+    from vistrails.core.startup import VistrailsStartup
+    startup = vistrails.db.services.io.open_startup_from_xml(startup_fname)
+    VistrailsStartup.convert(startup)
+    return startup
+
+def save_startup(startup, fname):
+    startup = vistrails.db.services.io.save_startup_to_xml(startup, fname)
+    return startup
+    

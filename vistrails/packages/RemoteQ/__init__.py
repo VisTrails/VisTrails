@@ -34,7 +34,7 @@
 ###############################################################################
 from vistrails.core.configuration import ConfigurationObject
 
-version = '0.2'
+version = '0.3'
 identifier = 'org.vistrails.vistrails.remoteq'
 name = 'RemoteQ'
 

@@ -35,5 +35,6 @@
 from vistrails.core.configuration import ConfigurationObject
 configuration = ConfigurationObject(rowCount=2,
                                     columnCount=3,
-                                    dumpfileType='PNG')
+                                    dumpfileType='PNG',
+                                    fixedCellSize=False)
 # other possible value for dumpfileType is PDF

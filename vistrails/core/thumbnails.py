@@ -38,13 +38,14 @@ import itertools
 import os
 import os.path
 import shutil
+import tempfile
 import time
 import uuid
 import mimetypes
 # mimetypes are broken by default on windows so use the builtins
 # Remove line below when it is fixed here: http://bugs.python.org/issue15207
 mimetypes.init(files=[])
-from vistrails.core import debug
+from vistrails.core import debug, system
 from vistrails.core.configuration import get_vistrails_configuration, \
       get_vistrails_persistent_configuration
 from vistrails.core.utils import VistrailsInternalError
@@ -68,7 +69,13 @@ class ThumbnailCache(object):
             ThumbnailCache._instance = obj
         return ThumbnailCache._instance
 
+    @staticmethod
+    def clearInstance():
+        if ThumbnailCache._instance is not None:
+            ThumbnailCache._instance.destroy()
+
     def __init__(self):
+        self._temp_directory = None
         self.elements = {}
         self.vtelements = {}
         self.conf = None
@@ -76,17 +83,24 @@ class ThumbnailCache(object):
         if conf.has('thumbs'):
             self.conf = conf.thumbs
         self.init_cache()
+
+    def destroy(self):
+        if self._temp_directory is not None:
+            print "removing thumbnail directory"
+            shutil.rmtree(self._temp_directory)
         
     def get_directory(self):
-        if self.conf.check('cacheDirectory'):
-            thumbnail_dir = self.conf.cacheDirectory
+        thumbnail_dir = system.get_vistrails_directory('thumbs.cacheDir')
+        if thumbnail_dir is not None:
             if not os.path.exists(thumbnail_dir):
                 raise VistrailsInternalError("Cannot find %s" % thumbnail_dir)
             return thumbnail_dir
         
-        raise VistrailsInternalError("'thumbs.cacheDirectory' not"
-                                     " specified in configuration")
-        return None
+        # raise VistrailsInternalError("'thumbs.cacheDir' not"
+        #                              " specified in configuration")
+        if self._temp_directory is None:
+            self._temp_directory = tempfile.mkdtemp(prefix='vt_thumbs_')
+        return self._temp_directory
     
     def init_cache(self):
         for root,dirs, files in os.walk(self.get_directory()):
@@ -214,6 +228,8 @@ class ThumbnailCache(object):
         Deletes all files inside dirname
     
         """
+        if dirname is None:
+            return
         try:
             for root, dirs, files in os.walk(dirname):
                 for fname in files:

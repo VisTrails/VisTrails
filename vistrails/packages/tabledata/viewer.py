@@ -1,9 +1,19 @@
 import os
 from PyQt4 import QtCore, QtGui
 
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, \
+    SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 
+class TableToSpreadsheetMode(SpreadsheetMode):
+    @classmethod
+    def can_compute(cls):
+        return SpreadsheetMode.can_compute()
+
+    def compute_output(self, output_module, configuration=None):
+        table = output_module.get_input('value')
+        self.display_and_wait(output_module, configuration,
+                              TableCellWidget, (table,))
 
 class TableCell(SpreadsheetCell):
     """Shows a table in a spreadsheet cell.
@@ -55,7 +65,8 @@ class TableCellWidget(QCellWidget):
                               QtCore.Qt.ItemIsSelectable)
                 self.table.setItem(row, col + 1, item)
         for row in xrange(table.rows):
-            item = QtGui.QTableWidgetItem('%d' % row)
+            item = QtGui.QTableWidgetItem()
+            item.setData(QtCore.Qt.EditRole, row)
             item.setFlags(QtCore.Qt.NoItemFlags)
             self.table.setItem(row, 0, item)
 

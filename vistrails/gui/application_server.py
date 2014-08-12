@@ -866,7 +866,7 @@ class RequestHandler(object):
 
                 elif medley._type == 'visit':
                     cur_dir = os.getcwd()
-                    os.chdir(self.temp_configuration.spreadsheetDumpCells)
+                    os.chdir(self.temp_configuration.outputDirectory)
                     if medley._id == 6:
                         session_file = 'crotamine.session'
                     elif medley._id == 7:
@@ -961,6 +961,9 @@ class RequestHandler(object):
         extra_info = {}
         extra_info['pathDumpCells'] = path_to_figures
         self.server_logger.debug(path_to_figures)
+        # TODO: really want to push this into spreadsheet settings,
+        # perhaps the issue here is getting global access to package
+        # configuration?
         extra_info['pdf'] = pdf
         self.server_logger.debug("pdf: %s" % pdf)
         # execute workflow
@@ -1731,12 +1734,13 @@ class RequestHandler(object):
             v = locator.load().vistrail
             for elem, tag in v.get_tagMap().iteritems():
                 action_map = v.actionMap[long(elem)]
+                thumbnail_fname = ""
                 if v.get_thumbnail(elem):
-                    thumbnail_fname = os.path.join(
-                        get_vistrails_configuration().thumbs.cacheDirectory,
-                        v.get_thumbnail(elem))
-                else:
-                    thumbnail_fname = ""
+                    thumbnail_dir = system.get_vistrails_directory(
+                        "thumbs.cacheDir")
+                    if thumbnail_dir is not None:
+                        thumbnail_fname = os.path.join(thumbnail_dir,
+                                                       v.get_thumbnail(elem))
                 if not thumbnail_fname or is_local:
                     result.append({'id': elem, 'name': tag,
                                    'notes': v.get_notes(elem) or '',

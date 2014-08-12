@@ -1,6 +1,6 @@
 <startup version="0.1">
   <configuration>
-    <key name="nologger">
+    <key name="executionLog">
       <bool value="True"/>
     </key>
   </configuration>
@@ -21,15 +21,15 @@
 
 <startup version="0.1">
   <configuration>
-    <key name="nologger">
+    <key name="executionLog">
       <bool value="True"/>
     </key>
     <key name="shell">
       <configuration>
-        <key name="font_face">
+        <key name="fontFace">
   	  <str value="Bitstream Vera mono"/>
         </key>
-        <key name="font_size">
+        <key name="fontSize">
 	  <int value="9"/>
         </key>
       </configuration>

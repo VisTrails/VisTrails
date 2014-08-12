@@ -120,6 +120,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
 
         locator.update_from_gui(self)
         open_vistrail(locator, **args)
+        self.setItemSelected(widget_item, True)
 
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())

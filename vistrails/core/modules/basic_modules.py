@@ -53,7 +53,7 @@ import os
 import pickle
 import re
 import shutil
-#import zipfile
+import zipfile
 import urllib
 
 try:
@@ -408,6 +408,7 @@ class Directory(Path):
 class OutputPath(Path):
     _settings = ModuleSettings(constant_widget=("%s:OutputPathChooserWidget" % \
                                                 constant_config_path))
+    _input_ports = [IPort("value", "OutputPath")]
     _output_ports = [OPort("value", "OutputPath")]
 
     def get_name(self):
@@ -712,6 +713,10 @@ class Tuple(Module):
         self.input_ports_order = []
         self.values = tuple()
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
     def compute(self):
         values = tuple([self.get_input(p)
                         for p in self.input_ports_order])
@@ -730,6 +735,12 @@ class Untuple(Module):
     def __init__(self):
         Module.__init__(self)
         self.output_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.output_ports_order = [p.name for p in module.output_port_specs]
+        # output_ports are reversed for display purposes...
+        self.output_ports_order.reverse()
 
     def compute(self):
         if self.has_input("tuple"):
@@ -807,6 +818,10 @@ class List(Constant):
     def __init__(self):
         Constant.__init__(self)
         self.input_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
 
     @staticmethod
     def validate(x):
@@ -910,6 +925,12 @@ class CodeRunnerMixin(object):
         self.output_ports_order = []
         super(CodeRunnerMixin, self).__init__()
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.output_ports_order = [p.name for p in module.output_port_specs]
+        # output_ports are reversed for display purposes...
+        self.output_ports_order.reverse()
+
     def run_code(self, code_str,
                  use_input=False,
                  use_output=False):
@@ -972,7 +993,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
 
 ##############################################################################
 
-class SmartSource(NotCacheable, Module):
+class SmartSource(CodeRunnerMixin, NotCacheable, Module):
     _settings = ModuleSettings(
         configure_widget=("vistrails.gui.modules.python_source_configure:"
                              "PythonSourceConfigurationWidget"))
@@ -1058,23 +1079,23 @@ class SmartSource(NotCacheable, Module):
 ##############################################################################
 
 def zip_extract_file(archive, filename_in_archive, output_filename):
-    return os.system(
-            "%s > %s" % (
-                    vistrails.core.system.list2cmdline([
-                            vistrails.core.system.get_executable_path('unzip'),
-                            '-q', '-o',
-                            '-p', archive,
-                            filename_in_archive]),
-                    vistrails.core.system.list2cmdline([output_filename])))
+    z = zipfile.ZipFile(archive)
+    try:
+        fileinfo = z.getinfo(filename_in_archive) # Might raise KeyError
+        output_dirname, output_filename = os.path.split(output_filename)
+        fileinfo.filename = output_filename
+        z.extract(fileinfo, output_dirname)
+    finally:
+        z.close()
 
 
 def zip_extract_all_files(archive, output_path):
-    return os.system(
-            vistrails.core.system.list2cmdline([
-                    vistrails.core.system.get_executable_path('unzip'),
-                    '-q', '-o',
-                    archive,
-                    '-d', output_path]))
+    z = zipfile.ZipFile(archive)
+    try:
+        z.extractall(output_path)
+    finally:
+        z.close()
+
 
 class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
@@ -1091,11 +1112,9 @@ class Unzip(Module):
             raise ModuleError(self, "archive file does not exist")
         suffix = self.interpreter.filePool.guess_suffix(filename_in_archive)
         output = self.interpreter.filePool.create_file(suffix=suffix)
-        s = zip_extract_file(archive_file.name,
-                             filename_in_archive,
-                             output.name)
-        if s != 0:
-            raise ModuleError(self, "unzip command failed with status %d" % s)
+        zip_extract_file(archive_file.name,
+                         filename_in_archive,
+                         output.name)
         self.set_output("file", output)
 
 
@@ -1110,10 +1129,8 @@ class UnzipDirectory(Module):
         if not os.path.isfile(archive_file.name):
             raise ModuleError(self, "archive file does not exist")
         output = self.interpreter.filePool.create_directory()
-        s = zip_extract_all_files(archive_file.name,
-                                  output.name)
-        if s != 0:
-            raise ModuleError(self, "unzip command failed with status %d" % s)
+        zip_extract_all_files(archive_file.name,
+                              output.name)
         self.set_output("directory", output)
 
 ##############################################################################
@@ -1168,47 +1185,38 @@ class Variant(Module):
 
 ##############################################################################
 
-class Iterator(object):
+class Generator(object):
     """
-    Used to keep track if list iteration, it will execute a module once for
+    Used to keep track of list iteration, it will execute a module once for
     each input in the list/generator.
     """
     _settings = ModuleSettings(abstract=True)
 
     generators = []
-    def __init__(self, values=None, depth=1, size=None,
-                 module=None, generator=None, port=None):
-        self.list_depth = depth
-        self.values = values
+    def __init__(self, size=None, module=None, generator=None, port=None,
+                 accumulated=False):
         self.module = module
         self.generator = generator
         self.port = port
         self.size = size
-        if size is None and values:
-            self.size = len(values)
-        self.pos = 0
-        if generator and generator not in Iterator.generators:
+        self.accumulated = accumulated
+        if generator and module not in Generator.generators:
             # add to global list of generators
-            # they will be uniquely ordered topologically
-            Iterator.generators.append(self.generator)
+            # they will be topologically ordered
+            module.generator = generator
+            Generator.generators.append(module)
             
     def next(self):
-        if self.values is not None:
-            try:
-                item = self.values[self.pos]
-                self.pos += 1
-                return item
-            except KeyError:
-                return None
-        # return next value - the generator
+        """ return next value - the generator """
         value = self.module.get_output(self.port)
-        if isinstance(value, Iterator):
-            raise ModuleError(self.module, "Iterator generator cannot contain an iterator")
-        return self.module.get_output(self.port)
+        if isinstance(value, Generator):
+            value = value.all()
+        return value
     
     def all(self):
-        if self.values:
-            return self.values
+        """ exhausts next() for Streams
+        
+        """
         items = []
         item = self.next()
         while item is not None:
@@ -1218,15 +1226,17 @@ class Iterator(object):
 
     @staticmethod
     def stream():
-        # execute all generators until inputs are exhausted
-        # this makes sure branching and multiple sinks are executed correctly
+        """ executes all generators until inputs are exhausted
+            this makes sure branching and multiple sinks are executed correctly
+
+        """
         result = True
-        if not Iterator.generators:
+        if not Generator.generators:
             return
         while result is not None:
-            for g in Iterator.generators:
+            for g in Generator.generators:
                 result = g.next()
-        Iterator.generators = []
+        Generator.generators = []
 
 ##############################################################################
 
@@ -1281,17 +1291,26 @@ class StringFormat(Module):
         while i < n:
             if fmt[i] == '{':
                 i += 1
-                if fmt[i] == '}': # KeyError
+                if fmt[i] == '{': # KeyError:
+                    i += 1
+                    continue
+                e = fmt.index('}', i) # KeyError
+                f = e
+                for c in (':', '!', '[', '.'):
+                    c = fmt.find(c, i)
+                    if c != -1:
+                        f = min(f, c)
+                if i == f:
                     nb += 1
-                elif fmt[i] != '{': # KeyError
-                    e = fmt.index('}', i + 1) # KeyError
-                    f = e
-                    for c in (':', '!', '[', '.'):
-                        c = fmt.find(c, i + 1)
-                        if c != -1:
-                            f = min(f, c)
-                    placeholders.add(fmt[i:f])
-                    i = e
+                else:
+                    arg = fmt[i:f]
+                    try:
+                        arg = int(arg)
+                    except ValueError:
+                        placeholders.add(arg)
+                    else:
+                        nb = max(nb, arg + 1)
+                i = e
             i += 1
         return nb, placeholders
 
@@ -1323,8 +1342,10 @@ _modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List,
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
+    import vistrails.core.modules.output_modules
     global _modules
     _modules.extend(vistrails.core.modules.sub_module._modules)
+    _modules.extend(vistrails.core.modules.output_modules._modules)
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
@@ -1411,12 +1432,10 @@ def create_constant(value):
     constant.setValue(value)
     return constant
 
-def get_module(value, signature):
+def get_module(value, signature=None):
     """
     Creates a module for value, in order to do the type checking.
     """
-    from vistrails.core.modules.basic_modules import Boolean, String, \
-        Integer, Float, Constant, List
     if isinstance(value, Constant):
         return type(value)
     elif isinstance(value, bool):
@@ -1427,17 +1446,23 @@ def get_module(value, signature):
         return Integer
     elif isinstance(value, float):
         return Float
-    elif isinstance(value, list):
+    if isinstance(value, list):
         return List
     elif isinstance(value, tuple):
+        # Variant supports signatures of any length
+        if signature is None or \
+           (len(signature) == 1 and signature[0][0] == Variant):
+            return (Variant,)*len(value)
         v_modules = ()
         for element in xrange(len(value)):
             v_modules += (get_module(value[element], signature[element]),)
+        if None in v_modules: # Identification failed
+            return None
         return v_modules
     else: # pragma: no cover
         debug.warning("Could not identify the type of the list element.")
-        debug.warning("Type checking is not going to be done inside"
-                      "FoldWithModule module.")
+        debug.warning("Type checking is not going to be done inside "
+                      "iterated module.")
         return None
 
 ###############################################################################
@@ -1567,7 +1592,8 @@ class TestList(unittest.TestCase):
 
         # Multiple values on 'value'
         res = self.build_list(value=['["a", "b"]', '["c", "d"]'])
-        self.assertIn(res, [["a", "b"], ["c", "d"]])
+        # Connections of List type are merged
+        self.assertEqual(res, ["a", "b", "c", "d"])
 
     def test_items(self):
         """Tests the multiple 'itemN' ports"""
@@ -1694,20 +1720,20 @@ class TestTypechecking(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         conf = get_vistrails_configuration()
-        cls.error_all = conf.errorOnConnectionTypeerror
-        cls.error_variant = conf.errorOnVariantTypeerror
+        cls.error_all = conf.showConnectionErrors
+        cls.error_variant = conf.showVariantErrors
 
     @classmethod
     def tearDownClass(cls):
         conf = get_vistrails_configuration()
-        conf.errorOnConnectionTypeerror = cls.error_all
-        conf.errorOnVariantTypeerror = cls.error_variant
+        conf.showConnectionErrors = cls.error_all
+        conf.showVariantErrors = cls.error_variant
 
     @staticmethod
     def set_settings(error_all, error_variant):
         conf = get_vistrails_configuration()
-        conf.errorOnConnectionTypeerror = error_all
-        conf.errorOnVariantTypeerror = error_variant
+        conf.showConnectionErrors = error_all
+        conf.showVariantErrors = error_variant
 
     def run_test_pipeline(self, result, expected_results, *args, **kwargs):
         from vistrails.tests.utils import execute, intercept_result
@@ -1752,7 +1778,7 @@ class TestTypechecking(unittest.TestCase):
     def test_fake(self):
         import urllib2
         # A module is lying, declaring a String but returning an int
-        # This should fail with errorOnConnectionTypeerror=True (not the
+        # This should fail with showConnectionErrors=True (not the
         # default)
         self.run_test_pipeline(
             (PythonSource, 'r'),
@@ -1834,12 +1860,15 @@ class TestStringFormat(unittest.TestCase):
                         a=('Integer', '42'),
                         c=('Integer', '12'))
 
+    # Python 2.6 doesn't support {}
+    @unittest.skipIf(sys.version_info < (2, 7), "No {} support on 2.6")
     def test_format_27(self):
-        # Python 2.6 doesn't support {}
-        if (sys.version_info < (2, 7)):
-            raise unittest.SkipTest("No {} support on 2.6")
         self.run_format('{} {}', 'a b',
                         _0=('String', 'a'), _1=('String', 'b'))
         self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',
                         a=('Integer', '42'), _0=('String', 'b'),
                         b=('Integer', '12'))
+        self.run_format('{} {} {!r}{ponc} {:.2f}', "hello dear 'world'! 1.33",
+                        _0=('String', 'hello'), _1=('String', 'dear'),
+                        _2=('String', 'world'), _3=('Float', '1.333333333'),
+                        ponc=('String', '!'))

@@ -4,10 +4,32 @@
 List Handling in VisTrails
 **************************
 
-VisTrails supports passing typed lists between modules. Ports on modules have a
-depth parameter specifying the  list depth it expects. 0 means no  list, 1 is a
-list, 2 is  a list of lists etc.  Port depth can be specified  either by module
-creators or in a ``PythonSource`` or similar module.
+In |vistrails| you can pass typed and :ref:`untyped <sec-list-type>` lists between modules. Ports on modules have a
+depth parameter specifying the  list depth it supports. 0 means no  list, 1 is a
+list, 2 is  a list of lists etc.  Port depth can be specified either by module
+developers or by using a ``PythonSource`` or similar module.
+
+It is important to know how connections of mismatching list depths are handled:
+
+* List wrapping - If the destination port has a larger list depth, the source will be wrapped in lists until the list depth is matched.
+* :ref:`sec-iterating-lists` - If the source port has a larger list depth, the destination module
+  will  be executed  once  for each  element in  the  list.
+
+.. _sec-list-type:
+
+The List type
+=============
+
+The ``List`` type represents an untyped list and can contain a list of any type. The
+vistrails ``Variant`` type matches any type and a ``List`` is equal to a
+``Variant`` of list depth 1.
+List depth specified on ``List`` types does not include the List itself: A ``List``
+type with list depth 1 are considered a ``Variant`` with list depth 2.
+
+There is one important exception: ``Variant`` connects directly to ``List``.
+This is because ``Variant`` ports are allowed to contain lists.
+
+.. _sec-iterating-lists:
 
 Iterating over lists
 ====================
@@ -22,7 +44,7 @@ elements are combined pairwise), and ``Custom``.  ``Custom`` gives you complete
 control   over  how  inputs   are  combined   and  allows   you  to   use  both
 pairwise/cartesian  combiners as  well as  reordering them.   The output  of an
 iterated module  will be  an ordered  list with the  individual results  of the
-module execution. This will cause  modules downstrean to also be iterated over,
+module execution. This will cause  modules downstream to also be iterated over,
 unless  they accept a  list as  input.  Iterated  modules will  have duplicated
 connections to  show that they  are being iterated  over. A list of  lists will
 have the connection triplicated etc.

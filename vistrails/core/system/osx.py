@@ -56,6 +56,7 @@ __all__ = ['executable_is_in_path', 'list2cmdline',
            'home_directory', 'remote_copy_program', 'remote_shell_program',
            'graph_viz_dot_command_line', 'remove_graph_viz_temporaries',
            'link_or_copy', 'get_executable_path',
+           'shell_font_face', 'shell_font_size',
            'TestMacOSX']
 
 ###############################################################################
@@ -226,6 +227,12 @@ def get_executable_path(executable_name):
         fullpath = os.path.join(path, executable_name)
         if os.path.isfile(fullpath):
             return os.path.abspath(fullpath)
+
+def shell_font_face():
+    return 'Monaco'
+
+def shell_font_size():
+    return 12
 
 ################################################################################
 

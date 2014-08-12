@@ -1,6 +1,17 @@
 RELEASE NOTES
 -------------
-Release Name: v2.1.2 build 7d8a4ed2feeb from v2.1 branch
+Release Name: v2.1.3 build 8262f078ed3b from v2.1 branch
+
+Bug fixes:
+ - Fixes scripting examples (8dd634391b71)
+ - Fixes Map and Filter modules outputting Variant (d597dcd6027f)
+ - Makes StringFormat handle {!r} or {:.2f} correctly (5f99a90fdc87)
+ - Fixes a test on newer pytz versions (2b4ecb3bc9bb)
+ - Displays exactly what we are going to install (214f98f478be)
+ - Fixes issue with missing PyQt4 (fbfada66f67e)
+ - Hide splashscreen when asking for file association (069c52f90130)
+
+From Release: v2.1.2 build 7d8a4ed2feeb from v2.1 branch
 
 Enhancements: 
  - Ticket 846: File Selection Dialog (78e8d01bd7ab)

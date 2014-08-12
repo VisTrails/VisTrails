@@ -371,7 +371,7 @@ class QShell(QtGui.QTextEdit):
         conf = get_vistrails_configuration()
         shell_conf = conf.shell
         # font
-        font = QtGui.QFont(shell_conf.font_face, shell_conf.font_size)
+        font = QtGui.QFont(shell_conf.fontFace, shell_conf.fontSize)
         font.setFixedPitch(1)
         self.setFont(font)
         self.reset(locals)

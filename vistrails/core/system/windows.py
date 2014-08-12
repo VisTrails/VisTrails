@@ -66,6 +66,7 @@ __all__ = ['guess_total_memory', 'home_directory',
            'graph_viz_dot_command_line', 'remove_graph_viz_temporaries',
            'link_or_copy', 'executable_is_in_path', 'execute_cmdline',
            'get_executable_path', 'execute_piped_cmdlines', 'execute_cmdline2',
+           'shell_font_face', 'shell_font_size',
            'TestWindows']
 
 
@@ -202,6 +203,12 @@ def execute_piped_cmdlines(cmd_list_list):
 
 def execute_cmdline2(cmd_list):
     return execute_piped_cmdlines([cmd_list])
+
+def shell_font_face():
+    return 'Courier New'
+
+def shell_font_size():
+    return 8
 
 ################################################################################
 

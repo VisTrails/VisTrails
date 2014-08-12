@@ -198,7 +198,7 @@ class Module(DBModule):
     def has_control_parameter_with_name(self, name):
         return self.db_has_controlParameter_with_name(name)
     def get_control_parameter_by_name(self, name):
-        return self.db_get_controlParameter_by_name(name)        
+        return self.db_get_controlParameter_by_name(name)
     def toggle_breakpoint(self):
         self.is_breakpoint = not self.is_breakpoint
     def toggle_watched(self):
@@ -282,14 +282,8 @@ class Module(DBModule):
 
     def summon(self):
         result = self.module_descriptor.module()
-        if self.cache != 1:
-            result.is_cacheable = lambda *args: False
-        if hasattr(result, 'input_ports_order'):
-            result.input_ports_order = [p.name for p in self.input_port_specs]
-        if hasattr(result, 'output_ports_order'):
-            result.output_ports_order = [p.name for p in self.output_port_specs]
-            # output_ports are reversed for display purposes...
-            result.output_ports_order.reverse()
+        result.transfer_attrs(self)
+
         # FIXME this may not be quite right because we don't have self.registry
         # anymore.  That said, I'm not sure how self.registry would have
         # worked for hybrids...

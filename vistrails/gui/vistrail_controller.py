@@ -36,6 +36,7 @@
 import copy
 import math
 import os
+import uuid
 
 from PyQt4 import QtCore, QtGui
 
@@ -263,7 +264,7 @@ class VistrailController(QtCore.QObject, BaseController):
     def get_locator(self):
         from vistrails.gui.application import get_vistrails_application
         if (self._auto_save and 
-            get_vistrails_application().configuration.check('autosave')):
+            get_vistrails_application().configuration.check('autoSave')):
             if self.locator is None:
                 raise ValueError("locator is None")
             return self.locator
@@ -502,9 +503,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.do_version_switch(new_version, report_all_errors,
                                    do_validate, from_root)
         except InvalidPipeline, e:
-            from vistrails.gui.application import get_vistrails_application
-
-
+#            from vistrails.gui.application import get_vistrails_application
+#
 #             def process_err(err):
 #                 if isinstance(err, Package.InitializationFailed):
 #                     QtGui.QMessageBox.critical(
@@ -859,7 +859,6 @@ class VistrailController(QtCore.QObject, BaseController):
         Unprune (graft?) all pruned versions
 
         """
-        full = self.vistrail.getVersionGraph()
         am = self.vistrail.actionMap
         for a in am.iterkeys():
             self.vistrail.showVersion(a)
@@ -1110,7 +1109,6 @@ class VistrailController(QtCore.QObject, BaseController):
         remove_duplicate_aliases(pipeline)
 
         modules = []
-        connections = []
         if pipeline:
             def process_group(group):
                 # reset pipeline id for db
@@ -1136,10 +1134,7 @@ class VistrailController(QtCore.QObject, BaseController):
                        if (op.what == 'module' or 
                            op.what == 'abstraction' or
                            op.what == 'group')]
-            connections = [op.objectId
-                           for op in action.operations
-                           if op.what == 'connection']
-                
+
             self.add_new_action(action)
             self.vistrail.change_description("Paste", action.id)
             self.perform_action(action)
@@ -1202,7 +1197,7 @@ class VistrailController(QtCore.QObject, BaseController):
         if dir_name:
             return None
         dir_name = os.path.abspath(str(dir_name))
-        setattr(get_vistrails_configuration(), 'fileDirectory', dir_name)
+        setattr(get_vistrails_configuration(), 'fileDir', dir_name)
         vistrails.core.system.set_vistrails_file_directory(dir_name)
         return dir_name
     
@@ -1458,6 +1453,7 @@ class VistrailController(QtCore.QObject, BaseController):
                         pe.collectParameterActions(self.current_pipeline)
 
         if self.current_pipeline and actions:
+            pe_log_id = uuid.uuid1()
             explorer = ActionBasedParameterExploration()
             (pipelines, performedActions) = explorer.explore(
                 self.current_pipeline, actions, pre_actions)
@@ -1471,7 +1467,10 @@ class VistrailController(QtCore.QObject, BaseController):
                     dim[2], dim[1], dim[0], pipelines, pe.layout, self)
                 QParamExploreView.explorationId += 1
             else:
+                from vistrails.core.param_explore import _pipelinePositions
                 modifiedPipelines = pipelines
+                pipelinePositions = _pipelinePositions(
+                    dim[2], dim[1], dim[0], pipelines)
 
             mCount = []
             for p in modifiedPipelines:
@@ -1512,9 +1511,11 @@ class VistrailController(QtCore.QObject, BaseController):
                     if 'pathDumpCells' in extra_info:
                         images[pipelinePositions[pi]] = \
                                    os.path.join(extra_info['pathDumpCells'], name)
+                pe_cell_id = (pe_log_id,) + pipelinePositions[pi]
                 kwargs = {'locator': self.locator,
                           'current_version': self.current_version,
-                          'reason': 'Parameter Exploration',
+                          'reason': 'Parameter Exploration %s %s_%s_%s' % pe_cell_id,
+                          'logger': self.get_logger(),
                           'actions': performedActions[pi],
                           'extra_info': extra_info
                           }
@@ -1541,6 +1542,8 @@ class VistrailController(QtCore.QObject, BaseController):
                 filename = os.path.join(extra_info['pathDumpCells'],
                                         os.path.splitext(self.name)[0])
                 assembleThumbnails(images, filename)
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('execution_updated')
             return errors
 
 ################################################################################
@@ -1555,9 +1558,8 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
     def tearDown(self):
         vistrails.gui.utils.TestVisTrailsGUI.tearDown(self)
 
-        config = get_vistrails_configuration()
-        filename = os.path.join(config.abstractionsDirectory,
-                                '__TestFloatList.xml')
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, '__TestFloatList.xml')
         if os.path.exists(filename):
             os.remove(filename)
 
@@ -1590,9 +1592,8 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
 
     def test_abstraction_create(self):
         from vistrails.core.db.locator import XMLFileLocator
-        config = get_vistrails_configuration()
-        filename = os.path.join(config.abstractionsDirectory,
-                                '__TestFloatList.xml')
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, '__TestFloatList.xml')
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/test_abstraction.xml')
         v = locator.load()

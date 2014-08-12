@@ -39,9 +39,7 @@
 QModuleIteration
 """
 from PyQt4 import QtCore, QtGui
-from vistrails.core.modules.vistrails_module import LOOP_KEY, \
-    WHILE_COND_KEY, WHILE_INPUT_KEY, WHILE_OUTPUT_KEY, WHILE_MAX_KEY, \
-    WHILE_DELAY_KEY
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -321,31 +319,31 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         self.feedOutputLabel.setVisible(False)
         self.portCombiner.setVisible(False)
         self.portCombiner.setDefault(module)
-        if module.has_control_parameter_with_name(LOOP_KEY):
-            type = module.get_control_parameter_by_name(LOOP_KEY).value
+        if module.has_control_parameter_with_name(ModuleControlParam.LOOP_KEY):
+            type = module.get_control_parameter_by_name(ModuleControlParam.LOOP_KEY).value
             self.pairwiseButton.setChecked(type=='pairwise')
             self.cartesianButton.setChecked(type=='cartesian')
             self.customButton.setChecked(type not in ['pairwise', 'cartesian'])
             self.portCombiner.setVisible(type not in ['pairwise', 'cartesian'])
             if type not in ['pairwise', 'cartesian']:
                 self.portCombiner.setValue(type)
-        if module.has_control_parameter_with_name(WHILE_COND_KEY) or \
-           module.has_control_parameter_with_name(WHILE_MAX_KEY):
+        if module.has_control_parameter_with_name(ModuleControlParam.WHILE_COND_KEY) or \
+           module.has_control_parameter_with_name(ModuleControlParam.WHILE_MAX_KEY):
             self.whileButton.setChecked(True)
-        if module.has_control_parameter_with_name(WHILE_COND_KEY):
-            cond = module.get_control_parameter_by_name(WHILE_COND_KEY).value
+        if module.has_control_parameter_with_name(ModuleControlParam.WHILE_COND_KEY):
+            cond = module.get_control_parameter_by_name(ModuleControlParam.WHILE_COND_KEY).value
             self.condEdit.setText(cond)
-        if module.has_control_parameter_with_name(WHILE_MAX_KEY):
-            max = module.get_control_parameter_by_name(WHILE_MAX_KEY).value
+        if module.has_control_parameter_with_name(ModuleControlParam.WHILE_MAX_KEY):
+            max = module.get_control_parameter_by_name(ModuleControlParam.WHILE_MAX_KEY).value
             self.maxEdit.setText(max)
-        if module.has_control_parameter_with_name(WHILE_DELAY_KEY):
-            delay = module.get_control_parameter_by_name(WHILE_DELAY_KEY).value
+        if module.has_control_parameter_with_name(ModuleControlParam.WHILE_DELAY_KEY):
+            delay = module.get_control_parameter_by_name(ModuleControlParam.WHILE_DELAY_KEY).value
             self.delayEdit.setText(delay)
-        if module.has_control_parameter_with_name(WHILE_INPUT_KEY):
-            input = module.get_control_parameter_by_name(WHILE_INPUT_KEY).value
+        if module.has_control_parameter_with_name(ModuleControlParam.WHILE_INPUT_KEY):
+            input = module.get_control_parameter_by_name(ModuleControlParam.WHILE_INPUT_KEY).value
             self.feedInputEdit.setText(input)
-        if module.has_control_parameter_with_name(WHILE_OUTPUT_KEY):
-            output = module.get_control_parameter_by_name(WHILE_OUTPUT_KEY).value
+        if module.has_control_parameter_with_name(ModuleControlParam.WHILE_OUTPUT_KEY):
+            output = module.get_control_parameter_by_name(ModuleControlParam.WHILE_OUTPUT_KEY).value
             self.feedOutputEdit.setText(output)
 
     def updateVistrail(self):
@@ -356,13 +354,18 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
             value = 'cartesian'
         else:
             value = self.portCombiner.getValue()
-        values.append((LOOP_KEY, value))
+        values.append((ModuleControlParam.LOOP_KEY, value))
         _while = self.whileButton.isChecked()
-        values.append((WHILE_COND_KEY, _while and self.condEdit.text()))
-        values.append((WHILE_MAX_KEY, _while and self.maxEdit.text()))
-        values.append((WHILE_DELAY_KEY, _while and self.delayEdit.text()))
-        values.append((WHILE_INPUT_KEY, _while and self.feedInputEdit.text()))
-        values.append((WHILE_OUTPUT_KEY,_while and self.feedOutputEdit.text()))
+        values.append((ModuleControlParam.WHILE_COND_KEY,
+                       _while and self.condEdit.text()))
+        values.append((ModuleControlParam.WHILE_MAX_KEY,
+                       _while and self.maxEdit.text()))
+        values.append((ModuleControlParam.WHILE_DELAY_KEY,
+                       _while and self.delayEdit.text()))
+        values.append((ModuleControlParam.WHILE_INPUT_KEY,
+                       _while and self.feedInputEdit.text()))
+        values.append((ModuleControlParam.WHILE_OUTPUT_KEY,
+                       _while and self.feedOutputEdit.text()))
         for name, value in values:
             if value:
                 if not self.module.has_control_parameter_with_name(name) or \

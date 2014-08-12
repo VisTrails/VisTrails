@@ -5,6 +5,7 @@ except ImportError: # pragma: no cover
 
 from vistrails.core.modules.basic_modules import List, ListType
 from vistrails.core.modules.config import ModuleSettings
+from vistrails.core.modules.output_modules import OutputModule, FileMode
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     Converter
 
@@ -89,7 +90,7 @@ class Table(Module):
     _output_ports = [('value', 'Table')]
 
     def set_output(self, port_name, value):
-        if value is not None and port_name == 'value':
+        if self.list_depth == 0 and value is not None and port_name == 'value':
             if value.name is None:
                 value.name = self.force_get_input('name', None)
         Module.set_output(self, port_name, value)
@@ -213,6 +214,10 @@ class BuildTable(Module):
         Module.__init__(self)
         self.input_ports_order = []
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
     def compute(self):
         items = None
         if self.input_ports_order: # pragma: no branch
@@ -270,6 +275,52 @@ class SingleColumnTable(Converter):
                 len(column),            # nb_rows
                 ['converted_list']))    # names
 
+class TableToFileMode(FileMode):
+    formats = ['html']
+    def write_html(self, table):
+        document = ['<!DOCTYPE html>\n'
+                    '<html>\n  <head>\n'
+                    '    <meta http-equiv="Content-type" content="text/html; '
+                            'charset=utf-8" />\n'
+                    '    <title>Exported table</title>\n'
+                    '    <style type="text/css">\n'
+                    'table { border-collapse: collapse; }\n'
+                    'td, th { border: 1px solid black; }\n'
+                    '    </style>\n'
+                    '  </head>\n  <body>\n    <table>\n']
+        if table.names is not None:
+            names = table.names
+        else:
+            names = ['col %d' % n for n in xrange(table.columns)]
+        document.append('<tr>\n')
+        document.extend('  <th>%s</th>\n' % name for name in names)
+        document.append('</tr>\n')
+        columns = [table.get_column(col) for col in xrange(table.columns)]
+        for row in xrange(table.rows):
+            document.append('<tr>\n')
+            for col in xrange(table.columns):
+                elem = columns[col][row]
+                if isinstance(elem, bytes):
+                    elem = elem.decode('utf-8', 'replace')
+                elif not isinstance(elem, unicode):
+                    elem = unicode(elem)
+                document.append('  <td>%s</td>\n' % elem)
+            document.append('</tr>\n')
+        document.append('    </table>\n  </body>\n</html>\n')
+
+        return ''.join(document)
+
+    def compute_output(self, output_module, configuration=None):
+        value = output_module.get_input("value")
+        filename = self.get_filename(configuration, suffix='.html')
+        with open(filename, 'wb') as fp:
+            fp.write(self.write_html(value))
+
+class TableOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _input_ports = [('value', 'Table')]
+    _output_modes = [TableToFileMode]
 
 _modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable,
-            (SingleColumnTable, {'hide_descriptor': True})]
+            (SingleColumnTable, {'hide_descriptor': True}),
+            TableOutput]

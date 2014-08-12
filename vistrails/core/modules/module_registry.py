@@ -1097,17 +1097,7 @@ class ModuleRegistry(DBRegistry):
         meant to be used by the packagemanager, when inspecting the package
         contents."""
         if isinstance(module, type):
-            if '_settings' in module.__dict__:
-                settings = module.__dict__['_settings']
-                if isinstance(settings, ModuleSettings):
-                    return self.add_module_from_settings(module, settings)
-                elif isinstance(settings, dict):
-                    return self.add_module(module, **settings)
-                else:
-                    raise TypeError("Expected module._settings to be "
-                                    "ModuleSettings or dict")
-            else:
-                return self.add_module(module)
+            return self.add_module(module)
         elif (isinstance(module, tuple) and
               len(module) == 2 and
               isinstance(module[0], type) and
@@ -1125,26 +1115,42 @@ class ModuleRegistry(DBRegistry):
         add_module.
 
         """
-        remap = {'configureWidgetType': 'configure_widget',
-                 'constantWidget': 'constant_widget',
-                 'constantWidgets': 'constant_widgets',
-                 'signatureCallable': 'signature',
-                 'constantSignatureCallable': 'constant_signature',
-                 'moduleColor': 'color',
-                 'moduleFringe': 'fringe',
-                 'moduleLeftFringe': 'left_fringe',
-                 'moduleRightFringe': 'right_fringe',
-                 'is_abstract': 'abstract'}
+        def remap_dict(d):
+            remap = {'configureWidgetType': 'configure_widget',
+                     'constantWidget': 'constant_widget',
+                     'constantWidgets': 'constant_widgets',
+                     'signatureCallable': 'signature',
+                     'constantSignatureCallable': 'constant_signature',
+                     'moduleColor': 'color',
+                     'moduleFringe': 'fringe',
+                     'moduleLeftFringe': 'left_fringe',
+                     'moduleRightFringe': 'right_fringe',
+                     'is_abstract': 'abstract'}
+            remapped_d = {}
+            for k, v in d.iteritems():
+                if k in remap:
+                    remapped_d[remap[k]] = v
+                else:
+                    remapped_d[k] = v
+            return remapped_d
 
-        remapped_kwargs = {}
-        for k, v in kwargs.iteritems():
-            if k in remap:
-                remapped_kwargs[remap[k]] = v
+        module_settings = None
+        if '_settings' in module.__dict__:
+            settings = module.__dict__['_settings']
+            if isinstance(settings, ModuleSettings):
+                module_settings = settings
+            elif isinstance(settings, dict):
+                module_settings = ModuleSettings(**remap_dict(settings))
             else:
-                remapped_kwargs[k] = v
+                raise TypeError("Expected module._settings to be "
+                                "ModuleSettings or dict")
                 
-        settings = ModuleSettings(**remapped_kwargs)
-        return self.add_module_from_settings(module, settings)
+        remapped_kwargs = remap_dict(kwargs)
+        if module_settings is not None:
+            module_settings = module_settings._replace(**remapped_kwargs)
+        else:
+            module_settings = ModuleSettings(**remapped_kwargs)
+        return self.add_module_from_settings(module, module_settings)
 
     def add_module_from_settings(self, module, settings):
         """add_module(module: class, settings) -> ModuleDescriptor
@@ -1911,6 +1917,7 @@ class ModuleRegistry(DBRegistry):
         # For a connection, this gets called for sub -> super
         basic_pkg = get_vistrails_basic_pkg_id()
         variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
+        list_desc = self.get_descriptor_by_name(basic_pkg, 'List')
         # sometimes sub is coming None
         # I don't know if this is expected, so I will put a test here
         sub_descs = []
@@ -1927,6 +1934,17 @@ class ModuleRegistry(DBRegistry):
             return False
         elif super_descs == [variant_desc]:
             return True
+        elif [list_desc] in [super_descs, sub_descs]:
+            # Allow Lists to connect to anything
+            return True
+        #elif super_descs == [list_desc] and sub_descs != [list_desc] \
+        #     and sub.depth > 0:
+        #    # List is handled as Variant with depth 1
+        #    return True
+        #elif sub_descs == [list_desc] and super_descs != [list_desc] \
+        #     and super.depth > 0:
+        #    # List is handled as Variant with depth 1
+        #    return True
 
         if (len(sub_descs) == len(super_descs) and
                 self.is_descriptor_list_subclass(sub_descs, super_descs)):
@@ -1956,6 +1974,15 @@ class ModuleRegistry(DBRegistry):
         return [self.get_descriptor(klass)
                 for klass in descriptor.module.mro()
                 if issubclass(klass, vistrails.core.modules.vistrails_module.Module)]
+
+    def get_descriptor_subclasses(self, descriptor):
+        # need to find all descriptors that are subdescriptors of descriptor
+        sub_list = []
+        for pkg in self.package_versions.itervalues():
+            for d in pkg.descriptor_list:
+                if self.is_descriptor_subclass(d, descriptor):
+                    sub_list.append(d)
+        return sub_list
         
     def get_input_port_spec(self, module, portName):
         """ get_input_port_spec(module: Module, portName: str) ->

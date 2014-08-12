@@ -43,7 +43,7 @@ from PyQt4 import QtCore, QtGui
 import sip
 from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 import gc
@@ -62,6 +62,20 @@ import copy
 from identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
+
+class vtkRendererToSpreadsheet(SpreadsheetMode):
+    @classmethod
+    def can_compute(cls):
+        return SpreadsheetMode.can_compute()
+
+    def compute_output(self, output_module, configuration=None):
+        renderers = output_module.force_get_input_list('value')
+        handlers = output_module.force_get_input_list('interactionHandler')
+        style = output_module.force_get_input('interactorStyle')
+        picker = output_module.force_get_input('picker')
+        input_ports = (renderers, None, handlers, style, picker)
+        self.cellWidget = self.display_and_wait(output_module, configuration,
+                                                QVTKWidget, input_ports)
 
 class VTKCell(SpreadsheetCell):
     """
@@ -1091,6 +1105,9 @@ def registerSelf():
     """ registerSelf() -> None
     Registry module with the registry
     """
+    from base_module import vtkRendererOutput
+    vtkRendererOutput.register_output_mode(vtkRendererToSpreadsheet)
+
     registry = get_module_registry()
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)

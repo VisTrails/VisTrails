@@ -83,7 +83,7 @@ class PasswordDialog(TextDialog):
     _input_ports = [('label', basic_modules.String,
                      {'optional': True, 'defaults': "['Password']"})]
 
-    password = True
+    mode = QtGui.QLineEdit.Password
 
 
 class YesNoDialog(Dialog):

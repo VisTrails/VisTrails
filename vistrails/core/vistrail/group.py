@@ -136,22 +136,6 @@ class Group(DBGroup, Module):
     version = basic_pkg_version
     internal_version = ''
 
-    def summon(self):
-        result = self.module_descriptor.module()
-        result.pipeline = self.pipeline
-        if self._port_specs is None:
-            self.make_port_specs()
-        result.input_remap = self._input_remap
-        result.output_remap = self._output_remap
-        if self.cache != 1:
-            result.is_cacheable = lambda *args: False
-        if hasattr(result, 'input_ports_order'):
-            result.input_ports_order = [p.name for p in self.destinationPorts()]
-        if hasattr(result, 'output_ports_order'):
-            result.output_ports_order = [p.name for p in self.sourcePorts()]
-        result.registry = get_module_registry()
-        return result
-
     def is_group(self):
         return True
 

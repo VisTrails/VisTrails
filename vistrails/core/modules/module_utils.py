@@ -54,8 +54,8 @@ class FilePool(object):
     
     def __init__(self):
         d = {'prefix':'vt_tmp'}
-        if get_vistrails_configuration().check('temporaryDirectory'):
-            dir = get_vistrails_configuration().temporaryDirectory
+        if get_vistrails_configuration().check('temporaryDir'):
+            dir = get_vistrails_configuration().temporaryDir
             if os.path.exists(dir):
                 d['dir'] = dir
             else:

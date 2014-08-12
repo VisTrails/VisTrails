@@ -43,12 +43,23 @@ import pylab
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 
 FigureCanvasQTAgg.DEBUG = True
 
 ################################################################################
+
+class MplFigureToSpreadsheet(SpreadsheetMode):
+    @classmethod
+    def can_compute(cls):
+        return SpreadsheetMode.can_compute()
+        return True
+
+    def compute_output(self, output_module, configuration=None):
+        fig = output_module.get_input('value')
+        self.display_and_wait(output_module, configuration,
+                              MplFigureCellWidget, (fig,))
 
 class MplFigureCell(SpreadsheetCell):
     """

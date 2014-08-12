@@ -157,7 +157,7 @@ In our next example, we demonstrate how multiple parameter values can be explore
 .. topic:: Try it now!
 
    In the :vtl:`terminator.vt` example vistrail, make sure you're working with the "Isosurface" version of the workflow, then go to the ``Pipeline`` view. Add the module ``vtkImageResample`` to the pipeline, and insert it between ``vtkStructuredPointsReader`` and ``vtkContourFilter``, connecting the output of the reader to input of the resampler and the output of the resampler to the input of the contour filter as shown in Figure :ref:`Inserting a vtkImageResample module... <fig-paramexp-vtk_image_resample>`.  Finally, select the ``vtkImageResample`` module and set the ``SetAxisMagnificationFactor`` to 0 and 0.2.  See Chapter :ref:`chap-creating` for reminders on how to accomplish these tasks.
-   After modifying the workflow, switch back to the ``Exploration`` view. Inside the ``Set Methods`` panel, select the ``SetValue`` method from the ``vtkContourFilter`` module, and drag it to the center canvas.  Also select the ``SetAxisMagnificationFactor`` method from the ``vtkImageResample`` module and drag it to the canvas. Set the values as in the previous example, and set the range of the "Float" parameter of "SetAxisMagnificationFactor" to start at 0.2 and end at 1.0.  Also, set the magnification factor to vary over the 'y' direction.  Finally, set the exploration to generate 16 results, four in the 'x' direction, and four in the 'y' direction.  Your exploration setup should match Figure :ref:`Setting up parameter exploration <fig-fig6_9>`, and after executing, you should see a result that resembles Figure :ref:`Resulting spreadsheet <fig-fig6_10>`.  Notice that the isosurface changes from left to right while the images have less artifacts as the magnification factor approaches 1.0 from top to bottom. :vtl:`(Open result) <pe3.vtl>`
+   After modifying the workflow, switch back to the ``Exploration`` view. Inside the ``Set Methods`` panel, select the ``SetValue`` method from the ``vtkContourFilter`` module, and drag it to the center canvas.  Also select the ``SetAxisMagnificationFactor`` method from the ``vtkImageResample`` module and drag it to the canvas. Set the values as in the previous example, and set the range of the "Float" parameter of "SetAxisMagnificationFactor" to start at 0.2 and end at 1.0.  Also, set the magnification factor to vary over the 'y' direction.  Finally, set the exploration to generate 16 results, four in the 'x' direction, and four in the 'y' direction.  Your exploration setup should match Figure :ref:`Setting up parameter exploration <fig-fig6_9>`, and after executing, you should see a result that resembles Figure :ref:`Resulting spreadsheet <fig-fig6_10>`.  Notice that the isosurface changes from left to right while the images have less artifacts as the magnification factor approaches 1.0 from top to bottom. :vtl:`(Open result) <pe3.vt>`
 
 .. _fig-paramexp-vtk_image_resample:
 
@@ -191,7 +191,7 @@ Our third example shows how to create an animation by exploring parameter values
 
 .. topic:: Try it now!
 
-   To create an animation, we'll use the same :vtl:`terminator <terminator.vt>` example (make sure that you have the "Isosurface" version selected).  Follow the same steps as in the first example, but this time, use the range from 30 to 80 and select "time" as the dimension to explore, setting the number of results to generate to 7.  See Figure :ref:`Setting up parameter exploration <fig-fig6_11>` to check your settings.  After executing, the Spreadsheet will show a *single* cell, but if you select that cell, you will be able to click the ``Play`` button in the toolbar.  You should see an animation where each frame is the result of choosing a different isovalue.  A sample frame is displayed in Figure :ref:`One frame from the resulting animation <fig-fig6_12>`. :vtl:`(Open result) <pe4.vtl>`
+   To create an animation, we'll use the same :vtl:`terminator <terminator.vt>` example (make sure that you have the "Isosurface" version selected).  Follow the same steps as in the first example, but this time, use the range from 30 to 80 and select "time" as the dimension to explore, setting the number of results to generate to 7.  See Figure :ref:`Setting up parameter exploration <fig-fig6_11>` to check your settings.  After executing, the Spreadsheet will show a *single* cell, but if you select that cell, you will be able to click the ``Play`` button in the toolbar.  You should see an animation where each frame is the result of choosing a different isovalue.  A sample frame is displayed in Figure :ref:`One frame from the resulting animation <fig-fig6_12>`. :vtl:`(Open result) <pe4.vt>`
 
 .. _fig-fig6_11:
 
@@ -270,6 +270,23 @@ to.
    :width: 2.0in
 
    The panels of the Parameter Exploration window.  ``Set Methods`` (Top) will appear in the right panel and the others will be on the left.  The numbered red circles in the ``Annotated Pipeline`` (Middle) distinguish duplicate modules, and the cells in the ``Spreadsheet Virtual Cell`` (Bottom) determine the layout for spreadsheet results.
+
+Saving Parameter Explorations
+=============================
+
+.. index::
+   pair: spreadsheet; parameter exploration
+   pair: spreadsheet; saving parameter exploration
+
+New parameter explorations are saved automatically when they are executed. The :ref:`inspector (below) <fig-paramexp-inspector>` has buttons for moving back and forward through the history of parameter explorations. Explorations can be tagged with a name, which will make them visible in the workspace view.
+
+.. _fig-paramexp-inspector:
+
+.. figure:: figures/parameter_exploration/inspector.png
+   :align: center
+   :width: 30%
+
+   The parameter exploration inspector
 
 "Virtual Cell" Layout
 =====================

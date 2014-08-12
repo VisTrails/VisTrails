@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # usage: make_app volname
-#      example: ./make_app vistrails-mac-10.5-intel-1.3.1-rev1646
+#      example: scripts/dist/make_app vistrails-mac-10.5-intel-1.3.1-rev1646
 #
 # Creates a disk image (dmg) of VisTrails on Mac OS X from the command line.
 #
@@ -24,15 +24,6 @@ echo "removing old bundle..."
 rm -f ${DMG}
 echo "building bundle..."
 python setup.py py2app --no-chdir
-#echo "copying missing xml.etree.cElementTree imports..."
-#not necessary anymore
-#cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/pyexpat.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
-#cp /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/lib-dynload/_elementtree.so dist/VisTrails.app/Contents/Resources/lib/python2.5/lib-dynload/
-#cp -r /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/xml dist/VisTrails.app/Contents/Resources/lib/python2.5/
-#echo "copying Ft/Data directory"
-#cp -r /usr/local/share/4Suite/Data dist/VisTrails.app/Contents/Resources/lib/python2.6/Ft/
-#cp -r /usr/local/share/4Suite/default.cat dist/VisTrails.app/Contents/Resources/lib/python2.6/Ft/
-echo "copying python headers and libs..."
 cp -r /Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.7/include/python2.7
 cp -r /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config/* dist/VisTrails.app/Contents/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config
 echo "creating links to python frameworks"
@@ -65,7 +56,7 @@ fi
 echo "copying alps libs..."
 tar -xzf Input/alps_libs/${ALPS_FILE} -C dist/
 echo "copying example files..."
-cp -r ../../examples dist/
+cp -r ../../../examples dist/
 echo "copying README file..."
 cp Input/README dist/
 echo "copying LICENSE file..."
@@ -75,15 +66,16 @@ cp Input/VisTrails.command dist/
 echo "copying CLToolsWizard.command file..."
 cp Input/CLToolsWizard.command dist/
 echo "adding extension files..."
-cp -r ../../extensions dist/extensions
-echo "adding script files..."
-cp -r ../../scripts dist/scripts
+cp -r ../../../extensions dist/extensions
+echo "adding scrpt files..."
+mkdir dist/scripts
+rsync -a ../.. dist/scripts/ --exclude dist
 echo "copying GDAL's resource files..."
 cp -r /Library/Frameworks/GDAL.framework/Versions/1.8/Resources/gdal dist/VisTrails.app/Contents/Frameworks/GDAL.framework/Versions/1.8/Resources/
 echo "Building User's Guide and adding it distribution"
 #make sure that build_usersguide is configured for this step
 mkdir dist/doc
-python ../../scripts/build_usersguide.py
+python ../../build_usersguide.py
 echo "packing everything inside the VisTrails folder..."
 mkdir dist/VisTrails
 mv dist/VisTrails.app dist/VisTrails/

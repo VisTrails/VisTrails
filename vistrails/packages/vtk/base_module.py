@@ -40,8 +40,13 @@ import vtk
 
 from vistrails.core import debug
 from vistrails.core.interpreter.base import AbortExecution
+from vistrails.core.configuration import ConfigField
+from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import registry
+from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
+    ImageFileModeConfig
 from vistrails.core.modules.vistrails_module import Module, ModuleError
+import vistrails.core.system
 from .identifiers import identifier as vtk_pkg_identifier
 from .wrapper import VTKInstanceWrapper
 
@@ -257,5 +262,65 @@ class vtkBaseModule(Module):
                     self.set_output(function, type(retValues)(result))
                 else:
                     self.set_output(function, retValues)
-
         self.set_output('Instance', VTKInstanceWrapper(self.vtkInstance, mid))
+
+class vtkRendererToFile(ImageFileMode):
+    config_cls = ImageFileModeConfig
+    formats = ['png', 'jpg', 'tif', 'pnm']
+
+    @classmethod
+    def can_compute(cls):
+        return True
+
+    def compute_output(self, output_module, configuration):
+        format_map = {'png': vtk.vtkPNGWriter,
+                      'jpg': vtk.vtkJPEGWriter,
+                      'tif': vtk.vtkTIFFWriter,
+                      'pnm': vtk.vtkPNMWriter}
+        r = output_module.get_input("value").vtkInstance
+        w = configuration["width"]
+        h = configuration["height"]
+        img_format = self.get_format(configuration)
+        if img_format not in format_map:
+            raise ModuleError(output_module, 
+                              'Cannot output in format "%s"' % img_format)
+        fname = self.get_filename(configuration, suffix='.%s' % img_format)
+
+        window = vtk.vtkRenderWindow()
+        window.OffScreenRenderingOn()
+        window.SetSize(w, h)
+
+        # FIXME think this may be fixed in VTK6 so we don't have this
+        # dependency...
+        widget = None
+        if vistrails.core.system.systemType=='Darwin':
+            from PyQt4 import QtCore, QtGui
+            widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+            widget.resize(w, h)
+            widget.show()
+            window.SetWindowInfo(str(int(widget.winId())))
+
+        window.AddRenderer(r)
+        window.Render()
+        win2image = vtk.vtkWindowToImageFilter()
+        win2image.SetInput(window)
+        win2image.Update()
+        writer = format_map[img_format]()
+        writer.SetInput(win2image.GetOutput())
+        writer.SetFileName(fname)
+        writer.Write()
+        window.Finalize()
+        if widget!=None:
+            widget.close()
+
+class vtkRendererOutput(OutputModule):
+    # DAK: no render view here, use a separate module for this...
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _input_ports = [('value', 'vtkRenderer')]
+                    # DK: these ports can be enabled, I think, just
+                    # have to be laoded without the spreadsheet being
+                    # enabled
+                    # ('interactionHandler', 'vtkInteractionHandler'), 
+                    # ('interactorStyle', 'vtkInteractorStyle'), 
+                    # ('picker', 'vtkAbstractPicker')]
+    _output_modes = [vtkRendererToFile]
