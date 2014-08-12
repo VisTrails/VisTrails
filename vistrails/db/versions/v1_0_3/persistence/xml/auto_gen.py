@@ -5752,6 +5752,8 @@ class DBParameterExplorationXMLDAOBase(XMLDAO):
         action_id = self.convertFromStr(data, 'long')
         data = node.get('name', None)
         name = self.convertFromStr(data, 'str')
+        data = node.get('date', None)
+        date = self.convertFromStr(data, 'datetime')
         data = node.get('user', None)
         user = self.convertFromStr(data, 'str')
         data = node.get('dims', None)
@@ -5778,6 +5780,7 @@ class DBParameterExplorationXMLDAOBase(XMLDAO):
         obj = DBParameterExploration(id=id,
                                      action_id=action_id,
                                      name=name,
+                                     date=date,
                                      user=user,
                                      dims=dims,
                                      layout=layout,
@@ -5793,6 +5796,7 @@ class DBParameterExplorationXMLDAOBase(XMLDAO):
         node.set('id',self.convertToStr(parameter_exploration.db_id, 'long'))
         node.set('actionId',self.convertToStr(parameter_exploration.db_action_id, 'long'))
         node.set('name',self.convertToStr(parameter_exploration.db_name, 'str'))
+        node.set('date',self.convertToStr(parameter_exploration.db_date, 'datetime'))
         node.set('user',self.convertToStr(parameter_exploration.db_user, 'str'))
         node.set('dims',self.convertToStr(parameter_exploration.db_dims, 'str'))
         node.set('layout',self.convertToStr(parameter_exploration.db_layout, 'str'))

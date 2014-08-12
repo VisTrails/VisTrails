@@ -2399,6 +2399,7 @@
     </property>
 
     <property name="date" type="datetime">
+      <xml nodeType="xs:attribute" type="xs:dateTime"/>
       <sql type="datetime"/>
     </property>
 

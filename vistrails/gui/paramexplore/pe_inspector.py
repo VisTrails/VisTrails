@@ -228,7 +228,8 @@ class QParamExpProperties(QtGui.QWidget):
             self.tagReset.setEnabled(True)
             self.tagEdit.setText(self.pe.name or "")
             self.userEdit.setText(self.pe.user or "")
-            self.dateEdit.setText(self.pe.date or "")
+            self.dateEdit.setText(self.pe.date.strftime('%Y-%m-%d %H:%M:%S')
+                                  if self.pe.date else "")
         else:
             self.versionsLabel.setText('Exploration: 0/0')
             self.backAction.setEnabled(False)
