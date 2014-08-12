@@ -164,7 +164,6 @@ class PackageManager(object):
                                 {'basic_modules': 'vistrails.core.modules.',
                                  'abstraction': 'vistrails.core.modules.'}
 
-        # self._registry = None
         self._userpackages = None
         self._packages = None
         self._abstraction_pkg = None
@@ -175,6 +174,9 @@ class PackageManager(object):
         import __builtin__
         self._orig_import = __builtin__.__import__
         __builtin__.__import__ = self._import_override
+
+        # Compute the list of available packages, _available_packages
+        self.build_available_package_names_list()
 
         for pkg in self._startup.enabled_packages.itervalues():
             self.add_package(pkg.name, prefix=pkg.prefix)
@@ -561,9 +563,6 @@ class PackageManager(object):
         the prefix such that prefix + package_name is a valid python
         import."""
 
-        packages = self.import_packages_module()
-        userpackages = self.import_user_packages_module()
-
         failed = []
         # import the modules
         app = get_vistrails_application()
@@ -754,9 +753,9 @@ class PackageManager(object):
         The distinction between package names, identifiers and
         code-paths is described in doc/package_system.txt
         """
+        return self._available_packages.keys()
 
-        pkg_name_set = set()
-
+    def build_available_package_names_list(self):
         def is_vistrails_package(path):
             return ((path.endswith('.py') and
                      not path.endswith('__init__.py') and
@@ -764,21 +763,23 @@ class PackageManager(object):
                     os.path.isdir(path) and \
                         os.path.isfile(os.path.join(path, '__init__.py')))
 
-        def search(dirname):
+        def search(dirname, prefix):
             for name in os.listdir(dirname):
                 if is_vistrails_package(os.path.join(dirname, name)):
                     if name.endswith('.py'):
                         name = name[:-3]
-                    pkg_name_set.add(name)
+                    self.get_available_package(name, prefix=prefix)
 
         # Finds standard packages
         packages = self.import_packages_module()
-        search(os.path.dirname(packages.__file__))
+        search(os.path.dirname(packages.__file__),
+               prefix='vistrails.packages.')
 
         # Finds user packages
         userpackages = self.import_user_packages_module()
         if userpackages is not None:
-            search(os.path.dirname(userpackages.__file__))
+            search(os.path.dirname(userpackages.__file__),
+                   prefix='userpackages.')
 
         # Finds plugin packages
         try:
@@ -805,13 +806,10 @@ class PackageManager(object):
                 if path.endswith('__init__'):
                     path = path[:-9]
                 if is_vistrails_package(path):
-                    # Ok, accept the name
-                    pkg_name_set.add(name)
-                    # Mke sure a Package gets created, with the right prefix
+                    # Create the Package, with the right prefix
                     self.get_available_package(name, prefix=prefix)
 
-        pkg_name_set.update(self._package_list)
-        return list(pkg_name_set)
+        return self._available_packages.keys()
 
     def dependency_graph(self):
         """dependency_graph() -> Graph.  Returns a graph with package
