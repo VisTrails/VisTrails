@@ -225,17 +225,18 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             else:
                 obj = Parameter(psi.descriptor)
             obj.port_spec_item = psi
-            if not self.types_visible:
-                label = QtGui.QLabel('')
-            elif with_alias:
-                label = AliasLabel(obj.alias, obj.type, psi.label)
-                self.my_labels.append(label)
-            else:
-                label = QtGui.QLabel(obj.type)
+
+            if self.types_visible:
+                if with_alias:
+                    label = AliasLabel(obj.alias, obj.type, psi.label)
+                    self.my_labels.append(label)
+                else:
+                    label = QtGui.QLabel(obj.type)
+                layout.addWidget(label, i, 0)
+                layout.setAlignment(label, QtCore.Qt.AlignLeft)
+
             param_widget = widget_class(obj, self.group_box)
             self.my_widgets.append(param_widget)
-            layout.addWidget(label, i, 0)
-            layout.setAlignment(label, QtCore.Qt.AlignLeft)
             layout.addWidget(param_widget, i, 1)
             layout.addItem(QtGui.QSpacerItem(0,0, QtGui.QSizePolicy.MinimumExpanding), i, 2)
 
