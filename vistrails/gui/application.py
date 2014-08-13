@@ -82,7 +82,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             release = platform.mac_ver()[0].split('.')
             if len(release)>=2 and int(release[0])*100+int(release[1])>=1009:
                 QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
-        QtGui.QApplication.__init__(self, sys.argv[:1])
+        QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
         if system.systemType in ['Darwin']:
