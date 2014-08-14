@@ -83,6 +83,7 @@ class Module(DBModule):
             self.portVisible = set()
             self.visible_input_ports = set()
             self.visible_output_ports = set()
+            self.editable_input_ports = set()
             self.connected_input_ports = {}
             self.connected_output_ports = {}
             self.is_valid = False
@@ -96,6 +97,7 @@ class Module(DBModule):
             self.portVisible = copy.copy(other.portVisible)
             self.visible_input_ports = copy.copy(other.visible_input_ports)
             self.visible_output_ports = copy.copy(other.visible_output_ports)
+            self.editable_input_ports = copy.copy(other.editable_input_ports)
             self.connected_input_ports = copy.copy(other.connected_input_ports)
             self.connected_output_ports = \
                 copy.copy(other.connected_output_ports)

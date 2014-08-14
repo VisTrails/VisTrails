@@ -38,7 +38,7 @@ from vistrails.core.system import systemType, vistrails_root_directory
 from vistrails.core.utils import versions_increasing
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.module_annotation import QModuleAnnotationTable
-from vistrails.gui.ports_pane import PortsList
+from vistrails.gui.ports_pane import PortsList, letterIcon
 from vistrails.gui.version_prop import QVersionProp
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -47,8 +47,9 @@ import os
 class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None, flags=QtCore.Qt.Widget):
         QtGui.QWidget.__init__(self, parent, flags)
-        self.portsVisible = True
-        self.typesVisible = True
+        self.ports_visible = True
+        self.types_visible = True
+        self.edits_visible = False
         self.build_widget()
         self.controller = None
         self.module = None
@@ -71,17 +72,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.portVisibilityAction.setChecked(True)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
                                                self.portVisibilityAction)
-        # build a 'T' icon
-        pixmap = QtGui.QPixmap(48,48)
-        pixmap.fill(QtCore.Qt.transparent)
-        painter = QtGui.QPainter(pixmap)
-        painter.setPen(QtGui.QColor(0, 0, 0, 255))
-        font = painter.font()
-        font.setPointSize(40)
-        painter.setFont(font)
-        painter.drawText(0, 0, 48, 48, QtCore.Qt.AlignCenter, 'T')
-        painter.end()
-        self.showTypesAction = QtGui.QAction(QtGui.QIcon(pixmap),
+        self.showTypesAction = QtGui.QAction(letterIcon('T'),
                                         "Show/hide type information",
                                         None,
                                         triggered=self.showTypes)
@@ -89,13 +80,25 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.showTypesAction.setChecked(True)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
                                                self.showTypesAction)
+        self.showEditsAction = QtGui.QAction(letterIcon('E'),
+                                        "Show/hide edit widget toggle buttons",
+                                        None,
+                                        triggered=self.showEdits)
+        self.showEditsAction.setCheckable(True)
+        self.showEditsAction.setChecked(False)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.showEditsAction)
 
     def showPortVisibility(self, checked):
-        self.portsVisible = checked
+        self.ports_visible = checked
         self.update_module(self.module)
 
     def showTypes(self, checked):
-        self.typesVisible = checked
+        self.types_visible = checked
+        self.update_module(self.module)
+
+    def showEdits(self, checked):
+        self.edits_visible = checked
         self.update_module(self.module)
 
     def build_widget(self):
@@ -196,8 +199,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def update_module(self, module=None):
         for plist in self.ports_lists:
-            plist.typesVisible = self.typesVisible
-            plist.portsVisible = self.portsVisible
+            plist.types_visible = self.types_visible
+            plist.edits_visible = self.edits_visible
+            plist.ports_visible = self.ports_visible
         self.module = module
         for ports_list in self.ports_lists:
             ports_list.update_module(module)

@@ -48,6 +48,23 @@ from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.port_documentation import QPortDocumentation
 from vistrails.gui.theme import CurrentTheme
 
+def letterIcon(letter, crossed=False):
+    """ Creates icon with a specific letter
+    """
+    pixmap = QtGui.QPixmap(48,48)
+    pixmap.fill(QtCore.Qt.transparent)
+    painter = QtGui.QPainter(pixmap)
+    painter.setPen(QtGui.QColor(0, 0, 0, 255))
+    font = painter.font()
+    font.setPointSize(40)
+    painter.setFont(font)
+    painter.drawText(0, 0, 48, 48, QtCore.Qt.AlignCenter, letter)
+    if crossed:
+        painter.drawLine(0,0,48,48)
+        painter.drawLine(0,48,48,0)
+    painter.end()
+    return QtGui.QIcon(pixmap)
+
 class AliasLabel(QtGui.QLabel):
     """
     AliasLabel is a QLabel that supports hover actions similar
@@ -263,6 +280,8 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         return self.build_widget(get_widget_class, True)
 
 class PortItem(QtGui.QTreeWidgetItem):
+    edit_show = letterIcon('E')
+    edit_hide = letterIcon('E', True)
     eye_open_icon = \
         QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                  'gui/resources/images/eye.png'))
@@ -277,7 +296,7 @@ class PortItem(QtGui.QTreeWidgetItem):
                                  'gui/resources/images/connection.png'))
 
     def __init__(self, port_spec, is_connected, is_optional, is_visible,
-                 parent=None):
+                 is_editable=False, parent=None):
         QtGui.QTreeWidgetItem.__init__(self, parent)
         # self.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
         self.setFlags(QtCore.Qt.ItemIsEnabled)
@@ -286,7 +305,8 @@ class PortItem(QtGui.QTreeWidgetItem):
         self.is_connected = is_connected
         self.is_optional = is_optional
         self.is_visible = is_visible
-        self.build_item(port_spec, is_connected, is_optional, is_visible)
+        self.is_editable = is_editable
+        self.build_item(port_spec, is_connected, is_optional, is_visible, is_editable)
 
     def visible(self):
         return not self.is_optional or self.is_visible
@@ -298,6 +318,13 @@ class PortItem(QtGui.QTreeWidgetItem):
         else:
             self.setIcon(0, PortItem.eye_closed_icon)
 
+    def set_editable(self, edit):
+        self.is_editable = edit
+        if edit:
+            self.setIcon(0, PortItem.edit_show)
+        else:
+            self.setIcon(0, PortItem.edit_hide)
+
     def get_visible(self):
         return self.visible_checkbox
 
@@ -308,21 +335,26 @@ class PortItem(QtGui.QTreeWidgetItem):
         return (self.port_spec.is_valid and 
                 get_module_registry().is_constant(self.port_spec))
 
-    def build_item(self, port_spec, is_connected, is_optional, is_visible):
+    def build_item(self, port_spec, is_connected, is_optional, is_visible, is_editable):
         if not is_optional:
-            self.setIcon(0, PortItem.eye_disabled_icon)
+            self.setIcon(1, PortItem.eye_disabled_icon)
         elif is_visible:
-            self.setIcon(0, PortItem.eye_open_icon)
+            self.setIcon(1, PortItem.eye_open_icon)
         else:
-            self.setIcon(0, PortItem.eye_closed_icon)
+            self.setIcon(1, PortItem.eye_closed_icon)
 
         if is_connected:
-            self.setIcon(1, PortItem.conn_icon)
-        self.setText(2, port_spec.name)
+            self.setIcon(2, PortItem.conn_icon)
+        self.setText(3, port_spec.name)
 
-        # if port_spec is not a method, make it gray
-        if not self.is_constant():
-            self.setForeground(2, 
+        if self.is_constant():
+            if is_editable:
+                self.setIcon(0, PortItem.edit_show)
+            else:
+                self.setIcon(0, PortItem.edit_hide)
+        else:
+            # if port_spec is not a method, make it gray
+            self.setForeground(3,
                                QtGui.QBrush(QtGui.QColor.fromRgb(128,128,128)))
 
         self.visible_checkbox = QtGui.QCheckBox()
@@ -361,9 +393,10 @@ class PortsList(QtGui.QTreeWidget):
     def __init__(self, port_type, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.port_type = port_type
-        self.setColumnCount(3)
+        self.setColumnCount(4)
         self.setColumnWidth(0,24)
         self.setColumnWidth(1,24)
+        self.setColumnWidth(2,24)
         self.setRootIsDecorated(False)
         self.setIndentation(0)
         self.setHeaderHidden(True)
@@ -372,8 +405,9 @@ class PortsList(QtGui.QTreeWidget):
         self.module = None
         self.port_spec_items = {}
         self.entry_klass = ParameterEntry
-        self.portsVisible = True
-        self.typesVisible = True
+        self.ports_visible = True
+        self.types_visible = True
+        self.edits_visible = False
 
     def setReadOnly(self, read_only):
         self.setEnabled(not read_only)
@@ -387,10 +421,11 @@ class PortsList(QtGui.QTreeWidget):
         Setup this tree widget to show functions of module
         
         """
+        self.setColumnHidden(0, True)
+        self.setColumnHidden(1, not self.ports_visible)
         # this is strange but if you try to clear the widget when the focus is 
         # in one of the items (after setting a parameter for example), 
         # VisTrails crashes on a Mac (Emanuele) This is probably a Qt bug
-        self.setColumnHidden(0, not self.portsVisible)
         w =  QtGui.QApplication.focusWidget()
         if self.isAncestorOf(w):
             w.clearFocus()
@@ -402,6 +437,7 @@ class PortsList(QtGui.QTreeWidget):
             reg = get_module_registry()
             descriptor = module.module_descriptor
             if self.port_type == 'input':
+                self.setColumnHidden(0, not self.edits_visible)
                 port_specs = module.destinationPorts()
                 connected_ports = module.connected_input_ports
                 visible_ports = module.visible_input_ports
@@ -415,10 +451,11 @@ class PortsList(QtGui.QTreeWidget):
             for port_spec in sorted(port_specs, key=lambda x: x.name):
                 connected = port_spec.name in connected_ports and \
                     connected_ports[port_spec.name] > 0
-                item = PortItem(port_spec, 
+                item = PortItem(port_spec,
                                 connected,
                                 port_spec.optional,
-                                port_spec.name in visible_ports)
+                                port_spec.name in visible_ports,
+                                port_spec.name in module.editable_input_ports)
                 self.addTopLevelItem(item)
                 self.port_spec_items[port_spec.name] = (port_spec, item)
 
@@ -428,11 +465,11 @@ class PortsList(QtGui.QTreeWidget):
                         continue
                     port_spec, item = self.port_spec_items[function.name]
                     subitem = self.entry_klass(port_spec, function,
-                                               self.typesVisible)
+                                               self.types_visible)
                     self.function_map[function.real_id] = subitem
                     item.addChild(subitem)
                     subitem.setFirstColumnSpanned(True)
-                    self.setItemWidget(subitem, 1, subitem.get_widget())
+                    self.setItemWidget(subitem, 2, subitem.get_widget())
                     item.setExpanded(True)
                 
                     # self.setItemWidget(item, 0, item.get_visible())
@@ -510,7 +547,7 @@ class PortsList(QtGui.QTreeWidget):
                 self.function_map[function.real_id] = subitem
                 item.addChild(subitem)
                 subitem.setFirstColumnSpanned(True)
-                self.setItemWidget(subitem, 1, subitem.get_widget())
+                self.setItemWidget(subitem, 2, subitem.get_widget())
                 item.setExpanded(True)
 
     def item_clicked(self, item, col):
@@ -519,12 +556,23 @@ class PortsList(QtGui.QTreeWidget):
 
         if self.port_type == 'input':
             visible_ports = self.module.visible_input_ports
+            editable_ports = self.module.editable_input_ports
         elif self.port_type == 'output':
             visible_ports = self.module.visible_output_ports
         else:
             raise TypeError("Unknown port type: '%s'" % self.port_type)
 
         if col == 0:
+            if item.is_constant():
+                item.set_editable(not item.is_editable)
+                if item.is_editable:
+                    editable_ports.add(item.port_spec.name)
+                else:
+                    editable_ports.discard(item.port_spec.name)
+                self.controller.flush_delayed_actions()
+                self.controller.current_pipeline_scene.recreate_module(
+                    self.controller.current_pipeline, self.module.id)
+        if col == 1:
             if item.is_optional:
                 item.set_visible(not item.is_visible)
                 if item.is_visible:
@@ -534,7 +582,7 @@ class PortsList(QtGui.QTreeWidget):
                 self.controller.flush_delayed_actions()
                 self.controller.current_pipeline_scene.recreate_module(
                     self.controller.current_pipeline, self.module.id)
-        if col == 2:
+        if col == 3:
             if item.isExpanded():
                 item.setExpanded(False)
             elif item.childCount() > 0:
@@ -608,7 +656,7 @@ class PortsList(QtGui.QTreeWidget):
         subitem = self.entry_klass(port_spec)
         item.addChild(subitem)
         subitem.setFirstColumnSpanned(True)
-        self.setItemWidget(subitem, 1, subitem.get_widget())
+        self.setItemWidget(subitem, 2, subitem.get_widget())
         item.setExpanded(True)
         if len(port_spec.descriptors()) == 0:
             self.update_method(subitem, port_spec.name, [], [])
