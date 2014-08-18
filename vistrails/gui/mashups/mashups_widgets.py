@@ -77,6 +77,7 @@ class QAliasSliderWidget(QtGui.QWidget):
 ###############################################################################        
 
 class QSliderWidget(ConstantWidgetMixin, QtGui.QSlider):
+    contentsChanged = QtCore.pyqtSignal(object, object)
     def __init__(self, param, parent=None):
         QtGui.QSlider.__init__(self, QtCore.Qt.Horizontal, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
@@ -180,6 +181,7 @@ class QAliasNumericStepperWidget(QtGui.QWidget):
         
 ###############################################################################
 class QNumericStepperIntegerWidget(ConstantWidgetMixin, QtGui.QSpinBox):
+    contentsChanged = QtCore.pyqtSignal(object, object)
     def __init__(self, param, parent=None):
         QtGui.QSpinBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
@@ -208,6 +210,7 @@ class QNumericStepperIntegerWidget(ConstantWidgetMixin, QtGui.QSpinBox):
 ###############################################################################
 
 class QNumericStepperFloatWidget(ConstantWidgetMixin, QtGui.QDoubleSpinBox):
+    contentsChanged = QtCore.pyqtSignal(object, object)
     def __init__(self, param, parent=None):
         QtGui.QDoubleSpinBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)

@@ -68,7 +68,7 @@ from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
 from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
 from vistrails.gui.modules.utils import get_widget_class
-from vistrails.gui.ports_pane import Parameter
+from vistrails.gui.ports_pane import Parameter, Function
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
 from vistrails.gui.variable_dropbox import QDragVariableLabel
@@ -1076,6 +1076,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self._cur_function_names = set()
         self.function_overview = 'No functions set'
         self.function_widget = None
+        self.function_widgets = []
+        self.functions_widget = None
         self.value_edit = None
         self.edit_rect = QtCore.QRectF(0.0, 0.0, 0.0, 0.0)
         self.handlePositionChanges = True
@@ -1197,6 +1199,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             for f in self.module.functions:
                 if f.name == 'value':
                     self.value_edit.setContents(f.parameters[0].strValue)
+        for function_widget in self.function_widgets:
+            for f in self.module.functions:
+                if f.name == function_widget.function.name:
+                    function_widget.setContents([p.strValue for p in f.params])
 
     def setProgress(self, progress):
         self.progress = progress
@@ -1494,8 +1500,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 self.value_edit.connect(self.value_edit,
                                         QtCore.SIGNAL('contentsChanged'),
                                         self.value_changed)
-                    
-        
+
+        if module.is_valid and not read_only and not get_module_registry(
+            ).is_constant_module(self.module.module_descriptor.module) and \
+            module.editable_input_ports:
+            self.functions_widget = QGraphicsFunctionsWidget(self.module, self)
+            self.functions_widget.function_changed.connect(self.function_changed)
+            self.function_widgets = self.functions_widget.function_widgets
+            self.edit_rect = self.functions_widget.boundingRect()
         self.setToolTip(self.description)
         self.computeBoundingRect()
         self.setPos(module.center.x, -module.center.y)
@@ -1602,20 +1614,33 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 error = e
 
             self.update_function_ports()
-            
+
             if self.value_edit:
                 if hasattr(self.edit_widget, 'GraphicsItem'):
                     self.value_edit.setPos(self.editRect.topLeft())
                 else:
                     proxy.setPos(self.editRect.topLeft())
-                
+            if self.functions_widget:
+                self.functions_widget.setPos(self.editRect.topLeft())
+
         else:
             self.setInvalid(True)
-           
+
     def value_changed(self, values):
         widget, value = values
         controller = self.scene().controller
         controller.update_function(self.module, 'value', [value])
+        self.update_function_ports(controller.current_pipeline.modules[self.module.id])
+        if self.isSelected():
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('module_changed', self.module)
+
+    def function_changed(self, name, values):
+        """ Called when a function value has changed by the inline edit widget
+        
+        """
+        controller = self.scene().controller
+        controller.update_function(self.module, name, values)
         self.update_function_ports(controller.current_pipeline.modules[self.module.id])
         if self.isSelected():
             from vistrails.gui.vistrails_window import _app
@@ -3283,6 +3308,94 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """set_read_only_mode(on: bool) -> None
         This will prevent user to add/remove modules and connections."""
         self.read_only_mode = on
+
+class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
+    """ GraphicsWidget containing all editable functions
+
+    """
+    
+    function_changed = QtCore.pyqtSignal(str, list)
+
+    def __init__(self, module, parent=None):
+        QtGui.QGraphicsWidget.__init__(self, parent)
+        self.function_widgets = []
+        height = 0
+        for port_spec in module.destinationPorts():
+            if port_spec.name in module.editable_input_ports:
+                params = [Parameter(psi.descriptor, psi) for psi in port_spec.items]
+                function = Function(port_spec.name, params)
+                for f in module.functions:
+                    if f.name == port_spec.name:
+                        function = f
+                function_widget = QGraphicsFunctionWidget(function, self)
+                function_widget.setPos(0, height)
+                function_widget.function_changed.connect(self.function_changed)
+                self.function_widgets.append(function_widget)
+                height += function_widget.boundingRect().height()
+        self.bounds = QtCore.QRectF(0,0,150,height)
+
+    def boundingRect(self):
+        return self.bounds
+
+class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
+    """ GraphicsWidget containing an editable function
+
+    """
+
+    function_changed = QtCore.pyqtSignal(str, list)
+
+    def __init__(self, function, parent=None):
+        QtGui.QGraphicsWidget.__init__(self, parent)
+        self.function = function
+        self.param_widgets = []
+        self.bounds = None
+        width = 150
+        height = 0
+        for param in function.parameters:
+            Widget = get_widget_class(param.port_spec_item.descriptor)
+            if hasattr(Widget, 'GraphicsItem'):
+                param_widget = Widget.GraphicsItem(param, self)
+                # resize to 150
+                rect = param_widget.boundingRect()
+                param_widget.setZValue(self.zValue()+0.2)
+                bg = QtGui.QGraphicsRectItem(rect, param_widget)
+                # TODO COLOR
+                bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
+                bg.setZValue(-1)
+                scale = max(rect.width(), rect.height())
+                transform = param_widget.transform()
+                # transfer function needs to be inverted right now
+                transform.scale(150.0/scale,-150.0/scale)
+                transform.translate(0, -rect.height())
+                param_widget.setTransform(transform)
+                rect.setSize(rect.size()*150.0/scale)
+                param_widget.setPos(0, height)
+            else:
+                param_widget = Widget(param)
+                param_widget.setMaximumSize(150, 150)
+                proxy = QtGui.QGraphicsProxyWidget(self)
+                proxy.setWidget(param_widget)
+                rect = proxy.boundingRect()
+                rect.moveTo(0.0,0.0)
+                proxy.setPos(0, height)
+            rect.setHeight(rect.height()+5)
+            height += rect.height()
+            param_widget.contentsChanged.connect(self.param_changed)
+            self.param_widgets.append(param_widget)
+
+        self.bounds = QtCore.QRectF(0.0, 0.0, 150.0, height)
+
+    def param_changed(self, widget, values):
+        # get values from all parameters
+        values = [p.contents() for p in self.param_widgets]
+        self.function_changed.emit(self.function.name, values)
+
+    def setContents(self, values):
+        for pw, value in zip(self.param_widgets, values):
+            pw.setContents(value)
+
+    def boundingRect(self):
+        return self.bounds
 
 class QModuleStatusEvent(QtCore.QEvent):
     """

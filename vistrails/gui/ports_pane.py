@@ -144,15 +144,20 @@ class AliasLabel(QtGui.QLabel):
                     self.parent().updateMethod()
 
 class Parameter(object):
-    def __init__(self, desc):
+    def __init__(self, desc, psi=None):
         self.type = desc.name
         self.identifier = desc.identifier
         self.namespace = None if not desc.namespace else desc.namespace
         self.strValue = ''
         self.alias = ''
         self.queryMethod = None
-        self.port_spec_item = None
+        self.port_spec_item = psi
         self.param_exists = False
+
+class Function(object):
+    def __init__(self, name, params):
+        self.name = name
+        self.parameters = params
         
 class ParameterEntry(QtGui.QTreeWidgetItem):
     plus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
