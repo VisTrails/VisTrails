@@ -83,7 +83,6 @@ class Module(DBModule):
             self.portVisible = set()
             self.visible_input_ports = set()
             self.visible_output_ports = set()
-            self.editable_input_ports = set()
             self.connected_input_ports = {}
             self.connected_output_ports = {}
             self.is_valid = False
@@ -97,7 +96,6 @@ class Module(DBModule):
             self.portVisible = copy.copy(other.portVisible)
             self.visible_input_ports = copy.copy(other.visible_input_ports)
             self.visible_output_ports = copy.copy(other.visible_output_ports)
-            self.editable_input_ports = copy.copy(other.editable_input_ports)
             self.connected_input_ports = copy.copy(other.connected_input_ports)
             self.connected_output_ports = \
                 copy.copy(other.connected_output_ports)
@@ -153,6 +151,7 @@ class Module(DBModule):
     # CONSTANTS
         
     VISTRAIL_VAR_ANNOTATION = '__vistrail_var__'
+    INLINE_WIDGET_ANNOTATION = '__inline_widgets__'
 
     ##########################################################################
 
@@ -263,6 +262,13 @@ class Module(DBModule):
         self._module_descriptor = weakref.ref(descriptor)
     module_descriptor = property(_get_module_descriptor, 
                                  _set_module_descriptor)
+
+    def _get_editable_input_ports(self):
+        if self.has_annotation_with_key(Module.INLINE_WIDGET_ANNOTATION):
+            return set(self.get_annotation_by_key(
+                            Module.INLINE_WIDGET_ANNOTATION).value.split(','))
+        return set()
+    editable_input_ports = property(_get_editable_input_ports)
 
     def get_port_spec(self, port_name, port_type):
         """get_port_spec(port_name: str, port_type: str: ['input' | 'output'])

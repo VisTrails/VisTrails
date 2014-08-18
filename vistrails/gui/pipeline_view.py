@@ -1107,6 +1107,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # elif module_functions_have_changed(self.module, core_module):
         #     return True
         else:
+            # check for changed edit widgets
+            if core_module.editable_input_ports != \
+               self.module.editable_input_ports:
+                # shape has changed so we need to recreate the module
+                return True
             # Check for changed ports
             # _db_name because this shows up in the profile.
             cip = sorted([x.key_no_id() for x in self.inputPorts])
@@ -1148,7 +1153,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             added_functions = after_names - before_names
             deleted_functions = before_names - after_names
             self._cur_function_names = copy.copy(after_names)
-
         if len(deleted_functions) > 0:
             for function_name in deleted_functions:
                 try:
@@ -3322,8 +3326,9 @@ class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
         height = 0
         for port_spec in module.destinationPorts():
             if port_spec.name in module.editable_input_ports:
+                # create default dummies
                 params = [Parameter(psi.descriptor, psi) for psi in port_spec.items]
-                function = Function(port_spec.name, params)
+                function = Function(port_spec.name, params, port_spec)
                 for f in module.functions:
                     if f.name == port_spec.name:
                         function = f
@@ -3351,8 +3356,9 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
         self.bounds = None
         width = 150
         height = 0
-        for param in function.parameters:
-            Widget = get_widget_class(param.port_spec_item.descriptor)
+        for i in xrange(len(function.parameters)):
+            param = function.parameters[i]
+            Widget = get_widget_class(function.get_spec('input').items[i].descriptor)
             if hasattr(Widget, 'GraphicsItem'):
                 param_widget = Widget.GraphicsItem(param, self)
                 # resize to 150

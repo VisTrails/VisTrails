@@ -155,9 +155,14 @@ class Parameter(object):
         self.param_exists = False
 
 class Function(object):
-    def __init__(self, name, params):
+    def __init__(self, name, params, port_spec=None):
         self.name = name
         self.parameters = params
+        self.port_spec = port_spec
+
+    def get_spec(self, port_type):
+        return self.port_spec
+
         
 class ParameterEntry(QtGui.QTreeWidgetItem):
     plus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
@@ -353,10 +358,11 @@ class PortItem(QtGui.QTreeWidgetItem):
         self.setText(3, port_spec.name)
 
         if self.is_constant():
-            if is_editable:
-                self.setIcon(0, PortItem.edit_show)
-            else:
-                self.setIcon(0, PortItem.edit_hide)
+            if len(self.port_spec.port_spec_items)>0:
+                if is_editable:
+                    self.setIcon(0, PortItem.edit_show)
+                else:
+                    self.setIcon(0, PortItem.edit_hide)
         else:
             # if port_spec is not a method, make it gray
             self.setForeground(3,
@@ -568,13 +574,16 @@ class PortsList(QtGui.QTreeWidget):
             raise TypeError("Unknown port type: '%s'" % self.port_type)
 
         if col == 0:
-            if item.is_constant():
+            if item.is_constant() and len(item.port_spec.port_spec_items)>0:
                 item.set_editable(not item.is_editable)
                 if item.is_editable:
                     editable_ports.add(item.port_spec.name)
                 else:
                     editable_ports.discard(item.port_spec.name)
                 self.controller.flush_delayed_actions()
+                self.controller.add_annotation((self.module.INLINE_WIDGET_ANNOTATION,
+                                                ','.join(editable_ports)),
+                                               self.module.id)
                 self.controller.current_pipeline_scene.recreate_module(
                     self.controller.current_pipeline, self.module.id)
         if col == 1:
