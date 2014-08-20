@@ -3361,6 +3361,19 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
         width = 150.0
         height = 0
         SCALE = 3.0/4
+        # add name label
+        name = self.function.name
+        bounds = CurrentTheme.MODULE_EDIT_FONT_METRIC.boundingRect
+        editRect = bounds(name)
+        if editRect.width()>150:
+            while bounds(name + '...').width() > 150:
+                name = name[:-1]
+            name += '...'
+
+        fname = QtGui.QGraphicsTextItem(name, self)
+        fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
+        fname.setPos(-5, -5)
+        height += 10
         for i in xrange(len(function.parameters)):
             param = function.parameters[i]
             Widget = get_widget_class(function.get_spec('input').items[i].descriptor)
@@ -3391,7 +3404,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 rect.setSize(rect.size()*SCALE)# uninitialized bounds need to be scaled
                 rect.moveTo(0.0,0.0)
                 proxy.setPos(0, height)
-            rect.setHeight(rect.height())
+            rect.setHeight(rect.height()+2) # space between parameters
             height += rect.height()
             param_widget.contentsChanged.connect(self.param_changed)
             self.param_widgets.append(param_widget)

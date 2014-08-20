@@ -311,6 +311,8 @@ class DefaultTheme(DefaultCoreTheme):
         self.MODULE_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_FONT)
         self.MODULE_DESC_FONT = QtGui.QFont("Arial", 12)
         self.MODULE_DESC_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_DESC_FONT)
+        self.MODULE_EDIT_FONT = QtGui.QFont("Arial", 10)
+        self.MODULE_EDIT_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_EDIT_FONT)
     
         # Font for version text
         self.VERSION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Bold)
