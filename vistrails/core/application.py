@@ -195,14 +195,6 @@ class VistrailsApplicationInterface(object):
                 'linux-fedora': 'scipy',
                 'pip': 'scipy'})
 
-    def get_python_environment(self):
-        """get_python_environment(): returns an environment that includes
-        local definitions from startup.py. Should only be called after
-        self.init()
-
-        """
-        return self._python_environment
-
     def destroy(self):
         """ destroy() -> None
         Finalize all packages to, such as, get rid of temp files

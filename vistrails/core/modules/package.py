@@ -351,9 +351,6 @@ class Package(DBPackage):
     def get_py_deps(self):
         return self.py_dependencies
 
-    def remove_py_deps(self, deps):
-        self.py_dependencies.difference_update(deps)
-
     def load(self, prefix=None):
         """load(module=None). Loads package's module.
 
@@ -650,9 +647,6 @@ class Package(DBPackage):
             deps.extend(self._module._dependencies)
         return deps
 
-    def loaded(self):
-        return self._loaded
-
     def initialized(self):
         return self._initialized
 
@@ -704,7 +698,3 @@ class Package(DBPackage):
         if self.load_configuration:
             self.persisted_configuration = copy.copy(self.configuration)
             self.persist_configuration(True)
-
-    def set_enabled(self, enabled=True):
-        get_vistrails_application().startup.set_package_enabled(self.codepath, 
-                                                                enabled)

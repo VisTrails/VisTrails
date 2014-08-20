@@ -221,7 +221,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 self.builderWindow.showMaximized()
             if self.temp_configuration.check('dbDefault'):
                 self.builderWindow.setDBDefault(True)
-        # self._python_environment = self.vistrailsStartup.get_python_environment()
 
         self._initialized = True
 
