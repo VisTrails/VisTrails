@@ -499,7 +499,7 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
 # Scene, view, widget
 
 class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
-    contentsChanged = QtCore.pyqtSignal(object, str)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         QtGui.QGraphicsWidget.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)

@@ -60,7 +60,7 @@ def setPlaceholderTextCompat(self, value):
 class ConstantWidgetMixin(object):
 
     # superclasses need to add this signal:
-    # contentsChanged = QtCore.pyqtSignal(object, str)
+    # contentsChanged = QtCore.pyqtSignal(tuple)
 
     def __init__(self, contents=None):
         if not hasattr(self, 'contentsChanged'):
@@ -75,7 +75,7 @@ class ConstantWidgetMixin(object):
             if self.parent() and hasattr(self.parent(), 'updateMethod'):
                 self.parent().updateMethod()
             self._last_contents = newContents
-            self.contentsChanged.emit(self, newContents)
+            self.contentsChanged.emit((self, newContents))
 
 class ConstantWidgetBase(ConstantWidgetMixin):
     def __init__(self, param):
@@ -148,7 +148,7 @@ class ConstantEnumWidgetBase(ConstantWidgetBase):
         pass
 
 class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
-    contentsChanged = QtCore.pyqtSignal(object, str)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         QtGui.QLineEdit.__init__(self, parent)
         ConstantWidgetBase.__init__(self, param)
@@ -179,7 +179,7 @@ class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
         setPlaceholderTextCompat(self, value)
 
 class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
-    contentsChanged = QtCore.pyqtSignal(object, str)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         QtGui.QComboBox.__init__(self, parent)
         ConstantEnumWidgetBase.__init__(self, param)
@@ -227,7 +227,7 @@ class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
 # Multi-line String Widget
 
 class MultiLineStringWidget(QtGui.QTextEdit, ConstantWidgetBase):
-    contentsChanged = QtCore.pyqtSignal(object, str)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
         self.setAcceptRichText(False)
@@ -261,7 +261,7 @@ class PathChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
     selected.
 
     """    
-    contentsChanged = QtCore.pyqtSignal(object, str)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
         parent: QWidget)
@@ -349,7 +349,7 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetBase):
     _values = ['True', 'False']
     _states = [QtCore.Qt.Checked, QtCore.Qt.Unchecked]
 
-    contentsChanged = QtCore.pyqtSignal(object, str)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
                     parent: QWidget)
@@ -380,7 +380,7 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetBase):
 # FIXME ColorChooserButton remains because the parameter exploration
 # code uses it, really should be removed at some point
 class ColorChooserButton(QtGui.QPushButton):
-    contentsChanged = QtCore.pyqtSignal(object, str)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, parent=None):
         QtGui.QPushButton.__init__(self, parent)
         # self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
@@ -465,7 +465,7 @@ class QColorWidget(QtGui.QToolButton):
             self.setColor(qcolor)
 
 class ColorWidget(QColorWidget, ConstantWidgetBase):
-    contentsChanged = QtCore.pyqtSignal(object, str)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         QColorWidget.__init__(self, parent)
         ConstantWidgetBase.__init__(self, param)
@@ -478,7 +478,7 @@ class ColorWidget(QColorWidget, ConstantWidgetBase):
         self.setColorString(strValue, silent)
 
 class ColorEnumWidget(QColorWidget, ConstantEnumWidgetBase):
-    contentsChanged = QtCore.pyqtSignal(object, str)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         QColorWidget.__init__(self, parent)
         self.setPopupMode(QtGui.QToolButton.MenuButtonPopup)

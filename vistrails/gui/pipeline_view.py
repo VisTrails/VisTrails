@@ -1213,50 +1213,54 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         
     def computeBoundingRect(self):
         """ computeBoundingRect() -> None
-        Adjust the module size according to the text size
+        Adjust the module size according to contents
         
         """
+        width = 0
+        height = CurrentTheme.MODULE_LABEL_MARGIN[1]
+        # for each rect: Add height, adjust min width,
+        # set pos to distance to top middle corner, to be adjusted when
+        # paddedRect is known
         labelRect = self.labelFontMetric.boundingRect(self.label)
+        labelRect.setHeight(labelRect.height()+1) # fix cut off bottoms
+        labelRect.moveTo(-labelRect.width()/2, height)
+        height += labelRect.height()
+        padding = labelRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0], 0,
+                                      CurrentTheme.MODULE_LABEL_MARGIN[2], 0)
+        width = max(width, padding.width())
+
         if self.description:
             self.description = '(' + self.description + ')'
             descRect = self.descFontMetric.boundingRect(self.description)
-            # adjust labelRect in case descRect is wider
-            labelRect = labelRect.united(descRect)
-            descRect.adjust(0, 0, 0, CurrentTheme.MODULE_PORT_MARGIN[3])
-        else:
-            descRect = QtCore.QRectF(0, 0, 0, 0)
+            descRect.moveTo(-descRect.width()/2, height)
+            height += descRect.height()
+            padding = descRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0], 0,
+                                         CurrentTheme.MODULE_LABEL_MARGIN[2], 0)
+            width = max(width, padding.width())
 
-        edit_width = int(self.edit_rect.width()) + 4
-        if edit_width:
-            labelRect = labelRect.united(
-                QtCore.QRect(0, 0,
-                             int(edit_width) -
-                             CurrentTheme.MODULE_LABEL_MARGIN[0]*2, 0))
+        if self.edit_rect.height():
+            height += CurrentTheme.MODULE_EDIT_MARGIN[1] # top margin
+            editRect = self.edit_rect
+            editRect.moveTo(-editRect.width()/2, height)
+            height += editRect.height()
+            padding = editRect.adjusted(-CurrentTheme.MODULE_EDIT_MARGIN[0], 0,
+                                         CurrentTheme.MODULE_EDIT_MARGIN[2], 0)
+            width = max(width, padding.width())
+            height += CurrentTheme.MODULE_EDIT_MARGIN[3] # bottom edit margin
 
-        labelRect.translate(-labelRect.center().x(), -labelRect.center().y())
-        self.paddedRect = QtCore.QRectF(
-            labelRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0],
-                                -CurrentTheme.MODULE_LABEL_MARGIN[1]
-                                -descRect.height()/2-self.edit_rect.height()/2,
-                                CurrentTheme.MODULE_LABEL_MARGIN[2],
-                                CurrentTheme.MODULE_LABEL_MARGIN[3]
-                                +descRect.height()/2+self.edit_rect.height()/2))
-        
-        self.labelRect = QtCore.QRectF(
-            self.paddedRect.left(),
-            -(labelRect.height()+descRect.height()+self.edit_rect.height())/2,
-            self.paddedRect.width(),
-            labelRect.height())
-        self.descRect = QtCore.QRectF(
-            self.paddedRect.left(),
-            self.labelRect.bottom(),
-            self.paddedRect.width(),
-            descRect.height())
-        self.editRect = QtCore.QRectF(
-            self.paddedRect.left()+2,
-            self.descRect.bottom(),
-            self.paddedRect.width(),
-            self.edit_rect.height())
+        height += CurrentTheme.MODULE_LABEL_MARGIN[3] # bottom margin
+
+        # move to final position
+
+        self.paddedRect = QtCore.QRectF(-width/2, -height/2, width, height)
+        labelRect.translate(0, -height/2)
+        self.labelRect = labelRect
+        if self.description:
+            descRect.translate(0, -height/2)
+            self.descRect = descRect
+        if self.edit_rect.height():
+            editRect.translate(0, -height/2)
+            self.editRect = editRect
         self.abstRect = QtCore.QRectF(
             self.paddedRect.left(),
             -self.labelRect.top()-CurrentTheme.MODULE_PORT_MARGIN[3],
@@ -1466,44 +1470,44 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.description = ''
 
         if module.is_valid and not read_only and get_module_registry(
-                ).is_constant_module(self.module.module_descriptor.module):
-                desc = self.module.module_descriptor
-                Widget = get_widget_class(desc)
-                self.edit_widget = Widget
-                param = Parameter(desc)
-                for function in self.module.functions:
-                    if function.name == 'value':
-                        param = function.parameters[0]
-                if hasattr(Widget, 'GraphicsItem'):
-                    self.value_edit = Widget.GraphicsItem(param, self)
-                    # resize to 150
-                    rect = self.value_edit.boundingRect()
-                    self.value_edit.setZValue(self.zValue()+0.2)
-                    bg = QtGui.QGraphicsRectItem(rect, self.value_edit)
-                    # TODO COLOR
-                    bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
-                    bg.setZValue(-1)
-                    scale = max(rect.width(), rect.height())
-                    transform = self.value_edit.transform()
-                    # transfer function needs to be inverted right now
-                    transform.scale(150.0/scale,-150.0/scale)
-                    transform.translate(0, -rect.height())
-                    self.value_edit.setTransform(transform)
-                    rect.setSize(rect.size()*150.0/scale)
-                    rect.setHeight(rect.height()+5)
-                    self.edit_rect = rect
-                else:
-                    self.value_edit = Widget(param)
-                    self.value_edit.setMaximumSize(150, 150)
-                    proxy = QtGui.QGraphicsProxyWidget(self)
-                    proxy.setWidget(self.value_edit)
-                    rect = proxy.boundingRect()
-                    rect.moveTo(0.0,0.0)
-                    rect.setHeight(rect.height()+5)
-                    self.edit_rect = rect
-                self.value_edit.connect(self.value_edit,
-                                        QtCore.SIGNAL('contentsChanged'),
-                                        self.value_changed)
+                   ).is_constant_module(self.module.module_descriptor.module):
+            desc = self.module.module_descriptor
+            Widget = get_widget_class(desc)
+            self.edit_widget = Widget
+            param = Parameter(desc)
+            for function in self.module.functions:
+                if function.name == 'value':
+                    param = function.parameters[0]
+            if hasattr(Widget, 'GraphicsItem'):
+                self.value_edit = Widget.GraphicsItem(param, self)
+                # resize to 150
+                rect = self.value_edit.boundingRect()
+                self.value_edit.setZValue(self.zValue()+0.2)
+                bg = QtGui.QGraphicsRectItem(rect, self.value_edit)
+                # TODO COLOR
+                bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
+                bg.setZValue(-1)
+                scale = max(rect.width(), rect.height())
+                transform = self.value_edit.transform()
+                # transfer function needs to be inverted right now
+                transform.scale(150.0/scale,-150.0/scale)
+                transform.translate(0, -rect.height())
+                self.value_edit.setTransform(transform)
+                rect.setSize(rect.size()*150.0/scale)
+                rect.setHeight(rect.height()+4)
+                self.edit_rect = rect
+            else:
+                SCALE = 3.0/4
+                self.value_edit = Widget(param)
+                self.value_edit.setMaximumSize(150.0/SCALE, 150.0/SCALE)
+                proxy = QtGui.QGraphicsProxyWidget(self)
+                proxy.setWidget(self.value_edit)
+                proxy.setScale(SCALE)
+                rect = self.value_edit.geometry() #proxy.boundingRect()
+                rect.setSize(rect.size()*SCALE)# uninitialized bounds need to be scaled
+                rect.moveTo(0.0,0.0)
+                self.edit_rect = rect
+            self.value_edit.contentsChanged.connect(self.value_changed)
 
         if module.is_valid and not read_only and not get_module_registry(
             ).is_constant_module(self.module.module_descriptor.module) and \
@@ -3354,8 +3358,9 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
         self.function = function
         self.param_widgets = []
         self.bounds = None
-        width = 150
+        width = 150.0
         height = 0
+        SCALE = 3.0/4
         for i in xrange(len(function.parameters)):
             param = function.parameters[i]
             Widget = get_widget_class(function.get_spec('input').items[i].descriptor)
@@ -3371,27 +3376,29 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 scale = max(rect.width(), rect.height())
                 transform = param_widget.transform()
                 # transfer function needs to be inverted right now
-                transform.scale(150.0/scale,-150.0/scale)
+                transform.scale(width/scale,-width/scale)
                 transform.translate(0, -rect.height())
                 param_widget.setTransform(transform)
-                rect.setSize(rect.size()*150.0/scale)
+                rect.setSize(rect.size()*width/scale)
                 param_widget.setPos(0, height)
             else:
                 param_widget = Widget(param)
-                param_widget.setMaximumSize(150, 150)
+                param_widget.setMaximumSize(width/SCALE, width/SCALE)
                 proxy = QtGui.QGraphicsProxyWidget(self)
                 proxy.setWidget(param_widget)
-                rect = proxy.boundingRect()
+                proxy.setScale(SCALE)
+                rect = param_widget.geometry() #proxy.boundingRect()
+                rect.setSize(rect.size()*SCALE)# uninitialized bounds need to be scaled
                 rect.moveTo(0.0,0.0)
                 proxy.setPos(0, height)
-            rect.setHeight(rect.height()+5)
+            rect.setHeight(rect.height())
             height += rect.height()
             param_widget.contentsChanged.connect(self.param_changed)
             self.param_widgets.append(param_widget)
 
-        self.bounds = QtCore.QRectF(0.0, 0.0, 150.0, height)
+        self.bounds = QtCore.QRectF(0.0, 0.0, width, height)
 
-    def param_changed(self, widget, values):
+    def param_changed(self, values):
         # get values from all parameters
         values = [p.contents() for p in self.param_widgets]
         self.function_changed.emit(self.function.name, values)
