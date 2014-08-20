@@ -2109,7 +2109,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             matched = self.controller.search.matchModule(*moduleQuery)
             moduleItem.setGhosted(not matched)
         moduleItem.controller = self.controller
-        moduleItem.setupModule(module)
+        moduleItem.setupModule(module, self.read_only_mode)
         moduleItem.setBreakpoint(module.is_breakpoint)
         if moduleBrush:
             moduleItem.set_custom_brush(moduleBrush)
