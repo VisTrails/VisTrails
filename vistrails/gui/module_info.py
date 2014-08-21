@@ -34,6 +34,7 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 
+from vistrails.core.system import systemType
 from vistrails.core.utils import versions_increasing
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.module_annotation import QModuleAnnotationTable
@@ -101,7 +102,8 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         
         self.tab_widget = QtGui.QTabWidget()
         # keep from overflowing on mac
-        self.tab_widget.tabBar().setStyleSheet('font-size: 12pt')
+        if systemType in ['Darwin']:
+            self.tab_widget.tabBar().setStyleSheet('font-size: 12pt')
         # this causes a crash when undocking the palette in Mac OS X
         # see https://bugreports.qt-project.org/browse/QTBUG-16851
         # self.tab_widget.setDocumentMode(True)
