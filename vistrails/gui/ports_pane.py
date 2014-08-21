@@ -290,8 +290,10 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         return self.build_widget(get_widget_class, True)
 
 class PortItem(QtGui.QTreeWidgetItem):
-    edit_show = letterIcon('E')
-    edit_hide = letterIcon('E', True)
+    edit_show =  QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                             'gui/resources/images/pencil.png'))
+    edit_hide = QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                             'gui/resources/images/pencil-disabled.png'))
     eye_open_icon = \
         QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                  'gui/resources/images/eye.png'))
