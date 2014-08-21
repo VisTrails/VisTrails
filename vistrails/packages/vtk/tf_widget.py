@@ -640,6 +640,7 @@ default_tf.add_point(0.0, 0.0, (0.0, 0.0, 0.0))
 default_tf.add_point(1.0, 0.0, (0.0, 0.0, 0.0))
 
 class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
+    contentsChanged = QtCore.pyqtSignal(tuple)
 
     GraphicsItem = QGraphicsTransferFunction
 
