@@ -55,6 +55,8 @@ from vistrails.core.modules.module_registry import get_module_registry, \
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.interpreter.base import AbortExecution
@@ -68,7 +70,7 @@ from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
 from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
 from vistrails.gui.modules.utils import get_widget_class
-from vistrails.gui.ports_pane import Parameter, Function
+from vistrails.gui.ports_pane import Parameter
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
 from vistrails.gui.variable_dropbox import QDragVariableLabel
@@ -3332,8 +3334,15 @@ class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
         for port_spec in module.destinationPorts():
             if port_spec.name in module.editable_input_ports:
                 # create default dummies
-                params = [Parameter(psi.descriptor, psi) for psi in port_spec.items]
-                function = Function(port_spec.name, params, port_spec)
+                params = []
+                for psi in port_spec.items:
+                    param = ModuleParam(type=psi.descriptor.name,
+                                        identifier=psi.descriptor.identifier,
+                                        namespace=psi.descriptor.namespace)
+                    param.port_spec_item = psi
+                    params.append(param)
+                function = ModuleFunction(name=port_spec.name,
+                                          parameters=params)
                 for f in module.functions:
                     if f.name == port_spec.name:
                         function = f
@@ -3374,9 +3383,23 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
         fname = QtGui.QGraphicsTextItem(name, self)
         fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
         fname.setPos(-5, -5)
+
+        names = []
+        sigstring = function.sigstring
+        for sig in sigstring[1:-1].split(','):
+            k = sig.split(':', 2)
+            if len(k) < 2:
+                names.append(k[0])
+            else:
+                names.append(k[1])
+        short_sigstring = '(' + ','.join(names) + ')'
+        tooltip = function.name + short_sigstring
+        fname.setToolTip(tooltip)
+        
         height += 10
         for i in xrange(len(function.parameters)):
             param = function.parameters[i]
+
             Widget = get_widget_class(function.get_spec('input').items[i].descriptor)
             if hasattr(Widget, 'GraphicsItem'):
                 param_widget = Widget.GraphicsItem(param, self)
