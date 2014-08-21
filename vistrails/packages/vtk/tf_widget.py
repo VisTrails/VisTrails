@@ -371,8 +371,8 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
 
 class TransferFunctionPolygon(QtGui.QGraphicsPolygonItem):
 
-    def __init__(self, scene, parent=None):
-        QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
+    def __init__(self, parent=None):
+        QtGui.QGraphicsPolygonItem.__init__(self, parent)
 
     def setup(self):
         # This inspects the scene, finds the left-most point, and
@@ -509,7 +509,7 @@ class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
         else:
             self._tf = TransferFunction.parse(param.strValue)
         self._tf_items = []
-        poly = TransferFunctionPolygon(self.scene(), self)
+        poly = TransferFunctionPolygon(self)
         poly.setup()
         self._tf_poly = poly
         self.create_tf_items(self._tf)
@@ -546,6 +546,8 @@ class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
         self._tf_poly.setup()
         
     def create_tf_items(self, tf):
+        if self._tf_items and not self.scene(): # not added to scene yet
+            return
         items = copy.copy(self._tf_items)
         for item in items:
             self.scene().removeItem(item)

@@ -1621,7 +1621,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             except ModuleRegistryException, e:
                 error = e
 
-            self.update_function_ports()
 
             if self.value_edit:
                 if hasattr(self.edit_widget, 'GraphicsItem'):
@@ -1630,6 +1629,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     proxy.setPos(self.editRect.topLeft())
             if self.functions_widget:
                 self.functions_widget.setPos(self.editRect.topLeft())
+
+            self.update_function_ports()
 
         else:
             self.setInvalid(True)
