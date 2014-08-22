@@ -234,8 +234,8 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.setRenderHints (QtGui.QPainter.Antialiasing |
                              QtGui.QPainter.TextAntialiasing |
                              QtGui.QPainter.SmoothPixmapTransform)
-        self.scaleMax = 2000
-        self.scaleRatio = self.scaleMax/10
+        self.scaleMax = 1000
+        self.scaleRatio = self.scaleMax/5
         self.currentScale = self.scaleMax/2
         self.startScroll = (0,0)
         self.lastPos = QtCore.QPoint(0,0)
@@ -274,8 +274,8 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 if changeFlags & QtGui.QPinchGesture.ScaleFactorChanged:
                     if self.gestureStartScale is None:
                         self.gestureStartScale = self.currentScale
-                    newScale = self.gestureStartScale * \
-                        pinch.property("scaleFactor").toReal()[0]
+                    newScale = self.gestureStartScale + self.scaleMax * \
+                        math.log(pinch.property("scaleFactor"))/2
                     # Clamp the scale
                     if newScale<0: newScale = 0
                     if newScale>self.scaleMax: newScale = self.scaleMax
