@@ -54,7 +54,7 @@ EXPORT_DIR_PREFIX = "vistrails-src-%s"%VT_VERSION
 EXPORT_DIR_SUFFIX = "-?"
 
 # Paths of files and/or directories to be removed from the exported repository (relative to export dir)
-EXPORT_DELETE_PATHS = [".git", ".gitignore", "scripts/dist", "packages"]
+EXPORT_DELETE_PATHS = [".git", ".gitignore", "scripts/dist", "contrib"]
 
 # Distribution Tarball name (Do not add ".tar.gz")
 # For releases, Tarball name will be always EXPORT_DIR_PREFIX+EXPORT_DIR_SUFFIX 
