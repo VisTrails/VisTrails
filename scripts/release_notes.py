@@ -49,7 +49,7 @@ import subprocess
 import shutil
 
 #### configuration ####
-commit_start = "8262f078ed3b" # hash of version used on last release notes
+commit_start = "269e4808eca3" # hash of version used on last release notes
 commit_end = "HEAD" # current hash
 branch = "v2.1" # git branch to be used
 release_name = "2.1.4"
@@ -57,7 +57,7 @@ clonepath = None    # set this to the complete path of a vistrails clone to be
                     # used
                     # if None, the remote repository will be cloned to a
                     # temporary folder and removed at the end of the script
-clonepath = '/Users/tommy/git/vistrails'
+#clonepath = '/Users/tommy/git/vistrails'
 cloneremote = 'git://www.vistrails.org/vistrails.git'
 #### end configuration #####
 

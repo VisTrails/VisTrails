@@ -23,7 +23,7 @@ path/to/VisTrails/scripts/update_vistrails_command.py script from where your
 folder is located.
 
 
-Release Name: v2.1.4 build 5eadc2dfeeba from v2.1 branch
+Release Name: v2.1.4 build 269e4808eca3 from v2.1 branch
 
 Bug fixes: 
  - Pinch gesture was broken (2d5494ed1d10)
