@@ -23,9 +23,19 @@ path/to/VisTrails/scripts/update_vistrails_command.py script from where your
 folder is located.
 
 
-RELEASE NOTES
--------------
-Release Name: v2.1.3 build 8262f078ed3b from v2.1 branch
+Release Name: v2.1.4 build 269e4808eca3 from v2.1 branch
+
+Bug fixes: 
+ - Pinch gesture was broken (2d5494ed1d10)
+ - Ticket 893: "Create Version" button on the spreadsheet does not work (d3db65418fad)
+ - New Parameter Exploration was created for each execution (c324acad38f9)
+ - Could not load saved Parameter Explorations (c324acad38f9)
+ - Ticket 762: Package.import_override.is_sys_pkg logic incorrect (bf5e20c923f7)
+ - Usersguide: Fixed parameter exploration vtl links (79c3021a50b3)
+ - Forces the use of PyQt4 (avoid PySide) (2460948327cc)
+ - Guess whether to use su/sudo with pip (18698fa909b3)
+
+From Release: v2.1.3 build 8262f078ed3b from v2.1 branch
 
 Bug fixes: 
  - Fixes scripting examples (8dd634391b71)

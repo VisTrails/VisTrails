@@ -299,7 +299,7 @@ def vistrails_version():
     # 0.3 was the plugin/vtk version
     # 0.4 is cleaned up version with new GUI
     # 1.0 is version with new schema
-    return '2.1.3'
+    return '2.1.4'
 
 def get_latest_vistrails_version():
     """get_latest_vistrails_version() -> string - Returns latest vistrails
@@ -345,7 +345,7 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "8262f078ed3b"
+        release = "269e4808eca3"
         import vistrails.core.requirements
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []

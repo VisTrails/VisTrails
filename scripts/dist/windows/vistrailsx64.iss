@@ -39,7 +39,7 @@
 
 [Setup]
 AppName=VisTrails x64
-AppVerName=VisTrails x64 2.1.3
+AppVerName=VisTrails x64 2.1.4
 ArchitecturesInstallIn64BitMode=x64
 OutputBaseFilename=vistrails-x64-setup
 DefaultGroupName=VisTrails x64
