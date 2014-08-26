@@ -1224,7 +1224,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # set pos to distance to top middle corner, to be adjusted when
         # paddedRect is known
         labelRect = self.labelFontMetric.boundingRect(self.label)
-        labelRect.setHeight(labelRect.height()+1) # fix cut off bottoms
         labelRect.moveTo(-labelRect.width()/2, height)
         height += labelRect.height()
         padding = labelRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0], 0,
@@ -1265,9 +1264,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.editRect = editRect
         self.abstRect = QtCore.QRectF(
             self.paddedRect.left(),
-            -self.labelRect.top()-CurrentTheme.MODULE_PORT_MARGIN[3],
-            labelRect.left()-self.paddedRect.left(),
-            self.paddedRect.bottom()+self.labelRect.top())
+            -self.paddedRect.top()-CurrentTheme.MODULE_LABEL_MARGIN[3],
+            CurrentTheme.MODULE_LABEL_MARGIN[0],
+            CurrentTheme.MODULE_LABEL_MARGIN[3])
 
     def boundingRect(self):
         """ boundingRect() -> QRectF
@@ -1408,12 +1407,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # draw module labels
         painter.setPen(self.labelPen)
         painter.setFont(self.labelFont)
-        painter.drawText(self.labelRect, QtCore.Qt.AlignCenter, self.label)
+        painter.drawText(self.labelRect.adjusted(-10,-10,10,10), QtCore.Qt.AlignCenter, self.label)
         if self.module.is_abstraction() and not self.module.is_latest_version():
             painter.drawText(self.abstRect, QtCore.Qt.AlignCenter, '!')
         if self.descRect:
             painter.setFont(self.descFont)
-            painter.drawText(self.descRect, QtCore.Qt.AlignCenter,
+            painter.drawText(self.descRect.adjusted(-10,-10,10,10), QtCore.Qt.AlignCenter,
                              self.description)
 
     def paintToPixmap(self, scale_x, scale_y):
@@ -1917,7 +1916,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             if self.function_widget:
                 self.scene().removeItem(self.function_widget)
             self.function_widget = QtGui.QGraphicsTextItem()
-            pos = self.abstRect.bottomLeft()+self.pos()
+            pos = self.paddedRect.bottomLeft()+self.pos()
             self.function_widget.setPos(pos)
             self.function_widget.setAcceptHoverEvents(False)
             self.scene().addItem(self.function_widget)
@@ -3383,7 +3382,6 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
         fname = QtGui.QGraphicsTextItem(name, self)
         fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
         fname.setPos(-5, -5)
-
         names = []
         sigstring = function.sigstring
         for sig in sigstring[1:-1].split(','):
@@ -3395,8 +3393,8 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
         short_sigstring = '(' + ','.join(names) + ')'
         tooltip = function.name + short_sigstring
         fname.setToolTip(tooltip)
-        
-        height += 10
+        height += bounds(name).height()
+
         for i in xrange(len(function.parameters)):
             param = function.parameters[i]
 
