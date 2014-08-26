@@ -1501,6 +1501,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 SCALE = 3.0/4
                 self.value_edit = Widget(param)
                 self.value_edit.setMaximumSize(150.0/SCALE, 150.0/SCALE)
+                self.value_edit.setWindowFlags(QtCore.Qt.BypassGraphicsProxyWidget)
                 proxy = QtGui.QGraphicsProxyWidget(self)
                 proxy.setWidget(self.value_edit)
                 proxy.setScale(SCALE)
@@ -3419,6 +3420,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
             else:
                 param_widget = Widget(param)
                 param_widget.setMaximumSize(width/SCALE, width/SCALE)
+                param_widget.setWindowFlags(QtCore.Qt.BypassGraphicsProxyWidget)
                 proxy = QtGui.QGraphicsProxyWidget(self)
                 proxy.setWidget(param_widget)
                 proxy.setScale(SCALE)
