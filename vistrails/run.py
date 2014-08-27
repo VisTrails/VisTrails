@@ -118,6 +118,10 @@ def main():
     import locale
     locale.setlocale(locale.LC_ALL, '')
 
+    # Log to the console
+    from vistrails.core import debug
+    debug.DebugPrint.getInstance().log_to_console()
+
     from vistrails.gui.requirements import require_pyqt4_api2
     require_pyqt4_api2()
 
