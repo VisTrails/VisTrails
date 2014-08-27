@@ -292,7 +292,7 @@ class DebugPrint(object):
         """self.set_message_level(level) -> None. Sets the logging
         verboseness.  level must be one of (DebugPrint.CRITICAL,
         DebugPrint.WARNING, DebugPrint.INFO, DebugPrint.DEBUG)."""
-        self.console.setLevel(level)
+        self.visible_logger.setLevel(level)
 
     def register_splash(self, app):
         """ register_splash(self, classname)
