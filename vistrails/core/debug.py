@@ -133,24 +133,16 @@ class EmitWarnings(logging.Handler):
 
 ################################################################################
 
-class LevelCheckerLogger(logging.Logger):
-    def callHandlers(self, record):
-        """Variant that checks the parents' levels when propagating.
-        """
-        for hdlr in self.handlers:
-            if record.levelno >= hdlr.level:
-                hdlr.handle(record)
-        if (self.propagate and self.parent and
-                self.parent.isEnabledFor(record.levelno)):
-            c = self.parent
-            while c:
-                for hdlr in c.handlers:
-                    if record.levelno >= hdlr.level:
-                        hdlr.handle(record)
-                if not c.propagate:
-                    c = None    #break out
-                else:
-                    c = c.parent
+class LoggerHandler(logging.Logger):
+    """A logging Handler Handler re-logs on a specified Logger.
+    """
+    def __init__(self, logger):
+        logging.Handler.__init__(self)
+        self.logger = logger
+
+    def emit(self, record):
+        if self.logger.isEnabledFor(record.levelno):
+            self.logger.handle(record)
 
 ################################################################################
 
@@ -203,16 +195,8 @@ class DebugPrint(object):
         We will configure log so it outputs to both stderr and a file.
 
         """
-        # Setup root logger
-        logging._acquireLock()
-        try:
-            oldLoggerClass = logging.getLoggerClass()
-            logging.setLoggerClass(LevelCheckerLogger)
-            self.logger = logging.getLogger('vistrails')
-            logging.setLoggerClass(oldLoggerClass)
-        finally:
-            logging._releaseLock()
-        assert isinstance(self.logger, LevelCheckerLogger)
+        # Internal logger, the one we log on
+        self.logger = logging.getLogger('vistrails.logger')
 
         self.logger.setLevel(logging.DEBUG)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
@@ -233,6 +217,12 @@ class DebugPrint(object):
         self.console.setFormatter(self.format)
         self.console.setLevel(logging.WARNING)
         self.logger.addHandler(self.console)
+
+        # We also propagate to a second logger, that API users might want to
+        # configure
+        self.visible_logger = logging.getLogger('vistrails')
+        self.logger.propagate = False
+        self.logger.addHandler(LoggerHandler(self.visible_logger))
 
 #    if system.python_version() <= (2,4,0,'',0):
 #        raise VersionTooLow('Python', '2.4.0')
