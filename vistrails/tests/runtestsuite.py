@@ -100,6 +100,10 @@ def setNewPyQtAPI():
         print "Could not set PyQt API, is PyQt4 installed?"
 setNewPyQtAPI()
 
+# Log to the console
+import vistrails.core.debug
+vistrails.core.debug.DebugPrint.getInstance().log_to_console()
+
 import vistrails.tests
 import vistrails.core
 import vistrails.core.db.io

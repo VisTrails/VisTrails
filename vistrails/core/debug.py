@@ -133,7 +133,7 @@ class EmitWarnings(logging.Handler):
 
 ################################################################################
 
-class LoggerHandler(logging.Logger):
+class LoggerHandler(logging.Handler):
     """A logging Handler Handler re-logs on a specified Logger.
     """
     def __init__(self, logger):
@@ -212,20 +212,16 @@ class DebugPrint(object):
         if f:
             self.set_logfile(f)
 
-        #then we define a handler to log to the console
+        # Then we define a handler to log to the console
         self.console = logging.StreamHandler()
         self.console.setFormatter(self.format)
         self.console.setLevel(logging.WARNING)
-        self.logger.addHandler(self.console)
 
         # We also propagate to a second logger, that API users might want to
         # configure
         self.visible_logger = logging.getLogger('vistrails')
         self.logger.propagate = False
         self.logger.addHandler(LoggerHandler(self.visible_logger))
-
-#    if system.python_version() <= (2,4,0,'',0):
-#        raise VersionTooLow('Python', '2.4.0')
 
     def __init__(self):
         self.make_logger()
@@ -285,6 +281,12 @@ class DebugPrint(object):
 
         except Exception, e:
             self.critical("Could not set log file %s: %s" % f, e)
+
+    def log_to_console(self, enable=True):
+        if enable:
+            logging.getLogger().addHandler(self.console)
+        else:
+            logging.getLogger().removeHandler(self.console)
 
     def set_message_level(self,level):
         """self.set_message_level(level) -> None. Sets the logging
