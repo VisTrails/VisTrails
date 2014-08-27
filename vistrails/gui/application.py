@@ -787,8 +787,8 @@ def linux_default_application_set():
     For Linux - checks if a handler is set for .vt and .vtl files.
     """
     command = ['xdg-mime', 'query', 'filetype',
-               os.path.join(system.vistrails_examples_directory(),
-                            'terminator.vt')]
+               os.path.join(system.vistrails_root_directory(),
+                            'tests', 'resources', 'terminator.vt')]
     try:
         output = []
         result = system.execute_cmdline(command, output)
