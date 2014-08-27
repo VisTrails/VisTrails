@@ -516,7 +516,7 @@ class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
         self._tf_poly.setup()
         #current scale
         self._sx = 1.0
-        self._sy = 1.0    
+        self._sy = 1.0
         # Add outlines
         line_color = QtGui.QColor(200, 200, 200)
         pen = QtGui.QPen(line_color)
@@ -529,13 +529,16 @@ class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
 
         for i in xrange(51):
             u = GLOBAL_SCALE * float(i) / 50.0
-            
+
             line = QtGui.QGraphicsLineItem(QtCore.QLineF(u, 0.0, u, GLOBAL_SCALE), self)
             line.setPen(pen)
             line = QtGui.QGraphicsLineItem(QtCore.QLineF(0.0, u, GLOBAL_SCALE, u), self)
             line.setPen(pen)
 
         self.setGeometry(self.boundingRect())
+        # restore y axis inversion
+        self.setTransform(QtGui.QTransform(1, 0, 0, -1, 0, GLOBAL_SCALE))
+        self.setTransformOriginPoint(0, GLOBAL_SCALE)
 
     def boundingRect(self):
         return QtCore.QRectF(0.0, 0.0, GLOBAL_SCALE, GLOBAL_SCALE)
@@ -544,7 +547,7 @@ class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
         self.create_tf_items(tf)
         self.update_scale(self._sx, self._sy)
         self._tf_poly.setup()
-        
+
     def create_tf_items(self, tf):
         if self._tf_items and not self.scene(): # not added to scene yet
             return
@@ -628,7 +631,7 @@ class TransferFunctionView(QtGui.QGraphicsView):
     def resizeEvent(self, event):
         self.resetMatrix()
         self.setMatrix(QtGui.QMatrix(event.size().width() / (GLOBAL_SCALE *10.0/9) , 0,
-                                     0, -event.size().height() / (GLOBAL_SCALE*10.0/9), 0, 0))
+                                     0, event.size().height() / (GLOBAL_SCALE*10.0/9), GLOBAL_SCALE, 0))
         self.scene().tf.update_scale(event.size().width()/(2000.0/9), event.size().height()/(2000.0/9))
         
     def focusOutEvent(self, event):
@@ -657,7 +660,8 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
         self._view.show()
         self._view.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                  QtGui.QSizePolicy.Expanding)
-        self._view.setMatrix(QtGui.QMatrix(1, 0, 0, -1, 0, 0))
+        # TODO remove this
+        self._view.setMatrix(QtGui.QMatrix(1, 0, 0, -1, GLOBAL_SCALE, 0))
         self.setMinimumSize(260,240)
         caption = QtGui.QLabel("Double-click on the line to add a point")
         font = QtGui.QFont('Arial', 11)

@@ -64,7 +64,7 @@ class DefaultCoreTheme(object):
         self.MODULE_LABEL_MARGIN = (20, 20, 20, 15)
 
         # Padded space of Module shape into its edit widget
-        self.MODULE_EDIT_MARGIN = (8, 4, 8, 2)
+        self.MODULE_EDIT_MARGIN = (8, 4, 8, 4)
 
         # Margin of Module shape into its ports
         self.MODULE_PORT_MARGIN = (4, 4, 4, 4)

@@ -1485,18 +1485,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 rect = self.value_edit.boundingRect()
                 self.value_edit.setZValue(self.zValue()+0.2)
                 bg = QtGui.QGraphicsRectItem(rect, self.value_edit)
-                # TODO COLOR
                 bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
                 bg.setZValue(-1)
                 scale = max(rect.width(), rect.height())
-                transform = self.value_edit.transform()
-                # transfer function needs to be inverted right now
-                transform.scale(150.0/scale,-150.0/scale)
-                transform.translate(0, -rect.height())
-                self.value_edit.setTransform(transform)
+                self.value_edit.setScale(150.0/scale)
                 rect.setSize(rect.size()*150.0/scale)
-                rect.setHeight(rect.height()+4)
-                self.edit_rect = rect
             else:
                 SCALE = 3.0/4
                 self.value_edit = Widget(param)
@@ -1508,7 +1501,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 rect = self.value_edit.geometry() #proxy.boundingRect()
                 rect.setSize(rect.size()*SCALE)# uninitialized bounds need to be scaled
                 rect.moveTo(0.0,0.0)
-                self.edit_rect = rect
+            rect.setHeight(rect.height()+2) # need to add expected parameter gap
+            self.edit_rect = rect
             self.value_edit.contentsChanged.connect(self.value_changed)
 
         if module.is_valid and not read_only and not get_module_registry(
@@ -3410,11 +3404,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
                 bg.setZValue(-1)
                 scale = max(rect.width(), rect.height())
-                transform = param_widget.transform()
-                # transfer function needs to be inverted right now
-                transform.scale(width/scale,-width/scale)
-                transform.translate(0, -rect.height())
-                param_widget.setTransform(transform)
+                param_widget.setScale(width/scale)
                 rect.setSize(rect.size()*width/scale)
                 param_widget.setPos(0, height)
             else:
