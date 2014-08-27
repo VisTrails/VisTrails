@@ -58,7 +58,7 @@ Homepage: http://www.vistrails.org
 Who we are: http://www.vistrails.org/index.php/People
 """
 setup(name='vistrails',
-      version='2.1.2',
+      version='2.1.4',
       packages=packages,
       package_data=package_data,
       entry_points={
