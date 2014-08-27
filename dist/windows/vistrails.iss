@@ -34,7 +34,7 @@
 ;###############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.1.3
+AppVerName=VisTrails 2.1.4
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$009D5942

@@ -33,6 +33,9 @@
 ##
 ###############################################################################
 
+import os
+import sys
+
 from vistrails.core.requirements import MissingRequirement, require_python_module
 
 
@@ -56,6 +59,13 @@ def qt_available():
 
 
 def require_pyqt4_api2():
+    # Forces the use of PyQt4 (avoid PySide even if installed)
+    # This is necessary at least for IPython
+    if os.environ.get('QT_API', None) not in (None, 'pyqt'):
+        sys.stderr.write("Warning: QT_API was set to %r, changing to 'pyqt'\n" %
+                         os.environ['QT_API'])
+    os.environ['QT_API'] = 'pyqt'
+
     if not qt_available():
         from vistrails.gui.bundles.installbundle import install
         r = install({

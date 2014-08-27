@@ -252,9 +252,9 @@ class Package(DBPackage):
     ##########################################################################
     # Methods
 
-    _python_lib_regex = re.compile(r'python[0-9.]+[a-z]?/lib/',
+    _python_lib_regex = re.compile(r'python[0-9.]+[a-z]?/lib/(?!vistrails)',
                                    re.IGNORECASE)
-    _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/',
+    _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/(?!vistrails)',
                                    re.IGNORECASE)
     def import_override(self, orig_import,
                         name, globals, locals, fromlist, level,
