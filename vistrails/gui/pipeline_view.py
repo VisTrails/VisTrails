@@ -1093,7 +1093,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 # m2_has, since m1_has and previous condition
                 m1.db_annotations_key_index['__desc__'].value.strip()!=
                 m2.db_annotations_key_index['__desc__'].value.strip()):
-                return True            
+                return True
             return False
 
         # def module_functions_have_changed(m1, m2):
@@ -1481,15 +1481,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     param = function.parameters[0]
             if hasattr(Widget, 'GraphicsItem'):
                 self.value_edit = Widget.GraphicsItem(param, self)
-                # resize to 150
                 rect = self.value_edit.boundingRect()
-                self.value_edit.setZValue(self.zValue()+0.2)
-                bg = QtGui.QGraphicsRectItem(rect, self.value_edit)
-                bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
-                bg.setZValue(-1)
                 scale = max(rect.width(), rect.height())
                 self.value_edit.setScale(150.0/scale)
                 rect.setSize(rect.size()*150.0/scale)
+                self.edit_bg = QtGui.QGraphicsRectItem(rect, self)
+                self.edit_bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
+                self.edit_bg.setZValue(-1)
+                self.edit_bg.mousePressEvent = lambda e:self.value_edit.setFocus()
             else:
                 SCALE = 3.0/4
                 self.value_edit = Widget(param)
@@ -1621,6 +1620,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             if self.value_edit:
                 if hasattr(self.edit_widget, 'GraphicsItem'):
                     self.value_edit.setPos(self.editRect.topLeft())
+                    self.edit_bg.setPos(self.editRect.topLeft())
                 else:
                     proxy.setPos(self.editRect.topLeft())
             if self.functions_widget:
@@ -2239,6 +2239,28 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.modules[m_id].setSelected(True)
             
     def update_module_functions(self, pipeline, m_id):
+        module = pipeline.modules[m_id]
+        if get_module_registry().is_constant_module(
+                                             module.module_descriptor.module):
+            found = False
+            for function in module.functions:
+                if function.name == 'value':
+                    found = True
+            if not found:
+                # function deleted so we need to recreate
+                self.recreate_module(pipeline, m_id)
+                return
+
+        # check if a visible function has been deleted
+        for port in module.editable_input_ports:
+            found = False
+            for function in module.functions:
+                if function.name == port:
+                    found = True
+            if not found:
+                # function deleted so we need to recreate
+                self.recreate_module(pipeline, m_id)
+                return
         self.modules[m_id].update_function_ports(pipeline.modules[m_id])
 
     def setupScene(self, pipeline):
@@ -3399,13 +3421,15 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 # resize to 150
                 rect = param_widget.boundingRect()
                 param_widget.setZValue(self.zValue()+0.2)
-                bg = QtGui.QGraphicsRectItem(rect, param_widget)
-                # TODO COLOR
-                bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
-                bg.setZValue(-1)
                 scale = max(rect.width(), rect.height())
                 param_widget.setScale(width/scale)
                 rect.setSize(rect.size()*width/scale)
+                bg = QtGui.QGraphicsRectItem(rect, self)
+                # TODO COLOR
+                bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
+                bg.setZValue(-1)
+                bg.setPos(0, height)
+                bg.mousePressEvent = lambda e:param_widget.setFocus()
                 param_widget.setPos(0, height)
             else:
                 param_widget = Widget(param)
@@ -3432,7 +3456,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
 
     def setContents(self, values):
         for pw, value in zip(self.param_widgets, values):
-            pw.setContents(value)
+            pw.setContents(value, silent=True)
 
     def boundingRect(self):
         return self.bounds

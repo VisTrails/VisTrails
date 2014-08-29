@@ -147,8 +147,89 @@ class ConstantEnumWidgetBase(ConstantWidgetBase):
     def setNonEmpty(self, is_non_empty):
         pass
 
+class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
+    """ A GraphicsItem version of ConstantWidget
+
+    """
+    contentsChanged = QtCore.pyqtSignal(tuple)
+    def __init__(self, param, parent=None):
+        QtGui.QGraphicsTextItem.__init__(self, parent)
+        self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.setTabChangesFocus(True)
+        self.setFont(CurrentTheme.MODULE_EDIT_FONT)
+        self.installEventFilter(self)
+        self.offset = 0
+        self.document().setDocumentMargin(1)
+        ConstantWidgetBase.__init__(self, param)
+        self.document().contentsChanged.connect(self.ensureCursorVisible)
+
+    def setContents(self, value, silent=False):
+        self.setPlainText(expression.evaluate_expressions(value))
+        if not silent:
+            self.update_parent()
+        block = self.document().firstBlock()
+        w = self.document().documentLayout().blockBoundingRect(block).width()
+        self.offset = max(w - 140, 0)
+        block.layout().lineAt(0).setPosition(QtCore.QPointF(-self.offset,0))
+
+    def contents(self):
+        contents = expression.evaluate_expressions(unicode(self.toPlainText()))
+        self.setPlainText(contents)
+        return contents
+
+    def setDefault(self, value):
+        self.setContents(value, silent=True)
+
+    def boundingRect(self):
+        return QtCore.QRectF(0.0, 0.0, 150, 14)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.KeyPress and \
+           event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
+                self.clearFocus()
+                return True
+        result = QtGui.QGraphicsTextItem.eventFilter(self, obj, event)
+        if event.type() in [QtCore.QEvent.KeyPress, QtCore.QEvent.MouseButtonPress, QtCore.QEvent.GraphicsSceneMouseMove]:
+            if not self.hasFocus():
+                self.setFocus()
+            self.ensureCursorVisible()
+        return result
+
+    def ensureCursorVisible(self):
+        block = self.document().firstBlock()
+        line = block.layout().lineAt(0)
+        pos = line.cursorToX(self.textCursor().positionInBlock())
+        cursor = self.document().documentLayout().blockBoundingRect(\
+                                     block).y() + pos[0] - line.position().x()
+        w = self.document().documentLayout().blockBoundingRect(block).width()
+        if cursor - self.offset > 130:
+            self.offset = min(w-140, self.offset + 25)
+        if cursor - self.offset < 20:
+            self.offset = max(0, self.offset - 25)
+        line.setPosition(QtCore.QPointF(-self.offset,0))
+        self.update()
+
+    def focusOutEvent(self, event):
+        self.update_parent()
+        result = QtGui.QGraphicsTextItem.focusOutEvent(self, event)
+        # show last part of text
+        block = self.document().firstBlock()
+        w = self.document().documentLayout().blockBoundingRect(block).width()
+        self.offset = max(w - 140, 0)
+        block.layout().lineAt(0).setPosition(QtCore.QPointF(-self.offset,0))
+        return result
+
+    def focusInEvent(self, event):
+        result = QtGui.QGraphicsTextItem.focusInEvent(self, event)
+        # set cursor to last if not already set
+        cursor = self.textCursor()
+        cursor.setPosition(self.document().firstBlock().length()-1)
+        self.setTextCursor(cursor)
+        return result
+
 class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
     contentsChanged = QtCore.pyqtSignal(tuple)
+    GraphicsItem = QGraphicsLineEdit
     def __init__(self, param, parent=None):
         QtGui.QLineEdit.__init__(self, parent)
         ConstantWidgetBase.__init__(self, param)
