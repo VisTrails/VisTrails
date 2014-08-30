@@ -175,8 +175,9 @@ def add_connection(output_id, output_port_spec, input_id, input_port_spec,
 def create_group(module_ids, connection_ids, controller=None):
     if controller is None:
         controller = get_current_controller()
-    controller.create_group(module_ids, connection_ids)
+    group = controller.create_group(module_ids, connection_ids)
     controller.updatePipelineScene()
+    return group
 
 def get_modules_by_name(name, package=None, namespace=None, controller=None):
     if controller is None:
