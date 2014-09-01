@@ -202,6 +202,9 @@ CREATE TABLE loop_exec(
     id int,
     ts_start datetime,
     ts_end datetime,
+    iteration int,
+    completed int,
+    error varchar(1023),
     parent_type char(32),
     entity_id int,
     entity_type char(16),
@@ -248,18 +251,6 @@ CREATE TABLE log_tbl(
     name varchar(255),
     last_modified datetime,
     vistrail_id int
-) engine=InnoDB;
-
-CREATE TABLE loop_iteration(
-    id int,
-    ts_start datetime,
-    ts_end datetime,
-    iteration int,
-    completed int,
-    error varchar(1023),
-    parent_id int,
-    entity_id int,
-    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE pe_parameter(
