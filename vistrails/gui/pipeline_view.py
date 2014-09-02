@@ -2595,10 +2595,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         return self.tmp_module_item
 
     def update_connections(self):
-        for module_id, list_depth in \
+        if self.current_pipeline.is_valid:
+            for module_id, list_depth in \
                            self.controller.current_pipeline.mark_list_depth():
-            if module_id in self.modules:
-                self.modules[module_id].module.list_depth = list_depth 
+                if module_id in self.modules:
+                    self.modules[module_id].module.list_depth = list_depth
         for c in self.connections.itervalues():
             c.setupConnection()
 
