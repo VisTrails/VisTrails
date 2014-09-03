@@ -1475,7 +1475,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.label = module.label
             self.description = ''
 
-        if get_vistrails_configuration().check('showInlineParameterWidgets') and \
+        if 0 and get_vistrails_configuration().check('showInlineParameterWidgets') and \
             module.is_valid and not read_only and get_module_registry(
                    ).is_constant_module(self.module.module_descriptor.module):
             desc = self.module.module_descriptor
@@ -1511,10 +1511,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.value_edit.contentsChanged.connect(self.value_changed)
 
         if get_vistrails_configuration().check('showInlineParameterWidgets') and \
-            module.is_valid and not read_only and not get_module_registry(
-            ).is_constant_module(self.module.module_descriptor.module) and \
-            module.editable_input_ports:
-            self.functions_widget = QGraphicsFunctionsWidget(self.module, self)
+            module.is_valid and not read_only and module.editable_input_ports:# and not get_module_registry(
+            #).is_constant_module(self.module.module_descriptor.module):
+            self.functions_widget = QGraphicsFunctionsWidget(self.module,
+                          self, module.editable_input_ports == set(['value']))
             self.functions_widget.function_changed.connect(self.function_changed)
             self.function_widgets = self.functions_widget.function_widgets
             self.edit_rect = self.functions_widget.boundingRect()
@@ -3351,7 +3351,7 @@ class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
     
     function_changed = QtCore.pyqtSignal(str, list)
 
-    def __init__(self, module, parent=None):
+    def __init__(self, module, parent=None, constant=None):
         QtGui.QGraphicsWidget.__init__(self, parent)
         self.function_widgets = []
         height = 0
@@ -3370,7 +3370,7 @@ class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
                 for f in module.functions:
                     if f.name == port_spec.name:
                         function = f
-                function_widget = QGraphicsFunctionWidget(function, self)
+                function_widget = QGraphicsFunctionWidget(function, self, constant)
                 function_widget.setPos(0, height)
                 function_widget.function_changed.connect(self.function_changed)
                 self.function_widgets.append(function_widget)
@@ -3387,7 +3387,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
 
     function_changed = QtCore.pyqtSignal(str, list)
 
-    def __init__(self, function, parent=None):
+    def __init__(self, function, parent=None, constant=None):
         QtGui.QGraphicsWidget.__init__(self, parent)
         self.function = function
         self.param_widgets = []
@@ -3395,30 +3395,32 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
         width = 150.0
         height = 0
         SCALE = 3.0/4
-        # add name label
-        name = self.function.name
-        bounds = CurrentTheme.MODULE_EDIT_FONT_METRIC.boundingRect
-        editRect = bounds(name)
-        if editRect.width()>150:
-            while bounds(name + '...').width() > 150:
-                name = name[:-1]
-            name += '...'
+        if not constant:
+            # add name label
+            name = self.function.name
+            bounds = CurrentTheme.MODULE_EDIT_FONT_METRIC.boundingRect
+            editRect = bounds(name)
+            if editRect.width()>150:
+                while bounds(name + '...').width() > 150:
+                    name = name[:-1]
+                name += '...'
+            fname = QtGui.QGraphicsTextItem(name, self)
+            fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
+            fname.setPos(-6, -6)
 
-        fname = QtGui.QGraphicsTextItem(name, self)
-        fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
-        fname.setPos(-6, -6)
-        names = []
-        sigstring = function.sigstring
-        for sig in sigstring[1:-1].split(','):
-            k = sig.split(':', 2)
-            if len(k) < 2:
-                names.append(k[0])
-            else:
-                names.append(k[1])
-        short_sigstring = '(' + ','.join(names) + ')'
-        tooltip = function.name + short_sigstring
-        fname.setToolTip(tooltip)
-        height += bounds(name).height()
+            names = []
+            sigstring = function.sigstring
+            for sig in sigstring[1:-1].split(','):
+                k = sig.split(':', 2)
+                if len(k) < 2:
+                    names.append(k[0])
+                else:
+                    names.append(k[1])
+            short_sigstring = '(' + ','.join(names) + ')'
+            tooltip = function.name + short_sigstring
+            fname.setToolTip(tooltip)
+    
+            height += bounds(name).height()
 
         for i in xrange(len(function.parameters)):
             param = function.parameters[i]

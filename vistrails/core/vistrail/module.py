@@ -265,8 +265,13 @@ class Module(DBModule):
 
     def _get_editable_input_ports(self):
         if self.has_annotation_with_key(Module.INLINE_WIDGET_ANNOTATION):
-            return set(self.get_annotation_by_key(
-                            Module.INLINE_WIDGET_ANNOTATION).value.split(','))
+            values = self.get_annotation_by_key(
+                             Module.INLINE_WIDGET_ANNOTATION).value.split(',')
+            return set() if values == [''] else set(values)
+        elif get_module_registry(
+                   ).is_constant_module(self.module_descriptor.module):
+            # Show value by default on constant modules
+            return set(['value'])
         return set()
     editable_input_ports = property(_get_editable_input_ports)
 
