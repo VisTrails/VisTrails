@@ -38,6 +38,7 @@ import os
 import string
 
 from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.basic_modules import identifier as basic_identifier
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.utils import create_port_spec_string
@@ -420,7 +421,6 @@ class PortsList(QtGui.QTreeWidget):
         self.entry_klass = ParameterEntry
         self.ports_visible = True
         self.types_visible = True
-        self.edits_visible = False
 
     def setReadOnly(self, read_only):
         self.setEnabled(not read_only)
@@ -450,7 +450,8 @@ class PortsList(QtGui.QTreeWidget):
             reg = get_module_registry()
             descriptor = module.module_descriptor
             if self.port_type == 'input':
-                self.setColumnHidden(0, not self.edits_visible)
+                self.setColumnHidden(0,not get_vistrails_configuration(
+                                        ).check('showInlineParameterWidgets'))
                 port_specs = module.destinationPorts()
                 connected_ports = module.connected_input_ports
                 visible_ports = module.visible_input_ports

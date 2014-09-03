@@ -35,6 +35,7 @@
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.system import systemType, vistrails_root_directory
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.utils import versions_increasing
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.module_annotation import QModuleAnnotationTable
@@ -49,7 +50,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         QtGui.QWidget.__init__(self, parent, flags)
         self.ports_visible = True
         self.types_visible = True
-        self.edits_visible = False
+
         self.build_widget()
         self.controller = None
         self.module = None
@@ -99,8 +100,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.update_module(self.module)
 
     def showEdits(self, checked):
-        self.edits_visible = checked
-        self.update_module(self.module)
+        get_vistrails_configuration().showInlineParameterWidgets = checked
+        scene = self.controller.current_pipeline_scene
+        scene.setupScene(self.controller.current_pipeline)
 
     def build_widget(self):
         name_label = QtGui.QLabel("Name:")
@@ -201,7 +203,6 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
     def update_module(self, module=None):
         for plist in self.ports_lists:
             plist.types_visible = self.types_visible
-            plist.edits_visible = self.edits_visible
             plist.ports_visible = self.ports_visible
         self.module = module
         for ports_list in self.ports_lists:

@@ -104,6 +104,7 @@ shell.fontFace: Console Font
 shell.fontSize: Console Font Size
 showConnectionErrors: Show error when input value doesn't match type during execution
 showDebugPopups: Always bring debug messages to the front
+showInlineParameterWidgets: Show editable parameters inside modules
 showScrollbars: Show scrollbars on the version tree and workflow canvases
 showSplash: Show VisTrails splash screen during startup
 showSpreadsheetOnly: Hides the VisTrails main window
@@ -512,6 +513,10 @@ withWorkflow: Boolean
 
     Output the workflow graph as an image.
 
+showInlineParameterWidgets: Boolean
+
+    Show editable parameters inside modules
+
 """
 
 class ConfigType(object):
@@ -659,6 +664,7 @@ base_config = {
      ConfigField('showVariantErrors', True, bool, ConfigType.SHOW_HIDE),
      ConfigField('showDebugPopups', False, bool, ConfigType.SHOW_HIDE),
      ConfigField('showScrollbars', True, bool, ConfigType.SHOW_HIDE),
+     ConfigField('showInlineParameterWidgets', False, bool, ConfigType.SHOW_HIDE),
      ConfigFieldParent('shell',
         [ConfigField('fontFace', system.shell_font_face(), str),
          ConfigField('fontSize', system.shell_font_size(), int)]),

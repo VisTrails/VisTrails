@@ -1077,6 +1077,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.connectionItems = {}
         self._cur_function_names = set()
         self.function_overview = 'No functions set'
+        self.show_widgets = get_vistrails_configuration(
+                                         ).check('showInlineParameterWidgets')
         self.function_widget = None
         self.function_widgets = []
         self.functions_widget = None
@@ -1101,7 +1103,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         #     f2_names = set([f.name for f in m2.functions])
         #     return (len(f1_names ^ f2_names) > 0)
 
-        if self.scenePos().x() != core_module.center.x or \
+        if self.show_widgets != get_vistrails_configuration(
+                                        ).check('showInlineParameterWidgets'):
+            return True
+        elif self.scenePos().x() != core_module.center.x or \
                 -self.scenePos().y() != core_module.center.y:
             return True
         elif module_text_has_changed(self.module, core_module):
@@ -1470,7 +1475,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.label = module.label
             self.description = ''
 
-        if module.is_valid and not read_only and get_module_registry(
+        if get_vistrails_configuration().check('showInlineParameterWidgets') and \
+            module.is_valid and not read_only and get_module_registry(
                    ).is_constant_module(self.module.module_descriptor.module):
             desc = self.module.module_descriptor
             Widget = get_widget_class(desc)
@@ -1504,13 +1510,15 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.edit_rect = rect
             self.value_edit.contentsChanged.connect(self.value_changed)
 
-        if module.is_valid and not read_only and not get_module_registry(
+        if get_vistrails_configuration().check('showInlineParameterWidgets') and \
+            module.is_valid and not read_only and not get_module_registry(
             ).is_constant_module(self.module.module_descriptor.module) and \
             module.editable_input_ports:
             self.functions_widget = QGraphicsFunctionsWidget(self.module, self)
             self.functions_widget.function_changed.connect(self.function_changed)
             self.function_widgets = self.functions_widget.function_widgets
             self.edit_rect = self.functions_widget.boundingRect()
+        
         self.setToolTip(self.description)
         self.computeBoundingRect()
         self.setPos(module.center.x, -module.center.y)
@@ -3398,7 +3406,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
 
         fname = QtGui.QGraphicsTextItem(name, self)
         fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
-        fname.setPos(-5, -5)
+        fname.setPos(-6, -6)
         names = []
         sigstring = function.sigstring
         for sig in sigstring[1:-1].split(','):
