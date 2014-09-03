@@ -3429,7 +3429,9 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
                 bg.setZValue(-1)
                 bg.setPos(0, height)
-                bg.mousePressEvent = lambda e:param_widget.setFocus()
+                def get_focusable(widget):
+                    return lambda e:widget.setFocus()
+                bg.mousePressEvent = get_focusable(param_widget)
                 param_widget.setPos(0, height)
             else:
                 param_widget = Widget(param)
