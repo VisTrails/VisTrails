@@ -307,6 +307,8 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
                                    callback)
             self.removeVarActions.append((removeVarAction, callback))
 
+
+
     def removeVar(self, var_uuid):
         (to_delete_modules, to_delete_conns) = \
             self.controller.get_disconnect_vistrail_vars( \
@@ -1475,41 +1477,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.label = module.label
             self.description = ''
 
-        if 0 and get_vistrails_configuration().check('showInlineParameterWidgets') and \
-            module.is_valid and not read_only and get_module_registry(
-                   ).is_constant_module(self.module.module_descriptor.module):
-            desc = self.module.module_descriptor
-            Widget = get_widget_class(desc)
-            self.edit_widget = Widget
-            param = Parameter(desc)
-            for function in self.module.functions:
-                if function.name == 'value':
-                    param = function.parameters[0]
-            if hasattr(Widget, 'GraphicsItem'):
-                self.value_edit = Widget.GraphicsItem(param, self)
-                rect = self.value_edit.boundingRect()
-                scale = max(rect.width(), rect.height())
-                self.value_edit.setScale(150.0/scale)
-                rect.setSize(rect.size()*150.0/scale)
-                self.edit_bg = QtGui.QGraphicsRectItem(rect, self)
-                self.edit_bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
-                self.edit_bg.setZValue(-1)
-                self.edit_bg.mousePressEvent = lambda e:self.value_edit.setFocus()
-            else:
-                SCALE = 3.0/4
-                self.value_edit = Widget(param)
-                self.value_edit.setMaximumSize(150.0/SCALE, 150.0/SCALE)
-                self.value_edit.setWindowFlags(QtCore.Qt.BypassGraphicsProxyWidget)
-                proxy = QtGui.QGraphicsProxyWidget(self)
-                proxy.setWidget(self.value_edit)
-                proxy.setScale(SCALE)
-                rect = self.value_edit.geometry() #proxy.boundingRect()
-                rect.setSize(rect.size()*SCALE)# uninitialized bounds need to be scaled
-                rect.moveTo(0.0,0.0)
-            rect.setHeight(rect.height()+2) # need to add expected parameter gap
-            self.edit_rect = rect
-            self.value_edit.contentsChanged.connect(self.value_changed)
-
         if get_vistrails_configuration().check('showInlineParameterWidgets') and \
             module.is_valid and not read_only and module.editable_input_ports:# and not get_module_registry(
             #).is_constant_module(self.module.module_descriptor.module):
@@ -1518,7 +1485,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.functions_widget.function_changed.connect(self.function_changed)
             self.function_widgets = self.functions_widget.function_widgets
             self.edit_rect = self.functions_widget.boundingRect()
-        
+
         self.setToolTip(self.description)
         self.computeBoundingRect()
         self.setPos(module.center.x, -module.center.y)
@@ -3355,6 +3322,7 @@ class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
         QtGui.QGraphicsWidget.__init__(self, parent)
         self.function_widgets = []
         height = 0
+        width = 0
         for port_spec in module.destinationPorts():
             if port_spec.name in module.editable_input_ports:
                 # create default dummies
@@ -3375,7 +3343,8 @@ class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
                 function_widget.function_changed.connect(self.function_changed)
                 self.function_widgets.append(function_widget)
                 height += function_widget.boundingRect().height()
-        self.bounds = QtCore.QRectF(0,0,150,height)
+                width = max(width,function_widget.boundingRect().width())
+        self.bounds = QtCore.QRectF(0,0,width,height)
 
     def boundingRect(self):
         return self.bounds
@@ -3392,21 +3361,24 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
         self.function = function
         self.param_widgets = []
         self.bounds = None
-        width = 150.0
+        width = 0
         height = 0
-        SCALE = 3.0/4
+        SCALE = 3.0/4 # make QWidgets a bit smaller than normal
+        MAX_WIDTH = 150
         if not constant:
             # add name label
             name = self.function.name
             bounds = CurrentTheme.MODULE_EDIT_FONT_METRIC.boundingRect
             editRect = bounds(name)
-            if editRect.width()>150:
-                while bounds(name + '...').width() > 150:
+            if editRect.width()>MAX_WIDTH:
+                while bounds(name + '...').width() > MAX_WIDTH:
                     name = name[:-1]
                 name += '...'
-            fname = QtGui.QGraphicsTextItem(name, self)
+            editRect = bounds(name)
+            width = max(width, editRect.width())
+            fname = QtGui.QGraphicsSimpleTextItem(name, self)
             fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
-            fname.setPos(-6, -6)
+            fname.setPos(-2, -2)
 
             names = []
             sigstring = function.sigstring
@@ -3419,7 +3391,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
             short_sigstring = '(' + ','.join(names) + ')'
             tooltip = function.name + short_sigstring
             fname.setToolTip(tooltip)
-    
+
             height += bounds(name).height()
 
         for i in xrange(len(function.parameters)):
@@ -3428,12 +3400,13 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
             Widget = get_widget_class(function.get_spec('input').items[i].descriptor)
             if hasattr(Widget, 'GraphicsItem'):
                 param_widget = Widget.GraphicsItem(param, self)
-                # resize to 150
+                # resize to MAX_WIDTH
                 rect = param_widget.boundingRect()
                 param_widget.setZValue(self.zValue()+0.2)
                 scale = max(rect.width(), rect.height())
-                param_widget.setScale(width/scale)
-                rect.setSize(rect.size()*width/scale)
+                if scale>MAX_WIDTH:
+                    param_widget.setScale(MAX_WIDTH/scale)
+                    rect.setSize(rect.size()*MAX_WIDTH/scale)
                 bg = QtGui.QGraphicsRectItem(rect, self)
                 # TODO COLOR
                 bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
@@ -3445,15 +3418,19 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 param_widget.setPos(0, height)
             else:
                 param_widget = Widget(param)
-                param_widget.setMaximumSize(width/SCALE, width/SCALE)
+                name = unicode(id(param_widget))
+                param_widget.setStyleSheet('QWidget#%s{background-color:transparent};' % name)
+                param_widget.setObjectName(name)
+                param_widget.setMaximumSize(MAX_WIDTH/SCALE, MAX_WIDTH/SCALE)
                 param_widget.setWindowFlags(QtCore.Qt.BypassGraphicsProxyWidget)
                 proxy = QtGui.QGraphicsProxyWidget(self)
                 proxy.setWidget(param_widget)
                 proxy.setScale(SCALE)
-                rect = param_widget.geometry() #proxy.boundingRect()
+                rect = param_widget.geometry()
                 rect.setSize(rect.size()*SCALE)# uninitialized bounds need to be scaled
                 rect.moveTo(0.0,0.0)
                 proxy.setPos(0, height)
+            width = max(width, rect.width())
             rect.setHeight(rect.height()+2) # space between parameters
             height += rect.height()
             param_widget.contentsChanged.connect(self.param_changed)
