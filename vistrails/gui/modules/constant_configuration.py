@@ -45,6 +45,7 @@ from vistrails.core.utils import any, expression, versions_increasing
 from vistrails.core import system
 from vistrails.gui.theme import CurrentTheme
 
+import copy
 import os
 
 ############################################################################
@@ -227,6 +228,21 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         cursor = self.textCursor()
         cursor.setPosition(self.document().firstBlock().length()-1)
         self.setTextCursor(cursor)
+        return result
+
+    def paint(self, painter, option, widget):
+        """ Override striped selection border
+            First unset selected and hasfocus flags
+            Then draw custom rect """
+        s = QtGui.QStyle.State_Selected | QtGui.QStyle.State_HasFocus
+        state = s.__class__(option.state) # option.state
+        option.state &= ~s
+        painter.pen().setWidth(1)
+        result = QtGui.QGraphicsTextItem.paint(self, painter, option, widget)
+        option.state = state
+        if state & s:
+            painter.setPen(QtGui.QPen(QtCore.Qt.cyan,1))
+            painter.drawRect(self.boundingRect())
         return result
 
 class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
