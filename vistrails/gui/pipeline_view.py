@@ -2215,27 +2215,14 @@ class QPipelineScene(QInteractiveGraphicsScene):
             
     def update_module_functions(self, pipeline, m_id):
         module = pipeline.modules[m_id]
-        if get_module_registry().is_constant_module(
-                                             module.module_descriptor.module):
-            found = False
-            for function in module.functions:
-                if function.name == 'value':
-                    found = True
-            if not found:
-                # function deleted so we need to recreate
-                self.recreate_module(pipeline, m_id)
-                return
-
         # check if a visible function has been deleted
-        for port in module.editable_input_ports:
-            found = False
-            for function in module.functions:
-                if function.name == port:
-                    found = True
-            if not found:
-                # function deleted so we need to recreate
-                self.recreate_module(pipeline, m_id)
-                return
+        before = set([f.name for f in
+                    self.controller.current_pipeline.modules[m_id].functions])
+        after = set([f.name for f in module.functions])
+        if (before - after) & module.editable_input_ports:
+            # function deleted so we need to recreate module with empty widget
+            self.recreate_module(pipeline, m_id)
+            return
         self.modules[m_id].update_function_ports(pipeline.modules[m_id])
 
     def setupScene(self, pipeline):
@@ -3413,7 +3400,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 bg.setZValue(-1)
                 bg.setPos(0, height)
                 def get_focusable(widget):
-                    return lambda e:widget.setFocus()
+                    return lambda e:widget.setFocus() or widget.mousePressEvent(e)
                 bg.mousePressEvent = get_focusable(param_widget)
                 param_widget.setPos(0, height)
             else:
