@@ -324,6 +324,7 @@ class AggregatedTable(TableObject):
         def average(value_iter):
             # value_iter can only be used once
             sum = 0
+            count = 0
             for count, v in enumerate(value_iter):
                 sum += v
             return sum / (count+1)
@@ -342,7 +343,7 @@ class AggregatedTable(TableObject):
                 return [op_map[self.op](col[idx] for idx in x[1])
                         for x in self.agg_rows]
             else:
-                raise ValueError('Unknown operation: "%s"' % op)
+                raise ValueError('Unknown operation: "%s"' % self.op)
 
 class AggregateColumn(Table):
     _input_ports = [('table', 'Table'),
