@@ -105,7 +105,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         
         """
         QtGui.QWidget.__init__(self, parent)
-        self.setWindowTitle('Properties')
+        self.setWindowTitle('Workflow Info')
 
         vLayout = QtGui.QVBoxLayout()
         vLayout.setMargin(2)

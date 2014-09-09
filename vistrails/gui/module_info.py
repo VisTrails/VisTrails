@@ -39,6 +39,7 @@ from vistrails.core.utils import versions_increasing
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.module_annotation import QModuleAnnotationTable
 from vistrails.gui.ports_pane import PortsList
+from vistrails.gui.version_prop import QVersionProp
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
@@ -119,7 +120,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
 
         layout.setAlignment(QtCore.Qt.AlignTop)
         self.setLayout(layout)
-        self.setWindowTitle('Module Information')
+        self.setWindowTitle('Module Info')
 
     def setReadOnly(self, read_only):
         if read_only != self.read_only:
@@ -152,6 +153,12 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.annotations.updateModule(module)
 
         if module is None:
+            # We show the version properties tab if both are tabified and
+            # self is visible
+            if not self.toolWindow().isFloating() and \
+               not QVersionProp.instance().toolWindow().isFloating() and \
+               not self.toolWindow().visibleRegion().isEmpty():
+                QVersionProp.instance().set_visible(True)
             self.name_edit.setText("")
             if not versions_increasing(QtCore.QT_VERSION_STR, '4.7.0'):
                 self.name_edit.setPlaceholderText("")
@@ -161,6 +168,12 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.package_edit.setText("")
             self.module_id.setText("")
         else:
+            # We show self  if both are tabified and
+            # the version properties tab is visible
+            if not self.toolWindow().isFloating() and \
+               not QVersionProp.instance().toolWindow().isFloating() and \
+               not QVersionProp.instance().toolWindow().visibleRegion().isEmpty():
+                self.set_visible(True)
             if module.has_annotation_with_key('__desc__'):
                 label = module.get_annotation_by_key('__desc__').value.strip()
             else:
