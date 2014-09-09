@@ -1,7 +1,7 @@
 import itertools
 
 import vistrails.core.application
-from vistrails.core.db.locator import FileLocator, untitled_locator
+from vistrails.core.db.locator import FileLocator
 import vistrails.core.db.io
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import identifier as basic_pkg

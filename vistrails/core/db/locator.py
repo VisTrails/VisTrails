@@ -753,9 +753,3 @@ class FileLocator(CoreLocator):
                                mashuptrail=mashuptrail,
                                mashupVersion=mashupVersion,
                                parameterExploration=parameterExploration)
-        
-        
-    ##########################################################################
-
-def untitled_locator():
-    return UntitledLocator()
