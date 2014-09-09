@@ -1512,6 +1512,8 @@ class Module(Serializable):
 
     @deprecated("get_input")
     def getInputFromPort(self, *args, **kwargs):
+        if 'allowDefault' in kwargs:
+            kwargs['allow_default'] = kwargs.pop('allowDefault')
         return self.get_input(*args, **kwargs)
 
     @deprecated("get_input_list")
