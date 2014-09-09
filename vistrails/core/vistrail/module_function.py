@@ -52,11 +52,6 @@ import vistrails.core
 
 ################################################################################
 
-PipelineElementType = enum('PipelineElementType',
-                           ['Module', 'Connection', 'Function', 'Parameter'])
-
-################################################################################
-
 class ModuleFunction(DBFunction):
     __fields__ = ['name', 'returnType', 'params']
     """ Stores a function from a vistrail module """

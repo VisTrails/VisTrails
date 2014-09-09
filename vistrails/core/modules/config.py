@@ -435,7 +435,6 @@ def parse_documentation():
         field, field_type = line.strip().split(':', 1)
         (cls_name, field_name) = field.split('.')
         doc_lines = []
-        done_with_doc = False
         line = line_iter.next()
         while True:
             line = line_iter.next()
