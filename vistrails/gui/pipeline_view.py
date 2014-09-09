@@ -1477,11 +1477,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.label = module.label
             self.description = ''
 
+        # Show inline edit widgets
         if get_vistrails_configuration().check('showInlineParameterWidgets') and \
-            module.is_valid and not read_only and module.editable_input_ports:# and not get_module_registry(
-            #).is_constant_module(self.module.module_descriptor.module):
+            module.is_valid and not read_only and module.editable_input_ports:
             self.functions_widget = QGraphicsFunctionsWidget(self.module,
                           self, module.editable_input_ports == set(['value']))
+            set_lod(0.5, self.functions_widget)
             self.functions_widget.function_changed.connect(self.function_changed)
             self.function_widgets = self.functions_widget.function_widgets
             self.edit_rect = self.functions_widget.boundingRect()
@@ -3436,6 +3437,35 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
 
     def boundingRect(self):
         return self.bounds
+
+def set_lod(limit, item, lod=None):
+    """ Set level of detail by wrapping paint methods and checking limit.
+        This will set lod of all children, so different lod:s need to be set
+        top down.
+
+        current_lod is calculated for the top item so that children scaling
+        is ignored
+
+        currently the top widget cannot have a scale factor
+
+    """
+    paint = item.paint # store reference to original paint method
+    top_item = lod is None
+    if lod is None:
+        class Lod:
+            pass
+        lod = Lod()
+        lod.scale = item.scale()
+    def add_lod_paint(painter, option, widget):
+        if top_item: # fixes children having different scaling (also faster)
+            lod.current =  option.levelOfDetailFromTransform(
+                                                    painter.worldTransform())
+        if lod.current < limit:
+            return
+        return paint(painter, option, widget)
+    item.paint = add_lod_paint
+    for i in item.childItems():
+        set_lod(limit, i, lod)
 
 class QModuleStatusEvent(QtCore.QEvent):
     """
