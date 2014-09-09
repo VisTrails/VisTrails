@@ -93,7 +93,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         self.sceneBoundingRect = QtCore.QRectF()
         self.multiSelecting = False
         
-    def updateSceneBoundingRect(self, keep_square=True):
+    def updateSceneBoundingRect(self, keep_square=False):
         """ updateSceneBoundingRect() -> None        
         Compute the actual bounding rect of all shapes, then update
         the scene rect to be much wider for panning
