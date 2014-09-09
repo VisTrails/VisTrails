@@ -214,7 +214,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self._file_pool = FilePool()
         self._persistent_pipeline = vistrails.core.vistrail.pipeline.Pipeline()
         self._objects = {}
-        self._executed = {}
         self.filePool = self._file_pool
         self._streams = []
 
@@ -224,7 +223,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         for obj in self._objects.itervalues():
             obj.clear()
         self._objects = {}
-        self._executed = {}
 
     def __del__(self):
         self.clear()
