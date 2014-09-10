@@ -426,8 +426,9 @@ class PortsList(QtGui.QTreeWidget):
         self.setEnabled(not read_only)
 
     def set_entry_klass(self, entry_klass):
-        self.entry_klass = entry_klass
-        self.update_module(self.module)
+        if entry_klass != entry_klass:
+            self.entry_klass = entry_klass
+            self.update_module(self.module)
 
     def update_module(self, module):
         """ update_module(module: Module) -> None        
