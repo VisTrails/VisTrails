@@ -129,6 +129,8 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                 widget.setReadOnly(read_only)
 
     def set_controller(self, controller):
+        if self.controller == controller:
+            return
         self.controller = controller
         for ports_list in self.ports_lists:
             ports_list.set_controller(controller)
