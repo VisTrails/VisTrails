@@ -1106,7 +1106,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         #     return (len(f1_names ^ f2_names) > 0)
 
         if self.show_widgets != get_vistrails_configuration(
-                                        ).check('showInlineParameterWidgets'):
+                                   ).check('showInlineParameterWidgets') and \
+           core_module.editable_input_ports:
             return True
         elif self.scenePos().x() != core_module.center.x or \
                 -self.scenePos().y() != core_module.center.y:
@@ -2059,6 +2060,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.read_only_mode = False
         self.current_pipeline = None
         self.current_version = -1
+        self.skip_update = False
 
         self.tmp_module_item = None
         self.tmp_input_conn = None
@@ -2124,7 +2126,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             dstPortItem.addVistrailVar(
                 self.controller.get_vistrail_variable_by_uuid(var_uuid))
             dstPortItem.addVistrailVar(var_uuid)
-        self.update_connections()
+        self.update_connections([srcModule.id, dstModule.id])
         return connectionItem
 
     def selected_subgraph(self):
@@ -2184,8 +2186,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.removeItem(self.connections[c_id])
         del self.connections[c_id]
         self._old_connection_ids.remove(c_id)
-        self.update_connections()
-        
+        self.update_connections([srcModule.id, dstModule.id])
 
     def recreate_module(self, pipeline, m_id):
         """recreate_module(pipeline, m_id): None
@@ -2233,7 +2234,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         old_pipeline = self.current_pipeline
         self.current_pipeline = pipeline
-
         if self.noUpdate: return
         if (pipeline is None or 
             (old_pipeline and not old_pipeline.is_valid) or 
@@ -2241,12 +2241,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
             # clear things
             self.clear()
         if not pipeline: return 
-        
-        if pipeline and pipeline.is_valid:
-            pipeline.mark_list_depth()
 
         needReset = len(self.items())==0
         try:
+            self.skip_update = True
             new_modules = set(pipeline.modules)
             modules_to_be_added = new_modules - self._old_module_ids
             modules_to_be_deleted = self._old_module_ids - new_modules
@@ -2256,6 +2254,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             connections_to_be_added = new_connections - self._old_connection_ids
             connections_to_be_deleted = self._old_connection_ids - new_connections
             common_connections = new_connections.intersection(self._old_connection_ids)
+
 
             # Check if connections to be added require 
             # optional ports in modules to be visible
@@ -2336,6 +2335,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 "in that package)") % (e._identifier, e._name))
             self.clear()
             self.controller.change_selected_version(0)
+        finally:
+            self.skip_update = False
+            self.update_connections()
 
         if needReset and len(self.items())>0:
             self.fitToAllViews()
@@ -2742,10 +2744,12 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         return self.tmp_module_item
 
-    def update_connections(self):
+    def update_connections(self, modules=None):
+        if self.skip_update:
+            return
         if self.controller.current_pipeline.is_valid:
             for module_id, list_depth in \
-                           self.controller.current_pipeline.mark_list_depth():
+                    self.controller.current_pipeline.mark_list_depth(modules):
                 if module_id in self.modules:
                     self.modules[module_id].module.list_depth = list_depth
         for c in self.connections.itervalues():
