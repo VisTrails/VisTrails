@@ -643,6 +643,9 @@ class DefaultTheme(DefaultCoreTheme):
         self.PIP_FRAME_COLOR = QtGui.QColor(
             *(ColorByName.get_int('yellow_light')))
 
+        # Color for invalid parameter frames
+        self.PARAM_INVALID_COLOR = QtGui.QColor('#efef00')
+
         # Color of selected methods in the modules method area
         self.METHOD_SELECT_COLOR = QtGui.QColor(
             *ColorByName.get_int('yellow_light'))

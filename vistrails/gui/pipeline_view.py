@@ -1084,7 +1084,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.function_widget = None
         self.function_widgets = []
         self.functions_widget = None
-        self.value_edit = None
         self.edit_rect = QtCore.QRectF(0.0, 0.0, 0.0, 0.0)
         self.handlePositionChanges = True
 
@@ -1209,10 +1208,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.function_overview = 'No functions set'
 
         self.module = core_module
-        if self.value_edit:
-            for f in self.module.functions:
-                if f.name == 'value':
-                    self.value_edit.setContents(f.parameters[0].strValue)
         for function_widget in self.function_widgets:
             for f in self.module.functions:
                 if f.name == function_widget.function.name:
@@ -1593,13 +1588,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             except ModuleRegistryException, e:
                 error = e
 
-
-            if self.value_edit:
-                if hasattr(self.edit_widget, 'GraphicsItem'):
-                    self.value_edit.setPos(self.editRect.topLeft())
-                    self.edit_bg.setPos(self.editRect.topLeft())
-                else:
-                    proxy.setPos(self.editRect.topLeft())
             if self.functions_widget:
                 self.functions_widget.setPos(self.editRect.topLeft())
 
@@ -3323,13 +3311,16 @@ class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
                     param = ModuleParam(type=psi.descriptor.name,
                                         identifier=psi.descriptor.identifier,
                                         namespace=psi.descriptor.namespace)
-                    param.port_spec_item = psi
                     params.append(param)
                 function = ModuleFunction(name=port_spec.name,
                                           parameters=params)
                 for f in module.functions:
                     if f.name == port_spec.name:
                         function = f
+
+                for psi, param in zip(port_spec.port_spec_items, 
+                                                             function.params):
+                    param.port_spec_item = psi
                 function_widget = QGraphicsFunctionWidget(function, self, constant)
                 function_widget.setPos(0, height)
                 function_widget.function_changed.connect(self.function_changed)

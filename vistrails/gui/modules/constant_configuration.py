@@ -160,6 +160,7 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         self.setFont(CurrentTheme.MODULE_EDIT_FONT)
         self.installEventFilter(self)
         self.offset = 0
+        self.is_valid = True
         self.document().setDocumentMargin(1)
         ConstantWidgetBase.__init__(self, param)
         self.document().contentsChanged.connect(self.ensureCursorVisible)
@@ -172,11 +173,24 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         w = self.document().documentLayout().blockBoundingRect(block).width()
         self.offset = max(w - 140, 0)
         block.layout().lineAt(0).setPosition(QtCore.QPointF(-self.offset,0))
+        self.validate(value)
 
     def contents(self):
         contents = expression.evaluate_expressions(unicode(self.toPlainText()))
         self.setPlainText(contents)
+        self.validate(contents)
         return contents
+
+    def validate(self, value):
+        try:
+            self.psi and \
+            self.psi.descriptor.module.translate_to_python(value)
+        except Exception, e:
+            self.setToolTip("Invalid value: %s" % str(e))
+            self.is_valid = False
+        else:
+            self.setToolTip("")
+            self.is_valid = True
 
     def setDefault(self, value):
         self.setContents(value, silent=True)
@@ -240,8 +254,13 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         painter.pen().setWidth(1)
         result = QtGui.QGraphicsTextItem.paint(self, painter, option, widget)
         option.state = state
+
         if state & s:
-            painter.setPen(QtGui.QPen(QtCore.Qt.cyan,1))
+            color = QtGui.QApplication.palette().color(QtGui.QPalette.Highlight)
+            painter.setPen(QtGui.QPen(color, 0))
+            painter.drawRect(self.boundingRect())
+        elif not self.is_valid:
+            painter.setPen(QtGui.QPen(CurrentTheme.PARAM_INVALID_COLOR, 0))
             painter.drawRect(self.boundingRect())
         return result
 
@@ -256,23 +275,28 @@ class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
 
     def setContents(self, value, silent=False):
         self.setText(expression.evaluate_expressions(value))
+        self.validate(value)
         if not silent:
             self.update_parent()
 
     def contents(self):
         contents = expression.evaluate_expressions(unicode(self.text()))
         self.setText(contents)
+        self.validate(contents)
+        return contents
+
+    def validate(self, value):
         try:
             self.psi and \
-            self.psi.descriptor.module.translate_to_python(contents)
+            self.psi.descriptor.module.translate_to_python(value)
         except Exception, e:
             # Color background yellow and add tooltip
-            self.setStyleSheet("border:2px dashed #efef00;")
+            self.setStyleSheet("border:2px dashed %s;" %
+                               CurrentTheme.PARAM_INVALID_COLOR.name())
             self.setToolTip("Invalid value: %s" % str(e))
         else:
             self.setStyleSheet("")
             self.setToolTip("")
-        return contents
 
     def setDefault(self, value):
         setPlaceholderTextCompat(self, value)
