@@ -48,6 +48,7 @@ Intermediate Concepts and VisTrails Packages
 .. toctree::
    :maxdepth: 2
 
+   parameter_widgets
    controlflow
    cfassistant
    list_handling

@@ -85,7 +85,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.showEditsAction = QtGui.QAction(
                  QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                           'gui/resources/images/pencil.png')),
-                 "Show/hide edit widget toggle buttons",
+                 "Show/hide parameter widgets",
                  None,
                  triggered=self.showEdits)
         self.showEditsAction.setCheckable(True)
