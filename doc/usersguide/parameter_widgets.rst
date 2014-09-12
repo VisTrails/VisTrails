@@ -13,7 +13,7 @@ Parameter widgets are editable parameters inside modules in the pipeline
 view. They can be used to give an overview of the parameters in a workflow, or to
 quickly edit parameters without the usual clicking on a module and selecting
 the parameter in the 'Module Info' panel.
-Figure :ref:`Example 1.1 <fig-edit-widgets-example>` shows a complete workflow
+:ref:`Figure 1 <fig-edit-widgets-example>` shows a complete workflow
 using parameter widgets. :vtl:`(open in vistrails) <parameter_widgets.vt>`
 
 .. _fig-edit-widgets-example:
@@ -22,13 +22,13 @@ using parameter widgets. :vtl:`(open in vistrails) <parameter_widgets.vt>`
    :align: center
    :width: 100%
 
-   Example 1.1 - Complex Workflow with Parameter Widgets.
+   Figure 1 - Complex Workflow with Parameter Widgets.
 
 Enabling Parameter Widgets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Parameter widgets are hidden by default, but can be enabled by toggling the
-pencil icon in the 'Module Info' panel (See Figure :ref:`Example 1.2 <fig-enabling-edit-widgets>`).
+pencil icon in the 'Module Info' panel (See :ref:`Figure 2 <fig-enabling-edit-widgets>`).
 This will show all existing parameter widgets as well as the pencil icons
 in 'Module Info' for adding new ones.
 
@@ -38,13 +38,13 @@ in 'Module Info' for adding new ones.
    :align: center
    :width: 30%
 
-   Example 1.2 - How to enable/disable the Parameter Widgets mode.
+   Figure 2 - How to enable/disable the Parameter Widgets mode.
 
 Adding a parameter widget to a module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A parameter widget can be enabled or disabled in the 'Module Info' panel by
-toggling the pencil icon (See Figure :ref:`Example 1.3 <fig-edit-widget>`). Only
+toggling the pencil icon (See :ref:`Figure 3 <fig-edit-widget>`). Only
 parameters of constant type that have widgets for editing can be added.
 
 Constant modules such as String and Integer show a parameter widget for 'value'
@@ -56,7 +56,7 @@ by default, but it can be removed using the 'Module Info' panel if needed.
    :align: center
    :width: 60%
 
-   Example 1.3 - How to add/remove Parameter Widgets from modules.
+   Figure 3 - How to add/remove Parameter Widgets from modules.
 
 Limitations
 ^^^^^^^^^^^
