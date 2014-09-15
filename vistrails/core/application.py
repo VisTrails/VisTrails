@@ -165,16 +165,6 @@ class VistrailsApplicationInterface(object):
             self.temp_configuration)
 
         # now we want to open vistrails and point to a specific version
-        # we will store the version in temp options as it doesn't
-        # need to be persistent. We will do the same to database
-        # information passed in the command line
-        self.temp_db_options = InstanceObject(host=None,
-                                           port=None,
-                                           db=None,
-                                           user=None,
-                                           vt_id=None,
-                                           parameters=None
-                                           ) 
 
         self.check_all_requirements()
 
@@ -253,7 +243,7 @@ class VistrailsApplicationInterface(object):
     def process_interactive_input(self):
         pe = None
         usedb = False
-        if self.temp_db_options is not None and self.temp_db_options.host:
+        if self.temp_configuration.check('host'):
             usedb = True
         if self.input:
             #check if versions are embedded in the filename
@@ -269,14 +259,15 @@ class VistrailsApplicationInterface(object):
                     # it can be either a FileLocator or a DBLocator
                     
                 elif usedb:
-                    locator = DBLocator(host=self.temp_db_options.host,
-                                        port=self.temp_db_options.port,
-                                        database=self.temp_db_options.db,
-                                        user='',
-                                        passwd='',
-                                        obj_id=f_name,
-                                        obj_type=None,
-                                        connection_id=None)
+                    locator = DBLocator(
+                           host=self.temp_configuration.check('host'),
+                           port=self.temp_configuration.check('port') or 3306,
+                           database=self.temp_configuration.check('db'),
+                           user='',
+                           passwd='',
+                           obj_id=f_name,
+                           obj_type=None,
+                           connection_id=None)
                 if locator:
                     if self.temp_configuration.check('parameterExploration'):
                         pe = version
