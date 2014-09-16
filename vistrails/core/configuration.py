@@ -874,6 +874,8 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
         parser.add_argument('vistrails', metavar='vistrail', type=str,
                             nargs='*', help="Vistrail to open")
         _usage_args.add('vistrails')
+        parser.add_argument('--version', action='version',
+                            version=system.about_string())
 
 
     prefix_dashes = ''
