@@ -1241,6 +1241,8 @@ class StringFormat(Module):
 
     def compute(self):
         fmt = self.get_input('format')
+        if isinstance(fmt, bytes):
+            fmt = fmt.decode('utf-8')
         args, kwargs = StringFormat.list_placeholders(fmt)
         f_args = [self.get_input('_%d' % n)
                   for n in xrange(args)]
@@ -1778,7 +1780,9 @@ class TestStringFormat(unittest.TestCase):
                     (0, 'input', n, t)
                     for n, (t, v) in kwargs.iteritems()
                 ]))
-        self.assertEqual(results, [expected])
+        self.assertEqual(len(results), 1)
+        self.assertTrue(isinstance(results[0], unicode))
+        self.assertEqual(results[0], expected)
 
     def test_format(self):
         self.run_format('{{ {a} }} b {c!s}', '{ 42 } b 12',
@@ -1788,12 +1792,16 @@ class TestStringFormat(unittest.TestCase):
     # Python 2.6 doesn't support {}
     @unittest.skipIf(sys.version_info < (2, 7), "No {} support on 2.6")
     def test_format_27(self):
-        self.run_format('{} {}', 'a b',
+        self.run_format('{} {}', u'a b',
                         _0=('String', 'a'), _1=('String', 'b'))
-        self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',
+        self.run_format('{{ {a} {} {b!s}', u'{ 42 b 12',
                         a=('Integer', '42'), _0=('String', 'b'),
                         b=('Integer', '12'))
-        self.run_format('{} {} {!r}{ponc} {:.2f}', "hello dear 'world'! 1.33",
+        if sys.version_info < (3,):
+            expected = u"hello dear u'world'! 1.33"
+        else:
+            expected = u"hello dear 'world'! 1.33"
+        self.run_format('{} {} {!r}{ponc} {:.2f}', expected,
                         _0=('String', 'hello'), _1=('String', 'dear'),
                         _2=('String', 'world'), _3=('Float', '1.333333333'),
                         ponc=('String', '!'))
