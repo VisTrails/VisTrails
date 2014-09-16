@@ -794,6 +794,7 @@ class PackageManager(object):
                 name = entry_point.module_name.rsplit('.', 1)
                 if len(name) > 1:
                     prefix, name = name
+                    prefix = '%s.' % prefix
                 else:
                     prefix = ''
                     name, = name
