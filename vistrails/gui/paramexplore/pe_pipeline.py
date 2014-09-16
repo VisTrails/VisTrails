@@ -115,12 +115,12 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         
         x = rect.left()
         if align & QtCore.Qt.AlignHCenter:
-            x = rect.left() + rect.width()/2-size/2
+            x = rect.left() + rect.width()//2-size//2
         if align & QtCore.Qt.AlignRight:
             x = rect.left() + rect.width()-size
         y = rect.top()
         if align & QtCore.Qt.AlignVCenter:
-            y = rect.top() + rect.height()/2-size/2
+            y = rect.top() + rect.height()//2-size//2
         if align & QtCore.Qt.AlignBottom:
             y = rect.top() + rect.height()-size
             

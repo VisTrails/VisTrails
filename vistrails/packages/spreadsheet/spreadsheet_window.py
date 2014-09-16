@@ -304,8 +304,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 self.visApp.builderWindow.updateGeometry()
                 frame = self.visApp.builderWindow.frameGeometry()
                 rect = self.visApp.builderWindow.rect()
-                frameDiff = QtCore.QPoint((frame.width()-rect.width())/2,
-                                          (frame.height()-rect.height())/2)
+                frameDiff = QtCore.QPoint((frame.width()-rect.width())//2,
+                                          (frame.height()-rect.height())//2)
                 self.visApp.builderWindow.move(
                     frame.topLeft()+r.center()-frame.center())
                 for i in xrange(desktop.numScreens()):

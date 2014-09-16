@@ -254,8 +254,8 @@ def _pipelinePositions(sheetCount, rowCount, colCount,
     pipelinePositions = []
     for pId in xrange(len(pipelines)):
         col = pId % colCount
-        row = (pId / colCount) % rowCount
-        sheet = (pId / (colCount*rowCount)) % sheetCount
+        row = (pId // colCount) % rowCount
+        sheet = (pId // (colCount*rowCount)) % sheetCount
         pipelinePositions.append((row, col, sheet))
     return pipelinePositions
 

@@ -234,7 +234,7 @@ class ImageViewerZoomSlider(QtGui.QSlider):
         if self.toolBar:
             cellWidget = self.toolBar.getSnappedWidget()
             if not cellWidget.label.hasScaledContents():
-                newWidth = cellWidget.originalPix.width()*value/100
+                newWidth = cellWidget.originalPix.width()*value//100
                 pixmap = cellWidget.originalPix.scaledToWidth(newWidth)
                 cellWidget.label.setPixmap(pixmap)
 
@@ -249,7 +249,7 @@ class ImageViewerZoomSlider(QtGui.QSlider):
                 not cellWidget._playing):
                 self.setEnabled(True)
                 originalWidth = cellWidget.originalPix.width()
-                self.setValue(cellWidget.label.pixmap().width()*100/originalWidth)
+                self.setValue(cellWidget.label.pixmap().width()*100//originalWidth)
             else:
                 self.setEnabled(False)
                 self.setValue(100)

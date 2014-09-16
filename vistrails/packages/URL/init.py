@@ -139,7 +139,7 @@ class Downloader(object):
                 if self.size_header is not None:
                     self.module.logging.update_progress(
                             self.module,
-                            dl_size*1.0/self.size_header)
+                            dl_size * 1.0/self.size_header)
                 chunk = response.read(CHUNKSIZE)
                 if not chunk:
                     break

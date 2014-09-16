@@ -232,7 +232,8 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
                 QtGui.QColor(0.8549*255, 0.6971*255, 0.2255*255)), self.padding))
             r = self.table.visualRect(index)
             painter.setClipRegion(QtGui.QRegion(r))
-            r.adjust(self.padding/2,self.padding/2,-self.padding/2,-self.padding/2)
+            r.adjust(self.padding//2, self.padding//2,
+                     -self.padding//2, -self.padding//2)
             painter.drawRoundedRect(r, self.padding, self.padding)
             painter.restore()
 

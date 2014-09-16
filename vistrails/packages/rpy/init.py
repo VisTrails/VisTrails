@@ -255,7 +255,7 @@ class NestedListFromRMatrix(Module):
         rmatrix = self.get_input('rmatrix')
         mlist = list(rmatrix)
         nrows = rmatrix.nrow
-        ncols = len(mlist) / nrows
+        ncols = len(mlist) // nrows
         olist = [] 
         for row in xrange(nrows):
             olist.append(mlist[row*ncols:(row+1)*ncols])
