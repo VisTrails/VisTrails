@@ -1205,8 +1205,6 @@ class ConfigurationObject(DBConfiguration):
                 return False
             val1 = getattr(self, name)
             val2 = getattr(other, name)
-            if type(val1) != type(val2):
-                return False
             if val1 != val2:
                 return False
         for name in other.keys():
