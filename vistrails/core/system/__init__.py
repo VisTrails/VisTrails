@@ -345,12 +345,12 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "269e4808eca3"
+        release = vistrails_version()
         import vistrails.core.requirements
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []
             result = execute_cmdline(
-                ['git', 'describe', '--always', '--abbrev=12'],
+                ['git', 'describe', '--always'],
                 lines)
             if len(lines) == 1:
                 if result == 0:
@@ -367,12 +367,12 @@ def get_module_registry():
     return _registry
 
 def short_about_string():
-    return """VisTrails version %s.%s -- contact@vistrails.org""" % \
+    return """VisTrails version %s (%s) -- contact@vistrails.org""" % \
             (vistrails_version(), vistrails_revision())
 
 def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
-    return """VisTrails version %s.%s -- contact@vistrails.org
+    return """VisTrails version %s (%s) -- contact@vistrails.org
 
 Copyright (C) 2011-2014 NYU-Poly. Copyright (C) 2006-2011 University of Utah. 
 All rights reserved.
