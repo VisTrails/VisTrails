@@ -83,10 +83,6 @@ class OutputModeConfig(dict):
         return fields
 
     @classmethod
-    def get_local_fields(cls):
-        return sorted(cls._fields)
-
-    @classmethod
     def get_default(cls, k):
         f = cls.get_field(k)
         if f is not None:
