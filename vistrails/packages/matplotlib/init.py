@@ -32,6 +32,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 import matplotlib
 matplotlib.use('Qt4Agg', warn=False)
 

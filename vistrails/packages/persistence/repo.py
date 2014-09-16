@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from vistrails.core.bundles import py_import
 py_import('dulwich', {
         'pip': 'dulwich',

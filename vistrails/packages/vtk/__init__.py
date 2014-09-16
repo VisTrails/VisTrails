@@ -37,6 +37,8 @@ software system for 3D computer graphics, image processing, and
 visualization used by thousands of researchers and developers around
 the world. http://www.vtk.org"""
 
+from __future__ import division
+
 from identifiers import *
 import vistrails.core
 

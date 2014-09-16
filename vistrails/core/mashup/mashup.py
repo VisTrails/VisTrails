@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.db.domain import IdScope
 from vistrails.db.domain import DBMashup
 from vistrails.core.mashup import conv_to_bool, conv_from_bool

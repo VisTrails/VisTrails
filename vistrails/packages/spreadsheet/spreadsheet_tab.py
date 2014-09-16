@@ -42,6 +42,8 @@
 #   StandardWidgetTabBarEditor
 #   StandardWidgetToolBar
 ################################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 import os.path
 from spreadsheet_registry import spreadsheetRegistry

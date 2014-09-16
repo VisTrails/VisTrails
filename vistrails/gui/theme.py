@@ -36,6 +36,8 @@
 This module describes a theme structure for VisTrails GUI. It
 specifies colors, background images and other measurements
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.utils.color import ColorByName

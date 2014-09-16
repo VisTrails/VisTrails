@@ -39,6 +39,8 @@
 #   StandardWidgetItemDelegate
 #   StandardWidgetSheet
 ################################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from spreadsheet_helpers import CellHelpers, CellResizer
 

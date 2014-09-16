@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from xml.auto_gen import XMLDAOListBase
 from sql.auto_gen import SQLDAOListBase
 import xml.io

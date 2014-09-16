@@ -52,6 +52,8 @@ The original paper is:
 
 """
 
+from __future__ import division
+
 class TreeLW(object):
     """
     The input to the algorithm must be a tree

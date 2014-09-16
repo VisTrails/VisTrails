@@ -35,6 +35,8 @@
 ################################################################################
 # Richtext widgets implementation
 ################################################################################
+from __future__ import division
+
 import os
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import QUrl

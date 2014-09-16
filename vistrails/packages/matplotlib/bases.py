@@ -32,6 +32,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 import itertools
 import matplotlib
 from matplotlib.backend_bases import FigureCanvasBase

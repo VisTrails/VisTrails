@@ -34,6 +34,8 @@
 ###############################################################################
 """ This file contains the definition of the class ParameterExploration """
 
+from __future__ import division
+
 from xml.sax.saxutils import unescape
 
 import vistrails.core.db.action

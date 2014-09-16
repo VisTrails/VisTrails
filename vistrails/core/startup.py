@@ -34,6 +34,8 @@
 ###############################################################################
 
 """Describes the start-up process of VisTrails"""
+from __future__ import division
+
 from vistrails.core import debug
 from vistrails.core import system
 from vistrails.core.configuration import ConfigurationObject

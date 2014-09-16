@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleSuspended

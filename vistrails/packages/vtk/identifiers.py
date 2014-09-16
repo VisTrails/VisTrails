@@ -32,6 +32,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 identifier = 'org.vistrails.vistrails.vtk'
 old_identifiers = ['edu.utah.sci.vistrails.vtk']
 name = 'VTK'

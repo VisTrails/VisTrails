@@ -34,6 +34,8 @@
 ###############################################################################
 """ The file describes a container widget consisting of a pipeline
 view and a version tree for each opened Vistrail """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 import copy
 from itertools import izip

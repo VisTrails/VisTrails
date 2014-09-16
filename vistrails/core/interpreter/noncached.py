@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core import modules
 from vistrails.core.common import *
 from vistrails.core.data_structures.bijectivedict import Bidict

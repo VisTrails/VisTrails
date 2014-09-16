@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from base64 import b16encode, b16decode
 
 import copy

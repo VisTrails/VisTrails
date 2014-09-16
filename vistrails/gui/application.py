@@ -36,6 +36,8 @@
 initializations to the theme, packages and the builder...
 
 """
+from __future__ import division
+
 from PyQt4 import QtGui, QtCore, QtNetwork
 from vistrails.core.application import VistrailsApplicationInterface, \
     get_vistrails_application, set_vistrails_application

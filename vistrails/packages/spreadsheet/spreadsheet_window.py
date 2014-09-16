@@ -36,6 +36,8 @@
 # This file implements the main spreadsheet window:
 #   SpreadsheetWindow
 ################################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from spreadsheet_base import StandardSheetReference
 from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \

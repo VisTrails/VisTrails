@@ -39,6 +39,8 @@
 #   StandardSingleCellSheetReference
 #   StandardSingleCellSheetTab
 ################################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from spreadsheet_helpers import CellHelpers
 from spreadsheet_registry import spreadsheetRegistry

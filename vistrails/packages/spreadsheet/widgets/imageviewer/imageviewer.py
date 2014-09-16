@@ -35,6 +35,8 @@
 ################################################################################
 # ImageViewer widgets/toolbar implementation
 ################################################################################
+from __future__ import division
+
 import os
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import Module

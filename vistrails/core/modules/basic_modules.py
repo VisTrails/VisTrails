@@ -34,6 +34,8 @@
 ###############################################################################
 """basic_modules defines basic VisTrails Modules that are used in most
 pipelines."""
+from __future__ import division
+
 import vistrails.core.cache.hasher
 from vistrails.core.debug import format_exception
 from vistrails.core.modules.module_registry import get_module_registry

@@ -138,6 +138,8 @@
 #             result = result.union(query.run(pipeline, module_ids))
 
 ################################################################################
+from __future__ import division
+
 import xml.sax.saxutils
 
 from vistrails.core.utils import memo_method

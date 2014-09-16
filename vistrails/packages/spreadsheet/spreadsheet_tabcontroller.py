@@ -36,6 +36,8 @@
 # This file implements the Spreadsheet Tab Controller, to manages tabs
 #   StandardWidgetTabController
 ################################################################################
+from __future__ import division
+
 from ast import literal_eval
 import os.path
 from PyQt4 import QtCore, QtGui

@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from auto_gen import DBWorkflow as _DBWorkflow
 from id_scope import IdScope
 

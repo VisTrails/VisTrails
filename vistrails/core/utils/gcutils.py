@@ -35,6 +35,8 @@
 
 """Utilities for debugging garbage collection, leaked memory, etc."""
 
+from __future__ import division
+
 import gc
 
 def get_objects_by_typename():

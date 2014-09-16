@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from auto_gen_objects import Object, Property, Choice
 
 XML_TYPE = 'xml'

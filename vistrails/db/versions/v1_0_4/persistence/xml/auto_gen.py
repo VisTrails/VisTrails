@@ -35,6 +35,8 @@
 
 """generated automatically by auto_dao.py"""
 
+from __future__ import division
+
 from vistrails.core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 

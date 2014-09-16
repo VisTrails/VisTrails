@@ -36,6 +36,8 @@
 ###############################################################################
 
 # Installs a package through APT, showing progress.
+from __future__ import division
+
 import apt
 import apt_pkg
 import locale

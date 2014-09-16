@@ -43,6 +43,8 @@
 type information, and organizes them.
 
 """
+from __future__ import division
+
 from ast import literal_eval
 import re
 import vtk

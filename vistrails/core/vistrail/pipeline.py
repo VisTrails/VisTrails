@@ -34,6 +34,8 @@
 ###############################################################################
 ##TODO Tests
 """ This module defines the class Pipeline """
+from __future__ import division
+
 from vistrails.core.cache.hasher import Hasher
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict

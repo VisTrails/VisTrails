@@ -39,6 +39,8 @@
 #   SingleCellSheetReference
 #   SpreadsheetCell
 ################################################################################
+from __future__ import division
+
 from vistrails.core.configuration import ConfigField, \
     get_vistrails_configuration
 from vistrails.core.modules.output_modules import OutputMode, OutputModeConfig

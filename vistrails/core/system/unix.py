@@ -34,6 +34,8 @@
 ###############################################################################
 
 """Routines common to Linux and OSX."""
+from __future__ import division
+
 import os
 import subprocess
 

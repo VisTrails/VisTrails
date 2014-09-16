@@ -39,6 +39,8 @@ QInteractiveGraphicsScene
 QInteractiveGraphicsView
 QPIPGraphicsView
 """
+from __future__ import division
+
 from vistrails.core import debug
 from PyQt4 import QtCore, QtGui
 from vistrails.gui.theme import CurrentTheme

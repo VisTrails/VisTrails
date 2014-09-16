@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 """Hasher class for vistrail items."""
+from __future__ import division
+
 from vistrails.core.cache.utils import hash_list
 
 try:

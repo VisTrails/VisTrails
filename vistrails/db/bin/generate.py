@@ -40,6 +40,8 @@
 # uses emacs via subprocess call for python indentation
 # the emacs call is slow because it checks all of the indentation
 
+from __future__ import division
+
 from mako.template import Template
 
 import os

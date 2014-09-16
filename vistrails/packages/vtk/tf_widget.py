@@ -35,6 +35,8 @@
 
 ##############################################################################
 # Transfer Function Widget for VTK
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.core.modules.basic_modules import new_constant, init_constant, Module

@@ -36,6 +36,8 @@
 
 """
 
+from __future__ import division
+
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import current_dot_vistrails
 from vistrails.core.modules.module_registry import get_module_registry

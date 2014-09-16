@@ -38,6 +38,8 @@ This package defines a set of modules that perform some of the
 operations exposed by the ImageMagick package.
 
 """
+from __future__ import division
+
 from vistrails.core.configuration import ConfigurationObject
 
 identifier = 'org.vistrails.vistrails.imagemagick'

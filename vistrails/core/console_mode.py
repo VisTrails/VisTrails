@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 """ Module used when running  vistrails uninteractively """
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 import os.path
 import uuid
 from vistrails.core.application import is_running_gui

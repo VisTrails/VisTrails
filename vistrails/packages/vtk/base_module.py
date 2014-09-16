@@ -35,6 +35,8 @@
 ################################################################################
 # This describes basic modules used by other VTK module
 ################################################################################
+from __future__ import division
+
 from itertools import izip
 import vtk
 

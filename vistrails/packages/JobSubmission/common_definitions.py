@@ -1,3 +1,5 @@
+from __future__ import division
+
 from batchq import queues
 from batchq.core.batch import BatchQ
 from batchq.queues import containers

@@ -34,6 +34,8 @@
 ###############################################################################
 """Defines a time decorator that times function calls."""
 
+from __future__ import division
+
 import time
 
 def time_method(method):

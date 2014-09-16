@@ -37,6 +37,8 @@
 #   SpreadsheetRegistry
 ################################################################################
 
+from __future__ import division
+
 class SpreadsheetRegistry(object):
     """
     SpreadsheetRegistry is the class holding information about cell and sheet

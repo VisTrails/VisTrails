@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 import copy
 
 from vistrails.core import debug

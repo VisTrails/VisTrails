@@ -35,6 +35,8 @@
 ###############################################################################
 
 # *** MOVED *** to gui.modules.query_configuration
+from __future__ import division
+
 import traceback
 from vistrails.core import debug
 

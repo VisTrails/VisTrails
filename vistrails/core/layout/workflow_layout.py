@@ -39,6 +39,8 @@ Originally written by Lauro D. Lins.
 
 ####################################################
 
+from __future__ import division
+
 def uniquify(seq, idfun=None): 
     # order preserving
     if idfun is None:

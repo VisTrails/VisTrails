@@ -35,6 +35,8 @@
 """
 This module handles Parameter Exploration in VisTrails
 """
+from __future__ import division
+
 from vistrails.core import debug
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam

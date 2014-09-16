@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from ast import literal_eval

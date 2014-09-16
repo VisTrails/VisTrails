@@ -35,6 +35,8 @@
 
 ################################################################################
 
+from __future__ import division
+
 class Queue(object):
 
     def __init__(self, capacity=8):

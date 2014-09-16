@@ -34,6 +34,8 @@
 ###############################################################################
 
 """Module with utilities to try and install a bundle if possible."""
+from __future__ import division
+
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration, \
     get_vistrails_persistent_configuration

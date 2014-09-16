@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from collections import namedtuple as _namedtuple, Mapping
 from itertools import izip
 

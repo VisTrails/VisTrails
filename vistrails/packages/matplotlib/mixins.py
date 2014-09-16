@@ -1,3 +1,5 @@
+from __future__ import division
+
 class MplCorrBaseMixin(object):
     def compute_after():
         if 'usevlines' in kwargs and kwargs['usevlines']:

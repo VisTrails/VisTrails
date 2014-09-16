@@ -1,3 +1,5 @@
+from __future__ import division
+
 import vistrails.core.db.action
 import vistrails.db.versions
 import vistrails.core.modules.module_registry
