@@ -61,6 +61,11 @@ cache: Cache previous results so they may be used in future computations
 stopOnError: Stop all workflow execution immediately after first error
 executionLog: Track execution provenance when running workflows
 errorLog: Write errors to a log file
+parameters: List of parameters to use when running workflow
+host: The hostname for the database to load the vistrail from
+port: The port for the database to load the vistrail from
+db: The name for the database to load the vistrail from
+user: The username for the database to the load vistrail from
 defaultFileType: Default file type/extension for vistrails (.vt or .xml)
 enablePackagesSilently: Automatically enable packages when needed
 installBundles: Install missing Python dependencies
@@ -134,6 +139,22 @@ dotVistrails: Path
 
     The location to look for VisTrails user configurations and
     storage.  Defaults to ~/.vistrails.
+
+host: URL
+
+    The hostname for the database to load the vistrail from
+
+port: Integer
+
+    The port for the database to load the vistrail from
+
+db: String
+
+    The name for the database to load the vistrail from
+
+user: String
+
+    The username for the database to load the vistrail from
 
 enablePackagesSilently: Boolean
 
@@ -218,6 +239,10 @@ packageDir: Path
 
     The directory to look for VisTrails core packages (use
     userPackageDir for user-defined packages)
+
+parameters: String
+
+    List of parameters to use when running workflow
 
 pythonPrompt: Boolean
 
@@ -491,10 +516,15 @@ base_config = {
      ConfigField('outputSettings', [], str, ConfigType.SUBOBJECT,
                  flag='-p'),
      # ConfigField("package", [], str, flag='-p', nargs='*'),
+     ConfigField("parameters", None, str, ConfigType.COMMAND_LINE),
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("withWorkflow", False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG)],
+     ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("host", None, ConfigURL, ConfigType.COMMAND_LINE),
+     ConfigField("port", None, int, ConfigType.COMMAND_LINE),
+     ConfigField("db", None, str, ConfigType.COMMAND_LINE),
+     ConfigField("user", None, str, ConfigType.COMMAND_LINE)],
     "General":
     [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
      ConfigField('dbDefault', False, bool, ConfigType.ON_OFF),

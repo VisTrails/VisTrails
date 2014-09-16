@@ -56,13 +56,6 @@ import weakref
 JOBS_FILENAME = "jobs.json"
 
 
-class BaseMonitor(object):
-    def finished(self):
-        """Indicates whether the job has completed (module can resume).
-        """
-        raise NotImplementedError
-
-
 class JobMixin(NotCacheable):
     """ Mixin for suspendable modules.
 

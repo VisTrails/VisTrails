@@ -236,7 +236,7 @@ class ParameterExploration(DBParameterExploration):
                     new_param = ModuleParam(id=tmp_p_id,
                                             pos=old_param.pos,
                                             name=old_param.name,
-                                            alias=pe_function.is_alias,
+                                            alias=old_param.alias,
                                             val=str_value,
                                             type=old_param.type)
                     tmp_p_id -= 1

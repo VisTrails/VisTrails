@@ -240,6 +240,7 @@ class QLegendWidget(QtGui.QWidget):
 class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        self.controller = None
         self.execution = None
         self.parentItem = None
         self.set_title("Log Details")
@@ -328,6 +329,9 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def set_controller(self, controller):
         #print '@@@@ QLogDetails calling set_controller'
+        if self.controller == controller:
+            return
+
         self.controller = controller
         self.executionList.controller = self.controller
         if self.controller is not None:

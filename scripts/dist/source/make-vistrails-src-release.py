@@ -39,13 +39,13 @@ GIT_URL = "git://www.vistrails.org/vistrails.git"
 GIT_ARGS = ""
 
 # VisTrails Release Version
-VT_VERSION = '2.1.3'
+VT_VERSION = '2.1.4'
 
 # Branch to be used to build release
 VT_BRANCH = 'v2.1'
 
 # Hash used in the release
-VT_HASH = '8262f078ed3b'
+VT_HASH = '269e4808eca3'
 
 # Prefix of target git export dir (also used as prefix for log files)
 EXPORT_DIR_PREFIX = "vistrails-src-%s"%VT_VERSION
@@ -54,7 +54,7 @@ EXPORT_DIR_PREFIX = "vistrails-src-%s"%VT_VERSION
 EXPORT_DIR_SUFFIX = "-?"
 
 # Paths of files and/or directories to be removed from the exported repository (relative to export dir)
-EXPORT_DELETE_PATHS = [".git", ".gitignore", "scripts/dist", "packages"]
+EXPORT_DELETE_PATHS = [".git", ".gitignore", "scripts/dist", "contrib"]
 
 # Distribution Tarball name (Do not add ".tar.gz")
 # For releases, Tarball name will be always EXPORT_DIR_PREFIX+EXPORT_DIR_SUFFIX 

@@ -39,4 +39,4 @@ DROP TABLE IF EXISTS thumbnail;
 
 -- genereated automatically by generate.py
 
-DROP TABLE IF EXISTS mashup_alias, group_tbl, add_tbl, group_exec, parameter, vistrail, module, port, pe_function, workflow, mashup_action, change_tbl, package, loop_exec, connection_tbl, action, port_spec, log_tbl, loop_iteration, pe_parameter, workflow_exec, location, function, action_annotation, plugin_data, delete_tbl, vistrail_variable, module_descriptor, tag, port_spec_item, mashup_component, mashup, machine, other, abstraction, mashuptrail, registry, annotation, parameter_exploration, mashup_action_annotation, module_exec;
+DROP TABLE IF EXISTS mashup_alias, group_tbl, add_tbl, group_exec, parameter, vistrail, module, port, pe_function, workflow, mashup_action, change_tbl, package, loop_exec, connection_tbl, action, port_spec, log_tbl, pe_parameter, workflow_exec, location, function, action_annotation, plugin_data, delete_tbl, vistrail_variable, module_descriptor, tag, port_spec_item, mashup_component, mashup, machine, other, abstraction, mashuptrail, registry, annotation, parameter_exploration, mashup_action_annotation, module_exec;

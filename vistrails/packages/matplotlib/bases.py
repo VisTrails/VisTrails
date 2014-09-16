@@ -32,6 +32,7 @@
 ##
 ###############################################################################
 
+import itertools
 import matplotlib
 from matplotlib.backend_bases import FigureCanvasBase
 import pylab
@@ -40,10 +41,10 @@ import urllib
 from matplotlib.backend_bases import FigureCanvasBase
 
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
-from vistrails.core.modules.config import ModuleSettings
+from vistrails.core.modules.config import ModuleSettings, IPort
 from vistrails.core.modules.output_modules import ImageFileMode, \
     ImageFileModeConfig, OutputModule
-from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
+from vistrails.core.modules.vistrails_module import Module, NotCacheable
 
 ################################################################################
 
@@ -58,19 +59,7 @@ class MplProperties(Module):
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
-    def __init__(self):
-        Module.__init__(self)
-        self.figInstance = None
-
-    def set_figure(self, fig):
-        if self.figInstance is None:
-            self.figInstance = fig
-        else:
-            raise ModuleError(self,
-                              "matplotlib plots can only be in one figure")
-
-    def compute(self):
-        matplotlib.pyplot.figure(self.figInstance.number)
+    pass
 
 class MplSource(CodeRunnerMixin, MplPlot):
     """
@@ -86,46 +75,34 @@ class MplSource(CodeRunnerMixin, MplPlot):
     _output_ports = [('value', '(MplSource)')]
 
     def compute(self):
-        """ compute() -> None
-        """
         source = self.get_input('source')
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 source))
+
+    def plot_figure(self, figure, source):
         s = ('from pylab import *\n'
              'from numpy import *\n' +
-             'figure(%d)\n' % self.figInstance.number +
+             'figure(%d)\n' % figure.number +
              urllib.unquote(source))
-
         self.run_code(s, use_input=True, use_output=True)
-        self.set_output('value', None)
 
 class MplFigure(Module):
-    _input_ports = [("addPlot", "(MplPlot)"),
+    _input_ports = [IPort("addPlot", "(MplPlot)", depth=1),
                     ("axesProperties", "(MplAxesProperties)"),
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
 
     _output_ports = [("self", "(MplFigure)")]
 
-    def __init__(self):
-        Module.__init__(self)
-        self.figInstance = None
-
-    def update_upstream(self):
+    def compute(self):
         # Create a figure
-        if self.figInstance is None:
-            self.figInstance = pylab.figure()
+        self.figInstance = pylab.figure()
         pylab.hold(True)
 
-        # Set it on the plots
-        connectorList = self.inputPorts.get('addPlot', [])
-        connectorList.extend(self.inputPorts.get('setLegend', []))
-        for connector in connectorList:
-            connector.obj.set_figure(self.figInstance)
-
-        # Now we can run upstream modules
-        super(MplFigure, self).update_upstream()
-
-    def compute(self):
-        plots = self.get_input_list("addPlot")
+        # Run the plots
+        plots = self.get_input("addPlot")
+        for plot in plots:
+            plot(self.figInstance)
 
         if self.has_input("figureProperties"):
             figure_props = self.get_input("figureProperties")
@@ -136,7 +113,6 @@ class MplFigure(Module):
         if self.has_input("setLegend"):
             legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
-
 
         self.set_output("self", self)
 

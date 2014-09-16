@@ -2315,8 +2315,14 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         ts_start = self.convertFromStr(data, 'datetime')
         data = node.get('tsEnd', None)
         ts_end = self.convertFromStr(data, 'datetime')
+        data = node.get('iteration', None)
+        iteration = self.convertFromStr(data, 'int')
+        data = node.get('completed', None)
+        completed = self.convertFromStr(data, 'int')
+        data = node.get('error', None)
+        error = self.convertFromStr(data, 'str')
         
-        loop_iterations = []
+        item_execs = []
         
         # read children
         for child in node.getchildren():
@@ -2324,18 +2330,27 @@ class DBLoopExecXMLDAOBase(XMLDAO):
                 child_tag = child.tag.split("}")[1]
             else:
                 child_tag = child.tag
-            if child_tag == 'loopIteration':
-                _data = self.getDao('loop_iteration').fromXML(child)
-                loop_iterations.append(_data)
+            if child_tag == 'moduleExec':
+                _data = self.getDao('module_exec').fromXML(child)
+                item_execs.append(_data)
+            elif child_tag == 'groupExec':
+                _data = self.getDao('group_exec').fromXML(child)
+                item_execs.append(_data)
+            elif child_tag == 'loopExec':
+                _data = self.getDao('loop_exec').fromXML(child)
+                item_execs.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBLoopExec(id=id,
+        obj = DBLoopExec(item_execs=item_execs,
+                         id=id,
                          ts_start=ts_start,
                          ts_end=ts_end,
-                         loop_iterations=loop_iterations)
+                         iteration=iteration,
+                         completed=completed,
+                         error=error)
         obj.is_dirty = False
         return obj
     
@@ -2347,13 +2362,22 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         node.set('id',self.convertToStr(loop_exec.db_id, 'long'))
         node.set('tsStart',self.convertToStr(loop_exec.db_ts_start, 'datetime'))
         node.set('tsEnd',self.convertToStr(loop_exec.db_ts_end, 'datetime'))
+        node.set('iteration',self.convertToStr(loop_exec.db_iteration, 'int'))
+        node.set('completed',self.convertToStr(loop_exec.db_completed, 'int'))
+        node.set('error',self.convertToStr(loop_exec.db_error, 'str'))
         
         # set elements
-        loop_iterations = loop_exec.db_loop_iterations
-        for loop_iteration in loop_iterations:
-            if (loop_iterations is not None) and (loop_iterations != ""):
-                childNode = ElementTree.SubElement(node, 'loopIteration')
-                self.getDao('loop_iteration').toXML(loop_iteration, childNode)
+        item_execs = loop_exec.db_item_execs
+        for item_exec in item_execs:
+            if item_exec.vtType == 'module_exec':
+                childNode = ElementTree.SubElement(node, 'moduleExec')
+                self.getDao('module_exec').toXML(item_exec, childNode)
+            elif item_exec.vtType == 'group_exec':
+                childNode = ElementTree.SubElement(node, 'groupExec')
+                self.getDao('group_exec').toXML(item_exec, childNode)
+            elif item_exec.vtType == 'loop_exec':
+                childNode = ElementTree.SubElement(node, 'loopExec')
+                self.getDao('loop_exec').toXML(item_exec, childNode)
         
         return node
 
@@ -3014,6 +3038,7 @@ class DBLogXMLDAOBase(XMLDAO):
         vistrail_id = self.convertFromStr(data, 'long')
         
         workflow_execs = []
+        machines = []
         
         # read children
         for child in node.getchildren():
@@ -3024,6 +3049,9 @@ class DBLogXMLDAOBase(XMLDAO):
             if child_tag == 'workflowExec':
                 _data = self.getDao('workflow_exec').fromXML(child)
                 workflow_execs.append(_data)
+            elif child_tag == 'machine':
+                _data = self.getDao('machine').fromXML(child)
+                machines.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -3033,6 +3061,7 @@ class DBLogXMLDAOBase(XMLDAO):
                     version=version,
                     name=name,
                     workflow_execs=workflow_execs,
+                    machines=machines,
                     vistrail_id=vistrail_id)
         obj.is_dirty = False
         return obj
@@ -3053,95 +3082,11 @@ class DBLogXMLDAOBase(XMLDAO):
             if (workflow_execs is not None) and (workflow_execs != ""):
                 childNode = ElementTree.SubElement(node, 'workflowExec')
                 self.getDao('workflow_exec').toXML(workflow_exec, childNode)
-        
-        return node
-
-class DBLoopIterationXMLDAOBase(XMLDAO):
-
-    def __init__(self, daoList):
-        self.daoList = daoList
-
-    def getDao(self, dao):
-        return self.daoList[dao]
-
-    def fromXML(self, node):
-        if node.tag[0] == "{":
-            node_tag = node.tag.split("}")[1]
-        else:
-            node_tag = node.tag
-        if node_tag != 'loopIteration':
-            return None
-        
-        # read attributes
-        data = node.get('id', None)
-        id = self.convertFromStr(data, 'long')
-        data = node.get('tsStart', None)
-        ts_start = self.convertFromStr(data, 'datetime')
-        data = node.get('tsEnd', None)
-        ts_end = self.convertFromStr(data, 'datetime')
-        data = node.get('iteration', None)
-        iteration = self.convertFromStr(data, 'int')
-        data = node.get('completed', None)
-        completed = self.convertFromStr(data, 'int')
-        data = node.get('error', None)
-        error = self.convertFromStr(data, 'str')
-        
-        item_execs = []
-        
-        # read children
-        for child in node.getchildren():
-            if child.tag[0] == "{":
-                child_tag = child.tag.split("}")[1]
-            else:
-                child_tag = child.tag
-            if child_tag == 'moduleExec':
-                _data = self.getDao('module_exec').fromXML(child)
-                item_execs.append(_data)
-            elif child_tag == 'groupExec':
-                _data = self.getDao('group_exec').fromXML(child)
-                item_execs.append(_data)
-            elif child_tag == 'loopExec':
-                _data = self.getDao('loop_exec').fromXML(child)
-                item_execs.append(_data)
-            elif child.text is None or child.text.strip() == '':
-                pass
-            else:
-                print '*** ERROR *** tag = %s' % child.tag
-        
-        obj = DBLoopIteration(item_execs=item_execs,
-                              id=id,
-                              ts_start=ts_start,
-                              ts_end=ts_end,
-                              iteration=iteration,
-                              completed=completed,
-                              error=error)
-        obj.is_dirty = False
-        return obj
-    
-    def toXML(self, loop_iteration, node=None):
-        if node is None:
-            node = ElementTree.Element('loopIteration')
-        
-        # set attributes
-        node.set('id',self.convertToStr(loop_iteration.db_id, 'long'))
-        node.set('tsStart',self.convertToStr(loop_iteration.db_ts_start, 'datetime'))
-        node.set('tsEnd',self.convertToStr(loop_iteration.db_ts_end, 'datetime'))
-        node.set('iteration',self.convertToStr(loop_iteration.db_iteration, 'int'))
-        node.set('completed',self.convertToStr(loop_iteration.db_completed, 'int'))
-        node.set('error',self.convertToStr(loop_iteration.db_error, 'str'))
-        
-        # set elements
-        item_execs = loop_iteration.db_item_execs
-        for item_exec in item_execs:
-            if item_exec.vtType == 'module_exec':
-                childNode = ElementTree.SubElement(node, 'moduleExec')
-                self.getDao('module_exec').toXML(item_exec, childNode)
-            elif item_exec.vtType == 'group_exec':
-                childNode = ElementTree.SubElement(node, 'groupExec')
-                self.getDao('group_exec').toXML(item_exec, childNode)
-            elif item_exec.vtType == 'loop_exec':
-                childNode = ElementTree.SubElement(node, 'loopExec')
-                self.getDao('loop_exec').toXML(item_exec, childNode)
+        machines = log.db_machines
+        for machine in machines:
+            if (machines is not None) and (machines != ""):
+                childNode = ElementTree.SubElement(node, 'machine')
+                self.getDao('machine').toXML(machine, childNode)
         
         return node
 
@@ -3319,7 +3264,6 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         name = self.convertFromStr(data, 'str')
         
         annotations = []
-        machines = []
         item_execs = []
         
         # read children
@@ -3331,9 +3275,6 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             if child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
-            elif child_tag == 'machine':
-                _data = self.getDao('machine').fromXML(child)
-                machines.append(_data)
             elif child_tag == 'moduleExec':
                 _data = self.getDao('module_exec').fromXML(child)
                 item_execs.append(_data)
@@ -3361,8 +3302,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
                              parent_version=parent_version,
                              completed=completed,
                              name=name,
-                             annotations=annotations,
-                             machines=machines)
+                             annotations=annotations)
         obj.is_dirty = False
         return obj
     
@@ -3390,11 +3330,6 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
-        machines = workflow_exec.db_machines
-        for machine in machines:
-            if (machines is not None) and (machines != ""):
-                childNode = ElementTree.SubElement(node, 'machine')
-                self.getDao('machine').toXML(machine, childNode)
         item_execs = workflow_exec.db_item_execs
         for item_exec in item_execs:
             if item_exec.vtType == 'module_exec':
@@ -6311,8 +6246,6 @@ class XMLDAOListBase(dict):
             self['opm_artifact'] = DBOpmArtifactXMLDAOBase(self)
         if 'log' not in self:
             self['log'] = DBLogXMLDAOBase(self)
-        if 'loop_iteration' not in self:
-            self['loop_iteration'] = DBLoopIterationXMLDAOBase(self)
         if 'opm_process_id_cause' not in self:
             self['opm_process_id_cause'] = DBOpmProcessIdCauseXMLDAOBase(self)
         if 'opm_artifacts' not in self:

@@ -95,6 +95,8 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
         self.hasChanges = False
         
     def set_controller(self, controller):
+        if self.controller == controller:
+            return
         self.controller = controller
         if self.controller is not None:
             self.scene = controller.current_pipeline_scene

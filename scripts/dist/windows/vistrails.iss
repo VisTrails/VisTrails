@@ -39,7 +39,7 @@
 
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.1.3
+AppVerName=VisTrails 2.1.4
 OutputBaseFilename=vistrails-setup
 DefaultGroupName=VisTrails
 

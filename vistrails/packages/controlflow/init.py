@@ -215,6 +215,11 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                     'src_port_remap': {'Result': 'Result'}
                 }),
             ],
+            'Filter': [
+                (None, '0.2.4', None, {
+                    'src_port_remap': {'Result': 'Result'}
+                }),
+            ],
         }
 
     return UpgradeWorkflowHandler.remap_module(controller,

@@ -118,6 +118,8 @@ class VistrailsStartup(DBStartup):
                                          (re.escape(DOT_VISTRAILS_PREFIX),
                                           os.path.sep))
 
+    first_run = False
+
     def __init__(self, options_config, command_line_config, 
                  use_dot_vistrails=True):
         """VistrailsStartup(dot_vistrails: str) -> None
@@ -235,10 +237,6 @@ class VistrailsStartup(DBStartup):
         # load options from startup.xml
         self.load_persisted_startup()
 
-        # # check the dot_vistrails paths
-        # if self._dot_vistrails is not None:
-        #     self.update_dir_paths()
-
         # set up temporary configuration with options and command-line
         self.temp_configuration = copy.copy(self.configuration)
 
@@ -246,10 +244,6 @@ class VistrailsStartup(DBStartup):
             self.temp_configuration.update(options_config)
         if command_line_config is not None:
             self.temp_configuration.update(command_line_config)
-
-    def update_deep_configs(self, keys_str, value):
-        self.configuration.set_deep_value(keys_str, value)
-        self.temp_configuration.set_deep_value(keys_str, value)
 
     def setup_init_file(self, dir_name):
         name = os.path.join(dir_name, '__init__.py')
@@ -264,13 +258,6 @@ class VistrailsStartup(DBStartup):
             debug.critical(msg)
             sys.exit(1)
 
-    def remove_prefix(self, dir_name, prefix):
-        suffix = dir_name[len(prefix):]
-        if suffix.startswith('/') or suffix.startswith(os.path.sep) or \
-           suffix.startswith('\\'):
-            return suffix[1:]
-        return suffix
-            
     def expand_vt_path(self, dir_name):
         m = self.DOT_VISTRAILS_PREFIX_RE.match(dir_name)
         if m:
@@ -285,38 +272,6 @@ class VistrailsStartup(DBStartup):
                 else:
                     return self._dot_vistrails
         return dir_name
-
-    # this should be more generally available (e.g. core.utils)
-    def resolve_dir_name(self, config_key, default_dir):
-        dir_name = None
-        is_default = False
-        if self.temp_configuration.has_deep_value(config_key):
-            dir_name = self.temp_configuration.get_deep_value(config_key)
-        if dir_name is None:
-            dir_name = os.path.join("$DOT_VISTRAILS", default_dir)
-            is_default = True
-        abs_dir_name = self.expand_vt_path(dir_name)
-        return dir_name, abs_dir_name, is_default
-
-    def update_dir_paths(self):
-        persistent_dot_vistrails = self.configuration.dotVistrails
-        for (config_key, _, _) in self.DIRECTORIES:
-            if self.configuration.has_deep_value(config_key):
-                dir_name = self.configuration.get_deep_value(config_key)
-                self.remove_prefix
-                if (dir_name is not None and 
-                    dir_name.startswith(persistent_dot_vistrails)):
-                    suffix = self.remove_prefix(dir_name, 
-                                                persistent_dot_vistrails)
-                    print "suffix:", suffix
-                    if suffix:
-                        new_dir = os.path.join(self.DOT_VISTRAILS_PREFIX, 
-                                               suffix)
-                    else:
-                        new_dir = self.DOT_VISTRAILS_PREFIX
-                    print "SETTING new configuration", config_key, new_dir
-                    self.configuration.set_deep_value(config_key, new_dir)
-        self.save_persisted_startup()
 
     def create_directory(self, dir_name):
         if not os.path.isdir(dir_name):
@@ -346,30 +301,12 @@ class VistrailsStartup(DBStartup):
         import vistrails.core.system
         version = vistrails.core.system.vistrails_version()
         version = version.replace(".", "_")
-        
-        # # FIXME this is really log dir, not log file
-        # # we should really create a logs subdir in .vistrails
-        # is_default = False
-        # if not self.temp_configuration.check('logFile'):
-        #     dir_name = self._dot_vistrails
-        #     is_default = True
-        # else:
-        #     dir_name = os.path.dirname(self.temp_configuration.logFile)
-        # abs_dir_name = self.expand_vt_path(dir_name)
-        # if abs_dir_name is not None:
-        #     self.create_directory(abs_dir_name)
-        #     log_fname = os.path.join(abs_dir_name, 'vistrails_%s.log' % version)
-        # else:
-        #     log_fname = None
-        # if is_default:
-        #     self.update_deep_configs("logFile", 
-        #                              os.path.join(dir_name,
-        #                                           'vistrails_%s.log' % version))
+
         if self.temp_configuration.errorLog:
             log_fname = os.path.join(abs_dir_name, 'vistrails_%s.log' % version)
             if log_fname is not None:
                 debug.DebugPrint.getInstance().set_logfile(log_fname)
-            
+
     def setup_debug(self):
         if (self.temp_configuration.has('debugLevel') and
             self.temp_configuration.debugLevel != -1):
@@ -397,19 +334,6 @@ class VistrailsStartup(DBStartup):
             if i == 0:
                 self.setup_log_file(abs_dir_name)
         self.setup_debug()
-
-
-    def setup_non_dot_vistrails(self):
-        self.temp_configuration.set_deep_value('logFile', None)
-        for (config_key, _, _) in self.DIRECTORIES:
-            self.temp_configuration.set_deep_value(config_key, None)
-
-    def get_python_environment(self):
-        """get_python_environment(): returns the python environment generated
-        by startup.py. This should only be called after init().
-
-        """
-        return self._python_environment
 
     def create_dot_vistrails_if_necessary(self):
         if os.path.exists(self._dot_vistrails):
@@ -540,57 +464,13 @@ class VistrailsStartup(DBStartup):
             try:
                 shutil.copyfile(origin, fname)
                 debug.log('Succeeded!')
+                self.first_run = True
             except:
                 debug.critical("""Failed to copy default configuration
                 file to %s. This could be an indication of a
                 permissions problem. Please make sure '%s' is writable."""
                                % (fname, self._dot_vistrails))
                 raise
-
-    def create_default_directory(self):
-        if os.path.lexists(self.temp_configuration.dotVistrails):
-            return
-
-        debug.log('Will try to create default directory')
-        try:
-            os.mkdir(self.temp_configuration.dotVistrails)
-            debug.log('Succeeded!')
-        except Exception, e:
-            debug.critical("""Failed to create initialization directory.
-                    This could be an indication of a permissions problem.
-                    Make sure parent directory of '%s' is writable."""
-                    % self.temp_configuration.dotVistrails,
-                    e)
-            sys.exit(1)
-
-    def setupDefaultFolders(self):
-        """ setupDefaultFolders() -> None
-        Give default values to folders when there are no values specified
-
-        """
-        if self.temp_configuration.has('rootDirectory'):
-            system.set_vistrails_root_directory(self.temp_configuration.rootDirectory)
-        if self.temp_configuration.has('dataDir'):
-            system.set_vistrails_data_directory(self.temp_configuration.dataDir)
-        if self.temp_configuration.has('fileDir'):
-            system.set_vistrails_file_directory(self.temp_configuration.fileDir)
-        if (self.temp_configuration.has('debugLevel') and
-            self.temp_configuration.debugLevel != -1):
-            verbose = self.temp_configuration.debugLevel
-            if verbose < 0:
-                msg = ("""Don't know how to set verboseness level to %s - "
-                       "setting to the lowest one I know of: 0""" % verbose)
-                debug.critical(msg)
-                verbose = 0
-            if verbose > 2:
-                msg = ("""Don't know how to set verboseness level to %s - "
-                       "setting to the highest one I know of: 2""" % verbose)
-                debug.critical(msg)
-                verbose = 2
-            dbg = debug.DebugPrint.getInstance()
-            levels = [dbg.WARNING, dbg.INFO, dbg.DEBUG]
-            dbg.set_message_level(levels[verbose])
-            debug.log("Set verboseness level to %s" % verbose)
 
 import unittest
 import stat

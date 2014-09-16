@@ -50,6 +50,7 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.setMargin(2)
         layout.setSpacing(3)
 
+        self.controller = None
         self.pe_properties = QParamExpProperties()
         p_prop_group = QtGui.QGroupBox(self.pe_properties.windowTitle())
         g_layout = QtGui.QVBoxLayout()
@@ -89,6 +90,8 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
         self.pe_properties.forwardAction = weakref.proxy(self.forwardAction)
 
     def set_controller(self, controller):
+        if self.controller == controller:
+            return
         self.controller = controller
         self.pe_properties.updateController(controller)
         if self.controller is not None:

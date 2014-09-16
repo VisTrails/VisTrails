@@ -753,7 +753,7 @@ class UpgradeWorkflowHandler(object):
                                                        old_module_t[0])
             else:
                 new_module_desc = reg.get_descriptor(new_module_type)
-                new_module_t = new_module_desc.spec_tuple()
+                new_module_t = new_module_desc.spec_tuple
 
             new_pkg_version = module_remap.output_version
             if (new_pkg_version is None or
