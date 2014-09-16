@@ -42,6 +42,8 @@ import shlex
 import sys
 import weakref
 
+import os.path
+
 from vistrails.core import system
 from vistrails.core.utils import Ref, append_to_dict_of_lists
 from vistrails.db.domain import DBConfiguration, DBConfigKey, DBConfigStr, \
@@ -103,6 +105,16 @@ webRepositoryUser: Web repository username
 repositoryLocalPath: Local package repository directory
 repositoryHTTPURL: Remote package repository URL
 handlerDontAsk: Do not ask about extension handling at startup
+rpcServer: Hostname or ip address where this xml rpc server will work
+rpcPort: Port where this xml rpc server will work
+rpcLogFile: Log file for XML RPC server
+rpcInstances: Number of other instances that vistrails should start
+multithread: Server will start a thread for each request
+rpcConfig: Config file for server connection options
+jobCheckInterval: How often to check for jobs (in seconds)
+jobAutorun: Run jobs automatically when they finish
+jobRun: Continue running specified job by id
+jobList: List running jobs
 """
 
 _documentation = """
@@ -427,6 +439,46 @@ outputDefaultSettings: ConfigurationObject
 
     One or more comma-separated key=value parameters
 
+rpcServer: URL
+
+    Hostname or ip address where this xml rpc server will work
+
+rpcPort: Integer
+
+    Port where this xml rpc server will work
+
+rpcLogFile: String
+
+    Log file for XML RPC server
+
+rpcInstances: Integer
+
+    Number of other instances that vistrails should start
+
+multithread: Boolean
+
+    Server will start a thread for each request
+
+rpcConfig: String
+
+    Config file for server connection options
+
+jobCheckInterval: Integer:
+
+    How often to check for jobs (in seconds, default=600)
+
+jobAutorun: Boolean
+
+    Run jobs automatically when they finish
+
+jobRun: String
+
+    Continue running specified job by id (use jobList to get)
+
+jobList: Boolean
+
+    List running jobs
+
 """
 
 class ConfigType(object):
@@ -520,11 +572,21 @@ base_config = {
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("withWorkflow", False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("host", None, ConfigURL, ConfigType.COMMAND_LINE),
+     ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG)],
+    "Database":
+    [ConfigField("host", None, ConfigURL, ConfigType.COMMAND_LINE),
      ConfigField("port", None, int, ConfigType.COMMAND_LINE),
      ConfigField("db", None, str, ConfigType.COMMAND_LINE),
      ConfigField("user", None, str, ConfigType.COMMAND_LINE)],
+    "Server":
+    [ConfigField('rpcServer', None, str, ConfigType.COMMAND_LINE),
+     ConfigField('rpcPort', 8080, int, ConfigType.COMMAND_LINE),
+     ConfigField('rpcLogFile', os.path.join(system.vistrails_root_directory(),
+                       'rpcserver.log'), ConfigPath, ConfigType.COMMAND_LINE),
+     ConfigField('rpcInstances', 0, int, ConfigType.COMMAND_LINE),
+     ConfigField('multithread', None, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('rpcConfig', os.path.join(system.vistrails_root_directory(),
+                      'server.cfg'), ConfigPath, ConfigType.COMMAND_LINE)],
     "General":
     [ConfigField('autoSave', True, bool, ConfigType.ON_OFF),
      ConfigField('dbDefault', False, bool, ConfigType.ON_OFF),
@@ -619,8 +681,8 @@ base_config = {
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),
-     ConfigField('jobRun', None, str),
-     ConfigField('jobList', False, bool)],
+     ConfigField('jobRun', None, str, ConfigType.COMMAND_LINE),
+     ConfigField('jobList', False, bool, ConfigType.COMMAND_LINE_FLAG)],
 }
 
 # FIXME make sure that the platform-specific configs are added!
