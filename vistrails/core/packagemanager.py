@@ -759,11 +759,12 @@ class PackageManager(object):
 
     def build_available_package_names_list(self):
         def is_vistrails_package(path):
-            return ((path.endswith('.py') and
-                     not path.endswith('__init__.py') and
-                     os.path.isfile(path)) or
-                    os.path.isdir(path) and \
-                        os.path.isfile(os.path.join(path, '__init__.py')))
+            if os.path.isfile(path):
+                return (path.endswith('.py') and
+                        not path.endswith('__init__.py'))
+            elif os.path.isdir(path):
+                return os.path.isfile(os.path.join(path, '__init__.py'))
+            return False
 
         def search(dirname, prefix):
             for name in os.listdir(dirname):
@@ -774,6 +775,7 @@ class PackageManager(object):
 
         # Finds standard packages
         packages = self.import_packages_module()
+        # This makes VisTrails not zip-safe
         search(os.path.dirname(packages.__file__),
                prefix='vistrails.packages.')
 
@@ -799,18 +801,8 @@ class PackageManager(object):
                     prefix = ''
                     name, = name
 
-                # Check that the module is importable and get path
-                # FIXME: packages are not zip-safe because of this logic!
-                path = entry_point.load().__file__
-                if path.endswith('.py'):
-                    path = path[:-3]
-                elif path.endswith('.pyc'):
-                    path = path[:-4]
-                if path.endswith('__init__'):
-                    path = path[:-9]
-                if is_vistrails_package(path):
-                    # Create the Package, with the right prefix
-                    self.get_available_package(name, prefix=prefix)
+                # Create the Package, with the right prefix
+                self.get_available_package(name, prefix=prefix)
 
         return self._available_packages.keys()
 
