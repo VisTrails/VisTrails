@@ -71,6 +71,9 @@ class CSVTable(TableObject):
                                                   "the number of lines in the "
                                                   "file")
 
+                if not isinstance(delimiter, str) and str is not unicode:
+                    delimiter = delimiter.encode('ascii')
+
                 if dialect is not None:
                     reader = csv.reader(fp, dialect=dialect)
                 else:
