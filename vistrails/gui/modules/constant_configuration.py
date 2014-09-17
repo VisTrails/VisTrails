@@ -60,7 +60,7 @@ def setPlaceholderTextCompat(self, value):
 
 class ConstantWidgetMixin(object):
 
-    # superclasses need to add this signal:
+    # subclasses need to add this signal:
     # contentsChanged = QtCore.pyqtSignal(tuple)
 
     def __init__(self, contents=None):
