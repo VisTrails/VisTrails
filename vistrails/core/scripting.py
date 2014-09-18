@@ -64,7 +64,7 @@ def write_workflow_to_python(pipeline, filename):
     # A "prelude" is a piece of code that is supposed to go at the top of the
     # file, and that shouldn't be repeated; things like import statements,
     # function/class definition, and constants
-    preludes = []
+    preludes = set()
 
     reg = get_module_registry()
 
@@ -80,7 +80,8 @@ def write_workflow_to_python(pipeline, filename):
 
         # Gets the code
         code_preludes = []
-        if not hasattr(module_class, 'to_python_script'):
+        if (not hasattr(module_class, 'to_python_script') or
+                module_class.to_python_script is None):
             debug.critical("Module %s cannot be converted to Python")
             code = ("# <Missing code>\n"
                     "# %s doesn't define a function to_python_script()\n"
@@ -104,7 +105,7 @@ def write_workflow_to_python(pipeline, filename):
             print("Got code:\n%r" % (code,))
 
         modules[module_id] = code
-        preludes.extend(code_preludes)
+        preludes.update(code_preludes)
 
     # ########################################
     # Processes the preludes and writes the beginning of the file
@@ -129,6 +130,7 @@ def write_workflow_to_python(pipeline, filename):
     #
     for module_id in pipeline.graph.vertices_topological_sort():
         module = pipeline.modules[module_id]
+        desc = module.module_descriptor
         print("Writing module %s %d" % (module.name, module_id))
 
         # Annotation, used to rebuild the pipeline
@@ -221,9 +223,9 @@ class BaseScript(object):
         else:
             self.source = redbaron.RedBaron(utf8(source))
         # Removes empty lines
-        while self.source and self.source[0].Endl:
+        while self.source and isinstance(self.source[0], redbaron.EndlNode):
             del self.source[0]
-        while self.source and self.source[-1].Endl:
+        while self.source and isinstance(self.source[-1], redbaron.EndlNode):
             del self.source[-1]
 
     def rename(self, renames):
@@ -350,7 +352,7 @@ class Script(BaseScript):
 
         # Sets self.inputs -- what inputs currently are in self.source
         if self.inputs == 'variables':
-            self.inputs = dict((n, n) for n in input_vars.iterkeys())
+            self.inputs = dict((n, utf8(n)) for n in input_vars)
         #elif self.inputs == 'calls': # TODO
         elif isinstance(self.inputs, dict):
             pass
@@ -360,7 +362,7 @@ class Script(BaseScript):
 
         # Sets self.outputs -- what outputs currently are in self.source
         if self.outputs == 'variables':
-            self.outputs = dict((n, n) for n in output_vars.iterkeys())
+            self.outputs = dict((n, utf8(n)) for n in output_vars)
         #elif self.outputs == 'calls': # TODO
         elif isinstance(self.outputs, dict):
             pass
