@@ -1077,7 +1077,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
         self.run_code(s, use_input=True, use_output=True)
 
     @staticmethod
-    def to_python_script(module, input_vars, output_vars):
+    def to_python_script(module):
         for f in module.functions:
             if f.name == 'source':
                 code = urllib.unquote(str(f.parameters[0].strValue))
