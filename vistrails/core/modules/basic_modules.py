@@ -962,7 +962,10 @@ class List(Constant):
     @staticmethod
     def to_python_script(module):
         set_ports = set(f.name for f in module.functions)
-        set_ports.update(module.connected_input_ports.iterkeys())
+        set_ports.update(
+                port
+                for port, nb in module.connected_input_ports.iteritems()
+                if nb > 0)
         inputs = {}
         add = []
         if 'head' in set_ports:
