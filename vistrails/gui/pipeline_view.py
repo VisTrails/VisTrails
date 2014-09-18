@@ -3450,7 +3450,6 @@ def set_lod(limit, item, lod=None):
         class Lod:
             pass
         lod = Lod()
-        lod.scale = item.scale()
     def add_lod_paint(painter, option, widget):
         if top_item: # fixes children having different scaling (also faster)
             lod.current =  option.levelOfDetailFromTransform(
