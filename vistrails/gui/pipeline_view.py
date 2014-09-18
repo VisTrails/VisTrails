@@ -3453,8 +3453,7 @@ def set_lod(limit, item, lod=None):
         if top_item:
             lod[0] = option.levelOfDetailFromTransform(
                     painter.worldTransform())
-        assert lod[0] is not None  # This assertion doesn't necessarily hold!
-        if lod[0] > limit:
+        if lod[0] is None or lod[0] > limit:
             return paint_orig(painter, option, widget)
     item.paint = paint_with_lod_check
 
