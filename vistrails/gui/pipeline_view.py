@@ -3327,6 +3327,10 @@ class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
                 self.function_widgets.append(function_widget)
                 height += function_widget.boundingRect().height()
                 width = max(width,function_widget.boundingRect().width())
+        # center widgets
+        for function_widget in self.function_widgets:
+            for widget, w in function_widget.widths:
+                widget.moveBy((width-w)/2, 0.0)
         self.bounds = QtCore.QRectF(0,0,width,height)
 
     def boundingRect(self):
@@ -3343,6 +3347,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
         QtGui.QGraphicsWidget.__init__(self, parent)
         self.function = function
         self.param_widgets = []
+        self.widths = [] # (widget, width)
         self.bounds = None
         width = 0
         height = 0
@@ -3399,6 +3404,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                     return lambda e:widget.setFocus() or widget.mousePressEvent(e)
                 bg.mousePressEvent = get_focusable(param_widget)
                 param_widget.setPos(0, height)
+                self.widths.append((param_widget,rect.width()))
             else:
                 param_widget = Widget(param)
                 name = unicode(id(param_widget))
@@ -3413,12 +3419,12 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 rect.setSize(rect.size()*SCALE)# uninitialized bounds need to be scaled
                 rect.moveTo(0.0,0.0)
                 proxy.setPos(0, height)
+                self.widths.append((proxy,rect.width()))
             width = max(width, rect.width())
             rect.setHeight(rect.height()+2) # space between parameters
             height += rect.height()
             param_widget.contentsChanged.connect(self.param_changed)
             self.param_widgets.append(param_widget)
-
         self.bounds = QtCore.QRectF(0.0, 0.0, width, height)
 
     def param_changed(self, values):
