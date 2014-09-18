@@ -959,6 +959,29 @@ class List(Constant):
             self.get_input('value')
         self.set_output('value', head + middle + items + tail)
 
+    @staticmethod
+    def to_python_script(module):
+        set_ports = set(f.name for f in module.functions)
+        set_ports.update(module.connected_input_ports.iterkeys())
+        inputs = {}
+        add = []
+        if 'head' in set_ports:
+            inputs['head'] = u'head'  # TODO : depth=1 here...
+            add.append(u'head')
+        if 'value' in set_ports:
+            inputs['value'] = u'middle'
+            add.append(u'middle')
+        items = [p.name for p in module.input_port_specs]
+        if items:
+            add_items = u'[%s]' % ', '.join((u'i_%s' % i) for i in items)
+            inputs.update((i, u'i_%s' % i) for i in items)
+            add.append(add_items)
+        if 'tail' in set_ports:
+            inputs['tail'] = u'tail'
+            add.append(u'tail')
+        code = u'value = %s' % u' + '.join(add)
+        return Script(code, inputs=inputs, outputs={'value': u'value'})
+
 ##############################################################################
 # Dictionary
 
