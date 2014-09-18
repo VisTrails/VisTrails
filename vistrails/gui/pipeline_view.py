@@ -3433,7 +3433,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
     def boundingRect(self):
         return self.bounds
 
-def set_lod(limit, item, lod=None):
+def set_lod(limit, item, draw=None):
     """Sets the limit of level of detail used when painting items.
     """
     # This function replaces the paint() methods of the given item and its
@@ -3444,22 +3444,22 @@ def set_lod(limit, item, lod=None):
     # scales
 
     paint_orig = item.paint # store reference to original paint method
-    top_item = lod is None
-    if lod is None:
-        lod = [None]
+    top_item = draw is None
+    if draw is None:
+        draw = [True]
 
     # Overrides paint() on that item
     def paint_with_lod_check(painter, option, widget):
         if top_item:
-            lod[0] = option.levelOfDetailFromTransform(
-                    painter.worldTransform())
-        if lod[0] is None or lod[0] > limit:
+            draw[0] = option.levelOfDetailFromTransform(
+                    painter.worldTransform()) > limit
+        if draw[0]:
             return paint_orig(painter, option, widget)
     item.paint = paint_with_lod_check
 
     # Recursively process children
     for i in item.childItems():
-        set_lod(limit, i, lod)
+        set_lod(limit, i, draw)
 
 class QModuleStatusEvent(QtCore.QEvent):
     """
