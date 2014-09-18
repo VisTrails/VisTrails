@@ -3434,30 +3434,31 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
         return self.bounds
 
 def set_lod(limit, item, lod=None):
-    """ Set level of detail by wrapping paint methods and checking limit.
-        This will set lod of all children, so different lod:s need to be set
-        top down.
-
-        current_lod is calculated for the top item so that children scaling
-        is ignored
-
-        currently the top widget cannot have a scale factor
-
+    """Sets the limit of level of detail used when painting items.
     """
-    paint = item.paint # store reference to original paint method
+    # This function replaces the paint() methods of the given item and its
+    # children. The new version doesn't actually draw any of the items if the
+    # level of detail OF THE TOP ITEM (which is the only one checked) is under
+    # the threshold
+    # Only the top-level item is checked, because children might have different
+    # scales
+
+    paint_orig = item.paint # store reference to original paint method
     top_item = lod is None
     if lod is None:
-        class Lod:
-            pass
-        lod = Lod()
-    def add_lod_paint(painter, option, widget):
-        if top_item: # fixes children having different scaling (also faster)
-            lod.current =  option.levelOfDetailFromTransform(
-                                                    painter.worldTransform())
-        if lod.current < limit:
-            return
-        return paint(painter, option, widget)
-    item.paint = add_lod_paint
+        lod = [None]
+
+    # Overrides paint() on that item
+    def paint_with_lod_check(painter, option, widget):
+        if top_item:
+            lod[0] = option.levelOfDetailFromTransform(
+                    painter.worldTransform())
+        assert lod[0] is not None  # This assertion doesn't necessarily hold!
+        if lod[0] > limit:
+            return paint_orig(painter, option, widget)
+    item.paint = paint_with_lod_check
+
+    # Recursively process children
     for i in item.childItems():
         set_lod(limit, i, lod)
 
