@@ -67,7 +67,7 @@ import vistrails.core.db.action
 
 from vistrails.core.utils import InstanceObject
 from vistrails.core.vistrail.vistrail import Vistrail
-from vistrails.core import command_line
+from vistrails.core import command_line  # FIXME : This file doesn't exist. I take it application_server is not used anymore?
 from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry as module_registry
 from vistrails.core import interpreter

@@ -514,7 +514,7 @@ class QShell(QtGui.QTextEdit):
         self.setTextCursor(cursor)
       
         while self.reading:
-            qApp.processOneEvent()
+            qApp.processOneEvent()  # FIXME : unset. Is this even used?
         if len(self.line) == 0:
             return '\n'
         else:

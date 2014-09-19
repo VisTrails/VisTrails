@@ -164,7 +164,7 @@ def package_dependencies():
                 all_packages.update(p for p in dependencies.iterkeys()
                                     if p != identifier)
                 my_vistrails[abstraction[:-4]] = \
-                    (vistrail, abs_fname, inter_depends)
+                    (vistrail, abs_fname, inter_depends)  # FIXME vistrail might not be set
             else:
                 debug.critical(("Subworkflow '%s' is missing packages it " +
                                 "depends on") % abstraction)

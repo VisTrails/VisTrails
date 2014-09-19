@@ -290,6 +290,7 @@ class Pipeline(DBWorkflow):
         Checks semantics of connection
           
         """
+        # FIXME : there *EndPoint attributes don't exist
         if c.source.endPoint != Port.SourceEndPoint:
             return False
         if c.destination.endPoint != Port.DestinationEndPoint:
@@ -305,8 +306,10 @@ class Pipeline(DBWorkflow):
     def connects_at_port(self, p):
         """ connects_at_port(p: Port) -> list of Connection 
         Returns a list of Connections that connect at port p
-        
+
         """
+        # FIXME : there *EndPoint attributes don't exist
+        # FIXME : no VTKRTTI global
         result = []
         if p.endPoint == Port.DestinationEndPoint:
             el = self.graph.edges_to(p.moduleId)
@@ -485,7 +488,7 @@ class Pipeline(DBWorkflow):
                                    old_conn.id)
             if self.graph.out_degree(old_conn.sourceId) < 1:
                 self.modules[old_conn.sourceId].connected_output_ports.discard(
-                    conn.source.name)
+                    conn.source.name)  # FIXME : conn is c? old_conn?
             if self.graph.in_degree(old_conn.destinationId) < 1:
                 connected_input_ports = \
                     self.modules[old_conn.destinationId].connected_input_ports

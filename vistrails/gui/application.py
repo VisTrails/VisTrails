@@ -503,7 +503,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                            port=self.temp_configuration.check('port') or 3306,
                            database=self.temp_configuration.check('db'),
                            user=self.temp_configuration.check('user'),
-                           passwd=passwd,
+                           passwd=passwd,  # FIXME : passwd not set here
                            obj_id=f_name,
                            obj_type=None,
                            connection_id=None)

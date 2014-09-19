@@ -334,6 +334,7 @@ class Vistrail(DBVistrail):
         (The point is that this might be smaller than the
         algebra-based one).
         """
+        # FIXME : Uses long-gone *Action
         (p1,
          p2,
          m_shared,

@@ -36,7 +36,7 @@
 # ImageViewer plugin for VisTrails Spreadsheet
 ################################################################################
 from imageviewer import ImageViewerCell, ImageFileToSpreadsheet
-from vistrails.core.modules.output_modules import ImageFileOutput
+from vistrails.core.modules.output_modules import ImageFileOutput  # FIXME : This is missing
 
 ################################################################################
 
