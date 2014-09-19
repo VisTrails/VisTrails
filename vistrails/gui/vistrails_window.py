@@ -1186,11 +1186,11 @@ class QVistrailsWindow(QVistrailViewWindow):
             for dock_area, p_group in self.palette_layout:
                 for p_klass in p_group:
                 
+                    assert isinstance(p_klass, tuple)
+                    p_klass, visible = p_klass
                     if isinstance(p_klass, tuple):
+                        notifications = visible
                         p_klass, visible = p_klass
-                        if isinstance(p_klass, tuple):
-                            notifications = visible
-                            p_klass, visible = p_klass      
                     palette = p_klass.instance()
                     if dock_area == QtCore.Qt.RightDockWidgetArea:
                         pin_status = palette.get_pin_status()
@@ -1665,13 +1665,14 @@ class QVistrailsWindow(QVistrailViewWindow):
                 if locator.has_temporaries():
                     if not locator_class.prompt_autosave(self):
                         locator.clean_temporaries()
-            if hasattr(locator, '_vnode'):
+                version = None
+            if hasattr(locator,'_vtag'):
+                # if a tag is set, it should be used instead of the
+                # version number
+                if locator._vtag != '':
+                    version = locator._vtag
+            elif hasattr(locator, '_vnode'):
                 version = locator._vnode
-                if hasattr(locator,'_vtag'):
-                    # if a tag is set, it should be used instead of the
-                    # version number
-                    if locator._vtag != '':
-                        version = locator._vtag
             mashuptrail = None
             mashupversion = None
             execute = False
@@ -1965,7 +1966,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             return self.stack.currentWidget()
         else:
             if len(self.windows) > 0:
-                return self.windows.iterkeys().next()
+                return next(self.windows.iterkeys())
         return None
         
     def get_current_controller(self):

@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 from PyQt4 import QtGui, QtCore
+from vistrails.core.modules.vistrails_module import ModuleError
 import vistrails.core.system
 import copy
 import sys
@@ -203,7 +204,7 @@ class QObjectInspector(QtGui.QTreeWidget):
         if display_vals:
             p_item.setText(1, str(port_value))
         else:
-            typestr = str(port_val.__class__)
+            typestr = str(port_value.__class__)
             typestr = typestr.split('.')
             typestr = typestr[len(typestr)-1]
             typestr = typestr[0:len(typestr)-2]

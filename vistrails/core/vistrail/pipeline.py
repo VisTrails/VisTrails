@@ -1513,9 +1513,7 @@ class TestPipeline(unittest.TestCase):
         self.assertNotEquals(p1.id, p3.id)
 
     def test_copy2(self):
-        import vistrails.core.db.io
-
-        # nedd to id modules and abstraction_modules with same counter
+        # need to id modules and abstraction_modules with same counter
         id_scope = IdScope(remap={Abstraction.vtType: Module.vtType})
         
         p1 = self.create_pipeline2(id_scope)

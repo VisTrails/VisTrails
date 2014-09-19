@@ -39,7 +39,7 @@ its subclasses.
 
 from PyQt4 import QtCore, QtGui
 
-from vistrails.core.configuration import ConfigPath
+from vistrails.core.configuration import ConfigPath, ConfigField
 from vistrails.core.modules.basic_modules import Dictionary
 from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
     QFileChooserToolButton, QDirectoryChooserToolButton
@@ -374,7 +374,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
             for entry in entries:
                 combo.addItem(entry)
         self.set_combo_value(combo, config_val)
-        laout.addWidget(combo, row, 1)
+        layout.addWidget(combo, row, 1)
 
         def call_field_changed(val):
             if inv_remap is not None:

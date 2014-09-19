@@ -473,13 +473,9 @@ class QShell(QtGui.QTextEdit):
         self.pointer = 0
         self.last   = 0
                 # interpreter prompt.
-        if hasattr(sys, "ps1"):
-            sys.ps1
-        else:
+        if not hasattr(sys, "ps1"):
             sys.ps1 = ">>> "
-        if hasattr(sys, "ps2"):
-            sys.ps2
-        else:
+        if not hasattr(sys, "ps2"):
             sys.ps2 = "... "
         
         # interpreter banner

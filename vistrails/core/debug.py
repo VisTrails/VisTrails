@@ -165,7 +165,7 @@ class DebugPrint(object):
     so it will only get information of who called the DebugPrint functions.
 
     Example of usage:
-        >>> from core import debug
+        >>> from vistrails.core import debug
         >>> debug.DebugPrint.getInstance().set_message_level(
                     debug.DebugPrint.WARNING)
         # the following messages will be shown
@@ -386,6 +386,8 @@ def object_at(desc):
         target_id = desc
     elif isinstance(desc, basestring):
         target_id = int(desc, 16) # Reads desc as the hex address
+    else:
+        raise TypeError
     import gc
     for obj in gc.get_objects():
         if id(obj) == target_id:

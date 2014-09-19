@@ -543,6 +543,7 @@ class RequestHandler(object):
         config['db'] = db_name
         config['user'] = db_write_user
         config['passwd'] = db_write_pass
+        conn = None
         try:
             conn = vistrails.db.services.io.open_db_connection(config)
             vistrails.db.services.io.delete_entity_from_db(conn,'vistrail', vt_id)
@@ -550,7 +551,7 @@ class RequestHandler(object):
             return (1, 1)
         except Exception, e:
             self.server_logger.error(str(e))
-            if conn:
+            if conn is not None:
                 vistrails.db.services.io.close_db_connection(conn)
             return (str(e), 0)
 
@@ -683,7 +684,7 @@ class RequestHandler(object):
                            package='edu.utah.sci.vistrails.vtWebGL',
                            functions=[])
                 mWeb.version = '0.0.2'
-                workflow.add_module(mWeb);
+                workflow.add_module(mWeb)
                 # create connection from render to web
                 source = Port(id=id_scope.getNewId(Port.vtType),
                               type='source',
@@ -702,7 +703,7 @@ class RequestHandler(object):
                 workflow.add_connection(c1)
                 workflow.validate()
 
-            c.current_pipeline = workflow;
+            c.current_pipeline = workflow
             (results, x) = c.execute_current_workflow()
             if len(results[0].errors.values()) > 0:
                 print "> ERROR: ", results[0].errors

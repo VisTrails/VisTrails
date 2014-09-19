@@ -434,10 +434,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                 if str(element.name) == str(name):
                     #get the request method name
                     reqname = element.input.getMessage().name
-            try:
-                req = getattr(self.modclient,reqname)()
-            except:
-                print "sys.exc_value: ", sys.exc_value
+            req = getattr(self.modclient,reqname)()
             for inparam in inparams:
                 #Now set all attributes for the request object
                 if self.has_input(inparam.name):

@@ -125,7 +125,7 @@ def perform_analogy_on_vistrail(vistrail, version_a, version_b, version_c,
                     a_connect.destination.spec == c_connect.destination.spec):
                     break
         if match is not None:
-            connection_remap[a_connect.id] = c_connect.id
+            connection_remap[a_connect.id] = match.id
         elif _debug:
             print "failed to find connection match", a_connect.id, a_source, \
                 a_dest

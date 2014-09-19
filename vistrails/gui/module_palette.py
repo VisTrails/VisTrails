@@ -290,10 +290,10 @@ class QModuleTreeWidget(QSearchTreeWidget):
             identifiers = [i for i, j in self.parent().packages.iteritems()
                            if j == weakref.ref(p)]
             if identifiers:
+                identifier = identifiers[0]
+                registry = get_module_registry()
+                package = registry.packages[identifier]
                 try:
-                    identifier = identifiers[0]
-                    registry = get_module_registry()
-                    package = registry.packages[identifier]
                     if package.has_contextMenuName():
                         name = package.contextMenuName(str(item.text(0)))
                         if name:

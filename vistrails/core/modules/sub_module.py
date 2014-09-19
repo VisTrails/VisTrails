@@ -293,12 +293,12 @@ def get_port_spec_info(pipeline, module):
     try:
         type = type_map[module.name]
     except KeyError:
-        raise VistrailsInternalError("cannot translate type '%s'" % type)
+        raise VistrailsInternalError("cannot translate type '%s'" % module.name)
     if type == 'input':
         get_edges = pipeline.graph.edges_from
         get_port_name = \
             lambda x: pipeline.connections[x].destination.name
-    elif type == 'output':
+    else:  # type == 'output'
         get_edges = pipeline.graph.edges_to
         get_port_name = \
             lambda x: pipeline.connections[x].source.name

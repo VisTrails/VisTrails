@@ -12,8 +12,7 @@ from vistrails.core.system import vistrails_root_directory
 
 try:
     from PyQt4 import QtCore, QtGui
-    QtGui.QDialog
-except Exception:
+except ImportError:
     qt_available = False
 else:
     qt_available = True
@@ -271,7 +270,7 @@ class EngineManager(object):
             if qt_available:
                 bar.hide()
                 bar.deleteLater()
-            print "parallelflow: %d engines started" % (i + 1)
+            print "parallelflow: %d engines started" % nb
 
     def info(self):
         """Show some information on the cluster.

@@ -905,7 +905,7 @@ class VistrailController(QtCore.QObject, BaseController):
             children = [to for (to, _) in full.adjacency_list[current]
                         if (to in am) and not self.vistrail.is_pruned(to)]
             if len(children) > 1:
-                break;
+                break
             self.vistrail.collapseVersion(current)
             changed = True
 

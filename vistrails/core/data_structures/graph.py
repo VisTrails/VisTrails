@@ -313,11 +313,14 @@ class Graph(object):
         
         if old_id == None:
             efroom = self.adjacency_list[old_froom]
+            forward_idx = None
             for i, edge in enumerate(efroom):
                 if edge[0] == old_to:
                     old_id = edge[1]
                     forward_idx = i
                     break
+            if forward_idx is None:
+                raise ValueError("No edge to %r" % old_to)
         else:
             forward_idx = self.adjacency_list[old_froom].index((old_to, old_id))
 
@@ -803,7 +806,7 @@ class TestGraph(unittest.TestCase):
          """Test sink and source degree consistency"""
          g = Graph()
          for i in xrange(100):
-             g.add_vertex(i);
+             g.add_vertex(i)
          for i in xrange(1000):
              v1 = random.randint(0,99)
              v2 = random.randint(0,99)
