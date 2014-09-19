@@ -985,10 +985,8 @@ be loaded again." % w
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
-        package_subdirectory = os.path.join(package_directory, directoryname)
         wsm = WriteServiceModule(wsdl)
         client_mod = wsm.getClientModuleName()
-        types_mod = wsm.getTypesModuleName()
 
         #import the stub generated files
         try:
@@ -1362,18 +1360,11 @@ def initialize(*args, **keywords):
     global webServicesmodulesDict
     global complexsdict
     wsdlList = []
-    if configuration.showWarning == True:
-        msg = "The Web Services package is deprecated and will be removed from \
-next VisTrails release. Please consider using the new SUDS Web Services package. \
-This message will not be shown again."
-        pm.show_error_message(pm.get_package(identifier),msg)
-        try:
-            from vistrails.gui.application import get_vistrails_application
-            if get_vistrails_application() is not None:
-                configuration.showWarning = False
-                VisTrailsApplication.save_configuration()
-        except:
-            pass
+    if configuration.showWarning:
+        msg = ("The Web Services package is deprecated and will be removed "
+               "from the next VisTrails release. Please consider using the "
+               "new SUDS Web Services package.")
+        pm.show_error_message(pm.get_package(identifier), msg)
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
 
