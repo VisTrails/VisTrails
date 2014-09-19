@@ -40,9 +40,8 @@ from vistrails.gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDown
                                          QAliasNumericStepperWidget)
 from vistrails.gui.utils import show_warning, TestVisTrailsGUI
 
-spreadsheet = __import__('vistrails.packages.spreadsheet', globals(), locals(), 
-                         ['spreadsheet_controller'], -1) 
-spreadsheetController = spreadsheet.spreadsheet_controller.spreadsheetController
+from vistrails.packages.spreadsheet.spreadsheet_controller import \
+    spreadsheetController
 
 
 class QMashupAppMainWindow(QtGui.QMainWindow):
