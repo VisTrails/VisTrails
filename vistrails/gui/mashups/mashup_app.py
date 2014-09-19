@@ -38,20 +38,19 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal
 
 from vistrails.core import debug
-from vistrails.gui.mashups.mashups_widgets import (QAliasSliderWidget, QDropDownWidget,
-                                         QAliasNumericStepperWidget)
+from vistrails.gui.mashups.mashups_widgets import QAliasNumericStepperWidget, \
+    QAliasSliderWidget, QDropDownWidget
 from vistrails.gui.utils import show_warning, TestVisTrailsGUI
 
-spreadsheet = __import__('vistrails.packages.spreadsheet', globals(), locals(), 
-                         ['spreadsheet_controller'], -1) 
-spreadsheetController = spreadsheet.spreadsheet_controller.spreadsheetController
+from vistrails.packages.spreadsheet.spreadsheet_controller import \
+    spreadsheetController
 
 
 class QMashupAppMainWindow(QtGui.QMainWindow):
     #signals
     appWasClosed = pyqtSignal(QtGui.QMainWindow)
-    
-    def __init__(self, parent=None, vistrail_view=None, dumpcells=False, 
+
+    def __init__(self, parent=None, vistrail_view=None, dumpcells=False,
                  controller=None, version=-1):
         """ QMashupAppMainWindow()
         Initialize an app window from a mashup.
@@ -61,7 +60,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self, parent)
         self.vtkCells = []
         self.setStatusBar(QtGui.QStatusBar(self))
-    
+
         # Central widget
         centralWidget = QtGui.QWidget()
         self.mainLayout = QtGui.QVBoxLayout()
@@ -102,14 +101,14 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         # Show here to make sure XDisplay info is correct (for VTKCell)
         self.show()
 
-        spreadsheetController.setEchoMode(True)        
+        spreadsheetController.setEchoMode(True)
         #will run to get Spreadsheet Cell events
         (cellEvents, errors) = self.runAndGetCellEvents(useDefaultValues=True)
         if cellEvents:
             self.numberOfCells = len(cellEvents)
             self.initCells(cellEvents)
         if len(errors) > 0:
-            show_warning("VisTrails::Mashup Preview", 
+            show_warning("VisTrails::Mashup Preview",
                          "There was a problem executing the pipeline: %s." %
                          errors)
         # Construct the controllers for aliases
@@ -117,17 +116,17 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.cellControls = {}
         self.aliasWidgets = {}
         self.initControls()
-        
-        if self.currentMashup.layout != None:
+
+        if self.currentMashup.layout is not None:
             self.restoreState(QtCore.QByteArray.fromPercentEncoding(
                                 QtCore.QByteArray(self.currentMashup.layout)))
-        
-        if self.currentMashup.geometry != None:
+
+        if self.currentMashup.geometry is not None:
             self.restoreGeometry(QtCore.QByteArray.fromPercentEncoding(
                               QtCore.QByteArray(self.currentMashup.geometry)))
         else:
             self.resize(self.sizeHint())
-                    
+
         # Constructing buttons
         buttonDock = QCustomDockWidget('Control Buttons', self)
         buttonWidget = QtGui.QWidget(buttonDock)
@@ -185,7 +184,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             sequenceLayout.addWidget(self.cb_loop_sequence)
             buttonLayout.addLayout(sequenceLayout, 0, 0, QtCore.Qt.AlignRight)
         buttonLayout.addWidget(self.cb_auto_update, 0, 1, QtCore.Qt.AlignLeft)
-        buttonLayout.addWidget(self.cb_keep_camera, 0, 2, 1, 2, QtCore.Qt.AlignLeft) 
+        buttonLayout.addWidget(self.cb_keep_camera, 0, 2, 1, 2, QtCore.Qt.AlignLeft)
         if self.sequenceOption:
             buttonLayout.addWidget(self.loopButton, 1, 1, QtCore.Qt.AlignRight)
             self.loopButton.setEnabled(False)
@@ -201,34 +200,34 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         buttonDock.setWidget(buttonWidget)
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, buttonDock)
         self.controlDocks["__buttons__"] = buttonDock
-        
-        self.saveAllAct = QtGui.QAction("S&ave Combined", self, 
+
+        self.saveAllAct = QtGui.QAction("S&ave Combined", self,
                                         shortcut=QtGui.QKeySequence.SelectAll,
-                                        statusTip="Save combined images to disk", 
+                                        statusTip="Save combined images to disk",
                                         triggered=self.saveAllEvent)
-        self.saveAct = QtGui.QAction("&Save Each", self, 
+        self.saveAct = QtGui.QAction("&Save Each", self,
                                      shortcut=QtGui.QKeySequence.Save,
-                                     statusTip="Save separate images to disk", 
+                                     statusTip="Save separate images to disk",
                                      triggered=self.saveEventAction)
         self.showBuilderAct = QtGui.QAction("VisTrails Main Window", self,
                                             statusTip="Show VisTrails Main Window",
                                             triggered=self.showBuilderWindow)
         self.createMenus()
         self.lastExportPath = ''
-                    
+
     def createMenus(self):
         self.fileMenu = self.menuBar().addMenu("&File")
         self.fileMenu.addAction(self.saveAct)
         self.fileMenu.addAction(self.saveAllAct)
-        
+
         self.viewMenu = self.menuBar().addMenu("&View")
         self.viewMenu.addAction(self.editingModeAct)
-        
+
         self.windowMenu = self.menuBar().addMenu("&Window")
         self.windowMenu.addAction(self.showBuilderAct)
-        
+
     def runAndGetCellEvents(self, useDefaultValues=False):
-        spreadsheetController.setEchoMode(True)        
+        spreadsheetController.setEchoMode(True)
         #will run to get Spreadsheet Cell events
         cellEvents = []
         errors = []
@@ -242,9 +241,9 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             print "Executing pipeline failed:", debug.format_exception(e), traceback.format_exc()
         finally:
             spreadsheetController.setEchoMode(False)
-            
+
         return (cellEvents, errors)
-    
+
     def updateCells(self, info=None):
         # check if we should create a sequence
         if self.cb_loop_sequence.isChecked():
@@ -262,7 +261,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         #self.SaveCamera()
         for i in xrange(self.numberOfCells):
             camera = []
-            if (hasattr(self.cellWidgets[i],"getRendererList") and 
+            if (hasattr(self.cellWidgets[i],"getRendererList") and
                 self.cb_keep_camera.isChecked()):
                 for ren in self.cellWidgets[i].getRendererList():
                     camera.append(ren.GetActiveCamera())
@@ -285,7 +284,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 for i in xrange(self.numberOfCells):
                     self.cellWidgets[i].setPlayerFrame(slider.value())
             return
-        
+
         if not interactive:
             for i in xrange(self.numberOfCells):
                 self.cellWidgets[i].clearHistory()
@@ -315,7 +314,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             # show the result
             self.updateRenderedCells(value if interactive else 0)
             self.is_executing = True
-                
+
             if value >= slider.maximum():
                 break
             value += slider.singleStep()
@@ -323,14 +322,14 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.is_executing = False
         slider.setValue(old_value)
         self.loopButton.setEnabled(True)
-        
+
     def updateRenderedCells(self, value):
         """ Show the cell specified by slider info
         """
         self.is_executing = True
         for i in xrange(self.numberOfCells):
             camera = []
-            if (hasattr(self.cellWidgets[i],"getRendererList") and 
+            if (hasattr(self.cellWidgets[i],"getRendererList") and
                 self.cb_keep_camera.isChecked()):
                 for ren in self.cellWidgets[i].getRendererList():
                     camera.append(ren.GetActiveCamera())
@@ -365,7 +364,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                     cell.startPlayer()
                 else:
                     cell.stopPlayer()
-            
+
 
     def timerEvent(self, event):
         if self.steps:
@@ -393,23 +392,23 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             self.editing = not self.editing
         if not self.editing:
             self.saveSettings()
-               
+
     def saveSettings(self):
         layout = self.saveState().toPercentEncoding()
         geom = self.saveGeometry().toPercentEncoding()
-            
+
         self.currentMashup.layout = layout
         self.currentMashup.geometry = geom
-        
+
         self.controller.setChanged(True)
-        
+
         #self.controller.writeMashuptrail()
-   
+
     def closeEvent(self, event):
         self.saveSettings()
         self.appWasClosed.emit(self)
         event.accept()
-        
+
     def auto_update_changed(self, state):
         if state == QtCore.Qt.Unchecked:
             self.updateButton.setEnabled(True)
@@ -436,23 +435,23 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                     cell._player.raise_()
                     cell._player.show()
                     cell.hide()
-        
+
     def loop_int_changed(self, state):
             self.loopButton.setEnabled(False)
-            
+
     def saveAll(self):
         for w in self.widgets:
             w.saveAll(self.dumpcells)
-            
+
     def saveEach(self):
         for w in self.widgets:
             w.saveEach(self.dumpcells, self.frameNo)
-        
+
     def saveEventAction(self, checked):
         self.saveEvent()
-          
+
     def saveEvent(self, folder=None):
-        if folder == None:
+        if folder is None:
             folder = QtGui.QFileDialog.getExistingDirectory(self,
                                                         "Save images to...",
                                                         self.lastExportPath,
@@ -461,9 +460,9 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             self.dumpcells = unicode(folder)
             self.saveEach()
             self.lastExportPath = unicode(folder)
-            
+
     def saveAllEvent(self, folder=None):
-        if folder == None:
+        if folder is None:
             folder = QtGui.QFileDialog.getExistingDirectory(self,
                                                         "Save images to...",
                                                         self.lastExportPath,
@@ -471,11 +470,10 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         if folder:
             self.dumpcells = unicode(folder)
             self.saveAll()
-            self.lastExportPath
-    
+
     def saveAndExport(self, clicked=True):
         self.saveAll()
-        
+
     def initCells(self, cellEvents):
         cellLayout = QtGui.QHBoxLayout()
         self.mainLayout.addLayout(cellLayout, self.numberOfCells * 2)
@@ -496,47 +494,46 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             return vtkCells
         for cellWidget in self.vtkCells:
             cellWidget.getSelectedCellWidgets = getSelectedCellWidgets
-      
+
     def initControls(self):
         if len(self.currentMashup.alias_list) == 0:
             return
-        
+
         #Constructing alias controls
         self.controlDocks = {}
         self.cellControls = {}
         self.toolbuttons = {}
-        
+
         row = 0
         for alias in self.currentMashup.alias_list:
             dock = QCustomDockWidget(alias.name, #"Control for '%s'" % aliasName,
                                       self)
             vtparam = self.controller.getVistrailParam(alias)
-            
+
             if alias.component.widget == 'slider':
                 aliasWidget = QAliasSliderWidget(alias, vtparam, dock)
-                # enables looping of 
+                # enables looping of
                 if alias.component.seq:
                     self.sequenceOption = aliasWidget
-
 
             elif alias.component.widget == 'numericstepper':
                 aliasWidget = QAliasNumericStepperWidget(alias, vtparam, dock)
             else:
                 aliasWidget = QDropDownWidget(alias, vtparam, dock)
-            
+
             aliasWidget.setSizePolicy(QtGui.QSizePolicy.Preferred,
                                           QtGui.QSizePolicy.Maximum)
             self.connect(aliasWidget,
                              QtCore.SIGNAL("contentsChanged"),
                              self.widget_changed)
-                
+
             dock.setWidget(aliasWidget)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
             self.controlDocks[alias.name] = dock
             self.cellControls[alias.name] = aliasWidget.value
             row += 1
             self.aliasWidgets[alias.name] = aliasWidget
-        
+
         # Added a stretch space
         stretchDock = QCustomDockWidget('Stretch Space', self)
         stretch = QtGui.QWidget()
@@ -545,14 +542,14 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         stretchDock.setWidget(stretch)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, stretchDock)
         self.controlDocks["_stretch_"] = stretchDock
-            
+
     def widget_changed(self, info):
         if self.cb_auto_update.isChecked() and not self.is_executing:
             self.updateCells(info)
-        
-            
+
+
     def run(self, useDefaultValues=False):
-        
+
         # Building the list of parameter values
         params = []
         if useDefaultValues:
@@ -567,7 +564,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                 else:
                     val =unicode(edit.text())
                 params.append((alias.component.vttype, alias.component.vtid,
-                              val))    
+                              val))
         results = self.controller.execute(params)[0]
         result = results[0]
         (objs, errors, executed) = (result.objects, result.errors,
@@ -577,16 +574,16 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             print errors
             return (False, errors)
         return (True, [])
-    
+
     def showBuilderWindow(self):
         from vistrails.gui.vistrails_window import _app
         _app.show()
-            
+
 class QCustomDockWidget(QtGui.QDockWidget):
     def __init__(self, title, parent=None):
         QtGui.QDockWidget.__init__(self, title, parent)
         self.setObjectName(title)
-        self.setFeatures(QtGui.QDockWidget.DockWidgetClosable | 
+        self.setFeatures(QtGui.QDockWidget.DockWidgetClosable |
                          QtGui.QDockWidget.DockWidgetMovable)
         self.emptyTitleBar = QtGui.QWidget()
         self.titleBarVisible = True
@@ -594,7 +591,7 @@ class QCustomDockWidget(QtGui.QDockWidget):
 
     def showTitleBar(self):
         self.titleBarVisible = True
-        self.setFeatures(QtGui.QDockWidget.DockWidgetClosable | 
+        self.setFeatures(QtGui.QDockWidget.DockWidgetClosable |
                          QtGui.QDockWidget.DockWidgetMovable)
         self.setMaximumHeight(524287)
         self.setTitleBarWidget(None)
@@ -617,8 +614,9 @@ class QCustomDockWidget(QtGui.QDockWidget):
 class TestMashupApp(TestVisTrailsGUI):
 
     def test_load_mashup(self):
+        import vistrails.api
         import vistrails.core.system
-        filename = (vistrails.core.system.vistrails_root_directory() + 
+        filename = (vistrails.core.system.vistrails_root_directory() +
                     '/tests/resources/spx_loop.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
         view.controller.flush_delayed_actions()

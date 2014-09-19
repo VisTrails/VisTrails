@@ -2105,9 +2105,6 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.rpcserver = None
         self.pingserver = None
         self.images_url = "http://vistrails.sci.utah.edu/medleys/images/"
-        self.temp_xml_rpc_options = InstanceObject(server=None,
-                                                   port=None,
-                                                   log_file=None)
         qt.allowQObjects()
 
     def is_running_gui(self):
@@ -2255,26 +2252,26 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                                    "Please populate it with the correct values and use it" %
                                    (filename, new_filename))
 
-    def init(self, optionsDict=None):
+    def init(self, optionsDict=None, args=[]):
         """ init(optionDict: dict) -> boolean
         Create the application with a dict of settings
 
         """
-        VistrailsApplicationInterface.init(self,optionsDict)
+        VistrailsApplicationInterface.init(self,optionsDict, args)
 
-        self.vistrailsStartup.init()
-        self.server_logger = self.make_logger(self.temp_xml_rpc_options.log_file,
-                                              self.temp_xml_rpc_options.port)
-        self.load_config(self.temp_xml_rpc_options.config_file)
-        self.start_other_instances(self.temp_xml_rpc_options.instances)
+        # self.vistrailsStartup.init()
+        self.server_logger = self.make_logger(self.temp_configuration.check('rpcLogFile'),
+                                              self.temp_configuration.check('rpcPort'))
+        self.load_config(self.temp_configuration.check('rpcConfig'))
+        self.start_other_instances(self.temp_configuration.check('rpcInstances'))
         self._initialized = True
         return True
 
     def start_other_instances(self, number):
         global virtual_display, script_file
         self.others = []
-        host = self.temp_xml_rpc_options.server
-        port = self.temp_xml_rpc_options.port
+        host = self.temp_configuration.check('rpcServer')
+        port = self.temp_configuration.check('rpcPort')
         virt_disp = int(virtual_display)
         for x in xrange(number):
             port += 1   # each instance needs one port space for now
@@ -2307,39 +2304,46 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         via xml-rpc.
         """
 
-        self.server_logger.info("Server is running on http://%s:%s"%(self.temp_xml_rpc_options.server,
-                                                   self.temp_xml_rpc_options.port))
-        if self.temp_xml_rpc_options.multithread:
-            self.rpcserver = ThreadedXMLRPCServer((self.temp_xml_rpc_options.server,
-                                                   self.temp_xml_rpc_options.port),
-                                                  self.server_logger)
+        self.server_logger.info("Server is running on http://%s:%s"%(
+                                   self.temp_configuration.check('rpcServer'),
+                                   self.temp_configuration.check('rpcPort')))
+        if self.temp_configuration.check('multithread'):
+            self.rpcserver = ThreadedXMLRPCServer(
+                                  (self.temp_configuration.check('rpcServer'),
+                                   self.temp_configuration.check('rpcPort')),
+                                  self.server_logger)
             self.server_logger.info("    multithreaded instance")
         else:
-            self.rpcserver = StoppableXMLRPCServer((self.temp_xml_rpc_options.server,
-                                                   self.temp_xml_rpc_options.port),
-                                                   self.server_logger)
+            self.rpcserver = StoppableXMLRPCServer(
+                                  (self.temp_configuration.check('rpcServer'),
+                                   self.temp_configuration.check('rpcPort')),
+                                  self.server_logger)
             """
-            self.pingserver = StoppableXMLRPCServer((self.temp_xml_rpc_options.server,
-                                                    self.temp_xml_rpc_options.port-1),
-                                                    self.server_logger)
+            self.pingserver = StoppableXMLRPCServer(
+                                 (self.temp_configuration.check('rpcServer'),
+                                  self.temp_configuration.check('rpcPort')-1),
+                                 self.server_logger)
             """
             self.server_logger.info("    singlethreaded instance")
         #self.rpcserver.register_introspection_functions()
         self.rpcserver.register_instance(RequestHandler(self.server_logger,
                                                         self.others))
         if self.pingserver:
-            self.pingserver.register_instance(RequestHandler(self.server_logger, []))
-            self.server_logger.info("Status XML RPC Server is listening on http://%s:%s"% \
-                            (self.temp_xml_rpc_options.server,
-                             self.temp_xml_rpc_options.port-1))
+            self.pingserver.register_instance(RequestHandler(
+                                                      self.server_logger, []))
+            self.server_logger.info(
+                       "Status XML RPC Server is listening on http://%s:%s"% \
+                            (self.temp_configuration.check('rpcServer'),
+                             self.temp_configuration.check('rpcPort')-1))
             self.pingserver.register_function(self.quit_server, "quit")
             self.pingserver.serve_forever()
             self.pingserver.serve_close()
 
         self.rpcserver.register_function(self.quit_server, "quit")
-        self.server_logger.info("Vistrails XML RPC Server is listening on http://%s:%s"% \
-                        (self.temp_xml_rpc_options.server,
-                         self.temp_xml_rpc_options.port))
+        self.server_logger.info(
+                    "Vistrails XML RPC Server is listening on http://%s:%s"% \
+                        (self.temp_configuration.check('rpcServer'),
+                         self.temp_configuration.check('rpcPort')))
         self.rpcserver.serve_forever()
         self.rpcserver.server_close()
         return 0
@@ -2351,53 +2355,10 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.rpcserver.stop = True
         return result
 
-    def setupOptions(self, args=None):
-        """ setupOptions() -> None
-        Check and store all command-line arguments
-
-        """
-        add = command_line.CommandLineParser.add_option
-
-        add("-T", "--xml_rpc_server", action="store", dest="rpcserver",
-            help="hostname or ip address where this xml rpc server will work")
-        add("-R", "--xml_rpc_port", action="store", type="int", default=8080,
-            dest="rpcport", help="database port")
-        add("-L", "--xml_rpc_log_file", action="store", dest="rpclogfile",
-            default=os.path.join(system.vistrails_root_directory(),
-                                 'rpcserver.log'),
-            help="log file for XML RPC server")
-        add("-O", "--xml_rpc_instances", action="store", type='int', default=0,
-            dest="rpcinstances",
-            help="number of other instances that vistrails should start")
-        add("-M", "--multithreaded", action="store_true",
-            default = None, dest='multithread',
-            help="server will start a thread for each request")
-        add("-C", "--config-file", action="store", dest = "rpcconfig",
-            default=os.path.join(system.vistrails_root_directory(),
-                                 'server.cfg'),
-            help="config file for server connection options")
-        VistrailsApplicationInterface.setupOptions(self, args)
-
-    def readOptions(self):
-        """ readOptions() -> None
-        Read arguments from the command line
-
-        """
-        get = command_line.CommandLineParser().get_option
-        self.temp_xml_rpc_options = InstanceObject(server=get('rpcserver'),
-                                                   port=get('rpcport'),
-                                                   log_file=get('rpclogfile'),
-                                                   instances=get('rpcinstances'),
-                                                   multithread=get('multithread'),
-                                                   config_file=get('rpcconfig'))
-        VistrailsApplicationInterface.readOptions(self)
-
-
-
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
-def start_server(optionsDict=None):
+def start_server(optionsDict=None, args=[]):
     """Initializes the application singleton."""
     global VistrailsServer
     if VistrailsServer:
@@ -2406,7 +2367,7 @@ def start_server(optionsDict=None):
     VistrailsServer = VistrailsServerSingleton()
     vistrails.gui.theme.initializeCurrentTheme()
     vistrails.core.application.set_vistrails_application(VistrailsServer)
-    x = VistrailsServer.init(optionsDict)
+    x = VistrailsServer.init(optionsDict, args)
     if x == True:
         return 0
     else:

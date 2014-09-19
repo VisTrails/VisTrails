@@ -494,7 +494,7 @@ class FileSink(NotCacheable, Module):
                         counter += 1
                     try:
                         vistrails.core.system.link_or_copy(input_file.name, filename)
-                    except OSError:
+                    except OSError, e:
                         msg = "Could not publish file '%s' \n   on  '%s': %s" % \
                                (full_path, filename, e)
                         # I am not sure whether we should raise an error

@@ -889,26 +889,6 @@ class Pipeline(DBWorkflow):
         for c in self.connections.iterkeys():
             self.connection_signature(c)
 
-    def get_subpipeline(self, module_set):
-        """get_subpipeline([module_id] or subgraph) -> Pipeline
-
-        Returns a subset of the current pipeline with the modules passed
-        in as module_ids and the internal connections between them."""
-        if isinstance(module_set, list):
-            subgraph = self.graph.subgraph(module_set)
-        elif isinstance(module_set, Graph):
-            subgraph = module_set
-        else:
-            raise TypeError("Expected list of ints or graph")
-        result = Pipeline()
-        for module_id in subgraph.iter_vertices():
-            result.add_module(copy.copy(self.modules[module_id]))
-        for (conn_from, conn_to, conn_id) in subgraph.iter_all_edges():
-            result.add_connection(copy.copy(self.connections[conn_id]))
-                # TODO : I haven't finished this yet. -cscheid
-        raise NotImplementedError
-        return result
-
     ##########################################################################
     # Registry-related
 
@@ -1711,14 +1691,6 @@ class TestPipeline(unittest.TestCase):
                              id=0,
                              functions=[]))
         assert p1 == p2
-
-#     def test_subpipeline(self):
-#         p = self.create_default_pipeline()
-#         p2 = p.get_subpipeline([0, 1])
-#         for m in p2.modules:
-#             print m
-#         for c in p2.connections:
-#             print c
 
     def test_incorrect_port_spec(self):
         import vistrails.core.modules.basic_modules

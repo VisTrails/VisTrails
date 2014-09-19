@@ -42,7 +42,7 @@ ADDRESS="vis-7.sci.utah.edu"
 PORT="8081"
 CONF_FILE="server.cfg"
 NUMBER_OF_OTHER_VISTRAILS_INSTANCES="1"
-MULTI_OPTION="-M"
+MULTI_OPTION="--multithread"
 if (("$#" > "0")); then
     VIRTUAL_DISPLAY="$1"
 fi
@@ -59,7 +59,7 @@ if (("$#" == "5")); then
    if(("$5" == "0")); then
        MULTI_OPTION=""
    else
-       MULTI_OPTION="-M"
+       MULTI_OPTION="--multithread"
    fi
 fi
 
@@ -104,6 +104,6 @@ sleep 5
 #finally kill it if it still did not respond because it was hanging
 kill -9 `cat $PID`
 
-python vistrails_server.py -T $ADDRESS -R $PORT -C $CONF_FILE -O$NUMBER_OF_OTHER_VISTRAILS_INSTANCES $MULTI_OPTION&
+python vistrails_server.py --rpc-server=$ADDRESS --rpc-port $PORT --rpc-config $CONF_FILE --rpc-instances $NUMBER_OF_OTHER_VISTRAILS_INSTANCES $MULTI_OPTION&
 echo $! > $PID
 
