@@ -285,48 +285,6 @@ class Pipeline(DBWorkflow):
     def fresh_connection_id(self):
         return self.get_tmp_id(Connection.vtType)
 
-    def check_connection(self, c):
-        """check_connection(c: Connection) -> boolean 
-        Checks semantics of connection
-          
-        """
-        # FIXME : there *EndPoint attributes don't exist
-        if c.source.endPoint != Port.SourceEndPoint:
-            return False
-        if c.destination.endPoint != Port.DestinationEndPoint:
-            return False
-        if not self.has_module_with_id(c.sourceId):
-            return False
-        if not self.has_module_with_id(c.destinationId):
-            return False
-        if c.source.type != c.destination.type:
-            return False
-        return True
-    
-    def connects_at_port(self, p):
-        """ connects_at_port(p: Port) -> list of Connection 
-        Returns a list of Connections that connect at port p
-
-        """
-        # FIXME : there *EndPoint attributes don't exist
-        # FIXME : no VTKRTTI global
-        result = []
-        if p.endPoint == Port.DestinationEndPoint:
-            el = self.graph.edges_to(p.moduleId)
-            for (edgeto, edgeid) in el:
-                dest = self.connection[edgeid].destination
-                if VTKRTTI().intrinsicPortEqual(dest, p):
-                    result.append(self.connection[edgeid])
-        elif p.endPoint == Port.SourceEndPoint:
-            el = self.graph.edges_from(p.moduleId)
-            for (edgeto, edgeid) in el:
-                source = self.connection[edgeid].source
-                if VTKRTTI().intrinsicPortEqual(source, p):
-                    result.append(self.connection[edgeid])
-        else:
-            raise VistrailsInternalError("port with bogus information")
-        return result
-
     def connections_to_module(self, moduleId):
         """ connections_to_module(int moduleId) -> list of module ids
         returns a list of module ids that are inputs to the given moduleId
