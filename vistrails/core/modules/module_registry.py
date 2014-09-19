@@ -739,17 +739,15 @@ class ModuleRegistry(DBRegistry):
         package_version = package_version or ''
         module_version = module_version or ''
 
+        try:
+            package = self.packages[identifier]
+        except KeyError:
+            raise MissingPackage(identifier)
         if package_version:
-            package_version_key = (identifier, package_version)
             try:
-                package = self.package_versions[package_version_key]
+                package = self.package_versions[(identifier, package_version)]
             except KeyError:
                 raise MissingPackageVersion(identifier, package_version)
-        else:
-            try:
-                package = self.packages[identifier]
-            except KeyError:
-                raise MissingPackage(identifier)
         if not module_version:
             try:
                 descriptor = package.descriptors[(name, namespace)]
