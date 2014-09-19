@@ -78,6 +78,7 @@ from vistrails.gui.variable_dropbox import QDragVariableLabel
 import copy
 import math
 import operator
+import string
 import warnings
 
 import vistrails.api
@@ -3384,9 +3385,20 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
 
         for i in xrange(len(function.parameters)):
             param = function.parameters[i]
+            # check
+            psi = param.port_spec_item
+            if psi.entry_type is not None:
+                # !!only pull off the prefix!! options follow in camelcase
+                prefix_end = len(psi.entry_type.lstrip(string.lowercase))
+                if prefix_end == 0:
+                    entry_type = psi.entry_type
+                else:
+                    entry_type = psi.entry_type[:-prefix_end]
+            else:
+                entry_type = None
 
-            Widget = get_widget_class(function.get_spec('input').items[i].descriptor)
-            if hasattr(Widget, 'GraphicsItem'):
+            Widget = get_widget_class(psi.descriptor, entry_type)
+            if hasattr(Widget, 'GraphicsItem') and Widget.GraphicsItem:
                 param_widget = Widget.GraphicsItem(param, self)
                 # resize to MAX_WIDTH
                 rect = param_widget.boundingRect()
@@ -3407,9 +3419,8 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
                 self.widths.append((param_widget,rect.width()))
             else:
                 param_widget = Widget(param)
-                name = unicode(id(param_widget))
-                param_widget.setStyleSheet('QWidget#%s{background-color:transparent};' % name)
-                param_widget.setObjectName(name)
+                param_widget.setAutoFillBackground(False)
+                param_widget.setAttribute(QtCore.Qt.WA_NoSystemBackground, True)
                 param_widget.setMaximumSize(MAX_WIDTH/SCALE, MAX_WIDTH/SCALE)
                 param_widget.setWindowFlags(QtCore.Qt.BypassGraphicsProxyWidget)
                 proxy = QtGui.QGraphicsProxyWidget(self)

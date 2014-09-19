@@ -262,6 +262,10 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         elif not self.is_valid:
             painter.setPen(QtGui.QPen(CurrentTheme.PARAM_INVALID_COLOR, 0))
             painter.drawRect(self.boundingRect())
+        else:
+            color = QtGui.QApplication.palette().color(QtGui.QPalette.Dark)
+            painter.setPen(QtGui.QPen(color, 0))
+            painter.drawRect(self.boundingRect())
         return result
 
 class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
@@ -301,8 +305,19 @@ class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
     def setDefault(self, value):
         setPlaceholderTextCompat(self, value)
 
+def findEmbeddedParentWidget(widget):
+    """ See showPopup below
+
+    """
+    if widget.graphicsProxyWidget():
+        return widget
+    elif widget.parentWidget():
+        return findEmbeddedParentWidget(widget.parentWidget())
+    return None
+
 class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
     contentsChanged = QtCore.pyqtSignal(tuple)
+    GraphicsItem = None
     def __init__(self, param, parent=None):
         QtGui.QComboBox.__init__(self, parent)
         ConstantEnumWidgetBase.__init__(self, param)
@@ -345,6 +360,46 @@ class StandardConstantEnumWidget(QtGui.QComboBox, ConstantEnumWidgetBase):
                 setPlaceholderTextCompat(self.lineEdit(), value)
         elif self.isEditable():
             setPlaceholderTextCompat(self.lineEdit(), value)
+
+    def showPopup(self, *args, **kwargs):
+        """ Fixes popup when use in a GraphicsView. See:
+             https://bugreports.qt-project.org/browse/QTBUG-14090
+
+        """
+
+        QtGui.QComboBox.showPopup(self, *args, **kwargs)
+        parent = findEmbeddedParentWidget(self)
+        if parent:
+            item = parent.graphicsProxyWidget()
+            scene = item.scene()
+            view = None
+            if scene:
+                views = scene.views()
+                for v in views:
+                    if v == QtGui.QApplication.focusWidget():
+                        view = v
+                if not view:
+                    view = views[0]
+            if view:
+                br = item.boundingRect()
+                rightPos = view.mapToGlobal(view.mapFromScene(item.mapToScene(
+                                    QtCore.QPointF(br.width(), br.height()))))
+                pos = view.mapToGlobal(view.mapFromScene(item.mapToScene(
+                                             QtCore.QPointF(0, br.height()))))
+                self.view().parentWidget().move(pos)
+                self.view().parentWidget().setFixedWidth(rightPos.x()-pos.x())
+                self.view().parentWidget().installEventFilter(self)
+
+    def eventFilter(self, o, e):
+        """ See showPopup
+
+        """
+
+        if o.parentWidget() and e.type() == QtCore.QEvent.MouseButtonPress:
+            return True
+        return QtGui.QComboBox.eventFilter(self, o, e)
+
+
 
 ###############################################################################
 # Multi-line String Widget
