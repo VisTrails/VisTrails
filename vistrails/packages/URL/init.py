@@ -43,6 +43,8 @@ way, files that haven't been changed do not need to be downloaded again. The
 check is performed efficiently using HTTP headers.
 """
 
+from __future__ import division
+
 from datetime import datetime
 import email.utils
 import hashlib
@@ -139,7 +141,7 @@ class Downloader(object):
                 if self.size_header is not None:
                     self.module.logging.update_progress(
                             self.module,
-                            dl_size*1.0/self.size_header)
+                            dl_size * 1.0/self.size_header)
                 chunk = response.read(CHUNKSIZE)
                 if not chunk:
                     break

@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 name = "VisTrails Analytics"
 identifier = "org.vistrails.vistrails.analytics"
 version = "0.0.2"

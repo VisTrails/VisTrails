@@ -1,3 +1,5 @@
+from __future__ import division
+
 import inspect
 import mixins
 from xml.etree import ElementTree as ET

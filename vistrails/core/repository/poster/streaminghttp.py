@@ -81,6 +81,8 @@ Example usage:
 ...                       {'Content-Length': unicode(len(s))})
 """
 
+from __future__ import division
+
 import httplib, urllib2, socket
 from httplib import NotConnected
 

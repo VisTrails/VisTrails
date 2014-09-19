@@ -42,6 +42,8 @@
 #   StandardWidgetTabBarEditor
 #   StandardWidgetToolBar
 ################################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 import os.path
 from spreadsheet_registry import spreadsheetRegistry
@@ -280,7 +282,7 @@ class StandardWidgetSheetTabInterface(object):
         (r, c) = self.lastCellLocation
         (rs, cs) = self.getSpan(r, c)
         index = (colCount * r + c + cs) % (rowCount*colCount)
-        return (index/colCount, index%colCount)
+        return (index//colCount, index%colCount)
 
     def setCellByType(self, row, col, cellType, inputPorts):
         """ setCellByType(row: int,
@@ -522,8 +524,8 @@ class StandardWidgetSheetTabInterface(object):
                 widget = self.getCell(r, c)
                 if widget:
                     pix = widget.grabWindowPixmap()
-                    cx = (cellWidths[c]-pix.width())/2
-                    cy = (cellHeights[r]-pix.height())/2
+                    cx = (cellWidths[c]-pix.width())//2
+                    cy = (cellHeights[r]-pix.height())//2
                     painter.drawPixmap(x+cx, y+cy, widget.grabWindowPixmap())
                 x += cellWidths[c]
             y += cellHeights[r]
@@ -856,8 +858,8 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         # A hack to capture the rect of the triangular tab from commonstyle.cpp
         rect = self.tabRect(self.editingIndex)
         h = rect.height()-2
-        dx = h/3 + 3
-        rect.adjust(dx+1,1,-dx,-1)
+        dx = h//3 + 3
+        rect.adjust(dx+1, 1, -dx, -1)
 
         # Display the editor inplace of the tab text
         text = self.tabText(self.editingIndex)
@@ -987,7 +989,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         for i in xrange(self.count()):
             r = self.tabRect(i)
             if self.isTabEnabled(i) and r.contains(p):
-                if p.x()<(r.x()+r.width()/2):
+                if p.x() < (r.x()+r.width()//2):
                     return i
                 else:
                     return i+1

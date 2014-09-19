@@ -43,6 +43,8 @@ way, files that haven't been changed do not need to be downloaded again. The
 check is performed efficiently using HTTP headers.
 """
 
+from __future__ import division
+
 identifier = 'org.vistrails.vistrails.url'
 name = 'URL'
 version = '1.0.0'

@@ -35,6 +35,8 @@
 
 ################################################################################
 
+from __future__ import division
+
 class Queue(object):
 
     def __init__(self, capacity=8):
@@ -106,8 +108,8 @@ class Queue(object):
         self.__begin += 1
         if self.__begin == self.__capacity:
             self.__begin = 0
-        if self.__capacity > 8 and (self.__capacity / len(self)) >= 4:
-            self.__rebuffer(self.__capacity / 2)
+        if self.__capacity > 8 and self.__capacity >= 4 * len(self):
+            self.__rebuffer(self.__capacity // 2)
         # nlen = len(self)
         # assert olen == nlen + 1
         return r

@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.db.versions.v0_9_3.domain import DBVistrail, DBWorkflow, DBLog, \
     DBAbstractionRef, DBAdd, DBChange, DBDelete, DBAbstractionRef, DBGroup, \
     DBModule

@@ -34,6 +34,8 @@
 ###############################################################################
 
 """ Define facilities for setting up SubModule Module in VisTrails """
+from __future__ import division
+
 from itertools import izip
 import random
 import uuid

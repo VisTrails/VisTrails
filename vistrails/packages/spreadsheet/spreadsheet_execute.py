@@ -37,6 +37,8 @@
 # assignPipelineCellLocations
 # executePipelineWithProgress
 ################################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.modules.module_registry import get_module_registry

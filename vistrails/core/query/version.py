@@ -34,6 +34,8 @@
 ###############################################################################
 # We need to remove QtGui and QtCore refernce by storing all of our
 # notes in plain text, not html, should be fix later
+from __future__ import division
+
 import datetime
 import re
 import time

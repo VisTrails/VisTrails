@@ -60,6 +60,8 @@ as multipart/form-data suitable for a HTTP POST or PUT request.
 
 multipart/form-data is the standard way to upload files over HTTP"""
 
+from __future__ import division
+
 __all__ = ['gen_boundary', 'encode_and_quote', 'MultipartParam',
         'encode_string', 'encode_file_header', 'get_body_size', 'get_headers',
         'multipart_encode']

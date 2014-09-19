@@ -41,4 +41,6 @@ VisTrails."""
 # from core.data_structures.queue import Queue
 # from core.data_structures.stack import Stack
 # from core.data_structures.bijectivedict import Bidict
+from __future__ import division
+
 pass

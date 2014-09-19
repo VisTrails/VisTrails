@@ -39,6 +39,8 @@ color defines
 
 ################################################################################
 
+from __future__ import division
+
 class ColorByName(object):
     """
     Provides a list of colors that can be queried by name

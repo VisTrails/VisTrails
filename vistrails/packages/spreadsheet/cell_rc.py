@@ -41,6 +41,8 @@
 #
 # WARNING! All changes made in this file will be lost!
 
+from __future__ import division
+
 from PyQt4 import QtCore
 
 qt_resource_data = b"\

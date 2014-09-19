@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core.data_structures.bijectivedict import Bidict
 from itertools import imap, chain
 from vistrails.core.modules.module_registry import get_module_registry, \

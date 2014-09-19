@@ -1,3 +1,5 @@
+from __future__ import division
+
 from common_definitions import categories, capitalise, \
     type_conversion, batch_queue_list, remove_underscore, name_formatter, \
     generator_definitions, exporter_definitions

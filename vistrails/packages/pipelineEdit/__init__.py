@@ -36,6 +36,8 @@
 pipeline, change its parameters based on aliases, and execute them on
 the spreadsheet."""
 
+from __future__ import division
+
 identifier = 'org.vistrails.vistrails.pipelineedit'
 name = 'Pipeline Editor'
 version = '0.0.2'

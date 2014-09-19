@@ -36,6 +36,8 @@
 Dialog for web repository options
 Includes login and upload tabs
 """
+from __future__ import division
+
 from PyQt4 import QtGui, QtCore
 from vistrails.core.configuration import get_vistrails_configuration, get_vistrails_persistent_configuration
 from vistrails.core.repository.poster.encode import multipart_encode

@@ -36,6 +36,8 @@
 
 # from xml import dom
 # from xml.dom.xmlbuilder import DOMInputSource, DOMBuilder
+from __future__ import division
+
 import xml.etree.cElementTree as ElementTree
 import datetime
 import os

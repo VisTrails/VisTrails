@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 import copy
 import hashlib
 from auto_gen import DBVistrail as _DBVistrail

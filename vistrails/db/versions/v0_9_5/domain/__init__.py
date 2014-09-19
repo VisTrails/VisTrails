@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from auto_gen import *
 from registry import DBRegistry
 from workflow import DBWorkflow

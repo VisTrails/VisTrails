@@ -34,6 +34,8 @@
 ###############################################################################
 
 """Widgets to display/edit configuration objects."""
+from __future__ import division
+
 import os
 import os.path
 from PyQt4 import QtGui, QtCore

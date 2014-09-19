@@ -37,6 +37,8 @@ This module describes a core theme structure for VisTrails GUI. It
 specifies measurements
 """
 
+from __future__ import division
+
 from vistrails.core.utils.color import ColorByName
 import vistrails.core.system
 ################################################################################

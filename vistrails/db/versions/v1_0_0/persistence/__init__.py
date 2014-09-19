@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from xml.auto_gen import XMLDAOListBase
 from sql.auto_gen import SQLDAOListBase
 from vistrails.core.system import get_elementtree_library

@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from vistrails.db.domain import IdScope
 from vistrails.db.domain import DBMashuptrail
 from vistrails.core.mashup.action import Action

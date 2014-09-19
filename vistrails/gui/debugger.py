@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtGui, QtCore
 import vistrails.core.system
 import copy

@@ -36,6 +36,8 @@
 
     * PEFunction
 """
+from __future__ import division
+
 from vistrails.db.domain import DBPEFunction, DBPEParameter
 from vistrails.core.paramexplore.param import PEParam
 import copy

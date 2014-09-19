@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import copy
 from vistrails.core import debug
 from vistrails.db.versions.v0_9_4.domain import DBVistrail, DBWorkflow, DBLog, DBGroup, DBModuleExec

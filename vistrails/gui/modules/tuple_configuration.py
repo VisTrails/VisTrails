@@ -39,6 +39,8 @@ vistrails.gui.modules.module_configure.StandardModuleConfigurationWidget,
 which is also a QWidget.
 
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core import debug
 from vistrails.core.utils import VistrailsInternalError

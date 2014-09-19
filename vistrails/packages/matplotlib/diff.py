@@ -1,3 +1,5 @@
+from __future__ import division
+
 import re
 from xml.etree import ElementTree as ET
 from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \

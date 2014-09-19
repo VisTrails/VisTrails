@@ -34,6 +34,8 @@
 ###############################################################################
 # search functions for entity-type objects
 # notes in plain text, not html, should be fix later
+from __future__ import division
+
 import datetime
 import re
 import time

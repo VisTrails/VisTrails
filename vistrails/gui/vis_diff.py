@@ -34,6 +34,8 @@
 ###############################################################################
 """ This modules builds a widget to interact with vistrail diff
 operation """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError

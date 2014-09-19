@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from base64 import b16encode, b16decode
 
 import copy
@@ -716,7 +718,7 @@ class Module(Serializable):
         module = copy.copy(self)
         module.list_depth = self.list_depth - 1
         if num_inputs:
-            milestones = [i*num_inputs/10 for i in xrange(1,11)]
+            milestones = [i*num_inputs//10 for i in xrange(1, 11)]
         def generator(self):
             self.logging.begin_compute(module)
             i = 0
@@ -741,7 +743,7 @@ class Module(Serializable):
                     yield None
                 if num_inputs:
                     if i in milestones:
-                        self.logging.update_progress(module,float(i)/num_inputs)
+                        self.logging.update_progress(module, float(i)/num_inputs)
                 else:
                     self.logging.update_progress(module, 0.5)
                 module.had_error = False
@@ -1409,7 +1411,7 @@ class Module(Serializable):
         module.computed = False
 
         if num_inputs:
-            milestones = [i*num_inputs/10 for i in xrange(1,11)]
+            milestones = [i*num_inputs//10 for i in xrange(1, 11)]
 
         def _Generator(self):
             self.logging.begin_compute(module)
@@ -1438,7 +1440,7 @@ class Module(Serializable):
                 #module.set_output(name_output, intsum)
                 if num_inputs:
                     if i in milestones:
-                        self.logging.update_progress(self,float(i)/num_inputs)
+                        self.logging.update_progress(self, float(i)/num_inputs)
                 else:
                     self.logging.update_progress(self, 0.5)
                 i += 1
@@ -1467,7 +1469,7 @@ class Module(Serializable):
         module = copy.copy(self)
 
         if size:
-            milestones = [i*size/10 for i in xrange(1,11)]
+            milestones = [i*size//10 for i in xrange(1, 11)]
         def _Generator():
             i = 0
             while 1:
@@ -1488,7 +1490,7 @@ class Module(Serializable):
                 module.set_output(port, value)
                 if size:
                     if i in milestones:
-                        self.logging.update_progress(self,float(i)/size)
+                        self.logging.update_progress(self, float(i)/size)
                 else:
                     self.logging.update_progress(self, 0.5)
                 i += 1

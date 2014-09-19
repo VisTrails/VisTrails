@@ -36,6 +36,8 @@
     * PEParam
 
  """
+from __future__ import division
+
 from vistrails.db.domain import DBPEParameter
 
 import unittest

@@ -34,6 +34,8 @@
 ###############################################################################
 """ Wrapper for Hadoop DFS operations """
 
+from __future__ import division
+
 from vistrails.core.interpreter.job import JobMonitor
 from vistrails.core.modules.basic_modules import File, Boolean, String, \
                                                  PathObject, Path

@@ -36,6 +36,8 @@
     * ModuleParam
 
  """
+from __future__ import division
+
 from vistrails.db.domain import DBParameter
 from vistrails.core.modules.utils import parse_port_spec_item_string, \
     create_port_spec_item_string

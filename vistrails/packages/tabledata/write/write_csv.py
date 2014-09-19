@@ -1,3 +1,5 @@
+from __future__ import division
+
 from itertools import izip
 
 from vistrails.core import debug

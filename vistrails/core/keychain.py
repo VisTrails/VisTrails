@@ -40,6 +40,8 @@ A value can only be retrieved by the same object that set it.
 Use this at your own risk!
 
 """
+from __future__ import division
+
 import inspect
 import os
 import sys

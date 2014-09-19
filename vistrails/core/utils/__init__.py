@@ -36,7 +36,7 @@
 This module defines common functions and exception class definitions
 used all over VisTrails.
 """
-from __future__ import with_statement
+from __future__ import division, with_statement
 
 import vistrails.core.debug
 from vistrails.core.utils.enum import enum

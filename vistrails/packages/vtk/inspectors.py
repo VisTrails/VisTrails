@@ -35,6 +35,8 @@
 
 ##############################################################################
 # Data inspectors for VTK
+from __future__ import division
+
 from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.modules.basic_modules import Module, Float, Integer

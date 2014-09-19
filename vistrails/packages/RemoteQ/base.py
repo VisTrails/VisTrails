@@ -34,6 +34,8 @@
 ###############################################################################
 """ Base classes for all Hadoop Modules """
 
+from __future__ import division
+
 from init import configuration
 from vistrails.core.modules.basic_modules import File, String
 from vistrails.gui.modules.python_source_configure import \

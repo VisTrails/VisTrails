@@ -34,6 +34,8 @@
 ###############################################################################
 
 """Helper classes for inspecting vistrails/pipelines at runtime"""
+from __future__ import division
+
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import get_vistrails_default_pkg_prefix

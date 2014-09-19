@@ -1,3 +1,5 @@
+from __future__ import division
+
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.utils import make_modules_dict
 from vistrails.core.packagemanager import get_package_manager

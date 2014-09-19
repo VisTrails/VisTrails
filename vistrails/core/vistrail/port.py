@@ -36,6 +36,8 @@
     * Port
 
  """
+from __future__ import division
+
 from vistrails.db.domain import DBPort
 from vistrails.core.utils import VistrailsInternalError, all
 from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint

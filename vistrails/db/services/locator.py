@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import unicode_literals
+from __future__ import division, unicode_literals
 
 from datetime import datetime, date
 import hashlib

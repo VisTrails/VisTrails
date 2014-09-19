@@ -45,6 +45,8 @@ QListEditDialog
 QListEditItemDelegate
 
 """
+from __future__ import division
+
 import copy
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot

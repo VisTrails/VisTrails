@@ -35,6 +35,8 @@
 
 """generated automatically by auto_dao.py"""
 
+from __future__ import division
+
 from sql_dao import SQLDAO
 from vistrails.db.versions.v1_0_3.domain import *
 

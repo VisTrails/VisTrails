@@ -34,6 +34,8 @@
 ###############################################################################
 """ Helper functions for parsing and evaluating expressions """
 
+from __future__ import division
+
 from ast import literal_eval
 
 ################################################################################

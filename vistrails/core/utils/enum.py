@@ -35,6 +35,8 @@
 """enum helps create enumeration classes.
 
 """
+from __future__ import division
+
 from itertools import izip
 
 def enum(className, enumValues, doc = None):

@@ -42,6 +42,8 @@ More information on PyCute, visit:
 http://gerard.vermeulen.free.fr/html/pycute-intro.html
 
 """
+from __future__ import division
+
 from PyQt4 import QtGui, QtCore
 from code import InteractiveInterpreter
 import copy

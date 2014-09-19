@@ -34,6 +34,8 @@
 ###############################################################################
 
 """Utility functions for core.bundles"""
+from __future__ import division
+
 from vistrails.core import debug
 import vistrails.core.system
 import os

@@ -36,6 +36,8 @@
 
     * ModuleFunction
 """
+from __future__ import division
+
 from vistrails.db.domain import DBFunction
 from vistrails.core.modules.utils import create_port_spec_string
 from vistrails.core.utils import enum, VistrailsInternalError, all, eprint

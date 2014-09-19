@@ -39,6 +39,8 @@ VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 
 """
 
+from __future__ import division
+
 identifier = 'org.vistrails.vistrails.matplotlib'
 name = 'matplotlib'
 version = '1.0.4'

@@ -34,6 +34,8 @@
 ###############################################################################
 """ This file describe the virtual cell layout widget used in
 Parameter Exploration Tab """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.inspector import PipelineInspector
 from vistrails.gui.common_widgets import QToolWindowInterface
@@ -158,8 +160,8 @@ def positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
     for pId in xrange(len(pipelines)):
         root_pipeline = copy.copy(pipelines[pId])
         col = pId % colCount
-        row = (pId / colCount) % rowCount
-        sheet = (pId / (colCount*rowCount)) % sheetCount
+        row = (pId // colCount) % rowCount
+        sheet = (pId // (colCount*rowCount)) % sheetCount
 
         decodedCells = decodeConfiguration(root_pipeline, cells)
         vRCount = (max(c[1] for c in decodedCells) + 1) if len(decodedCells) else 1

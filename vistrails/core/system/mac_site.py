@@ -35,6 +35,8 @@
 """ contains parts from site.py for python2.7 needed when using py2app
 """
 
+from __future__ import division
+
 import sys
 
 # for distutils.commands.install
