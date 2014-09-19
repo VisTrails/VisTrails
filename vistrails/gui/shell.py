@@ -60,7 +60,6 @@ import vistrails.core.system
 from vistrails.core.system import strftime
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-from vistrails.core.utils import all
 
 ################################################################################
 

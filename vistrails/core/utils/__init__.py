@@ -50,7 +50,7 @@ import warnings
 import weakref
 
 from vistrails.core.utils.color import ColorByName
-from vistrails.core.utils.compat import memo_method
+from vistrails.core.utils.compat import new_type, memo_method
 from vistrails.core.utils.enum import enum
 from vistrails.core.utils.timemethod import time_method, time_call
 from vistrails.core.utils.tracemethod import trace_method, bump_trace, \
@@ -326,30 +326,6 @@ def debug(func):
     return method
 
 ################################################################################
-
-# Write our own all() and any() if python version < 2.5
-if sys.version_info < (2, 5):
-    def any(iterable):
-        """any(iterable) -> Boolean - Returns true if any element
-        is true. This is meant to be the equivalent of python 2.5's any
-        when running on python < 2.5"""
-        for b in iterable:
-            if b:
-                return True
-        return False
-
-    def all(iterable):
-        """all(iterable) -> Boolean - Returns true if no elements are
-        False.  This is meant to be the equivalent of python 2.5's
-        all() when running on python < 2.5"""
-        for b in iterable:
-            if not b:
-                return False
-        return True
-else:
-    import __builtin__
-    any = __builtin__.any
-    all = __builtin__.all
 
 def iter_index(iterable, item):
     """iter_index(iterable, item) -> int - Iterates through iterator

@@ -46,7 +46,7 @@ from vistrails.core.modules.vistrails_module import new_module, ModuleError
 from vistrails.core.system import get_vistrails_default_pkg_prefix
 from identifiers import identifier as vtk_pkg_identifier
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-from vistrails.core.utils import all, any, InstanceObject
+from vistrails.core.utils import InstanceObject
 from vistrails.core.vistrail.connection import Connection
 
 from ast import literal_eval

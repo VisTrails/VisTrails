@@ -40,7 +40,6 @@ import copy
 
 from itertools import imap, chain, izip
 
-from vistrails.core.utils import all
 from vistrails.core.data_structures.queue import Queue
 from vistrails.core.data_structures.stack import Stack
 

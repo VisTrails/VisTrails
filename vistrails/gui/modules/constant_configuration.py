@@ -43,11 +43,8 @@ constants.
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
-from vistrails.core.utils import any, expression, versions_increasing
+from vistrails.core.utils import expression, versions_increasing
 from vistrails.core import system
-from vistrails.gui.theme import CurrentTheme
-
-import os
 
 ############################################################################
 

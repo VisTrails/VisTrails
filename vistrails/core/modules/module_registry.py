@@ -55,11 +55,10 @@ from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.package import Package
 from vistrails.core.requirements import MissingRequirement
 import vistrails.core.modules.utils
-from vistrails.core.utils import VistrailsInternalError, memo_method, \
-    InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
-    all, profile, versions_increasing, InvalidPipeline, VistrailsDeprecation
-from vistrails.core.system import vistrails_root_directory, vistrails_version, \
-    get_vistrails_basic_pkg_id
+from vistrails.core.utils import VistrailsInternalError, InvalidModuleClass, \
+    ModuleAlreadyExists, versions_increasing, InvalidPipeline, \
+    VistrailsDeprecation
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.port_spec_item import PortSpecItem
 import vistrails.core.cache.hasher
