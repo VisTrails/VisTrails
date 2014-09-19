@@ -60,6 +60,7 @@ import vistrails.core.system
 from vistrails.core.system import strftime
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+from vistrails.core.utils import new_type
 
 ################################################################################
 
@@ -266,7 +267,7 @@ class vistrails_module(object):
 
             d = {'_module_desc': tuple_desc,
                  '_package': self._package,}
-            tuple = type('module', (vistrails_module,), d)()
+            tuple = new_type('module', (vistrails_module,), d)()
 
             output_port_spec = PortSpec(id=-1,
                                         name='value',
@@ -386,7 +387,7 @@ class QShell(QtGui.QTextEdit):
             if len(ns) == 0:
                 d = {'_module_desc': mdesc,
                      '_package': pkg,}
-                modules[m] = type('module', (vistrails_module,), d)
+                modules[m] = new_type('module', (vistrails_module,), d)
             else:
                 if ns[0] in modules:
                     md = create_dict(modules[ns[0]], ns[1:], m, mdesc)
@@ -403,7 +404,7 @@ class QShell(QtGui.QTextEdit):
             
             if root is not None:
                 modules['_package'] = pkg
-                return type(root, (object,), modules)()
+                return new_type(root, (object,), modules)()
             else:
                 return modules
         
@@ -420,7 +421,7 @@ class QShell(QtGui.QTextEdit):
                     module_desc = package.descriptors[desc_tuple]
                     d = {'_module_desc': module_desc,
                          '_package': self,}
-                    return type('module', (vistrails_module,), d)
+                    return new_type('module', (vistrails_module,), d)
                 else:
                     raise AttributeError("type object '%s' has no attribute "
                                          "'%s'" % (self.__class__.__name__, 
@@ -428,7 +429,7 @@ class QShell(QtGui.QTextEdit):
             return getter
         
         d = {'__getattr__': get_module(package),}
-        pkg = type(package.name, (object,), d)()
+        pkg = new_type(package.name, (object,), d)()
         
         modules = {}
         for (m,ns) in package.descriptors:
@@ -446,7 +447,7 @@ class QShell(QtGui.QTextEdit):
         modules = vistrails.api.get_selected_modules()
         for module in modules:
             d = {'_module': module}
-            shell_modules.append(type('module', (vistrails_module,), d)())
+            shell_modules.append(new_type('module', (vistrails_module,), d)())
         return shell_modules
 
     def reset(self, locals):

@@ -1,15 +1,18 @@
 from __future__ import division
 
-from common_definitions import categories, capitalise, \
-    type_conversion, batch_queue_list, remove_underscore, name_formatter, \
-    generator_definitions, exporter_definitions
+from batchq.core.batch import Function, Property, FunctionMessage, \
+    Collection, Exportable
+import copy
+
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     NotCacheable, InvalidOutput, ModuleSuspended
-from batchq.core.batch import BatchQ, Function, Property, FunctionMessage, \
-    Collection, Exportable
-from batchq.queues import NoHUP
-import copy
-from machine import module_definitions, Machine
+from vistrails.core.utils import new_type
+
+from .common_definitions import categories, capitalise, \
+    type_conversion, batch_queue_list, remove_underscore, name_formatter, \
+    generator_definitions, exporter_definitions
+from .machine import module_definitions, Machine
+
 _modules = module_definitions
 
 
@@ -88,7 +91,7 @@ for queue_name, queue in batch_queue_list:
     else:
         descriptive_name = capitalise(queue_name)
 
-    cls = type(name_formatter(descriptive_name), (Machine,), members)
+    cls = new_type(name_formatter(descriptive_name), (Machine,), members)
 
     ## Extracing all functions from the queues - these will be used later 
     ## for module generation
@@ -138,7 +141,7 @@ dct = {'_input_ports'   : [b for b in in_job_properties.itervalues()] \
        'compute'        : compute_jobpreparation
        }
 
-PrepareJob = type(name_formatter("Prepare Job"), (Job,), dct)
+PrepareJob = new_type(name_formatter("Prepare Job"), (Job,), dct)
 
 _modules += [(PrepareJob, {'namespace':categories['basic_submission']})] 
 
@@ -216,7 +219,7 @@ for name in operations.iterkeys():
 
         if not operations_highlevel[name]:
             dct['_output_ports'].append( ('operation', '(org.comp-phys.batchq:JobOperation)') )
-            cls = ( type(name_formatter(descriptive_name), 
+            cls = ( new_type(name_formatter(descriptive_name),
                          (JobOperation,),dct), 
                     {'namespace': namespace} )
             _modules.append(cls)
@@ -270,7 +273,7 @@ dct = {'_input_ports': [('job', '(org.comp-phys.batchq:Job)'),],
        'compute': jobinfo_compute,
        'queue_properties': queue_properties,
        'queue_functions':  queue_functions}
-JobInfo = type(name_formatter("Job Info"), (NotCacheable,Job,), dct)
+JobInfo = new_type(name_formatter("Job Info"), (NotCacheable,Job,), dct)
 
 _modules += [(JobInfo, {'namespace':categories['basic_submission']})] 
 
@@ -283,7 +286,7 @@ def highlevel_compute(self):
 for descriptive_name, dct, namespace in high_level_modules:
     dct['compute'] = highlevel_compute
     dct['is_cacheable'] = lambda self: True
-    _modules.append((type(name_formatter(descriptive_name), (JobInfo,),dct), {'namespace': namespace} ))
+    _modules.append((new_type(name_formatter(descriptive_name), (JobInfo,),dct), {'namespace': namespace} ))
 
 ######
 ## Creating collective operations
@@ -310,7 +313,7 @@ members = [ ('_input_ports', [('operation', '(org.comp-phys.batchq:JobOperation)
 namespace = categories['job_collective_operations']
 for name, func in collective.iteritems():
     dct = dict(members)
-    _modules.append((type( "".join([capitalise(a) for a in name.split("_")]) , (CollectiveOperation,),dct),{'namespace':namespace} ))
+    _modules.append((new_type("".join([capitalise(a) for a in name.split("_")]) , (CollectiveOperation,),dct),{'namespace':namespace} ))
 
 
 

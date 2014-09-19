@@ -36,6 +36,22 @@
 """
 
 
+def ascii_s(s):
+    """Makes sure `s` is the native str type, encoding as ASCII if necessary.
+    """
+    if isinstance(s, unicode):
+        return s.encode('ascii')
+    else:
+        return s
+
+
+def new_type(name, bases, dct):
+    """Variant of type() that won't choke on unicode names.
+    """
+    return type(ascii_s(name), bases, dct)
+
+################################################################################
+
 # Only works for functions with NO kwargs!
 def memo_method(method, cache_size=1024):
     """Memoizing decorator.

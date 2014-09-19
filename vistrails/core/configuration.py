@@ -39,15 +39,14 @@ from __future__ import division
 import argparse
 import ast
 import copy
+import os
 import re
 import shlex
 import sys
 import weakref
 
-import os.path
-
 from vistrails.core import system
-from vistrails.core.utils import Ref, append_to_dict_of_lists
+from vistrails.core.utils import Ref, append_to_dict_of_lists, new_type
 from vistrails.db.domain import DBConfiguration, DBConfigKey, DBConfigStr, \
     DBConfigInt, DBConfigFloat, DBConfigBool
 
@@ -851,7 +850,9 @@ def nested_action(parser, action_type):
         self.dest = orig_dest
 
     nested_name = "_Nested%s" % cls.__name__[1:]
-    nested_cls = type(nested_name, (cls,), {"__call__": __call__})
+    nested_cls = new_type(nested_name,
+                      (cls,),
+                      {"__call__": __call__})
     return nested_cls
 
 def build_command_line_parser(d, parser=None, prefix="", **parser_args):

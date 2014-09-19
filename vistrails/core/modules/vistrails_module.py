@@ -48,7 +48,8 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.utils import VistrailsDeprecation, deprecated, \
-                                 xor, long2bytes
+                                 xor, long2bytes, new_type
+
 try:
     import hashlib
     sha1_hash = hashlib.sha1
@@ -1747,7 +1748,7 @@ def new_module(base_module, name, dict={}, docstring=None):
     d = copy.copy(dict)
     if docstring:
         d['__doc__'] = docstring
-    return type(name, superclasses, d)
+    return new_type(name, superclasses, d)
 
 # This is the gist of how type() works. The example is run from a python
 # toplevel

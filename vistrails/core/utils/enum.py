@@ -39,6 +39,9 @@ from __future__ import division
 
 from itertools import izip
 
+from vistrails.core.utils.compat import new_type
+
+
 def enum(className, enumValues, doc = None):
     """enum(className: str, enumValues: [str], doc = None) -> class.
     Creates a new enumeration class. For example:
@@ -90,7 +93,7 @@ def enum(className, enumValues, doc = None):
     def from_str(v):
         return the_enum(the_enum.st.index(v))
 
-    the_enum = type(className, (object, ),
+    the_enum = new_type(className, (object, ),
                    {'__init__': __init__,
                     'str': staticmethod(str),
                     'from_str': staticmethod(from_str),
