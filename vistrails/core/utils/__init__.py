@@ -38,25 +38,23 @@ used all over VisTrails.
 """
 from __future__ import division, with_statement
 
-import vistrails.core.debug
-from vistrails.core.utils.enum import enum
-from vistrails.core.utils.timemethod import time_method, time_call
-from vistrails.core.utils.tracemethod import trace_method, bump_trace, report_stack, \
-     trace_method_options, trace_method_args
-from vistrails.core.utils.color import ColorByName
 import copy
 from distutils.version import LooseVersion
 import errno
 import functools
 import itertools
 import os
-import sys
+import tempfile
+import unittest
 import warnings
 import weakref
 
-
-import unittest
-import tempfile
+from vistrails.core.utils.color import ColorByName
+from vistrails.core.utils.compat import memo_method
+from vistrails.core.utils.enum import enum
+from vistrails.core.utils.timemethod import time_method, time_call
+from vistrails.core.utils.tracemethod import trace_method, bump_trace, \
+    report_stack, trace_method_options, trace_method_args
 
 ################################################################################
 
@@ -256,29 +254,6 @@ class InvalidPipeline(Exception):
 
     def get_exception_set(self):
         return self._exception_set
-
-################################################################################
-
-# Only works for functions with NO kwargs!
-def memo_method(method):
-    """memo_method is a method decorator that memoizes results of the
-    decorated method, trading off memory for time by caching previous
-    results of the calls."""
-    attrname = "_%s_memo_result" % id(method)
-    memo = {}
-    def decorated(self, *args):
-        try:
-            return memo[args]
-        except KeyError:
-            result = method(self, *args)
-            memo[args] = result
-            return result
-    warn = "(This is a memoized method: Don't mutate the return value you're given.)"
-    if method.__doc__:
-        decorated.__doc__ = method.__doc__ + "\n\n" + warn
-    else:
-        decorated.__doc__ = warn
-    return decorated
 
 ##############################################################################
 # Profiling, utilities
@@ -588,9 +563,8 @@ class Chdir(object):
         
     def __exit__(self, *args):
         os.chdir(self._old_dir)
+
 ################################################################################
-
-
 
 class _TestRegularFibo(object):
     def __init__(self):
