@@ -21,7 +21,10 @@ capitalise = lambda x: x[0].upper() + x[1:].lower()
 remove_underscore = lambda j, name: j.join([capitalise(a) for a in name.split("_")])
 
 basic_pkg = get_vistrails_basic_pkg_id()
-type_conversion = {str:'(%s:String)' % basic_pkg, bool:'(%s:Boolean)' % basic_pkg, int:'(%s:Integer)' % basic_pkg, float:'(%s:Float)' % basic_pkg}
+type_conversion = {
+        str:'(%s:String)' % basic_pkg, unicode:'(%s:String)' % basic_pkg,
+        int:'(%s:Integer)' % basic_pkg, float:'(%s:Float)' % basic_pkg,
+        bool:'(%s:Boolean)' % basic_pkg}
 
 batch_queue_list = [(a, getattr(queues,a)) for a in dir(queues) if isinstance(getattr(queues,a),type) and issubclass(getattr(queues,a),BatchQ) ]
 

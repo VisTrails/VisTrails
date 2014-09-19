@@ -214,7 +214,7 @@ def get_method_signature(method, docum='', name=''):
                         arg = tuple(arg)
                     else:
                         arg = arg[0]
-                if isinstance(arg, str):
+                if isinstance(arg, basestring):
                     arg = [arg]
 
             sig.append(([ret], arg))
@@ -244,7 +244,7 @@ def prune_signatures(module, name, signatures, output=False):
         def convert(entry):
             if isinstance(entry, tuple):
                 return list(entry)
-            elif isinstance(entry, str):
+            elif isinstance(entry, basestring):
                 return [entry]
             else:
                 result = []
@@ -328,7 +328,7 @@ def prune_signatures(module, name, signatures, output=False):
         stack = list(signatures)
         while (len(stack) != 0):
             curr = stack.pop(0)
-            if (isinstance(curr, (String, str))):
+            if (isinstance(curr, (String, basestring))):
                 c = curr.replace('[', '')
                 c = c.replace(']', '')
                 result.append(c)

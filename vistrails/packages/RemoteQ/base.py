@@ -145,9 +145,9 @@ class HadoopBaseModule(RQModule):
         self.is_cacheable = lambda *args, **kwargs: False
         config = self.get_hadoop_config(machine)
         argList = [config['hadoop']]
-        if type(arguments) in [str, unicode]:
+        if isinstance(arguments, basestring):
             argList += arguments.split(' ')
-        elif type(arguments)==list:
+        elif isinstance(arguments, list):
             argList += arguments
         else:
             raise ModuleError(self, 'Invalid argument types to hadoop')
@@ -186,9 +186,9 @@ class HadoopBaseModule(RQModule):
     def call_hdfs(self, arguments, machine):
         config = self.get_hadoop_config(machine)
         argList = [config['hdfs']]
-        if type(arguments) in [str, unicode]:
+        if isinstance(arguments, (basestring)):
             argList += arguments.split(' ')
-        elif type(arguments)==list:
+        elif isinstance(arguments, list):
             argList += arguments
         else:
             raise ModuleError(self, 'Invalid argument types to hdfs: %s'%type(arguments))

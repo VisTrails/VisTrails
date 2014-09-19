@@ -73,7 +73,7 @@ def shell_escape(arg):
 
 
 def run_install_command(graphical, cmd, args, as_root=True):
-    if isinstance(args, str):
+    if isinstance(args, basestring):
         cmd += ' %s' % shell_escape(args)
     elif isinstance(args, list):
         for package in args:

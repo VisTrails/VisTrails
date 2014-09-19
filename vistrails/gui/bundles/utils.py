@@ -99,7 +99,7 @@ class System_guesser(object):
             raise ValueError("test for '%s' already present." % system_name)
         if system_name == 'UNKNOWN':
             raise ValueError("Invalid system name")
-        assert isinstance(system_name, str)
+        assert isinstance(system_name, basestring)
         self._callable_dict[system_name] = test
 
     def guess_system(self):

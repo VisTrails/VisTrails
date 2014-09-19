@@ -91,11 +91,11 @@ def open_registry(filename):
     ModuleRegistry.convert(registry)
     return registry
 
-def unserialize(str, klass):
+def unserialize(s, klass):
     """returns VisTrails entity given an XML serialization
 
     """
-    obj = vistrails.db.services.io.unserialize(str, klass.vtType)
+    obj = vistrails.db.services.io.unserialize(s, klass.vtType)
     if obj:
         #maybe we should also put a try except here
         klass.convert(obj)

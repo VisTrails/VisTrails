@@ -76,6 +76,9 @@ def enum(className, enumValues, doc = None):
     
     def __str__(self):
         return the_enum.str(self.__v)
+
+    def __unicode__(self):
+        return the_enum.str(self.__v)
     
     def __repr__(self):
         return className + "." + the_enum.str(self.__v)

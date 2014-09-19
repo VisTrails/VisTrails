@@ -858,7 +858,7 @@ class QVistrailList(QtGui.QTreeWidget):
             if not version:
                 # assume execution
                 version = unicode(widget_item.parent().text(0))
-            if isinstance(version, str):
+            if isinstance(version, basestring):
                 try:
                     version = \
                         view.controller.vistrail.get_version_number(version)

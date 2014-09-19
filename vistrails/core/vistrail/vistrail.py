@@ -183,7 +183,8 @@ class Vistrail(DBVistrail):
             if old_annotation.value == value:
                 return False
             self.db_delete_annotation(old_annotation)
-        if not (value is None or (isinstance(value, str) and value.strip() == '')):
+        if not (value is None or
+                (isinstance(value, basestring) and value.strip() == '')):
             annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
                                     key=key,
                                     value=value,

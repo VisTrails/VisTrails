@@ -90,7 +90,7 @@ def create_vector(v_list, desired_type=None):
     elif is_float and (desired_type is None or desired_type == float):
         res = [float(elt) for elt in v_list]
         return robjects.FloatVector(res)
-    elif is_str and (desired_type is None or desired_type == str):
+    elif is_str and (desired_type is None or desired_type == unicode):
         res = [unicode(elt) for elt in v_list]
         return robjects.StrVector(res)
     

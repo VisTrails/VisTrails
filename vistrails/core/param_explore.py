@@ -140,13 +140,12 @@ class InterpolateDiscreteParam(object):
         params = []
         for r in ranges:
             interpolatedValues = []
-            argumentType = type(r[0])
-            if argumentType in [int, float]:
+            if isinstance(r[0], (int, float)):
                 for i in xrange(stepCount):
                     if stepCount>1: t = i/float(stepCount-1)
                     else: t = 0
-                    interpolatedValues.append(argumentType(r[0]+t*(r[1]-r[0])))
-            elif argumentType==str:
+                    interpolatedValues.append(type(r[0])(r[0]+t*(r[1]-r[0])))
+            elif isinstance(r[0], basestring):
                 interpolatedValues = list(r)
             else:
                 debug.critical('Cannot interpolate non-cardinal types')
@@ -169,9 +168,9 @@ class InterpolateDiscreteParam(object):
         value = self.values[step]
         for v in value:
             p = ModuleParam()
-            convert = {'int':'Integer', 'str':'String',
-                       'float':'Float', 'double':'Float'}
-            p.type = convert[type(v).__name__]
+            convert = {str:'String', unicode:'String',
+                       int:'Integer', long:'Integer', float:'Float'}
+            p.type = convert[type(v)]
             p.strValue = unicode(v)
             f.params.append(p)
         m.functions.append(f)

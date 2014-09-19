@@ -65,7 +65,7 @@ class QAliasListPanel(QtGui.QWidget, BaseView):
     highlightModule = pyqtSignal(int)
     aliasesChanged = pyqtSignal()
     aliasChanged = pyqtSignal(Alias)
-    aliasRemoved = pyqtSignal(str)
+    aliasRemoved = pyqtSignal(unicode)
     
     def __init__(self, controller=None, parent=None):
         """ QAliasListPanel(controller: MashupController,
@@ -163,7 +163,7 @@ class QAliasList(QtGui.QTreeWidget):
     """
     #signals
     aliasUpdated = pyqtSignal(Alias)
-    aliasRemoved = pyqtSignal(str)
+    aliasRemoved = pyqtSignal(unicode)
     highlightModule = pyqtSignal(int)
     
     def __init__(self, controller, panel, parent=None):

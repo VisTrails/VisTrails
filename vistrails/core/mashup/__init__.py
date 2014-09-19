@@ -40,8 +40,8 @@ from datetime import date, datetime
 ################################################################################                           
 
 def conv_to_bool(x):
-    if isinstance(x, str):
-        s = unicode(x).upper()
+    if isinstance(x, basestring):
+        s = x.upper()
         if s == 'TRUE':
             return True
         if s == 'FALSE':

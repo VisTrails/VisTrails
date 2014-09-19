@@ -1246,11 +1246,11 @@ class ModuleRegistry(DBRegistry):
         return descriptor
 
     def auto_add_subworkflow(self, subworkflow):
-        if isinstance(subworkflow, str):
+        if isinstance(subworkflow, basestring):
             return self.add_subworkflow(subworkflow)
         elif (isinstance(subworkflow, tuple) and
               len(subworkflow) == 2 and
-              isinstance(subworkflow[0], str) and
+              isinstance(subworkflow[0], basestring) and
               isinstance(subworkflow[1], dict)):
             descriptor = self.add_subworkflow(subworkflow[0], **subworkflow[1])
             return descriptor

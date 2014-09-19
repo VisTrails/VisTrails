@@ -1369,7 +1369,7 @@ def get_module(value, signature=None):
         return type(value)
     elif isinstance(value, bool):
         return Boolean
-    elif isinstance(value, str):
+    elif isinstance(value, basestring):
         return String
     elif isinstance(value, int):
         return Integer

@@ -191,9 +191,9 @@ class HadoopStreaming(HadoopBaseModule):
     def call_hadoop(self, arguments, workdir, identifier, machine):
         config = self.get_hadoop_config(machine)
         argList = [config['hadoop']]
-        if type(arguments) in [str, unicode]:
+        if isinstance(arguments, basestring):
             argList += arguments.split(' ')
-        elif type(arguments)==list:
+        elif isinstance(arguments, list):
             argList += arguments
         else:
             raise ModuleError(self, 'Invalid argument types to hadoop')

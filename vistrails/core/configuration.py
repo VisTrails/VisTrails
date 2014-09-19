@@ -544,7 +544,10 @@ class ConfigField(object):
         if not str_val:
             return None
         if issubclass(self.val_type, basestring):
-            return str_val
+            if isinstance(str_val, bytes):
+                return str_val.decode('utf-8')
+            else:
+                return str_val
         val = ast.literal_eval(str_val)
         if not isinstance(val, self.val_type):
             raise ValueError('Output setting "%s" cannot be parsed to %s' %

@@ -205,7 +205,7 @@ for name in operations.iterkeys():
         namespace = categories['low_level']
 
         descriptive_name = remove_underscore(" ",name)
-        if t in [str,int, float, bool]: 
+        if t in [str, int, float, bool]:
             if functions[name].exporter is None:
                 low_level_functions[name] = (name,type_conversion[t])
             else:

@@ -1403,7 +1403,7 @@ class VistrailController(QtCore.QObject, BaseController):
     # analogies
 
     def add_analogy(self, analogy_name, version_from, version_to):
-        assert isinstance(analogy_name, str)
+        assert isinstance(analogy_name, basestring)
         assert isinstance(version_from, (int, long))
         assert isinstance(version_to, (int, long))
         if analogy_name in self.analogy:
