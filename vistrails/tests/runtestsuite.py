@@ -223,7 +223,7 @@ optionsDict = {
         'installBundles': installbundles,
         'enablePackagesSilently': True,
         'handlerDontAsk': True,
-        'developperDebugger': debug_mode,
+        'developerDebugger': debug_mode,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
