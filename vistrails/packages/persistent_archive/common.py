@@ -68,8 +68,8 @@ class PersistentHash(Constant):
             raise TypeError("File hash should be a string")
         elif len(h) != 40:
             raise ValueError("File hash should be 40 characters long")
-        if not isinstance(h, str):
-            h = str(h)
+        if not isinstance(h, bytes):
+            h = bytes(h)
         self._hash = h
 
     @staticmethod

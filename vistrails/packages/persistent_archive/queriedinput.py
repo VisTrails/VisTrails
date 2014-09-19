@@ -49,7 +49,7 @@ class QueriedInputPath(Module):
                               "Query returned %d results and 'unique' is "
                               "True" % nb)
 
-        self._set_result(entries, entry)
+        self._set_result(entries, best)
 
     def check_path_type(self, path):
         pass
