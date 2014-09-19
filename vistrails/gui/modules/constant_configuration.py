@@ -91,9 +91,10 @@ class ConstantWidgetBase(ConstantWidgetMixin):
         ConstantWidgetMixin.__init__(self, value)
 
         self.psi = psi
-        if psi and psi.default:
+        if psi and psi.default and param.strValue == '':
             self.setDefault(psi.default)
-        self.setContents(param.strValue)
+        else:
+            self.setContents(param.strValue)
 
     def setDefault(self, value):
         # default to setting the contents silenty
