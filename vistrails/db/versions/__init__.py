@@ -38,6 +38,7 @@ from itertools import izip
 import os
 
 from vistrails.core.system import vistrails_root_directory
+from vistrails.core.utils.compat import ascii_s
 from vistrails.db import VistrailsDBException
 
 currentVersion = '1.0.4'
@@ -48,7 +49,8 @@ def getVersionDAO(version=None):
     persistence_dir = 'vistrails.db.versions.' + get_version_name(version) + \
         '.persistence'
     try:
-        persistence = __import__(persistence_dir, {}, {}, [''])
+        persistence = __import__(ascii_s(persistence_dir), {}, {},
+                                 [ascii_s('')])
     except ImportError as e:
         if unicode(e).startswith('No module named v'):
             # assume version is not available
@@ -99,7 +101,8 @@ def translate_object(obj, method_name, version=None, target_version=None):
         translate_dir = 'vistrails.db.versions.' + \
             get_version_name(end_version) + '.translate.' + \
             get_version_name(start_version)
-        return __import__(translate_dir, {}, {}, [''])
+        return __import__(ascii_s(translate_dir), {}, {},
+                          [ascii_s('')])
 
     path = []
     old_tuple = version.split('.')

@@ -47,6 +47,7 @@ from vistrails.core.modules import basic_modules
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import vistrails_root_directory
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.utils.compat import ascii_s
 
 from spreadsheet_controller import spreadsheetController
 from spreadsheet_registry import spreadsheetRegistry
@@ -63,7 +64,7 @@ def importReturnLast(name):
     package on the package name
     
     """
-    mod = __import__(name)
+    mod = __import__(ascii_s(name))
     components = name.split('.')
     for comp in components[1:]:
         mod = getattr(mod, comp)

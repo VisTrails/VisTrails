@@ -45,6 +45,7 @@ import vistrails.core.modules.basic_modules
 from vistrails.core.modules import vistrails_module
 from vistrails.core.modules.vistrails_module import Module, ModuleError, new_module
 import vistrails.core.system
+from vistrails.core.utils.compat import ascii_s
 import enumeration_widget
 
 import cPickle
@@ -992,7 +993,7 @@ be loaded again." % w
 
         #import the stub generated files
         try:
-            importpackage = __import__(directoryname)
+            importpackage = __import__(ascii_s(directoryname))
             modclient = getattr(importpackage,client_mod)
             server = ServiceProxy(w, pyclass=True, tracefile=sys.stdout)
         except Exception, e:
@@ -1138,7 +1139,7 @@ be loaded again: %s"% w
             continue
         #import the stub generated files
         try:
-            importpackage = __import__(directoryname)
+            importpackage = __import__(ascii_s(directoryname))
             modclient = getattr(importpackage,client_mod)
             server = ServiceProxy(w, pyclass=True, tracefile=sys.stdout)
         except Exception, e:

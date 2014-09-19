@@ -42,6 +42,7 @@ import sys
 import vistrails.core.bundles.installbundle
 from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.system
+from vistrails.core.utils.compat import ascii_s
 
 ##############################################################################
 
@@ -56,11 +57,10 @@ def python_module_exists(module_name):
     except KeyError:
         pass
     try:
-        __import__(module_name)
+        __import__(ascii_s(module_name))
         return True
     except ImportError:
         return False
-    
 
 def executable_file_exists(filename):
     """executable_file_exists(filename): Boolean.

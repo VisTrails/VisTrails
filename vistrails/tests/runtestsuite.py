@@ -61,6 +61,7 @@ import tempfile
 
 # Makes sure we can import modules as if we were running VisTrails
 # from the root directory
+
 _this_dir = os.path.dirname(os.path.realpath(__file__))
 root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
 sys.path.insert(0, os.path.realpath(os.path.join(root_directory, '..')))
@@ -109,6 +110,7 @@ import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
 from vistrails.core import debug
+from vistrails.core.utils.compat import ascii_s
 import vistrails.gui.application
 from vistrails.core.system import vistrails_root_directory, \
                                   vistrails_examples_directory
@@ -256,7 +258,7 @@ except ImportError:
     print "PyQt4 not available"
 for pkg in ('numpy', 'scipy', 'matplotlib'):
     try:
-        ipkg = __import__(pkg, globals(), locals(), [], -1)
+        ipkg = __import__(ascii_s(pkg), globals(), locals(), [], -1)
         print "Using %s %s" % (pkg, ipkg.__version__)
     except ImportError:
         print "%s not available" % pkg
@@ -323,9 +325,10 @@ for (p, subdirs, files) in os.walk(root_directory):
         m = None
         try:
             if '.' in module:
-                m = __import__(module, globals(), locals(), ['foo'])
+                m = __import__(ascii_s(module), globals(), locals(),
+                               [ascii_s('foo')])
             else:
-                m = __import__(module)
+                m = __import__(ascii_s(module))
         except BaseException:
             print >>sys.stderr, "ERROR: Could not import module: %s" % module
             if verbose >= 1:

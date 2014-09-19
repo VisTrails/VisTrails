@@ -34,9 +34,10 @@
 ###############################################################################
 from __future__ import division
 
-import vistrails.core
 from vistrails.core.system import get_vistrails_default_pkg_prefix, \
     get_vistrails_basic_pkg_id, get_module_registry
+from vistrails.core.utils.compat import ascii_s
+
 
 def load_cls(cls_item, prefix=None):
     path = None
@@ -46,12 +47,14 @@ def load_cls(cls_item, prefix=None):
         (path, cls_name) = cls_item
     if path is not None:
         try:
-            module = __import__(path, globals(), locals(), [cls_name])
+            module = __import__(ascii_s(path), globals(), locals(),
+                                [ascii_s(cls_name)])
         except ImportError:
             if prefix is None:
                 raise
             path = '.'.join([prefix, path])
-            module = __import__(path, globals(), locals(), [cls_name])
+            module = __import__(ascii_s(path), globals(), locals(),
+                                [ascii_s(cls_name)])
         return getattr(module, cls_name)
     return cls_item
 
