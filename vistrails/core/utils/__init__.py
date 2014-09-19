@@ -504,7 +504,7 @@ def xor(first, *others):
             raise ValueError("All bytestrings should have the same length: "
                              "%d != %d" % (l, len(oth)))
         first = [c ^ ord(o) for (c, o) in itertools.izip(first, oth)]
-    return ''.join(chr(c) for c in first)
+    return b''.join(chr(c) for c in first)
 
 def long2bytes(nb, length=None):
     """Turns a single integer into a little-endian bytestring.
@@ -524,7 +524,7 @@ def long2bytes(nb, length=None):
             result += chr(nb & 0xFF)
             nb = nb >> 8
     if length is not None and len(result) < length:
-        result += '\x00' * (length - len(result))
+        result += b'\x00' * (length - len(result))
     return result
 
 ################################################################################
