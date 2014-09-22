@@ -406,7 +406,7 @@ class DateConversionWizard(OperationWizard):
         return layout
 
     def _input_fmt_changed(self, idx):
-        fmt, success = self._input_format.itemData(idx).toInt()
+        fmt = self._input_format.itemData(idx)
 
         self._output_format.clear()
         for i, ofmt in enumerate(self.output_formats[fmt]):
@@ -419,9 +419,8 @@ class DateConversionWizard(OperationWizard):
         if idx == -1 or self._sample is None:
             return
 
-        ifmt, success = self._input_format.itemData(
-                self._input_format.currentIndex()).toInt()
-        ofmt, success = self._output_format.itemData(idx).toInt()
+        ifmt = self._input_format.itemData(self._input_format.currentIndex())
+        ofmt = self._output_format.itemData(idx)
 
         try:
             if ifmt == self.TIMESTAMP and ofmt == self.DATETIME:
@@ -465,10 +464,9 @@ class DateConversionWizard(OperationWizard):
                 self._output_sample.setItem(row, 0, item)
 
     def make_operation(self, varname):
-        ifmt, success = self._input_format.itemData(
-                self._input_format.currentIndex()).toInt()
+        ifmt = self._input_format.itemData(self._input_format.currentIndex())
         idx = self._output_format.currentIndex()
-        ofmt, success = self._output_format.itemData(idx).toInt()
+        ofmt = self._output_format.itemData(idx)
 
         new_var = Variable(type=List)
         orig_var = self.get_variable_argument()
