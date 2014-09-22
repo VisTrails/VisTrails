@@ -92,7 +92,8 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         """
         if pipeline and self.scene():
             self.inspector.inspect_ambiguous_modules(pipeline)
-            self.scene().fitToView(self)
+            self.scene().fitToAllViews(True)
+
 
     @staticmethod
     def drawId(painter, rect, id, align=QtCore.Qt.AlignCenter):
