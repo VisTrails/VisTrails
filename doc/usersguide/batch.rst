@@ -43,127 +43,10 @@ You can specify version tags in conjunction with multiple filenames. Here is an 
    ``python vistrails/run.py "examples/lung.vt:Axial View" examples/head.vt:bone``
 
 
-
-.. topic:: Note:
-
-   As of this writing, the |vistrails| development team is refactoring the implementation of many of the command-line switches presented in Table :ref:`table-batch-cli`. As such, depending on your version of |vistrails|, the results you achieve may not match those described. For a list of known issues with the command line switches, please refer to the |vistrails| website.
-
-.. raw::latex
-   \begin{table}
-   \caption{Command line arguments supported by VisTrails.}
-   \label{table:batch:cli}
-   \begin{center}
-   \begin{tabular}{ | l | l | p{3in} | }
-   \hline 
-   \textbf{Short form} & \textbf{Long form} & \textbf{Description} \\
-   \hline 
-     -h & -$\,$-help & Print a help message and exit. \\
-   \hline
-     -S \emph{/path} & -$\,$-startup=\emph{/path} &
-                           Set user configuration directory (default is \texttt{$\sim$/.vistrails})
-   %% (Not fully working. see Ticket 213)
-   \\
-   \hline
-     -? & &                Print a help message and exit. \\
-   \hline
-     -v & -$\,$-version &      Print version information and exit. \\
-   \hline
-     -V \emph{num} &  -$\,$-verbose=\emph{num} &
-                           Set verboseness level (0--2, default=0, higher means
-                           more verbose). \\
-   \hline
-     -b & -$\,$-noninteractive & Run in non-interactive (batch) mode. \\
-   \hline
-     -n & -$\,$-nosplash &       Do not display splash screen on startup. \\
-    \hline
-     -q \emph{file} & -$\,$-quickstart=\emph{file} &
-                             Start VisTrails using the specified static registry. \\
-   \hline
-     -c \emph{num} & -$\,$-cache=\emph{num} &
-                           Enable/disable caching (0 to disable, nonzero to enable. Default is enabled). \\
-   \hline
-     -m \emph{num} & -$\,$-movies=\emph{num} &
-                           Set automatic movie creation on spreadsheet (0 or 1,
-                           default=1). Set this to zero to work around VTK bug
-                           with offscreen renderer and OpenGL texture3D mappers. \\
-   \hline
-     -s & -$\,$-multiheads &     Display the Builder and Spreadsheet on different
-                           screens (if available).
-   \\
-   \hline
-     -x & -$\,$-maximized &      Maximize Builder and Spreadsheet windows at startup. \\
-   \hline
-     -D & -$\,$-detachHistoryView &  Detach the history view from the builder window. \\
-   \hline
-     -l & -$\,$-nologger &       Disable logging. \\
-   \hline
-     -d & -$\,$-debugsignals &   Debug Qt Signals. \\
-   \hline
-     -a \emph{params} & -$\,$-parameters=\emph{params} &
-                           Set workflow parameters (non-interactive mode only). \\
-   \hline
-     -e \emph{dir} & -$\,$-dumpcells=\emph{dir} &
-                           Set directory to dump spreadsheet cells before exiting (non-interactive mode only). \\
-   \hline
-     -G & -$\,$-workflowgraph &
-                           Save workflow graph in specified directory without running 
-			   the workflow (non-interactive mode only).
-   \hline
-     -U & -$\,$-evolutiongraph &
-                           Save evolution graph in specified directory without running
-			   any workflowDump images in pdf format (non-interactive mode only).
-  \hline
-     -p & -$\,$-pdf &
-                           Dump images in pdf format (non-interactive mode only).
-   \hline
-     -g & -$\,$-noSingleInstance &
-                           Run VisTrails without the single instance restriction. \\
-   \hline
-     -t \emph{host} & -$\,$-host=\emph{host} & Set hostname or IP address of database server. \\
-   \hline
-     -r \emph{port} & -$\,$-port=\emph{port} & Set database port. \\
-   \hline
-     -f \emph{dbName} & -$\,$-db=\emph{dbName} & Set database name. \\
-   \hline
-     -u \emph{userName} & -$\,$-user=\emph{userName} & Set database username. \\
-   \hline
-   \end{tabular}
-   \end{center}
-   \end{table}
-
-.. tabularcolumns:: |l|l|p{7.5cm}|
-   
-.. _table-batch-cli:
-
-.. csv-table:: Command line arguments supported by |vistrails|.
-   :header: **Short form**, **Long form**, **Description**
-   :widths: 10, 15, 20
-
-   -h, :math:`--`\ help, Print a help message and exit.
-   -S */path*, -\ -startup=\ */path*, Set user configuration directory (default is :math:`\sim`\ ``/.vistrails``)
-   -?, , Print a help message and exit.
-   -v, --version, Print version information and exit.
-   -V *num*, --verbose=\ *num*, "Set verboseness level (0--2, default=0, higher means more verbose)."
-   -b, --noninteractive, Run in non-interactive (batch) mode.
-   -n, --nosplash, Do not display splash screen on startup.
-   -q *file*, --quickstart=\ *file*, Start VisTrails using the specified static registry. 
-   -c *num*, --cache=\ *num*, "Enable/disable caching (0 to disable, nonzero to enable. Default is enabled)."
-   -m *num*, --movies=\ *num*, "Set automatic movie creation on spreadsheet (0 or 1, default=1). Set this to zero to work around VTK bug with offscreen renderer and OpenGL texture3D mappers."
-   -s, --multiheads, Display the Builder and Spreadsheet on different screens (if available).
-   -x, --maximized, Maximize Builder and Spreadsheet windows at startup.
-   -P, --parameterExploration, execute Parameter Exploration.
-   -l, --nologger, Disable logging.
-   -d, --debugsignals, Debug Qt Signals.
-   -a *params*, --parameters=\ *params*, Set workflow parameters (non-interactive mode only).
-   -e *dir*, --dumpcells=\ *dir*, Set directory to dump spreadsheet cells before exiting (non-interactive mode only).
-   -G, --workflowgraph, Save workflow graph in specified directory without running the workflow (non-interactive mode only).
-   -U, --evolutiongraph, Save evolution graph in specified directory without running any workflow (non-interactive mode only).
-   -p, --pdf, Dump images in pdf format (non-interactive mode only).
-   -g, --noSingleInstance, Run VisTrails without the single instance restriction. 
-   -t *host*, --host=\ *host*, Set hostname or IP address of database server.
-   -r *port*, --port=\ *port*, Set database port.
-   -f *dbName*, --db=\ *dbName*, Set database name.
-   -u *userName*, --user=\ *userName*, Set database username.
+.. argparse::
+   :module: vistrails.core.configuration
+   :func: build_sphinx_parser
+   :prog: run.py
 
 .. index:: configuration directory
 
@@ -171,7 +54,7 @@ Specifying a User Configuration Directory
 =========================================
 
 In addition to the default .vistrails directory, VisTrails allows you to create and use additional configuration directories.  First, you will need to create a new directory.  This is done by running:
- ``python vistrails/run.py -S /path_to_new_directory/new_directory_name``.  
+``python vistrails/run.py -S /path_to_new_directory/new_directory_name``.
 
 This will both create a new directory containing default configuration files and directories, and launch VisTrails, which will use the newly created files for configuration.  The user is then free to add desired configurations to the new directory.  Once a configuration directory exists, subsequent calls using the directory name (``python vistrails/run.py -S /path_to_directory/existing_directory``) will launch VisTrails using the 'existing_directory' for configuration and a new directory will not be created.
 

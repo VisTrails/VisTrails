@@ -14,6 +14,7 @@ python-dateutil
 scipy
 scp
 Sphinx
+sphinx-argparse
 SQLAlchemy
 suds
 unittest2
