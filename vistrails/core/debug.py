@@ -281,7 +281,7 @@ class DebugPrint(object):
             self.logger.addHandler(handler)
 
         except Exception, e:
-            self.critical("Could not set log file %s: %s" % (f, e))
+            self.critical("Could not set log file %s:" % f, e)
 
     def log_to_console(self, enable=True):
         if enable:
