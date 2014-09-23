@@ -382,7 +382,7 @@ class VistrailController(QtCore.QObject, BaseController):
         if self.current_pipeline:
             locator = self.get_locator()
             if locator:
-                locator.clean_temporaries()
+                #locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
             try:
                 return self.execute_workflow_list([(self.locator,

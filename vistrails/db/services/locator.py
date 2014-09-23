@@ -347,20 +347,27 @@ class SaveTemporariesMixin(object):
             os.unlink(fname)
         self._iter_temporaries(remove_it)
 
-    def encode_name(self, filename):
-        """Encodes a file path using urllib.quote_plus
+    def encode_name(self, filename, number):
+        """Builds a temporary filename from an original path and a number.
         """
-        name = urllib.quote_plus(utf8_b(filename)) + '_tmp_'
-        return os.path.join(self.get_autosave_dir(), name)
+        filename, ext = os.path.splitext(filename)
+        name = '%s_tmp_%d' % (urllib.quote_plus(utf8_b(filename)), number)
+        return os.path.join(self.get_autosave_dir(), name + ext)
+
+    def decode_name(self, temporary):
+        """Decodes a temporary filename to the original path and number.
+        """
+        temporary, ext = os.path.splitext(os.path.basename(temporary))
+        base, _, number = temporary.rsplit('_', 2)
+        base = urllib.unquote(base)
+        return base + ext, int(number)
 
     def _iter_temporaries(self, f):
         """Calls f with each temporary file name, in sequence.
         """
         current = 0
         while True:
-            # FIXME : '%s_%d' here?
-            fname = '%s%d' % (self.encode_name(self.get_temp_basename()),
-                              current)
+            fname = self.encode_name(self.get_temp_basename(), current)
             if os.path.isfile(fname):
                 f(fname)
                 current += 1
@@ -380,16 +387,10 @@ class SaveTemporariesMixin(object):
         """Returns the next suitable temporary file after the given one.
         """
         if temporary is None:
-            print("_next_temporary first %r -> %r" % (
-                  self.get_temp_basename(),
-                  self.encode_name(self.get_temp_basename()) + '0'))
-            return self.encode_name(self.get_temp_basename()) + '0'  # FIXME : _0 here?
+            return self.encode_name(self.get_temp_basename(), 0)
         else:
-            split = temporary.rfind('_') + 1
-            base = temporary[:split]
-            number = int(temporary[split:])
-            print("_next_temporary next %r -> %r" % (temporary, "%s%d" % (base, number + 1)))
-            return "%s%d" % (base, number + 1)  # FIXME : %s_%d here?
+            base, number = self.decode_name(temporary)
+            return self.encode_name(base, number + 1)
 
 
 class UntitledLocator(SaveTemporariesMixin, BaseLocator):
@@ -423,7 +424,7 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
         if fname:
             obj = io.open_from_xml(fname, type)
         else:
-            obj = DBVistrail()  # FIXME : This looks just wrong (type!?)
+            obj = DBVistrail()
         obj.locator = self
         return obj
 
