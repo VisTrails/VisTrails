@@ -64,6 +64,7 @@ stopOnError: Stop all workflow execution immediately after first error
 executionLog: Track execution provenance when running workflows
 errorLog: Write errors to a log file
 parameters: List of parameters to use when running workflow
+parameterExploration: Run parameter exploration instead of workflow
 host: The hostname for the database to load the vistrail from
 port: The port for the database to load the vistrail from
 db: The name for the database to load the vistrail from
@@ -255,6 +256,11 @@ packageDir: Path
 parameters: String
 
     List of parameters to use when running workflow
+
+parameterExploration: String
+
+    Open and execute parameter exploration specified by the
+    version argument after the .vt file
 
 pythonPrompt: Boolean
 
@@ -569,6 +575,8 @@ base_config = {
                  flag='-p'),
      # ConfigField("package", [], str, flag='-p', nargs='*'),
      ConfigField("parameters", None, str, ConfigType.COMMAND_LINE),
+     ConfigField("parameterExploration", False, bool,
+                 ConfigType.COMMAND_LINE_FLAG),
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("withWorkflow", False, bool, ConfigType.COMMAND_LINE_FLAG),
