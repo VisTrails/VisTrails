@@ -257,7 +257,7 @@ parameters: String
 
     List of parameters to use when running workflow
 
-parameterExploration: String
+parameterExploration: Boolean
 
     Open and execute parameter exploration specified by the
     version argument after the .vt file
