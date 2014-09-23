@@ -465,9 +465,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         usedb = False
+        passwd = ''
         if self.temp_configuration.check('host'):
             usedb = True
-            passwd = ''
         if usedb and self.temp_configuration.check('user'):
             db_config = dict((x, self.temp_configuration.check(x))
                              for x in ['host', 'port', 
@@ -503,7 +503,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                            port=self.temp_configuration.check('port') or 3306,
                            database=self.temp_configuration.check('db'),
                            user=self.temp_configuration.check('user'),
-                           passwd=passwd,  # FIXME : passwd not set here
+                           passwd=passwd,
                            obj_id=f_name,
                            obj_type=None,
                            connection_id=None)
