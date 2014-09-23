@@ -3,6 +3,7 @@ from __future__ import division
 import numpy
 
 from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.utils.compat import ascii_s
 
 from ..read.read_numpy import NumPyArray
 
@@ -72,8 +73,9 @@ class WriteNumpyTestCase(unittest.TestCase):
                           2, 1, 0, 0,
                           102, 26, 0, 0]
         with open(results[0].name, 'rb') as fp:
-            self.assertEqual(fp.read(),
-                             array.array('B', expected_bytes).tostring())
+            self.assertEqual(
+                    fp.read(),
+                    array.array(ascii_s('B'), expected_bytes).tostring())
 
     def test_npy_numpy(self):
         """Uses WriteNumPy to write an array in .NPY format.
