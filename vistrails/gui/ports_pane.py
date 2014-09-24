@@ -32,10 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+import six
 from PyQt4 import QtCore, QtGui
 from itertools import izip
 import os
-import string
 
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import identifier as basic_identifier
@@ -47,6 +49,7 @@ from vistrails.gui.modules.utils import get_widget_class
 from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.port_documentation import QPortDocumentation
 from vistrails.gui.theme import CurrentTheme
+
 
 class AliasLabel(QtGui.QLabel):
     """
@@ -91,10 +94,10 @@ class AliasLabel(QtGui.QLabel):
         Override to handle hover enter and leave events for hot links
         
         """
-        if event.type()==QtCore.QEvent.HoverEnter:
+        if event.type() == QtCore.QEvent.HoverEnter:
             self.palette().setColor(QtGui.QPalette.WindowText,
                                     CurrentTheme.HOVER_SELECT_COLOR)
-        if event.type()==QtCore.QEvent.HoverLeave:
+        if event.type() == QtCore.QEvent.HoverLeave:
             self.palette().setColor(QtGui.QPalette.WindowText,
                                     CurrentTheme.HOVER_DEFAULT_COLOR)
         return QtGui.QLabel.event(self, event)
@@ -106,25 +109,27 @@ class AliasLabel(QtGui.QLabel):
         the alias name
         
         """
-        if event.button()==QtCore.Qt.LeftButton:
+        if event.button() == QtCore.Qt.LeftButton:
             (text, ok) = QtGui.QInputDialog.getText(self,
                                                     'Set Parameter Alias',
                                                     'Enter the parameter alias',
                                                     QtGui.QLineEdit.Normal,
                                                     self.alias)
-            while ok and self.parent().check_alias(str(text)):
-                msg =" This alias is already being used.\
- Please enter a different parameter alias "
+            while ok and self.parent().check_alias(six.text_type(text)):
+                msg = (" This alias is already being used."
+                       " Please enter a different parameter alias ")
                 (text, ok) = QtGui.QInputDialog.getText(self,
                                                         'Set Parameter Alias',
                                                         msg,
                                                         QtGui.QLineEdit.Normal,
                                                         text)
-            if ok and str(text)!=self.alias:
-                if not self.parent().check_alias(str(text)):
-                    self.alias = str(text).strip()
+            text = six.text_type(text)
+            if ok and text != self.alias:
+                if not self.parent().check_alias(text):
+                    self.alias = text.strip()
                     self.updateText()
                     self.parent().updateMethod()
+
 
 class Parameter(object):
     def __init__(self, desc):
@@ -136,12 +141,14 @@ class Parameter(object):
         self.queryMethod = None
         self.port_spec_item = None
         self.param_exists = False
-        
+
+
 class ParameterEntry(QtGui.QTreeWidgetItem):
     plus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                          'gui/resources/images/plus.png'))
     minus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                           'gui/resources/images/minus.png'))
+
     def __init__(self, port_spec, function=None, parent=None):
         QtGui.QTreeWidgetItem.__init__(self, parent)
         self.setFirstColumnSpanned(True)
@@ -164,8 +171,9 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         v_layout = QtGui.QVBoxLayout()
         v_layout.setAlignment(QtCore.Qt.AlignVCenter)
         delete_button = QtGui.QToolButton()
-        delete_button.setIconSize(QtCore.QSize(8,8))
+        delete_button.setIconSize(QtCore.QSize(8, 8))
         delete_button.setIcon(ParameterEntry.minus_icon)
+
         def delete_method():
             if self.function is not None:
                 self.group_box.parent().parent().parent().delete_method(
@@ -180,7 +188,8 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         
         add_button = QtGui.QToolButton()
         add_button.setIcon(ParameterEntry.plus_icon)
-        add_button.setIconSize(QtCore.QSize(8,8))
+        add_button.setIconSize(QtCore.QSize(8, 8))
+
         def add_method():
             self.group_box.parent().parent().parent().add_method(
                 self.port_spec.name)
@@ -200,18 +209,24 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         self.group_box.setSizePolicy(QtGui.QSizePolicy.Preferred,
                                      QtGui.QSizePolicy.Fixed)
         self.group_box.palette().setColor(QtGui.QPalette.Window,
-                                     CurrentTheme.METHOD_SELECT_COLOR)
+                                          CurrentTheme.METHOD_SELECT_COLOR)
 
         if self.function is not None:
             params = self.function.parameters
         else:
-            params = [None,] * len(self.port_spec.descriptors())
+            params = [None, ] * len(self.port_spec.descriptors())
+
+        def strip_preceeding_lowercase(some_str):
+            for index, (u1, u2) in enumerate(zip(some_str, some_str.lower())):
+                if u1 != u2:
+                    return some_str[index:]
+            return ''
 
         for i, (psi, param) in enumerate(izip(self.port_spec.port_spec_items, 
                                               params)):
             if psi.entry_type is not None:
                 # !!only pull off the prefix!! options follow in camelcase
-                prefix_end = len(psi.entry_type.lstrip(string.lowercase))
+                prefix_end = len(strip_preceeding_lowercase(psi.entry_type))
                 if prefix_end == 0:
                     entry_type = psi.entry_type
                 else:
@@ -234,16 +249,20 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             layout.addWidget(label, i, 0)
             layout.setAlignment(label, QtCore.Qt.AlignLeft)
             layout.addWidget(param_widget, i, 1)
-            layout.addItem(QtGui.QSpacerItem(0,0, QtGui.QSizePolicy.MinimumExpanding), i, 2)
+            layout.addItem(QtGui.QSpacerItem(
+                0, 0, QtGui.QSizePolicy.MinimumExpanding), i, 2)
 
         self.group_box.setLayout(layout)
+
         def updateMethod():
             if self.function is not None:
                 real_id = self.function.real_id
             else:
                 real_id = -1
             self.group_box.parent().parent().parent().update_method(
-                self, self.port_spec.name, self.my_widgets, self.my_labels, real_id)
+                self, self.port_spec.name, self.my_widgets, self.my_labels,
+                real_id)
+
         def check_alias(name):
             controller = self.group_box.parent().parent().parent().controller
             if controller:
@@ -257,6 +276,7 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
 
     def get_widget(self):
         return self.build_widget(get_widget_class, True)
+
 
 class PortItem(QtGui.QTreeWidgetItem):
     eye_open_icon = \
@@ -319,7 +339,8 @@ class PortItem(QtGui.QTreeWidgetItem):
         # if port_spec is not a method, make it gray
         if not self.is_constant():
             self.setForeground(2, 
-                               QtGui.QBrush(QtGui.QColor.fromRgb(128,128,128)))
+                               QtGui.QBrush(QtGui.QColor.fromRgb(128, 128,
+                                                                 128)))
 
         self.visible_checkbox = QtGui.QCheckBox()
         self.connected_checkbox = QtGui.QCheckBox()
@@ -353,13 +374,14 @@ class PortItem(QtGui.QTreeWidgetItem):
         # otherwise use port name
         return self.port_spec.name < other.port_spec.name
 
+
 class PortsList(QtGui.QTreeWidget):
     def __init__(self, port_type, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.port_type = port_type
         self.setColumnCount(3)
-        self.setColumnWidth(0,24)
-        self.setColumnWidth(1,24)
+        self.setColumnWidth(0, 24)
+        self.setColumnWidth(1, 24)
         self.setRootIsDecorated(False)
         self.setIndentation(0)
         self.setHeaderHidden(True)
@@ -384,7 +406,7 @@ class PortsList(QtGui.QTreeWidget):
         # this is strange but if you try to clear the widget when the focus is 
         # in one of the items (after setting a parameter for example), 
         # VisTrails crashes on a Mac (Emanuele) This is probably a Qt bug
-        w =  QtGui.QApplication.focusWidget()
+        w = QtGui.QApplication.focusWidget()
         if self.isAncestorOf(w):
             w.clearFocus()
         self.clear()
@@ -544,7 +566,7 @@ class PortsList(QtGui.QTreeWidget):
             str_values = []
             query_methods = []
             for w in widgets:
-                str_values.append(str(w.contents()))
+                str_values.append(six.text_type(w.contents()))
                 if hasattr(w, 'query_method'):
                     query_methods.append(w.query_method())
             if real_id < 0:
@@ -555,7 +577,7 @@ class PortsList(QtGui.QTreeWidget):
                                             port_name,
                                             str_values,
                                             real_id,
-                                            [str(label.alias)
+                                            [six.text_type(label.alias)
                                              for label in labels],
                                             query_methods,
                                             should_replace)
@@ -615,6 +637,7 @@ class PortsList(QtGui.QTreeWidget):
         if item:
             item.contextMenuEvent(event, self)
 
+
 class QPortsPane(QtGui.QWidget, QToolWindowInterface):
     def __init__(self, port_type, parent=None, flags=QtCore.Qt.Widget):
         QtGui.QWidget.__init__(self, parent, flags)
@@ -636,4 +659,3 @@ class QPortsPane(QtGui.QWidget, QToolWindowInterface):
 
     def update_module(self, module):
         self.tree_widget.update_module(module)
-    
