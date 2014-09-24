@@ -307,28 +307,36 @@ class DefaultTheme(DefaultCoreTheme):
     
         #### FONTS ####        
         # Font for module text
-        # Using LiberationSans to get same look on all platforms
+
+        # Using "Liberation Sans" and pixelSize to get same look on all platforms
         QtGui.QFontDatabase().addApplicationFont(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/fonts/LiberationSans-Regular.ttf')
         QtGui.QFontDatabase().addApplicationFont(
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/fonts/LiberationSans-Bold.ttf')
-        self.MODULE_FONT = QtGui.QFont("Liberation Sans", 14, QtGui.QFont.Bold)
+        GRAPHICS_FONT = "Liberation Sans"
+        self.MODULE_FONT = QtGui.QFont(GRAPHICS_FONT, 14, QtGui.QFont.Bold)
+        self.MODULE_FONT.setPixelSize(14)
         self.MODULE_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_FONT)
-        self.MODULE_DESC_FONT = QtGui.QFont("Liberation Sans", 12)
+        self.MODULE_DESC_FONT = QtGui.QFont(GRAPHICS_FONT, 12)
+        self.MODULE_DESC_FONT.setPixelSize(12)
         self.MODULE_DESC_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_DESC_FONT)
-        self.MODULE_EDIT_FONT = QtGui.QFont("Liberation Sans", 10)
+        self.MODULE_EDIT_FONT = QtGui.QFont(GRAPHICS_FONT, 10)
+        self.MODULE_EDIT_FONT.setPixelSize(10)
         self.MODULE_EDIT_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_EDIT_FONT)
     
         # Font for version text
-        self.VERSION_FONT = QtGui.QFont("Liberation Sans", 15, QtGui.QFont.Bold)
+        self.VERSION_FONT = QtGui.QFont(GRAPHICS_FONT, 15, QtGui.QFont.Bold)
+        self.VERSION_FONT.setPixelSize(15)
         self.VERSION_FONT_METRIC = QtGui.QFontMetrics(self.VERSION_FONT)
-        self.VERSION_DESCRIPTION_FONT = QtGui.QFont("Liberation Sans", 15,
+        self.VERSION_DESCRIPTION_FONT = QtGui.QFont(GRAPHICS_FONT, 15,
                                                     QtGui.QFont.Normal, True)
+        self.VERSION_DESCRIPTION_FONT.setPixelSize(15)
         self.VERSION_DESCRIPTION_FONT_METRIC = \
             QtGui.QFontMetrics(self.VERSION_DESCRIPTION_FONT)
-        self.VERSION_PROPERTIES_FONT = QtGui.QFont("Liberation Sans", 12)
+
+        self.VERSION_PROPERTIES_FONT = QtGui.QFont("Arial", 12)
         self.VERSION_PROPERTIES_FONT_METRIC = \
             QtGui.QFontMetrics(self.VERSION_PROPERTIES_FONT)
         self.VERSION_PROPERTIES_PEN =  QtGui.QBrush(
