@@ -3367,7 +3367,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
             width = max(width, editRect.width())
             fname = QtGui.QGraphicsSimpleTextItem(name, self)
             fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
-            fname.setPos(-2, -2)
+            fname.setPos(-1, -1)
 
             names = []
             sigstring = function.sigstring
@@ -3381,7 +3381,8 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
             tooltip = function.name + short_sigstring
             fname.setToolTip(tooltip)
 
-            height += bounds(name).height()
+            #height += bounds(name).height()
+            height += 11 # hardcoded because fontmetric can give wrong value
 
         for i in xrange(len(function.parameters)):
             param = function.parameters[i]

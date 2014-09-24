@@ -198,8 +198,9 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
 
     def boundingRect(self):
         # calc font height
-        height = CurrentTheme.MODULE_EDIT_FONT_METRIC.boundingRect('Fg').height()
-        return QtCore.QRectF(0.0, 0.0, 150, height + 4)
+        #height = CurrentTheme.MODULE_EDIT_FONT_METRIC.height()
+        height = 11 # hardcoded because fontmetric can give wrong value
+        return QtCore.QRectF(0.0, 0.0, 150, height + 3)
 
     def eventFilter(self, obj, event):
         if event.type() == QtCore.QEvent.KeyPress and \

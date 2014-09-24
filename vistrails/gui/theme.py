@@ -316,23 +316,28 @@ class DefaultTheme(DefaultCoreTheme):
             vistrails.core.system.vistrails_root_directory() +
             '/gui/resources/fonts/LiberationSans-Bold.ttf')
         GRAPHICS_FONT = "Liberation Sans"
-        self.MODULE_FONT = QtGui.QFont(GRAPHICS_FONT, 14, QtGui.QFont.Bold)
+        self.MODULE_FONT = QtGui.QFont(GRAPHICS_FONT, -1, QtGui.QFont.Bold)
         self.MODULE_FONT.setPixelSize(14)
+        self.MODULE_FONT.setHintingPreference(QtGui.QFont.PreferNoHinting)
         self.MODULE_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_FONT)
-        self.MODULE_DESC_FONT = QtGui.QFont(GRAPHICS_FONT, 12)
+        self.MODULE_DESC_FONT = QtGui.QFont(GRAPHICS_FONT, -1)
         self.MODULE_DESC_FONT.setPixelSize(12)
+        self.MODULE_DESC_FONT.setHintingPreference(QtGui.QFont.PreferNoHinting)
         self.MODULE_DESC_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_DESC_FONT)
-        self.MODULE_EDIT_FONT = QtGui.QFont(GRAPHICS_FONT, 10)
+        self.MODULE_EDIT_FONT = QtGui.QFont(GRAPHICS_FONT, -1)
         self.MODULE_EDIT_FONT.setPixelSize(10)
+        self.MODULE_EDIT_FONT.setHintingPreference(QtGui.QFont.PreferNoHinting)
         self.MODULE_EDIT_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_EDIT_FONT)
     
         # Font for version text
-        self.VERSION_FONT = QtGui.QFont(GRAPHICS_FONT, 15, QtGui.QFont.Bold)
+        self.VERSION_FONT = QtGui.QFont(GRAPHICS_FONT, -1, QtGui.QFont.Bold)
         self.VERSION_FONT.setPixelSize(15)
+        self.VERSION_FONT.setHintingPreference(QtGui.QFont.PreferNoHinting)
         self.VERSION_FONT_METRIC = QtGui.QFontMetrics(self.VERSION_FONT)
-        self.VERSION_DESCRIPTION_FONT = QtGui.QFont(GRAPHICS_FONT, 15,
+        self.VERSION_DESCRIPTION_FONT = QtGui.QFont(GRAPHICS_FONT, -1,
                                                     QtGui.QFont.Normal, True)
         self.VERSION_DESCRIPTION_FONT.setPixelSize(15)
+        self.VERSION_DESCRIPTION_FONT.setHintingPreference(QtGui.QFont.PreferNoHinting)
         self.VERSION_DESCRIPTION_FONT_METRIC = \
             QtGui.QFontMetrics(self.VERSION_DESCRIPTION_FONT)
 
