@@ -1027,7 +1027,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         from vistrails.gui.module_info import QModuleInfo
         from vistrails.gui.paramexplore.param_view import QParameterView
         from vistrails.gui.paramexplore.pe_inspector import QParamExploreInspector
-        from vistrails.gui.shell import QShellDialog
+        from vistrails.gui.shell import get_shell_dialog
         from vistrails.gui.version_prop import QVersionProp
         from vistrails.gui.vis_diff import QDiffProperties
         from vistrails.gui.collection.explorer import QExplorerWindow
@@ -1090,7 +1090,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                ((QModuleIteration, True),
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module'))),
-               ((QShellDialog, True),
+               ((get_shell_dialog(), True),
                 (('controller_changed', 'set_controller'),)),
                ((QDebugger, True),
                 (('controller_changed', 'set_controller'),)),

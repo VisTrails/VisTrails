@@ -45,14 +45,23 @@ http://gerard.vermeulen.free.fr/html/pycute-intro.html
 from PyQt4 import QtGui, QtCore
 import sys
 
+from vistrails.core.bundles import py_import
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
 def get_shell_dialog():
-    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
-    from IPython.qt.inprocess import QtInProcessKernelManager
+    deps = {'pip': 'ipython>=1.0',
+            'linux-ubuntu': 'ipython-qtconsole',
+            'linux-debian': 'ipython-qtconsole'}
+
+    IPython = py_import('IPython.qt.console.rich_ipython_widget', deps)
+    RichIPythonWidget = \
+            IPython.qt.console.rich_ipython_widget.RichIPythonWidget
+    py_import('IPython.qt.inprocess', deps)
+    QtInProcessKernelManager = \
+            IPython.qt.inprocess.QtInProcessKernelManager
 
     km = QtInProcessKernelManager()
     km.start_kernel()
@@ -162,14 +171,3 @@ def get_shell_dialog():
             return RichIPythonWidget.eventFilter(self, obj, event)
 
     return IPythonDialog
-
-# This is tested with IPython 1.0.0 and its beta versions
-# TODO: Once IPython 1.0 is included in the distro we should add auto-install
-try:
-    from IPython.qt.inprocess import QtInProcessKernelManager
-    try:
-        QShellDialog = get_shell_dialog()
-    except Exception, e:
-        import traceback; traceback.print_exc()
-except Exception:
-    pass
