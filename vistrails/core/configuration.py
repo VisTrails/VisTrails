@@ -42,7 +42,7 @@ import shlex
 import sys
 import weakref
 
-import os.path
+import os
 
 from vistrails.core import system
 from vistrails.core.utils import Ref, append_to_dict_of_lists
@@ -1566,7 +1566,6 @@ def get_vistrails_temp_configuration():
 
 get_vistrails_configuration = get_vistrails_temp_configuration
 
-import os
 import tempfile
 import unittest
 
@@ -1647,13 +1646,26 @@ class TestConfiguration(unittest.TestCase):
     def test_parser(self):
         if sys.version_info < (2, 7):
             self.skipTest("argparse on Python 2.6: bug 10680")
+        from vistrails.tests.utils import capture_stdout, capture_stderr
         p = build_command_line_parser(base_config)
-        with self.assertRaises(SystemExit) as e:
-            p.parse_args(["-h"])
-        self.assertEqual(e.exception.code, 0)
-        with self.assertRaises(SystemExit) as e:
-            p.parse_args(["--db-default", "--no-db-default"])
-        self.assertEqual(e.exception.code, 2)
+        err = []
+        try:
+            with capture_stdout() as err:
+                with self.assertRaises(SystemExit) as e:
+                    p.parse_args(["-h"])
+            self.assertEqual(e.exception.code, 0)
+            self.assertGreater(len(err), 20)
+        except:
+            sys.stdout.write('\n'.join(err))
+            raise
+        try:
+            with capture_stderr() as err:
+                with self.assertRaises(SystemExit) as e:
+                    p.parse_args(["--db-default", "--no-db-default"])
+            self.assertEqual(e.exception.code, 2)
+        except:
+            sys.stderr.write('\n'.join(err))
+            raise
 
     def test_parse_into_config(self):
         p = build_command_line_parser(base_config)
