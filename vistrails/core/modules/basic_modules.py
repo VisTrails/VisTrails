@@ -236,36 +236,6 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
     m._output_ports = [('value', m)]
     return m
 
-@staticmethod
-def numeric_compare(value_a, value_b, query_method):
-    value_a = float(value_a)
-    value_b = float(value_b)
-    if query_method == '==' or query_method is None:
-        return (value_a == value_b)
-    elif query_method == '<':
-        return (value_a < value_b)
-    elif query_method == '>':
-        return (value_a > value_b)
-    elif query_method == '<=':
-        return (value_a <= value_b)
-    elif query_method == '>=':
-        return (value_a >= value_b)
-
-@staticmethod
-def string_compare(value_a, value_b, query_method):
-    if query_method == '*[]*' or query_method is None:
-        return (value_b in value_a)
-    elif query_method == '==':
-        return (value_a == value_b)
-    elif query_method == '=~':
-        try:
-            m = re.match(value_b, value_a)
-            if m is not None:
-                return (m.end() ==len(value_a))
-        except re.error:
-            pass
-    return False
-
 class Boolean(Constant):
     _settings = ModuleSettings(
             constant_widget='%s:BooleanWidget' % constant_config_path)
@@ -299,7 +269,20 @@ class Float(Constant):
     def validate(x):
         return isinstance(x, (int, long, float))
 
-    query_compute = numeric_compare
+    @staticmethod
+    def query_compute(value_a, value_b, query_method):
+        value_a = float(value_a)
+        value_b = float(value_b)
+        if query_method == '==' or query_method is None:
+            return (value_a == value_b)
+        elif query_method == '<':
+            return (value_a < value_b)
+        elif query_method == '>':
+            return (value_a > value_b)
+        elif query_method == '<=':
+            return (value_a <= value_b)
+        elif query_method == '>=':
+            return (value_a >= value_b)
 
 class Integer(Float):
     _settings = ModuleSettings(constant_widgets=[
@@ -318,7 +301,7 @@ class Integer(Float):
     def validate(x):
         return isinstance(x, (int, long))
 
-    query_compute = numeric_compare
+    #query_compute = Float.query_compute # FIXME : needed?
 
 class String(Constant):
     _settings = ModuleSettings(
@@ -339,7 +322,20 @@ class String(Constant):
     def validate(x):
         return isinstance(x, str)
 
-    query_compute = string_compare
+    @staticmethod
+    def query_compute(value_a, value_b, query_method):
+        if query_method == '*[]*' or query_method is None:
+            return (value_b in value_a)
+        elif query_method == '==':
+            return (value_a == value_b)
+        elif query_method == '=~':
+            try:
+                m = re.match(value_b, value_a)
+                if m is not None:
+                    return (m.end() ==len(value_a))
+            except re.error:
+                pass
+        return False
 
 ##############################################################################
 
