@@ -234,11 +234,13 @@ def capture_stdout():
     old_stdout = sys.stdout
     sio = StringIO.StringIO()
     sys.stdout = sio
-    yield lines
-    sys.stdout = old_stdout
-    lines.extend(sio.getvalue().split('\n'))
-    if lines and not lines[-1]:
-        del lines[-1]
+    try:
+        yield lines
+    finally:
+        sys.stdout = old_stdout
+        lines.extend(sio.getvalue().split('\n'))
+        if lines and not lines[-1]:
+            del lines[-1]
 
 
 class MockLogHandler(logging.Handler):
