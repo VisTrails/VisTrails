@@ -41,7 +41,7 @@ from vistrails.core.modules.vistrails_module import Module, new_module, \
     Converter, NotCacheable, ModuleError
 from vistrails.core.modules.config import ConstantWidgetConfig, \
     QueryWidgetConfig, ParamExpWidgetConfig, ModuleSettings, IPort, OPort, \
-    CIPort, COPort
+    CIPort
 import vistrails.core.system
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
@@ -73,6 +73,38 @@ old_identifiers = ['edu.utah.sci.vistrails.basic']
 constant_config_path = "vistrails.gui.modules.constant_configuration"
 query_config_path = "vistrails.gui.modules.query_configuration"
 paramexp_config_path = "vistrails.gui.modules.paramexplore"
+
+def get_port_name(port):
+    if hasattr(port, 'name'):
+        return port.name
+    else:
+        return port[0]
+
+class meta_add_value_ports(type):
+    def __new__(cls, name, bases, dct):
+        """This metaclass adds the 'value' input and output ports.
+        """
+        mod = type.__new__(cls, name, bases, dct)
+
+        if '_input_ports' in mod.__dict__:
+            input_ports = mod._input_ports
+            if not any(get_port_name(port_info) == 'value'
+                       for port_info in input_ports):
+                mod._input_ports = [('value', mod)]
+                mod._input_ports.extend(input_ports)
+        else:
+            mod._input_ports = [('value', mod)]
+
+        if '_output_ports' in mod.__dict__:
+            output_ports = mod._output_ports
+            if not any(get_port_name(port_info) == 'value'
+                       for port_info in output_ports):
+                mod._output_ports = [('value', mod)]
+                mod._output_ports.extend(output_ports)
+        else:
+            mod._output_ports = [('value', mod)]
+
+        return mod
 
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
@@ -110,6 +142,8 @@ class Constant(Module):
     """
     _settings = ModuleSettings(abstract=True)
     _output_ports = [OPort("value_as_string", "String")]
+
+    __metaclass__ = meta_add_value_ports
 
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
@@ -1787,3 +1821,27 @@ class TestStringFormat(unittest.TestCase):
                         _0=('String', 'hello'), _1=('String', 'dear'),
                         _2=('String', 'world'), _3=('Float', '1.333333333'),
                         ponc=('String', '!'))
+
+
+class TestConstantMetaclass(unittest.TestCase):
+    def test_meta(self):
+        """Tests the __metaclass__ for Constant.
+        """
+        mod1_in = [('value', 'basic:String'), IPort('other', 'basic:Float')]
+        mod1_out = [('someport', 'basic:Integer')]
+        class Mod1(Constant):
+            _input_ports = mod1_in
+            _output_ports = mod1_out
+        self.assertEqual(Mod1._input_ports, mod1_in)
+        self.assertEqual(Mod1._output_ports, [('value', Mod1)] + mod1_out)
+
+        mod2_in = [('another', 'basic:String')]
+        class Mod2(Mod1):
+            _input_ports = mod2_in
+        self.assertEqual(Mod2._input_ports, [('value', Mod2)] + mod2_in)
+        self.assertEqual(Mod2._output_ports, [('value', Mod2)])
+
+        class Mod3(Mod1):
+            _output_ports = []
+        self.assertEqual(Mod3._input_ports, [('value', Mod3)])
+        self.assertEqual(Mod3._output_ports, [('value', Mod3)])
