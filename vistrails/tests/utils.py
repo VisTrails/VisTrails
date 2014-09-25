@@ -229,18 +229,30 @@ def intercept_results(*args):
 
 
 @contextlib.contextmanager
-def capture_stdout():
+def capture_stream(stream):
     lines = []
-    old_stdout = sys.stdout
+    old = getattr(sys, stream)
     sio = StringIO.StringIO()
-    sys.stdout = sio
+    setattr(sys, stream, sio)
     try:
         yield lines
     finally:
-        sys.stdout = old_stdout
+        setattr(sys, stream,  old)
         lines.extend(sio.getvalue().split('\n'))
         if lines and not lines[-1]:
             del lines[-1]
+
+
+@contextlib.contextmanager
+def capture_stdout():
+    with capture_stream('stdout') as lines:
+        yield lines
+
+
+@contextlib.contextmanager
+def capture_stderr():
+    with capture_stream('stderr') as lines:
+        yield lines
 
 
 class MockLogHandler(logging.Handler):
