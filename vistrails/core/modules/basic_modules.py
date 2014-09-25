@@ -332,7 +332,8 @@ class String(Constant):
 
     @staticmethod
     def translate_to_python(x):
-        return str(x)
+        assert isinstance(x, str)
+        return x
 
     @staticmethod
     def validate(x):
