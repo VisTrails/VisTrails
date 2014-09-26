@@ -3694,7 +3694,10 @@ class VistrailController(object):
                 pipeline = self.get_pipeline(version, from_root=from_root,
                                              use_current=use_current)
             except InvalidPipeline, e:
-                try:
+                # As long as handle_invalid_pipeline doesn't raise, we assume
+                # that it fixed something, and we go on calling it until the
+                # pipeline is valid
+                while True:
                     version, pipeline = \
                         self.handle_invalid_pipeline(e, version,
                                                      self.vistrail,
@@ -3702,16 +3705,9 @@ class VistrailController(object):
                                                      delay_update=delay_update)
                     try:
                         self.validate(pipeline)
+                        break
                     except InvalidPipeline, e:
-                        version, pipeline = \
-                            self.handle_invalid_pipeline(e, version,
-                                                         self.vistrail,
-                                                         report_all_errors,
-                                                         delay_update=delay_update)
-                    self.validate(pipeline)
-                except InvalidPipeline, e:
-                    debug.unexpected_exception(e)
-                    raise e
+                        pass
             return version, pipeline
         # end _validate_version
 
