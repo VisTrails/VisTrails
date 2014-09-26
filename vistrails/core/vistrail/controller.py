@@ -3782,32 +3782,21 @@ class VistrailController(object):
                     pass
             if not was_upgraded:
                 try:
+                    new_version, pipeline = \
+                        self.handle_invalid_pipeline(e, new_version,
+                                                     self.vistrail,
+                                                     report_all_errors)
                     try:
-                        (new_version, pipeline) = \
+                        self.validate(pipeline)
+                    except InvalidPipeline, e:
+                        new_version, pipeline = \
                             self.handle_invalid_pipeline(e, new_version,
                                                          self.vistrail,
                                                          report_all_errors)
-                    except InvalidPipeline, e:
-                        pipeline = e._pipeline
-                    # check that we handled the invalid pipeline
-                    # correctly
-                    try:
-                        self.validate(pipeline)
-                    # this means that there was a new exception after handling 
-                    # the invalid pipeline and we should handle it again.    
-                    except InvalidPipeline, e:
-                        (new_version, pipeline) = \
-                                 self.handle_invalid_pipeline(e, new_version,
-                                                              self.vistrail,
-                                                              report_all_errors)
-                        # check that we handled the invalid pipeline
-                        # correctly
-                    self.validate(pipeline)
                     self.current_pipeline = pipeline
                     self.current_version = new_version
                 except InvalidPipeline, e:
                     debug.unexpected_exception(e)
-                    # display invalid pipeline?
                     new_error = e
                     
                     # just do the version switch, anyway, but alert the
