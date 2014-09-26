@@ -58,20 +58,26 @@ _usage_args = set()
 _simple_documentation = """
 autoConnect: Automatically connect dragged in modules
 autoSave: Automatically save backup vistrails every two minutes
+batch: Run in batch mode instead of interactive mode
 cache: Cache previous results so they may be used in future computations
 dataDir: Default data directory
 db: The name for the database to load the vistrail from
 dbDefault: Save vistrails in a database by default
+debugLevel: How much information should VisTrails log
 defaultFileType: Default file type/extension for vistrails (.vt or .xml)
+detachHistoryView: Show the version tree in a separate window
 dotVistrails: User configuration directory
 enablePackagesSilently: Automatically enable packages when needed
 errorLog: Write errors to a log file
+execute: Execute any specified workflows
 executionLog: Track execution provenance when running workflows
 fileDir: Default vistrail directory
+fixedSpreadsheetCells: Draw spreadsheet cells at a fixed size
 handlerDontAsk: Do not ask about extension handling at startup
 host: The hostname for the database to load the vistrail from
 installBundles: Install missing Python dependencies
 installBundlesWithPip: Use pip to install missing Python dependencies
+isInServerMode: Indicates whether VisTrails is being run as a server
 jobAutorun: Run jobs automatically when they finish
 jobCheckInterval: How often to check for jobs (in seconds)
 jobList: List running jobs
@@ -88,6 +94,7 @@ parameters: List of parameters to use when running workflow
 port: The port for the database to load the vistrail from
 repositoryHTTPURL: Remote package repository URL
 repositoryLocalPath: Local package repository directory
+rootDirectory: Directory that contains the VisTrails source code
 rpcConfig: Config file for server connection options
 rpcInstances: Number of other instances that vistrails should start
 rpcLogFile: Log file for XML RPC server
@@ -99,8 +106,12 @@ showConnectionErrors: Show error when input value doesn't match type during exec
 showDebugPopups: Always bring debug messages to the front
 showScrollbars: Show scrollbars on the version tree and workflow canvases
 showSplash: Show VisTrails splash screen during startup
+showSpreadsheetOnly: Hides the VisTrails main window
 showVariantErrors: Show error when variant input value doesn't match type during execution
+showWindow: Show the main window
 singleInstance: Do not allow more than one instance of VisTrails to run at once
+spreadsheetDumpCells: Defines the location for generated cells
+spreadsheetDumpPDF: Whether the spreadsheet should dump images in PDF format
 staticRegistry: XML registry file
 stopOnError: Stop all workflow execution immediately after first error
 subworkflowsDir: Local subworkflows directory
@@ -110,12 +121,16 @@ thumbs.cacheDir: Thumbnail cache directory
 thumbs.cacheSize: Thumbnail cache size (MB)
 thumbs.mouseHover: Show thumbnails when mouse is hovering above a version
 thumbs.tagsOnly: Store thumbnails only for tagged versions
+upgradeDelay: Persist upgrade only after other changes
 upgradeModuleFailPrompt: Alert when a subworkflow upgrade fails
 upgrades: Attempt to automatically upgrade old workflows
+useMacBrushedMetalStyle: Use a brushed metal interface (MacOS X only)
 user: The username for the database to the load vistrail from
 userPackageDir: Local packages directory
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
+withVersionTree: Output the version tree as an image
+withWorkflow: Output the workflow graph as an image
 """
 
 _documentation = """
