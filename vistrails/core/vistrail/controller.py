@@ -3493,23 +3493,27 @@ class VistrailController(object):
                     # new upgrade
                     pass
             if not was_upgraded:
+                # As long as handle_invalid_pipeline doesn't raise, we assume
+                # that it fixed something, and we go on calling it until the
+                # pipeline is valid
                 try:
-                    new_version, pipeline = \
-                        self.handle_invalid_pipeline(e, new_version,
-                                                     self.vistrail,
-                                                     report_all_errors)
-                    try:
-                        self.validate(pipeline)
-                    except InvalidPipeline, e:
-                        new_version, pipeline = \
-                            self.handle_invalid_pipeline(e, new_version,
-                                                         self.vistrail,
-                                                         report_all_errors)
-                    self.current_pipeline = pipeline
-                    self.current_version = new_version
+                    is_valid = False
+                    while not is_valid:
+                        new_version, pipeline = self.handle_invalid_pipeline(
+                                e, new_version,
+                                self.vistrail,
+                                report_all_errors)
+                        self.current_pipeline = pipeline
+                        self.current_version = new_version
+                        try:
+                            self.validate(pipeline)
+                        except InvalidPipeline:
+                            pass
+                        else:
+                            is_valid = True
                 except InvalidPipeline, e:
                     new_error = e
-                    
+
                     # just do the version switch, anyway, but alert the
                     # user to the remaining issues
                     self.current_pipeline = e._pipeline
