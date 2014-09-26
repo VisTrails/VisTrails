@@ -58,71 +58,67 @@ _usage_args = set()
 _simple_documentation = """
 autoConnect: Automatically connect dragged in modules
 autoSave: Automatically save backup vistrails every two minutes
-dbDefault: Save vistrails in a database by default
 cache: Cache previous results so they may be used in future computations
-stopOnError: Stop all workflow execution immediately after first error
-executionLog: Track execution provenance when running workflows
-errorLog: Write errors to a log file
-parameters: List of parameters to use when running workflow
-parameterExploration: Run parameter exploration instead of workflow
-host: The hostname for the database to load the vistrail from
-port: The port for the database to load the vistrail from
+dataDir: Default data directory
 db: The name for the database to load the vistrail from
-user: The username for the database to the load vistrail from
+dbDefault: Save vistrails in a database by default
 defaultFileType: Default file type/extension for vistrails (.vt or .xml)
+dotVistrails: User configuration directory
 enablePackagesSilently: Automatically enable packages when needed
+errorLog: Write errors to a log file
+executionLog: Track execution provenance when running workflows
+fileDir: Default vistrail directory
+handlerDontAsk: Do not ask about extension handling at startup
+host: The hostname for the database to load the vistrail from
 installBundles: Install missing Python dependencies
 installBundlesWithPip: Use pip to install missing Python dependencies
-upgrades: Attempt to automatically upgrade old workflows
-showConnectionErrors: Show error when input value doesn't match type during execution
-showVariantErrors: Show error when variant input value doesn't match type during execution
-showDebugPopups: Always bring debug messages to the front
-showScrollbars: Show scrollbars on the version tree and workflow canvases
-shell.fontFace: Console Font
-shell.fontSize: Console Font Size
+jobAutorun: Run jobs automatically when they finish
+jobCheckInterval: How often to check for jobs (in seconds)
+jobList: List running jobs
+jobRun: Continue running specified job by id
+logDir: Log files directory
 maxRecentVistrails: Number of recent vistrails
 maximizeWindows: VisTrails windows should be maximized
-multiHeads: Use multiple screens for VisTrails windows
-showSplash: Show VisTrails splash screen during startup
 migrateTags: Move tags to upgraded versions
-upgradeModuleFailPrompt: Alert when a subworkflow upgrade fails
-thumbs.autoSave: Save thumbnails of visual results
-thumbs.mouseHover: Show thumbnails when mouse is hovering above a version
-thumbs.tagsOnly: Store thumbnails only for tagged versions
-thumbs.cacheDir: Thumbnail cache directory
-thumbs.cacheSize: Thumbnail cache size (MB)
+multiHeads: Use multiple screens for VisTrails windows
+multithread: Server will start a thread for each request
+packageDir: System packages directory
+parameterExploration: Run parameter exploration instead of workflow
+parameters: List of parameters to use when running workflow
+port: The port for the database to load the vistrail from
+repositoryHTTPURL: Remote package repository URL
+repositoryLocalPath: Local package repository directory
+rpcConfig: Config file for server connection options
+rpcInstances: Number of other instances that vistrails should start
+rpcLogFile: Log file for XML RPC server
+rpcPort: Port where this xml rpc server will work
+rpcServer: Hostname or ip address where this xml rpc server will work
+shell.fontFace: Console Font
+shell.fontSize: Console Font Size
+showConnectionErrors: Show error when input value doesn't match type during execution
+showDebugPopups: Always bring debug messages to the front
+showScrollbars: Show scrollbars on the version tree and workflow canvases
+showSplash: Show VisTrails splash screen during startup
+showVariantErrors: Show error when variant input value doesn't match type during execution
 singleInstance: Do not allow more than one instance of VisTrails to run at once
 staticRegistry: XML registry file
-dotVistrails: User configuration directory
+stopOnError: Stop all workflow execution immediately after first error
 subworkflowsDir: Local subworkflows directory
-dataDir: Default data directory
-packageDir: System packages directory
-userPackageDir: Local packages directory
-logDir: Log files directory
-fileDir: Default vistrail directory
 temporaryDir: Temporary files directory
+thumbs.autoSave: Save thumbnails of visual results
+thumbs.cacheDir: Thumbnail cache directory
+thumbs.cacheSize: Thumbnail cache size (MB)
+thumbs.mouseHover: Show thumbnails when mouse is hovering above a version
+thumbs.tagsOnly: Store thumbnails only for tagged versions
+upgradeModuleFailPrompt: Alert when a subworkflow upgrade fails
+upgrades: Attempt to automatically upgrade old workflows
+user: The username for the database to the load vistrail from
+userPackageDir: Local packages directory
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
-repositoryLocalPath: Local package repository directory
-repositoryHTTPURL: Remote package repository URL
-handlerDontAsk: Do not ask about extension handling at startup
-rpcServer: Hostname or ip address where this xml rpc server will work
-rpcPort: Port where this xml rpc server will work
-rpcLogFile: Log file for XML RPC server
-rpcInstances: Number of other instances that vistrails should start
-multithread: Server will start a thread for each request
-rpcConfig: Config file for server connection options
-jobCheckInterval: How often to check for jobs (in seconds)
-jobAutorun: Run jobs automatically when they finish
-jobRun: Continue running specified job by id
-jobList: List running jobs
 """
 
 _documentation = """
-subworkflowsDir: Path
-
-    The location where a user's local subworkflows are stored.
-
 autoConnect: Boolean
 
     Try to automatically connect a newly dragged in module to the rest
@@ -132,13 +128,31 @@ autoSave: Boolean
 
     Automatically save vistrails to allow recovery from crashes, etc.
 
+batch: Boolean
+
+    Run vistrails in batch mode instead of interactive mode
+
+cache: Boolean
+
+    Cache previous results so they may be used in future computations
+
 dataDir: Path
 
     The location that VisTrails uses as a default directory for data.
 
+db: String
+
+    The name for the database to load the vistrail from
+
 dbDefault: Boolean
 
     Use a database as the default storage location for vistrails entities.
+
+debugLevel: Integer
+
+    How much information VisTrails should alert the user about (0:
+    Critical errors only, 1: Critical errors and warnings, 2: Critical
+    errors, warnings, and log messages).
 
 defaultFileType: String
 
@@ -153,40 +167,18 @@ dotVistrails: Path
     The location to look for VisTrails user configurations and
     storage.  Defaults to ~/.vistrails.
 
-host: URL
-
-    The hostname for the database to load the vistrail from
-
-port: Integer
-
-    The port for the database to load the vistrail from
-
-db: String
-
-    The name for the database to load the vistrail from
-
-user: String
-
-    The username for the database to load the vistrail from
-
 enablePackagesSilently: Boolean
 
     Do not prompt the user to enable packages, just do so
     automatically
 
-showConnectionErrors: Boolean
-
-    Alert the user if the value along a connection doesn't match
-    connection types.
-
-showVariantErrors: Boolean
-
-    Alert the user if the value along a connection coming from a
-    Variant output matches the input port.
-
 execute: Boolean
 
     Execute any specified workflows
+
+executionLog: Boolean
+
+    Track execution provenance when running workflows
 
 fileDir: Path
 
@@ -197,6 +189,10 @@ fixedSpreadsheetCells: Boolean
 
     Draw spreadsheet cells at a fixed size (for testing).
 
+host: URL
+
+    The hostname for the database to load the vistrail from
+
 installBundles: Boolean
 
     Automatically try to install missing Python dependencies
@@ -206,9 +202,25 @@ installBundlesWithPip: Boolean
     Whether to try to use pip to install Python dependencies or use
     distribution support.
 
-batch: Boolean
+isInServerMode: Boolean
 
-    Run vistrails in batch mode instead of interactive mode
+    Indicates whether VisTrails is being run as a server.
+
+jobAutorun: Boolean
+
+    Run jobs automatically when they finish
+
+jobCheckInterval: Integer:
+
+    How often to check for jobs (in seconds, default=600)
+
+jobList: Boolean
+
+    List running jobs
+
+jobRun: String
+
+    Continue running specified job by id (use jobList to get)
 
 logDir: Path
 
@@ -218,13 +230,13 @@ logger: ConfigurationObject
 
     *Deprecated*
 
-maxMemory: Integer
-
-    *Deprecated*
-
 maximizeWindows: Boolean
 
     Whether the VisTrails windows should take up the entire screen space
+
+maxMemory: Integer
+
+    *Deprecated*
 
 maxRecentVistrails: Integer
 
@@ -244,23 +256,41 @@ multiHeads: Boolean
 
     Whether or not to use multiple screens for VisTrails windows.
 
-executionLog: Boolean
+multithread: Boolean
 
-    Track execution provenance when running workflows
+    Server will start a thread for each request
+
+OLDupgradeDelay: Boolean
+    If True, will only persist the upgrade when a user makes a
+    modification to or executes the workflow.  Otherwise, the upgrade
+    will be automatically added to the version tree when a user views
+    an upgraded workflow.
+
+outputDefaultSettings: ConfigurationObject
+
+    One or more comma-separated key=value parameters
+
+outputSettings: ConfigurationObject
+
+    One or more comma-separated key=value parameters
 
 packageDir: Path
 
     The directory to look for VisTrails core packages (use
     userPackageDir for user-defined packages)
 
-parameters: String
-
-    List of parameters to use when running workflow
-
 parameterExploration: Boolean
 
     Open and execute parameter exploration specified by the
     version argument after the .vt file
+
+parameters: String
+
+    List of parameters to use when running workflow
+
+port: Integer
+
+    The port for the database to load the vistrail from
 
 pythonPrompt: Boolean
 
@@ -270,13 +300,13 @@ recentVistrailList: String
 
     Storage for recent vistrails.  Users should not edit.
 
-repositoryLocalPath: Path
-
-    Path used to locate packages available to be installed
-
 repositoryHTTPURL: URL
 
     URL used to locate packages available to be installed
+
+repositoryLocalPath: Path
+
+    Path used to locate packages available to be installed
 
 reviewMode: Boolean
 
@@ -285,6 +315,26 @@ reviewMode: Boolean
 rootDirectory: Path
 
     Directory that contains the VisTrails source code.
+
+rpcConfig: String
+
+    Config file for server connection options
+
+rpcInstances: Integer
+
+    Number of other instances that vistrails should start
+
+rpcLogFile: String
+
+    Log file for XML RPC server
+
+rpcPort: Integer
+
+    Port where this xml rpc server will work
+
+rpcServer: URL
+
+    Hostname or ip address where this xml rpc server will work
 
 runningJobsList: String
 
@@ -301,6 +351,11 @@ shell.fontFace: String
 shell.fontSize: Integer
 
     The font size used for the VisTrails console
+
+showConnectionErrors: Boolean
+
+    Alert the user if the value along a connection doesn't match
+    connection types.
 
 showDebugPopups: Boolean
 
@@ -322,6 +377,11 @@ showSplash: Boolean
 showSpreadsheetOnly: Boolean
 
     Whether the VisTrails main window should be hidden
+
+showVariantErrors: Boolean
+
+    Alert the user if the value along a connection coming from a
+    Variant output matches the input port.
 
 singleInstance: Boolean
 
@@ -347,6 +407,10 @@ stopOnError: Boolean
 
     Whether or not VisTrails stops executing the rest of the workflow
     if it encounters an error in one module.
+
+subworkflowsDir: Path
+
+    The location where a user's local subworkflows are stored.
 
 temporaryDir: Path
 
@@ -378,56 +442,40 @@ thumbs.tagsOnly: Boolean
     If True, only stores thumbnails for tagged versions.  Otherwise,
     stores thumbnails for all versions.
 
-upgrades: Boolean
-
-    Whether to upgrade old workflows so they work with newer packages
-
 upgradeDelay: Boolean
 
     Persist upgrade only after other changes
 
-OLDupgradeDelay: Boolean
-    If True, will only persist the upgrade when a user makes a
-    modification to or executes the workflow.  Otherwise, the upgrade
-    will be automatically added to the version tree when a user views
-    an upgraded workflow.
+upgrades: Boolean
+
+    Whether to upgrade old workflows so they work with newer packages
 
 upgradeModuleFailPrompt: Boolean
 
     Whether to alert the user when an upgrade may fail when upgrading
     a subworkflow.
 
-cache: Boolean
+useMacBrushedMetalStyle: Boolean
 
-    Cache previous results so they may be used in future computations
+    Whether should use a brushed metal interface (MacOS X only)
+
+user: String
+
+    The username for the database to load the vistrail from
 
 userPackageDir: Boolean
 
     The location for user-installed packages (defaults to ~/.vistrails/userpacakges)
-
-debugLevel: Integer
-
-    How much information VisTrails should alert the user about (0:
-    Critical errors only, 1: Critical errors and warnings, 2: Critical
-    errors, warnings, and log messages).
-
-webRepositoryUser: String
-
-    The default username for logging into a VisTrails web repository
-    like crowdLabs
 
 webRepositoryURL: URL
 
     The URL of the web repository that should be attached to VisTrails
     (e.g. www.crowdlabs.org)
 
-isInServerMode: Boolean
+webRepositoryUser: String
 
-    Indicates whether VisTrails is being run as a server.
-
-useMacBrushedMetalStyle: Boolean
-
-    Whether should use a brushed metal interface (MacOS X only)
+    The default username for logging into a VisTrails web repository
+    like crowdLabs
 
 withVersionTree: Boolean
 
@@ -436,54 +484,6 @@ withVersionTree: Boolean
 withWorkflow: Boolean
 
     Output the workflow graph as an image
-
-outputSettings: ConfigurationObject
-
-    One or more comma-separated key=value parameters
-
-outputDefaultSettings: ConfigurationObject
-
-    One or more comma-separated key=value parameters
-
-rpcServer: URL
-
-    Hostname or ip address where this xml rpc server will work
-
-rpcPort: Integer
-
-    Port where this xml rpc server will work
-
-rpcLogFile: String
-
-    Log file for XML RPC server
-
-rpcInstances: Integer
-
-    Number of other instances that vistrails should start
-
-multithread: Boolean
-
-    Server will start a thread for each request
-
-rpcConfig: String
-
-    Config file for server connection options
-
-jobCheckInterval: Integer:
-
-    How often to check for jobs (in seconds, default=600)
-
-jobAutorun: Boolean
-
-    Run jobs automatically when they finish
-
-jobRun: String
-
-    Continue running specified job by id (use jobList to get)
-
-jobList: Boolean
-
-    List running jobs
 
 """
 
