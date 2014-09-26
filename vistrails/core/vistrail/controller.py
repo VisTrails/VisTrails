@@ -3002,6 +3002,21 @@ class VistrailController(object):
 
     def handle_invalid_pipeline(self, e, new_version, vistrail=None,
                                 report_all_errors=False, force_no_delay=False):
+        def check_exceptions(exception_set):
+            unhandled_exceptions = []
+            for err in exception_set:
+                if isinstance(err, InvalidPipeline):
+                    sub_exceptions = check_exceptions(err.get_exception_set())
+                    if len(sub_exceptions) > 0:
+                        new_err = InvalidPipeline(sub_exceptions,
+                                                  err._pipeline,
+                                                  err._version)
+                        unhandled_exceptions.append(new_err)
+                else:
+                    if not err._was_handled:
+                        unhandled_exceptions.append(err)
+            return unhandled_exceptions
+
         load_other_versions = False
         # print 'running handle_invalid_pipeline'
         if vistrail is None:
@@ -3057,7 +3072,7 @@ class VistrailController(object):
                         for err in missing_packages[identifier]:
                             err._was_handled = True
                 except Exception, new_e:
-                    print '&&& hit other exception'
+                    debug.unexpected_exception(new_e)
                     new_exceptions.append(new_e)
                     if not report_all_errors:
                         raise new_e
@@ -3068,8 +3083,8 @@ class VistrailController(object):
             # else assume the package was already enabled
 
         if len(new_exceptions) > 0:
-            # got new exceptions
-            pass
+            raise InvalidPipeline(check_exceptions(root_exceptions) + new_exceptions,
+                                  e._pipeline, new_version)
 
         def process_package_versions(exception_set):
             for err in exception_set:
@@ -3169,6 +3184,7 @@ class VistrailController(object):
                             for err in err_list:
                                 err._was_handled = True
                     except Exception, new_e:
+                        debug.unexpected_exception(new_e)
                         new_exceptions.append(new_e)
                         if not report_all_errors:
                             return new_actions
@@ -3203,8 +3219,7 @@ class VistrailController(object):
                                 new_actions.extend(actions)
                                 err._was_handled = True
                         except Exception, new_e:
-                            import traceback
-                            traceback.print_exc()
+                            debug.unexpected_exception(new_e)
                             new_exceptions.append(new_e)
 
                 if pkg.can_handle_missing_modules():
@@ -3229,6 +3244,7 @@ class VistrailController(object):
                                         new_actions.extend(actions)
                                         err._was_handled = True
                             except Exception, new_e:
+                                debug.unexpected_exception(new_e)
                                 new_exceptions.append(new_e)
                                 if not report_all_errors:
                                     return new_actions
@@ -3319,27 +3335,10 @@ class VistrailController(object):
                 self.set_changed(True)
                 self.recompute_terse_graph()
 
-        def check_exceptions(exception_set):
-            unhandled_exceptions = []
-            for err in exception_set:
-                if isinstance(err, InvalidPipeline):
-                    sub_exceptions = check_exceptions(err.get_exception_set())
-                    if len(sub_exceptions) > 0:
-                        new_err = InvalidPipeline(sub_exceptions, 
-                                                  err._pipeline,
-                                                  err._version)
-                        unhandled_exceptions.append(new_err)
-                else:
-                    if not err._was_handled:
-                        unhandled_exceptions.append(err)
-            return unhandled_exceptions
-
         left_exceptions = check_exceptions(root_exceptions)
         if len(left_exceptions) > 0 or len(new_exceptions) > 0:
-            e = InvalidPipeline(left_exceptions + new_exceptions,
-                                cur_pipeline, new_version)
-            debug.format_exception(e)
-            raise e
+            raise InvalidPipeline(left_exceptions + new_exceptions,
+                                    cur_pipeline, new_version)
         return (new_version, cur_pipeline)
 
     def validate(self, pipeline, raise_exception=True):
