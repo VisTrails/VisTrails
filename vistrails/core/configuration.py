@@ -145,11 +145,11 @@ autoSave: Boolean
 
 batch: Boolean
 
-    Run vistrails in batch mode instead of interactive mode
+    Run vistrails in batch mode instead of interactive mode.
 
 cache: Boolean
 
-    Cache previous results so they may be used in future computations
+    Cache previous results so they may be used in future computations.
 
 dataDir: Path
 
@@ -157,7 +157,7 @@ dataDir: Path
 
 db: String
 
-    The name for the database to load the vistrail from
+    The name for the database to load the vistrail from.
 
 dbDefault: Boolean
 
@@ -175,25 +175,29 @@ defaultFileType: String
 
 detachHistoryView: Boolean
 
-    Show the version tree in a separate window
+    Show the version tree in a separate window.
 
 dotVistrails: Path
 
     The location to look for VisTrails user configurations and
-    storage.  Defaults to ~/.vistrails.
+    storage. Defaults to ~/.vistrails.
 
 enablePackagesSilently: Boolean
 
     Do not prompt the user to enable packages, just do so
-    automatically
+    automatically.
+
+errorLog: Boolean
+
+    Write errors to a log file.
 
 execute: Boolean
 
-    Execute any specified workflows
+    Execute any specified workflows.
 
 executionLog: Boolean
 
-    Track execution provenance when running workflows
+    Track execution provenance when running workflows.
 
 fileDir: Path
 
@@ -204,13 +208,17 @@ fixedSpreadsheetCells: Boolean
 
     Draw spreadsheet cells at a fixed size (for testing).
 
+handlerDontAsk: Boolean
+
+    Do not ask about extension handling at startup (Linux only).
+
 host: URL
 
-    The hostname for the database to load the vistrail from
+    The hostname for the database to load the vistrail from.
 
 installBundles: Boolean
 
-    Automatically try to install missing Python dependencies
+    Automatically try to install missing Python dependencies.
 
 installBundlesWithPip: Boolean
 
@@ -223,19 +231,19 @@ isInServerMode: Boolean
 
 jobAutorun: Boolean
 
-    Run jobs automatically when they finish
+    Run jobs automatically when they finish.
 
 jobCheckInterval: Integer:
 
-    How often to check for jobs (in seconds, default=600)
+    How often to check for jobs (in seconds, default=600).
 
 jobList: Boolean
 
-    List running jobs
+    List running jobs.
 
 jobRun: String
 
-    Continue running specified job by id (use jobList to get)
+    Continue running specified job by id (use jobList to get).
 
 logDir: Path
 
@@ -247,7 +255,7 @@ logger: ConfigurationObject
 
 maximizeWindows: Boolean
 
-    Whether the VisTrails windows should take up the entire screen space
+    Whether the VisTrails windows should take up the entire screen space.
 
 maxMemory: Integer
 
@@ -273,39 +281,39 @@ multiHeads: Boolean
 
 multithread: Boolean
 
-    Server will start a thread for each request
+    Server will start a thread for each request.
 
 OLDupgradeDelay: Boolean
     If True, will only persist the upgrade when a user makes a
-    modification to or executes the workflow.  Otherwise, the upgrade
+    modification to or executes the workflow. Otherwise, the upgrade
     will be automatically added to the version tree when a user views
     an upgraded workflow.
 
 outputDefaultSettings: ConfigurationObject
 
-    One or more comma-separated key=value parameters
+    One or more comma-separated key=value parameters.
 
 outputSettings: ConfigurationObject
 
-    One or more comma-separated key=value parameters
+    One or more comma-separated key=value parameters.
 
 packageDir: Path
 
     The directory to look for VisTrails core packages (use
-    userPackageDir for user-defined packages)
+    userPackageDir for user-defined packages).
 
 parameterExploration: Boolean
 
     Open and execute parameter exploration specified by the
-    version argument after the .vt file
+    version argument after the .vt file.
 
 parameters: String
 
-    List of parameters to use when running workflow
+    List of parameters to use when running workflow.
 
 port: Integer
 
-    The port for the database to load the vistrail from
+    The port for the database to load the vistrail from.
 
 pythonPrompt: Boolean
 
@@ -313,19 +321,19 @@ pythonPrompt: Boolean
 
 recentVistrailList: String
 
-    Storage for recent vistrails.  Users should not edit.
+    Storage for recent vistrails. Users should not edit.
 
 repositoryHTTPURL: URL
 
-    URL used to locate packages available to be installed
+    URL used to locate packages available to be installed.
 
 repositoryLocalPath: Path
 
-    Path used to locate packages available to be installed
+    Path used to locate packages available to be installed.
 
 reviewMode: Boolean
 
-    *Deprecated* Used to interactively export a pipeline
+    *Deprecated* Used to interactively export a pipeline.
 
 rootDirectory: Path
 
@@ -333,39 +341,39 @@ rootDirectory: Path
 
 rpcConfig: String
 
-    Config file for server connection options
+    Config file for server connection options.
 
 rpcInstances: Integer
 
-    Number of other instances that vistrails should start
+    Number of other instances that vistrails should start.
 
 rpcLogFile: String
 
-    Log file for XML RPC server
+    Log file for XML RPC server.
 
 rpcPort: Integer
 
-    Port where this xml rpc server will work
+    Port where this xml rpc server will work.
 
 rpcServer: URL
 
-    Hostname or ip address where this xml rpc server will work
+    Hostname or ip address where this xml rpc server will work.
 
 runningJobsList: String
 
-    Storage for recent vistrails.  Users should not edit
+    Storage for recent vistrails; users should not edit.
 
 shell: ConfigurationObject
 
-    Settings for the appearance of the VisTrails console
+    Settings for the appearance of the VisTrails console.
 
 shell.fontFace: String
 
-    The font to be used for the VisTrails console
+    The font to be used for the VisTrails console.
 
 shell.fontSize: Integer
 
-    The font size used for the VisTrails console
+    The font size used for the VisTrails console.
 
 showConnectionErrors: Boolean
 
@@ -382,8 +390,8 @@ showMovies: Boolean
 
 showScrollbars: Boolean
 
-    Whether VisTrails should show scrollbars on the version tree and
-    workflow canvases.
+    Whether VisTrails should show scrollbars on the version tree and workflow
+    canvases.
 
 showSplash: Boolean
 
@@ -391,17 +399,21 @@ showSplash: Boolean
 
 showSpreadsheetOnly: Boolean
 
-    Whether the VisTrails main window should be hidden
+    Whether the VisTrails main window should be hidden.
 
 showVariantErrors: Boolean
 
     Alert the user if the value along a connection coming from a
-    Variant output matches the input port.
+    Variant output doesn't match the input port.
+
+showWindow: Boolean
+
+    Show the main VisTrails window.
 
 singleInstance: Boolean
 
     Whether or not VisTrails should only allow one instance to be
-    running
+    running.
 
 spreadsheetDumpCells: Path
 
@@ -410,13 +422,12 @@ spreadsheetDumpCells: Path
 
 spreadsheetDumpPDF: Boolean
 
-    Whether the spreadsheet should dump images in PDF format
+    Whether the spreadsheet should dump images in PDF format.
 
 staticRegistry: Path
 
     If specified, VisTrails uses an XML file defining the VisTrails
-    module registry to load modules instead of from the packages
-    directly
+    module registry to load modules instead of from the packages directly.
 
 stopOnError: Boolean
 
@@ -429,41 +440,41 @@ subworkflowsDir: Path
 
 temporaryDir: Path
 
-    The directory to use for temporary files generated by VisTrails
+    The directory to use for temporary files generated by VisTrails.
 
 thumbs: ConfiguationObject
 
-    Settings for generating and saving thumbnail images
+    Settings for generating and saving thumbnail images.
 
 thumbs.autoSave: Boolean
 
-    Whether to save thumbnails of results when executing VisTrails
+    Whether to save thumbnails of results when executing VisTrails.
 
 thumbs.cacheDir: Path
 
-    The directory to be used to cache thumbnails
+    The directory to be used to cache thumbnails.
 
 thumbs.cacheSize: Integer
 
-    The size (in MB) of the thumbnail cache
+    The size (in MB) of the thumbnail cache.
 
 thumbs.mouseHover: Boolean
 
     Whether to show thumbnails when hovering over a version in the
-    version tree
+    version tree.
 
 thumbs.tagsOnly: Boolean
 
-    If True, only stores thumbnails for tagged versions.  Otherwise,
+    If True, only stores thumbnails for tagged versions. Otherwise,
     stores thumbnails for all versions.
 
 upgradeDelay: Boolean
 
-    Persist upgrade only after other changes
+    Persist upgrade only after other changes.
 
 upgrades: Boolean
 
-    Whether to upgrade old workflows so they work with newer packages
+    Whether to upgrade old workflows so they work with newer packages.
 
 upgradeModuleFailPrompt: Boolean
 
@@ -472,33 +483,34 @@ upgradeModuleFailPrompt: Boolean
 
 useMacBrushedMetalStyle: Boolean
 
-    Whether should use a brushed metal interface (MacOS X only)
+    Whether should use a brushed metal interface (MacOS X only).
 
 user: String
 
-    The username for the database to load the vistrail from
+    The username for the database to load the vistrail from.
 
 userPackageDir: Boolean
 
-    The location for user-installed packages (defaults to ~/.vistrails/userpacakges)
+    The location for user-installed packages (defaults to
+    ~/.vistrails/userpackages).
 
 webRepositoryURL: URL
 
     The URL of the web repository that should be attached to VisTrails
-    (e.g. www.crowdlabs.org)
+    (e.g. www.crowdlabs.org).
 
 webRepositoryUser: String
 
     The default username for logging into a VisTrails web repository
-    like crowdLabs
+    like crowdLabs.
 
 withVersionTree: Boolean
 
-    Output the version tree as an image
+    Output the version tree as an image.
 
 withWorkflow: Boolean
 
-    Output the workflow graph as an image
+    Output the workflow graph as an image.
 
 """
 
