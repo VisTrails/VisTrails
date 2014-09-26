@@ -51,8 +51,6 @@ import locale
 import os
 import sys
 import traceback
-import os.path
-import optparse
 from optparse import OptionParser
 import platform
 import re
@@ -90,6 +88,62 @@ class clean_tempdir(object):
                      "tempdir, cleaning up\n" % (nb_dirs, nb_files))
         self.rmtree(self.test_temp_dir, ignore_errors=True)
 
+# Parse the command-line
+usage = "Usage: %prog [options] [module1 module2 ...]"
+parser = OptionParser(usage=usage)
+parser.add_option("-V", "--verbose", action="store", type="int",
+                  default=0, dest="verbose",
+                  help="set verboseness level(0--2, default=0, "
+                  "higher means more verbose)")
+parser.add_option("-e", "--examples", action="store_true",
+                  default=False,
+                  help="run vistrails examples")
+parser.add_option("-i", "--images", action="store_true",
+                  default=False,
+                  help="perform image comparisons")
+parser.add_option("--installbundles", action='store_true',
+                  default=False,
+                  help=("Attempt to install missing Python packages "
+                        "automatically"))
+parser.add_option("-S", "--startup", action="store", type="str", default=None,
+                  dest="dotVistrails",
+                  help="Set startup file (default is temporary directory)")
+parser.add_option('-L', '--locale', action='store', type='str', default='',
+                  dest='locale',
+                  help="set locale to this string")
+parser.add_option('-D', '--debug', action='store_true',
+                  default=False,
+                  help="start interactive debugger on unexpected error")
+parser.add_option('--no-unbuffered', action='store_false', dest='unbuffered',
+                  default=True,
+                  help="Don't make output stream unbuffered")
+
+(options, test_modules) = parser.parse_args()
+# remove empty strings
+test_modules = filter(len, test_modules)
+verbose = options.verbose
+locale.setlocale(locale.LC_ALL, options.locale or '')
+test_examples = options.examples
+test_images = options.images
+installbundles = options.installbundles
+dotVistrails = options.dotVistrails
+debug_mode = options.debug
+
+# Makes stdout unbuffered, so python -u is not needed
+class Unbuffered(object):
+   def __init__(self, stream):
+       self.stream = stream
+   def write(self, data):
+       self.stream.write(data)
+       self.stream.flush()
+   def __getattr__(self, attr):
+       return getattr(self.stream, attr)
+
+if options.unbuffered:
+    sys.stdout = Unbuffered(sys.stdout)
+    sys.stderr = Unbuffered(sys.stderr)
+
+# Use PyQt API v2
 def setNewPyQtAPI():
     try:
         import sip
@@ -159,47 +213,12 @@ def sub_print(s, overline=False):
 
 ###############################################################################
 
-usage = "Usage: %prog [options] [module1 module2 ...]"
-parser = OptionParser(usage=usage)
-parser.add_option("-V", "--verbose", action="store", type="int",
-                  default=0, dest="verbose",
-                  help="set verboseness level(0--2, default=0, "
-                  "higher means more verbose)")
-parser.add_option("-e", "--examples", action="store_true",
-                  default=False,
-                  help="run vistrails examples")
-parser.add_option("-i", "--images", action="store_true",
-                  default=False,
-                  help="perform image comparisons")
-parser.add_option("--installbundles", action='store_true',
-                  default=False,
-                  help=("Attempt to install missing Python packages "
-                        "automatically"))
-parser.add_option("-S", "--startup", action="store", type="str", default=None,
-                  dest="dotVistrails",
-                  help="Set startup file (default is temporary directory)")
-parser.add_option('-L', '--locale', action='store', type='str', default='',
-                  dest='locale',
-                  help="set locale to this string")
-parser.add_option('-D', '--debug', action='store_true',
-                  default=False,
-                  help="start interactive debugger on unexpected error")
-
-(options, args) = parser.parse_args()
-# remove empty strings
-args = filter(len, args)
-verbose = options.verbose
-locale.setlocale(locale.LC_ALL, options.locale or '')
-test_examples = options.examples
-test_images = options.images
-installbundles = options.installbundles
-dotVistrails = options.dotVistrails
-debug_mode = options.debug
-test_modules = None
-if len(args) > 0:
-    test_modules = args
-elif os.path.exists(EXAMPLES_PATH):
-    test_images = True
+if len(test_modules) > 0:
+    test_modules = test_modules
+else:
+    test_modules = None
+    if os.path.exists(EXAMPLES_PATH):
+        test_images = True
 
 def module_filter(name):
     if test_modules is None:
