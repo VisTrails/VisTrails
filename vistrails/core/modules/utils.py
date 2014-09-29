@@ -42,7 +42,7 @@ from vistrails.core.utils.compat import ascii_s
 def load_cls(cls_item, prefix=None):
     path = None
     if isinstance(cls_item, basestring):
-        [path, cls_name] = cls_item.split(':')[:2]
+        (path, cls_name) = cls_item.split(':')[:2]
     elif isinstance(cls_item, tuple):
         (path, cls_name) = cls_item
     if path is not None:

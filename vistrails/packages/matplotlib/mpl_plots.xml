@@ -415,7 +415,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <outputPortSpec arg="rectangle" compute_name="rectangles" name="rectangleProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.Rectangle" />
   </moduleSpec>
-  <moduleSpec code_ref="matplotlib.pyplot.broken_barh" name="MplBrokenBarh" superclass="MplPlot">
+  <moduleSpec code_ref="matplotlib.pyplot.broken_barh" name="MplBrokenBarh" output_type="object" superclass="MplPlot">
     <docstring>Plot horizontal bars.
 
 Call signature:

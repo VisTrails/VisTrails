@@ -667,7 +667,6 @@ class QUserFunctionEditor(QtGui.QFrame):
         param_info = self._param_info
         module = param_info.spec.descriptor.module
         def get():
-            import code
             values = []
             d = {}
             try:

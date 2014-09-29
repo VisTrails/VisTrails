@@ -689,7 +689,7 @@ class QVistrailView(QtGui.QWidget):
         self.set_to_current(view)
         
     def set_to_current(self, view):
-        from vistrails.gui.vistrails_window import _app, QVistrailViewWindow
+        from vistrails.gui.vistrails_window import _app
         if isinstance(view, QDiffView):
             view.set_to_current()
             #print "view changed!", self.controller, \

@@ -309,7 +309,7 @@ collective = dict([(name,getattr(Collection, name)) for name in dir(Collection) 
 members = [ ('_input_ports', [('operation', '(org.comp-phys.batchq:JobOperation)'),('job', '(org.comp-phys.batchq:Job)')] ),
             ('_output_ports', [('job', '(org.comp-phys.batchq:Job)')] ),
             ('compute', collective_compute ),
-            ('collection_name', name)]
+            ('collection_name', name)]  # FIXME : there is no way "name" is what you meant here
 namespace = categories['job_collective_operations']
 for name, func in collective.iteritems():
     dct = dict(members)

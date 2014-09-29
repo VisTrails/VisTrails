@@ -131,6 +131,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     to_properties = []
     to_axes = []
     old_figure = (None, None)
+    props_name = None
     if module.name == 'MplScatterplot':
         props_name = 'MplPathCollectionProperties'
         props_input = 'pathCollectionProperties'
@@ -210,6 +211,9 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     more_ops = []
     if any(p in inputs[0] or p in inputs[1] for p in to_properties):
         # create props module
+        if props_name is None:
+            raise RuntimeError("properties module needed for unknown module "
+                               "%s" % module.name)
         desc = reg.get_descriptor_by_name(identifier, props_name)
         props_module = \
             controller.create_module_from_descriptor(desc,

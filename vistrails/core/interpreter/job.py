@@ -387,7 +387,6 @@ class JobMonitor(object):
         if not parent_id:
             if not self._current_workflow:
                 raise Exception("No workflow is running!")
-                return
             parent_id = self._current_workflow.id
         del self._running_workflows[parent_id].modules[id]
         if self.callback:

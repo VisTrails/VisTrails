@@ -40,6 +40,7 @@ from PyQt4 import QtCore, QtGui
 from ast import literal_eval
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape, unescape
+from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.common_widgets import QPromptWidget
 from vistrails.gui.modules.paramexplore import QParameterEditor

@@ -773,6 +773,8 @@ def get_system_config():
         sys_config = linux_config
     elif system.systemType in ['Darwin']:
         sys_config = mac_config
+    else:
+        return config
     for category, fields in sys_config.iteritems():
         if category not in base_config:
             config[category] = fields

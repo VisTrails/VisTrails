@@ -152,7 +152,7 @@ class QueryController(object):
                 result_entities = do_search(True)
                 self.update_version_tree()
                 self.show_workflow_matches()
-            elif self.level == QueryController.LEVEL_ALL:
+            else:  # self.level == QueryController.LEVEL_ALL
                 result_entities = do_search()
                 self.show_global_matches()
 

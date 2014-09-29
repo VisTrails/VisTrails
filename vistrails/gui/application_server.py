@@ -58,7 +58,6 @@ import SocketServer
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from datetime import date, datetime
 
-from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.application import VistrailsApplicationInterface
 import vistrails.gui.theme
 import vistrails.core.application
@@ -67,9 +66,7 @@ from vistrails.core.db.locator import DBLocator, ZIPFileLocator, FileLocator
 from vistrails.core.db import io
 import vistrails.core.db.action
 
-from vistrails.core.utils import InstanceObject
 from vistrails.core.vistrail.vistrail import Vistrail
-from vistrails.core import command_line
 from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry as module_registry
 from vistrails.core import interpreter
@@ -362,7 +359,7 @@ class RequestHandler(object):
                     self.server_logger.error(err_msg)
                 finally:
                     self.proxies_queue.put(proxy)
-                if s == 0:
+                if s == 0:  # FIXME : s might not be defined here
                     messages.append('An error occurred: %s' % result)
                 else:
                     messages.append(result[1])
@@ -545,6 +542,7 @@ class RequestHandler(object):
         config['db'] = db_name
         config['user'] = db_write_user
         config['passwd'] = db_write_pass
+        conn = None
         try:
             conn = vistrails.db.services.io.open_db_connection(config)
             vistrails.db.services.io.delete_entity_from_db(conn,'vistrail', vt_id)
@@ -552,7 +550,7 @@ class RequestHandler(object):
             return (1, 1)
         except Exception, e:
             self.server_logger.error(unicode(e))
-            if conn:
+            if conn is not None:
                 vistrails.db.services.io.close_db_connection(conn)
             return (unicode(e), 0)
 
@@ -642,23 +640,16 @@ class RequestHandler(object):
                             obj_type=None,
                             connection_id=None)
         (vistrail, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
-        from core.vistrail.controller import VistrailController as BaseController
+        from vistrails.core.vistrail.controller import VistrailController as BaseController
         c = BaseController()
         c.set_vistrail(vistrail, locator, abstractions, thumbnails, mashups)
 
-        # get server packages
-        local_packages = [x.identifier for x in module_registry().package_list]
-        version_id = 0
-        version_tag = 0
-
-        from db.domain import IdScope
-        from core.vistrail.connection import Connection
-        from core.vistrail.module import Module
-        from core.vistrail.port import Port
+        from vistrails.core.vistrail.connection import Connection
+        from vistrails.core.vistrail.module import Module
+        from vistrails.core.vistrail.port import Port
 
         # get last pipeline
-        workflow = False
-        if (vt_tag == ''):
+        if vt_tag == '':
             version = vistrail.get_latest_version()#-1;
         else:
             version = int(vt_tag)
@@ -670,22 +661,20 @@ class RequestHandler(object):
         id_scope = vistrail.idScope
         if workflow:
             # if doesnt have VTKWebView and vtkRenderer
-            if ("vtkRenderer" not in [x.name for x in workflow.module_list]):
+            if "vtkRenderer" not in [x.name for x in workflow.module_list]:
                 return (unicode("Doesn't have vtkRenderer"), 1)
 
             # if already have VTKWebView, execute it
-            if ("VTKWebView" not in [x.name for x in workflow.module_list]):
+            if "VTKWebView" not in [x.name for x in workflow.module_list]:
                 # else, add VTKWebView to vtkRenderer and execute it
                 renderer = workflow.module_list[[x.name for x in workflow.module_list].index('vtkRenderer')]
-
-                action_list = []
 
                 mWeb = Module(id=id_scope.getNewId(Module.vtType),
                            name='VTKWebView',
                            package='edu.utah.sci.vistrails.vtWebGL',
                            functions=[])
                 mWeb.version = '0.0.2'
-                workflow.add_module(mWeb);
+                workflow.add_module(mWeb)
                 # create connection from render to web
                 source = Port(id=id_scope.getNewId(Port.vtType),
                               type='source',
@@ -704,7 +693,7 @@ class RequestHandler(object):
                 workflow.add_connection(c1)
                 workflow.validate()
 
-            c.current_pipeline = workflow;
+            c.current_pipeline = workflow
             (results, x) = c.execute_current_workflow()
             if len(results[0].errors.values()) > 0:
                 print "> ERROR: ", results[0].errors
@@ -728,6 +717,7 @@ class RequestHandler(object):
                 # recovering from it... (the server can find cached images)
                 self.server_logger.error("couldn't instantiate medley")
 
+            # FIXME : there's no "recovering", this line will raise NameError
             self.server_logger.debug("%s medley: %s"%(medley._type, medley._name))
             result = ""
             subdir = hashlib.sha224(xml_string).hexdigest()
@@ -753,10 +743,7 @@ class RequestHandler(object):
             if extra_info is None:
                 extra_info = {}
 
-            if extra_info.has_key('pathDumpCells'):
-                if extra_info['pathDumpCells']:
-                    extra_path = extra_info['pathDumpCells']
-            else:
+            if not extra_info.has_key('pathDumpCells'):
                 extra_info['pathDumpCells'] = path_to_images
 
             if not self.path_exists_and_not_empty(extra_info['pathDumpCells']):
@@ -777,7 +764,7 @@ class RequestHandler(object):
                     workflow = medley._version
                     sequence = False
                     for (k,v) in medley._alias_list.iteritems():
-                        if v._component._seq == True:
+                        if v._component._seq:
                             sequence = True
                             val = XMLObject.convert_from_str(v._component._minVal,
                                                              v._component._spec)
@@ -799,7 +786,7 @@ class RequestHandler(object):
                                 try:
                                     gc.collect()
                                     results = \
-                                      vistrails.core.console_mode.run_and_get_results( \
+                                      vistrails.core.console_mode.run_and_get_results(
                                                     [(locator,int(workflow))],
                                                     s_alias,
                                                     update_vistrail=False,
@@ -822,7 +809,6 @@ class RequestHandler(object):
                                     self.server_logger.info("renaming files")
                                     for root, dirs, file_names in os.walk(extra_info['pathDumpCells']):
                                         break
-                                    s = []
                                     for f in file_names:
                                         if f.lower().endswith(".png"):
                                             fmask = "%s_"+mask+"%s"
@@ -847,7 +833,7 @@ class RequestHandler(object):
                             self.server_logger.info("Not sequence aliases: %s"% s_alias)
                         try:
                             results = \
-                               vistrails.core.console_mode.run_and_get_results( \
+                               vistrails.core.console_mode.run_and_get_results(
                                                 [(locator,int(workflow))],
                                                     s_alias,
                                                     extra_info=extra_info)
@@ -864,7 +850,7 @@ class RequestHandler(object):
                                     ok = False
                                     result += unicode(errors[i])
 
-                    self.server_logger.info( "success?  %s"% ok)
+                    self.server_logger.info("success?  %s" % ok)  # FIXME : ok might not be defined
 
                 elif medley._type == 'visit':
                     cur_dir = os.getcwd()
@@ -978,7 +964,7 @@ class RequestHandler(object):
 
             result = ''
             if vt_tag !='':
-                version = vt_tag;
+                version = vt_tag
             try:
                 locator = DBLocator(host=host,
                                     port=int(port),
@@ -988,17 +974,15 @@ class RequestHandler(object):
                                     obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
-                results = []
                 self.server_logger.info("run_and_get_results(%s,%s,%s,%s,%s)" % \
                             (locator, version, parameters, True, extra_info))
                 try:
-                    results = \
-                    vistrails.core.console_mode.run_and_get_results([(locator,
-                                                          int(version))],
-                                                          parameters,
-                                                          update_vistrail=True,
-                                                          extra_info=extra_info,
-                                                          reason="Server Pipeline Execution")
+                    results = vistrails.core.console_mode.run_and_get_results(
+                            [(locator, int(version))],
+                            parameters,
+                            update_vistrail=True,
+                            extra_info=extra_info,
+                            reason="Server Pipeline Execution")
                 except Exception, e:
                     self.server_logger.error("workflow execution failed:")
                     self.server_logger.error(unicode(e))
@@ -1395,7 +1379,7 @@ class RequestHandler(object):
             vt_id = long(vt_id)
             subdir = 'vistrails'
             filepath = os.path.join(media_dir, 'graphs', subdir)
-            base_fname = "graph_%s.png" % (vt_id)
+            base_fname = "graph_%s.png" % vt_id
             filename = os.path.join(filepath,base_fname)
             if ((not os.path.exists(filepath) or
                 (os.path.exists(filepath) and not os.path.exists(filename)) or
@@ -1484,7 +1468,7 @@ class RequestHandler(object):
             vt_id = long(vt_id)
             subdir = 'vistrails'
             filepath = os.path.join(media_dir, 'graphs', subdir)
-            base_fname = "graph_%s.pdf" % (vt_id)
+            base_fname = "graph_%s.pdf" % vt_id
             filename = os.path.join(filepath,base_fname)
             if ((not os.path.exists(filepath) or
                 (os.path.exists(filepath) and not os.path.exists(filename)) or
@@ -1837,11 +1821,11 @@ class MedleySimpleGUI(XMLObject):
         self._vtid = vtid
         self._type = t
 
-        if has_seq == None:
+        if has_seq is None:
             self._has_seq = False
             if isinstance(self._alias_list, dict):
                 for v in self._alias_list.itervalues():
-                    if v._component._seq == True:
+                    if v._component._seq:
                         self._has_seq = True
         else:
             self._has_seq = has_seq
@@ -1940,9 +1924,12 @@ class AliasSimpleGUI(XMLObject):
         id = AliasSimpleGUI.convert_from_str(data, 'long')
         data = node.get('name', None)
         name = AliasSimpleGUI.convert_from_str(data, 'str')
+        component = None
         for child in node.getchildren():
             if child.tag == "component":
                 component = ComponentSimpleGUI.from_xml(child)
+        if component is None:
+            raise RuntimeError("Missing component tag")
         alias = AliasSimpleGUI(id,name,component)
         return alias
 
@@ -2279,7 +2266,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             virt_disp += 1
             args = [script_file,":%s"%virt_disp,host,unicode(port),'0', '0']
             try:
-                p = subprocess.Popen(args)
+                subprocess.Popen(args)
                 time.sleep(20)
                 self.others.append("http://%s:%s"%(host,port))
             except Exception, e:
@@ -2367,8 +2354,7 @@ def start_server(optionsDict=None, args=[]):
     VistrailsServer = VistrailsServerSingleton()
     vistrails.gui.theme.initializeCurrentTheme()
     vistrails.core.application.set_vistrails_application(VistrailsServer)
-    x = VistrailsServer.init(optionsDict, args)
-    if x == True:
+    if VistrailsServer.init(optionsDict, args):
         return 0
     else:
         return 1

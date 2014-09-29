@@ -888,7 +888,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                         custom_color = parse_custom_color(custom_color.value)
                     except ValueError, e:
                         debug.warning("Version %r has invalid color annotation "
-                                      "(%s)" % (v, e))
+                                      "(%s)" % (nodeId, e))
                         custom_color = None
             else:
                 custom_color = None

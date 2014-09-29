@@ -116,7 +116,7 @@ class CountActions(Module):
                         Tally[action.what] = {action.vtType : 1}
 
                 # if is there, if subdictionary does not have vtType key, create entry
-                elif Tally.has_key(action.what) == none:
+                elif Tally.has_key(action.what) is None:
                     Tally[action.what] = {action.vtType : 1}
         return Tally
 

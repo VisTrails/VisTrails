@@ -228,13 +228,13 @@ class VistrailsApplicationInterface(object):
                     name = unicode(data[0])
                 # will try to convert version to int
                 # if it fails, it's a tag name
+                #maybe a tag name contains ':' in its name
+                #so we need to bring it back together
+                rest = ":".join(data[1:])
                 try:
-                    #maybe a tag name contains ':' in its name
-                    #so we need to bring it back together
-                    rest = ":".join(data[1:])
                     version = int(rest)
                 except ValueError:
-                    version = unicode(rest)
+                    version = rest
             elif len(data) == 1:
                 if use_filename and os.path.isfile(unicode(data[0])):
                     name = unicode(data[0])

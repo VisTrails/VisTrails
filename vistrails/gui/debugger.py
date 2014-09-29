@@ -35,6 +35,7 @@
 from __future__ import division
 
 from PyQt4 import QtGui, QtCore
+from vistrails.core.modules.vistrails_module import ModuleError
 import vistrails.core.system
 import copy
 import sys
@@ -205,7 +206,7 @@ class QObjectInspector(QtGui.QTreeWidget):
         if display_vals:
             p_item.setText(1, unicode(port_value))
         else:
-            typestr = unicode(port_val.__class__)
+            typestr = unicode(port_value.__class__)
             typestr = typestr.split('.')
             typestr = typestr[len(typestr)-1]
             typestr = typestr[0:len(typestr)-2]

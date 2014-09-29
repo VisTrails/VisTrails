@@ -897,7 +897,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         for i in xrange(self.count()):
             if self.isTabEnabled(i) and self.tabRect(i).contains(p):                
                 return i
-        return -1;
+        return -1
 
     def mousePressEvent(self, e):
         """ mousePressEvent(e: QMouseEvent) -> None

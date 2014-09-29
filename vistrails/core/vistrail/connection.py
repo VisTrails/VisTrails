@@ -117,24 +117,6 @@ class Connection(DBConnection):
             Port.convert(port)
 
     ##########################################################################
-    # Debugging
-
-    def show_comparison(self, other):
-        if type(other) != type(self):
-            print "Type mismatch"
-            return
-        if self.__source != other.__source:
-            print "Source mismatch"
-            self.__source.show_comparison(other.__source)
-            return
-        if self.__dest != other.__dest:
-            print "Dest mismatch"
-            self.__dest.show_comparison(other.__dest)
-            return
-        print "no difference found"
-        assert self == other
-
-    ##########################################################################
     # Properties
 
     id = DBConnection.db_id
@@ -153,8 +135,8 @@ class Connection(DBConnection):
 
     def _set_sourceId(self, id):
         """ _set_sourceId(id : int) -> None 
-        Sets this connection source id. It updates both self.__source.moduleId
-        and self.__source.id. Do not use this function, use sourceId 
+        Sets this connection source id. It updates both self.source.moduleId
+        and self.source.id. Do not use this function, use sourceId
         property: c.sourceId = id
 
         """
@@ -172,7 +154,7 @@ class Connection(DBConnection):
 
     def _set_destinationId(self, id):
         """ _set_destinationId(id : int) -> None 
-        Sets this connection destination id. It updates self.__dest.moduleId. 
+        Sets this connection destination id. It updates self.dest.moduleId.
         Do not use this function, use destinationId property: 
         c.destinationId = id
 

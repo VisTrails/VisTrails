@@ -208,7 +208,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
     def add_file(self):
         s = QtGui.QFileDialog.getOpenFileName(
                     self, "Choose a file",
-                    "", "Vistrail files (*.vt *.xml)");
+                    "", "Vistrail files (*.vt *.xml)")
         if unicode(s):
             locator = FileLocator(unicode(s))
             url = locator.to_url()
@@ -220,7 +220,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
     def add_dir(self):
         s = QtGui.QFileDialog.getExistingDirectory(
                     self, "Choose a directory",
-                    "", QtGui.QFileDialog.ShowDirsOnly);
+                    "", QtGui.QFileDialog.ShowDirsOnly)
         if unicode(s):
             self.update_from_directory(unicode(s))
         
@@ -396,7 +396,6 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
 class QWorkflowEntityItem(QBrowserWidgetItem):
     def get_vistrail(self):
         parent = self.parent()
-        QVistrailEntityItem
         while parent and type(parent) != QVistrailEntityItem:
             parent = parent.parent()
         return parent

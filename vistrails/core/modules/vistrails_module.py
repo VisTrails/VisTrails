@@ -181,12 +181,10 @@ InvalidOutput = _InvalidOutput
 # DummyModuleLogging
 
 class DummyModuleLogging(object):
-    def end_update(self, *args, **kwargs): pass
-    def begin_update(self, *args, **kwargs): pass
-    def begin_compute(self, *args, **kwargs): pass
-    def update_cached(self, *args, **kwargs): pass
-    def signalSuccess(self, *args, **kwargs): pass
-    def annotate(self, *args, **kwargs): pass
+    def _dummy_method(self, *args, **kwargs): pass
+
+    def __getattr__(self, name):
+        return self._dummy_method
 
 _dummy_logging = DummyModuleLogging()
 
@@ -1745,6 +1743,8 @@ def new_module(base_module, name, dict={}, docstring=None):
     elif isinstance(base_module, list):
         assert sum(1 for x in base_module if issubclass(x, Module)) == 1
         superclasses = tuple(base_module)
+    else:
+        raise TypeError
     d = copy.copy(dict)
     if docstring:
         d['__doc__'] = docstring

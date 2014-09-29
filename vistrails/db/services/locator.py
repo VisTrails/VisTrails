@@ -947,7 +947,7 @@ class DBLocator(BaseLocator):
                     name = unicode(n.firstChild.nodeValue).strip(" \n\t")
                     # FIXME : too many parameters?
                     return DBLocator(host, port, database,
-                                     user, passwd, name, vt_id, None)
+                                     user, passwd, name, obj_id=vt_id)
         return None
 
     @staticmethod

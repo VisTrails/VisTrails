@@ -57,12 +57,12 @@ import re
 import shutil
 import tempfile
 
-# Makes sure we can import modules as if we were running VisTrails
-# from the root directory
-
-_this_dir = os.path.dirname(os.path.realpath(__file__))
-root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
-sys.path.insert(0, os.path.realpath(os.path.join(root_directory, '..')))
+if 'vistrails' not in sys.modules:
+    # Makes sure we can import modules as if we were running VisTrails
+    # from the root directory
+    _this_dir = os.path.dirname(os.path.realpath(__file__))
+    _root_directory = os.path.realpath(os.path.join(_this_dir,  '..'))
+    sys.path.insert(0, os.path.realpath(os.path.join(_root_directory, '..')))
 
 # Use a different temporary directory
 test_temp_dir = tempfile.mkdtemp(prefix='vt_testsuite_')
@@ -173,6 +173,9 @@ from vistrails.core.packagemanager import get_package_manager
 # VisTrails does funny stuff with unittest/unittest2, be sure to load that
 # after vistrails
 import unittest
+
+
+root_directory = os.path.realpath(vistrails_root_directory())
 
 ###############################################################################
 # Testing Examples
