@@ -145,7 +145,6 @@ def package_dependencies():
     for abstraction in os.listdir(abstraction_dir):
         if p.match(abstraction):
             abs_fname = os.path.join(abstraction_dir, abstraction)
-            # moved out of try because shouldn't run into MissingPackage here
             vistrail = read_vistrail(abs_fname)
             try:
                 dependencies = get_abstraction_dependencies(vistrail)
