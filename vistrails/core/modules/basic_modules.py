@@ -301,8 +301,6 @@ class Integer(Float):
     def validate(x):
         return isinstance(x, (int, long))
 
-    #query_compute = Float.query_compute # FIXME : needed?
-
 class String(Constant):
     _settings = ModuleSettings(
             configure_widget="vistrails.gui.modules.string_configure:TextConfigurationWidget",
