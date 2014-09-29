@@ -875,8 +875,8 @@ class TestUpgradePackageRemap(unittest.TestCase):
 
         app = get_vistrails_application()
         created_vistrail = False
+        pm = get_package_manager()
         try:
-            pm = get_package_manager()
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})
@@ -950,8 +950,8 @@ class TestUpgradePackageRemap(unittest.TestCase):
         app.temp_configuration.upgradeDelay = False
 
         created_vistrail = False
+        pm = get_package_manager()
         try:
-            pm = get_package_manager()
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})

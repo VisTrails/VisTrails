@@ -688,7 +688,6 @@ class QPreferencesDialog(QtGui.QDialog):
         we guarantee the changes were saved before VisTrails crashes.
         
         """
-        from PyQt4 import QtCore
         from vistrails.gui.application import get_vistrails_application
         get_vistrails_application().save_configuration()
 

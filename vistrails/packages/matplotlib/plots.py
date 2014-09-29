@@ -885,7 +885,7 @@ Additional kwargs: hold = [True|False] overrides default hold state
                                                                  args, kwargs))
 
     def plot_figure(self, figure, args, kwargs):
-        matplotlib.pyplot.broken_barh(*args, **kwargs)
+        brokenBarHCollection = matplotlib.pyplot.broken_barh(*args, **kwargs)
         if self.has_input('brokenBarHCollectionProperties'):
             properties = self.get_input('brokenBarHCollectionProperties')
             if brokenBarHCollection is not None:

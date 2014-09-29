@@ -401,20 +401,13 @@ class DBLocator(_DBLocator, CoreLocator):
         If the connection exists it will update it, else it will add it
 
         """
-        if kwargs.has_key("id"):
-            id = kwargs["id"]
-        if kwargs.has_key("name"):
-            name = kwargs["name"]
-        if kwargs.has_key("host"):
-            host = kwargs["host"]
-        if kwargs.has_key("port"):
-            port = kwargs["port"]
-        if kwargs.has_key("user"):
-            user = kwargs["user"]
-        if kwargs.has_key("passwd"):
-            passwd = kwargs["passwd"]
-        if kwargs.has_key("db"):
-            db = kwargs["db"]
+        id = kwargs["id"]
+        name = kwargs["name"]
+        host = kwargs["host"]
+        port = kwargs["port"]
+        user = kwargs["user"]
+        passwd = kwargs["passwd"]
+        db = kwargs["db"]
 
         conn = DBConnection(id=id,
                             name=name,
@@ -681,7 +674,7 @@ class FileLocator(CoreLocator):
             pass
 
         if tag is None:
-            tag = '';
+            tag = ''
             
         ## execute and showSpreadsheetOnly should be written to the current
         ## configuration

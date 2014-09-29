@@ -481,20 +481,13 @@ class QDBConnectionList(QtGui.QListWidget):
         If the connection exists it will update it, else it will add it
 
         """
-        if kwargs.has_key("id"):
-            id = kwargs["id"]
-        if kwargs.has_key("name"):
-            name = kwargs["name"]
-        if kwargs.has_key("host"):
-            host = kwargs["host"]
-        if kwargs.has_key("port"):
-            port = kwargs["port"]
-        if kwargs.has_key("user"):
-            user = kwargs["user"]
-        if kwargs.has_key("passwd"):
-            passwd = kwargs["passwd"]
-        if kwargs.has_key("db"):
-            db = kwargs["db"]
+        id = kwargs["id"]
+        name = kwargs["name"]
+        host = kwargs["host"]
+        port = kwargs["port"]
+        user = kwargs["user"]
+        passwd = kwargs["passwd"]
+        db = kwargs["db"]
 
         conn = DBConnection(id=id,
                             name=name,
@@ -552,10 +545,8 @@ class QDBConnectionList(QtGui.QListWidget):
         config = self.getConnectionInfo(conn_id)
         if conn.dbtype == 'MySQL':
             #removing extra keyword arguments for MySQldb
-            config_name = config['name']
-            del config['name']
-            config_id = config['id']
-            del config['id']
+            config_name = config.pop('name')
+            config_id = config.pop('id')
         vt_list = vistrails.db.services.io.get_db_object_list(config, obj_type)
         if conn.dbtype == 'MySQL':
             config['name'] = config_name

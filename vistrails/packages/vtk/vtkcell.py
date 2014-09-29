@@ -324,6 +324,7 @@ class QVTKWidget(QCellWidget):
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
             if system.systemType=='Linux':
+                vp = None
                 try:
                     vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
                 except TypeError:
@@ -331,13 +332,14 @@ class QVTKWidget(QCellWidget):
                     if isinstance(QtGui.QX11Info.display(),QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
                         vp = '_%s_void_p' % (hex(display)[2:])
-                v = vtk.vtkVersion()
-                version = [v.GetVTKMajorVersion(),
-                           v.GetVTKMinorVersion(),
-                           v.GetVTKBuildVersion()]
-                if version < [5, 7, 0]:
-                    vp = vp + '\0x00'                
-                self.mRenWin.SetDisplayId(vp)
+                if vp is not None:
+                    v = vtk.vtkVersion()
+                    version = [v.GetVTKMajorVersion(),
+                               v.GetVTKMinorVersion(),
+                               v.GetVTKBuildVersion()]
+                    if version < [5, 7, 0]:
+                        vp = vp + '\0x00'
+                    self.mRenWin.SetDisplayId(vp)
                 self.resizeWindow(1,1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
             if self.isVisible():

@@ -763,7 +763,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                          "&Cancel", 0, pipelineCount,
                                          self,
                                          QtCore.Qt.WindowStaysOnTopHint
-                                         );
+                                         )
         progress.show()
         for pipelineIdx in xrange(pipelineCount):
             # FIXME: eval should pretty much never be used
