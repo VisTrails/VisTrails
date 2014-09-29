@@ -65,11 +65,11 @@ class CSVTable(TableObject):
                             header_present = sniffer.has_header(first_lines)
 
                 for i in xrange(skip_lines):
+                    line = fp.readline()
                     if not line:
                         raise InternalModuleError("skip_lines greater than "
                                                   "the number of lines in the "
                                                   "file")
-                    line = fp.readline()
 
                 if dialect is not None:
                     reader = csv.reader(fp, dialect=dialect)

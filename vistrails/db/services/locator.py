@@ -938,7 +938,7 @@ class DBLocator(BaseLocator):
                     name = str(n.firstChild.nodeValue).strip(" \n\t")
                     #print host, port, database, name, vt_id
                     return DBLocator(host, port, database,
-                                     user, passwd, name, vt_id, None)
+                                     user, passwd, name, obj_id=vt_id)
             return None
         else:
             return None

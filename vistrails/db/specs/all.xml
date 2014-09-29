@@ -2497,6 +2497,7 @@
     </property>
 
     <property name="date" type="datetime">
+      <xml nodeType="xs:attribute" type="xs:dateTime"/>
       <sql type="datetime"/>
     </property>
 
@@ -4038,7 +4039,7 @@
     </layout>
 
     <property ref="true" object="config_key" type="list" 
-	      mapping="one-to-many" index="name">
+	      mapping="one-to-many">
       <xml name="key" nodeType="xs:element"/>
     </property>    
   </object>
@@ -4052,7 +4053,7 @@
       <xml name="key" nodeType="xs:element"/>
     </layout>
 
-    <property name="name" type="str">
+    <property name="name" type="str" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:string"/>
     </property>
 

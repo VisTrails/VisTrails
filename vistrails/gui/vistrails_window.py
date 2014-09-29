@@ -1027,7 +1027,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         from vistrails.gui.module_info import QModuleInfo
         from vistrails.gui.paramexplore.param_view import QParameterView
         from vistrails.gui.paramexplore.pe_inspector import QParamExploreInspector
-        from vistrails.gui.shell import QShellDialog
+        from vistrails.gui.shell import get_shell_dialog
         from vistrails.gui.version_prop import QVersionProp
         from vistrails.gui.vis_diff import QDiffProperties
         from vistrails.gui.collection.explorer import QExplorerWindow
@@ -1090,7 +1090,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                ((QModuleIteration, True),
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module'))),
-               ((QShellDialog, True),
+               ((get_shell_dialog(), True),
                 (('controller_changed', 'set_controller'),)),
                ((QDebugger, True),
                 (('controller_changed', 'set_controller'),)),
@@ -1119,6 +1119,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                         notifications = visible
                         p_klass, visible = p_klass      
                 #print "generating instance", p_klass
+                if p_klass is None:
+                    continue
                 palette = p_klass.instance()
                 #print 'palette:', palette
                 self.palettes.append(palette)
@@ -1186,11 +1188,11 @@ class QVistrailsWindow(QVistrailViewWindow):
             for dock_area, p_group in self.palette_layout:
                 for p_klass in p_group:
                 
+                    assert isinstance(p_klass, tuple)
+                    p_klass, visible = p_klass
                     if isinstance(p_klass, tuple):
+                        notifications = visible
                         p_klass, visible = p_klass
-                        if isinstance(p_klass, tuple):
-                            notifications = visible
-                            p_klass, visible = p_klass      
                     palette = p_klass.instance()
                     if dock_area == QtCore.Qt.RightDockWidgetArea:
                         pin_status = palette.get_pin_status()
@@ -1665,13 +1667,14 @@ class QVistrailsWindow(QVistrailViewWindow):
                 if locator.has_temporaries():
                     if not locator_class.prompt_autosave(self):
                         locator.clean_temporaries()
-            if hasattr(locator, '_vnode'):
+                version = None
+            if hasattr(locator,'_vtag'):
+                # if a tag is set, it should be used instead of the
+                # version number
+                if locator._vtag != '':
+                    version = locator._vtag
+            elif hasattr(locator, '_vnode'):
                 version = locator._vnode
-                if hasattr(locator,'_vtag'):
-                    # if a tag is set, it should be used instead of the
-                    # version number
-                    if locator._vtag != '':
-                        version = locator._vtag
             mashuptrail = None
             mashupversion = None
             execute = False
@@ -1965,7 +1968,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             return self.stack.currentWidget()
         else:
             if len(self.windows) > 0:
-                return self.windows.iterkeys().next()
+                return next(self.windows.iterkeys())
         return None
         
     def get_current_controller(self):

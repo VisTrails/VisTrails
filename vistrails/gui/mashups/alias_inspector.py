@@ -431,8 +431,8 @@ class QAliasDetailsWidget(QtGui.QWidget):
         else:
             idn = p.identifier
         reg = get_module_registry()
-        p_module = reg.get_module_by_name(idn, p.type, p.namespace)
-        widget_type = get_widget_class(p_module)
+        p_descriptor = reg.get_descriptor_by_name(idn, p.type, p.namespace)
+        widget_type = get_widget_class(p_descriptor)
         p.strValue = alias.component.val
         return widget_type(p, parent)
     

@@ -102,6 +102,7 @@ Make sure the generated users guide is saved to the correct path by
 editing the following file:
 scripts/build_usersguide.py
 By default it is configured for mac
+Make sure the correct branch is used (by default in ~/code/vistrails)
 
 Now run the following:
 $ cd scripts/dist/mac/

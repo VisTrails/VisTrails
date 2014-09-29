@@ -46,7 +46,7 @@ from vistrails.core.db.locator import FileLocator, DBLocator, BaseLocator
 from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.requirements
 from vistrails.db import VistrailsDBException
-import vistrails.db.services.io
+from vistrails.db.services.io import test_db_connection
 from vistrails.gui import qt
 import vistrails.gui.theme
 from ast import literal_eval
@@ -82,7 +82,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             release = platform.mac_ver()[0].split('.')
             if len(release)>=2 and int(release[0])*100+int(release[1])>=1009:
                 QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
-        QtGui.QApplication.__init__(self, sys.argv[:1])
+        QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
         if system.systemType in ['Darwin']:
@@ -209,7 +209,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.processEvents()
             
         # self.vistrailsStartup.init()
-        self.package_manager.initialize_packages()
+        self.package_manager.initialize_packages(
+                report_missing_dependencies=not self.startup.first_run)
 
         # ugly workaround for configuration initialization order issue
         # If we go through the configuration too late,
@@ -220,7 +221,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 self.builderWindow.showMaximized()
             if self.temp_configuration.check('dbDefault'):
                 self.builderWindow.setDBDefault(True)
-        # self._python_environment = self.vistrailsStartup.get_python_environment()
 
         self._initialized = True
 
@@ -465,28 +465,27 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         usedb = False
-        if self.temp_db_options is not None and self.temp_db_options.host:
+        passwd = ''
+        if self.temp_configuration.check('host'):
             usedb = True
-            passwd = ''
-        if usedb and self.temp_db_options.user:
-            if self.temp_db_options.user:
-                db_config = dict((x, self.temp_db_options.__dict__[x])
-                                 for x in ['host', 'port', 
-                                           'db', 'user'])
+        if usedb and self.temp_configuration.check('user'):
+            db_config = dict((x, self.temp_configuration.check(x))
+                             for x in ['host', 'port', 
+                                       'db', 'user'])
+            try:
+                test_db_connection(db_config)
+            except VistrailsDBException:
+                passwd = \
+                    getpass.getpass("Connecting to %s:%s. Password for user '%s':" % (
+                                    db_config['host'],
+                                    db_config['db'],
+                                    db_config['user']))
+                db_config['passwd'] = passwd
                 try:
-                    vistrails.db.services.io.test_db_connection(db_config)
+                    test_db_connection(db_config)
                 except VistrailsDBException:
-                    passwd = \
-                        getpass.getpass("Connecting to %s:%s. Password for user '%s':" % (
-                                        self.temp_db_options.host,
-                                        self.temp_db_options.db,
-                                        self.temp_db_options.user))
-                    db_config['passwd'] = passwd
-                    try:
-                        vistrails.db.services.io.test_db_connection(db_config)
-                    except VistrailsDBException:
-                        debug.critical("Cannot login to database")
-                        return False
+                    debug.critical("Cannot login to database")
+                    return False
     
         if self.input:
             w_list = []
@@ -499,14 +498,15 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 if not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
                 else:
-                    locator = DBLocator(host=self.temp_db_options.host,
-                                        port=self.temp_db_options.port,
-                                        database=self.temp_db_options.db,
-                                        user=self.temp_db_options.user,
-                                        passwd=passwd,
-                                        obj_id=f_name,
-                                        obj_type=None,
-                                        connection_id=None)
+                    locator = DBLocator(
+                           host=self.temp_configuration.check('host'),
+                           port=self.temp_configuration.check('port') or 3306,
+                           database=self.temp_configuration.check('db'),
+                           user=self.temp_configuration.check('user'),
+                           passwd=passwd,
+                           obj_id=f_name,
+                           obj_type=None,
+                           connection_id=None)
                     if not locator.is_valid():
                         #here there is a problem: as we allow execution from 
                         #command line with VisTrails already running, we need
@@ -558,8 +558,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             else:
                 errs.extend(vistrails.core.console_mode.run(
                         w_list,
-                        self.temp_db_option is not None and
-                            self.temp_db_option.parameters
+                        self.temp_configuration.check('parameters')
                             or '',
                         output_dir, update_vistrail=True,
                         extra_info=extra_info))
@@ -662,14 +661,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                local_socket.errorString())
                 return
             byte_array = local_socket.readAll()
-            self.temp_db_options = None
             self.temp_configuration.workflowGraph = None
             self.temp_configuration.evolutionGraph = None
             self.temp_configuration.outputDirectory = None
             self.temp_configuration.spreadsheetDumpPDF = False
             self.temp_configuration.execute = False
             self.temp_configuration.batch = False
-            
+
+            output = None
             try:
                 # redirect stdout
                 old_stdout = sys.stdout
@@ -679,6 +678,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout.close()
                 sys.stdout = old_stdout
             except Exception, e:
+                debug.unexpected_exception(e)
                 import traceback
                 debug.critical("Unknown error", e)
                 result = traceback.format_exc()
@@ -787,8 +787,8 @@ def linux_default_application_set():
     For Linux - checks if a handler is set for .vt and .vtl files.
     """
     command = ['xdg-mime', 'query', 'filetype',
-               os.path.join(system.vistrails_examples_directory(),
-                            'terminator.vt')]
+               os.path.join(system.vistrails_root_directory(),
+                            'tests', 'resources', 'terminator.vt')]
     try:
         output = []
         result = system.execute_cmdline(command, output)

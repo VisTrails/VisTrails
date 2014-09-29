@@ -556,15 +556,20 @@ class VistrailController(object):
             self.recompute_terse_graph()
             self.invalidate_version_tree(False)
 
-    def perform_action(self, action):
+    def perform_action(self, action, do_validate=True, raise_exception=False):
         """ performAction(action: Action) -> timestep
-        
+
         Performs given action on current pipeline.
-        
+
+        By default, the resulting pipeline will get validated, but no exception
+        will be raised if it is invalid. However you will get these on your
+        next call to change_selected_version().
         """
         if action is not None:
             self.current_pipeline.perform_action(action)
             self.current_version = action.db_id
+            if do_validate:
+                self.validate(self.current_pipeline, raise_exception)
             return action.db_id
         return None
 
@@ -1414,31 +1419,6 @@ class VistrailController(object):
         result = self.perform_action(action)
         return abstraction
 
-    def create_abstractions_from_groups(self, group_ids):
-        for group_id in group_ids:
-            self.create_abstraction_from_group(group_id)
-
-    def create_abstraction_from_group(self, group_id, name=""):
-        self.flush_delayed_actions()
-        name = self.get_abstraction_name(name)
-        
-        (abstraction, connections) = \
-            self.build_abstraction_from_group(self.current_pipeline, 
-                                              group_id, name)
-
-        op_list = []
-        getter = self.get_connections_to_and_from
-        op_list.extend(('delete', c)
-                       for c in getter(self.current_pipeline, [group_id]))
-        op_list.append(('delete', self.current_pipeline.modules[group_id]))
-        op_list.append(('add', abstraction))
-        op_list.extend(('add', c) for c in connections)
-        action = vistrails.core.db.action.create_action(op_list)
-        self.add_new_action(action)
-        result = self.perform_action(action)
-        return abstraction
-
-
     def ungroup_set(self, module_ids):
         self.flush_delayed_actions()
         for m_id in module_ids:
@@ -1574,10 +1554,11 @@ class VistrailController(object):
                     names = in_names
                     cur_names = in_cur_names
                     process_list = in_process_list
-                elif m.name == 'OutputPort':
+                else:  # m.name == 'OutputPort'
                     neighbors = self.get_upstream_neighbors(pipeline, m)
                     names = out_names
                     cur_names = out_cur_names
+                    process_list = out_process_list
                     
                 if len(neighbors) < 1:
                     # print "not adding, no neighbors"
@@ -1675,7 +1656,7 @@ class VistrailController(object):
                 if m.name == 'InputPort':
                     neighbors = self.get_downstream_neighbors(full_pipeline, m)
                     names = in_names
-                elif m.name == 'OutputPort':
+                else:  # m.name == 'OutputPort'
                     neighbors = self.get_upstream_neighbors(full_pipeline, m)
                     names = out_names
                 if len(neighbors) < 1:
@@ -2392,7 +2373,6 @@ class VistrailController(object):
                                     new_desc.namespace, new_desc.package_version,
                                     str(new_desc.version))
             return self.check_abstraction(descriptor_tuple, lookup)
-        return None
         
     def ensure_abstractions_loaded(self, vistrail, abs_fnames):
         lookup = {}
@@ -3418,9 +3398,12 @@ class VistrailController(object):
             if from_root:
                 result = self.vistrail.getPipeline(version)
             elif version == self.current_version:
-                # we don't even need to check connection specs or
-                # registry
-                return self.current_pipeline
+                # Changing to current pipeline
+                # We only need to run validation if it was previously invalid
+                # (or didn't get validated)
+                result = self.current_pipeline
+                if self.current_pipeline.is_valid:
+                    return result
             # Fast check: if target is cached, copy it and we're done.
             elif version in self._pipelines:
                 result = copy.copy(self._pipelines[version])

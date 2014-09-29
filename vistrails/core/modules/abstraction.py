@@ -145,8 +145,8 @@ def package_dependencies():
     for abstraction in os.listdir(abstraction_dir):
         if p.match(abstraction):
             abs_fname = os.path.join(abstraction_dir, abstraction)
+            vistrail = read_vistrail(abs_fname)
             try:
-                vistrail = read_vistrail(abs_fname)
                 dependencies = get_abstraction_dependencies(vistrail)
             except vistrails.core.modules.module_registry.MissingPackage, e:
                 dependencies = {e._identifier: set()}

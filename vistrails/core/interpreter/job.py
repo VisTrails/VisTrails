@@ -56,13 +56,6 @@ import weakref
 JOBS_FILENAME = "jobs.json"
 
 
-class BaseMonitor(object):
-    def finished(self):
-        """Indicates whether the job has completed (module can resume).
-        """
-        raise NotImplementedError
-
-
 class JobMixin(NotCacheable):
     """ Mixin for suspendable modules.
 
@@ -392,7 +385,6 @@ class JobMonitor(object):
         if not parent_id:
             if not self._current_workflow:
                 raise Exception("No workflow is running!")
-                return
             parent_id = self._current_workflow.id
         del self._running_workflows[parent_id].modules[id]
         if self.callback:

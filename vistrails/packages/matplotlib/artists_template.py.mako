@@ -164,7 +164,7 @@ class ${spec.name}(${spec.superklass}):
         if self.has_input('${ps.name}'):
             artist.sub_props['${ps.arg}'] = self.get_input('${ps.name}')
         % endif
-        % endfor            
+        % endfor
 
         % if spec.get_compute_after():
         ${spec.get_compute_after()}

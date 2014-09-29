@@ -102,6 +102,8 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
                      self.parameterWidget.treeWidget.toggleUnsetParameters)
 
     def set_controller(self, controller):
+        if self.controller == controller:
+            return
         self.controller = controller
         if self.controller is not None:
             self.set_pipeline(self.controller.current_pipeline)

@@ -251,6 +251,7 @@ class QVTKViewWidget(QCellWidget):
         if self.mRenWin:
             self.mRenWin.Register(None)
             if system.systemType=='Linux':
+                vp = None
                 try:
                     vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
                 except TypeError:
@@ -258,7 +259,8 @@ class QVTKViewWidget(QCellWidget):
                     if isinstance(QtGui.QX11Info.display(),QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
                         vp = '_%s_void_p' % (hex(display)[2:])
-                self.mRenWin.SetDisplayId(vp)
+                if vp is not None:
+                    self.mRenWin.SetDisplayId(vp)
                 if not self.mRenWin.GetMapped():
                     self.mRenWin.GetInteractor().Initialize()
                     system.XDestroyWindow(self.mRenWin.GetGenericDisplayId(),

@@ -241,13 +241,13 @@ class PBSJob(RQModule):
         job = PBS("remote", command, working_directory, dependencies = [trans],
                   **additional_arguments)
         job.run()
-        try:
-            ret = job._ret
-            if ret:
+        ret = job._ret
+        if ret:
+            try:
                 job_id = int(ret)
-        except ValueError:
-            end_machine()
-            raise ModuleError(self, "Error submitting job: %s" % ret)
+            except ValueError:
+                end_machine()
+                raise ModuleError(self, "Error submitting job: %s" % ret)
         finished = job.finished()
         job_info = job.get_job_info()
         if job_info:
@@ -320,13 +320,13 @@ class RunPBSScript(RQModule):
         self.job = PBSScript("remote", params['command'], work_dir,
                       dependencies = [trans], **params['additional_arguments'])
         self.job.run()
-        try:
-            ret = self.job._ret
-            if ret:
+        ret = self.job._ret
+        if ret:
+            try:
                 job_id = int(ret.split('\n')[0])
-        except ValueError:
-            end_machine()
-            raise ModuleError(self, "Error submitting job: %s" % ret)
+            except ValueError:
+                end_machine()
+                raise ModuleError(self, "Error submitting job: %s" % ret)
         self.set_job_machine(params, self.machine)
         return params
         

@@ -34,6 +34,7 @@
 ###############################################################################
 import inspect
 import logging
+import logging.handlers
 import os
 import pdb
 import re
@@ -71,7 +72,7 @@ def unexpected_exception(e, tb=None, frame=None):
     try:
         from vistrails.core.configuration import get_vistrails_configuration
         debugger = getattr(get_vistrails_configuration(),
-                           'developperDebugger',
+                           'developerDebugger',
                            False)
     except Exception:
         debugger = False
@@ -165,7 +166,7 @@ class DebugPrint(object):
     so it will only get information of who called the DebugPrint functions.
 
     Example of usage:
-        >>> from core import debug
+        >>> from vistrails.core import debug
         >>> debug.DebugPrint.getInstance().set_message_level(
                     debug.DebugPrint.WARNING)
         # the following messages will be shown
@@ -280,7 +281,7 @@ class DebugPrint(object):
             self.logger.addHandler(handler)
 
         except Exception, e:
-            self.critical("Could not set log file %s: %s" % f, e)
+            self.critical("Could not set log file %s:" % f, e)
 
     def log_to_console(self, enable=True):
         if enable:
@@ -386,6 +387,8 @@ def object_at(desc):
         target_id = desc
     elif isinstance(desc, basestring):
         target_id = int(desc, 16) # Reads desc as the hex address
+    else:
+        raise TypeError
     import gc
     for obj in gc.get_objects():
         if id(obj) == target_id:

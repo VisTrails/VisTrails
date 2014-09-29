@@ -42,6 +42,7 @@ import warnings
 
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.utils import VistrailsDeprecation, deprecated, \
@@ -78,7 +79,7 @@ class ModuleBreakpoint(Exception):
 
         inputs = self.examine_inputs()
         retstr += "\nModule has inputs:\n"
-        
+
         for i in inputs.keys():
             retstr += "\t%s = %s\n" % (i, inputs[i])
 
@@ -177,12 +178,10 @@ InvalidOutput = _InvalidOutput
 # DummyModuleLogging
 
 class DummyModuleLogging(object):
-    def end_update(self, *args, **kwargs): pass
-    def begin_update(self, *args, **kwargs): pass
-    def begin_compute(self, *args, **kwargs): pass
-    def update_cached(self, *args, **kwargs): pass
-    def signalSuccess(self, *args, **kwargs): pass
-    def annotate(self, *args, **kwargs): pass
+    def _dummy_method(self, *args, **kwargs): pass
+
+    def __getattr__(self, name):
+        return self._dummy_method
 
 _dummy_logging = DummyModuleLogging()
 
@@ -192,8 +191,8 @@ _dummy_logging = DummyModuleLogging()
 class Serializable(object):
     """
     Serializable is a mixin class used to define methods to serialize and
-    deserialize modules. 
-    
+    deserialize modules.
+
     """
 
     def serialize(self):
@@ -201,7 +200,7 @@ class Serializable(object):
         Method used to serialize a module.
         """
         raise NotImplementedError('The serialize method is not defined for this module.')
-    
+
     def deserialize(self):
         """
         Method used to deserialize a module.
@@ -227,31 +226,31 @@ class Module(Serializable):
     a module is harder -- the side effects should ideally not be exposed
     to the module interface.  VisTrails provides some support for making
     this easier, as will be discussed later.
-    
+
     VisTrails caches intermediate results to increase efficiency in
     exploration. It does so by reusing pieces of pipelines in later
     executions.
-    
+
     *Terminology*
-    
+
     Module Interface: The module interface is the set of input and
     output ports a module exposes.
-    
+
     *Designing New Modules*
-    
+
     Designing new modules is essentially a matter of subclassing this
     module class and overriding the compute() method. There is a
     fully-documented example of this on the default package
     'pythonCalc', available on the 'packages/pythonCalc' directory.
-    
+
     *Caching*
-    
+
     Caching affects the design of a new module. Most importantly,
     users have to account for compute() being called more than
     once. Even though compute() is only called once per individual
     execution, new connections might mean that previously uncomputed
     output must be made available.
-    
+
     Also, operating system side-effects must be carefully accounted
     for. Some operations are fundamentally side-effectful (creating OS
     output like uploading a file on the WWW or writing a file to a
@@ -262,20 +261,20 @@ class Module(Serializable):
     to work appropriately, NotCacheable must appear *BEFORE* any other
     subclass in the class hierarchy declarations). These modules (and
     anything that depends on their results) will then never be reused.
-    
+
     *Intermediate Files*
-    
+
     Many modules communicate through intermediate files. VisTrails
     provides automatic filename and handle management to alleviate the
     burden of determining tricky things (e.g. longevity) of these
     files. Modules can request temporary file names through the file pool,
     currently accessible through ``self.interpreter.filePool``.
-    
+
     The FilePool class is available in core/modules/module_utils.py -
     consult its documentation for usage. Notably, using the file pool
     will make temporary files work correctly with caching, and will
     make sure the temporaries are correctly removed.
-    
+
     """
 
     _settings = ModuleSettings(is_root=True, abstract=True)
@@ -306,7 +305,7 @@ class Module(Serializable):
         self.streamed_ports = {}
         self.in_pipeline = False
         self.set_output("self", self) # every object can return itself
-        
+
         # Pipeline info that a module should know about This is useful
         # for a spreadsheet cell to know where it is from. It will be
         # also used for talking back and forth between the spreadsheet
@@ -369,7 +368,7 @@ class Module(Serializable):
         return clone
 
     def clear(self):
-        """clear(self) -> None. 
+        """clear(self) -> None.
         Removes all references, prepares for deletion.
 
         """
@@ -383,7 +382,7 @@ class Module(Serializable):
         self._latest_method_order = 0
 
     def is_cacheable(self):
-        """is_cacheable() -> bool. 
+        """is_cacheable() -> bool.
         A Module should return whether it can be
         reused across executions. It is safe for a Module to return
         different values in different occasions. In other words, it is
@@ -404,11 +403,11 @@ class Module(Serializable):
                     self.remove_input_connector(port_name, connector)
 
     def update_upstream(self):
-        """ update_upstream() -> None        
+        """ update_upstream() -> None
         Go upstream from the current module, then update its upstream
         modules and check input connection based on upstream modules
         results
-        
+
         """
         suspended = []
         was_suspended = None
@@ -426,7 +425,7 @@ class Module(Serializable):
             raise suspended[0]
         elif suspended:
             raise ModuleSuspended(
-                    self, 
+                    self,
                     "multiple suspended upstream modules",
                     children=suspended)
         elif was_suspended is not None:
@@ -437,14 +436,14 @@ class Module(Serializable):
                     self.remove_input_connector(iport, connector)
 
     def set_iterated_ports(self):
-        """ set_iterated_ports() -> None        
+        """ set_iterated_ports() -> None
         Calculates which inputs needs to be iterated over
         """
         iports = {}
         from vistrails.core.modules.basic_modules import List, Variant
         for port_name, connectorList in self.inputPorts.iteritems():
             for connector in connectorList:
-            
+
                 src_depth = connector.depth()
                 if not self.input_specs:
                     # cannot do depth wrapping
@@ -464,7 +463,7 @@ class Module(Serializable):
                        len(dest_descs) == 1 and dest_descs[0].module == List:
                         # special case - Treat Variant as list
                         dest_depth -= 1
-                
+
                 # store connector with greatest depth
                 # if value depth > port depth
                 depth = src_depth - dest_depth
@@ -478,9 +477,9 @@ class Module(Serializable):
                                if p in iports]
 
     def set_streamed_ports(self):
-        """ set_streamed_ports() -> None        
+        """ set_streamed_ports() -> None
         Calculates which inputs will be streamed
-        
+
         """
         self.streamed_ports = {}
         from vistrails.core.modules.basic_modules import Generator
@@ -491,10 +490,10 @@ class Module(Serializable):
                     self.streamed_ports[iport] = value
 
     def update(self):
-        """ update() -> None        
+        """ update() -> None
         Check if the module is up-to-date then update the
         modules. Report to the logger if available
-        
+
         """
         if self.had_error:
             raise ModuleHadError(self)
@@ -607,18 +606,18 @@ class Module(Serializable):
         inputs = {} # dict of port_name: value
         port_names = []
         for port_name, depth, _ in self.iterated_ports:
-            # only iterate max depth and leave the others for the 
+            # only iterate max depth and leave the others for the
             # next iteration
             if depth != self.list_depth:
                 continue
             inputs[port_name] = self.get_input(port_name)
             port_names.append(port_name)
-        
+
         if combine_type not in ['pairwise', 'cartesian']:
             custom_order = json.loads(combine_type)
             combine_type = custom_order[0]
             port_names = custom_order[1:]
-                    
+
         elements, port_names = self.do_combine(combine_type, inputs, port_names)
         num_inputs = len(elements)
         loop = self.logging.begin_loop_execution(self, num_inputs)
@@ -693,9 +692,9 @@ class Module(Serializable):
         else:
             # the module cannot handle generator so we accumulate the stream
             self.compute_accumulate()
- 
+
     def compute_streaming(self):
-        """This method creates a generator object and sets the outputs as 
+        """This method creates a generator object and sets the outputs as
         generators.
 
         """
@@ -747,12 +746,12 @@ class Module(Serializable):
                 ## Type checking
                 if i == 0:
                     module.typeChecking(module, ports, [elements])
-    
+
                 module.upToDate = False
                 module.computed = False
-    
+
                 module.setInputValues(module, ports, elements, i)
-    
+
                 try:
                     module.compute()
                 except ModuleSuspended, e:
@@ -762,7 +761,7 @@ class Module(Serializable):
                     raise ModuleError(module, str(e))
                 i += 1
                 yield True
-    
+
         _generator = generator(self)
         # set streaming outputs
         for name_output in self.outputPorts:
@@ -823,7 +822,7 @@ class Module(Serializable):
                     module.set_output(name_output, None)
                 i += 1
                 yield True
-    
+
         _generator = generator(self)
         # set streaming outputs
         for name_output in self.outputPorts:
@@ -835,9 +834,9 @@ class Module(Serializable):
             self.set_output(name_output, iterator)
 
     def compute_after_streaming(self):
-        """This method creates a generator object that computes when the                                                                                                           
-        streaming is finished.                                                                                                                                                     
-                                                                                                                                                                                   
+        """This method creates a generator object that computes when the
+        streaming is finished.
+
         """
         from vistrails.core.modules.basic_modules import Generator
         suspended = []
@@ -881,7 +880,7 @@ class Module(Serializable):
                     yield None
                 i += 1
                 yield True
-    
+
         _generator = generator(self)
         # set streaming outputs
         for name_output in self.outputPorts:
@@ -1012,6 +1011,30 @@ class Module(Serializable):
                     long2bytes(iteration, 20),
                     inputPort_hash.digest()))
 
+    Variant_desc = None
+    InputPort_desc = None
+
+    @staticmethod
+    def load_type_check_descs():
+        from vistrails.core.modules.module_registry import get_module_registry
+        reg = get_module_registry()
+        Module.Variant_desc = reg.get_descriptor_by_name(
+            'org.vistrails.vistrails.basic', 'Variant')
+        Module.InputPort_desc = reg.get_descriptor_by_name(
+            'org.vistrails.vistrails.basic', 'InputPort')
+
+    @staticmethod
+    def get_type_checks(source_spec):
+        if Module.Variant_desc is None:
+            Module.load_type_check_descs()
+        conf = get_vistrails_configuration()
+        error_on_others = getattr(conf, 'showConnectionErrors')
+        error_on_variant = (error_on_others or
+                            getattr(conf, 'showVariantErrors'))
+        errors = [error_on_others, error_on_variant]
+        return [errors[desc is Module.Variant_desc]
+                for desc in source_spec.descriptors()]
+
     def typeChecking(self, module, inputPorts, inputList):
         """
         Function used to check if the types of the input list element and of the
@@ -1019,7 +1042,6 @@ class Module(Serializable):
         """
         from vistrails.core.modules.basic_modules import Generator
         from vistrails.core.modules.basic_modules import get_module
-        from vistrails.core.vistrail.connection import getTypeCheck
         if not module.input_specs:
             return
         for elementList in inputList:
@@ -1032,7 +1054,7 @@ class Module(Serializable):
                     raise ModuleError(self, "Generator is not allowed here")
                 port_spec = module.input_specs[inputPort]
                 # typecheck only if all params should be type-checked
-                if False in getTypeCheck(port_spec):
+                if False in self.get_type_checks(port_spec):
                     break
                 v_module = get_module(element, port_spec.signature)
                 if v_module is not None:
@@ -1129,7 +1151,7 @@ class Module(Serializable):
         this method obtains all the values being passed in.
 
         :param port_name: the name of the input port being queried
-        :type port_name: String 
+        :type port_name: String
         :returns: a list of all the values being passed in on the input port
         :raises: ``ModuleError`` if there is no value on the port
         """
@@ -1199,7 +1221,7 @@ class Module(Serializable):
         self.outputPorts[port_name] = value
 
     def check_input(self, port_name):
-        """check_input(port_name) -> None.  
+        """check_input(port_name) -> None.
         Raises an exception if the input port named *port_name* is not set.
 
         :param port_name: the name of the input port being checked
@@ -1208,13 +1230,13 @@ class Module(Serializable):
         """
         if not self.has_input(port_name):
             raise ModuleError(self, "'%s' is a mandatory port" % port_name)
-        
+
     def has_input(self, port_name):
         """Returns a boolean indicating whether there is a value coming in on
         the input port named **port_name**.
-        
+
         :param port_name: the name of the input port being queried
-        :type port_name: String 
+        :type port_name: String
         :rtype: Boolean
 
         """
@@ -1225,7 +1247,7 @@ class Module(Serializable):
         returns a user-specified default_value or None.
 
         :param port_name: the name of the input port being queried
-        :type port_name: String 
+        :type port_name: String
         :param default_value: the default value to be used if there is \
         no value on the input port
         :returns: the value being passed in on the input port or the default
@@ -1313,10 +1335,10 @@ class Module(Serializable):
         """Manually add provenance information to the module's execution
         trace.  For example, a module that generates random numbers
         might add the seed that was used to initialize the generator.
-        
+
         :param d: a dictionary where both the keys and values are strings
         :type d: Dictionary
-        
+
         """
 
         self.logging.annotate(self, d)
@@ -1334,17 +1356,17 @@ class Module(Serializable):
 
         """ enable_output_port(port_name: str) -> None
         Set an output port to be active to store result of computation
-        
+
         """
         # Don't reset existing values, it screws up the caching.
         if port_name not in self.outputPorts:
             self.set_output(port_name, None)
-            
+
     def remove_input_connector(self, port_name, connector):
         """ remove_input_connector(port_name: str,
                                  connector: ModuleConnector) -> None
         Remove a connector from the connection list of an input port
-        
+
         """
         if port_name in self.inputPorts:
             conList = self.inputPorts[port_name]
@@ -1374,7 +1396,7 @@ class Module(Serializable):
         # use the below tag if calling from a PythonSource
         # pragma: streaming - This tag is magic, do not change.
         from vistrails.core.modules.basic_modules import Generator
-        
+
         ports = self.streamed_ports.keys()
         specs = []
         num_inputs = self.streamed_ports[ports[0]].size
@@ -1383,7 +1405,7 @@ class Module(Serializable):
         module.had_error = False
         module.upToDate = False
         module.computed = False
-        
+
         if num_inputs:
             milestones = [i*num_inputs/10 for i in xrange(1,11)]
 
@@ -1404,12 +1426,12 @@ class Module(Serializable):
                 ## Type checking
                 module.typeChecking(module, ports, [elements])
                 module.setInputValues(module, ports, elements, i)
-        
+
                 userGenerator.next()
                 # <compute here>
                 #intsum += dict(zip(ports, elements))['integerStream']
                 #print "Sum so far:", intsum
-        
+
                 # <set output here if any>
                 #module.set_output(name_output, intsum)
                 if num_inputs:
@@ -1419,7 +1441,7 @@ class Module(Serializable):
                     self.logging.update_progress(self, 0.5)
                 i += 1
                 yield True
-        
+
         generator = _Generator(self)
         # sets streaming outputs for downstream modules
         for name_output in self.outputPorts:
@@ -1427,7 +1449,7 @@ class Module(Serializable):
                                  module=module,
                                  generator=generator,
                                  port=name_output)
-        
+
             self.set_output(name_output, iterator)
 
     def set_streaming_output(self, port, generator, size=0):
@@ -1488,6 +1510,8 @@ class Module(Serializable):
 
     @deprecated("get_input")
     def getInputFromPort(self, *args, **kwargs):
+        if 'allowDefault' in kwargs:
+            kwargs['allow_default'] = kwargs.pop('allowDefault')
         return self.get_input(*args, **kwargs)
 
     @deprecated("get_input_list")
@@ -1549,7 +1573,7 @@ class NotCacheable(object):
 
 class Streaming(object):
     """ A mixin indicating support for streamable inputs
-    
+
     """
     pass
 
@@ -1632,7 +1656,7 @@ class ModuleConnector(object):
     def get_raw(self):
         """get_raw() -> Module. Returns the value or a Generator."""
         return self.obj.get_output(self.port)
-        
+
 
     def __call__(self):
         result = self.obj.get_output(self.port)
@@ -1652,7 +1676,7 @@ class ModuleConnector(object):
             # flatten list
             for i in xrange(1, depth):
                 try:
-                    value = [item for sublist in value for item in sublist] 
+                    value = [item for sublist in value for item in sublist]
                 except TypeError:
                     raise ModuleError(self.obj, "List on port %s has wrong"
                                       " depth %s, expected %s." %
@@ -1716,17 +1740,19 @@ def new_module(base_module, name, dict={}, docstring=None):
     elif isinstance(base_module, list):
         assert sum(1 for x in base_module if issubclass(x, Module)) == 1
         superclasses = tuple(base_module)
+    else:
+        raise TypeError
     d = copy.copy(dict)
     if docstring:
         d['__doc__'] = docstring
     return type(name, superclasses, d)
-    
+
 # This is the gist of how type() works. The example is run from a python
 # toplevel
 
 # >>> class X(object):
 # ...     def f(self): return 3
-# ... 
+# ...
 # >>> a = X()
 # >>> a.f()
 # 3
@@ -1751,7 +1777,7 @@ class TestImplicitLooping(unittest.TestCase):
         from vistrails.core.console_mode import run
         from vistrails.tests.utils import capture_stdout
         import os
-        filename = os.path.join(vistrails_root_directory(), "tests", 
+        filename = os.path.join(vistrails_root_directory(), "tests",
                                 "resources", vt_basename)
         try:
             errs = []
@@ -1767,12 +1793,12 @@ class TestImplicitLooping(unittest.TestCase):
                     self.fail(str(err))
         except Exception, e:
             self.fail(debug.format_exception(e))
-        
+
     def test_implicit_while(self):
         self.run_vt("test-implicit-while.vt")
-    
+
     def test_streaming(self):
         self.run_vt("test-streaming.vt")
-        
+
     def test_list_custom(self):
         self.run_vt("test-list-custom.vt")

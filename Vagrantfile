@@ -4,7 +4,12 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "hashicorp/precise32"
+  config.vm.define "x86", primary: true do |m|
+    m.vm.box = "hashicorp/precise32"
+  end
+  config.vm.define "x86_64", autostart: false do |m|
+    m.vm.box = "hashicorp/precise64"
+  end
 
   config.vm.provision "shell",
     inline: <<SCRIPT

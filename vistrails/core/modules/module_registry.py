@@ -51,6 +51,7 @@ from vistrails.core.modules.config import ConstantWidgetConfig, \
 import vistrails.core.modules.vistrails_module
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.package import Package
+from vistrails.core.requirements import MissingRequirement
 import vistrails.core.modules.utils
 from vistrails.core.utils import VistrailsInternalError, memo_method, \
     InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
@@ -641,24 +642,7 @@ class ModuleRegistry(DBRegistry):
         # this can be slow
         self.setup_indices()
 
-    def create_default_package(self):
-        basic_pkg = get_vistrails_basic_pkg_id()
-        default_codepath = os.path.join(vistrails_root_directory(), 
-                                        "core", "modules", "basic_modules.py")
-        self._default_package = \
-            Package(id=self.idScope.getNewId(Package.vtType),
-                    codepath=default_codepath,
-                    load_configuration=False,
-                    identifier=basic_pkg,
-                    name='Basic Modules',
-                    version=vistrails_version(),
-                    description="Basic modules for VisTrails")
-        # FIXME need to serialize old_identifiers!
-        self._default_package.old_identifiers = ['edu.utah.sci.vistrails.basic']
-        self.add_package(self._default_package)
-        return self._default_package
-
-    def has_abs_upgrade(self, identifier, name, namespace='', 
+    def has_abs_upgrade(self, identifier, name, namespace='',
                         package_version='', module_version=''):
 
         # if this fails, we want to raise the exception
@@ -686,28 +670,6 @@ class ModuleRegistry(DBRegistry):
 
     ##########################################################################
     # Per-module registry functions
-
-    def add_hierarchy(self, global_registry, module):
-        # a per-module registry needs to have all the module hierarchy
-        # registered there so that add_module doesn't fail with
-        # missing base class. We do _NOT_ add the ports, so watch out!
-        
-        reg = global_registry
-        d = reg.get_descriptor_by_name(module.package, module.name, 
-                                       module.namespace)
-        # we exclude the first module in the hierarchy because it's Module
-        # which we know exists (constructor adds)
-        hierarchy = reg.get_module_hierarchy(d)
-        for desc in reversed(hierarchy[:-1]):
-            old_base = desc.base_descriptor
-            base_descriptor = self.get_descriptor_by_name(old_base.package,
-                                                          old_base.name,
-                                                          old_base.namespace)
-            # FIXME: this package_version should live on descriptor?
-            package = self.get_package_by_name(desc.package)
-            self.update_registry(base_descriptor, desc.module, desc.package, 
-                                 desc.name, desc.namespace, package.version,
-                                 desc.version)
 
     def get_package_by_name(self, identifier, package_version=''):
         package_version = package_version or ''
@@ -779,32 +741,28 @@ class ModuleRegistry(DBRegistry):
 
         try:
             package = self.packages[identifier]
-            if package_version:
-                package_version_key = (identifier, package_version)
-                package = self.package_versions[package_version_key]
-            if not module_version:
+        except KeyError:
+            raise MissingPackage(identifier)
+        if package_version:
+            try:
+                package = self.package_versions[(identifier, package_version)]
+            except KeyError:
+                raise MissingPackageVersion(identifier, package_version)
+        if not module_version:
+            try:
                 descriptor = package.descriptors[(name, namespace)]
-            else:
-                descriptor_version_key = (name, namespace, module_version)
+            except KeyError:
+                raise MissingModule(identifier, name, namespace,
+                                    package_version)
+        else:
+            descriptor_version_key = (name, namespace, module_version)
+            try:
                 descriptor = \
                     package.descriptor_versions[descriptor_version_key]
-            return descriptor
-        except KeyError:
-            if identifier not in self.packages:
-                raise MissingPackage(identifier)
-            elif (name, namespace) not in package.descriptors:
-                raise MissingModule(identifier, name, namespace, 
-                                    package_version)
-            elif package_version and \
-                    package_version_key not in self.package_versions:
-                raise MissingPackageVersion(identifier, package_version)
-            elif module_version and descriptor_version_key not in \
-                    package.descriptor_versions:
+            except KeyError:
                 raise MissingModuleVersion(identifier, name, namespace,
                                            module_version, package_version)
-            else:
-                raise ModuleRegistryException(identifier, name, namespace,
-                                              package_version, module_version)
+        return descriptor
 
     def get_similar_descriptor(self, identifier, name, namespace=None,
                                package_version=None, module_version=None):
@@ -817,10 +775,6 @@ class ModuleRegistry(DBRegistry):
         except MissingModuleVersion:
             return self.get_similar_descriptor(identifier, name, namespace,
                                                package_version, None)
-#         except Exception:
-#             raise
-
-        return None
             
     def get_descriptor(self, module):
         """get_descriptor(module: class) -> ModuleDescriptor
@@ -1682,6 +1636,8 @@ class ModuleRegistry(DBRegistry):
                     if hasattr(descriptor, 'module'):
                         self.auto_add_ports(descriptor.module)
                         added_descriptors.add(descriptor)
+        except MissingRequirement:
+            raise
         except Exception, e:
             raise package.InitializationFailed(package, 
                                                [traceback.format_exc()])

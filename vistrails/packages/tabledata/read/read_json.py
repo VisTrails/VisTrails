@@ -37,21 +37,20 @@ class JSONTable(Table):
     @staticmethod
     def add_dict(columns, keys, key_set, key, value):
         if not isinstance(value, dict):
-            raise ModuleError(
-                    self,
+            raise InternalModuleError(
                     "Entry for key %r is not an object" % key)
         value_keys = set(value.keys())
         m = key_set - value_keys
         if m:
-            raise ModuleError(
-                    self,
+            raise InternalModuleError(
                     "Entry for key %r is missing field %r" % (
+                    key,
                     next(iter(m))))
         m = value_keys - key_set
         if m:
-            raise ModuleError(
-                    self,
+            raise InternalModuleError(
                     "Entry for key %r has unexpected field %r" % (
+                    key,
                     next(iter(m))))
         if key is None:
             for i, k in enumerate(keys):

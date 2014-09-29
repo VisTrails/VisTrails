@@ -105,7 +105,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         
         """
         QtGui.QWidget.__init__(self, parent)
-        self.setWindowTitle('Properties')
+        self.setWindowTitle('Workflow Info')
 
         vLayout = QtGui.QVBoxLayout()
         vLayout.setMargin(2)
@@ -198,6 +198,8 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         Assign the controller to the property page
         
         """
+        if self.controller == controller:
+            return
         self.controller = controller
         self.versionNotes.controller = controller
         self.versionThumbs.controller = controller
@@ -484,6 +486,8 @@ class QVersionPropOverlay(QtGui.QFrame):
         Assign the controller to the properties
         
         """
+        if self.controller == controller:
+            return
         self.controller = controller
         self.notes_dialog.updateController(controller)
 

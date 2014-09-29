@@ -1187,7 +1187,7 @@ class QCellManipulator(QtGui.QFrame):
                                                         self.cellInfo[2])
             if info:
                 info = info[0]
-                view = builderWindow.ensureController(info['controller'])
+                view = builderWindow.ensureVistrail(info['locator'])
                 if view:
                     controller = view.controller
                     controller.change_selected_version(info['version'])
@@ -1206,7 +1206,7 @@ class QCellManipulator(QtGui.QFrame):
                                                         self.cellInfo[2])
             if info:
                 info = info[0]
-                view = builderWindow.ensureController(info['controller'])
+                view = builderWindow.ensureVistrail(info['locator'])
                 if view:
                     view.version_selected(info['version'], True)
                     view.version_view.select_current_version()

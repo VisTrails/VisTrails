@@ -39,6 +39,7 @@ import gc
 import cPickle as pickle
 
 from vistrails.core.common import InstanceObject, VistrailsInternalError
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 import vistrails.core.interpreter.base
@@ -197,6 +198,9 @@ class ViewUpdatingLogController(object):
 
 ###############################################################################
 
+Variant_desc = None
+InputPort_desc = None
+
 class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
     def __init__(self):
@@ -210,7 +214,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self._file_pool = FilePool()
         self._persistent_pipeline = vistrails.core.vistrail.pipeline.Pipeline()
         self._objects = {}
-        self._executed = {}
         self.filePool = self._file_pool
         self._streams = []
 
@@ -220,7 +223,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         for obj in self._objects.itervalues():
             obj.clear()
         self._objects = {}
-        self._executed = {}
 
     def __del__(self):
         self.clear()
@@ -261,6 +263,23 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                    for mod in self._persistent_pipeline.module_list
                    if mod.module_descriptor.identifier == identifier]
         self.clean_modules(modules)
+
+    def make_connection(self, conn, src, dst):
+        """make_connection(self, conn, src, dst)
+        Builds a execution-time connection between modules.
+
+        """
+        iport = conn.destination.name
+        oport = conn.source.name
+        src.enable_output_port(oport)
+        src.load_type_check_descs()
+        if isinstance(src, src.InputPort_desc.module):
+            typecheck = [False]
+        else:
+            typecheck = src.get_type_checks(conn.source.spec)
+        dst.set_input_port(iport,
+                           ModuleConnector(src, oport, conn.source.spec,
+                                           typecheck))
 
     def setup_pipeline(self, pipeline, **kwargs):
         """setup_pipeline(controller, pipeline, locator, currentVersion,
@@ -406,7 +425,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             conn = self._persistent_pipeline.connections[persistent_id]
             src = self._objects[conn.sourceId]
             dst = self._objects[conn.destinationId]
-            conn.makeConnection(src, dst)
+            self.make_connection(conn, src, dst)
 
         if self.done_summon_hook:
             self.done_summon_hook(self._persistent_pipeline, self._objects)

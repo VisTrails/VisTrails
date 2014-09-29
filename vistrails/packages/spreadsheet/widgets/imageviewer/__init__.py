@@ -36,7 +36,6 @@
 # ImageViewer plugin for VisTrails Spreadsheet
 ################################################################################
 from imageviewer import ImageViewerCell, ImageFileToSpreadsheet
-from vistrails.core.modules.output_modules import ImageFileOutput
 
 ################################################################################
 
@@ -57,5 +56,8 @@ def registerWidget(reg, basicModules, basicWidgets):
     reg.add_module(ImageViewerCell)
     reg.add_input_port(ImageViewerCell, "Location", basicWidgets.CellLocation)
     reg.add_input_port(ImageViewerCell, "File", basicModules.File)    
-    
-    ImageFileOutput.register_output_mode(ImageFileToSpreadsheet)
+
+    # FIXME we need an ImageOutput module defined for this, but this
+    # probably requires an Image type as well...
+    #
+    # ImageOutput.register_output_mode(ImageFileToSpreadsheet)

@@ -50,6 +50,7 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.setMargin(2)
         layout.setSpacing(3)
 
+        self.controller = None
         self.pe_properties = QParamExpProperties()
         p_prop_group = QtGui.QGroupBox(self.pe_properties.windowTitle())
         g_layout = QtGui.QVBoxLayout()
@@ -89,6 +90,8 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
         self.pe_properties.forwardAction = weakref.proxy(self.forwardAction)
 
     def set_controller(self, controller):
+        if self.controller == controller:
+            return
         self.controller = controller
         self.pe_properties.updateController(controller)
         if self.controller is not None:
@@ -228,7 +231,8 @@ class QParamExpProperties(QtGui.QWidget):
             self.tagReset.setEnabled(True)
             self.tagEdit.setText(self.pe.name or "")
             self.userEdit.setText(self.pe.user or "")
-            self.dateEdit.setText(self.pe.date or "")
+            self.dateEdit.setText(self.pe.date.strftime('%Y-%m-%d %H:%M:%S')
+                                  if self.pe.date else "")
         else:
             self.versionsLabel.setText('Exploration: 0/0')
             self.backAction.setEnabled(False)

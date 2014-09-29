@@ -56,7 +56,6 @@ import SocketServer
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from datetime import date, datetime
 
-from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.application import VistrailsApplicationInterface
 import vistrails.gui.theme
 import vistrails.core.application
@@ -65,9 +64,7 @@ from vistrails.core.db.locator import DBLocator, ZIPFileLocator, FileLocator
 from vistrails.core.db import io
 import vistrails.core.db.action
 
-from vistrails.core.utils import InstanceObject
 from vistrails.core.vistrail.vistrail import Vistrail
-from vistrails.core import command_line
 from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry as module_registry
 from vistrails.core import interpreter
@@ -360,7 +357,7 @@ class RequestHandler(object):
                     self.server_logger.error(err_msg)
                 finally:
                     self.proxies_queue.put(proxy)
-                if s == 0:
+                if s == 0:  # FIXME : s might not be defined here
                     messages.append('An error occurred: %s' % result)
                 else:
                     messages.append(result[1])
@@ -543,6 +540,7 @@ class RequestHandler(object):
         config['db'] = db_name
         config['user'] = db_write_user
         config['passwd'] = db_write_pass
+        conn = None
         try:
             conn = vistrails.db.services.io.open_db_connection(config)
             vistrails.db.services.io.delete_entity_from_db(conn,'vistrail', vt_id)
@@ -550,7 +548,7 @@ class RequestHandler(object):
             return (1, 1)
         except Exception, e:
             self.server_logger.error(str(e))
-            if conn:
+            if conn is not None:
                 vistrails.db.services.io.close_db_connection(conn)
             return (str(e), 0)
 
@@ -640,23 +638,16 @@ class RequestHandler(object):
                             obj_type=None,
                             connection_id=None)
         (vistrail, abstractions , thumbnails, mashups)  = io.load_vistrail(locator)
-        from core.vistrail.controller import VistrailController as BaseController
+        from vistrails.core.vistrail.controller import VistrailController as BaseController
         c = BaseController()
         c.set_vistrail(vistrail, locator, abstractions, thumbnails, mashups)
 
-        # get server packages
-        local_packages = [x.identifier for x in module_registry().package_list]
-        version_id = 0
-        version_tag = 0
-
-        from db.domain import IdScope
-        from core.vistrail.connection import Connection
-        from core.vistrail.module import Module
-        from core.vistrail.port import Port
+        from vistrails.core.vistrail.connection import Connection
+        from vistrails.core.vistrail.module import Module
+        from vistrails.core.vistrail.port import Port
 
         # get last pipeline
-        workflow = False
-        if (vt_tag == ''):
+        if vt_tag == '':
             version = vistrail.get_latest_version()#-1;
         else:
             version = int(vt_tag)
@@ -668,22 +659,20 @@ class RequestHandler(object):
         id_scope = vistrail.idScope
         if workflow:
             # if doesnt have VTKWebView and vtkRenderer
-            if ("vtkRenderer" not in [x.name for x in workflow.module_list]):
+            if "vtkRenderer" not in [x.name for x in workflow.module_list]:
                 return (str("Doesn't have vtkRenderer"), 1)
 
             # if already have VTKWebView, execute it
-            if ("VTKWebView" not in [x.name for x in workflow.module_list]):
+            if "VTKWebView" not in [x.name for x in workflow.module_list]:
                 # else, add VTKWebView to vtkRenderer and execute it
                 renderer = workflow.module_list[[x.name for x in workflow.module_list].index('vtkRenderer')]
-
-                action_list = []
 
                 mWeb = Module(id=id_scope.getNewId(Module.vtType),
                            name='VTKWebView',
                            package='edu.utah.sci.vistrails.vtWebGL',
                            functions=[])
                 mWeb.version = '0.0.2'
-                workflow.add_module(mWeb);
+                workflow.add_module(mWeb)
                 # create connection from render to web
                 source = Port(id=id_scope.getNewId(Port.vtType),
                               type='source',
@@ -702,7 +691,7 @@ class RequestHandler(object):
                 workflow.add_connection(c1)
                 workflow.validate()
 
-            c.current_pipeline = workflow;
+            c.current_pipeline = workflow
             (results, x) = c.execute_current_workflow()
             if len(results[0].errors.values()) > 0:
                 print "> ERROR: ", results[0].errors
@@ -726,6 +715,7 @@ class RequestHandler(object):
                 # recovering from it... (the server can find cached images)
                 self.server_logger.error("couldn't instantiate medley")
 
+            # FIXME : there's no "recovering", this line will raise NameError
             self.server_logger.debug("%s medley: %s"%(medley._type, medley._name))
             result = ""
             subdir = hashlib.sha224(xml_string).hexdigest()
@@ -751,10 +741,7 @@ class RequestHandler(object):
             if extra_info is None:
                 extra_info = {}
 
-            if extra_info.has_key('pathDumpCells'):
-                if extra_info['pathDumpCells']:
-                    extra_path = extra_info['pathDumpCells']
-            else:
+            if not extra_info.has_key('pathDumpCells'):
                 extra_info['pathDumpCells'] = path_to_images
 
             if not self.path_exists_and_not_empty(extra_info['pathDumpCells']):
@@ -775,7 +762,7 @@ class RequestHandler(object):
                     workflow = medley._version
                     sequence = False
                     for (k,v) in medley._alias_list.iteritems():
-                        if v._component._seq == True:
+                        if v._component._seq:
                             sequence = True
                             val = XMLObject.convert_from_str(v._component._minVal,
                                                              v._component._spec)
@@ -797,7 +784,7 @@ class RequestHandler(object):
                                 try:
                                     gc.collect()
                                     results = \
-                                      vistrails.core.console_mode.run_and_get_results( \
+                                      vistrails.core.console_mode.run_and_get_results(
                                                     [(locator,int(workflow))],
                                                     s_alias,
                                                     update_vistrail=False,
@@ -820,7 +807,6 @@ class RequestHandler(object):
                                     self.server_logger.info("renaming files")
                                     for root, dirs, file_names in os.walk(extra_info['pathDumpCells']):
                                         break
-                                    s = []
                                     for f in file_names:
                                         if f.lower().endswith(".png"):
                                             fmask = "%s_"+mask+"%s"
@@ -845,7 +831,7 @@ class RequestHandler(object):
                             self.server_logger.info("Not sequence aliases: %s"% s_alias)
                         try:
                             results = \
-                               vistrails.core.console_mode.run_and_get_results( \
+                               vistrails.core.console_mode.run_and_get_results(
                                                 [(locator,int(workflow))],
                                                     s_alias,
                                                     extra_info=extra_info)
@@ -862,7 +848,7 @@ class RequestHandler(object):
                                     ok = False
                                     result += str(errors[i])
 
-                    self.server_logger.info( "success?  %s"% ok)
+                    self.server_logger.info("success?  %s" % ok)  # FIXME : ok might not be defined
 
                 elif medley._type == 'visit':
                     cur_dir = os.getcwd()
@@ -976,7 +962,7 @@ class RequestHandler(object):
 
             result = ''
             if vt_tag !='':
-                version = vt_tag;
+                version = vt_tag
             try:
                 locator = DBLocator(host=host,
                                     port=int(port),
@@ -986,17 +972,15 @@ class RequestHandler(object):
                                     obj_id=int(vt_id),
                                     obj_type=None,
                                     connection_id=None)
-                results = []
                 self.server_logger.info("run_and_get_results(%s,%s,%s,%s,%s)" % \
                             (locator, version, parameters, True, extra_info))
                 try:
-                    results = \
-                    vistrails.core.console_mode.run_and_get_results([(locator,
-                                                          int(version))],
-                                                          parameters,
-                                                          update_vistrail=True,
-                                                          extra_info=extra_info,
-                                                          reason="Server Pipeline Execution")
+                    results = vistrails.core.console_mode.run_and_get_results(
+                            [(locator, int(version))],
+                            parameters,
+                            update_vistrail=True,
+                            extra_info=extra_info,
+                            reason="Server Pipeline Execution")
                 except Exception, e:
                     self.server_logger.error("workflow execution failed:")
                     self.server_logger.error(str(e))
@@ -1393,7 +1377,7 @@ class RequestHandler(object):
             vt_id = long(vt_id)
             subdir = 'vistrails'
             filepath = os.path.join(media_dir, 'graphs', subdir)
-            base_fname = "graph_%s.png" % (vt_id)
+            base_fname = "graph_%s.png" % vt_id
             filename = os.path.join(filepath,base_fname)
             if ((not os.path.exists(filepath) or
                 (os.path.exists(filepath) and not os.path.exists(filename)) or
@@ -1482,7 +1466,7 @@ class RequestHandler(object):
             vt_id = long(vt_id)
             subdir = 'vistrails'
             filepath = os.path.join(media_dir, 'graphs', subdir)
-            base_fname = "graph_%s.pdf" % (vt_id)
+            base_fname = "graph_%s.pdf" % vt_id
             filename = os.path.join(filepath,base_fname)
             if ((not os.path.exists(filepath) or
                 (os.path.exists(filepath) and not os.path.exists(filename)) or
@@ -1835,11 +1819,11 @@ class MedleySimpleGUI(XMLObject):
         self._vtid = vtid
         self._type = t
 
-        if has_seq == None:
+        if has_seq is None:
             self._has_seq = False
             if isinstance(self._alias_list, dict):
                 for v in self._alias_list.itervalues():
-                    if v._component._seq == True:
+                    if v._component._seq:
                         self._has_seq = True
         else:
             self._has_seq = has_seq
@@ -1938,9 +1922,12 @@ class AliasSimpleGUI(XMLObject):
         id = AliasSimpleGUI.convert_from_str(data, 'long')
         data = node.get('name', None)
         name = AliasSimpleGUI.convert_from_str(data, 'str')
+        component = None
         for child in node.getchildren():
             if child.tag == "component":
                 component = ComponentSimpleGUI.from_xml(child)
+        if component is None:
+            raise RuntimeError("Missing component tag")
         alias = AliasSimpleGUI(id,name,component)
         return alias
 
@@ -2103,9 +2090,6 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.rpcserver = None
         self.pingserver = None
         self.images_url = "http://vistrails.sci.utah.edu/medleys/images/"
-        self.temp_xml_rpc_options = InstanceObject(server=None,
-                                                   port=None,
-                                                   log_file=None)
         qt.allowQObjects()
 
     def is_running_gui(self):
@@ -2253,27 +2237,26 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
                                    "Please populate it with the correct values and use it" %
                                    (filename, new_filename))
 
-    def init(self, optionsDict=None):
+    def init(self, optionsDict=None, args=[]):
         """ init(optionDict: dict) -> boolean
         Create the application with a dict of settings
 
         """
-        VistrailsApplicationInterface.init(self,optionsDict)
+        VistrailsApplicationInterface.init(self,optionsDict, args)
 
-        self.vistrailsStartup.init()
-        self.server_logger = self.make_logger(self.temp_xml_rpc_options.log_file,
-                                              self.temp_xml_rpc_options.port)
-        self.load_config(self.temp_xml_rpc_options.config_file)
-        self.start_other_instances(self.temp_xml_rpc_options.instances)
-        self._python_environment = self.vistrailsStartup.get_python_environment()
+        # self.vistrailsStartup.init()
+        self.server_logger = self.make_logger(self.temp_configuration.check('rpcLogFile'),
+                                              self.temp_configuration.check('rpcPort'))
+        self.load_config(self.temp_configuration.check('rpcConfig'))
+        self.start_other_instances(self.temp_configuration.check('rpcInstances'))
         self._initialized = True
         return True
 
     def start_other_instances(self, number):
         global virtual_display, script_file
         self.others = []
-        host = self.temp_xml_rpc_options.server
-        port = self.temp_xml_rpc_options.port
+        host = self.temp_configuration.check('rpcServer')
+        port = self.temp_configuration.check('rpcPort')
         virt_disp = int(virtual_display)
         for x in xrange(number):
             port += 1   # each instance needs one port space for now
@@ -2281,7 +2264,7 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
             virt_disp += 1
             args = [script_file,":%s"%virt_disp,host,str(port),'0', '0']
             try:
-                p = subprocess.Popen(args)
+                subprocess.Popen(args)
                 time.sleep(20)
                 self.others.append("http://%s:%s"%(host,port))
             except Exception, e:
@@ -2306,39 +2289,46 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         via xml-rpc.
         """
 
-        self.server_logger.info("Server is running on http://%s:%s"%(self.temp_xml_rpc_options.server,
-                                                   self.temp_xml_rpc_options.port))
-        if self.temp_xml_rpc_options.multithread:
-            self.rpcserver = ThreadedXMLRPCServer((self.temp_xml_rpc_options.server,
-                                                   self.temp_xml_rpc_options.port),
-                                                  self.server_logger)
+        self.server_logger.info("Server is running on http://%s:%s"%(
+                                   self.temp_configuration.check('rpcServer'),
+                                   self.temp_configuration.check('rpcPort')))
+        if self.temp_configuration.check('multithread'):
+            self.rpcserver = ThreadedXMLRPCServer(
+                                  (self.temp_configuration.check('rpcServer'),
+                                   self.temp_configuration.check('rpcPort')),
+                                  self.server_logger)
             self.server_logger.info("    multithreaded instance")
         else:
-            self.rpcserver = StoppableXMLRPCServer((self.temp_xml_rpc_options.server,
-                                                   self.temp_xml_rpc_options.port),
-                                                   self.server_logger)
+            self.rpcserver = StoppableXMLRPCServer(
+                                  (self.temp_configuration.check('rpcServer'),
+                                   self.temp_configuration.check('rpcPort')),
+                                  self.server_logger)
             """
-            self.pingserver = StoppableXMLRPCServer((self.temp_xml_rpc_options.server,
-                                                    self.temp_xml_rpc_options.port-1),
-                                                    self.server_logger)
+            self.pingserver = StoppableXMLRPCServer(
+                                 (self.temp_configuration.check('rpcServer'),
+                                  self.temp_configuration.check('rpcPort')-1),
+                                 self.server_logger)
             """
             self.server_logger.info("    singlethreaded instance")
         #self.rpcserver.register_introspection_functions()
         self.rpcserver.register_instance(RequestHandler(self.server_logger,
                                                         self.others))
         if self.pingserver:
-            self.pingserver.register_instance(RequestHandler(self.server_logger, []))
-            self.server_logger.info("Status XML RPC Server is listening on http://%s:%s"% \
-                            (self.temp_xml_rpc_options.server,
-                             self.temp_xml_rpc_options.port-1))
+            self.pingserver.register_instance(RequestHandler(
+                                                      self.server_logger, []))
+            self.server_logger.info(
+                       "Status XML RPC Server is listening on http://%s:%s"% \
+                            (self.temp_configuration.check('rpcServer'),
+                             self.temp_configuration.check('rpcPort')-1))
             self.pingserver.register_function(self.quit_server, "quit")
             self.pingserver.serve_forever()
             self.pingserver.serve_close()
 
         self.rpcserver.register_function(self.quit_server, "quit")
-        self.server_logger.info("Vistrails XML RPC Server is listening on http://%s:%s"% \
-                        (self.temp_xml_rpc_options.server,
-                         self.temp_xml_rpc_options.port))
+        self.server_logger.info(
+                    "Vistrails XML RPC Server is listening on http://%s:%s"% \
+                        (self.temp_configuration.check('rpcServer'),
+                         self.temp_configuration.check('rpcPort')))
         self.rpcserver.serve_forever()
         self.rpcserver.server_close()
         return 0
@@ -2350,53 +2340,10 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         self.rpcserver.stop = True
         return result
 
-    def setupOptions(self, args=None):
-        """ setupOptions() -> None
-        Check and store all command-line arguments
-
-        """
-        add = command_line.CommandLineParser.add_option
-
-        add("-T", "--xml_rpc_server", action="store", dest="rpcserver",
-            help="hostname or ip address where this xml rpc server will work")
-        add("-R", "--xml_rpc_port", action="store", type="int", default=8080,
-            dest="rpcport", help="database port")
-        add("-L", "--xml_rpc_log_file", action="store", dest="rpclogfile",
-            default=os.path.join(system.vistrails_root_directory(),
-                                 'rpcserver.log'),
-            help="log file for XML RPC server")
-        add("-O", "--xml_rpc_instances", action="store", type='int', default=0,
-            dest="rpcinstances",
-            help="number of other instances that vistrails should start")
-        add("-M", "--multithreaded", action="store_true",
-            default = None, dest='multithread',
-            help="server will start a thread for each request")
-        add("-C", "--config-file", action="store", dest = "rpcconfig",
-            default=os.path.join(system.vistrails_root_directory(),
-                                 'server.cfg'),
-            help="config file for server connection options")
-        VistrailsApplicationInterface.setupOptions(self, args)
-
-    def readOptions(self):
-        """ readOptions() -> None
-        Read arguments from the command line
-
-        """
-        get = command_line.CommandLineParser().get_option
-        self.temp_xml_rpc_options = InstanceObject(server=get('rpcserver'),
-                                                   port=get('rpcport'),
-                                                   log_file=get('rpclogfile'),
-                                                   instances=get('rpcinstances'),
-                                                   multithread=get('multithread'),
-                                                   config_file=get('rpcconfig'))
-        VistrailsApplicationInterface.readOptions(self)
-
-
-
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
-def start_server(optionsDict=None):
+def start_server(optionsDict=None, args=[]):
     """Initializes the application singleton."""
     global VistrailsServer
     if VistrailsServer:
@@ -2405,8 +2352,7 @@ def start_server(optionsDict=None):
     VistrailsServer = VistrailsServerSingleton()
     vistrails.gui.theme.initializeCurrentTheme()
     vistrails.core.application.set_vistrails_application(VistrailsServer)
-    x = VistrailsServer.init(optionsDict)
-    if x == True:
+    if VistrailsServer.init(optionsDict, args):
         return 0
     else:
         return 1

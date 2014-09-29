@@ -54,7 +54,6 @@ class MplFigureToSpreadsheet(SpreadsheetMode):
     @classmethod
     def can_compute(cls):
         return SpreadsheetMode.can_compute()
-        return True
 
     def compute_output(self, output_module, configuration=None):
         fig = output_module.get_input('value')

@@ -753,7 +753,7 @@ class UpgradeWorkflowHandler(object):
                                                        old_module_t[0])
             else:
                 new_module_desc = reg.get_descriptor(new_module_type)
-                new_module_t = new_module_desc.spec_tuple()
+                new_module_t = new_module_desc.spec_tuple
 
             new_pkg_version = module_remap.output_version
             if (new_pkg_version is None or
@@ -875,8 +875,8 @@ class TestUpgradePackageRemap(unittest.TestCase):
 
         app = get_vistrails_application()
         created_vistrail = False
+        pm = get_package_manager()
         try:
-            pm = get_package_manager()
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})
@@ -950,8 +950,8 @@ class TestUpgradePackageRemap(unittest.TestCase):
         app.temp_configuration.upgradeDelay = False
 
         created_vistrail = False
+        pm = get_package_manager()
         try:
-            pm = get_package_manager()
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})

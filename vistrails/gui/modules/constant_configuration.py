@@ -61,9 +61,11 @@ class ConstantWidgetMixin(object):
 
     def __init__(self, contents=None):
         self._last_contents = contents
+        self.psi = None
 
     def update_parent(self):
         newContents = self.contents()
+        
         if newContents != self._last_contents:
             if self.parent() and hasattr(self.parent(), 'updateMethod'):
                 self.parent().updateMethod()
@@ -82,6 +84,7 @@ class ConstantWidgetBase(ConstantWidgetMixin):
             value = param.strValue
         ConstantWidgetMixin.__init__(self, value)
 
+        self.psi = psi
         if psi and psi.default:
             self.setDefault(psi.default)
         self.setContents(param.strValue)
@@ -145,7 +148,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetBase):
         ConstantWidgetBase.__init__(self, param)
         self.connect(self, QtCore.SIGNAL("returnPressed()"), 
                      self.update_parent)
-        
+
     def setContents(self, value, silent=False):
         self.setText(expression.evaluate_expressions(value))
         if not silent:
@@ -154,6 +157,16 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetBase):
     def contents(self):
         contents = expression.evaluate_expressions(unicode(self.text()))
         self.setText(contents)
+        try:
+            self.psi and \
+            self.psi.descriptor.module.translate_to_python(contents)
+        except Exception, e:
+            # Color background yellow and add tooltip
+            self.setStyleSheet("border:2px dashed #efef00;")
+            self.setToolTip("Invalid value: %s" % str(e))
+        else:
+            self.setStyleSheet("")
+            self.setToolTip("")
         return contents
 
     def setDefault(self, value):

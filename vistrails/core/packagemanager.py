@@ -50,9 +50,11 @@ import vistrails.core.data_structures.graph
 from vistrails.core.modules.module_registry import MissingPackage, \
     MissingPackageVersion
 from vistrails.core.modules.package import Package
+from vistrails.core.requirements import MissingRequirement
 from vistrails.core.utils import VistrailsInternalError, \
     versions_increasing, VistrailsDeprecation
 import vistrails.packages
+
 ##############################################################################
 
 
@@ -292,14 +294,6 @@ class PackageManager(object):
         self._package_list[codepath] = package
         if prefix is not None:
             self._default_prefix_dict[codepath] = prefix
-
-    def initialize_abstraction_pkg(self, prefix_dictionary):
-        if self._abstraction_pkg is None:
-            raise RuntimeError("Subworkflows packages is None")
-        self.add_to_package_list(self._abstraction_pkg.codepath,
-                                 self._abstraction_pkg)
-        self.late_enable_package(self._abstraction_pkg.codepath, 
-                                 prefix_dictionary, False)
 
     def remove_old_identifiers(self, identifier):
         # remove refs in old_identifier_map
@@ -567,7 +561,8 @@ class PackageManager(object):
         for dep_pkg in reversed(reverse_deps):
             self.late_enable_package(dep_pkg.codepath, prefix_dictionary)
 
-    def initialize_packages(self,prefix_dictionary={}):
+    def initialize_packages(self, prefix_dictionary={},
+                            report_missing_dependencies=True):
         """initialize_packages(prefix_dictionary={}): None
 
         Initializes all installed packages. If prefix_dictionary is
@@ -599,6 +594,11 @@ class PackageManager(object):
                 # the reference in the package list
                 self._startup.set_package_to_disabled(package.codepath)
                 failed.append(package)
+            except MissingRequirement, e:
+                debug.critical("Package <codepath %s> is missing a "
+                               "requirement: %s" % (
+                                   package.codepath, e.requirement),
+                               e)
             except Package.InitializationFailed, e:
                 debug.critical("Initialization of package <codepath %s> "
                                "failed and will be disabled" %
@@ -637,13 +637,15 @@ class PackageManager(object):
             try:
                 self.add_dependencies(package)
             except Package.MissingDependency, e:
-                debug.critical("Dependencies of package %s are missing "
-                               "so it will be disabled" % package.name,
-                               e)
+                if report_missing_dependencies:
+                    debug.critical("Dependencies of package %s are missing "
+                                   "so it will be disabled" % package.name,
+                                   e)
             except Exception, e:
-                debug.critical("Got an exception while getting dependencies "
-                               "of %s so it will be disabled" % package.name,
-                               e)
+                if report_missing_dependencies:
+                    debug.critical("Got an exception while getting dependencies "
+                                   "of %s so it will be disabled" % package.name,
+                                   e)
             else:
                 continue
             self._startup.set_package_to_disabled(package.codepath)
@@ -653,7 +655,7 @@ class PackageManager(object):
                 del self._package_versions[package.identifier]
             self.remove_old_identifiers(package.identifier)
             failed.append(package)
-        
+
         for pkg in failed:
             del self._package_list[pkg.codepath]
 
@@ -672,6 +674,13 @@ class PackageManager(object):
                 #pkg.check_requirements()
                 try:
                     self._registry.initialize_package(pkg)
+                except MissingRequirement, e:
+                    if report_missing_dependencies:
+                        debug.critical("Package <codepath %s> is missing a "
+                                       "requirement: %s" % (
+                                           pkg.codepath, e.requirement),
+                                       e)
+                    self.late_disable_package(pkg.codepath)
                 except Package.InitializationFailed, e:
                     debug.critical("Initialization of package <codepath %s> "
                                    "failed and will be disabled" %
@@ -681,7 +690,6 @@ class PackageManager(object):
                     # we know will not be necessary - the only thing needed is
                     # the reference in the package list
                     self.late_disable_package(pkg.codepath)
-#                     failed.append(package)
                 else:
                     self.add_menu_items(pkg)
                     app = get_vistrails_application()
@@ -753,9 +761,8 @@ class PackageManager(object):
                 if (hasattr(pkg._module, "can_handle_identifier") and
                         pkg._module.can_handle_identifier(identifier)):
                     return pkg
-            except pkg.LoadFailed:
-                pass
-            except pkg.InitializationFailed:
+            except (pkg.LoadFailed, pkg.InitializationFailed,
+                    MissingRequirement):
                 pass
             except Exception, e:
                 pass

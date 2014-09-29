@@ -165,16 +165,6 @@ class VistrailsApplicationInterface(object):
             self.temp_configuration)
 
         # now we want to open vistrails and point to a specific version
-        # we will store the version in temp options as it doesn't
-        # need to be persistent. We will do the same to database
-        # information passed in the command line
-        self.temp_db_options = InstanceObject(host=None,
-                                           port=None,
-                                           db=None,
-                                           user=None,
-                                           vt_id=None,
-                                           parameters=None
-                                           ) 
 
         self.check_all_requirements()
 
@@ -194,14 +184,6 @@ class VistrailsApplicationInterface(object):
                 'linux-ubuntu': 'python-scipy',
                 'linux-fedora': 'scipy',
                 'pip': 'scipy'})
-
-    def get_python_environment(self):
-        """get_python_environment(): returns an environment that includes
-        local definitions from startup.py. Should only be called after
-        self.init()
-
-        """
-        return self._python_environment
 
     def destroy(self):
         """ destroy() -> None
@@ -244,13 +226,13 @@ class VistrailsApplicationInterface(object):
                     name = str(data[0])
                 # will try to convert version to int
                 # if it fails, it's a tag name
+                #maybe a tag name contains ':' in its name
+                #so we need to bring it back together
+                rest = ":".join(data[1:])
                 try:
-                    #maybe a tag name contains ':' in its name
-                    #so we need to bring it back together
-                    rest = ":".join(data[1:])
                     version = int(rest)
                 except ValueError:
-                    version = str(rest)
+                    version = rest
             elif len(data) == 1:
                 if use_filename and os.path.isfile(str(data[0])):
                     name = str(data[0])
@@ -261,7 +243,7 @@ class VistrailsApplicationInterface(object):
     def process_interactive_input(self):
         pe = None
         usedb = False
-        if self.temp_db_options is not None and self.temp_db_options.host:
+        if self.temp_configuration.check('host'):
             usedb = True
         if self.input:
             #check if versions are embedded in the filename
@@ -277,14 +259,15 @@ class VistrailsApplicationInterface(object):
                     # it can be either a FileLocator or a DBLocator
                     
                 elif usedb:
-                    locator = DBLocator(host=self.temp_db_options.host,
-                                        port=self.temp_db_options.port,
-                                        database=self.temp_db_options.db,
-                                        user='',
-                                        passwd='',
-                                        obj_id=f_name,
-                                        obj_type=None,
-                                        connection_id=None)
+                    locator = DBLocator(
+                           host=self.temp_configuration.check('host'),
+                           port=self.temp_configuration.check('port') or 3306,
+                           database=self.temp_configuration.check('db'),
+                           user='',
+                           passwd='',
+                           obj_id=f_name,
+                           obj_type=None,
+                           connection_id=None)
                 if locator:
                     if self.temp_configuration.check('parameterExploration'):
                         pe = version
@@ -362,7 +345,8 @@ class VistrailsApplicationInterface(object):
                 try:
                     #print "  m: ", m
                     m(*args)
-                except Exception:
+                except Exception, e:
+                    debug.unexpected_exception(e)
                     traceback.print_exc()
 
     def showBuilderWindow(self):
@@ -432,7 +416,7 @@ class VistrailsApplicationInterface(object):
                 controller = self.add_vistrail(loaded_objs[0], locator, 
                                                *loaded_objs[1:])
                 if locator.is_untitled():
-                    return True
+                    return controller
                 controller.is_abstraction = is_abstraction
                 thumb_cache = ThumbnailCache.getInstance()
                 controller.vistrail.thumbnails = controller.find_thumbnails(
@@ -457,30 +441,28 @@ class VistrailsApplicationInterface(object):
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
-        return True
-        
+        return controller
+
     def open_workflow(self, locator):
         if isinstance(locator, basestring):
             locator = BaseLocator.from_url(locator)
 
-        vistrail = Vistrail()
+        new_locator = UntitledLocator()
+        controller = self.open_vistrail(new_locator)
         try:
             if locator is None:
                 return False
-            if locator is not None:
-                workflow = locator.load(Pipeline)
-                action_list = []
-                for module in workflow.module_list:
-                    action_list.append(('add', module))
-                for connection in workflow.connection_list:
-                    action_list.append(('add', connection))
-                action = vistrails.core.db.action.create_action(action_list)
-                vistrail.add_action(action, 0L)
-                vistrail.update_id_scope()
-                vistrail.addTag("Imported workflow", action.id)
-
-                # FIXME might need different locator?                
-                controller = self.add_vistrail(vistrail, locator)
+            workflow = locator.load(Pipeline)
+            action_list = []
+            for module in workflow.module_list:
+                action_list.append(('add', module))
+            for connection in workflow.connection_list:
+                action_list.append(('add', connection))
+            action = vistrails.core.db.action.create_action(action_list)
+            controller.add_new_action(action)
+            controller.perform_action(action)
+            controller.vistrail.set_tag(action.id, "Imported workflow")
+            controller.change_selected_version(action.id)
         except VistrailsDBException:
             debug.critical("Exception from the database",
                            traceback.format_exc())
@@ -488,7 +470,7 @@ class VistrailsApplicationInterface(object):
 
         controller.select_latest_version()
         controller.set_changed(True)
-        return True
+        return controller
 
     def save_vistrail(self, locator=None, controller=None, export=False):
         if controller is None:
@@ -557,7 +539,8 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
     def init(self, options_dict=None, args=[]):
         VistrailsApplicationInterface.init(self, options_dict=options_dict, 
                                            args=args)
-        self.package_manager.initialize_packages()
+        self.package_manager.initialize_packages(
+                report_missing_dependencies=not self.startup.first_run)
 
     def is_running_gui(self):
         return False
