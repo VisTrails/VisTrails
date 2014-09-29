@@ -254,7 +254,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
                 widget_type = "lineedit"
 
         if widget_type == "combo":
-            self.set_combo_value(widget, val)
+            self.set_combo_value(widget, val, field)
         elif widget_type == "lineedit":
             self.set_line_edit_value(widget, val)
         elif widget_type == "pathedit":
@@ -373,7 +373,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
                 entries = values
             for entry in entries:
                 combo.addItem(entry)
-        self.set_combo_value(combo, config_val)
+        self.set_combo_value(combo, config_val, field)
         layout.addWidget(combo, row, 1)
 
         def call_field_changed(val):
@@ -383,7 +383,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         combo.currentIndexChanged[unicode].connect(call_field_changed)
         return combo
 
-    def set_combo_value(self, combo, config_val):
+    def set_combo_value(self, combo, config_val, field):
         options = {}
         if field.widget_options is not None:  # 'field' unset here
             options = field.widget_options
