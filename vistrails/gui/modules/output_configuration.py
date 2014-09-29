@@ -233,7 +233,6 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         self.field_widgets[config_key] = widget
 
     def reset_field(self, widget, field, mode_config, mode_type):
-        config_key = (mode_type, field.name)
         if mode_config is not None and field.name in mode_config:
             config_val = mode_config[field.name]
         else:
