@@ -407,13 +407,14 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 # super(QInteractiveGraphicsView, self).mousePressEvent(e)
         else:
             if buttons & QtCore.Qt.RightButton:
+                self.computeScale()
                 if item is None:
                     self.setCursorState(2)
-                    self.computeScale()
                 else:
                     QtGui.QGraphicsView.mousePressEvent(self, e)
             elif buttons & QtCore.Qt.MidButton:
                 self.setCursorState(3)
+                self.computeScale()
                 self.startScroll = (self.horizontalScrollBar().value(),
                                     self.verticalScrollBar().value())
             self.lastPos = QtCore.QPoint(QtGui.QCursor.pos())
