@@ -384,7 +384,11 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         return combo
 
     def set_combo_value(self, combo, config_val):
-        if "allowed_values" in options:  # FIXME : options unset here
+        options = {}
+        if field.widget_options is not None:
+            options = field.widget_options
+
+        if "allowed_values" in options:
             if "remap" in options:
                 remap = options["remap"]
                 cur_text = remap[config_val]
