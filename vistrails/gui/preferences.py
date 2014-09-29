@@ -39,6 +39,7 @@ from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package
+from vistrails.core.requirements import MissingRequirement
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import InvalidPipeline
 from vistrails.core.utils.uxml import (named_elements,
@@ -321,7 +322,7 @@ class QPackagesWidget(QtGui.QWidget):
             palette.setUpdatesEnabled(False)
             try:
                 pm.late_enable_package(codepath)
-            except Package.InitializationFailed, e:
+            except (Package.InitializationFailed, MissingRequirement), e:
                 debug.critical("Initialization of package '%s' failed" %
                                codepath,
                                e)

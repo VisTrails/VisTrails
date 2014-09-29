@@ -582,6 +582,11 @@ class PackageManager(object):
                 # the reference in the package list
                 self._startup.set_package_to_disabled(package.codepath)
                 failed.append(package)
+            except MissingRequirement, e:
+                debug.critical("Package <codepath %s> is missing a "
+                               "requirement: %s" % (
+                                   package.codepath, e.requirement),
+                               e)
             except Package.InitializationFailed, e:
                 debug.critical("Initialization of package <codepath %s> "
                                "failed and will be disabled" %
@@ -660,8 +665,9 @@ class PackageManager(object):
                 except MissingRequirement, e:
                     if report_missing_dependencies:
                         debug.critical("Package <codepath %s> is missing a "
-                                       "requirement and will be disabled" %
-                                       pkg.codepath, unicode(e))
+                                       "requirement: %s" % (
+                                           pkg.codepath, e.requirement),
+                                       e)
                     self.late_disable_package(pkg.codepath)
                 except Package.InitializationFailed, e:
                     debug.critical("Initialization of package <codepath %s> "
@@ -743,9 +749,8 @@ class PackageManager(object):
                 if (hasattr(pkg._module, "can_handle_identifier") and
                         pkg._module.can_handle_identifier(identifier)):
                     return pkg
-            except pkg.LoadFailed:
-                pass
-            except pkg.InitializationFailed:
+            except (pkg.LoadFailed, pkg.InitializationFailed,
+                    MissingRequirement):
                 pass
             except Exception, e:
                 pass
