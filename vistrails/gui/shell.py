@@ -51,7 +51,14 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
+_shell_dialog = None
+
 def get_shell_dialog():
+    global _shell_dialog
+
+    if _shell_dialog is not None:
+        return _shell_dialog
+
     try:
         deps = {'pip': 'ipython>=1.0',
                 'linux-ubuntu': 'ipython-qtconsole',
@@ -176,4 +183,5 @@ def get_shell_dialog():
                 self.running_workflow = False
             return RichIPythonWidget.eventFilter(self, obj, event)
 
+    _shell_dialog = IPythonDialog
     return IPythonDialog
