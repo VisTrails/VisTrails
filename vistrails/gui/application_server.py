@@ -342,6 +342,7 @@ class RequestHandler(object):
                         "Not all vistrail instances are free, please try again."], 1]
                 proxies.append(self.proxies_queue.get())
             for proxy in proxies:
+                result, s = 'Please contact the server admin', 0
                 try:
                     if codepath and status is not None:
                         result, s = proxy.get_server_packages(codepath, status)
@@ -357,7 +358,7 @@ class RequestHandler(object):
                     self.server_logger.error(err_msg)
                 finally:
                     self.proxies_queue.put(proxy)
-                if s == 0:  # FIXME : s might not be defined here
+                if s == 0:
                     messages.append('An error occurred: %s' % result)
                 else:
                     messages.append(result[1])
@@ -708,15 +709,15 @@ class RequestHandler(object):
             self.server_logger.info(xml_medley)
             xml_string = xml_medley.replace('\\"','"')
             root = ElementTree.fromstring(xml_string)
+            medley = None
             try:
                 medley = MedleySimpleGUI.from_xml(root)
+                self.server_logger.debug("%s medley: %s"%(medley._type, medley._name))
             except Exception:
                 #even if this error occurred there's still a chance of
                 # recovering from it... (the server can find cached images)
                 self.server_logger.error("couldn't instantiate medley")
 
-            # FIXME : there's no "recovering", this line will raise NameError
-            self.server_logger.debug("%s medley: %s"%(medley._type, medley._name))
             result = ""
             subdir = hashlib.sha224(xml_string).hexdigest()
             path_to_images = \
@@ -744,6 +745,7 @@ class RequestHandler(object):
             if not extra_info.has_key('pathDumpCells'):
                 extra_info['pathDumpCells'] = path_to_images
 
+            ok = False
             if not self.path_exists_and_not_empty(extra_info['pathDumpCells']):
                 if not os.path.exists(extra_info['pathDumpCells']):
                     os.mkdir(extra_info['pathDumpCells'])
@@ -848,7 +850,7 @@ class RequestHandler(object):
                                     ok = False
                                     result += str(errors[i])
 
-                    self.server_logger.info("success?  %s" % ok)  # FIXME : ok might not be defined
+                    self.server_logger.info("success?  %s" % ok)
 
                 elif medley._type == 'visit':
                     cur_dir = os.getcwd()
