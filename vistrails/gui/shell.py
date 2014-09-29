@@ -351,6 +351,8 @@ class QShell(QtGui.QTextEdit):
         else:
             self.eofKey = None
 
+        self.old_streams = None
+
         # flag for knowing when selecting text
         self.selectMode = False
         self.interpreter = None
@@ -794,9 +796,9 @@ class QShell(QtGui.QTextEdit):
 
         """
         #recovering the state
-        sys.stdout   = sys.__stdout__
-        sys.stderr   = sys.__stderr__
-        sys.stdin    = sys.__stdin__
+        if self.old_streams is not None:
+            sys.stdout, sys.stderr, sys.stdin = self.old_streams
+            self.old_streams = None
 
     def show(self):
         """show() -> None
@@ -805,9 +807,11 @@ class QShell(QtGui.QTextEdit):
         
         """
         # capture all interactive input/output
-        sys.stdout   = self
-        sys.stderr   = self
-        sys.stdin    = self
+        if self.old_streams is None:
+            self.old_streams = sys.stdout, sys.stderr, sys.stdin
+            sys.stdout   = self
+            sys.stderr   = self
+            sys.stdin    = self
         self.setFocus()
 
     def saveSession(self, fileName):
@@ -857,6 +861,7 @@ def getIPythonDialog():
         VisTrails environment"""
         def __init__(self, parent=None):
             RichIPythonWidget.__init__(self, parent)
+            self.old_streams = None
             self.running_workflow = False
             self.kernel_manager = km
             self.kernel_client = kernel_client
@@ -890,9 +895,9 @@ def getIPythonDialog():
     
             """
             #recovering the state
-            sys.stdout   = sys.__stdout__
-            sys.stderr   = sys.__stderr__
-            sys.stdin    = sys.__stdin__
+            if self.old_streams is not None:
+                sys.stdout, sys.stderr, sys.stdin = self.old_streams
+                self.old_streams = None
             RichIPythonWidget.hide(self)
     
         def show(self):
@@ -902,9 +907,11 @@ def getIPythonDialog():
             
             """
             # capture all interactive input/output
-            sys.stdout   = self
-            sys.stderr   = self
-            sys.stdin    = self
+            if self.old_streams is None:
+                self.old_streams = sys.stdout, sys.stderr, sys.stdin
+                sys.stdout   = self
+                sys.stderr   = self
+                sys.stdin    = self
             RichIPythonWidget.show(self)
 
         def showEvent(self, e):

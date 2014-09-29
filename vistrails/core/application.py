@@ -347,7 +347,8 @@ class VistrailsApplicationInterface(object):
                 try:
                     #print "  m: ", m
                     m(*args)
-                except Exception:
+                except Exception, e:
+                    debug.unexpected_exception(e)
                     traceback.print_exc()
 
     def showBuilderWindow(self):
