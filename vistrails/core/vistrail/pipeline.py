@@ -446,7 +446,7 @@ class Pipeline(DBWorkflow):
                                    old_conn.id)
             if self.graph.out_degree(old_conn.sourceId) < 1:
                 self.modules[old_conn.sourceId].connected_output_ports.discard(
-                    conn.source.name)  # FIXME : conn is c? old_conn?
+                    old_conn.source.name)
             if self.graph.in_degree(old_conn.destinationId) < 1:
                 connected_input_ports = \
                     self.modules[old_conn.destinationId].connected_input_ports
