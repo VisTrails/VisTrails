@@ -145,8 +145,9 @@ def package_dependencies():
     for abstraction in os.listdir(abstraction_dir):
         if p.match(abstraction):
             abs_fname = os.path.join(abstraction_dir, abstraction)
+            # moved out of try because shouldn't run into MissingPackage here
+            vistrail = read_vistrail(abs_fname)
             try:
-                vistrail = read_vistrail(abs_fname)
                 dependencies = get_abstraction_dependencies(vistrail)
             except vistrails.core.modules.module_registry.MissingPackage, e:
                 dependencies = {e._identifier: set()}
@@ -164,7 +165,7 @@ def package_dependencies():
                 all_packages.update(p for p in dependencies.iterkeys()
                                     if p != identifier)
                 my_vistrails[abstraction[:-4]] = \
-                    (vistrail, abs_fname, inter_depends)  # FIXME vistrail might not be set
+                    (vistrail, abs_fname, inter_depends)
             else:
                 debug.critical(("Subworkflow '%s' is missing packages it " +
                                 "depends on") % abstraction)
