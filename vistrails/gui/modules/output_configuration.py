@@ -385,7 +385,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
 
     def set_combo_value(self, combo, config_val, field):
         options = {}
-        if field.widget_options is not None:  # 'field' unset here
+        if field.widget_options is not None:
             options = field.widget_options
 
         if "allowed_values" in options:
