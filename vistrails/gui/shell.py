@@ -52,16 +52,19 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 ################################################################################
 
 def get_shell_dialog():
-    deps = {'pip': 'ipython>=1.0',
-            'linux-ubuntu': 'ipython-qtconsole',
-            'linux-debian': 'ipython-qtconsole'}
+    try:
+        deps = {'pip': 'ipython>=1.0',
+                'linux-ubuntu': 'ipython-qtconsole',
+                'linux-debian': 'ipython-qtconsole'}
 
-    IPython = py_import('IPython.qt.console.rich_ipython_widget', deps)
-    RichIPythonWidget = \
-            IPython.qt.console.rich_ipython_widget.RichIPythonWidget
-    py_import('IPython.qt.inprocess', deps)
-    QtInProcessKernelManager = \
-            IPython.qt.inprocess.QtInProcessKernelManager
+        IPython = py_import('IPython.qt.console.rich_ipython_widget', deps)
+        RichIPythonWidget = \
+                IPython.qt.console.rich_ipython_widget.RichIPythonWidget
+        py_import('IPython.qt.inprocess', deps)
+        QtInProcessKernelManager = \
+                IPython.qt.inprocess.QtInProcessKernelManager
+    except ImportError:
+        return None
 
     km = QtInProcessKernelManager()
     km.start_kernel()

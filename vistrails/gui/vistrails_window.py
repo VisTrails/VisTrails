@@ -1119,6 +1119,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                         notifications = visible
                         p_klass, visible = p_klass      
                 #print "generating instance", p_klass
+                if p_klass is None:
+                    continue
                 palette = p_klass.instance()
                 #print 'palette:', palette
                 self.palettes.append(palette)
