@@ -51,17 +51,27 @@ from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
 
-def get_shell_dialog():
-    deps = {'pip': 'ipython>=1.0',
-            'linux-ubuntu': 'ipython-qtconsole',
-            'linux-debian': 'ipython-qtconsole'}
+_shell_dialog = None
 
-    IPython = py_import('IPython.qt.console.rich_ipython_widget', deps)
-    RichIPythonWidget = \
-            IPython.qt.console.rich_ipython_widget.RichIPythonWidget
-    py_import('IPython.qt.inprocess', deps)
-    QtInProcessKernelManager = \
-            IPython.qt.inprocess.QtInProcessKernelManager
+def get_shell_dialog():
+    global _shell_dialog
+
+    if _shell_dialog is not None:
+        return _shell_dialog
+
+    try:
+        deps = {'pip': 'ipython>=1.0',
+                'linux-ubuntu': 'ipython-qtconsole',
+                'linux-debian': 'ipython-qtconsole'}
+
+        IPython = py_import('IPython.qt.console.rich_ipython_widget', deps)
+        RichIPythonWidget = \
+                IPython.qt.console.rich_ipython_widget.RichIPythonWidget
+        py_import('IPython.qt.inprocess', deps)
+        QtInProcessKernelManager = \
+                IPython.qt.inprocess.QtInProcessKernelManager
+    except ImportError:
+        return None
 
     km = QtInProcessKernelManager()
     km.start_kernel()
@@ -173,4 +183,5 @@ def get_shell_dialog():
                 self.running_workflow = False
             return RichIPythonWidget.eventFilter(self, obj, event)
 
+    _shell_dialog = IPythonDialog
     return IPythonDialog
