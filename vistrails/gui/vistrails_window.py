@@ -158,8 +158,6 @@ class QBaseViewWindow(QtGui.QMainWindow):
                                      callback)
 
     def init_action_list(self):
-        global _app
-
         self._actions = [("file", "&File",
                    [("export", "Export",
                       [('savePDF', "PDF...",
@@ -377,7 +375,6 @@ class QVistrailViewWindow(QBaseViewWindow):
             self.setWindowTitle('%s - VisTrails' % self.view.get_name())
 
     def close_vistrail(self):
-        global _app
         return _app.close_vistrail(self.view)
         
     def closeEvent(self, event):
@@ -456,7 +453,6 @@ class QVistrailViewWindow(QBaseViewWindow):
             self.set_title('(empty)')
 
     def build_packages_menu_from_main_app(self):
-        global _app
         if len(self._package_menu_items) == 0:
             self.qmenus['packages'].menuAction().setEnabled(True)
             
@@ -473,7 +469,6 @@ class QVistrailViewWindow(QBaseViewWindow):
                     pkg_menu.addAction(action)
 
     def init_action_list(self):
-        global _app
         # This keeps track of the menu items for each package
         self._package_menu_items = {}
         
@@ -831,7 +826,6 @@ class QVistrailViewWindow(QBaseViewWindow):
         Construct all menu/toolbar actions for window.
 
         """
-        global _app
 
         # format of each item in the list is:
         # item: reference, title, options

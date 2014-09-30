@@ -784,8 +784,6 @@ def default():
     return retval
 
 def parse_documentation():
-    global _docs
-
     line_iter = iter(_documentation.splitlines())
     line_iter.next()
     for line in line_iter:
@@ -800,8 +798,6 @@ def parse_documentation():
         _docs[arg_path] = (arg_type, ' '.join(doc_lines))
 
 def parse_simple_docs():
-    global _simple_docs
-
     line_iter = iter(_simple_documentation.splitlines())
     line = line_iter.next()
     for line in line_iter:
@@ -890,8 +886,6 @@ def nested_action(parser, action_type):
     return nested_cls
 
 def build_command_line_parser(d, parser=None, prefix="", **parser_args):
-    global _usage_args
-
     # if k is not a command-line-option, skip
     # if k is show/hide, add --show-, --hide- options
     # if k is an on/off, add --option, --no-option flags

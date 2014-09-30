@@ -2126,13 +2126,11 @@ class ModuleRegistry(DBRegistry):
 # get_descriptor           = registry.get_descriptor
 
 def get_module_registry():
-    global registry
     if not registry:
         raise VistrailsInternalError("Registry not constructed yet.")
     return registry
 
 def module_registry_loaded():
-    global registry
     return registry is not None
 
 ##############################################################################

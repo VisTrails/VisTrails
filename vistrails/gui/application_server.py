@@ -87,8 +87,6 @@ class StoppableXMLRPCServer(SimpleXMLRPCServer):
     """This class allows a server to be stopped by a external request"""
     #accessList contains the list of ip addresses and hostnames that can send
     #request to this server. Change this according to your server
-    global accessList
-
     allow_reuse_address = True
     def __init__(self, addr, logger):
         self.logger = logger
@@ -2255,7 +2253,6 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         return True
 
     def start_other_instances(self, number):
-        global virtual_display, script_file
         self.others = []
         host = self.temp_configuration.check('rpcServer')
         port = self.temp_configuration.check('rpcPort')
@@ -2363,7 +2360,6 @@ VistrailsServer = None
 
 def stop_server():
     """Stop and finalize the application singleton."""
-    global VistrailsServer
     VistrailsServer.save_configuration()
     VistrailsServer.destroy()
     VistrailsServer.deleteLater()

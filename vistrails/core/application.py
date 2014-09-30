@@ -68,7 +68,6 @@ def finalize_vistrails(app):
     vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
 
 def get_vistrails_application():
-    global VistrailsApplication
     if VistrailsApplication is not None:
         return VistrailsApplication()
     return None
