@@ -1185,7 +1185,10 @@ class QVistrailList(QtGui.QTreeWidget):
             item.pe_to_item[pe_entity.url] = childItem
             item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
 
-        self.make_tree(item) if self.isTreeView else self.make_list(item)
+        if self.isTreeView:
+            self.make_tree(item)
+        else:
+            self.make_list(item)
 
     def execution_updated(self):
         """ Add new executions to workflow """
@@ -1289,7 +1292,10 @@ class QVistrailList(QtGui.QTreeWidget):
         item.mashupsItem.setHidden(not item.mashupsItem.childCount())
         item.paramExplorationsItem.setHidden(
                              not item.paramExplorationsItem.childCount())
-        self.make_tree(item) if self.isTreeView else self.make_list(item)
+        if self.isTreeView:
+            self.make_tree(item)
+        else:
+            self.make_list(item)
         self.item_changed(item, None)
         self.updateHideExecutions()
 
@@ -1320,7 +1326,10 @@ class QVistrailList(QtGui.QTreeWidget):
         if entity and not self.collection.is_temp_entity(entity) and \
                 not vistrail_window.is_abstraction:
             item = QVistrailEntityItem(entity)
-            self.make_tree(item) if self.isTreeView else self.make_list(item)
+            if self.isTreeView:
+                self.make_tree(item)
+            else:
+                self.make_list(item)
             self.closedFilesItem.addChild(item)
             item.setText(0, entity.name)
         self.updateHideExecutions()

@@ -159,7 +159,8 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         
         # Create and connect InputPort for each of the inputs to force it to exist on group
         offset = {}
-        [offset.__setitem__(module, halfwidth+65) for module, portspec, connections, halfwidth in input_ports_info]
+        for module, portspec, connections, halfwidth in input_ports_info:
+            offset.__setitem__(module, halfwidth+65)
         for input_module, input_portspec, input_connections, halfwidth in input_ports_info:
             # Remove function calls to selected input ports
             try:
