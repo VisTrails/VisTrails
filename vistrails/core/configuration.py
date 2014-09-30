@@ -852,6 +852,20 @@ def nested_action(parser, action_type):
     nested_cls = type(nested_name, (cls,), {"__call__": __call__})
     return nested_cls
 
+class RawVersionAction(argparse.Action):
+    """Variant of the default _VersionAction that doesn't reflow.
+    """
+    def __init__(self, option_strings, version,
+                 dest=argparse.SUPPRESS, default=argparse.SUPPRESS,
+                 help="show program's version and exit"):
+        argparse.Action.__init__(self, option_strings=option_strings,
+                                 dest=dest, default=default, nargs=0,
+                                 help=help)
+        self.version = version
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.exit(message=self.version)
+
 def build_command_line_parser(d, parser=None, prefix="", **parser_args):
     global _usage_args
 
@@ -874,7 +888,7 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
         parser.add_argument('vistrails', metavar='vistrail', type=str,
                             nargs='*', help="Vistrail to open")
         _usage_args.add('vistrails')
-        parser.add_argument('--version', action='version',
+        parser.add_argument('--version', action=RawVersionAction,
                             version=system.about_string())
 
 
