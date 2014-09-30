@@ -934,14 +934,14 @@ class RequestHandler(object):
                 self.server_logger.info("returning %s" % result)
                 return result
             except xmlrpclib.ProtocolError, err:
-                    err_msg = ("A protocol error occurred\n"
-                               "URL: %s\n"
-                               "HTTP/HTTPS headers: %s\n"
-                               "Error code: %d\n"
-                               "Error message: %s\n") % (err.url, err.headers,
-                                                         err.errcode, err.errmsg)
-                    self.server_logger.error(err_msg)
-                    return (str(err), 0)
+                err_msg = ("A protocol error occurred\n"
+                           "URL: %s\n"
+                           "HTTP/HTTPS headers: %s\n"
+                           "Error code: %d\n"
+                           "Error message: %s\n") % (err.url, err.headers,
+                                                     err.errcode, err.errmsg)
+                self.server_logger.error(err_msg)
+                return (str(err), 0)
             except Exception, e:
                 self.server_logger.error(str(e))
                 return (str(e), 0)

@@ -326,7 +326,7 @@ class Collection(object):
         """ Check if entity with this url exist """
         locator = BaseLocator.from_url(url)
         if locator.is_valid():
-                return True
+            return True
         return False
 
     def updateVistrail(self, url, vistrail=None):
