@@ -1089,10 +1089,11 @@ class QVistrailsWindow(QVistrailViewWindow):
                  ('descriptor_changed', 'update_descriptor'))),
                ((QModuleIteration, True),
                 (('controller_changed', 'set_controller'),
-                 ('module_changed', 'update_module'))),
+                 ('module_changed', 'update_module')))] +
+              [] if not get_shell_dialog() else [
                ((get_shell_dialog(), True),
-                (('controller_changed', 'set_controller'),)),
-               ((QDebugger, True),
+                (('controller_changed', 'set_controller'),))] +
+              [((QDebugger, True),
                 (('controller_changed', 'set_controller'),)),
                (DebugView, True),
                (QJobView, True),
@@ -1119,8 +1120,6 @@ class QVistrailsWindow(QVistrailViewWindow):
                         notifications = visible
                         p_klass, visible = p_klass      
                 #print "generating instance", p_klass
-                if p_klass is None:
-                    continue
                 palette = p_klass.instance()
                 #print 'palette:', palette
                 self.palettes.append(palette)
