@@ -1084,9 +1084,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                ((QModuleIteration, True),
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module')))] +
-              [] if not get_shell_dialog() else [
+              ([] if not get_shell_dialog() else [
                ((get_shell_dialog(), True),
-                (('controller_changed', 'set_controller'),))] +
+                (('controller_changed', 'set_controller'),))]) +
               [((QDebugger, True),
                 (('controller_changed', 'set_controller'),)),
                (DebugView, True),
