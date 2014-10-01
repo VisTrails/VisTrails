@@ -130,6 +130,7 @@ user: The username for the database to the load vistrail from
 userPackageDir: Local packages directory
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
+viewOnLoad: Whether to show pipeline or history view when opening vistrail
 withVersionTree: Output the version tree as an image
 withWorkflow: Output the workflow graph as an image
 """
@@ -504,6 +505,11 @@ webRepositoryUser: String
 
     The default username for logging into a VisTrails web repository
     like crowdLabs.
+
+viewOnLoad: String
+
+    Whether to show pipeline or history view when opening vistrail
+    Can be either appropriate/pipeline/history
 
 withVersionTree: Boolean
 
