@@ -45,6 +45,7 @@ from vistrails.core.modules.vistrails_module import new_module
 import vistrails.packages.webServices
 
 class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
+    contentsChanged = QtCore.pyqtSignal(tuple)
     enumerationlist = []
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,

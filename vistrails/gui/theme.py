@@ -307,18 +307,25 @@ class DefaultTheme(DefaultCoreTheme):
     
         #### FONTS ####        
         # Font for module text
-        self.MODULE_FONT = QtGui.QFont("Arial", 14, QtGui.QFont.Bold)
+        # Use fixed dpi to get same font size on all platforms
+        def fixDPI(i):
+            return i*72/QtGui.QApplication.desktop().logicalDpiY()
+        GRAPHICS_FONT = "Arial"
+        self.MODULE_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(14), QtGui.QFont.Bold)
         self.MODULE_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_FONT)
-        self.MODULE_DESC_FONT = QtGui.QFont("Arial", 12)
+        self.MODULE_DESC_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(12))
         self.MODULE_DESC_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_DESC_FONT)
+        self.MODULE_EDIT_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(10))
+        self.MODULE_EDIT_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_EDIT_FONT)
     
         # Font for version text
-        self.VERSION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Bold)
+        self.VERSION_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(15), QtGui.QFont.Bold)
         self.VERSION_FONT_METRIC = QtGui.QFontMetrics(self.VERSION_FONT)
-        self.VERSION_DESCRIPTION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Normal, 
-                                                    True)
+        self.VERSION_DESCRIPTION_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(15),
+                                                    QtGui.QFont.Normal, True)
         self.VERSION_DESCRIPTION_FONT_METRIC = \
             QtGui.QFontMetrics(self.VERSION_DESCRIPTION_FONT)
+
         self.VERSION_PROPERTIES_FONT = QtGui.QFont("Arial", 12)
         self.VERSION_PROPERTIES_FONT_METRIC = \
             QtGui.QFontMetrics(self.VERSION_PROPERTIES_FONT)
@@ -640,6 +647,9 @@ class DefaultTheme(DefaultCoreTheme):
         # Color for the PIP frame
         self.PIP_FRAME_COLOR = QtGui.QColor(
             *(ColorByName.get_int('yellow_light')))
+
+        # Color for invalid parameter frames
+        self.PARAM_INVALID_COLOR = QtGui.QColor('#efef00')
 
         # Color of selected methods in the modules method area
         self.METHOD_SELECT_COLOR = QtGui.QColor(

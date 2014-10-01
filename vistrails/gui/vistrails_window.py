@@ -1754,7 +1754,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                 return
             view.version_view.select_current_version()
             conf = get_vistrails_configuration()
-            if conf.check('viewOnLoad') and conf.viewOnLoad == 'history':
+            if version:
+                self.qactions['pipeline'].trigger()
+            elif conf.check('viewOnLoad') and conf.viewOnLoad == 'history':
                 self.qactions['history'].trigger()
             elif conf.check('viewOnLoad') and conf.viewOnLoad == 'pipeline':
                 self.qactions['pipeline'].trigger()
