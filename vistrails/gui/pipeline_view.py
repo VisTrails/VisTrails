@@ -3665,11 +3665,12 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def set_controller(self, controller):
         oldController = self.controller
         if oldController != controller:
-            if oldController != None:
+            #if oldController != None:
                 # self.disconnect(oldController,
                 #                 QtCore.SIGNAL('versionWasChanged'),
                 #                 self.version_changed)
-                oldController.current_pipeline_view = None
+                # is this needed. It causes errors in api tests
+                #oldController.current_pipeline_view = None
             self.controller = controller
             self.scene().controller = controller
             # self.connect(controller,
