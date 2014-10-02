@@ -280,7 +280,7 @@ class VistrailsApplicationInterface(object):
                             # version number
                             if locator._vtag != '':
                                 version = locator._vtag
-                    execute = self.temp_configuration.execute
+                    execute = self.temp_configuration.check('execute')
                     mashuptrail = None
                     mashupversion = None
                     if hasattr(locator, '_mshptrail'):
