@@ -43,8 +43,4 @@ way, files that haven't been changed do not need to be downloaded again. The
 check is performed efficiently using HTTP headers.
 """
 
-identifier = 'org.vistrails.vistrails.url'
-name = 'URL'
-version = '1.0.0'
-old_identifiers = ['org.vistrails.vistrails.http',
-                   'edu.utah.sci.vistrails.http']
+from identifiers import *

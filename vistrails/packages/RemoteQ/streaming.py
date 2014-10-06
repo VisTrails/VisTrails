@@ -47,7 +47,7 @@ from remoteq.batch.commandline import Subshell
 
 import os.path
 ################################################################################
-class HadoopStreaming(JobMixin,HadoopBaseModule):
+class HadoopStreaming(HadoopBaseModule):
     """
     The class for executing MapReduce using Hadoop Streaming with
     customized Python Mapper/Reducer/Combiner
@@ -91,22 +91,20 @@ class HadoopStreaming(JobMixin,HadoopBaseModule):
         p['files'] = self.force_get_input_list('CacheFile')
         p['cacheArchives'] = self.force_get_input_list('CacheArchive')
         p['envVars'] = self.force_get_input_list('Environment') 
-        self.job_machine = self.get_machine()
         return p
 
-    def getId(self, p):
-        return p['job_identifier']
-
     def createJob(self, p):
-        use_machine(self.job_machine.machine)
+        self.job_machine = self.get_machine()
+        use_machine(self.job_machine)
         self.job = Subshell("remote", command="%s",
                             working_directory=p['workdir'],
                             identifier=p['job_identifier'])
 
     def startJob(self, p):
+        self.createJob(p)
         if not self.job_machine.remote.isdir(p['workdir']):
             self.job_machine.remote.mkdir(p['workdir'])
-        self.createJob(p)
+        self.set_job_machine(p, self.job_machine)
         self.job.reset()
 
         # Now generate the command line
@@ -123,8 +121,7 @@ class HadoopStreaming(JobMixin,HadoopBaseModule):
         
         if self.localMapper!=None:
             tempfile = self.job_machine.remote.send_command('mktemp').strip()
-            result = self.job_machine.machine.sendfile(self.localMapper.name,
-                                                       tempfile)
+            result = self.job_machine.sendfile(self.localMapper.name,tempfile)
             mapperFileName = os.path.split(tempfile)[1]
             p['files'].append(tempfile)
             arguments += ' -mapper %s' % mapperFileName
@@ -133,15 +130,15 @@ class HadoopStreaming(JobMixin,HadoopBaseModule):
 
         if self.localCombiner!=None:
             tempfile = self.job_machine.remote.send_command('mktemp').strip()
-            result = self.job_machine.machine.sendfile(self.localCombiner.name,
-                                                       tempfile)
+            result = self.job_machine.sendfile(self.localCombiner.name,
+                                               tempfile)
             combinerFileName = os.path.split(tempfile)[1]
             p['files'].append(tempfile)
             arguments += ' -combiner %s' % combinerFileName
 
         if self.localReducer!=None:
             tempfile = self.job_machine.remote.send_command('mktemp').strip()
-            result = self.job_machine.machine.sendfile(self.localReducer.name,
+            result = self.job_machine.sendfile(self.localReducer.name,
                                                        tempfile)
             reducerFileName = os.path.split(tempfile)[1]
             p['files'].append(tempfile)
@@ -203,33 +200,39 @@ class HadoopStreaming(JobMixin,HadoopBaseModule):
         self.job.run()
 
 ################################################################################
-class URICreator(NotCacheable,HadoopBaseModule):
+class URICreator(HadoopBaseModule):
     """
     The class for caching HDFS file onto the TaskNode local drive
     
     """
     _input_ports = [IPort('HDFS File/URI', String),
                     IPort('Symlink',       String),
-                    IPort('Machine', '(org.vistrails.vistrails.remoteq:Machine)')]
+                    IPort('Machine',        
+                          '(org.vistrails.vistrails.remoteq:Machine)')]
 
-    _output_ports = [OPort('Machine', '(org.vistrails.vistrails.remoteq:Machine)'),
+    _output_ports = [OPort('Machine',
+                           '(org.vistrails.vistrails.remoteq:Machine)'),
                      OPort('URI', String)]
 
     def compute(self):
         machine = self.get_machine()
-        uri = self.force_get_input('HDFS File/URI')
-        symlink = self.force_get_input('Symlink')
-        if uri==None or symlink==None:
-            raise ModuleError(self, "Missing 'HDFS File/URI' or 'Symlink' values")
         jm = JobMonitor.getInstance()
-        id = 'URICreator' + uri + symlink
+        id = self.signature
         job = jm.getCache(id)
         if not job:
+            uri = self.force_get_input('HDFS File/URI')
+            symlink = self.force_get_input('Symlink')
+            if uri==None or symlink==None:
+                raise ModuleError(self,
+                                "Missing 'HDFS File/URI' or 'Symlink' values")
             if '://' not in uri:
                 uri = self.add_prefix(uri, machine)
             uri += '#' + symlink
-            jm.setCache(id, {}, name='URICreator(%s)'%uri)
-        self.set_output('URI', uri)
+            d = {'uri':uri}
+            self.set_job_machine(d, machine)
+            jm.setCache(id, d, self.getName())
+            job = jm.getCache(id)
+        self.set_output('URI', job.parameters['uri'])
         self.set_output('Machine', machine)
        
 

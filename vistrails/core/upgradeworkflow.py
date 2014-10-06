@@ -569,6 +569,11 @@ class UpgradeWorkflowHandler(object):
                                                       aliases)
             new_module.add_function(new_function)
 
+        if None in function_remap:
+            # used to add new functions
+            remap = function_remap[None]
+            function_ops.extend(remap(None, new_module))
+
         # add the new module
         ops.append(('add', new_module))
         ops.extend(function_ops)
@@ -748,7 +753,7 @@ class UpgradeWorkflowHandler(object):
                                                        old_module_t[0])
             else:
                 new_module_desc = reg.get_descriptor(new_module_type)
-                new_module_t = new_module_desc.spec_tuple()
+                new_module_t = new_module_desc.spec_tuple
 
             new_pkg_version = module_remap.output_version
             if (new_pkg_version is None or
@@ -870,8 +875,8 @@ class TestUpgradePackageRemap(unittest.TestCase):
 
         app = get_vistrails_application()
         created_vistrail = False
+        pm = get_package_manager()
         try:
-            pm = get_package_manager()
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})
@@ -939,15 +944,14 @@ class TestUpgradePackageRemap(unittest.TestCase):
         from vistrails.core.application import get_vistrails_application
 
         app = get_vistrails_application()
-        app.new_vistrail()
-        default_upgrade_on = app.temp_configuration.upgradeOn
+        default_upgrades = app.temp_configuration.upgrades
         default_upgrade_delay = app.temp_configuration.upgradeDelay
-        app.temp_configuration.upgradeOn = True
+        app.temp_configuration.upgrades = True
         app.temp_configuration.upgradeDelay = False
 
         created_vistrail = False
+        pm = get_package_manager()
         try:
-            pm = get_package_manager()
             pm.late_enable_package('upgrades',
                                    {'upgrades':
                                     'vistrails.tests.resources.'})
@@ -977,7 +981,7 @@ class TestUpgradePackageRemap(unittest.TestCase):
                 pm.late_disable_package('upgrades')
             except MissingPackage:
                 pass
-            app.temp_configuration.upgradeOn = default_upgrade_on
+            app.temp_configuration.upgrades = default_upgrades
             app.temp_configuration.upgradeDelay = default_upgrade_delay
 
 if __name__ == '__main__':

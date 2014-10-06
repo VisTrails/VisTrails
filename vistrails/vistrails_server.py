@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -74,7 +75,8 @@ if __name__ == '__main__':
             'enablePackagesSilently': False,
             'handlerDontAsk': True,
         }
-        v = vistrails.gui.application_server.start_server(optionsDict)
+        v = vistrails.gui.application_server.start_server(optionsDict,
+                                                          args=sys.argv[1:])
         app = vistrails.gui.application_server.VistrailsServer()
     except SystemExit, e:
         print str(e)

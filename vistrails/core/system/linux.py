@@ -51,6 +51,7 @@ __all__ = ['executable_is_in_path', 'list2cmdline', 'execute_cmdline',
            'home_directory', 'remote_copy_program', 'remote_shell_program',
            'graph_viz_dot_command_line', 'remove_graph_viz_temporaries',
            'link_or_copy', 'XDestroyWindow',
+           'shell_font_face', 'shell_font_size',
            'TestLinux']
 
 ################################################################################
@@ -163,6 +164,12 @@ def XDestroyWindow(displayId, windowId):
     windowPtr = c_void_p(int(windowId[1:windowId.find('_void_p')], 16))
     libx = get_libX11()
     libx.XDestroyWindow(displayPtr, windowPtr)
+
+def shell_font_face():
+    return 'Fixed'
+
+def shell_font_size():
+    return 12
 
 ################################################################################
 

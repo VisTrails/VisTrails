@@ -40,13 +40,15 @@ from PyQt4 import QtGui, QtCore
 
 from vistrails.core import debug
 from vistrails.core.configuration import ConfigurationObject, \
-                               get_vistrails_configuration
+    ConfigFieldParent, ConfigPath, ConfigURL, \
+    get_vistrails_configuration, find_simpledoc
 
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
+from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
+    QFileChooserToolButton, QDirectoryChooserToolButton
 from vistrails.gui.utils import YES_BUTTON, NO_BUTTON, show_question, show_warning
 
-import vistrails.core.system
+from vistrails.core import system
 
 ##############################################################################
 
@@ -228,11 +230,10 @@ class QConfigurationTreeWindow(QSearchTreeWindow):
 
 class QConfigurationWidget(QtGui.QWidget):
 
-    def __init__(self, parent, persistent_config, temp_config, status_bar):
+    def __init__(self, parent, persistent_config, temp_config):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout(self)
         self.setLayout(layout)
-        self._status_bar = status_bar
 
         self._tree = QConfigurationTreeWindow(self, persistent_config,
                                               temp_config)
@@ -243,697 +244,394 @@ class QConfigurationWidget(QtGui.QWidget):
     def configuration_changed(self, persistent_config, temp_config):
         self._tree.treeWidget.create_tree(persistent_config, temp_config)
 
-class QGeneralConfiguration(QtGui.QWidget):
-    """
-    QGeneralConfiguration is a widget for showing a few general preferences
-    that can be set with widgets.
+class QConfigurationWidgetItem(object):
+    def __init__(self, key, field, callback_f):
+        self.key = key
+        self.field = field
+        self.change_callback_f = callback_f
+        self._desc = None
 
-    """
-    def __init__(self, parent, persistent_config, temp_config):
-        """
-        QGeneralConfiguration(parent: QWidget, 
-        configuration_object: ConfigurationObject) -> None
+    def get_desc(self):
+        if self._desc is not None:
+            return self._desc
 
-        """
+        options = self.get_widget_options()
+        if "label" in options:
+            return options["label"]
+        return ""
+
+    def set_desc(self, desc=None):
+        self._desc = desc
+
+    def get_label_text(self):
+        return self.get_desc()
+
+    def set_value(self, value, signal=True):
+        raise NotImplementedError("Subclass needs to implement this method")
+
+    def value_changed(self, value):
+        self.change_callback_f(self, self.key, self.field, value)
+
+    def get_widget_options(self):
+        options = {}
+        if self.field.widget_options is not None:
+            options = self.field.widget_options
+        return options
+
+class QConfigurationCheckBox(QtGui.QCheckBox, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, parent=None):
+        QtGui.QCheckBox.__init__(self, parent)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+        self.setText(self.get_desc())
+        self.toggled.connect(self.value_changed)
+
+    def set_value(self, value, signal=True):
+        if not signal:
+            self.toggled.disconnect(self.value_changed)
+        self.setChecked(value)
+        if not signal:
+            self.toggled.connect(self.value_changed)
+
+    def get_label_text(self):
+        return ""
+
+class QConfigurationLineEdit(QtGui.QLineEdit, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, parent=None):
+        QtGui.QLineEdit.__init__(self, parent)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+        self.setMinimumWidth(200)
+        self.editingFinished.connect(self.value_changed)
+
+    def value_changed(self):
+        QConfigurationWidgetItem.value_changed(self, self.text())
+
+    def set_value(self, value, signal=True):
+        if value is None:
+            value = ""
+        if not signal:
+            self.editingFinished.disconnect(self.value_changed)
+        self.setText(unicode(value))
+        if not signal:
+            self.editingFinished.connect(self.value_changed)
+
+class QConfigurationLineEditButton(QtGui.QWidget, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, button, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(10)
-        layout.setSpacing(10)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+
+        layout = QtGui.QHBoxLayout()
+        layout.setMargin(0)
+        layout.setSpacing(5)
+
+        self.line_edit = QtGui.QLineEdit()
+        self.line_edit.setMinimumWidth(200)
+        layout.addWidget(self.line_edit)
+
+        if button is not None:
+            layout.addWidget(button)
         self.setLayout(layout)
-        self._configuration = None
-        self._temp_configuration = None
-        self.create_default_widgets(self, layout)
-        self.create_default_handler_button(self, layout)
-        self.create_other_widgets(self, layout)
-        self.update_state(persistent_config, temp_config)
-        self.connect_default_signals()
-        self.connect_other_signals()
-        
-    def connect_default_signals(self):
-        
-        # We need to connect only one of the radio buttons signal because
-        # only one of them will be checked at a time
-        
-        #Auto save signals
-        self.connect(self._autosave_cb,
-                     QtCore.SIGNAL('stateChanged(int)'),
-                     self.temp_autosave_changed)
-        self.connect(self._autosave_always,
-                     QtCore.SIGNAL('toggled(bool)'),
-                     self.autosave_changed)
-        
-        #Read and Write to database signals
-        self.connect(self._db_connect_cb,
-                     QtCore.SIGNAL('stateChanged(int)'),
-                     self.temp_db_connect_changed)
-        self.connect(self._db_connect_always,
-                     QtCore.SIGNAL('toggled(bool)'),
-                     self.db_connect_changed)
-        
-        #Caching signals
-        self.connect(self._use_cache_cb,
-                     QtCore.SIGNAL('stateChanged(int)'),
-                     self.temp_use_cache_changed)
-        self.connect(self._use_cache_always,
-                     QtCore.SIGNAL('toggled(bool)'),
-                     self.use_cache_changed)
-        
-        #Other signals
-        self.connect(self._splash_cb,
-                     QtCore.SIGNAL('stateChanged(int)'),
-                     self.splash_changed)
-        self.connect(self._maximize_cb,
-                     QtCore.SIGNAL('stateChanged(int)'),
-                     self.maximize_changed)
-        self.connect(self._multi_head_cb,
-                     QtCore.SIGNAL('stateChanged(int)'),
-                     self.multi_head_changed)
 
-    def connect_other_signals(self):
-        if vistrails.core.system.systemType in ['Darwin']:
-            self.connect(self._use_metal_style_cb,
-                         QtCore.SIGNAL('stateChanged(int)'),
-                         self.metalstyle_changed)
+        self.line_edit.editingFinished.connect(self.value_changed)
 
-    def create_default_widgets(self, parent, layout):
-        """create_default_widgets(parent: QWidget, layout: QLayout)-> None
-        Creates default widgets in parent
-        
-        """
-        #Auto save
-        autosave_gb = QtGui.QGroupBox(parent)
-        autosave_gb.setTitle('Automatically save vistrails')
-        glayout = QtGui.QHBoxLayout()
-        parent._autosave_always = QtGui.QRadioButton("Always")
-        parent._autosave_never = QtGui.QRadioButton("Never")
-        parent._autosave_cb = QtGui.QCheckBox("Yes (for this session only)")
-        glayout.addWidget(parent._autosave_always)
-        glayout.addWidget(parent._autosave_never)
-        glayout.addWidget(parent._autosave_cb)
-        autosave_gb.setLayout(glayout)
-        layout.addWidget(autosave_gb)
+    def add_button(self, button):
+        self.layout().addWidget(button)
 
-        #Read and Write to database
-        db_connect_gb = QtGui.QGroupBox(parent)
-        db_connect_gb.setTitle('Read/Write to database by default')
-        glayout = QtGui.QHBoxLayout()
-        parent._db_connect_always = QtGui.QRadioButton("Always")
-        parent._db_connect_never = QtGui.QRadioButton("Never")
-        parent._db_connect_cb = QtGui.QCheckBox("Yes (for this session only)")
-        glayout.addWidget(parent._db_connect_always)
-        glayout.addWidget(parent._db_connect_never)
-        glayout.addWidget(parent._db_connect_cb)
-        db_connect_gb.setLayout(glayout)
-        layout.addWidget(db_connect_gb)
-        
-        #Caching
-        use_cache_gb = QtGui.QGroupBox(parent)
-        use_cache_gb.setTitle('Cache execution results')
-        glayout = QtGui.QHBoxLayout()
-        parent._use_cache_always = QtGui.QRadioButton("Always")
-        parent._use_cache_never = QtGui.QRadioButton("Never")
-        parent._use_cache_cb = QtGui.QCheckBox("Yes (for this session only)")
-        glayout.addWidget(parent._use_cache_always)
-        glayout.addWidget(parent._use_cache_never)
-        glayout.addWidget(parent._use_cache_cb)
-        use_cache_gb.setLayout(glayout)
-        layout.addWidget(use_cache_gb)
+    def value_changed(self):
+        QConfigurationWidgetItem.value_changed(self, self.line_edit.text())
 
-        parent._splash_cb = QtGui.QCheckBox(parent)
-        parent._splash_cb.setText('Show splash dialog on startup*')
-        layout.addWidget(parent._splash_cb)
+    def set_value(self, value, signal=True):
+        if value is None:
+            value = ""
+        if not signal:
+            self.line_edit.editingFinished.disconnect(self.value_changed)
+        self.line_edit.setText(unicode(value))
+        if not signal:
+            self.line_edit.editingFinished.connect(self.value_changed)
 
-        parent._maximize_cb = QtGui.QCheckBox(parent)
-        parent._maximize_cb.setText('Maximize windows on startup*')
-        layout.addWidget(parent._maximize_cb)
+class QConfigurationPathEdit(QConfigurationLineEditButton):
+    def __init__(self, key, field, callback_f, 
+                 button_cls=QDirectoryChooserToolButton, parent=None):
+        QConfigurationLineEditButton.__init__(self, key, field, callback_f,
+                                              None, parent)
+        button = button_cls(self, self.line_edit)
+        self.add_button(button)
 
-        parent._multi_head_cb = QtGui.QCheckBox(parent)
-        parent._multi_head_cb.setText('Use multiple displays on startup*')
-        layout.addWidget(parent._multi_head_cb)
+class QConfigurationThumbnailCache(QConfigurationLineEditButton):
+    def __init__(self, key, field, callback_f, parent=None):
+        button = QtGui.QPushButton("Clear...")
+        button.setAutoDefault(False)
+        button.clicked.connect(self.clear_clicked)
+        QConfigurationLineEditButton.__init__(self, key, field, callback_f, 
+                                              button, parent)
 
-    def create_default_handler_button(self, parent, layout):
-        if vistrails.core.system.systemType == 'Linux':
-            from vistrails.gui.application import linux_default_application_set
-            from vistrails.core.application import get_vistrails_application
+    def clear_clicked(self, checked=False):
+        thumbnail_dir = system.get_vistrails_directory("thumbs.cacheDir")
+        res = show_question('VisTrails',
+                            ("All files in %s will be removed. "
+                             "Are you sure? " % thumbnail_dir),
+                            buttons = [YES_BUTTON,NO_BUTTON],
+                            default = NO_BUTTON)
+        if res == YES_BUTTON:
+            ThumbnailCache.getInstance().clear()
 
-            group = QtGui.QGroupBox(u"Open .vt .vtl files with VisTrails")
-            layout.addWidget(group)
-            layout2 = QtGui.QHBoxLayout()
-            group.setLayout(layout2)
+class QConfigurationLabelButton(QtGui.QWidget, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, label=None, button=None, 
+                 parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
 
-            if linux_default_application_set():
-                label = u".vt .vtl has a handler set"
+        layout = QtGui.QHBoxLayout()
+        layout.setMargin(0)
+        layout.setSpacing(5)
+
+        if label is not None:
+            self.label = label
+            layout.addWidget(self.label)
+
+        if button is not None:
+            self.button = button
+            layout.addWidget(self.button)
+        self.setLayout(layout)
+
+    def add_button(self, button):
+        self.button = button
+        self.layout().addWidget(self.button)
+
+    def add_label(self, label):
+        self.label = label
+        self.layout().insertWidget(0, self.label)
+
+    def set_value(self, value, signal=True):
+        # nothing to do here
+        pass
+
+class QConfigurationLinuxHandler(QConfigurationLabelButton):
+    def __init__(self, key, field, callback_f, parent=None):
+        from vistrails.gui.application import linux_default_application_set
+        if linux_default_application_set():
+            label = QtGui.QLabel(".vt, .vtl handlers installed")
+            button = None
+        else:
+            label = QtGui.QLabel(".vt, .vtl handlers not installed")
+        button = QtGui.QPushButton("Install...")
+        button.setAutoDefault(False)
+        button.clicked.connect(self.install_clicked)
+        QConfigurationLabelButton.__init__(self, key, field, callback_f, 
+                                           label, button, parent)
+
+    def install_clicked(self, checked=False):
+        from vistrails.core.application import get_vistrails_application
+        app = get_vistrails_application()
+        if app.ask_update_default_application(False):
+            self.label.setText(".vt, .vtl handlers installed")
+
+class QConfigurationComboBox(QtGui.QComboBox, QConfigurationWidgetItem):
+    def __init__(self, key, field, callback_f, parent=None):
+        QtGui.QComboBox.__init__(self, parent)
+        QConfigurationWidgetItem.__init__(self, key, field, callback_f)
+
+        inv_remap = None
+        options = self.get_widget_options()
+        if "allowed_values" in options:
+            values = options["allowed_values"]
+            if "remap" in options:
+                remap = options["remap"]
+                inv_remap = dict((v, k) for (k, v) in remap.iteritems())
+                entries = [remap[v] for v in values]
             else:
-                label = u".vt .vtl has no handler"
-            self._handler_status = QtGui.QLabel(label)
+                entries = values
+            for entry in entries:
+                self.addItem(entry)
 
-            def set_dont_ask(state):
-                self._configuration.handlerDontAsk = bool(state)
-                self._temp_configuration.handlerDontAsk = bool(state)
-                self.emit(QtCore.SIGNAL('configuration_changed'),
-                        'handlerDontAsk', bool(state))
-            self._handler_dont_ask = QtGui.QCheckBox(u"Don't ask at startup")
-            self.connect(self._handler_dont_ask,
-                         QtCore.SIGNAL('stateChanged(int)'),
-                         set_dont_ask)
+        self.currentIndexChanged[int].connect(self.value_changed)
 
-            def install():
-                app = get_vistrails_application()
-                if app.ask_update_default_application(False):
-                    self._handler_status.setText(u".vt .vtl has a handler set")
-            install_button = QtGui.QPushButton(u"Install handler")
-            self.connect(install_button, QtCore.SIGNAL('clicked()'),
-                         install)
+    def set_value(self, value, signal=True):
+        options = self.get_widget_options()
+        if not signal:
+            self.currentIndexChanged[int].disconnect(self.value_changed)
+        if value is not None and "allowed_values" in options:
+            if "remap" in options:
+                remap = options["remap"]
+                cur_text = remap[value]
+            else:
+                cur_text = value
+            self.setCurrentIndex(self.findText(cur_text))
+        else:
+            self.setCurrentIndex(-1)
+        if not signal:
+            self.currentIndexChanged[int].connect(self.value_changed)
 
-            layout2.addWidget(self._handler_status)
-            layout2.addWidget(self._handler_dont_ask)
-            layout2.addWidget(install_button)
-
-    def create_other_widgets(self, parent, layout):
-        """create_other_widgets(parent: QWidget, layout: QLayout)-> None
-        Creates system specific widgets in parent
-        
-        """
-        if vistrails.core.system.systemType in ['Darwin']:
-            parent._use_metal_style_cb = QtGui.QCheckBox(parent)
-            parent._use_metal_style_cb.setText('Use brushed metal appearance*')
-            layout.addWidget(parent._use_metal_style_cb)
-
-        layout.addStretch()
-        label = QtGui.QLabel("* It requires restarting VisTrails for these \
-changes to take effect")
-        layout.addWidget(label)
-
-    def update_state(self, persistent_config, temp_config):
-        """ update_state(configuration: VistrailConfiguration) -> None
-        
-        Update the dialog state based on a new configuration
-        """
-        
+class QConfigurationPane(QtGui.QWidget):
+    def __init__(self, parent, persistent_config, temp_config, cat_fields):
+        QtGui.QWidget.__init__(self, parent)
+        layout = QtGui.QFormLayout()
+        layout.setMargin(10)
+        layout.setSpacing(4)
+        self.setLayout(layout)
         self._configuration = persistent_config
         self._temp_configuration = temp_config
 
-        #Autosave
-        if self._configuration.has('autosave'):
-            if self._configuration.autosave == True:
-                self._autosave_always.setChecked(True)
-                self._autosave_never.setChecked(False)
-                self._autosave_cb.setText("No (for this session only)")
-                self._autosave_cb.setChecked(
-                                     not self._temp_configuration.autosave)
-                    
+        self._fields = {}
+        self._field_layouts = {}
+
+        for category, fields in cat_fields:
+            self.process_fields(layout, fields, category)
+            spacer_widget = QtGui.QWidget()
+            spacer_layout = QtGui.QVBoxLayout()
+            spacer_layout.setMargin(0)
+            spacer_layout.addSpacing(15)
+            spacer_widget.setLayout(spacer_layout)
+            layout.addRow("", spacer_widget)
+
+    def process_fields(self, layout, fields, category, parent_fields=[], 
+                       prev_field=None, prefix=""):
+        for field in fields:
+            if isinstance(field, ConfigFieldParent):
+                self.process_fields(layout, field.sub_fields, category,
+                                    parent_fields, prev_field,
+                                    prefix="%s%s." % (prefix, field.name))
             else:
-                self._autosave_always.setChecked(False)
-                self._autosave_never.setChecked(True)
-                self._autosave_cb.setText("Yes (for this session only)")        
-                self._autosave_cb.setChecked(self._temp_configuration.autosave)
-        
-        #Read/Write from DB by default   
-        if self._configuration.has('dbDefault'):
-            if self._configuration.dbDefault == True:
-                self._db_connect_always.setChecked(True)
-                self._db_connect_never.setChecked(False)
-                self._db_connect_cb.setText("No (for this session only)")
-                self._db_connect_cb.setChecked(
-                                        not self._temp_configuration.dbDefault)
-                    
-            else:
-                self._db_connect_always.setChecked(False)
-                self._db_connect_never.setChecked(True)
-                self._db_connect_cb.setText("Yes (for this session only)")        
-                self._db_connect_cb.setChecked(
-                                        self._temp_configuration.dbDefault)
-        #Caching 
-        if self._configuration.has('useCache'):
-            if self._configuration.useCache == True:
-                self._use_cache_always.setChecked(True)
-                self._use_cache_never.setChecked(False)
-                self._use_cache_cb.setText("No (for this session only)")
-                self._use_cache_cb.setChecked(
-                                        not self._temp_configuration.useCache)
-                    
-            else:
-                self._use_cache_always.setChecked(False)
-                self._use_cache_never.setChecked(True)
-                self._use_cache_cb.setText("Yes (for this session only)")        
-                self._use_cache_cb.setChecked(self._temp_configuration.useCache)
-        
-        if self._configuration.has('showSplash'):
-            self._splash_cb.setChecked(self._configuration.showSplash)
-        if self._configuration.has('maximizeWindows'):
-            self._maximize_cb.setChecked(self._configuration.maximizeWindows)
-        if self._configuration.has('multiHeads'):
-            self._multi_head_cb.setChecked(self._configuration.multiHeads)
+                if field.depends_on is not None:
+                    if field.depends_on not in parent_fields:
+                        if field.depends_on == prev_field:
+                            parent_fields.append(prev_field)
+                        else:
+                            raise Exception("Dependent field %s should "
+                                            "follow parent." % field.name)
+                    parent_idx = parent_fields.index(field.depends_on)
+                    parent_fields = parent_fields[:parent_idx+1]
+                    indent = 4 * len(parent_fields)
+                else:
+                    parent_fields = []
+                    indent = 0
+                self.add_field(layout, field, category, prefix=prefix, 
+                               indent=indent)
+                prev_field = field.name
+                category = ""
 
-        #Default handler
-        if vistrails.core.system.systemType == 'Linux':
-            from vistrails.gui.application import \
-                linux_default_application_set, linux_update_default_application
+    def add_field(self, base_layout, field, category="", startup_only=False,
+                  prefix="", indent=0):
+        label_widget = QtGui.QWidget()
+        label_layout = QtGui.QHBoxLayout()
+        label_layout.setMargin(0)
+        label_layout.setSpacing(5)
+        label_widget.setLayout(label_layout)
 
-            if linux_default_application_set():
-                self._handler_status.setText(u".vt .vtl has a handler set")
-            else:
-                self._handler_status.setText(u".vt .vtl has no handler")
-
-            self._handler_dont_ask.setChecked(
-                    self._configuration.check('handlerDontAsk'))
-
-        #other widgets
-        self.update_other_state()
-
-    def update_other_state(self):
-        """ update_state(configuration: VistrailConfiguration) -> None
-        
-        Update the dialog state based on a new configuration
-        """
-        if vistrails.core.system.systemType in ['Darwin']:
-            self._use_metal_style_cb.setChecked(
-                self._configuration.check('useMacBrushedMetalStyle'))
-            
-    def autosave_changed(self, on):
-        """ autosave_changed(on: bool) -> None
-        
-        """
-        debug.log("auto_save_changed")
-        if self._autosave_always.isChecked() == True:
-            value = True
-            self._autosave_cb.setText("No (for this session only)")
-            self._autosave_cb.setChecked(False)
+        config_key = "%s%s" % (prefix, field.name)
+        if self._temp_configuration.is_unset(config_key):
+            config_val = None
         else:
-            value = False
-            self._autosave_cb.setText("Yes (for this session only)")
-            self._autosave_cb.setChecked(False)
-            
-        self._configuration.autosave = value
-        self._temp_configuration.autosave = value
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, bool(on))
-        
-    def temp_autosave_changed(self, on):
-        """ temp_autosave_changed(on: int) -> None
-        
-        """
-        debug.log("temp_auto_save_changed")
-        value = bool(on)
-        if self._autosave_cb.text() == "No (for this session only)":
-            value = not bool(on)
-        
-        self._temp_configuration.autosave = value
-
-    def db_connect_changed(self, on):
-        """ db_connect_changed(on: int) -> None
-
-        """
-        if self._db_connect_always.isChecked() == True:
-            value = True
-            self._db_connect_cb.setText("No (for this session only)")
-            self._db_connect_cb.setChecked(False)
+            config_val = self._temp_configuration.get_deep_value(config_key)
+        if self._configuration.is_unset(config_key):
+            perm_config_val = None
         else:
-            value = False
-            self._db_connect_cb.setText("Yes (for this session only)")
-            self._db_connect_cb.setChecked(False)
+            perm_config_val = self._configuration.get_deep_value(config_key)
+
+        icon = self.style().standardIcon(QtGui.QStyle.SP_MessageBoxWarning)
+        label = QtGui.QLabel()
+        label.setPixmap(icon.pixmap(14,14))
+        label.setToolTip("This option has been changed for this session")
+        label_layout.addWidget(label, 0, QtCore.Qt.AlignCenter)
             
-        self._configuration.dbDefault = value
-        self._temp_configuration.dbDefault = value
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, bool(on))
-        
-    def temp_db_connect_changed(self, on):
-        """ temp_db_connect_changed(on: int) -> None
+        space = 0
+        if not startup_only and config_val == perm_config_val:
+            space = (label.sizeHint().width() +
+                     label_layout.spacing() * (indent + 1))
+            label.hide()
+        elif indent > 0:
+            space = label_layout.spacing() * indent
 
-        """
-        debug.log("temp_db_connect_changed")
-        value = bool(on)
-        if self._db_connect_cb.text() == "No (for this session only)":
-            value = not bool(on)
-        
-        self._temp_configuration.dbDefault = value
+        if space > 0:
+            spacer = QtGui.QSpacerItem(space, label.sizeHint().height())
+            label_layout.insertSpacerItem(0, spacer)
 
-    def use_cache_changed(self, on):
-        """ use_cache_changed(on: int) -> None
+        config_desc = find_simpledoc(config_key)
+        widget_type = field.widget_type
+        if widget_type is None:
+            if field.val_type == bool:
+                widget_type = "checkbox"
+            elif field.val_type == ConfigPath:
+                widget_type = "pathedit"
+            else:
+                widget_type = "lineedit"
 
-        """
-        if self._use_cache_always.isChecked() == True:
-            value = True
-            self._use_cache_cb.setText("No (for this session only)")
-            self._use_cache_cb.setChecked(False)
+        if widget_type == "combo":
+            widget = QConfigurationComboBox(config_key, field,
+                                            self.field_changed)
+        elif widget_type == "lineedit":
+            widget = QConfigurationLineEdit(config_key, field,
+                                            self.field_changed)
+        elif widget_type == "pathedit":
+            widget = QConfigurationPathEdit(config_key, field,
+                                            self.field_changed)
+        elif widget_type == "thumbnailcache":
+            widget = QConfigurationThumbnailCache(config_key, field,
+                                                  self.field_changed)
+        elif widget_type == "linuxext":
+            widget = QConfigurationLinuxHandler(config_key, field,
+                                                self.field_changed)
         else:
-            value = False
-            self._use_cache_cb.setText("Yes (for this session only)")
-            self._use_cache_cb.setChecked(False)
-            
-        self._configuration.useCache = value
-        self._temp_configuration.useCache = value
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, bool(on))
-        
-    def temp_use_cache_changed(self, on):
-        """ temp_use_cache_changed(on: int) -> None
+            config_val = bool(config_val)
+            widget = QConfigurationCheckBox(config_key, field,
+                                            self.field_changed)
+        widget.set_value(config_val, False)
 
-        """
-        debug.log("temp_use_cache_changed")
-        value = bool(on)
-        if self._use_cache_cb.text() == "No (for this session only)":
-            value = not bool(on)
-        
-        self._temp_configuration.useCache = value
+        label_text = widget.get_label_text()
+        if not label_text and category:
+            label_text = category
+        if label_text:
+            label = QtGui.QLabel(label_text + ":")
+            label_layout.addWidget(label)
 
-    def splash_changed(self, on):
-        """ splash_changed(on: int) -> None
+        base_layout.addRow(label_widget, widget)
+        self._field_layouts[config_key] = (base_layout, base_layout.rowCount())
 
-        """
-        self._configuration.showSplash = bool(on)
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, bool(on))
+    def field_changed(self, widget, config_key, field, val):
+        config_val = self._configuration.get_deep_value(config_key)
+        if config_val != self._temp_configuration.get_deep_value(config_key):
+            retval = QtGui.QMessageBox.question(
+                self, 
+                "Change Setting",
+                "This configuration value has been temporarily changed. "
+                "If you change it, it will be changed permanently.  Do you "
+                "want to continue?", 
+                QtGui.QMessageBox.Cancel | QtGui.QMessageBox.Ok,
+                QtGui.QMessageBox.Ok)
+            if retval != QtGui.QMessageBox.Ok:
+                # revert widget's value
+                widget.set_value(self._temp_configuration.get_deep_value(
+                    config_key))
+                return
+            # need to update hbox to reflect change...
+            form_layout, row = self._field_layouts[config_key]
+            label_layout = form_layout.itemAt(row, QtGui.QFormLayout.LabelRole).widget().layout()
+            leading_item = label_layout.itemAt(0)
+            if isinstance(leading_item.widget(), QtGui.QLabel):
+                label = leading_item.widget()
+                spacer = QtGui.QSpacerItem(label.sizeHint().width() + \
+                                           label_layout.spacing(),
+                                           label.sizeHint().height())
+                label_layout.insertSpacerItem(0, spacer)
+            else:
+                spacer = leading_item
+                label = label_layout.itemAt(1).widget()
+                spacer.changeSize((spacer.sizeHint().width() +
+                                   label.sizeHint().width() +
+                                   label_layout.spacing()),
+                                  label.sizeHint().height())
+            label.hide()
+        # FIXME
+        if False:
+            QtGui.QMessageBox.information(
+                self, "Change Setting",
+                "You must restart VisTrails for this setting to take effect.")
 
-    def maximize_changed(self, on):
-        """ maximize_changed(on: int) -> None
+        setattr(self._temp_configuration, config_key, val)
+        setattr(self._configuration, config_key, val)
 
-        """
-        self._configuration.maximizeWindows = bool(on)
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, bool(on))
-
-    def multi_head_changed(self, on):
-        """ multi_head_changed(on: int) -> None
-
-        """
-        self._configuration.multiHeads = bool(on)
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, bool(on))
-
-    def metalstyle_changed(self, on):
-        """ metalstyle_changed(on: int) -> None
-        
-        """
-        self._configuration.useMacBrushedMetalStyle = bool(on)
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, bool(on))
+# TODO: Make sure this functionality (Move and Clear Cache) is preserved
 
 class QThumbnailConfiguration(QtGui.QWidget):
-    """
-    QThumbnailConfiguration is a widget for showing a few thumbnail related 
-    preferences that can be set with widgets.
-
-    """
-    def __init__(self, parent, persistent_config, temp_config):
-        """
-        QThumbnailConfiguration(parent: QWidget, 
-        configuration_object: ConfigurationObject) -> None
-
-        """
-        QtGui.QWidget.__init__(self, parent)
-        self._configuration = None
-        self._temp_configuration = None
-        self._cache = ThumbnailCache.getInstance()
-        self.create_widgets()
-        self.update_state(persistent_config, temp_config)
-        self.connect_signals()
-    
-    def create_widgets(self):
-        """create_widgets()-> None
-        Creates widgets
-        
-        """
-        layout = QtGui.QVBoxLayout()
-        layout.setMargin(10)
-        layout.setSpacing(10)
-        self.setLayout(layout)
-        
-        #Auto save
-        autosave_gb = QtGui.QGroupBox(self)
-        autosave_gb.setTitle('Automatically save thumbnails in .vt files')
-        glayout = QtGui.QHBoxLayout()
-        self._autosave_always = QtGui.QRadioButton("Always")
-        self._autosave_never = QtGui.QRadioButton("Never")
-        self._autosave_cb = QtGui.QCheckBox("Yes (for this session only)")
-        glayout.addWidget(self._autosave_always)
-        glayout.addWidget(self._autosave_never)
-        glayout.addWidget(self._autosave_cb)
-        autosave_gb.setLayout(glayout)
-        layout.addWidget(autosave_gb)
-        
-        #Thumbnails for tagged versions only
-        tagsonly_gb = QtGui.QGroupBox(self)
-        tagsonly_gb.setTitle('Keep thumbnails of tagged versions only')
-        glayout = QtGui.QHBoxLayout()
-        self._tagsonly_always = QtGui.QRadioButton("Always")
-        self._tagsonly_never = QtGui.QRadioButton("Never")
-        self._tagsonly_cb = QtGui.QCheckBox("Yes (for this session only)")
-        glayout.addWidget(self._tagsonly_always)
-        glayout.addWidget(self._tagsonly_never)
-        glayout.addWidget(self._tagsonly_cb)
-        tagsonly_gb.setLayout(glayout)
-        layout.addWidget(tagsonly_gb)
-        
-        #Show thumbnails on mouser hover events
-        mouse_hover_gb = QtGui.QGroupBox(self)
-        mouse_hover_gb.setTitle('Show thumbnails as tooltips on mouse \
-hovering tree nodes')
-        glayout = QtGui.QHBoxLayout()
-        self._mouse_hover_always = QtGui.QRadioButton("Always")
-        self._mouse_hover_never = QtGui.QRadioButton("Never")
-        self._mouse_hover_cb = QtGui.QCheckBox("Yes (for this session only)")
-        glayout.addWidget(self._mouse_hover_always)
-        glayout.addWidget(self._mouse_hover_never)
-        glayout.addWidget(self._mouse_hover_cb)
-        mouse_hover_gb.setLayout(glayout)
-        layout.addWidget(mouse_hover_gb)
-        
-        hlayout = QtGui.QHBoxLayout()
-        cache_label = QtGui.QLabel(self)
-        cache_label.setText('Limit thumbnail cache size to ')
-        
-        self._thumbs_cache_sb = QtGui.QSpinBox(self)
-        self._thumbs_cache_sb.setRange(10,128)
-        self._thumbs_cache_sb.setValue(10)
-        self._thumbs_cache_sb.setSuffix('MB')
-        self._thumbs_cache_sb.stepBy(5)
-        
-        self._clear_thumbs_cache_btn = QtGui.QPushButton(self)
-        self._clear_thumbs_cache_btn.setText("Clear Cache")
-        
-        hlayout.addWidget(cache_label)
-        hlayout.addWidget(self._thumbs_cache_sb)
-        hlayout.addWidget(self._clear_thumbs_cache_btn)
-        layout.addLayout(hlayout)
-        
-        hlayout = QtGui.QHBoxLayout()
-        cache_label2 = QtGui.QLabel(self)
-        cache_label2.setText("Cache Directory:")
-        self._thumbs_cache_directory_edt = QtGui.QLineEdit(self)
-        self._thumbs_cache_directory_btn = QtGui.QPushButton("...", self)
-        hlayout.addWidget(cache_label2)
-        hlayout.addWidget(self._thumbs_cache_directory_edt)
-        hlayout.addWidget(self._thumbs_cache_directory_btn)
-        layout.addLayout(hlayout)
-        layout.addStretch()
-
-    def connect_signals(self):
-        # We need to connect only one of the radio buttons signal because
-        # only one of them will be checked at a time
-        
-        #Auto save signals
-        self.connect(self._autosave_always,
-                     QtCore.SIGNAL('toggled(bool)'),
-                     self.autosave_changed)
-        self.connect(self._autosave_cb,
-                     QtCore.SIGNAL('toggled(bool)'),
-                     self.temp_autosave_changed)
-        
-        #Thumbnails for tagged versions only signals
-        self.connect(self._tagsonly_always,
-                     QtCore.SIGNAL('toggled(bool)'),
-                     self.tagsonly_changed)
-        self.connect(self._tagsonly_cb,
-                     QtCore.SIGNAL('stateChanged(int)'),
-                     self.temp_tagsonly_changed)
-        
-        #Show thumbnails on mouser hover events signals
-        self.connect(self._mouse_hover_always,
-                     QtCore.SIGNAL('toggled(bool)'),
-                     self.mouse_hover_changed)
-        self.connect(self._mouse_hover_cb,
-                     QtCore.SIGNAL('stateChanged(int)'),
-                     self.temp_mouse_hover_changed)
-        
-        #Other widget signals
-        self.connect(self._thumbs_cache_sb,
-                     QtCore.SIGNAL('valueChanged(int)'),
-                     self.thumbs_cache_changed)
-        self.connect(self._clear_thumbs_cache_btn,
-                     QtCore.SIGNAL('clicked()'),
-                     self.clear_thumbs_cache_pressed)
-        self.connect(self._thumbs_cache_directory_edt,
-                     QtCore.SIGNAL('editingFinished()'),
-                     self.thumbs_cache_directory_changed)
-        self.connect(self._thumbs_cache_directory_btn,
-                     QtCore.SIGNAL('clicked()'),
-                     self.show_directory_chooser)
-        
-    def update_state(self, persistent_config, temp_config):
-        """ update_state(persistent_config, temp_config: VistrailConfiguration) 
-                                     -> None
-        Update the dialog state based on a new configuration
-        
-        """
-        self._configuration = persistent_config
-        self._temp_configuration = temp_config
-        #Auto save
-        if self._configuration.has('thumbs'):
-            if self._configuration.thumbs.has('autoSave'):
-                if self._configuration.autosave == True:
-                    self._autosave_always.setChecked(True)
-                    self._autosave_never.setChecked(False)
-                    self._autosave_cb.setText("No (for this session only)")
-                    self._autosave_cb.setChecked(
-                                not self._temp_configuration.thumbs.autoSave)
-                    
-                else:
-                    self._autosave_always.setChecked(False)
-                    self._autosave_never.setChecked(True)
-                    self._autosave_cb.setText("Yes (for this session only)")        
-                    self._autosave_cb.setChecked(
-                                self._temp_configuration.thumbs.autoSave)
-            #Thumbnails for tagged versions only    
-            if self._configuration.thumbs.has('tagsOnly'):
-                if self._configuration.thumbs.tagsOnly == True:
-                    self._tagsonly_always.setChecked(True)
-                    self._tagsonly_never.setChecked(False)
-                    self._tagsonly_cb.setText("No (for this session only)")
-                    self._tagsonly_cb.setChecked(
-                                not self._temp_configuration.thumbs.tagsOnly)
-                    
-                else:
-                    self._tagsonly_always.setChecked(False)
-                    self._tagsonly_never.setChecked(True)
-                    self._tagsonly_cb.setText("Yes (for this session only)")        
-                    self._tagsonly_cb.setChecked(
-                                    self._temp_configuration.thumbs.tagsOnly)
-            #Show thumbnails on mouser hover events
-            if self._configuration.thumbs.has('mouseHover'):
-                if self._configuration.thumbs.mouseHover == True:
-                    self._mouse_hover_always.setChecked(True)
-                    self._mouse_hover_never.setChecked(False)
-                    self._mouse_hover_cb.setText("No (for this session only)")
-                    self._mouse_hover_cb.setChecked(
-                                not self._temp_configuration.thumbs.mouseHover)
-                    
-                else:
-                    self._mouse_hover_always.setChecked(False)
-                    self._mouse_hover_never.setChecked(True)
-                    self._mouse_hover_cb.setText("Yes (for this session only)")        
-                    self._mouse_hover_cb.setChecked(
-                                self._temp_configuration.thumbs.mouseHover)
-            # Other widgets
-            if self._configuration.thumbs.has('cacheSize'):
-                self._thumbs_cache_sb.setValue(
-                    self._configuration.thumbs.cacheSize)
-            if self._configuration.thumbs.has('cacheDirectory'):
-                self._thumbs_cache_directory_edt.setText(
-                    self._configuration.thumbs.cacheDirectory)
-                
-    def autosave_changed(self, on):
-        """ autosave_changed(on: bool) -> None
-        
-        """
-        debug.log("thumbs_auto_save_changed")
-        if self._autosave_always.isChecked() == True:
-            value = True
-            self._autosave_cb.setText("No (for this session only)")
-            self._autosave_cb.setChecked(False)
-        else:
-            value = False
-            self._autosave_cb.setText("Yes (for this session only)")
-            self._autosave_cb.setChecked(False)
-            
-        self._configuration.thumbs.autoSave = value
-        self._temp_configuration.thumbs.autoSave = value
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, bool(on))
-        
-    def temp_autosave_changed(self, on):
-        """ temp_autosave_changed(on: int) -> None
-        
-        """
-        debug.log("thumbs_temp_auto_save_changed")
-        value = bool(on)
-        if self._autosave_cb.text() == "No (for this session only)":
-            value = not bool(on)
-        
-        self._temp_configuration.thumbs.autoSave = value
-
-    def tagsonly_changed(self, on):
-        """ tagsonly_changed(on: bool) -> None
-        
-        """
-        debug.log("thumbs_tagsonly_changed")
-        if self._tagsonly_always.isChecked() == True:
-            value = True
-            self._tagsonly_cb.setText("No (for this session only)")
-            self._tagsonly_cb.setChecked(False)
-        else:
-            value = False
-            self._tagsonly_cb.setText("Yes (for this session only)")
-            self._tagsonly_cb.setChecked(False)
-            
-        self._configuration.thumbs.tagsOnly = value
-        self._temp_configuration.thumbs.tagsOnly = value
-        
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, bool(on))
-        
-    def temp_tagsonly_changed(self, on):
-        """ temp_tagsonly_changed(on: int) -> None
-        
-        """
-        debug.log("thumbs_temp_tagsonly_changed")
-        value = bool(on)
-        if self._tagsonly_cb.text() == "No (for this session only)":
-            value = not bool(on)
-        
-        self._temp_configuration.thumbs.tagsOnly = value
-        
-    def mouse_hover_changed(self, on):
-        """ mouse_hover_changed(on: bool) -> None
-        
-        """
-        debug.log("thumbs_mouse_hover_changed")
-        if self._mouse_hover_always.isChecked() == True:
-            value = True
-            self._mouse_hover_cb.setText("No (for this session only)")
-            self._mouse_hover_cb.setChecked(False)
-        else:
-            value = False
-            self._mouse_hover_cb.setText("Yes (for this session only)")
-            self._mouse_hover_cb.setChecked(False)
-            
-        self._configuration.thumbs.mouseHover = value
-        self._temp_configuration.thumbs.mouseHover = value
-        
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, bool(on))
-        
-    def temp_mouse_hover_changed(self, on):
-        """ temp_mouse_hover_changed(on: int) -> None
-        
-        """
-        debug.log("thumbs_temp_mouse_hover_changed")
-        value = bool(on)
-        if self._mouse_hover_cb.text() == "No (for this session only)":
-            value = not bool(on)
-        
-        self._temp_configuration.thumbs.mouseHover = value
-        
-    def thumbs_cache_changed(self, v):
-        """ thumbs_cache_changed(v: int) -> None
-        
-        """
-        self._configuration.thumbs.cacheSize = v
-        self._temp_configuration.thumbs.cacheSize = v
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  None, v)
-        
     def thumbs_cache_directory_changed(self):
         """ thumbs_cache_changed(v: int) -> None
         
@@ -949,31 +647,4 @@ hovering tree nodes')
         else:
             show_warning('VisTrails', 'The directory specified does not exist.')
             self._thumbs_cache_directory_edt.setText(old_folder)
-            
-    def show_directory_chooser(self):
-        """show_directory_chooser() -> None
-        Shows a dialog for choosing a directory 
-        
-        """
-        dir = QtGui.QFileDialog.getExistingDirectory(
-                  self,
-                  "Choose a new directory for storing thumbnail chache files",
-                  "",
-                  QtGui.QFileDialog.ShowDirsOnly)
-        if dir:
-            self._thumbs_cache_directory_edt.setText(dir)
-            self.thumbs_cache_directory_changed()
-            
-    def clear_thumbs_cache_pressed(self):
-        """clear_thumbs_cache_pressed() -> None
-        Will delete all files in thumbs.cacheDirectory if user clicks yes
-        
-        """
-        res = show_question('VisTrails',
-                  "All files in %s will be removed. Are you sure? " % (
-                            self._temp_configuration.thumbs.cacheDirectory),
-                  buttons = [YES_BUTTON,NO_BUTTON],
-                  default = NO_BUTTON)
-        if res == YES_BUTTON:
-            self._cache.clear()
- 
+

@@ -55,10 +55,13 @@ from vistrails.core.modules.module_registry import get_module_registry, \
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_function import ModuleFunction
+from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.port import PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.utils import VistrailsDeprecation
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.controlflow_assist import QControlFlowAssistDialog
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
@@ -66,6 +69,8 @@ from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QGraphicsItemInterface)
 from vistrails.gui.module_info import QModuleInfo
 from vistrails.gui.module_palette import QModuleTreeWidget
+from vistrails.gui.modules.utils import get_widget_class
+from vistrails.gui.ports_pane import Parameter
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import getBuilderWindow
 from vistrails.gui.variable_dropbox import QDragVariableLabel
@@ -73,6 +78,8 @@ from vistrails.gui.variable_dropbox import QDragVariableLabel
 import copy
 import math
 import operator
+import string
+import warnings
 
 import vistrails.api
 import vistrails.gui.utils
@@ -300,6 +307,8 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
                                    QtCore.SIGNAL("triggered()"),
                                    callback)
             self.removeVarActions.append((removeVarAction, callback))
+
+
 
     def removeVar(self, var_uuid):
         (to_delete_modules, to_delete_conns) = \
@@ -951,12 +960,13 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
 
 
         # draw multiple connections depending on list depth
-        
         def diff(i, depth):
             return QtCore.QPointF((5.0 + 10.0*i)/depth - 5.0, 0.0)
         
-        startDepth = self.srcPortItem.parentItem().module.list_depth + 1
-        endDepth = self.dstPortItem.parentItem().module.list_depth + 1
+        srcParent = self.srcPortItem.parentItem()
+        startDepth = srcParent.module.list_depth + 1 if srcParent else 1
+        dstParent = self.dstPortItem.parentItem()
+        endDepth = dstParent.module.list_depth + 1 if dstParent else 1
         starts = [diff(i, startDepth) for i in xrange(startDepth)]
         ends = [diff(i, endDepth) for i in xrange(endDepth)]
     
@@ -1034,6 +1044,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         else:
             self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable |
                           QtGui.QGraphicsItem.ItemIsMovable)
+        self.setAcceptHoverEvents(True)
+        self.setFlag(self.ItemIsFocusable)
         self.setZValue(0)
         self.labelFont = CurrentTheme.MODULE_FONT
         self.labelFontMetric = CurrentTheme.MODULE_FONT_METRIC
@@ -1047,6 +1059,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.labelRect = QtCore.QRectF()
         self.descRect = QtCore.QRectF()
         self.abstRect = QtCore.QRectF()
+        self.editRect = QtCore.QRectF()
         self.id = -1
         self.label = ''
         self.description = ''
@@ -1066,6 +1079,13 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.progressBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
         self.connectionItems = {}
         self._cur_function_names = set()
+        self.function_overview = 'No functions set'
+        self.show_widgets = get_vistrails_configuration(
+                                         ).check('showInlineParameterWidgets')
+        self.function_widget = None
+        self.function_widgets = []
+        self.functions_widget = None
+        self.edit_rect = QtCore.QRectF(0.0, 0.0, 0.0, 0.0)
         self.handlePositionChanges = True
 
     def moduleHasChanged(self, core_module):
@@ -1077,7 +1097,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 # m2_has, since m1_has and previous condition
                 m1.db_annotations_key_index['__desc__'].value.strip()!=
                 m2.db_annotations_key_index['__desc__'].value.strip()):
-                return True            
+                return True
             return False
 
         # def module_functions_have_changed(m1, m2):
@@ -1085,7 +1105,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         #     f2_names = set([f.name for f in m2.functions])
         #     return (len(f1_names ^ f2_names) > 0)
 
-        if self.scenePos().x() != core_module.center.x or \
+        if self.show_widgets != get_vistrails_configuration(
+                                   ).check('showInlineParameterWidgets') and \
+           core_module.editable_input_ports:
+            return True
+        elif self.scenePos().x() != core_module.center.x or \
                 -self.scenePos().y() != core_module.center.y:
             return True
         elif module_text_has_changed(self.module, core_module):
@@ -1093,6 +1117,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # elif module_functions_have_changed(self.module, core_module):
         #     return True
         else:
+            # check for changed edit widgets
+            if core_module.editable_input_ports != \
+               self.module.editable_input_ports:
+                # shape has changed so we need to recreate the module
+                return True
             # Check for changed ports
             # _db_name because this shows up in the profile.
             cip = sorted([x.key_no_id() for x in self.inputPorts])
@@ -1134,7 +1163,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             added_functions = after_names - before_names
             deleted_functions = before_names - after_names
             self._cur_function_names = copy.copy(after_names)
-
         if len(deleted_functions) > 0:
             for function_name in deleted_functions:
                 try:
@@ -1162,50 +1190,87 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 if item is not None:
                     item.connect()
         
+        if core_module.functions:
+            function_overview = []
+            for f in core_module.functions:
+                if len(f.params)>1:
+                    params = ', '.join([p.strValue for p in f.params])
+                elif len(f.params)>0:
+                    params = f.params[0].strValue
+                else:
+                    params = ''
+                if len(params)>100:
+                    params = params[:97] + '...'
+                function_template = "<b>%s(</b>%s<b>)</b>"
+                function_overview.append(function_template % (f.name, params))
+                template = '<html><p style="background:#FFFFFF;">%s</p></html>'
+            self.function_overview = template % '<br/>'.join(function_overview)
+        else:
+            self.function_overview = 'No functions set'
+
         self.module = core_module
+        for function_widget in self.function_widgets:
+            for f in self.module.functions:
+                if f.name == function_widget.function.name:
+                    function_widget.setContents([p.strValue for p in f.params])
 
     def setProgress(self, progress):
         self.progress = progress
         
     def computeBoundingRect(self):
         """ computeBoundingRect() -> None
-        Adjust the module size according to the text size
+        Adjust the module size according to contents
         
         """
+        width = 0
+        height = CurrentTheme.MODULE_LABEL_MARGIN[1]
+        # for each rect: Add height, adjust min width,
+        # set pos to distance to top middle corner, to be adjusted when
+        # paddedRect is known
         labelRect = self.labelFontMetric.boundingRect(self.label)
+        labelRect.moveTo(-labelRect.width()/2, height)
+        height += labelRect.height()
+        padding = labelRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0], 0,
+                                      CurrentTheme.MODULE_LABEL_MARGIN[2], 0)
+        width = max(width, padding.width())
+
         if self.description:
             self.description = '(' + self.description + ')'
             descRect = self.descFontMetric.boundingRect(self.description)
-            # adjust labelRect in case descRect is wider
-            labelRect = labelRect.united(descRect)
-            descRect.adjust(0, 0, 0, CurrentTheme.MODULE_PORT_MARGIN[3])
-        else:
-            descRect = QtCore.QRectF(0, 0, 0, 0)
+            descRect.moveTo(-descRect.width()/2, height)
+            height += descRect.height()
+            padding = descRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0], 0,
+                                         CurrentTheme.MODULE_LABEL_MARGIN[2], 0)
+            width = max(width, padding.width())
 
-        labelRect.translate(-labelRect.center().x(), -labelRect.center().y())
-        self.paddedRect = QtCore.QRectF(
-            labelRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0],
-                                -CurrentTheme.MODULE_LABEL_MARGIN[1]
-                                -descRect.height()/2,
-                                CurrentTheme.MODULE_LABEL_MARGIN[2],
-                                CurrentTheme.MODULE_LABEL_MARGIN[3]
-                                +descRect.height()/2))
-        
-        self.labelRect = QtCore.QRectF(
-            self.paddedRect.left(),
-            -(labelRect.height()+descRect.height())/2,
-            self.paddedRect.width(),
-            labelRect.height())
-        self.descRect = QtCore.QRectF(
-            self.paddedRect.left(),
-            self.labelRect.bottom(),
-            self.paddedRect.width(),
-            descRect.height())
+        if self.edit_rect.height():
+            height += CurrentTheme.MODULE_EDIT_MARGIN[1] # top margin
+            editRect = self.edit_rect
+            editRect.moveTo(-editRect.width()/2, height)
+            height += editRect.height()
+            padding = editRect.adjusted(-CurrentTheme.MODULE_EDIT_MARGIN[0], 0,
+                                         CurrentTheme.MODULE_EDIT_MARGIN[2], 0)
+            width = max(width, padding.width())
+            height += CurrentTheme.MODULE_EDIT_MARGIN[3] # bottom edit margin
+
+        height += CurrentTheme.MODULE_LABEL_MARGIN[3] # bottom margin
+
+        # move to final position
+
+        self.paddedRect = QtCore.QRectF(-width/2, -height/2, width, height)
+        labelRect.translate(0, -height/2)
+        self.labelRect = labelRect
+        if self.description:
+            descRect.translate(0, -height/2)
+            self.descRect = descRect
+        if self.edit_rect.height():
+            editRect.translate(0, -height/2)
+            self.editRect = editRect
         self.abstRect = QtCore.QRectF(
             self.paddedRect.left(),
-            -self.labelRect.top()-CurrentTheme.MODULE_PORT_MARGIN[3],
-            labelRect.left()-self.paddedRect.left(),
-            self.paddedRect.bottom()+self.labelRect.top())
+            -self.paddedRect.top()-CurrentTheme.MODULE_LABEL_MARGIN[3],
+            CurrentTheme.MODULE_LABEL_MARGIN[0],
+            CurrentTheme.MODULE_LABEL_MARGIN[3])
 
     def boundingRect(self):
         """ boundingRect() -> QRectF
@@ -1346,12 +1411,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # draw module labels
         painter.setPen(self.labelPen)
         painter.setFont(self.labelFont)
-        painter.drawText(self.labelRect, QtCore.Qt.AlignCenter, self.label)
+        painter.drawText(self.labelRect.adjusted(-10,-10,10,10), QtCore.Qt.AlignCenter, self.label)
         if self.module.is_abstraction() and not self.module.is_latest_version():
             painter.drawText(self.abstRect, QtCore.Qt.AlignCenter, '!')
         if self.descRect:
             painter.setFont(self.descFont)
-            painter.drawText(self.descRect, QtCore.Qt.AlignCenter,
+            painter.drawText(self.descRect.adjusted(-10,-10,10,10), QtCore.Qt.AlignCenter,
                              self.description)
 
     def paintToPixmap(self, scale_x, scale_y):
@@ -1392,7 +1457,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             diff = minWidth - self.paddedRect.width() + 1
             self.paddedRect.adjust(-diff/2, 0, diff/2, 0)
 
-    def setupModule(self, module):
+    def setupModule(self, module, read_only=False):
         """ setupModule(module: Module) -> None
         Set up the item to reflect the info in 'module'
         
@@ -1408,6 +1473,17 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         else:
             self.label = module.label
             self.description = ''
+
+        # Show inline edit widgets
+        if get_vistrails_configuration().check('showInlineParameterWidgets') and \
+            module.is_valid and not read_only and module.editable_input_ports:
+            self.functions_widget = QGraphicsFunctionsWidget(self.module,
+                          self, module.editable_input_ports == set(['value']))
+            set_lod(0.5, self.functions_widget)
+            self.functions_widget.function_changed.connect(self.function_changed)
+            self.function_widgets = self.functions_widget.function_widgets
+            self.edit_rect = self.functions_widget.boundingRect()
+
         self.setToolTip(self.description)
         self.computeBoundingRect()
         self.setPos(module.center.x, -module.center.y)
@@ -1513,10 +1589,34 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             except ModuleRegistryException, e:
                 error = e
 
+            if self.functions_widget:
+                self.functions_widget.setPos(self.editRect.topLeft())
+
             self.update_function_ports()
+
         else:
             self.setInvalid(True)
-            
+
+    def value_changed(self, values):
+        widget, value = values
+        controller = self.scene().controller
+        controller.update_function(self.module, 'value', [value])
+        self.update_function_ports(controller.current_pipeline.modules[self.module.id])
+        if self.isSelected():
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('module_changed', self.module)
+
+    def function_changed(self, name, values):
+        """ Called when a function value has changed by the inline edit widget
+        
+        """
+        controller = self.scene().controller
+        controller.update_function(self.module, name, values)
+        self.update_function_ports(controller.current_pipeline.modules[self.module.id])
+        if self.isSelected():
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('module_changed', self.module)
+
     def create_shape_from_fringe(self, fringe):
         left_fringe, right_fringe = fringe
         if left_fringe[0] != (0.0, 0.0):
@@ -1754,10 +1854,42 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             else:
                 yield (item, True)
 
+    def keyPressEvent(self, event):
+        """ keyPressEvent(event: QKeyEvent) -> None
+        Capture 'Del', 'Backspace' for deleting modules.
+        Ctrl+C, Ctrl+V, Ctrl+A for copy, paste and select all
+        
+        """        
+        if (self.scene().controller and
+            event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
+            if not self.scene().read_only_mode:
+                self.scene().delete_selected_items()
+        else:
+            QtGui.QGraphicsItem.keyPressEvent(self, event)
+
     def mouseReleaseEvent(self, event):
         super(QGraphicsModuleItem, self).mouseReleaseEvent(event)
         if not self.controller.changed and self.controller.has_move_actions():
             self.controller.set_changed(True)
+
+    def hoverEnterEvent(self, event):
+        if QtGui.QApplication.keyboardModifiers() == QtCore.Qt.ControlModifier:
+            if self.function_widget:
+                self.scene().removeItem(self.function_widget)
+            self.function_widget = QtGui.QGraphicsTextItem()
+            pos = self.paddedRect.bottomLeft()+self.pos()
+            self.function_widget.setPos(pos)
+            self.function_widget.setAcceptHoverEvents(False)
+            self.scene().addItem(self.function_widget)
+            self.function_widget.setHtml(self.function_overview)
+            self.function_widget.setZValue(1000000)
+        return QtGui.QGraphicsItem.hoverEnterEvent(self, event)
+
+    def hoverLeaveEvent(self, event):
+        if self.function_widget:
+            self.scene().removeItem(self.function_widget)
+            self.function_widget = None
+        return QtGui.QGraphicsItem.hoverLeaveEvent(self, event)
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: value) -> value
@@ -1914,14 +2046,21 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self._old_module_ids = set()
         self._old_connection_ids = set()
         self._var_selected_port = None
-        self.pipeline = None
         self.read_only_mode = False
         self.current_pipeline = None
         self.current_version = -1
+        self.skip_update = False
 
         self.tmp_module_item = None
         self.tmp_input_conn = None
         self.tmp_output_conn = None
+
+    def _get_pipeline(self):
+        warnings.warn("Use of deprecated field 'pipeline' replaced by "
+                      "'current_pipeline'",
+                      category=VistrailsDeprecation)
+        return self.current_pipeline
+    pipeline = property(_get_pipeline)
 
     def addModule(self, module, moduleBrush=None):
         """ addModule(module: Module, moduleBrush: QBrush) -> QGraphicsModuleItem
@@ -1934,7 +2073,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             matched = self.controller.search.matchModule(*moduleQuery)
             moduleItem.setGhosted(not matched)
         moduleItem.controller = self.controller
-        moduleItem.setupModule(module)
+        moduleItem.setupModule(module, self.read_only_mode)
         moduleItem.setBreakpoint(module.is_breakpoint)
         if moduleBrush:
             moduleItem.set_custom_brush(moduleBrush)
@@ -1976,7 +2115,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             dstPortItem.addVistrailVar(
                 self.controller.get_vistrail_variable_by_uuid(var_uuid))
             dstPortItem.addVistrailVar(var_uuid)
-        self.update_connections()
+        self.update_connections([srcModule.id, dstModule.id])
         return connectionItem
 
     def selected_subgraph(self):
@@ -2036,8 +2175,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.removeItem(self.connections[c_id])
         del self.connections[c_id]
         self._old_connection_ids.remove(c_id)
-        self.update_connections()
-        
+        self.update_connections([srcModule.id, dstModule.id])
 
     def recreate_module(self, pipeline, m_id):
         """recreate_module(pipeline, m_id): None
@@ -2067,6 +2205,15 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.modules[m_id].setSelected(True)
             
     def update_module_functions(self, pipeline, m_id):
+        module = pipeline.modules[m_id]
+        # check if a visible function has been deleted
+        before = set([f.name for f in
+                    self.controller.current_pipeline.modules[m_id].functions])
+        after = set([f.name for f in module.functions])
+        if (before - after) & module.editable_input_ports:
+            # function deleted so we need to recreate module with empty widget
+            self.recreate_module(pipeline, m_id)
+            return
         self.modules[m_id].update_function_ports(pipeline.modules[m_id])
 
     def setupScene(self, pipeline):
@@ -2074,9 +2221,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Construct the scene to view a pipeline
         
         """
-        old_pipeline = self.pipeline
-        self.pipeline = pipeline
-
+        old_pipeline = self.current_pipeline
+        self.current_pipeline = pipeline
         if self.noUpdate: return
         if (pipeline is None or 
             (old_pipeline and not old_pipeline.is_valid) or 
@@ -2084,11 +2230,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
             # clear things
             self.clear()
         if not pipeline: return 
-        
-        self.pipeline.mark_list_depth()
 
         needReset = len(self.items())==0
         try:
+            self.skip_update = True
             new_modules = set(pipeline.modules)
             modules_to_be_added = new_modules - self._old_module_ids
             modules_to_be_deleted = self._old_module_ids - new_modules
@@ -2098,6 +2243,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             connections_to_be_added = new_connections - self._old_connection_ids
             connections_to_be_deleted = self._old_connection_ids - new_connections
             common_connections = new_connections.intersection(self._old_connection_ids)
+
 
             # Check if connections to be added require 
             # optional ports in modules to be visible
@@ -2178,6 +2324,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 "in that package)") % (e._identifier, e._name))
             self.clear()
             self.controller.change_selected_version(0)
+        finally:
+            self.skip_update = False
+            self.update_connections()
 
         if needReset and len(self.items())>0:
             self.fitToAllViews()
@@ -2576,7 +2725,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                         namespace=desc.namespace,
                         )
         module.is_valid = True
-        self.tmp_module_item.setupModule(module)
+        self.tmp_module_item.setupModule(module, True)
         self.addItem(self.tmp_module_item)
         self.tmp_module_item.hide()
         self.tmp_module_item.update()
@@ -2584,11 +2733,14 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         return self.tmp_module_item
 
-    def update_connections(self):
-        for module_id, list_depth in \
-                           self.controller.current_pipeline.mark_list_depth():
-            if module_id in self.modules:
-                self.modules[module_id].module.list_depth = list_depth 
+    def update_connections(self, modules=None):
+        if self.skip_update:
+            return
+        if self.controller.current_pipeline.is_valid:
+            for module_id, list_depth in \
+                    self.controller.current_pipeline.mark_list_depth(modules):
+                if module_id in self.modules:
+                    self.modules[module_id].module.list_depth = list_depth
         for c in self.connections.itervalues():
             c.setupConnection()
 
@@ -2712,8 +2864,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Capture 'Del', 'Backspace' for deleting modules.
         Ctrl+C, Ctrl+V, Ctrl+A for copy, paste and select all
         
-        """        
-        if (self.controller and
+        """
+        if (not self.focusItem() and self.controller and
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
             if not self.read_only_mode:
                 self.delete_selected_items()
@@ -3140,6 +3292,193 @@ class QPipelineScene(QInteractiveGraphicsScene):
         This will prevent user to add/remove modules and connections."""
         self.read_only_mode = on
 
+class QGraphicsFunctionsWidget(QtGui.QGraphicsWidget):
+    """ GraphicsWidget containing all editable functions
+
+    """
+    
+    function_changed = QtCore.pyqtSignal(str, list)
+
+    def __init__(self, module, parent=None, constant=None):
+        QtGui.QGraphicsWidget.__init__(self, parent)
+        self.function_widgets = []
+        height = 0
+        width = 0
+        for port_spec in module.destinationPorts():
+            if port_spec.name in module.editable_input_ports:
+                # create default dummies
+                params = []
+                for psi in port_spec.items:
+                    param = ModuleParam(type=psi.descriptor.name,
+                                        identifier=psi.descriptor.identifier,
+                                        namespace=psi.descriptor.namespace)
+                    params.append(param)
+                function = ModuleFunction(name=port_spec.name,
+                                          parameters=params)
+                for f in module.functions:
+                    if f.name == port_spec.name:
+                        function = f
+
+                for psi, param in zip(port_spec.port_spec_items, 
+                                                             function.params):
+                    param.port_spec_item = psi
+                function_widget = QGraphicsFunctionWidget(function, self, constant)
+                function_widget.setPos(0, height)
+                function_widget.function_changed.connect(self.function_changed)
+                self.function_widgets.append(function_widget)
+                height += function_widget.boundingRect().height()
+                width = max(width,function_widget.boundingRect().width())
+        # center widgets
+        for function_widget in self.function_widgets:
+            for widget, w in function_widget.widths:
+                widget.moveBy((width-w)/2, 0.0)
+        self.bounds = QtCore.QRectF(0,0,width,height)
+
+    def boundingRect(self):
+        return self.bounds
+
+class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
+    """ GraphicsWidget containing an editable function
+
+    """
+
+    function_changed = QtCore.pyqtSignal(str, list)
+
+    def __init__(self, function, parent=None, constant=None):
+        QtGui.QGraphicsWidget.__init__(self, parent)
+        self.function = function
+        self.param_widgets = []
+        self.widths = [] # (widget, width)
+        self.bounds = None
+        width = 0
+        height = 0
+        SCALE = 3.0/4 # make QWidgets a bit smaller than normal
+        MAX_WIDTH = 150
+        if not constant:
+            # add name label
+            name = self.function.name
+            bounds = CurrentTheme.MODULE_EDIT_FONT_METRIC.boundingRect
+            editRect = bounds(name)
+            if editRect.width()>MAX_WIDTH:
+                while bounds(name + '...').width() > MAX_WIDTH:
+                    name = name[:-1]
+                name += '...'
+            editRect = bounds(name)
+            width = max(width, editRect.width())
+            fname = QtGui.QGraphicsSimpleTextItem(name, self)
+            fname.setFont(CurrentTheme.MODULE_EDIT_FONT)
+            fname.setPos(-1, -1)
+
+            names = []
+            sigstring = function.sigstring
+            for sig in sigstring[1:-1].split(','):
+                k = sig.split(':', 2)
+                if len(k) < 2:
+                    names.append(k[0])
+                else:
+                    names.append(k[1])
+            short_sigstring = '(' + ','.join(names) + ')'
+            tooltip = function.name + short_sigstring
+            fname.setToolTip(tooltip)
+
+            #height += bounds(name).height()
+            height += 11 # hardcoded because fontmetric can give wrong value
+
+        for i in xrange(len(function.parameters)):
+            param = function.parameters[i]
+            # check
+            psi = param.port_spec_item
+            if psi.entry_type is not None:
+                # !!only pull off the prefix!! options follow in camelcase
+                prefix_end = len(psi.entry_type.lstrip(string.lowercase))
+                if prefix_end == 0:
+                    entry_type = psi.entry_type
+                else:
+                    entry_type = psi.entry_type[:-prefix_end]
+            else:
+                entry_type = None
+
+            Widget = get_widget_class(psi.descriptor, entry_type)
+            if hasattr(Widget, 'GraphicsItem') and Widget.GraphicsItem:
+                param_widget = Widget.GraphicsItem(param, self)
+                # resize to MAX_WIDTH
+                rect = param_widget.boundingRect()
+                param_widget.setZValue(self.zValue()+0.2)
+                scale = max(rect.width(), rect.height())
+                if scale>MAX_WIDTH:
+                    param_widget.setScale(MAX_WIDTH/scale)
+                    rect.setSize(rect.size()*MAX_WIDTH/scale)
+                bg = QtGui.QGraphicsRectItem(rect, self)
+                # TODO COLOR
+                bg.setBrush(QtGui.QBrush(QtGui.QColor('#FFFFFF')))
+                bg.setZValue(-1)
+                bg.setPos(0, height)
+                def get_focusable(widget):
+                    return lambda e:widget.setFocus() or widget.mousePressEvent(e)
+                bg.mousePressEvent = get_focusable(param_widget)
+                param_widget.setPos(0, height)
+                self.widths.append((param_widget,rect.width()))
+            else:
+                param_widget = Widget(param)
+                param_widget.setAutoFillBackground(False)
+                param_widget.setAttribute(QtCore.Qt.WA_NoSystemBackground, True)
+                param_widget.setMaximumSize(MAX_WIDTH/SCALE, MAX_WIDTH/SCALE)
+                param_widget.setWindowFlags(QtCore.Qt.BypassGraphicsProxyWidget)
+                proxy = QtGui.QGraphicsProxyWidget(self)
+                proxy.setWidget(param_widget)
+                proxy.setScale(SCALE)
+                rect = param_widget.geometry()
+                rect.setSize(rect.size()*SCALE)# uninitialized bounds need to be scaled
+                rect.moveTo(0.0,0.0)
+                proxy.setPos(0, height)
+                self.widths.append((proxy,rect.width()))
+            width = max(width, rect.width())
+            rect.setHeight(rect.height()+2) # space between parameters
+            height += rect.height()
+            param_widget.contentsChanged.connect(self.param_changed)
+            self.param_widgets.append(param_widget)
+        self.bounds = QtCore.QRectF(0.0, 0.0, width, height)
+
+    def param_changed(self, values):
+        # get values from all parameters
+        values = [p.contents() for p in self.param_widgets]
+        self.function_changed.emit(self.function.name, values)
+
+    def setContents(self, values):
+        for pw, value in zip(self.param_widgets, values):
+            pw.setContents(value, silent=True)
+
+    def boundingRect(self):
+        return self.bounds
+
+def set_lod(limit, item, draw=None):
+    """Sets the limit of level of detail used when painting items.
+    """
+    # This function replaces the paint() methods of the given item and its
+    # children. The new version doesn't actually draw any of the items if the
+    # level of detail OF THE TOP ITEM (which is the only one checked) is under
+    # the threshold
+    # Only the top-level item is checked, because children might have different
+    # scales
+
+    paint_orig = item.paint # store reference to original paint method
+    top_item = draw is None
+    if draw is None:
+        draw = [True]
+
+    # Overrides paint() on that item
+    def paint_with_lod_check(painter, option, widget):
+        if top_item:
+            draw[0] = option.levelOfDetailFromTransform(
+                    painter.worldTransform()) > limit
+        if draw[0]:
+            return paint_orig(painter, option, widget)
+    item.paint = paint_with_lod_check
+
+    # Recursively process children
+    for i in item.childItems():
+        set_lod(limit, i, draw)
+
 class QModuleStatusEvent(QtCore.QEvent):
     """
     QModuleStatusEvent is trying to handle thread-safe real-time
@@ -3326,11 +3665,12 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def set_controller(self, controller):
         oldController = self.controller
         if oldController != controller:
-            if oldController != None:
+            #if oldController != None:
                 # self.disconnect(oldController,
                 #                 QtCore.SIGNAL('versionWasChanged'),
                 #                 self.version_changed)
-                oldController.current_pipeline_view = None
+                # is this needed. It causes errors in api tests
+                #oldController.current_pipeline_view = None
             self.controller = controller
             self.scene().controller = controller
             # self.connect(controller,

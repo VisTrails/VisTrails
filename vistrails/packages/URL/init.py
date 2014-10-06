@@ -66,6 +66,7 @@ from vistrails.gui.utils import show_warning
 from vistrails.core.repository.poster.encode import multipart_encode
 from vistrails.core.repository.poster.streaminghttp import register_openers
 
+from .identifiers import identifier
 from .http_directory import download_directory
 from .https_if_available import build_opener
 
@@ -538,11 +539,8 @@ class RepoSync(Module):
             self.checksum = self.get_input("checksum")
             # get file path
             path_url = "%s/datasets/path/%s/"%(self.base_url, self.checksum)
-            try:
-                dataset_path_request = urllib2.urlopen(url=path_url)
-                dataset_path = dataset_path_request.read()
-            except urllib2.HTTPError:
-                pass
+            dataset_path_request = urllib2.urlopen(url=path_url)
+            dataset_path = dataset_path_request.read()
 
             if os.path.isfile(dataset_path):
                 out_file = PathObject(dataset_path)

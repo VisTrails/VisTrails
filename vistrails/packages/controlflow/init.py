@@ -87,6 +87,10 @@ def initialize(*args,**keywords):
     reg.add_input_port(FoldWithModule, 'InputPort', (List, ""))
     reg.add_input_port(FoldWithModule, 'OutputPort', (String, ""))
 
+    reg.add_output_port(Map, 'Result', (List, ""))
+
+    reg.add_output_port(Filter, 'Result', (List, ""))
+
     reg.add_input_port(If, 'Condition', (Boolean, ""))
     reg.add_input_port(If, 'TruePort', (Module, ""))
     reg.add_input_port(If, 'FalsePort', (Module, ""))
@@ -204,6 +208,16 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                         'List_1': 'List1',
                         'List_2': 'List2',
                     },
+                }),
+            ],
+            'Map': [
+                (None, '0.2.4', None, {
+                    'src_port_remap': {'Result': 'Result'}
+                }),
+            ],
+            'Filter': [
+                (None, '0.2.4', None, {
+                    'src_port_remap': {'Result': 'Result'}
                 }),
             ],
         }

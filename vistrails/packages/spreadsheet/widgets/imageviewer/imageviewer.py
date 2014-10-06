@@ -38,12 +38,20 @@
 import os
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.vistrails_module import Module
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
 import imageviewer_rc
 
 ################################################################################
+
+class ImageFileToSpreadsheet(SpreadsheetMode):
+    def compute_output(self, output_module, configuration=None):
+        fname = output_module.get_input('value').name
+        window = spreadsheetController.findSpreadsheetWindow()
+        local_file = window.file_pool.make_local_copy(fname)
+        self.display_and_wait(output_module, configuration,
+                              ImageViewerCellWidget, (local_file,))
 
 class ImageViewerCell(SpreadsheetCell):
     """

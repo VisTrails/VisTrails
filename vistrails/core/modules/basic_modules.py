@@ -53,7 +53,7 @@ import os
 import pickle
 import re
 import shutil
-#import zipfile
+import zipfile
 import urllib
 
 try:
@@ -408,6 +408,7 @@ class Directory(Path):
 class OutputPath(Path):
     _settings = ModuleSettings(constant_widget=("%s:OutputPathChooserWidget" % \
                                                 constant_config_path))
+    _input_ports = [IPort("value", "OutputPath")]
     _output_ports = [OPort("value", "OutputPath")]
 
     def get_name(self):
@@ -481,12 +482,12 @@ class FileSink(NotCacheable, Module):
                         counter += 1
                     try:
                         vistrails.core.system.link_or_copy(input_file.name, filename)
-                    except OSError:
-                        msg = "Could not publish file '%s' \n   on  '%s': %s" % \
-                               (full_path, filename, e)
+                    except OSError, e:
+                        msg = "Could not publish file '%s' \n   on  '%s':" % (
+                                full_path, filename)
                         # I am not sure whether we should raise an error
                         # I will just print a warning for now (Emanuele)
-                        debug.warning("%s" % msg)
+                        debug.warning("%s" % msg, e)
 
 class DirectorySink(NotCacheable, Module):
     """DirectorySink takes a directory and writes it to a
@@ -712,6 +713,10 @@ class Tuple(Module):
         self.input_ports_order = []
         self.values = tuple()
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
     def compute(self):
         values = tuple([self.get_input(p)
                         for p in self.input_ports_order])
@@ -730,6 +735,12 @@ class Untuple(Module):
     def __init__(self):
         Module.__init__(self)
         self.output_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.output_ports_order = [p.name for p in module.output_port_specs]
+        # output_ports are reversed for display purposes...
+        self.output_ports_order.reverse()
 
     def compute(self):
         if self.has_input("tuple"):
@@ -798,7 +809,7 @@ class List(Constant):
     _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
     _input_ports = [IPort("value", "List"),
-                    IPort("head", "Variant"),
+                    IPort("head", "Variant", depth=1),
                     IPort("tail", "List")]
     _output_ports = [OPort("value", "List")]
 
@@ -807,6 +818,10 @@ class List(Constant):
     def __init__(self):
         Constant.__init__(self)
         self.input_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
 
     @staticmethod
     def validate(x):
@@ -840,7 +855,7 @@ class List(Constant):
             middle = self.outputPorts['value']
             got_value = True
         if self.has_input('head'):
-            head = self.get_input_list('head')
+            head = self.get_input('head')
             got_value = True
         if self.input_ports_order:
             items = [self.get_input(p)
@@ -856,7 +871,7 @@ class List(Constant):
 
 ##############################################################################
 # Dictionary
-                    
+
 def dict_conv(v):
     v_dict = literal_eval(v)
     return v_dict
@@ -909,6 +924,12 @@ class CodeRunnerMixin(object):
     def __init__(self):
         self.output_ports_order = []
         super(CodeRunnerMixin, self).__init__()
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.output_ports_order = [p.name for p in module.output_port_specs]
+        # output_ports are reversed for display purposes...
+        self.output_ports_order.reverse()
 
     def run_code(self, code_str,
                  use_input=False,
@@ -972,107 +993,24 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
 
 ##############################################################################
 
-class SmartSource(NotCacheable, Module):
-    _settings = ModuleSettings(
-        configure_widget=("vistrails.gui.modules.python_source_configure:"
-                             "PythonSourceConfigurationWidget"))
-    _input_ports = [IPort('source', 'String', optional=True, default="")]
-
-    def run_code(self, code_str,
-                 use_input=False,
-                 use_output=False):
-        import vistrails.core.packagemanager
-        def fail(msg):
-            raise ModuleError(self, msg)
-        def cache_this():
-            self.is_cacheable = lambda *args, **kwargs: True
-        locals_ = locals()
-
-        def smart_input_entry(k):
-            v = self.get_input(k)
-            if isinstance(v, Module) and hasattr(v, 'get_source'):
-                v = v.get_source()
-            return (k, v)
-
-        def get_mro(v):
-            # Tries to get the mro from strange class hierarchies like VTK's
-            try:
-                return v.mro()
-            except AttributeError:
-                def yield_all(v):
-                    b = v.__bases__
-                    yield v
-                    for base in b:
-                        g = yield_all(base)
-                        while 1: yield g.next()
-                return [x for x in yield_all(v)]
-            
-        if use_input:
-            inputDict = dict([smart_input_entry(k)
-                              for k in self.inputPorts])
-            locals_.update(inputDict)
-        if use_output:
-            for output_portname in self.output_ports_order:
-                locals_[output_portname] = None
-        _m = vistrails.core.packagemanager.get_package_manager()
-        locals_.update({'fail': fail,
-                        'package_manager': _m,
-                        'cache_this': cache_this,
-                        'self': self})
-        del locals_['source']
-        exec code_str in locals_, locals_
-        if use_output:
-            oports = self.registry.get_descriptor(SmartSource).output_ports
-            for k in self.output_ports_order:
-                if locals_.get(k) != None:
-                    v = locals_[k]
-                    spec = oports.get(k, None)
-
-                    if spec:
-                        # See explanation of algo in doc/smart_source_resolution_algo.txt
-                        # changed from spec.types()[0]
-                        port_vistrail_base_class = spec.descriptors()[0].module
-                        mro = get_mro(type(v))
-                        source_types = self.registry.python_source_types
-                        found = False
-                        for python_class in mro:
-                            if python_class in source_types:
-                                vistrail_classes = [x for x in source_types[python_class]
-                                                    if issubclass(x, port_vistrail_base_class)]
-                                if len(vistrail_classes) == 0:
-                                    # FIXME better error handling
-                                    raise ModuleError(self, "Module Registry inconsistent")
-                                vt_class = vistrail_classes[0]
-                                found = True
-                                break
-                        if found:
-                            vt_instance = vt_class()
-                            vt_instance.set_source(v)
-                            v = vt_instance
-                    self.set_output(k, v)
-
-    def compute(self):
-        s = urllib.unquote(str(self.force_get_input('source', '')))
-        self.run_code(s, use_input=True, use_output=True)
-
-##############################################################################
-
 def zip_extract_file(archive, filename_in_archive, output_filename):
-    return os.system(
-            "%s > %s" % (
-                    vistrails.core.system.list2cmdline([
-                            vistrails.core.system.get_executable_path('unzip'),
-                            '-p', archive,
-                            filename_in_archive]),
-                    vistrails.core.system.list2cmdline([output_filename])))
+    z = zipfile.ZipFile(archive)
+    try:
+        fileinfo = z.getinfo(filename_in_archive) # Might raise KeyError
+        output_dirname, output_filename = os.path.split(output_filename)
+        fileinfo.filename = output_filename
+        z.extract(fileinfo, output_dirname)
+    finally:
+        z.close()
 
 
 def zip_extract_all_files(archive, output_path):
-    return os.system(
-            vistrails.core.system.list2cmdline([
-                    vistrails.core.system.get_executable_path('unzip'),
-                    archive,
-                    '-d', output_path]))
+    z = zipfile.ZipFile(archive)
+    try:
+        z.extractall(output_path)
+    finally:
+        z.close()
+
 
 class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
@@ -1089,11 +1027,9 @@ class Unzip(Module):
             raise ModuleError(self, "archive file does not exist")
         suffix = self.interpreter.filePool.guess_suffix(filename_in_archive)
         output = self.interpreter.filePool.create_file(suffix=suffix)
-        s = zip_extract_file(archive_file.name,
-                             filename_in_archive,
-                             output.name)
-        if s != 0:
-            raise ModuleError(self, "unzip command failed with status %d" % s)
+        zip_extract_file(archive_file.name,
+                         filename_in_archive,
+                         output.name)
         self.set_output("file", output)
 
 
@@ -1108,10 +1044,8 @@ class UnzipDirectory(Module):
         if not os.path.isfile(archive_file.name):
             raise ModuleError(self, "archive file does not exist")
         output = self.interpreter.filePool.create_directory()
-        s = zip_extract_all_files(archive_file.name,
-                                  output.name)
-        if s != 0:
-            raise ModuleError(self, "unzip command failed with status %d" % s)
+        zip_extract_all_files(archive_file.name,
+                              output.name)
         self.set_output("directory", output)
 
 ##############################################################################
@@ -1166,47 +1100,38 @@ class Variant(Module):
 
 ##############################################################################
 
-class Iterator(object):
+class Generator(object):
     """
-    Used to keep track if list iteration, it will execute a module once for
+    Used to keep track of list iteration, it will execute a module once for
     each input in the list/generator.
     """
     _settings = ModuleSettings(abstract=True)
 
     generators = []
-    def __init__(self, values=None, depth=1, size=None,
-                 module=None, generator=None, port=None):
-        self.list_depth = depth
-        self.values = values
+    def __init__(self, size=None, module=None, generator=None, port=None,
+                 accumulated=False):
         self.module = module
         self.generator = generator
         self.port = port
         self.size = size
-        if size is None and values:
-            self.size = len(values)
-        self.pos = 0
-        if generator and generator not in Iterator.generators:
+        self.accumulated = accumulated
+        if generator and module not in Generator.generators:
             # add to global list of generators
-            # they will be uniquely ordered topologically
-            Iterator.generators.append(self.generator)
+            # they will be topologically ordered
+            module.generator = generator
+            Generator.generators.append(module)
             
     def next(self):
-        if self.values is not None:
-            try:
-                item = self.values[self.pos]
-                self.pos += 1
-                return item
-            except KeyError:
-                return None
-        # return next value - the generator
+        """ return next value - the generator """
         value = self.module.get_output(self.port)
-        if isinstance(value, Iterator):
-            raise ModuleError(self.module, "Iterator generator cannot contain an iterator")
-        return self.module.get_output(self.port)
+        if isinstance(value, Generator):
+            value = value.all()
+        return value
     
     def all(self):
-        if self.values:
-            return self.values
+        """ exhausts next() for Streams
+        
+        """
         items = []
         item = self.next()
         while item is not None:
@@ -1216,15 +1141,17 @@ class Iterator(object):
 
     @staticmethod
     def stream():
-        # execute all generators until inputs are exhausted
-        # this makes sure branching and multiple sinks are executed correctly
+        """ executes all generators until inputs are exhausted
+            this makes sure branching and multiple sinks are executed correctly
+
+        """
         result = True
-        if not Iterator.generators:
+        if not Generator.generators:
             return
         while result is not None:
-            for g in Iterator.generators:
+            for g in Generator.generators:
                 result = g.next()
-        Iterator.generators = []
+        Generator.generators = []
 
 ##############################################################################
 
@@ -1279,17 +1206,26 @@ class StringFormat(Module):
         while i < n:
             if fmt[i] == '{':
                 i += 1
-                if fmt[i] == '}': # KeyError
+                if fmt[i] == '{': # KeyError:
+                    i += 1
+                    continue
+                e = fmt.index('}', i) # KeyError
+                f = e
+                for c in (':', '!', '[', '.'):
+                    c = fmt.find(c, i)
+                    if c != -1:
+                        f = min(f, c)
+                if i == f:
                     nb += 1
-                elif fmt[i] != '{': # KeyError
-                    e = fmt.index('}', i + 1) # KeyError
-                    f = e
-                    for c in (':', '!', '[', '.'):
-                        c = fmt.find(c, i + 1)
-                        if c != -1:
-                            f = min(f, c)
-                    placeholders.add(fmt[i:f])
-                    i = e
+                else:
+                    arg = fmt[i:f]
+                    try:
+                        arg = int(arg)
+                    except ValueError:
+                        placeholders.add(arg)
+                    else:
+                        nb = max(nb, arg + 1)
+                i = e
             i += 1
         return nb, placeholders
 
@@ -1315,14 +1251,15 @@ _modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List,
             Path, File, Directory, OutputPath,
             FileSink, DirectorySink, WriteFile, ReadFile, StandardOutput,
             Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant,
-            Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color,
+            Unpickle, PythonSource, Unzip, UnzipDirectory, Color,
             Round, TupleToList, Assert, AssertEqual, StringFormat]
 
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
-    global _modules
+    import vistrails.core.modules.output_modules
     _modules.extend(vistrails.core.modules.sub_module._modules)
+    _modules.extend(vistrails.core.modules.output_modules._modules)
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
@@ -1409,12 +1346,10 @@ def create_constant(value):
     constant.setValue(value)
     return constant
 
-def get_module(value, signature):
+def get_module(value, signature=None):
     """
     Creates a module for value, in order to do the type checking.
     """
-    from vistrails.core.modules.basic_modules import Boolean, String, \
-        Integer, Float, Constant, List
     if isinstance(value, Constant):
         return type(value)
     elif isinstance(value, bool):
@@ -1425,26 +1360,29 @@ def get_module(value, signature):
         return Integer
     elif isinstance(value, float):
         return Float
-    elif isinstance(value, list):
+    if isinstance(value, list):
         return List
     elif isinstance(value, tuple):
+        # Variant supports signatures of any length
+        if signature is None or \
+           (len(signature) == 1 and signature[0][0] == Variant):
+            return (Variant,)*len(value)
         v_modules = ()
         for element in xrange(len(value)):
             v_modules += (get_module(value[element], signature[element]),)
+        if None in v_modules: # Identification failed
+            return None
         return v_modules
     else: # pragma: no cover
         debug.warning("Could not identify the type of the list element.")
-        debug.warning("Type checking is not going to be done inside"
-                      "FoldWithModule module.")
+        debug.warning("Type checking is not going to be done inside "
+                      "iterated module.")
         return None
 
 ###############################################################################
 
 import sys
-try:
-    import unittest2 as unittest
-except:
-    import unittest
+import unittest
 
 class TestConcatenateString(unittest.TestCase):
     @staticmethod
@@ -1568,7 +1506,8 @@ class TestList(unittest.TestCase):
 
         # Multiple values on 'value'
         res = self.build_list(value=['["a", "b"]', '["c", "d"]'])
-        self.assertIn(res, [["a", "b"], ["c", "d"]])
+        # Connections of List type are merged
+        self.assertEqual(res, ["a", "b", "c", "d"])
 
     def test_items(self):
         """Tests the multiple 'itemN' ports"""
@@ -1695,20 +1634,20 @@ class TestTypechecking(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         conf = get_vistrails_configuration()
-        cls.error_all = conf.errorOnConnectionTypeerror
-        cls.error_variant = conf.errorOnVariantTypeerror
+        cls.error_all = conf.showConnectionErrors
+        cls.error_variant = conf.showVariantErrors
 
     @classmethod
     def tearDownClass(cls):
         conf = get_vistrails_configuration()
-        conf.errorOnConnectionTypeerror = cls.error_all
-        conf.errorOnVariantTypeerror = cls.error_variant
+        conf.showConnectionErrors = cls.error_all
+        conf.showVariantErrors = cls.error_variant
 
     @staticmethod
     def set_settings(error_all, error_variant):
         conf = get_vistrails_configuration()
-        conf.errorOnConnectionTypeerror = error_all
-        conf.errorOnVariantTypeerror = error_variant
+        conf.showConnectionErrors = error_all
+        conf.showVariantErrors = error_variant
 
     def run_test_pipeline(self, result, expected_results, *args, **kwargs):
         from vistrails.tests.utils import execute, intercept_result
@@ -1753,7 +1692,7 @@ class TestTypechecking(unittest.TestCase):
     def test_fake(self):
         import urllib2
         # A module is lying, declaring a String but returning an int
-        # This should fail with errorOnConnectionTypeerror=True (not the
+        # This should fail with showConnectionErrors=True (not the
         # default)
         self.run_test_pipeline(
             (PythonSource, 'r'),
@@ -1843,3 +1782,7 @@ class TestStringFormat(unittest.TestCase):
         self.run_format('{{ {a} {} {b!s}', '{ 42 b 12',
                         a=('Integer', '42'), _0=('String', 'b'),
                         b=('Integer', '12'))
+        self.run_format('{} {} {!r}{ponc} {:.2f}', "hello dear 'world'! 1.33",
+                        _0=('String', 'hello'), _1=('String', 'dear'),
+                        _2=('String', 'world'), _3=('Float', '1.333333333'),
+                        ponc=('String', '!'))

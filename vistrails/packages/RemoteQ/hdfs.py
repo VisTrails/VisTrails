@@ -35,7 +35,8 @@
 """ Wrapper for Hadoop DFS operations """
 
 from vistrails.core.interpreter.job import JobMonitor
-from vistrails.core.modules.basic_modules import File, Boolean, String
+from vistrails.core.modules.basic_modules import File, Boolean, String, \
+                                                 PathObject, Path
 from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, \
                                                                     ModuleError
@@ -44,7 +45,7 @@ import os
 import shutil
 
 ################################################################################
-class HDFSPut(NotCacheable, HadoopBaseModule):
+class HDFSPut(HadoopBaseModule):
     """
     Putting a local file to the Hadoop DFS
     First copying it to the server
@@ -62,16 +63,15 @@ class HDFSPut(NotCacheable, HadoopBaseModule):
 
     def compute(self):
         machine = self.get_machine()
-        remote = self.get_input('Remote Location')
-        local = self.get_input('Local File')
-        override = self.force_get_input('Override', False)
-        if '://' not in remote:
-            remote = self.add_prefix(remote, machine)
-        
         jm = JobMonitor.getInstance()
-        id = 'HDFSPut' + remote + str(override)
+        id = self.signature
         job = jm.getCache(id)
         if not job:
+            remote = self.get_input('Remote Location')
+            local = self.get_input('Local File')
+            override = self.force_get_input('Override', False)
+            if '://' not in remote:
+                remote = self.add_prefix(remote, machine)
             if not int(self.call_hdfs('dfs -test -e ' + remote +
                                       '; echo $?', machine)):
                 if override:
@@ -79,21 +79,24 @@ class HDFSPut(NotCacheable, HadoopBaseModule):
                 else:
                     raise ModuleError(self, 'Remote entry already exists')
             tempfile = machine.remote.send_command('mktemp -u').strip()
-            result = machine.machine.sendfile(local.name, tempfile)
+            result = machine.sendfile(local.name, tempfile)
             self.call_hdfs('dfs -put %s %s' % (tempfile, remote), machine)
             result = machine.remote.rm(tempfile,force=True,recursively=True)
-            jm.setCache(id, {}, name='HDFSPut(%s)'%remote)
-        self.set_output('Remote Location', remote)
+            d = {'remote':remote,'local':local.name}
+            self.set_job_machine(d, machine)
+            jm.setCache(id, d, self.getName())
+            job = jm.getJob(id)
+        self.set_output('Remote Location', job.parameters['remote'])
         self.set_output('Machine', machine)
 
 ################################################################################
-class HDFSGet(NotCacheable, HadoopBaseModule):
+class HDFSGet(HadoopBaseModule):
     """
     Getting a file from the Hadoop DFS
     Then getting it from the server
     
     """
-    _input_ports = [IPort('Local File', File),
+    _input_ports = [IPort('Local File', Path),
                     IPort('Remote Location', String),
                     IPort('Override', Boolean),
                     IPort('Machine', '(org.vistrails.vistrails.remoteq:Machine)')]
@@ -107,16 +110,15 @@ class HDFSGet(NotCacheable, HadoopBaseModule):
 
     def compute(self):
         machine = self.get_machine()
-        remote = self.get_input('Remote Location')
-        local = self.get_input('Local File')
-        override = self.force_get_input('Override', False)
-        if '://' not in remote:
-            remote = self.add_prefix(remote, machine)
-
         jm = JobMonitor.getInstance()
-        id = 'HDFSGet' + remote + str(override)
+        id = self.signature
         job = jm.getCache(id)
         if not job:
+            remote = self.get_input('Remote Location')
+            local = self.get_input('Local File')
+            override = self.force_get_input('Override', False)
+            if '://' not in remote:
+                remote = self.add_prefix(remote, machine)
             if os.path.exists(local.name):
                 if override==False:
                     raise ModuleError(self, 'Output already exists')
@@ -129,20 +131,23 @@ class HDFSGet(NotCacheable, HadoopBaseModule):
             tempfile = machine.remote.send_command('mktemp -d -u').strip()
             result = self.call_hdfs('dfs -get %s %s' % (remote, tempfile), machine)
             # too slow with many files
-            #res = machine.machine.send_command("get -r %s %s" % (tempfile, local.name) )
+            #res = machine.send_command("get -r %s %s" % (tempfile, local.name) )
             # tar files to increase speed
             result = machine.local.send_command('mkdir %s'%local.name)
-            result = machine.machine.sync(local.name,
-                                          tempfile,
-                                          mode=machine.machine.MODE_REMOTE_LOCAL,
-                                          use_tar=True)
+            result = machine.sync(local.name,
+                                  tempfile,
+                                  mode=machine.MODE_REMOTE_LOCAL,
+                                  use_tar=True)
             result = machine.remote.rm(tempfile,force=True,recursively=True)
-            jm.setCache(id, {}, name='HDFSGet(%s)'%remote)
-        self.set_output('Local File', local)
+            d = {'remote':remote,'local':local.name}
+            self.set_job_machine(d, machine)
+            jm.setCache(id, d, self.getName())
+            job = jm.getCache(id)
+        self.set_output('Local File', PathObject(job.parameters['local']))
         self.set_output('Machine', machine)
 
 ################################################################################
-class HDFSEnsureNew(NotCacheable, HadoopBaseModule):
+class HDFSEnsureNew(HadoopBaseModule):
     """
     Make sure the file is removed
     
@@ -158,20 +163,23 @@ class HDFSEnsureNew(NotCacheable, HadoopBaseModule):
 
     def compute(self):
         machine = self.get_machine()
-        entry_name = self.get_input('Name')
-        if '://' not in entry_name:
-            entry_name = self.add_prefix(entry_name, machine)
         jm = JobMonitor.getInstance()
-        id = 'HDFSEnsureNew' + entry_name
+        id = self.signature
         job = jm.getCache(id)
         if not job:
+            entry_name = self.get_input('Name')
+            if '://' not in entry_name:
+                entry_name = self.add_prefix(entry_name, machine)
             if not int(self.call_hdfs('dfs -test -e ' + entry_name +
                                       '; echo $?', machine)):
                 #self.call_hdfs('dfs -rm -r ' + entry_name, machine)
                 # we are using -rmr but it is deprecated
                 self.call_hdfs('dfs -rmr ' + entry_name, machine)
-            jm.setCache(id, {}, name='HDFSEnsureNew(%s)'%entry_name)
-        self.set_output('Name', entry_name)
+            d = {'entry_name':entry_name}
+            self.set_job_machine(d, machine)
+            jm.setCache(id, d, self.getName())
+            job = jm.getCache(id)
+        self.set_output('Name', job.parameters['entry_name'])
         self.set_output('Machine', machine)
 
 ################################################################################

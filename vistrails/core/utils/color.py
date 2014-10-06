@@ -415,9 +415,9 @@ class TestColorByName(unittest.TestCase):
         self.assertEquals(ColorByName.get_no_alpha('red'),
                           [1.0, 0.0, 0.0])
         self.assertEquals(ColorByName.get('not exist'),
-                          [0.0, 0.0, 0.0, 1.0]),        
+                          [0.0, 0.0, 0.0, 1.0])
         self.assertEquals(ColorByName.get_no_alpha('another not exist'),
-                          [0.0, 0.0, 0.0]),
+                          [0.0, 0.0, 0.0])
 
 
 class TestColorConversion(unittest.TestCase):

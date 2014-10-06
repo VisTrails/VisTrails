@@ -43,11 +43,12 @@ from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBVistrailVariable, 
                                       DBActionAnnotation
 
 from vistrails.db.services.vistrail import materializeWorkflow
-from xml.dom.minidom import parseString
-from itertools import izip
 
+import os
+from itertools import izip
 from ast import literal_eval
 import unittest
+from xml.dom.minidom import parseString
 
 id_scope = None
 
@@ -334,10 +335,8 @@ class TestTranslate(unittest.TestCase):
         self.assertEqual(len(visvars), 2)
         self.assertNotEqual(visvars[0].db_name, visvars[1].db_name)
 
+
 if __name__ == '__main__':
-    from vistrails.gui.application import start_application
-    v = start_application({'interactiveMode': False,
-                           'nologger': True,
-                           'singleInstance': False,
-                           'fixedSpreadsheetCells': True})
+    import vistrails.core.application
+    vistrails.core.application.init()
     unittest.main()

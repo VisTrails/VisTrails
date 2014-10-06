@@ -151,6 +151,7 @@ class Module(DBModule):
     # CONSTANTS
         
     VISTRAIL_VAR_ANNOTATION = '__vistrail_var__'
+    INLINE_WIDGET_ANNOTATION = '__inline_widgets__'
 
     ##########################################################################
 
@@ -198,7 +199,7 @@ class Module(DBModule):
     def has_control_parameter_with_name(self, name):
         return self.db_has_controlParameter_with_name(name)
     def get_control_parameter_by_name(self, name):
-        return self.db_get_controlParameter_by_name(name)        
+        return self.db_get_controlParameter_by_name(name)
     def toggle_breakpoint(self):
         self.is_breakpoint = not self.is_breakpoint
     def toggle_watched(self):
@@ -262,6 +263,18 @@ class Module(DBModule):
     module_descriptor = property(_get_module_descriptor, 
                                  _set_module_descriptor)
 
+    def _get_editable_input_ports(self):
+        if self.has_annotation_with_key(Module.INLINE_WIDGET_ANNOTATION):
+            values = self.get_annotation_by_key(
+                             Module.INLINE_WIDGET_ANNOTATION).value.split(',')
+            return set() if values == [''] else set(values)
+        elif get_module_registry(
+                   ).is_constant_module(self.module_descriptor.module):
+            # Show value by default on constant modules
+            return set(['value'])
+        return set()
+    editable_input_ports = property(_get_editable_input_ports)
+
     def get_port_spec(self, port_name, port_type):
         """get_port_spec(port_name: str, port_type: str: ['input' | 'output'])
              -> PortSpec
@@ -282,14 +295,8 @@ class Module(DBModule):
 
     def summon(self):
         result = self.module_descriptor.module()
-        if self.cache != 1:
-            result.is_cacheable = lambda *args: False
-        if hasattr(result, 'input_ports_order'):
-            result.input_ports_order = [p.name for p in self.input_port_specs]
-        if hasattr(result, 'output_ports_order'):
-            result.output_ports_order = [p.name for p in self.output_port_specs]
-            # output_ports are reversed for display purposes...
-            result.output_ports_order.reverse()
+        result.transfer_attrs(self)
+
         # FIXME this may not be quite right because we don't have self.registry
         # anymore.  That said, I'm not sure how self.registry would have
         # worked for hybrids...

@@ -47,8 +47,9 @@ import cell_rc
 import celltoolbar_rc
 import spreadsheet_controller
 import analogy_api
-from vistrails.core.configuration import get_vistrails_configuration
+from spreadsheet_config import configuration
 from vistrails.core.system import strftime
+from vistrails.core.modules.output_modules import FileMode
 
 ################################################################################
 
@@ -79,10 +80,12 @@ class QCellWidget(QtGui.QWidget):
         # cell can be captured if it re-implements saveToPNG
         self._capturingEnabled = (not isinstance(self, QCellWidget) and
                                   hasattr(self, 'saveToPNG'))
+        self._output_module = None
+        self._output_configuration = None
         self.connect(self._playerTimer,
                      QtCore.SIGNAL('timeout()'),
                      self.playNextFrame)
-        if getattr(get_vistrails_configuration(),'fixedSpreadsheetCells',False):
+        if configuration.fixedCellSize:
             self.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
             self.setFixedSize(200, 180)
 
@@ -250,6 +253,40 @@ class QCellWidget(QtGui.QWidget):
         painter.drawPixmap(0, 0, pixmap)
         painter.end()
         
+    def set_output_module(self, output_module, configuration=None):
+        self._output_module = output_module
+        self._output_configuration = configuration
+
+    def has_file_output_mode(self):
+        # from vistrails.core.modules.output_modules import FileMode
+        if self._output_module is None:
+            return False
+        for mode in self._output_module.get_sorted_mode_list():
+            if issubclass(mode, FileMode):
+                return True
+        return False
+
+    def get_file_output_modes(self):
+        modes = []
+        if self._output_module is not None:
+            for mode_cls in self._output_module.get_sorted_mode_list():
+                if issubclass(mode_cls, FileMode):
+                    modes.append(mode_cls)
+        return modes
+
+    def get_conf_file_format(self):
+        if (self._output_configuration is not None and 
+            'format' in self._output_configuration):
+            return self._output_configuration['format']
+        return None
+
+    def save_via_file_output(self, filename, mode_cls, save_format=None):
+        mode_config = self._output_module.get_mode_config(mode_cls)
+        mode_config['file'] = filename
+        if save_format is not None:
+            mode_config['format'] = save_format
+        mode = mode_cls()
+        mode.compute_output(self._output_module, mode_config)
         
 ################################################################################
 
@@ -300,16 +337,37 @@ class QCellToolBar(QtGui.QToolBar):
 
     def exportCell(self, checked=False):
         cell = self.sheet.getCell(self.row, self.col)
-        if not cell.save_formats:
-            QtGui.QMessageBox.information(
-                    self, "Export cell",
-                    "This cell type doesn't provide any export option")
-            return
-        filename = QtGui.QFileDialog.getSaveFileName(
-            self, "Select a File to Export the Cell",
-            ".", ';;'.join(cell.save_formats))
-        if filename:
-            cell.dumpToFile(filename)
+        if cell.has_file_output_mode():
+            modes = cell.get_file_output_modes()
+            formats = []
+            format_map = {}
+            for mode in modes:
+                for m_format in mode.get_formats():
+                    if m_format not in format_map:
+                        formats.append(m_format)
+                        format_map[m_format] = mode
+            selected_filter = None
+            if cell.get_conf_file_format() is not None:
+                selected_filter = '(*.%s)' % cell.get_conf_file_format()
+            (filename, save_format) = \
+                    QtGui.QFileDialog.getSaveFileNameAndFilter(
+                        self, "Select a File to Export the Cell",
+                        ".", ';;'.join(['(*.%s)' % f for f in formats]), 
+                        selected_filter)
+            if filename:
+                save_mode = format_map[save_format[3:-1]]
+                cell.save_via_file_output(filename, save_mode)
+        else:
+            if not cell.save_formats:
+                QtGui.QMessageBox.information(
+                        self, "Export cell",
+                        "This cell type doesn't provide any export option")
+                return
+            filename = QtGui.QFileDialog.getSaveFileName(
+                self, "Select a File to Export the Cell",
+                ".", ';;'.join(cell.save_formats))
+            if filename:
+                cell.dumpToFile(filename)
 
     def createToolBar(self):
         """ createToolBar() -> None
@@ -1129,7 +1187,7 @@ class QCellManipulator(QtGui.QFrame):
                                                         self.cellInfo[2])
             if info:
                 info = info[0]
-                view = builderWindow.ensureController(info['controller'])
+                view = builderWindow.ensureVistrail(info['locator'])
                 if view:
                     controller = view.controller
                     controller.change_selected_version(info['version'])
@@ -1148,7 +1206,7 @@ class QCellManipulator(QtGui.QFrame):
                                                         self.cellInfo[2])
             if info:
                 info = info[0]
-                view = builderWindow.ensureController(info['controller'])
+                view = builderWindow.ensureVistrail(info['locator'])
                 if view:
                     view.version_selected(info['version'], True)
                     view.version_view.select_current_version()

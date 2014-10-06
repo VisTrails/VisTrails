@@ -34,21 +34,79 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 
+from vistrails.core.configuration import get_vistrails_configuration, \
+                                         get_vistrails_persistent_configuration
+from vistrails.core.system import systemType, vistrails_root_directory
 from vistrails.core.utils import versions_increasing
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.module_annotation import QModuleAnnotationTable
-from vistrails.gui.ports_pane import PortsList
+from vistrails.gui.ports_pane import PortsList, letterIcon
+from vistrails.gui.version_prop import QVersionProp
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+
+import os
 
 class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None, flags=QtCore.Qt.Widget):
         QtGui.QWidget.__init__(self, parent, flags)
+        self.ports_visible = True
+        self.types_visible = True
+
         self.build_widget()
         self.controller = None
         self.module = None
         self.pipeline_view = None # pipeline_view
         self.read_only = False
         self.is_updating = False
+        self.addButtonsToToolbar()
+
+    def addButtonsToToolbar(self):
+        # button for toggling executions
+        eye_open_icon = \
+            QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                                 'gui/resources/images/eye.png'))
+
+        self.portVisibilityAction = QtGui.QAction(eye_open_icon,
+                                        "Show/hide port visibility toggle buttons",
+                                        None,
+                                        triggered=self.showPortVisibility)
+        self.portVisibilityAction.setCheckable(True)
+        self.portVisibilityAction.setChecked(True)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.portVisibilityAction)
+        self.showTypesAction = QtGui.QAction(letterIcon('T'),
+                                        "Show/hide type information",
+                                        None,
+                                        triggered=self.showTypes)
+        self.showTypesAction.setCheckable(True)
+        self.showTypesAction.setChecked(True)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.showTypesAction)
+        self.showEditsAction = QtGui.QAction(
+                 QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                                          'gui/resources/images/pencil.png')),
+                 "Show/hide parameter widgets",
+                 None,
+                 triggered=self.showEdits)
+        self.showEditsAction.setCheckable(True)
+        self.showEditsAction.setChecked(
+            get_vistrails_configuration().check('showInlineParameterWidgets'))
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.showEditsAction)
+
+    def showPortVisibility(self, checked):
+        self.ports_visible = checked
+        self.update_module(self.module)
+
+    def showTypes(self, checked):
+        self.types_visible = checked
+        self.update_module(self.module)
+
+    def showEdits(self, checked):
+        get_vistrails_configuration().showInlineParameterWidgets = checked
+        get_vistrails_persistent_configuration().showInlineParameterWidgets = checked
+        scene = self.controller.current_pipeline_scene
+        scene.setupScene(self.controller.current_pipeline)
 
     def build_widget(self):
         name_label = QtGui.QLabel("Name:")
@@ -100,6 +158,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.addLayout(h_layout)
         
         self.tab_widget = QtGui.QTabWidget()
+        # keep from overflowing on mac
+        if systemType in ['Darwin']:
+            self.tab_widget.tabBar().setStyleSheet('font-size: 12pt')
         # this causes a crash when undocking the palette in Mac OS X
         # see https://bugreports.qt-project.org/browse/QTBUG-16851
         # self.tab_widget.setDocumentMode(True)
@@ -115,7 +176,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
 
         layout.setAlignment(QtCore.Qt.AlignTop)
         self.setLayout(layout)
-        self.setWindowTitle('Module Information')
+        self.setWindowTitle('Module Info')
 
     def setReadOnly(self, read_only):
         if read_only != self.read_only:
@@ -124,6 +185,8 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                 widget.setReadOnly(read_only)
 
     def set_controller(self, controller):
+        if self.controller == controller:
+            return
         self.controller = controller
         for ports_list in self.ports_lists:
             ports_list.set_controller(controller)
@@ -142,12 +205,21 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.update_module()
 
     def update_module(self, module=None):
+        for plist in self.ports_lists:
+            plist.types_visible = self.types_visible
+            plist.ports_visible = self.ports_visible
         self.module = module
         for ports_list in self.ports_lists:
             ports_list.update_module(module)
         self.annotations.updateModule(module)
 
         if module is None:
+            # We show the version properties tab if both are tabified and
+            # self is visible
+            if not self.toolWindow().isFloating() and \
+               not QVersionProp.instance().toolWindow().isFloating() and \
+               not self.toolWindow().visibleRegion().isEmpty():
+                QVersionProp.instance().set_visible(True)
             self.name_edit.setText("")
             if not versions_increasing(QtCore.QT_VERSION_STR, '4.7.0'):
                 self.name_edit.setPlaceholderText("")
@@ -157,6 +229,12 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.package_edit.setText("")
             self.module_id.setText("")
         else:
+            # We show self  if both are tabified and
+            # the version properties tab is visible
+            if not self.toolWindow().isFloating() and \
+               not QVersionProp.instance().toolWindow().isFloating() and \
+               not QVersionProp.instance().toolWindow().visibleRegion().isEmpty():
+                self.set_visible(True)
             if module.has_annotation_with_key('__desc__'):
                 label = module.get_annotation_by_key('__desc__').value.strip()
             else:

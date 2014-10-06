@@ -40,6 +40,8 @@ import copy
 class InternalTuple(object):
     """Tuple used internally for constant tuples."""
 
+    list_depth = 0
+
     def _get_length(self, length):
         return len(self._values)
     def _set_length(self, length):

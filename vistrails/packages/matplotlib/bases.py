@@ -32,14 +32,19 @@
 ##
 ###############################################################################
 
+import itertools
 import matplotlib
+from matplotlib.backend_bases import FigureCanvasBase
 import pylab
 import urllib
 
 from matplotlib.backend_bases import FigureCanvasBase
 
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
-from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
+from vistrails.core.modules.config import ModuleSettings, IPort
+from vistrails.core.modules.output_modules import ImageFileMode, \
+    ImageFileModeConfig, OutputModule
+from vistrails.core.modules.vistrails_module import Module, NotCacheable
 
 ################################################################################
 
@@ -54,19 +59,7 @@ class MplProperties(Module):
 
 #base class for 2D plots
 class MplPlot(NotCacheable, Module):
-    def __init__(self):
-        Module.__init__(self)
-        self.figInstance = None
-
-    def set_figure(self, fig):
-        if self.figInstance is None:
-            self.figInstance = fig
-        else:
-            raise ModuleError(self,
-                              "matplotlib plots can only be in one figure")
-
-    def compute(self):
-        matplotlib.pyplot.figure(self.figInstance.number)
+    pass
 
 class MplSource(CodeRunnerMixin, MplPlot):
     """
@@ -82,46 +75,34 @@ class MplSource(CodeRunnerMixin, MplPlot):
     _output_ports = [('value', '(MplSource)')]
 
     def compute(self):
-        """ compute() -> None
-        """
         source = self.get_input('source')
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 source))
+
+    def plot_figure(self, figure, source):
         s = ('from pylab import *\n'
              'from numpy import *\n' +
-             'figure(%d)\n' % self.figInstance.number +
+             'figure(%d)\n' % figure.number +
              urllib.unquote(source))
-
         self.run_code(s, use_input=True, use_output=True)
-        self.set_output('value', None)
 
 class MplFigure(Module):
-    _input_ports = [("addPlot", "(MplPlot)"),
+    _input_ports = [IPort("addPlot", "(MplPlot)", depth=1),
                     ("axesProperties", "(MplAxesProperties)"),
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
 
     _output_ports = [("self", "(MplFigure)")]
 
-    def __init__(self):
-        Module.__init__(self)
-        self.figInstance = None
-
-    def update_upstream(self):
+    def compute(self):
         # Create a figure
-        if self.figInstance is None:
-            self.figInstance = pylab.figure()
+        self.figInstance = pylab.figure()
         pylab.hold(True)
 
-        # Set it on the plots
-        connectorList = self.inputPorts.get('addPlot', [])
-        connectorList.extend(self.inputPorts.get('setLegend', []))
-        for connector in connectorList:
-            connector.obj.set_figure(self.figInstance)
-
-        # Now we can run upstream modules
-        super(MplFigure, self).update_upstream()
-
-    def compute(self):
-        plots = self.get_input_list("addPlot")
+        # Run the plots
+        plots = self.get_input("addPlot")
+        for plot in plots:
+            plot(self.figInstance)
 
         if self.has_input("figureProperties"):
             figure_props = self.get_input("figureProperties")
@@ -133,48 +114,48 @@ class MplFigure(Module):
             legend = self.get_input("setLegend")
             self.figInstance.gca().legend()
 
-
         self.set_output("self", self)
-
-class MplFigureToFile(Module):
-    _input_ports = [('figure', 'MplFigure'),
-                    ('format', 'basic:String', {"defaults": ["pdf"]}),
-                    ('width', 'basic:Integer', {"defaults": ["800"]}),
-                    ('height', 'basic:Integer', {"defaults": ["600"]})]
-    _output_ports = [('imageFile', 'basic:File')]
-
-    def compute(self):
-        figure = self.get_input('figure')
-        format = self.get_input('format')
-        width = self.get_input('width')
-        height = self.get_input('height')
-        imageFile = self.interpreter.filePool.create_file(suffix=".%s" % format)
-
-        fig = figure.figInstance
-        w_inches = width / 72.0
-        h_inches = height / 72.0
-
-        previous_size = tuple(fig.get_size_inches())
-        fig.set_size_inches(w_inches, h_inches)
-        canvas = FigureCanvasBase(fig)
-        canvas.print_figure(imageFile.name, dpi=72, format=format)
-        fig.set_size_inches(previous_size[0],previous_size[1])
-        canvas.draw()
-
-        self.set_output('imageFile', imageFile)
 
 class MplContourSet(Module):
     pass
 
 class MplQuadContourSet(MplContourSet):
     pass
+
+class MplFigureToFile(ImageFileMode):
+    config_cls = ImageFileModeConfig
+    formats = ['pdf', 'png', 'jpg']
+
+    def compute_output(self, output_module, configuration=None):
+        value = output_module.get_input('value')
+        w = configuration["width"]
+        h = configuration["height"]
+        img_format = self.get_format(configuration)
+        filename = self.get_filename(configuration, suffix='.%s' % img_format)
+
+        w_inches = w / 72.0
+        h_inches = h / 72.0
+        figure = value.figInstance
         
+        previous_size = tuple(figure.get_size_inches())
+        figure.set_size_inches(w_inches, h_inches)
+        canvas = FigureCanvasBase(figure)
+        canvas.print_figure(filename, dpi=72, format=img_format)
+        figure.set_size_inches(previous_size[0],previous_size[1])
+        canvas.draw()
+
+class MplFigureOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _input_ports = [('value', 'MplFigure')]
+    _output_modes = [MplFigureToFile]
+
 _modules = [(MplProperties, {'abstract': True}),
             (MplPlot, {'abstract': True}), 
             (MplSource, {'configureWidgetType': \
                              ('vistrails.packages.matplotlib.widgets',
                               'MplSourceConfigurationWidget')}),
             MplFigure,
-            MplFigureToFile,
             MplContourSet,
-            MplQuadContourSet]
+            MplQuadContourSet,
+            MplFigureOutput]
+

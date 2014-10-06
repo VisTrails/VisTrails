@@ -38,7 +38,6 @@ from init import configuration
 from vistrails.core.modules.basic_modules import File, String
 from vistrails.gui.modules.python_source_configure import \
                                                 PythonSourceConfigurationWidget
-from vistrails.core.modules import module_utils
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, \
                                                    ModuleError, ModuleSuspended
@@ -46,12 +45,8 @@ from remoteq.core.stack import select_machine, end_machine, use_machine, \
                                                                 current_machine
 from remoteq.batch.commandline import Subshell
 from remoteq.batch.directories import CreateDirectory
-import subprocess
-import os
 import urllib
 import xml.etree.cElementTree as ET
-
-import hashlib
 
 from init import RQModule
 
@@ -70,9 +65,6 @@ class HadoopBaseModule(RQModule):
     def __init__(self):
         Module.__init__(self)
     
-    def compute(self):
-        raise ModuleError(self, 'HadoopBaseModule is an abstract class!')
-
     def get_hadoop_home(self, machine):
         HADOOP_HOME = machine.remote.send_command("echo $HADOOP_HOME").strip()
         if HADOOP_HOME == '':
@@ -174,7 +166,7 @@ class HadoopBaseModule(RQModule):
 #                 print output,
 #             result += output
         # 3. The final version should detach the process on the server
-        use_machine(machine.machine)
+        use_machine(machine)
         cdir = CreateDirectory("remote", workdir)
         job = Subshell("remote", command=" ".join(argList),
                        working_directory=workdir, identifier=identifier,

@@ -39,6 +39,16 @@ import copy
 
 class ModuleControlParam(DBControlParameter):
 
+    # Valid control parameters should be put here
+    LOOP_KEY = 'loop_type' # How input lists are combined
+    WHILE_COND_KEY = 'while_cond' # Run module in a while loop
+    WHILE_INPUT_KEY = 'while_input' # input port for forwarded value
+    WHILE_OUTPUT_KEY = 'while_output' # output port for forwarded value
+    WHILE_MAX_KEY = 'while_max' # Max iterations
+    WHILE_DELAY_KEY = 'while_delay' # delay between iterations
+    CACHE_KEY = 'cache' # Turn caching on/off for this module (not implemented)
+    JOB_CACHE_KEY = 'job_cache' # Always persist output values to disk
+
     ##########################################################################
     # Constructors and copy
 

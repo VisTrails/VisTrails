@@ -56,7 +56,7 @@ import warnings
 
 import vtk
 
-from base_module import vtkBaseModule
+from base_module import vtkBaseModule, vtkRendererOutput
 from class_tree import ClassTree
 import fix_classes
 import inspectors
@@ -1164,6 +1164,7 @@ def initialize():
     # Add VTK modules
     registry = get_module_registry()
     registry.add_module(vtkBaseModule)
+    registry.add_module(vtkRendererOutput)
     createAllModules(inheritanceGraph)
     setAllPorts(registry.get_descriptor_by_name(identifier,
                                                 'vtkObjectBase'),

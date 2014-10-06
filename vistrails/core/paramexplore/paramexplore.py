@@ -236,7 +236,7 @@ class ParameterExploration(DBParameterExploration):
                     new_param = ModuleParam(id=tmp_p_id,
                                             pos=old_param.pos,
                                             name=old_param.name,
-                                            alias=pe_function.is_alias,
+                                            alias=old_param.alias,
                                             val=str_value,
                                             type=old_param.type)
                     tmp_p_id -= 1
@@ -264,9 +264,12 @@ class ParameterExploration(DBParameterExploration):
         if len(self.functions) != len(other.functions):
             return False
         for p,q in zip(self.functions, other.functions):
-            if p.real_id != q.real_id or p != q:
+            if p != q:
                 return False
         return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 # Testing
 
@@ -303,21 +306,12 @@ class TestParameterExploration(unittest.TestCase):
         q.action_id = 8
         self.assertNotEqual(p, q)
         q.action_id = 6
-        q.user = 'bobo'
-        self.assertNotEqual(p, q)
-        q.user = 'tommy'
-        q.date = '2008-11-23 12:48'
-        self.assertNotEqual(p, q)
-        q.date = p.date
         q._dims = '[1,4]'
         self.assertNotEqual(p, q)
         q._dims = '[1,2]'
         q._layout = '{1:"different"}'
         self.assertNotEqual(p, q)
         q._layout = p._layout
-        q.name = 'test-pe2'
-        self.assertNotEqual(p, q)
-        q.name = p.name
         q.functions = [1]
         self.assertNotEqual(p, q)
 
