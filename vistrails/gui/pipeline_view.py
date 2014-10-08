@@ -1101,8 +1101,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             return False
 
         # def module_functions_have_changed(m1, m2):
-        #     f1_names = set([f.name for f in m1.functions])
-        #     f2_names = set([f.name for f in m2.functions])
+        #     f1_names = set(f.name for f in m1.functions)
+        #     f2_names = set(f.name for f in m2.functions)
         #     return (len(f1_names ^ f2_names) > 0)
 
         if self.show_widgets != get_vistrails_configuration(
@@ -1147,8 +1147,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
     def moduleFunctionsHaveChanged(self, core_module):
         m1 = self.module
         m2 = core_module
-        f1_names = set([f.name for f in m1.functions])
-        f2_names = set([f.name for f in m2.functions])
+        f1_names = set(f.name for f in m1.functions)
+        f2_names = set(f.name for f in m2.functions)
         return (len(f1_names ^ f2_names) > 0)
 
     def update_function_ports(self, core_module=None):
@@ -1159,7 +1159,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self._cur_function_names = copy.copy(added_functions)
         else:
             before_names = self._cur_function_names
-            after_names = set([f.name for f in core_module.functions])
+            after_names = set(f.name for f in core_module.functions)
             added_functions = after_names - before_names
             deleted_functions = before_names - after_names
             self._cur_function_names = copy.copy(after_names)
@@ -2207,9 +2207,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def update_module_functions(self, pipeline, m_id):
         module = pipeline.modules[m_id]
         # check if a visible function has been deleted
-        before = set([f.name for f in
-                    self.controller.current_pipeline.modules[m_id].functions])
-        after = set([f.name for f in module.functions])
+        before = set(f.name for f in
+                     self.controller.current_pipeline.modules[m_id].functions)
+        after = set(f.name for f in module.functions)
         if (before - after) & module.editable_input_ports:
             # function deleted so we need to recreate module with empty widget
             self.recreate_module(pipeline, m_id)
