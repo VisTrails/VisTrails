@@ -1113,16 +1113,27 @@ class Pipeline(DBWorkflow):
             if module.is_valid and module.is_abstraction():
                 module.check_latest_version()
 
-    def mark_list_depth(self):
+    def mark_list_depth(self, module_ids=None):
         """mark_list_depth() -> list
 
         Updates list_depth variable on each module according to list depth of
         connecting port specs. This decides at what list depth the module
         needs to be executed.
         List ports have default depth 1
+
+        module_ids: list of module_ids - The id:s of modules that have changed
+        All modules upstream of these will be skipped, since markings only
+        affects downstream. This slightly increases performance.
+
         """
         result = []
+        is_upstream = module_ids
         for module_id in self.graph.vertices_topological_sort():
+            if is_upstream:
+                if module_id in module_ids:
+                    is_upstream = False
+                else:
+                    continue
             module = self.get_module_by_id(module_id)
             module.list_depth = 0
             ports = []

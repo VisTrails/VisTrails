@@ -105,6 +105,7 @@ shell.fontFace: Console Font
 shell.fontSize: Console Font Size
 showConnectionErrors: Show error when input value doesn't match type during execution
 showDebugPopups: Always bring debug messages to the front
+showInlineParameterWidgets: Show editable parameters inside modules
 showScrollbars: Show scrollbars on the version tree and workflow canvases
 showSplash: Show VisTrails splash screen during startup
 showSpreadsheetOnly: Hides the VisTrails main window
@@ -130,6 +131,7 @@ user: The username for the database to the load vistrail from
 userPackageDir: Local packages directory
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
+viewOnLoad: Whether to show pipeline or history view when opening vistrail
 withVersionTree: Output the version tree as an image
 withWorkflow: Output the workflow graph as an image
 """
@@ -505,6 +507,11 @@ webRepositoryUser: String
     The default username for logging into a VisTrails web repository
     like crowdLabs.
 
+viewOnLoad: String
+
+    Whether to show pipeline or history view when opening vistrail
+    Can be either appropriate/pipeline/history
+
 withVersionTree: Boolean
 
     Output the version tree as an image.
@@ -512,6 +519,10 @@ withVersionTree: Boolean
 withWorkflow: Boolean
 
     Output the workflow graph as an image.
+
+showInlineParameterWidgets: Boolean
+
+    Show editable parameters inside modules
 
 """
 
@@ -663,6 +674,7 @@ base_config = {
      ConfigField('showVariantErrors', True, bool, ConfigType.SHOW_HIDE),
      ConfigField('showDebugPopups', False, bool, ConfigType.SHOW_HIDE),
      ConfigField('showScrollbars', True, bool, ConfigType.SHOW_HIDE),
+     ConfigField('showInlineParameterWidgets', False, bool, ConfigType.SHOW_HIDE),
      ConfigFieldParent('shell',
         [ConfigField('fontFace', system.shell_font_face(), str),
          ConfigField('fontSize', system.shell_font_size(), int)]),

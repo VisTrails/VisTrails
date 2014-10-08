@@ -465,16 +465,6 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
             L = None
         return json.dumps(L)
 
-    def getPorts(self, node, ports=None):
-        if ports is None:
-            ports = []
-        # extract ports in json struct
-        if isinstance(node, basestring):
-            ports.append(node)
-        else:
-            [self.getPorts(i, ports) for i in [node[1:]]]
-        return ports
-
     def setDefault(self, module):
         self.clear()
         if not module:

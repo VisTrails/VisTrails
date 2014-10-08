@@ -987,6 +987,7 @@ class PersistentOutputPathConfiguration(PersistentPathConfiguration):
                                           False, path_type)
 
 class PersistentRefInlineWidget(QtGui.QWidget, ConstantWidgetMixin):
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         self.param = param
         self.strValue = param.strValue

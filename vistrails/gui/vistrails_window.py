@@ -1086,9 +1086,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                ((QModuleIteration, True),
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module')))] +
-              [] if not get_shell_dialog() else [
+              ([] if not get_shell_dialog() else [
                ((get_shell_dialog(), True),
-                (('controller_changed', 'set_controller'),))] +
+                (('controller_changed', 'set_controller'),))]) +
               [((QDebugger, True),
                 (('controller_changed', 'set_controller'),)),
                (DebugView, True),
@@ -1756,7 +1756,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                 return
             view.version_view.select_current_version()
             conf = get_vistrails_configuration()
-            if conf.check('viewOnLoad') and conf.viewOnLoad == 'history':
+            if version:
+                self.qactions['pipeline'].trigger()
+            elif conf.check('viewOnLoad') and conf.viewOnLoad == 'history':
                 self.qactions['history'].trigger()
             elif conf.check('viewOnLoad') and conf.viewOnLoad == 'pipeline':
                 self.qactions['pipeline'].trigger()

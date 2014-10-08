@@ -138,6 +138,7 @@ def createBogusQtGuiApp(argv=["bogus"]):
     return _appHolder
 
 def destroyBogusQtApp():
+    global _appHolder
     _appHolder = None
 
 def qt_version():

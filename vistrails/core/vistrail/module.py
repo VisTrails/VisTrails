@@ -153,6 +153,7 @@ class Module(DBModule):
     # CONSTANTS
         
     VISTRAIL_VAR_ANNOTATION = '__vistrail_var__'
+    INLINE_WIDGET_ANNOTATION = '__inline_widgets__'
 
     ##########################################################################
 
@@ -263,6 +264,18 @@ class Module(DBModule):
         self._module_descriptor = weakref.ref(descriptor)
     module_descriptor = property(_get_module_descriptor, 
                                  _set_module_descriptor)
+
+    def _get_editable_input_ports(self):
+        if self.has_annotation_with_key(Module.INLINE_WIDGET_ANNOTATION):
+            values = self.get_annotation_by_key(
+                             Module.INLINE_WIDGET_ANNOTATION).value.split(',')
+            return set() if values == [''] else set(values)
+        elif get_module_registry(
+                   ).is_constant_module(self.module_descriptor.module):
+            # Show value by default on constant modules
+            return set(['value'])
+        return set()
+    editable_input_ports = property(_get_editable_input_ports)
 
     def get_port_spec(self, port_name, port_type):
         """get_port_spec(port_name: str, port_type: str: ['input' | 'output'])
