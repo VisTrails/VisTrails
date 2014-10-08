@@ -495,11 +495,11 @@ class FileSink(NotCacheable, Module):
                     try:
                         vistrails.core.system.link_or_copy(input_file.name, filename)
                     except OSError, e:
-                        msg = "Could not publish file '%s' \n   on  '%s': %s" % \
-                               (full_path, filename, e)
+                        msg = "Could not publish file '%s' \n   on  '%s':" % (
+                                full_path, filename)
                         # I am not sure whether we should raise an error
                         # I will just print a warning for now (Emanuele)
-                        debug.warning("%s" % msg)
+                        debug.warning("%s" % msg, e)
 
 class DirectorySink(NotCacheable, Module):
     """DirectorySink takes a directory and writes it to a
@@ -1270,7 +1270,6 @@ def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
     import vistrails.core.modules.output_modules
-    global _modules
     _modules.extend(vistrails.core.modules.sub_module._modules)
     _modules.extend(vistrails.core.modules.output_modules._modules)
 

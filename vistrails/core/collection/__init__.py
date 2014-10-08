@@ -86,7 +86,8 @@ class Collection(object):
             self.conn = sqlite3.connect(self.database)
             try:
                 cur = self.conn.cursor()
-                [cur.execute(s) for s in schema]
+                for s in schema:
+                    cur.execute(s)
                 self.conn.commit()
             except Exception, e:
                 debug.critical("Could not create vistrail index schema", e)
@@ -328,7 +329,7 @@ class Collection(object):
         """ Check if entity with this url exist """
         locator = BaseLocator.from_url(url)
         if locator.is_valid():
-                return True
+            return True
         return False
 
     def updateVistrail(self, url, vistrail=None):

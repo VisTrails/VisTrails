@@ -234,19 +234,19 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
                 controller = GUIVistrailController(v, locator, abstractions, 
                                                    thumbnails, mashups)
                 if tree_info is not None:
-                        from vistrails.gui.version_view import QVersionTreeView
-                        version_view = QVersionTreeView()
-                        version_view.scene().setupScene(controller)
-                        if pdf:
-                            base_fname = "graph_%s.pdf" % locator.short_filename
-                            filename = os.path.join(tree_info, base_fname)
-                            version_view.scene().saveToPDF(filename)
-                        else:
-                            base_fname = "graph_%s.png" % locator.short_filename
-                            filename = os.path.join(tree_info, base_fname)
-                            version_view.scene().saveToPNG(filename)
-                        del version_view
-                        result.append((True, ""))
+                    from vistrails.gui.version_view import QVersionTreeView
+                    version_view = QVersionTreeView()
+                    version_view.scene().setupScene(controller)
+                    if pdf:
+                        base_fname = "graph_%s.pdf" % locator.short_filename
+                        filename = os.path.join(tree_info, base_fname)
+                        version_view.scene().saveToPDF(filename)
+                    else:
+                        base_fname = "graph_%s.png" % locator.short_filename
+                        filename = os.path.join(tree_info, base_fname)
+                        version_view.scene().saveToPNG(filename)
+                    del version_view
+                    result.append((True, ""))
             except Exception, e:
                 result.append((False, debug.format_exception(e)))
     else:

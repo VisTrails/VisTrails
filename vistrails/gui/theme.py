@@ -737,8 +737,6 @@ def initializeCurrentTheme():
     Assign the current theme to the default theme
     
     """
-    global CurrentTheme
-    
     CurrentTheme.setTheme(get_current_theme())
 
 global CurrentTheme

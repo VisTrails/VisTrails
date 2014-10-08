@@ -34,18 +34,10 @@
 ###############################################################################
 from __future__ import division
 
-from vistrails.core import modules
-from vistrails.core.common import *
-from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.modules.vistrails_module import ModuleConnector, ModuleError
-from vistrails.core.utils import DummyView
-import copy
 import vistrails.core.interpreter.base
 import vistrails.core.interpreter.utils
 import vistrails.core.vistrail.pipeline
 import atexit
-
-# from core.modules.module_utils import FilePool
 
 ################################################################################
 

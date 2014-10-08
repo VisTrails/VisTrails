@@ -870,7 +870,6 @@ class PackageManager(object):
         return self.get_all_dependencies(identifier, True, dep_graph)
 
 def get_package_manager():
-    global _package_manager
     if not _package_manager:
         raise VistrailsInternalError("package manager not constructed yet.")
     return _package_manager

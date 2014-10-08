@@ -116,11 +116,9 @@ def askForQObjectCreation():
     create QObjects.
 
     """
-    global okToCreateQObjects
     if not okToCreateQObjects:
         raise QApplicationNotYetCreated()
 
-global _appHolder
 _appHolder = None
 
 def createBogusQtGuiApp(argv=["bogus"]):    
@@ -140,8 +138,7 @@ def createBogusQtGuiApp(argv=["bogus"]):
     return _appHolder
 
 def destroyBogusQtApp():
-    global _appHolder
-    del _appHolder
+    _appHolder = None
 
 def qt_version():
     return [int(i)

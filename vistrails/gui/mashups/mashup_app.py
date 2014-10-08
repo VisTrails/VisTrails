@@ -437,7 +437,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
                     cell.hide()
 
     def loop_int_changed(self, state):
-            self.loopButton.setEnabled(False)
+        self.loopButton.setEnabled(False)
 
     def saveAll(self):
         for w in self.widgets:

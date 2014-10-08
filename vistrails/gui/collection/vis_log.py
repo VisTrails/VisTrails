@@ -479,7 +479,7 @@ class QLogView(QPipelineView):
                 item = self.scene().selectedItems()[0]
                 self.notify_app(self.parentItem, item.execution)
         elif self.execution != self.parentItem.execution:
-                self.notify_app(self.parentItem, self.parentItem.execution)
+            self.notify_app(self.parentItem, self.parentItem.execution)
 
     def set_exec_by_id(self, exec_id):
         if not self.log:

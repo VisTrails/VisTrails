@@ -429,8 +429,6 @@ _documentation = \
 """
 
 def parse_documentation():
-    global _docs
-
     line_iter = iter(_documentation.splitlines())
     line_iter.next()
     for line in line_iter:
