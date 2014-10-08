@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.modules.basic_modules import new_constant
-from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleConnector
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 import vistrails.core.vistrail.vistrail
 import vistrails.core.log.log 
 import vistrails.db.services.io

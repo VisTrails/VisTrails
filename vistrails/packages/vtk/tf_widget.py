@@ -36,11 +36,12 @@
 ##############################################################################
 # Transfer Function Widget for VTK
 from PyQt4 import QtCore, QtGui
-from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
-from vistrails.core.modules.basic_modules import new_constant, init_constant, Module
+from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.modules.basic_modules import Constant
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import get_elementtree_library
 from vistrails.core.utils.color import ColorByName
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 import vtk
 import math
 import pickle
@@ -717,21 +718,31 @@ class vtkScaledTransferFunction(Module):
         self.set_output('vtkPicewiseFunction', of_module)
         self.set_output('vtkColorTransferFunction', cf_module)
 
-string_conversion = staticmethod(lambda x: x.serialize())
-conversion = staticmethod(lambda x: TransferFunction.parse(x))
-validation = staticmethod(lambda x: isinstance(x, TransferFunction))
-TransferFunctionConstant = new_constant('TransferFunction',
-                                        conversion,
-                                        default_tf,
-                                        validation,
-                                        TransferFunctionWidget)
-TransferFunctionConstant.translate_to_string = string_conversion
+class TransferFunctionConstant(Constant):
+    default_value = default_tf
+
+    @staticmethod
+    def translate_to_python(x):
+        return TransferFunction.parse(x)
+
+    @staticmethod
+    def translate_to_string(x):
+        return x.serialize()
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, TransferFunction)
+
+    @staticmethod
+    def get_widget_class():
+        return TransferFunctionWidget
 
 ##############################################################################
 
 def initialize():
-    init_constant(TransferFunctionConstant)
-    
+    reg = get_module_registry()
+    reg.add_module(TransferFunctionConstant, name='TransferFunction')
+
 ##############################################################################
 class TestTransferFunction(unittest.TestCase):
     def test_serialization(self):

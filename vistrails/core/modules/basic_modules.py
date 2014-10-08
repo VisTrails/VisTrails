@@ -41,7 +41,7 @@ from vistrails.core.modules.vistrails_module import Module, new_module, \
     Converter, NotCacheable, ModuleError
 from vistrails.core.modules.config import ConstantWidgetConfig, \
     QueryWidgetConfig, ParamExpWidgetConfig, ModuleSettings, IPort, OPort, \
-    CIPort, COPort
+    CIPort
 import vistrails.core.system
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
@@ -73,6 +73,38 @@ old_identifiers = ['edu.utah.sci.vistrails.basic']
 constant_config_path = "vistrails.gui.modules.constant_configuration"
 query_config_path = "vistrails.gui.modules.query_configuration"
 paramexp_config_path = "vistrails.gui.modules.paramexplore"
+
+def get_port_name(port):
+    if hasattr(port, 'name'):
+        return port.name
+    else:
+        return port[0]
+
+class meta_add_value_ports(type):
+    def __new__(cls, name, bases, dct):
+        """This metaclass adds the 'value' input and output ports.
+        """
+        mod = type.__new__(cls, name, bases, dct)
+
+        if '_input_ports' in mod.__dict__:
+            input_ports = mod._input_ports
+            if not any(get_port_name(port_info) == 'value'
+                       for port_info in input_ports):
+                mod._input_ports = [('value', mod)]
+                mod._input_ports.extend(input_ports)
+        else:
+            mod._input_ports = [('value', mod)]
+
+        if '_output_ports' in mod.__dict__:
+            output_ports = mod._output_ports
+            if not any(get_port_name(port_info) == 'value'
+                       for port_info in output_ports):
+                mod._output_ports = [('value', mod)]
+                mod._output_ports.extend(output_ports)
+        else:
+            mod._output_ports = [('value', mod)]
+
+        return mod
 
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
@@ -110,6 +142,8 @@ class Constant(Module):
     """
     _settings = ModuleSettings(abstract=True)
     _output_ports = [OPort("value_as_string", "String")]
+
+    __metaclass__ = meta_add_value_ports
 
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
@@ -176,20 +210,12 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
         d["translate_to_python"] = py_conversion
     elif base_class == Constant:
         raise ValueError("Must specify translate_to_python for constant")
-    else:
-        d["translate_to_python"] = staticmethod(base_class.translate_to_python)
     if validation is not None:
         d["validate"] = validation
     elif base_class == Constant:
         raise ValueError("Must specify validation for constant")
-    else:
-        d["validate"] = staticmethod(base_class.validate)
     if default_value is not None:
         d["default_value"] = default_value
-    elif base_class == Constant:
-        d["default_value"] = None
-    else:
-        d["default_value"] = base_class.default_value
 
     if str_conversion is not None:
         d['translate_to_string'] = str_conversion
@@ -208,82 +234,105 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
     m._output_ports = [('value', m)]
     return m
 
-def bool_conv(x):
-    s = str(x).upper()
-    if s == 'TRUE':
-        return True
-    if s == 'FALSE':
+class Boolean(Constant):
+    _settings = ModuleSettings(
+            constant_widget='%s:BooleanWidget' % constant_config_path)
+    default_value = False
+
+    @staticmethod
+    def translate_to_python(x):
+        s = x.upper()
+        if s == 'TRUE':
+            return True
+        if s == 'FALSE':
+            return False
+        raise ValueError('Boolean from String in VisTrails should be either '
+                         '"true" or "false", got "%s" instead' % x)
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, bool)
+
+class Float(Constant):
+    _settings = ModuleSettings(constant_widgets=[
+        QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
+        ParamExpWidgetConfig('%s:FloatExploreWidget' % paramexp_config_path)])
+    default_value = 0.0
+
+    @staticmethod
+    def translate_to_python(x):
+        return float(x)
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, (int, long, float))
+
+    @staticmethod
+    def query_compute(value_a, value_b, query_method):
+        value_a = float(value_a)
+        value_b = float(value_b)
+        if query_method == '==' or query_method is None:
+            return (value_a == value_b)
+        elif query_method == '<':
+            return (value_a < value_b)
+        elif query_method == '>':
+            return (value_a > value_b)
+        elif query_method == '<=':
+            return (value_a <= value_b)
+        elif query_method == '>=':
+            return (value_a >= value_b)
+
+class Integer(Float):
+    _settings = ModuleSettings(constant_widgets=[
+        QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
+        ParamExpWidgetConfig('%s:IntegerExploreWidget' % paramexp_config_path)])
+    default_value = 0
+
+    @staticmethod
+    def translate_to_python(x):
+        if x.startswith('0x'):
+            return int(x, 16)
+        else:
+            return int(x)
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, (int, long))
+
+class String(Constant):
+    _settings = ModuleSettings(
+            configure_widget="vistrails.gui.modules.string_configure:TextConfigurationWidget",
+            constant_widgets=[
+                 ConstantWidgetConfig('%s:MultiLineStringWidget' % constant_config_path,
+                                      widget_type='multiline'),
+                 QueryWidgetConfig('%s:StringQueryWidget' % query_config_path)])
+    _output_ports = [OPort("value_as_string", "String", optional=True)]
+    default_value = ""
+
+    @staticmethod
+    def translate_to_python(x):
+        assert isinstance(x, str)
+        return x
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, str)
+
+    @staticmethod
+    def query_compute(value_a, value_b, query_method):
+        if query_method == '*[]*' or query_method is None:
+            return (value_b in value_a)
+        elif query_method == '==':
+            return (value_a == value_b)
+        elif query_method == '=~':
+            try:
+                m = re.match(value_b, value_a)
+                if m is not None:
+                    return (m.end() ==len(value_a))
+            except re.error:
+                pass
         return False
-    raise ValueError('Boolean from String in VisTrails should be either \
-"true" or "false", got "%s" instead' % x)
 
-def int_conv(x):
-    if x.startswith('0x'):
-        return int(x, 16)
-    else:
-        return int(x)
-
-@staticmethod
-def numeric_compare(value_a, value_b, query_method):
-    value_a = float(value_a)
-    value_b = float(value_b)
-    if query_method == '==' or query_method is None:
-        return (value_a == value_b)
-    elif query_method == '<':
-        return (value_a < value_b)
-    elif query_method == '>':
-        return (value_a > value_b)
-    elif query_method == '<=':
-        return (value_a <= value_b)
-    elif query_method == '>=':
-        return (value_a >= value_b)
-
-@staticmethod
-def string_compare(value_a, value_b, query_method):
-    if query_method == '*[]*' or query_method is None:
-        return (value_b in value_a)
-    elif query_method == '==':
-        return (value_a == value_b)
-    elif query_method == '=~':
-        try:
-            m = re.match(value_b, value_a)
-            if m is not None:
-                return (m.end() ==len(value_a))
-        except re.error:
-            pass
-    return False
-
-Boolean = new_constant('Boolean' , staticmethod(bool_conv),
-                       False, staticmethod(lambda x: isinstance(x, bool)))
-Boolean._settings = ModuleSettings(constant_widget=('%s:BooleanWidget' % \
-                                                    constant_config_path))
-Float   = new_constant('Float'   , staticmethod(float), 0.0, 
-                       staticmethod(lambda x: isinstance(x, (int, long, float))),
-                       query_compute=numeric_compare)
-Float._settings = ModuleSettings(constant_widgets=[
-    QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
-    ParamExpWidgetConfig('%s:FloatExploreWidget' % paramexp_config_path)])
-Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
-                       staticmethod(lambda x: isinstance(x, (int, long))),
-                       base_class=Float,
-                       query_compute=numeric_compare)
-Integer._settings = ModuleSettings(constant_widgets=[
-    QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
-    ParamExpWidgetConfig('%s:IntegerExploreWidget' % paramexp_config_path)])
-
-String  = new_constant('String'  , staticmethod(str), "", 
-                       staticmethod(lambda x: isinstance(x, str)),
-                       query_compute=string_compare)
-String._settings = ModuleSettings(configure_widget=
-            "vistrails.gui.modules.string_configure:TextConfigurationWidget",
-                                  constant_widgets=[
-                        ConstantWidgetConfig('%s:MultiLineStringWidget' % \
-                                             constant_config_path, 
-                                             widget_type='multiline'),
-                        QueryWidgetConfig('%s:StringQueryWidget' % \
-                                          query_config_path)])
-String._output_ports.append(OPort("value_as_string", "String", optional=True))
-    
 ##############################################################################
 
 class PathObject(object):
@@ -872,28 +921,31 @@ class List(Constant):
 ##############################################################################
 # Dictionary
 
-def dict_conv(v):
-    v_dict = literal_eval(v)
-    return v_dict
+class Dictionary(Constant):
+    default_value = {}
+    _input_ports = [CIPort("addPair", "Module, Module"),
+                    IPort("addPairs", "List")]
 
-def dict_compute(self):
-    d = {}
-    if self.has_input('value'):
-        Constant.compute(self)
-        d.update(self.outputPorts['value'])
-    if self.has_input('addPair'):
-        pairs_list = self.get_input_list('addPair')
-        d.update(pairs_list)
-    if self.has_input('addPairs'):
-        d.update(self.get_input('addPairs'))
-        
-    self.set_output("value", d)
-        
-Dictionary = new_constant('Dictionary', staticmethod(dict_conv),
-                          {}, staticmethod(lambda x: isinstance(x, dict)),
-                          compute=dict_compute)
-Dictionary._input_ports.extend([CIPort("addPair", "Module, Module"),
-                                IPort("addPairs", "List")])
+    @staticmethod
+    def translate_to_python(v):
+        return literal_eval(v)
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, dict)
+
+    def compute(self):
+        d = {}
+        if self.has_input('value'):
+            Constant.compute(self)
+            d.update(self.outputPorts['value'])
+        if self.has_input('addPair'):
+            pairs_list = self.get_input_list('addPair')
+            d.update(pairs_list)
+        if self.has_input('addPairs'):
+            d.update(self.get_input('addPairs'))
+
+        self.set_output("value", d)
 
 ##############################################################################
 
@@ -1786,3 +1838,27 @@ class TestStringFormat(unittest.TestCase):
                         _0=('String', 'hello'), _1=('String', 'dear'),
                         _2=('String', 'world'), _3=('Float', '1.333333333'),
                         ponc=('String', '!'))
+
+
+class TestConstantMetaclass(unittest.TestCase):
+    def test_meta(self):
+        """Tests the __metaclass__ for Constant.
+        """
+        mod1_in = [('value', 'basic:String'), IPort('other', 'basic:Float')]
+        mod1_out = [('someport', 'basic:Integer')]
+        class Mod1(Constant):
+            _input_ports = mod1_in
+            _output_ports = mod1_out
+        self.assertEqual(Mod1._input_ports, mod1_in)
+        self.assertEqual(Mod1._output_ports, [('value', Mod1)] + mod1_out)
+
+        mod2_in = [('another', 'basic:String')]
+        class Mod2(Mod1):
+            _input_ports = mod2_in
+        self.assertEqual(Mod2._input_ports, [('value', Mod2)] + mod2_in)
+        self.assertEqual(Mod2._output_ports, [('value', Mod2)])
+
+        class Mod3(Mod1):
+            _output_ports = []
+        self.assertEqual(Mod3._input_ports, [('value', Mod3)])
+        self.assertEqual(Mod3._output_ports, [('value', Mod3)])

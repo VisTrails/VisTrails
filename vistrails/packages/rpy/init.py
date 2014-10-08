@@ -35,18 +35,13 @@
 from ast import literal_eval
 import os
 import sys
-import tempfile
 import urllib
 import rpy2.robjects as robjects
 
-from vistrails.core.modules.basic_modules import PathObject, Constant, \
-    new_constant
+from vistrails.core.modules.basic_modules import PathObject, new_constant
+from vistrails.core.modules.vistrails_module import Module, ModuleError
+from .widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
-from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, NotCacheable
-from vistrails.core.modules.basic_modules import new_constant
-import vistrails.core.modules.module_registry
-from widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
 # FIXME when rpy2 is installed on the path, we won't need this
 old_sys_path = sys.path
