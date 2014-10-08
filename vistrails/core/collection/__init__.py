@@ -45,11 +45,10 @@ from thumbnail import ThumbnailEntity
 from mashup import MashupEntity
 from parameter_exploration import ParameterExplorationEntity
 
-from vistrails.core.db.locator import ZIPFileLocator, DBLocator, FileLocator, BaseLocator
+from vistrails.core.db.locator import FileLocator, BaseLocator
 from vistrails.core.db.io import load_vistrail
 import vistrails.core.system
 import vistrails.db.services.io
-from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 
 schema = ["create table entity(id integer primary key, type integer, "
@@ -289,26 +288,6 @@ class Collection(object):
         self.add_entity(entity)
         return entity
 
-    def update_from_database(self, db_locator):
-        # db_conn = db_locator.get_connection()
-        config = {'host': db_locator._host,
-                  'port': int(db_locator._port),
-                  'db': db_locator._db,
-                  'user': db_locator._user,
-                  'passwd': db_locator._passwd}
-        rows = vistrails.db.services.io.get_db_object_list(config, 'vistrail')
-        for row in rows:
-            if row[0] in [1,]:
-                continue
-            locator = DBLocator(config['host'], config['port'], config['db'],
-                                config['user'], config['passwd'],
-                                obj_type='vistrail', obj_id=row[0])
-            (vistrail, abstractions, thumbnails, mashups) = load_vistrail(locator)
-            vistrail.abstractions = abstractions
-            vistrail.thumbnails = thumbnails
-            vistrail.mashups = mashups
-            self.create_vistrail_entity(vistrail)
-
     def update_from_directory(self, directory):
         filenames = glob.glob(os.path.join(directory, '*.vt'))
         for filename in filenames:
@@ -361,32 +340,3 @@ class Collection(object):
             # probably an unsaved vistrail
             pass
 #            debug.critical("Locator is not valid!")
-
-def main():
-    import sys
-    sys.path.append('/home/tommy/git/vistrails/vistrails')
-
-    # vistrail = load_vistrail(ZIPFileLocator('/vistrails/examples/spx.vt'))[0]
-#    db_locator = DBLocator('vistrails.sci.utah.edu', 3306,
-#                           'vistrails', 'vistrails', '8edLj4',
-#                           obj_id=9, obj_type='vistrail')
-    # vistrail = load_vistrail(db_locator)[0]
-    c = Collection('/home/tommy/git/vistrails/vistrails/core/collection/test.db')
-    c.clear()
-    c.update_from_directory('/home/tommy/git/vistrails/examples')
-#    c.update_from_database(db_locator)
-
-    # entity = c.create_vistrail_entity(vistrail)
-    c.entities = {}
-    c.load_entities()
-#    print c.entities[2].url
-#    locator = BaseLocator.from_url(c.entities[2].url)
-#    c.entities[1].description = 'blah blah blah'
-#    c.save_entity(c.entities[1])
-#    print locator.to_url()
-    # c.load_entities()
-
-#    print BaseLocator.from_url('/vistrails/examples/spx.xml').to_url()
-
-if __name__ == '__main__':
-    main()
