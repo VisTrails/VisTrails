@@ -216,8 +216,6 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
         raise ValueError("Must specify validation for constant")
     if default_value is not None:
         d["default_value"] = default_value
-    elif base_class == Constant:
-        d["default_value"] = None
 
     if str_conversion is not None:
         d['translate_to_string'] = str_conversion
