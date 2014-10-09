@@ -3529,6 +3529,7 @@ class VistrailController(object):
                             is_valid = True
                         nb_loops += 1
                 except InvalidPipeline, e:
+                    debug.unexpected_exception(e)
                     new_error = e
 
                     # just do the version switch, anyway, but alert the
