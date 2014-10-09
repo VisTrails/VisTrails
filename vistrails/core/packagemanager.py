@@ -904,69 +904,50 @@ class TestImports(unittest.TestCase):
     def test_package(self):
         from vistrails.tests.utils import MockLogHandler
 
-        # Hacks PackageManager so that it temporarily uses our test package
-        # instead of userpackages
         pm = get_package_manager()
-        from vistrails.tests.resources import import_pkg
-        def fake_userpkg_mod():
-            pm._userpackages = import_pkg
-            return import_pkg
-        old_userpackages = pm._userpackages
-        old_import_userpackages = pm.import_user_packages_module
-        pm._userpackages = import_pkg
-        pm.import_user_packages_module = fake_userpkg_mod
+        pm.get_available_package(
+                'test_import_pkg',
+                prefix='vistrails.tests.resources.import_pkg.')
 
-        old_fix_names = list(Package.FIX_PACKAGE_NAMES)
-        Package.FIX_PACKAGE_NAMES.append('tests.resources.import_targets')
+        # Check the package is in the list
+        available_pkg_names = pm.available_package_names_list()
+        self.assertIn('test_import_pkg', available_pkg_names)
 
-        try:
-            # Check the package is in the list
-            available_pkg_names = pm.available_package_names_list()
-            self.assertIn('test_import_pkg', available_pkg_names)
+        # Import __init__ and check metadata
+        pkg = pm.look_at_available_package('test_import_pkg')
+        with MockLogHandler(debug.DebugPrint.getInstance().logger) as log:
+            pkg.load('vistrails.tests.resources.import_pkg.')
+        self.assertEqual(len(log.messages['warning']), 1)
+        self.assertEqual(pkg.identifier,
+                         'org.vistrails.tests.test_import_pkg')
+        self.assertEqual(pkg.version,
+                         '0.42')
+        for n in ['vistrails.tests.resources.import_targets.test1',
+                  'vistrails.tests.resources.import_targets.test2']:
+            self.assertIn(n, sys.modules, "%s not in sys.modules" % n)
 
-            # Import __init__ and check metadata
-            pkg = pm.look_at_available_package('test_import_pkg')
-            with MockLogHandler(debug.DebugPrint.getInstance().logger) as log:
-                pkg.load('vistrails.tests.resources.import_pkg.')
-            self.assertEqual(len(log.messages['warning']), 1)
-            self.assertEqual(pkg.identifier,
-                             'org.vistrails.tests.test_import_pkg')
-            self.assertEqual(pkg.version,
-                             '0.42')
-            for n in ['vistrails.tests.resources.import_targets.test1',
-                      'vistrails.tests.resources.import_targets.test2']:
-                self.assertIn(n, sys.modules, "%s not in sys.modules" % n)
+        # Import init.py
+        pm.late_enable_package(
+                'test_import_pkg',
+                {'test_import_pkg':
+                 'vistrails.tests.resources.import_pkg.'})
+        pkg = pm.get_package_by_codepath('test_import_pkg')
+        for n in ['vistrails.tests.resources.import_targets.test3',
+                  'vistrails.tests.resources.import_targets.test4',
+                  'vistrails.tests.resources.import_targets.test5']:
+            self.assertIn(n, sys.modules, "%s not in sys.modules" % n)
 
-            # Import init.py
-            pm.late_enable_package(
-                    'test_import_pkg',
-                    {'test_import_pkg':
-                     'vistrails.tests.resources.import_pkg.'})
-            pkg = pm.get_package_by_codepath('test_import_pkg')
-            for n in ['vistrails.tests.resources.import_targets.test3',
-                      'vistrails.tests.resources.import_targets.test4',
-                      'vistrails.tests.resources.import_targets.test5']:
-                self.assertIn(n, sys.modules, "%s not in sys.modules" % n)
-
-            # Check dependencies
-            deps = pkg.get_py_deps()
-            for dep in ['vistrails.tests.resources.import_pkg.test_import_pkg',
-                        'vistrails.tests.resources.import_pkg.test_import_pkg.init',
-                        'vistrails.tests.resources.import_pkg.test_import_pkg.module1',
-                        'vistrails.tests.resources.import_pkg.test_import_pkg.module2',
-                        'vistrails.tests.resources.import_targets',
-                        'vistrails.tests.resources.import_targets.test1',
-                        'vistrails.tests.resources.import_targets.test2',
-                        'vistrails.tests.resources.import_targets.test3',
-                        'vistrails.tests.resources.import_targets.test4',
-                        'vistrails.tests.resources.import_targets.test5',
-                        'vistrails.tests.resources.import_targets.test6']:
-                self.assertIn(dep, deps)
-        finally:
-            pm._userpackages = old_userpackages
-            pm.import_user_packages_module = old_import_userpackages
-            Package.FIX_PACKAGE_NAMES = old_fix_names
-            try:
-                pm.late_disable_package('test_import_pkg')
-            except MissingPackage:
-                pass
+        # Check dependencies
+        deps = pkg.get_py_deps()
+        for dep in ['vistrails.tests.resources.import_pkg.test_import_pkg',
+                    'vistrails.tests.resources.import_pkg.test_import_pkg.init',
+                    'vistrails.tests.resources.import_pkg.test_import_pkg.module1',
+                    'vistrails.tests.resources.import_pkg.test_import_pkg.module2',
+                    'vistrails.tests.resources.import_targets',
+                    'vistrails.tests.resources.import_targets.test1',
+                    'vistrails.tests.resources.import_targets.test2',
+                    'vistrails.tests.resources.import_targets.test3',
+                    'vistrails.tests.resources.import_targets.test4',
+                    'vistrails.tests.resources.import_targets.test5',
+                    'vistrails.tests.resources.import_targets.test6']:
+            self.assertIn(dep, deps)
