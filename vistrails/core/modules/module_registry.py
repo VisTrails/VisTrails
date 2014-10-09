@@ -287,6 +287,7 @@ class ModuleRegistryException(Exception):
 
         return "RegistryException: %s%s%s" % (self._identifier,
                                               p_version_str, m_str)
+    __repr__ = __str__
 
     def __eq__(self, other):
         return type(self) == type(other) and \
@@ -321,6 +322,7 @@ class MissingPackage(ModuleRegistryException):
 
     def __str__(self):
         return "Missing package: %s" % self._identifier
+    __repr__ = __str__
 
     def _get_module_id(self):
         return None
@@ -338,6 +340,7 @@ class MissingModule(ModuleRegistryException):
     def __str__(self):
         return "Missing module %s in package %s" % (self._module_name,
                                                     self._package_name)
+    __repr__ = __str__
 
 class MissingPackageVersion(ModuleRegistryException):
     def __init__(self, identifier, version):
@@ -347,6 +350,7 @@ class MissingPackageVersion(ModuleRegistryException):
     def __str__(self):
         return "Missing version %s of package %s" % \
             (self._package_version, self._identifier)
+    __repr__ = __str__
 
 class MissingModuleVersion(ModuleRegistryException):
     def __init__(self, identifier, name, namespace, module_version, 
@@ -357,6 +361,7 @@ class MissingModuleVersion(ModuleRegistryException):
     def __str__(self):
         return "Missing version %s of module %s from package %s" % \
             (self._module_version, self._module_name, self._package_name)
+    __repr__ = __str__
 
 class AmbiguousResolution(ModuleRegistryException):
     def __init__(self, name, namespace, matches):
@@ -368,6 +373,7 @@ class AmbiguousResolution(ModuleRegistryException):
         return ("Ambiguous resolution of module %s.  Could resolve to:\n%s" % \
                     (self._module_name, 
                      ',\n'.join(str(m) for m in self.matches)))
+    __repr__ = __str__
 
 class MissingPort(ModuleRegistryException):
     def __init__(self, descriptor, port_name, port_type):
@@ -382,6 +388,7 @@ class MissingPort(ModuleRegistryException):
         return "Missing %s port %s from module %s in package %s" % \
             (self._port_type, self._port_name, self._module_name, 
              self._package_name)
+    __repr__ = __str__
 
 class PortMismatch(MissingPort):
     def __init__(self, identifier, name, namespace, port_name, port_type, port_sigstring):
@@ -399,6 +406,7 @@ class PortMismatch(MissingPort):
                 " in module %s of package %s") % \
                 (self._port_type.capitalize(), self._port_name,
                  self._port_sigstring, self._module_name, self._package_name)
+    __repr__ = __str__
 
 class PortsIncompatible(ModuleRegistryException):
 
@@ -430,6 +438,7 @@ class PortsIncompatible(ModuleRegistryException):
                                                        out_name,
                                                        self._input_port,
                                                        in_name))
+    __repr__ = __str__
 
 class DuplicateModule(ModuleRegistryException):
     def __init__(self, old_descriptor, new_identifier, new_name, 
@@ -450,6 +459,7 @@ class DuplicateModule(ModuleRegistryException):
                 "%s in package %s") % \
                 (self._module_name, self._package_name, old_name, 
                  self.old_descriptor.identifier)
+    __repr__ = __str__
 
 class DuplicateIdentifier(ModuleRegistryException):
     def __init__(self, identifier, name, namespace=None,
@@ -460,6 +470,7 @@ class DuplicateIdentifier(ModuleRegistryException):
     def __str__(self):
         return "There is already a module %s in package %s" % \
             (self._module_name, self._package_name)
+    __repr__ = __str__
 
 class InvalidPortSpec(ModuleRegistryException):
     def __init__(self, descriptor, port_name, port_type, exc):
@@ -476,6 +487,7 @@ class InvalidPortSpec(ModuleRegistryException):
                 'has bad specification\n  %s' % \
             (self._port_type, self._port_name, self._module_name,
              self._package_name, str(self._exc)))
+    __repr__ = __str__
 
 class MissingBaseClass(Exception):
     def __init__(self, base):
@@ -484,6 +496,7 @@ class MissingBaseClass(Exception):
 
     def __str__(self):
         return "Base class has not been registered : %s" % (self._base.__name__)
+    __repr__ = __str__
 
 class ModuleRegistry(DBRegistry):
     """ModuleRegistry serves as a registry of VisTrails modules.
