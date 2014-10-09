@@ -35,6 +35,7 @@
 ###############################################################################
 from __future__ import division
 
+import os
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal
 
@@ -624,8 +625,9 @@ class TestMashupApp(TestVisTrailsGUI):
     def test_load_mashup(self):
         import vistrails.api
         import vistrails.core.system
-        filename = (vistrails.core.system.vistrails_root_directory() +
-                    '/tests/resources/spx_loop.vt')
+        filename = os.path.join(
+                vistrails.core.system.vistrails_root_directory(),
+                'tests/resources/spx_loop.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
         # Execute workflow to trigger upgrades
         view.controller.execute_current_workflow()
