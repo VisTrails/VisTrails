@@ -740,5 +740,5 @@ class TestPreferencesDialog(unittest.TestCase):
 
         # check if configuration has been written correctly
         startup = _app.startup
-        self.assertTrue(pkg in startup.disabled_packages)
-        self.assertTrue(pkg not in startup.enabled_packages)
+        self.assertIn(pkg, startup.disabled_packages)
+        self.assertNotIn(pkg, startup.enabled_packages)
