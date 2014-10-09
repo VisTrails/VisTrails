@@ -315,12 +315,12 @@ class VistrailsStartup(DBStartup):
                 msg = ("""Don't know how to set verboseness level to %s - "
                        "setting to the lowest one I know of: 0""" % verbose)
                 debug.critical(msg)
-                verbose = 0
+                verbose = self.temp_configuration.debugLevel = 0
             if verbose > 2:
                 msg = ("""Don't know how to set verboseness level to %s - "
                        "setting to the highest one I know of: 2""" % verbose)
                 debug.critical(msg)
-                verbose = 2
+                verbose = self.temp_configuration.debugLevel = 2
             dbg = debug.DebugPrint.getInstance()
             levels = [dbg.WARNING, dbg.INFO, dbg.DEBUG]
             dbg.set_message_level(levels[verbose])

@@ -128,9 +128,9 @@ upgrades: Attempt to automatically upgrade old workflows
 useMacBrushedMetalStyle: Use a brushed metal interface (MacOS X only)
 user: The username for the database to the load vistrail from
 userPackageDir: Local packages directory
+viewOnLoad: Whether to show pipeline or history view when opening vistrail
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
-viewOnLoad: Whether to show pipeline or history view when opening vistrail
 withVersionTree: Output the version tree as an image
 withWorkflow: Output the workflow graph as an image
 """
@@ -496,6 +496,11 @@ userPackageDir: Boolean
     The location for user-installed packages (defaults to
     ~/.vistrails/userpackages).
 
+viewOnLoad: String
+
+    Whether to show pipeline or history view when opening vistrail
+    Can be either appropriate/pipeline/history
+
 webRepositoryURL: URL
 
     The URL of the web repository that should be attached to VisTrails
@@ -505,11 +510,6 @@ webRepositoryUser: String
 
     The default username for logging into a VisTrails web repository
     like crowdLabs.
-
-viewOnLoad: String
-
-    Whether to show pipeline or history view when opening vistrail
-    Can be either appropriate/pipeline/history
 
 withVersionTree: Boolean
 
@@ -644,7 +644,9 @@ base_config = {
                  widget_type="combo",
                  widget_options={"allowed_values": [".vt", ".xml"],
                                  "label": "Default File Type/Extension"}),
-     ConfigField('debugLevel', 0, int, widget_type="combo",
+     ConfigField('debugLevel', 0, int,
+                 flag='-v',
+                 widget_type="combo",
                  widget_options={"allowed_values": [0,1,2],
                                  "label": "Show alerts for",
                                  "remap": {0: "Critical Errors Only",
