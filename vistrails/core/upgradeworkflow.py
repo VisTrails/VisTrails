@@ -1010,9 +1010,9 @@ class TestUpgradePackageRemap(unittest.TestCase):
         # Pre-adds packages so that the package manager can find them
         prefix = 'vistrails.tests.resources.looping_upgrades.'
         pm = get_package_manager()
-        pm.add_package('pkg_a', prefix=prefix)
-        pm.add_package('pkg_b', prefix=prefix)
-        pm.add_package('pkg_c', prefix=prefix)
+        pm.get_available_package('pkg_a', prefix=prefix)
+        pm.get_available_package('pkg_b', prefix=prefix)
+        pm.get_available_package('pkg_c', prefix=prefix)
         self.assertFalse(set(pkg.codepath for pkg in pm.enabled_package_list())
                          .intersection(['pkg_a', 'pkg_b', 'pkg_c']))
 
