@@ -3697,6 +3697,9 @@ class VistrailController(object):
                 # As long as handle_invalid_pipeline doesn't raise, we assume
                 # that it fixed something, and we go on calling it until the
                 # pipeline is valid
+                nb_loops = 0
+                max_loops = getattr(get_vistrails_configuration(),
+                                    'maxPipelineFixAttempts', 50)
                 while True:
                     version, pipeline = \
                         self.handle_invalid_pipeline(e, version,
@@ -3707,7 +3710,13 @@ class VistrailController(object):
                         self.validate(pipeline)
                         break
                     except InvalidPipeline, e:
-                        pass
+                        if nb_loops >= max_loops:
+                            debug.critical(
+                                    "Pipeline-fixing loop doesn't seem to "
+                                    "be finishing, giving up after %d "
+                                    "iterations" % nb_loops)
+                            raise e
+                    nb_loops += 1
             return version, pipeline
         # end _validate_version
 
