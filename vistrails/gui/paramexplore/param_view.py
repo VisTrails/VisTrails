@@ -78,7 +78,7 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         QtGui.QWidget.__init__(self, parent)
         self.set_title('Pipeline Methods')
         
-        self.controller = controller
+        self.controller = None
         vLayout = QtGui.QVBoxLayout()
         vLayout.setMargin(0)
         vLayout.setSpacing(5)
@@ -92,6 +92,7 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.treeWidget = self.parameterWidget.treeWidget
 
         self.pipeline_view = QAnnotatedPipelineView()
+        self.pipeline_view.setReadOnlyMode(True)
         vLayout.addWidget(self.pipeline_view)
 
         vLayout.setStretch(0,0)
@@ -100,21 +101,27 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
 
         self.connect(self.toggleUnsetParameters, QtCore.SIGNAL("toggled(bool)"),
                      self.parameterWidget.treeWidget.toggleUnsetParameters)
+        self.set_controller(controller)
 
     def set_controller(self, controller):
         if self.controller == controller:
             return
         self.controller = controller
+        self.pipeline_view.set_controller(controller)
         if self.controller is not None:
-            self.set_pipeline(self.controller.current_pipeline)
-            self.pipeline_view.setScene(self.controller.current_pipeline_scene)
+            self.set_pipeline(controller.current_pipeline)
         else:
             self.set_pipeline(None)
-            self.pipeline_view.setScene(None)
 
     def set_pipeline(self, pipeline):
+        if self.controller is None:
+            return
         self.pipeline = pipeline
         self.parameterWidget.set_pipeline(pipeline, self.controller)
+        if pipeline:
+            self.pipeline_view.scene().setupScene(pipeline)
+        else:
+            self.pipeline_view.scene().clear()
         self.pipeline_view.updateAnnotatedIds(pipeline)
 
 class QParameterWidget(QSearchTreeWindow):

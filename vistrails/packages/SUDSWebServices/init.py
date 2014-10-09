@@ -607,7 +607,7 @@ It is a WSDL type with signature:
                 except Exception, e:
                     debug.unexpected_exception(e)
                     raise ModuleError(self, "Error invoking method %s: %s" % (
-                            name, debug.format_exception(e)))
+                            mname, debug.format_exception(e)))
                 for name, qtype in self.wsmethod.outputs.iteritems():
                     if isinstance(result, list):
                         # if result is a list just set the output

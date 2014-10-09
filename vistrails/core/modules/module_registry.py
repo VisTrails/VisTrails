@@ -53,6 +53,7 @@ from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.package import Package
 from vistrails.core.requirements import MissingRequirement
 import vistrails.core.modules.utils
+from vistrails.core.modules.utils import create_port_spec_item_string
 from vistrails.core.utils import VistrailsInternalError, memo_method, \
     InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
     all, profile, versions_increasing, InvalidPipeline, VistrailsDeprecation
@@ -741,32 +742,28 @@ class ModuleRegistry(DBRegistry):
 
         try:
             package = self.packages[identifier]
-            if package_version:
-                package_version_key = (identifier, package_version)
-                package = self.package_versions[package_version_key]
-            if not module_version:
+        except KeyError:
+            raise MissingPackage(identifier)
+        if package_version:
+            try:
+                package = self.package_versions[(identifier, package_version)]
+            except KeyError:
+                raise MissingPackageVersion(identifier, package_version)
+        if not module_version:
+            try:
                 descriptor = package.descriptors[(name, namespace)]
-            else:
-                descriptor_version_key = (name, namespace, module_version)
+            except KeyError:
+                raise MissingModule(identifier, name, namespace,
+                                    package_version)
+        else:
+            descriptor_version_key = (name, namespace, module_version)
+            try:
                 descriptor = \
                     package.descriptor_versions[descriptor_version_key]
-            return descriptor
-        except KeyError:
-            if identifier not in self.packages:
-                raise MissingPackage(identifier)
-            elif (name, namespace) not in package.descriptors:
-                raise MissingModule(identifier, name, namespace, 
-                                    package_version)
-            elif package_version and \
-                    package_version_key not in self.package_versions:
-                raise MissingPackageVersion(identifier, package_version)
-            elif module_version and descriptor_version_key not in \
-                    package.descriptor_versions:
+            except KeyError:
                 raise MissingModuleVersion(identifier, name, namespace,
                                            module_version, package_version)
-            else:
-                raise ModuleRegistryException(identifier, name, namespace,
-                                              package_version, module_version)
+        return descriptor
 
     def get_similar_descriptor(self, identifier, name, namespace=None,
                                package_version=None, module_version=None):
@@ -779,10 +776,6 @@ class ModuleRegistry(DBRegistry):
         except MissingModuleVersion:
             return self.get_similar_descriptor(identifier, name, namespace,
                                                package_version, None)
-#         except Exception:
-#             raise
-
-        return None
             
     def get_descriptor(self, module):
         """get_descriptor(module: class) -> ModuleDescriptor
@@ -970,89 +963,106 @@ class ModuleRegistry(DBRegistry):
                 # match
                 retval = desc.module.translate_to_string(val)
         return retval
-            
+
+    def decode_port(self, port_info, simple_t, compound_t, deprecated_t,
+                    is_input):
+        if (not isinstance(port_info, simple_t) and
+                not isinstance(port_info, compound_t)):
+            port_name = port_info[0]
+            port_sig = port_info[1]
+            if len(port_info) > 2:
+                if isinstance(port_info[2], dict):
+                    port_info = compound_t(port_info[0],
+                                                port_info[1],
+                                                **port_info[2])
+
+                else:
+                    dep_port_info = deprecated_t(*port_info)
+                    port_info = \
+                        compound_t(**dep_port_info._asdict())
+            else:
+                port_info = compound_t(*port_info)
+
+        # convert simple ports to compound ones
+        kwargs = port_info._asdict()
+        port_name = kwargs.pop('name')
+        port_sig = kwargs.pop('signature')
+        if is_input and isinstance(port_info, simple_t):
+            kwargs['labels'] = [kwargs.pop('label')]
+            kwargs['defaults'] = [kwargs.pop('default')]
+            kwargs['values'] = [kwargs.pop('values')]
+            kwargs['entry_types'] = [kwargs.pop('entry_type')]
+        elif isinstance(port_info, compound_t):
+            # have compound port
+            port_items = kwargs.pop('items')
+            if port_items is not None:
+                sig_items = []
+                labels = []
+                defaults = []
+                values = []
+                entry_types = []
+                for item in port_info.items:
+                    if not isinstance(item.signature,
+                                      basestring):
+                        d = self.get_descriptor(item.signature)
+                        sig_items.append(create_port_spec_item_string(
+                            d.package, d.name, d.namespace))
+                    else:
+                        sig_items.append(item.signature)
+                    labels.append(item.label)
+                    defaults.append(item.default)
+                    values.append(item.values)
+                    entry_types.append(item.entry_type)
+                kwargs['signature'] = ','.join(sig_items)
+                if is_input:
+                    kwargs['labels'] = labels
+                    kwargs['defaults'] = defaults
+                    kwargs['values'] = values
+                    kwargs['entry_types'] = entry_types
+
+        return port_name, port_sig, kwargs
+
+    def decode_input_port(self, port_info):
+        return self.decode_port(
+                port_info,
+                InputPort, CompoundInputPort, DeprecatedInputPort,
+                True)
+
+    def decode_output_port(self, port_info):
+        return self.decode_port(
+                port_info,
+                OutputPort, CompoundOutputPort, OutputPort,
+                False)
+
     def auto_add_ports(self, module):
         """auto_add_ports(module or (module, kwargs)): add
         input/output ports to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
-        create_psi_string = \
-                    vistrails.core.modules.utils.create_port_spec_item_string
-        for (port_key, adder_f, simple_t, compound_t, deprecated_t, is_input) \
-            in [('_input_ports', self.add_input_port, InputPort, 
-                 CompoundInputPort, DeprecatedInputPort, True),
-                ('_output_ports', self.add_output_port, OutputPort, 
-                 CompoundOutputPort, OutputPort, False)]:
-            if port_key in module.__dict__:
-                for port_info in module.__dict__[port_key]:
-                    added = False
-                    port_name = None
-                    port_sig = None
-                    try:
-                        if not isinstance(port_info, simple_t) and \
-                           not isinstance(port_info, compound_t):
-                            port_name = port_info[0]
-                            port_sig = port_info[1]
-                            if len(port_info) > 2:
-                                if isinstance(port_info[2], dict):
-                                    port_info = compound_t(port_info[0],
-                                                                port_info[1],
-                                                                **port_info[2])
+        if '_input_ports' in module.__dict__:
+            for port_info in module._input_ports:
+                try:
+                    name, sig, kwargs = self.decode_input_port(port_info)
+                    self.add_input_port(module, name, sig, **kwargs)
+                except Exception, e:
+                    debug.unexpected_exception(e)
+                    debug.critical('Failed to add input port "%s" to module '
+                                   '"%s"' % (name, module.__name__),
+                                   e)
+                    raise
 
-                                else:
-                                    dep_port_info = deprecated_t(*port_info)
-                                    port_info = \
-                                        compound_t(**dep_port_info._asdict())
-                            else:
-                                port_info = compound_t(*port_info)
+        if '_output_ports' in module.__dict__:
+            for port_info in module._output_ports:
+                try:
+                    name, sig, kwargs = self.decode_output_port(port_info)
+                    self.add_output_port(module, name, sig, **kwargs)
+                except Exception, e:
+                    debug.unexpected_exception(e)
+                    debug.critical('Failed to add output port "%s" to module '
+                                   '"%s"' % (name, module.__name__),
+                                   e)
+                    raise
 
-                        # convert simple ports to compound ones
-                        kwargs = port_info._asdict()
-                        port_name = kwargs.pop('name')
-                        port_sig = kwargs.pop('signature')
-                        if is_input and isinstance(port_info, simple_t):
-                            kwargs['labels'] = [kwargs.pop('label')]
-                            kwargs['defaults'] = [kwargs.pop('default')]
-                            kwargs['values'] = [kwargs.pop('values')]
-                            kwargs['entry_types'] = [kwargs.pop('entry_type')]
-                        elif isinstance(port_info, compound_t):
-                            # have compound port
-                            port_items = kwargs.pop('items')
-                            if port_items is not None:
-                                sig_items = []
-                                labels = []
-                                defaults = []
-                                values = []
-                                entry_types = []
-                                for item in port_info.items:
-                                    if not isinstance(item.signature, 
-                                                      basestring):
-                                        d = self.get_descriptor(item.signature)
-                                        sig_items.append(create_psi_string(
-                                            d.package, d.name, d.namespace))
-                                    else:
-                                        sig_items.append(item.signature)
-                                    labels.append(item.label)
-                                    defaults.append(item.default)
-                                    values.append(item.values)
-                                    entry_types.append(item.entry_type)
-                                kwargs['signature'] = ','.join(sig_items)
-                                if is_input:
-                                    kwargs['labels'] = labels
-                                    kwargs['defaults'] = defaults
-                                    kwargs['values'] = values
-                                    kwargs['entry_types'] = entry_types
-
-                        # add the port
-                        adder_f(module, port_name, port_sig, **kwargs)
-                        added = True
-                    except Exception, e:
-                        debug.critical('Failed to add port "%s" to '
-                                       'module "%s"' % (port_name, 
-                                                        module.__name__),
-                                       e)
-                        raise
-                        
     def auto_add_module(self, module):
         """auto_add_module(module or (module, kwargs)): add module
         to registry. Don't call this directly - it is
@@ -1583,11 +1593,13 @@ class ModuleRegistry(DBRegistry):
                           optional, sort_key, None, None, None, None, 
                           docstring, shape, min_conns, max_conns, depth)
 
-    def create_package(self, codepath, load_configuration=True):
+    def create_package(self, codepath, load_configuration=True, prefix=None):
         package_id = self.idScope.getNewId(Package.vtType)
         package = Package(id=package_id,
                           codepath=codepath,
                           load_configuration=load_configuration)
+        if prefix is not None:
+            package.prefix = prefix
         return package
 
     def initialize_package(self, package):
@@ -2134,13 +2146,11 @@ class ModuleRegistry(DBRegistry):
 # get_descriptor           = registry.get_descriptor
 
 def get_module_registry():
-    global registry
     if not registry:
         raise VistrailsInternalError("Registry not constructed yet.")
     return registry
 
 def module_registry_loaded():
-    global registry
     return registry is not None
 
 ##############################################################################

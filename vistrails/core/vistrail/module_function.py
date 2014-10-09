@@ -140,7 +140,7 @@ class ModuleFunction(DBFunction):
         child.setAttribute('name',self.name)
         child.setAttribute('returnType',self.type)
         for p in self.params:
-                p.serialize(doc,child)
+            p.serialize(doc,child)
         element.appendChild(child)
 
     def get_spec(self, port_type):

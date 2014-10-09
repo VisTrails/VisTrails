@@ -68,7 +68,6 @@ def finalize_vistrails(app):
     vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
 
 def get_vistrails_application():
-    global VistrailsApplication
     if VistrailsApplication is not None:
         return VistrailsApplication()
     return None
@@ -91,14 +90,6 @@ class VistrailsApplicationInterface(object):
     def __init__(self):
         self._initialized = False
         self.notifications = {}
-
-    def printVersion(self):
-        """ printVersion() -> None
-        Print version of Vistrail and exit
-        
-        """
-        print system.about_string()
-        sys.exit(0)
 
     def read_options(self, args=None):
         """ read_options() -> None
@@ -226,13 +217,13 @@ class VistrailsApplicationInterface(object):
                     name = str(data[0])
                 # will try to convert version to int
                 # if it fails, it's a tag name
+                #maybe a tag name contains ':' in its name
+                #so we need to bring it back together
+                rest = ":".join(data[1:])
                 try:
-                    #maybe a tag name contains ':' in its name
-                    #so we need to bring it back together
-                    rest = ":".join(data[1:])
                     version = int(rest)
                 except ValueError:
-                    version = str(rest)
+                    version = rest
             elif len(data) == 1:
                 if use_filename and os.path.isfile(str(data[0])):
                     name = str(data[0])
@@ -281,7 +272,7 @@ class VistrailsApplicationInterface(object):
                             # version number
                             if locator._vtag != '':
                                 version = locator._vtag
-                    execute = self.temp_configuration.execute
+                    execute = self.temp_configuration.check('execute')
                     mashuptrail = None
                     mashupversion = None
                     if hasattr(locator, '_mshptrail'):

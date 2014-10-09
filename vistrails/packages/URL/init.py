@@ -539,11 +539,8 @@ class RepoSync(Module):
             self.checksum = self.get_input("checksum")
             # get file path
             path_url = "%s/datasets/path/%s/"%(self.base_url, self.checksum)
-            try:
-                dataset_path_request = urllib2.urlopen(url=path_url)
-                dataset_path = dataset_path_request.read()
-            except urllib2.HTTPError:
-                pass
+            dataset_path_request = urllib2.urlopen(url=path_url)
+            dataset_path = dataset_path_request.read()
 
             if os.path.isfile(dataset_path):
                 out_file = PathObject(dataset_path)

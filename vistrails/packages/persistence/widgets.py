@@ -38,7 +38,7 @@ import re
 import uuid
 
 from vistrails.core.modules.basic_modules import Path
-from vistrails.gui.common_widgets import QSearchBox, QSearchEditBox
+from vistrails.gui.common_widgets import QSearchBox
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 
@@ -269,22 +269,16 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
         id = where_dict['id']
         version = where_dict.get('version', None)
         if version is not None:
-            found = False
             for idx, value_tuple in enumerate(self.id_lists[id]):
                 if value_tuple[self.idxs['version']] == version:
-                    found = True
+                    del self.id_lists[id][idx]
                     break
-            if found:
-                del self.id_lists[id][idx]
         else:
             path_type = self.id_lists[id][0][self.idxs['type']]
-            found = False
             for idx, key_id in enumerate(self.id_lists_keys):
                 if key_id == id:
-                    found = True
+                    del self.id_lists_keys[idx]
                     break
-            if found:
-                del self.id_lists_keys[idx]
             del self.id_lists[id]
         self.reset()
 
@@ -836,6 +830,8 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         new_file = str(self.new_file.get_path())
         if new_file:
             base_name = os.path.basename(new_file)
+        else:
+            base_name = ''
         self.name_edit.setText(base_name)
         self.keep_local.setChecked(True)
         self.local_path.set_path(new_file)
@@ -989,6 +985,7 @@ class PersistentOutputPathConfiguration(PersistentPathConfiguration):
                                           False, path_type)
 
 class PersistentRefInlineWidget(QtGui.QWidget, ConstantWidgetMixin):
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         self.param = param
         self.strValue = param.strValue

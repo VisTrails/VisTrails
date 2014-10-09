@@ -465,9 +465,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         
         """
         usedb = False
+        passwd = ''
         if self.temp_configuration.check('host'):
             usedb = True
-            passwd = ''
         if usedb and self.temp_configuration.check('user'):
             db_config = dict((x, self.temp_configuration.check(x))
                              for x in ['host', 'port', 
@@ -629,12 +629,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def eventFilter(self, o, event):
         """eventFilter(obj,event)-> boolean
         This will filter all create events and will set on the WA_MacMetalStyle
-        attribute of a QWidget. It will also filter the FileOpen events on a Mac
+        attribute of a QWidget. It will also filter the FileOpen events on Mac.
         
         """
-        metalstyle = self.temp_configuration.check('useMacBrushedMetalStyle')
+        metalstyle = hasattr(self, 'temp_configuration') and \
+                     self.temp_configuration.check('useMacBrushedMetalStyle')
         if metalstyle:
-            if QtCore.QT_VERSION < 0x40500:    
+            if QtCore.QT_VERSION < 0x40500:
                 create_event = QtCore.QEvent.Create
                 mac_attribute = QtCore.Qt.WA_MacMetalStyle
             else:
@@ -667,7 +668,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             self.temp_configuration.spreadsheetDumpPDF = False
             self.temp_configuration.execute = False
             self.temp_configuration.batch = False
-            
+
+            output = None
             try:
                 # redirect stdout
                 old_stdout = sys.stdout
@@ -677,6 +679,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout.close()
                 sys.stdout = old_stdout
             except Exception, e:
+                debug.unexpected_exception(e)
                 import traceback
                 debug.critical("Unknown error", e)
                 result = traceback.format_exc()

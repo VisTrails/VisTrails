@@ -34,23 +34,79 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 
-from vistrails.core.system import systemType
+from vistrails.core.configuration import get_vistrails_configuration, \
+                                         get_vistrails_persistent_configuration
+from vistrails.core.system import systemType, vistrails_root_directory
 from vistrails.core.utils import versions_increasing
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.module_annotation import QModuleAnnotationTable
-from vistrails.gui.ports_pane import PortsList
+from vistrails.gui.ports_pane import PortsList, letterIcon
 from vistrails.gui.version_prop import QVersionProp
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+
+import os
 
 class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None, flags=QtCore.Qt.Widget):
         QtGui.QWidget.__init__(self, parent, flags)
+        self.ports_visible = True
+        self.types_visible = True
+
         self.build_widget()
         self.controller = None
         self.module = None
         self.pipeline_view = None # pipeline_view
         self.read_only = False
         self.is_updating = False
+        self.addButtonsToToolbar()
+
+    def addButtonsToToolbar(self):
+        # button for toggling executions
+        eye_open_icon = \
+            QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                                 'gui/resources/images/eye.png'))
+
+        self.portVisibilityAction = QtGui.QAction(eye_open_icon,
+                                        "Show/hide port visibility toggle buttons",
+                                        None,
+                                        triggered=self.showPortVisibility)
+        self.portVisibilityAction.setCheckable(True)
+        self.portVisibilityAction.setChecked(True)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.portVisibilityAction)
+        self.showTypesAction = QtGui.QAction(letterIcon('T'),
+                                        "Show/hide type information",
+                                        None,
+                                        triggered=self.showTypes)
+        self.showTypesAction.setCheckable(True)
+        self.showTypesAction.setChecked(True)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.showTypesAction)
+        self.showEditsAction = QtGui.QAction(
+                 QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                                          'gui/resources/images/pencil.png')),
+                 "Show/hide parameter widgets",
+                 None,
+                 triggered=self.showEdits)
+        self.showEditsAction.setCheckable(True)
+        self.showEditsAction.setChecked(
+            get_vistrails_configuration().check('showInlineParameterWidgets'))
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.showEditsAction)
+
+    def showPortVisibility(self, checked):
+        self.ports_visible = checked
+        self.update_module(self.module)
+
+    def showTypes(self, checked):
+        self.types_visible = checked
+        self.update_module(self.module)
+
+    def showEdits(self, checked):
+        get_vistrails_configuration().showInlineParameterWidgets = checked
+        get_vistrails_persistent_configuration().showInlineParameterWidgets = checked
+        scene = self.controller.current_pipeline_scene
+        scene.setupScene(self.controller.current_pipeline)
 
     def build_widget(self):
         name_label = QtGui.QLabel("Name:")
@@ -149,6 +205,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.update_module()
 
     def update_module(self, module=None):
+        for plist in self.ports_lists:
+            plist.types_visible = self.types_visible
+            plist.ports_visible = self.ports_visible
         self.module = module
         for ports_list in self.ports_lists:
             ports_list.update_module(module)

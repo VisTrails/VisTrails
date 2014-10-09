@@ -54,11 +54,6 @@ import copy
 
 from identifiers import identifier as spreadsheet_pkg
 
-# FIXME broke this as Actions have been changed around
-#
-# from core.vistrail.action import AddModuleAction, AddConnectionAction, \
-#      DeleteConnectionAction, ChangeParameterAction
-
 ################################################################################
 
 def assignPipelineCellLocations(pipeline, sheetName, 

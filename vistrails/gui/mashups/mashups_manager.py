@@ -116,7 +116,7 @@ class MashupsManager(object):
                         MashupsManager.addMashuptrailtoVistrailController(vt_controller,
                                                                           mashuptrail)    
                         
-                    elif res == 'Move':
+                    else:  # res == 'Move'
                         # we will move the parent trail and validate all mashups
                         # for the current pipeline to make sure they will be 
                         # executable for the current version
