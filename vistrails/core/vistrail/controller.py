@@ -3807,6 +3807,7 @@ class VistrailController(object):
                     self.current_pipeline = pipeline
                     self.current_version = new_version
                 except InvalidPipeline, e:
+                    debug.unexpected_exception(e)
                     # display invalid pipeline?
                     new_error = e
                     
