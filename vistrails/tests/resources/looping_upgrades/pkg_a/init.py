@@ -17,7 +17,7 @@ _upgrades = {'A' : [UpgradeModuleRemap(
         # replaces module A with module B from looping_fix.b 0.1
         '0.1', '0.2', '0.2',
         new_module=ModuleDescriptor(
-                package='org.vistrails.vistrails.tests.looping_fix.a',
+                package='org.vistrails.vistrails.tests.looping_fix.b',
                 name='B',
                 namespace='',
                 package_version='0.1'))]}
