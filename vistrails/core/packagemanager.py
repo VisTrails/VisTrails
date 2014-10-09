@@ -166,7 +166,6 @@ class PackageManager(object):
                                 {'basic_modules': 'vistrails.core.modules.',
                                  'abstraction': 'vistrails.core.modules.'}
 
-        # self._registry = None
         self._userpackages = None
         self._packages = None
         self._abstraction_pkg = None
@@ -177,6 +176,9 @@ class PackageManager(object):
         import __builtin__
         self._orig_import = __builtin__.__import__
         __builtin__.__import__ = self._import_override
+
+        # Compute the list of available packages, _available_packages
+        self.build_available_package_names_list()
 
         for pkg in self._startup.enabled_packages.itervalues():
             self.add_package(pkg.name, prefix=pkg.prefix)
@@ -255,11 +257,11 @@ class PackageManager(object):
         global _package_manager
         _package_manager = None
 
-    def get_available_package(self, codepath):
+    def get_available_package(self, codepath, prefix=None):
         try:
             pkg = self._available_packages[codepath]
         except KeyError:
-            pkg = self._registry.create_package(codepath)
+            pkg = self._registry.create_package(codepath, prefix=prefix)
             self._available_packages[codepath] = pkg
         pkg.persistent_configuration = \
                                 self._startup.get_pkg_configuration(codepath)
@@ -556,9 +558,6 @@ class PackageManager(object):
         the prefix such that prefix + package_name is a valid python
         import."""
 
-        packages = self.import_packages_module()
-        userpackages = self.import_user_packages_module()
-
         failed = []
         # import the modules
         app = get_vistrails_application()
@@ -761,32 +760,56 @@ class PackageManager(object):
         The distinction between package names, identifiers and
         code-paths is described in doc/package_system.txt
         """
+        return self._available_packages.keys()
 
-        pkg_name_set = set()
-
+    def build_available_package_names_list(self):
         def is_vistrails_package(path):
-            return ((path.endswith('.py') and
-                     not path.endswith('__init__.py') and
-                     os.path.isfile(path)) or
-                    os.path.isdir(path) and \
-                        os.path.isfile(os.path.join(path, '__init__.py')))
+            if os.path.isfile(path):
+                return (path.endswith('.py') and
+                        not path.endswith('__init__.py'))
+            elif os.path.isdir(path):
+                return os.path.isfile(os.path.join(path, '__init__.py'))
+            return False
 
-        def search(dirname):
+        def search(dirname, prefix):
             for name in os.listdir(dirname):
                 if is_vistrails_package(os.path.join(dirname, name)):
                     if name.endswith('.py'):
                         name = name[:-3]
-                    pkg_name_set.add(name)
+                    self.get_available_package(name, prefix=prefix)
 
         # Finds standard packages
         packages = self.import_packages_module()
-        search(os.path.dirname(packages.__file__))
+        # This makes VisTrails not zip-safe
+        search(os.path.dirname(packages.__file__),
+               prefix='vistrails.packages.')
+
+        # Finds user packages
         userpackages = self.import_user_packages_module()
         if userpackages is not None:
-            search(os.path.dirname(userpackages.__file__))
+            search(os.path.dirname(userpackages.__file__),
+                   prefix='userpackages.')
 
-        pkg_name_set.update(self._package_list)
-        return list(pkg_name_set)
+        # Finds plugin packages
+        try:
+            from pkg_resources import iter_entry_points
+        except ImportError:
+            pass
+        else:
+            for entry_point in iter_entry_points('vistrails.packages'):
+                # Reads module name and turns it into prefix and codepath
+                name = entry_point.module_name.rsplit('.', 1)
+                if len(name) > 1:
+                    prefix, name = name
+                    prefix = '%s.' % prefix
+                else:
+                    prefix = ''
+                    name, = name
+
+                # Create the Package, with the right prefix
+                self.get_available_package(name, prefix=prefix)
+
+        return self._available_packages.keys()
 
     def dependency_graph(self):
         """dependency_graph() -> Graph.  Returns a graph with package

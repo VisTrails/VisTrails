@@ -1593,11 +1593,13 @@ class ModuleRegistry(DBRegistry):
                           optional, sort_key, None, None, None, None, 
                           docstring, shape, min_conns, max_conns, depth)
 
-    def create_package(self, codepath, load_configuration=True):
+    def create_package(self, codepath, load_configuration=True, prefix=None):
         package_id = self.idScope.getNewId(Package.vtType)
         package = Package(id=package_id,
                           codepath=codepath,
                           load_configuration=load_configuration)
+        if prefix is not None:
+            package.prefix = prefix
         return package
 
     def initialize_package(self, package):
