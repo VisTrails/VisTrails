@@ -3693,7 +3693,9 @@ class VistrailController(object):
             try:
                 pipeline = self.get_pipeline(version, from_root=from_root,
                                              use_current=use_current)
+                debug.log("Version %d is valid" % version)
             except InvalidPipeline, e:
+                debug.log("Fixing version %d..." % version)
                 # As long as handle_invalid_pipeline doesn't raise, we assume
                 # that it fixed something, and we go on calling it until the
                 # pipeline is valid
@@ -3701,13 +3703,18 @@ class VistrailController(object):
                 max_loops = getattr(get_vistrails_configuration(),
                                     'maxPipelineFixAttempts', 50)
                 while True:
+                    debug.log("Running through handle_invalid_pipeline...")
+                    old_version = version
                     version, pipeline = \
                         self.handle_invalid_pipeline(e, version,
                                                      self.vistrail,
                                                      report_all_errors,
                                                      delay_update=delay_update)
+                    if version != old_version:
+                        debug.log("Now at version %d" % version)
                     try:
                         self.validate(pipeline)
+                        debug.log("Pipeline is now valid")
                         break
                     except InvalidPipeline, e:
                         if nb_loops >= max_loops:
@@ -3725,6 +3732,7 @@ class VistrailController(object):
             pipeline = self.get_pipeline(version, from_root=from_root,
                                          use_current=use_current)
         except InvalidPipeline, e:
+            debug.log("Version %d request but is invalid")
             # Try latest upgrade first, then try previous upgrades.
             # If all fail, return latest upgrade exception.
             upgrade_chain = self.vistrail.get_upgrade_chain(version, True)
@@ -3732,11 +3740,16 @@ class VistrailController(object):
             upgrade_chain = [v for v in upgrade_chain
                              if v in self.vistrail.actionMap and
                              not self.vistrail.is_pruned(v)]
+            debug.log("There are %d version in the upgrade chain" %
+                      len(upgrade_chain))
             try:
+                debug.log("Trying to validate version %d" % upgrade_chain[-1])
                 return _validate_version(upgrade_chain.pop())
             except InvalidPipeline, e:
                 while upgrade_chain:
                     try:
+                        debug.log("Trying to validate version %d" %
+                                  upgrade_chain[-1])
                         return _validate_version(upgrade_chain.pop())
                     except InvalidPipeline:
                         # Failed, so try previous.
