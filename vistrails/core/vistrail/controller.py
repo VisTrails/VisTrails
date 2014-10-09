@@ -3464,11 +3464,11 @@ class VistrailController(object):
         # end switch_version
 
         try:
+            debug.log("Changing to version %d" % new_version)
             self.current_pipeline = switch_version(new_version)
             self.current_version = new_version
         except InvalidPipeline, e:
-            # print 'EXCEPTION'
-            # print e
+            debug.log("Version %d invalid..." % new_version)
             new_error = None
             start_version = new_version
 
@@ -3479,18 +3479,24 @@ class VistrailController(object):
             if (upgrade_version is not None and
                     upgrade_version in self.vistrail.actionMap and
                     not self.vistrail.is_pruned(upgrade_version)):
+                debug.log("Found upgrade chain to version %d" %
+                          upgrade_version)
                 new_version = upgrade_version
                 try:
                     self.current_pipeline = switch_version(upgrade_version)
                     new_version = upgrade_version
                     self.current_version = new_version
                     upgrade_fixed_pipeline = True
+                    debug.log("Previous upgrade results in valid pipeline")
                 except InvalidPipeline:
                     # try to handle using the handler and create
                     # new upgrade
-                    pass
+                    debug.log("Previous upgrade results in invalid pipeline")
+            else:
+                debug.log("No previous upgrade")
 
             if not upgrade_fixed_pipeline:
+                debug.log("Fixing pipeline %d..." % new_version)
                 # As long as handle_invalid_pipeline doesn't raise, we assume
                 # that it fixed something, and we go on calling it until the
                 # pipeline is valid
@@ -3498,10 +3504,14 @@ class VistrailController(object):
                     is_valid = False
                     nb_loops = 0
                     while not is_valid:
+                        debug.log("Running through handle_invalid_pipeline...")
+                        old_new_version = new_version
                         new_version, pipeline = self.handle_invalid_pipeline(
                                 e, new_version,
                                 self.vistrail,
                                 report_all_errors)
+                        if new_version != old_new_version:
+                            debug.log("Now at version %d" % new_version)
                         self.current_pipeline = pipeline
                         self.current_version = new_version
                         try:
@@ -3515,6 +3525,7 @@ class VistrailController(object):
                                 raise
                             pass
                         else:
+                            debug.log("Pipeline is now valid")
                             is_valid = True
                         nb_loops += 1
                 except InvalidPipeline, e:
