@@ -33,7 +33,6 @@
 ##
 ###############################################################################
 from base64 import b16encode, b16decode
-
 import copy
 import json
 import time
@@ -426,8 +425,7 @@ class Module(Serializable):
         p_module = self.useJobCache()
         if not p_module:
             return False
-        from vistrails.core.interpreter.job import JobMonitor
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         specs = p_module.sourcePorts()
         if jm.getCache(self.signature):
             self.cache = jm.getCache(self.signature)
@@ -450,8 +448,7 @@ class Module(Serializable):
         p_module = self.useJobCache()
         if not p_module:
             return False
-        from vistrails.core.interpreter.job import JobMonitor
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         specs = p_module.sourcePorts()
         params = {}
         if not jm.getCache(self.signature):
@@ -1562,6 +1559,16 @@ class Module(Serializable):
                                         module=module,
                                         generator=_generator,
                                         port=port))
+
+    def job_monitor(self):
+        """ job_monitor() -> JobMonitor
+        Returns the JobMonitor for the associated controller if it exists
+        """
+        controller = self.moduleInfo['controller']
+        if controller is None:
+            raise ModuleError(self,
+                              "Cannot run job, no controller is specified!")
+        return controller.jobMonitor
 
     @classmethod
     def provide_input_port_documentation(cls, port_name):

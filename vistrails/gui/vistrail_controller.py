@@ -46,7 +46,7 @@ from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 import vistrails.core.db.action
 from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.interpreter.job import Workflow as JobWorkflow
+from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
 from vistrails.core.log.opm_graph import OpmGraph
 from vistrails.core.log.prov_document import ProvDocument
@@ -65,6 +65,7 @@ from vistrails.gui.theme import CurrentTheme
 import vistrails.gui.utils
 from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from vistrails.gui.version_prop import QVersionProp
+
 
 
 ################################################################################
@@ -412,22 +413,21 @@ class VistrailController(QtCore.QObject, BaseController):
             return
         jobView.updating_now = True
 
-        if not jobView.jobMonitor.currentWorkflow():
+        if not self.jobMonitor.currentWorkflow():
             version_id = self.current_version
-            url = self.locator.to_url()
-            # check if jobs for this workflow exists
+            # check if a job exist for this workflow
             current_workflow = None
-            for wf in jobView.jobMonitor.workflows.itervalues():
+            for wf in self.jobMonitor.workflows.itervalues():
                 try:
                     wf_version = int(wf.version)
                 except ValueError:
                     wf_version = self.vistrail.get_version_number(wf.version)
-                if version_id == wf_version and url == wf.vistrail:
+                if version_id == wf_version:
                     current_workflow = wf
-                    jobView.jobMonitor.startWorkflow(wf)
+                    self.jobMonitor.startWorkflow(wf)
             if not current_workflow:
-                current_workflow = JobWorkflow(url, version_id)
-                jobView.jobMonitor.startWorkflow(current_workflow)
+                current_workflow = JobWorkflow(version_id)
+                self.jobMonitor.startWorkflow(current_workflow)
         try:
             self.progress = ExecutionProgressDialog(self.vistrail_view)
             self.progress.show()
@@ -439,7 +439,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.progress.hide()
             self.progress.deleteLater()
             self.progress = None
-            jobView.jobMonitor.finishWorkflow()
+            self.jobMonitor.finishWorkflow()
             jobView.updating_now = False
 
         return result

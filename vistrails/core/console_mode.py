@@ -35,7 +35,8 @@
 """ Module used when running  vistrails uninteractively """
 from __future__ import absolute_import
 import os.path
-import uuid
+import unittest
+
 from vistrails.core.application import is_running_gui
 from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.interpreter.default
@@ -43,16 +44,14 @@ import vistrails.core.db.io
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import XMLFileLocator, ZIPFileLocator
 from vistrails.core import debug
-from vistrails.core.interpreter.job import JobMonitor, Workflow as JobWorkflow
-from vistrails.core.utils import VistrailsInternalError, expression
+from vistrails.core.vistrail.job import Workflow as JobWorkflow
+from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.controller import VistrailController
-from vistrails.core.vistrail.vistrail import Vistrail
-
 import vistrails.core.packagemanager
 import vistrails.core.system
-import unittest
 import vistrails.core.vistrail
 import vistrails.db
+
 
 ################################################################################
     
@@ -72,7 +71,7 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
     result = []
     for locator, workflow in w_list:
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-        controller = VistrailController(v, locator, abstractions, thumbnails, 
+        controller = VistrailController(v, locator, abstractions, thumbnails,
                                         mashups, auto_save=update_vistrail)
         if isinstance(workflow, basestring):
             version = v.get_version_number(workflow)
@@ -119,7 +118,7 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False
         
-        jobMonitor = JobMonitor.getInstance()
+        jobMonitor = controller.jobMonitor
         current_workflow = jobMonitor.currentWorkflow()
         if not current_workflow:
             for job in jobMonitor.workflows.itervalues():
@@ -127,12 +126,12 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
                     job_version = int(job.version)
                 except ValueError:
                     job_version =  v.get_version_number(job.version)
-                if version == job_version and locator.to_url() == job.vistrail:
+                if version == job_version:
                     current_workflow = job
                     jobMonitor.startWorkflow(job)
             if not current_workflow:
-                current_workflow = JobWorkflow(locator.to_url(), version)
-                jobMonitor.getInstance().startWorkflow(current_workflow)
+                current_workflow = JobWorkflow(version)
+                jobMonitor.startWorkflow(current_workflow)
 
         try:
             (results, _) = \

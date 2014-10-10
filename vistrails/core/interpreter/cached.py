@@ -39,12 +39,10 @@ import gc
 import cPickle as pickle
 
 from vistrails.core.common import InstanceObject, VistrailsInternalError
-from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
-from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg, \
@@ -56,6 +54,7 @@ from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
 from vistrails.core.utils import DummyView
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
+
 
 ###############################################################################
 
@@ -124,7 +123,7 @@ class ViewUpdatingLogController(object):
             Report module as suspended
         """
         # update job monitor because this may be an oldStyle job
-        jm = JobMonitor.getInstance()
+        jm = obj.job_monitor()
         reg = get_module_registry()
         name = reg.get_descriptor(obj.__class__).name
         i = "%s" % self.remap_id(obj.id)

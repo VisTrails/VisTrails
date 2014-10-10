@@ -51,8 +51,6 @@ import time
 import unittest
 import weakref
 
-JOBS_FILENAME = "jobs.json"
-
 class BaseMonitor(object):
     def finished(self):
         """Indicates whether the job has completed (module can resume).
@@ -77,7 +75,7 @@ class JobMixin(NotCacheable):
         # Start new job
         params = self.readInputs()
         params = self.startJob(params)
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         jm.addJob(self.signature, params, self.getName())
         # Might raise ModuleSuspended
         jm.checkJob(self, self.signature, self.getMonitor(params))
@@ -90,7 +88,7 @@ class JobMixin(NotCacheable):
     def update_upstream(self):
         if not hasattr(self, 'signature'):
             raise ModuleError(self, "Module has no signature")
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         self.cache = jm.getCache(self.signature)
         if self.cache is not None:
             return # compute() will use self.cache
@@ -164,12 +162,11 @@ class Workflow(object):
     It can have one or several suspended modules.
     It can be serialized to disk.
     """
-    def __init__(self, vistrail, version, name='untitled', id=None, user=None,
+    def __init__(self, version, name='untitled', id=None, user=None,
                  start=None, jobs=None):
-        """ __init__(vistrail: str, version: str/int, name: str, id: str,
+        """ __init__(version: str/int, name: str, id: str,
             user: str, start: str, jobs: list) -> None
 
-            vistrail - the vistrail url
             version - workflow version
             name - a human readable name for the job
             id - persistent identifier
@@ -177,7 +174,6 @@ class Workflow(object):
             start - start time
             jobs - a dict with jobs
         """
-        self.vistrail = vistrail
         self.version = version
         self.name = name
         self.id = id if id else str(uuid1())
@@ -189,7 +185,6 @@ class Workflow(object):
 
     def to_dict(self):
         wf = dict()
-        wf['vistrail'] = self.vistrail
         wf['version'] = self.version
         wf['id'] = self.id
         wf['name'] = self.name
@@ -200,11 +195,10 @@ class Workflow(object):
 
     @staticmethod
     def from_dict(wf):
-        return Workflow(wf['vistrail'], wf['version'], wf['name'], wf['id'],
+        return Workflow(wf['version'], wf['name'], wf['id'],
                         wf['user'], wf['start'], wf['jobs'])
 
     def __eq__(self, other):
-        if self.vistrail != other.vistrail: return False
         if self.version != other.version: return False
         if self.name != other.name: return False
         if self.id != other.id: return False
@@ -281,25 +275,19 @@ class Job(object):
         return True
 
 class JobMonitor(object):
-    """ A singleton class keeping a list of running jobs and the current job.
+    """ Keeps a list of running jobs and the current job for a vistrail.
 
-    Jobs can be loaded from a JSON file and are added from the interpreter.
+    Jobs are added by the interpreter are saved with the vistrail.
     A callback mechanism is used to interact with the associated GUI component.
     """
-    #Singleton technique
-    _instance = None
-    @staticmethod
-    def getInstance(*args, **kwargs):
-        if JobMonitor._instance is None:
-            JobMonitor._instance = JobMonitor(*args, **kwargs)
-        return JobMonitor._instance
 
-    def __init__(self, filename=None):
+    def __init__(self, json_string=None):
         self._current_workflow = None
         self.workflows = {}
         self.jobs = {}
         self.callback = None
-        self.load_from_file(filename)
+        if json_string is not None:
+            self.__unserialize__(json_string)
 
     def setCallback(self, callback=None):
         """ setCallback(callback: class) -> None
@@ -309,7 +297,7 @@ class JobMonitor(object):
         self.callback = weakref.proxy(callback)
 
 ##############################################################################
-# Running Workflow
+# Running Workflows
 
     def __serialize__(self):
         """ __serialize__() -> None
@@ -353,32 +341,6 @@ class JobMonitor(object):
             self.workflows[id] = wf
         return self.workflows
 
-    def save_to_file(self, filename=None):
-        """ save_to_file(filename: str) -> None
-            Saves running jobs to a file
-
-        """
-        if not filename:
-            filename = os.path.join(current_dot_vistrails(), JOBS_FILENAME)
-        f = open(filename, 'w')
-        f.write(self.__serialize__())
-        f.close()
-
-    def load_from_file(self, filename=None):
-        """ load_from_file(filename: str) -> None
-            Loads running jobs from a file
-
-        """
-        if not filename:
-            filename = os.path.join(current_dot_vistrails(), JOBS_FILENAME)
-        if not os.path.exists(filename):
-            self.__unserialize__('{}')
-            return {}
-        f = open(filename)
-        result =  self.__unserialize__(f.read())
-        f.close()
-        return result
-
     def addWorkflow(self, workflow):
         """ addWorkflow(workflow: Workflow) -> None
 
@@ -418,7 +380,7 @@ class JobMonitor(object):
             deletes a job from all workflows
         """
         del self.jobs[id]
-        for wf in self.workflows:
+        for wf in self.workflows.itervalues():
             if id in wf.jobs:
                 del wf.jobs[id]
         if self.callback:
@@ -444,7 +406,6 @@ class JobMonitor(object):
         self._current_workflow = workflow
         if self.callback:
             self.callback.startWorkflow(workflow)
-
 
     def addJobRec(self, obj, parent_id=None):
         workflow = self.currentWorkflow()
@@ -494,12 +455,11 @@ class JobMonitor(object):
         if self.callback:
             self.callback.finishWorkflow(workflow)
         self._current_workflow = None
-        self.save_to_file()
 
     def addJob(self, id, params=None, name='', finished=False):
         """ addJob(id: str, params: dict, name: str, finished: bool) -> uuid
 
-            Adds a lob to the currently running workflow
+            Adds a job to the currently running workflow
 
         """
 
@@ -632,15 +592,15 @@ class JobMonitor(object):
 class TestJob(unittest.TestCase):
 
     def test_job(self):
-        jm = JobMonitor.getInstance()
+        jm = JobMonitor()
         job1 = Job('`13/5', {'a':3, 'b':'7'})
         job2 = Job('3', {'a':6}, 'my_name', 'a_string_date', True)
         # test module to/from dict
         job3 = Job.from_dict(job2.to_dict())
         self.assertEqual(job2, job3)
 
-        workflow1 = Workflow('a.vt', 26)
-        workflow2 = Workflow('b.vt', 'tagname', 'myjob', 'myid', 'tommy',
+        workflow1 = Workflow(26)
+        workflow2 = Workflow('tagname', 'myjob', 'myid', 'tommy',
                              '2013-10-07 13:06',
                              {job1.id: job1, job2.id: job2})
         # test workflow to/from dict
@@ -662,10 +622,8 @@ class TestJob(unittest.TestCase):
         # test serialization
         jm.addWorkflow(workflow1)
         jm.addWorkflow(workflow2)
-        jm.save_to_file()
-        jm.load_from_file()
+        jm.__unserialize__(jm.__serialize__())
         self.assertIn(workflow1.id, jm.workflows)
         self.assertIn(workflow2.id, jm.workflows)
         self.assertEqual(workflow1, jm.workflows[workflow1.id])
         self.assertEqual(workflow2, jm.workflows[workflow2.id])
-        jm.workflows = dict()
