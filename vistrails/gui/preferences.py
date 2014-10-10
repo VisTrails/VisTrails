@@ -710,25 +710,31 @@ class TestPreferencesDialog(unittest.TestCase):
         prefs = builder.preferencesDialog
         packages = prefs._packages_tab
         prefs._tab_widget.setCurrentWidget(packages)
+        QtGui.QApplication.processEvents()
 
         # check if package is loaded
         av = packages._available_packages_list
         for item in av.findItems(pkg, QtCore.Qt.MatchExactly):
             av.setCurrentItem(item)
             QtGui.QApplication.processEvents()
+            QtGui.QApplication.processEvents()
             packages.enable_current_package()
+            QtGui.QApplication.processEvents()
             QtGui.QApplication.processEvents()
 
         inst = packages._enabled_packages_list
         for item in inst.findItems(pkg, QtCore.Qt.MatchExactly):
             inst.setCurrentItem(item)
             QtGui.QApplication.processEvents()
+            QtGui.QApplication.processEvents()
             packages.disable_current_package()
+            QtGui.QApplication.processEvents()
             QtGui.QApplication.processEvents()
 
         # force delayed calls
         packages.populate_lists()
         packages.select_package_after_update_slot(pkg)
+        QtGui.QApplication.processEvents()
         QtGui.QApplication.processEvents()
 
         # This does not work because the selection is delayed
