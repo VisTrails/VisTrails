@@ -714,22 +714,22 @@ class TestPreferencesDialog(unittest.TestCase):
 
         # check if package is loaded
         av = packages._available_packages_list
-        for item in av.findItems(pkg, QtCore.Qt.MatchExactly):
-            av.setCurrentItem(item)
-            QtGui.QApplication.processEvents()
-            QtGui.QApplication.processEvents()
-            packages.enable_current_package()
-            QtGui.QApplication.processEvents()
-            QtGui.QApplication.processEvents()
+        item, = av.findItems(pkg, QtCore.Qt.MatchExactly)
+        av.setCurrentItem(item)
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
+        packages.enable_current_package()
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
 
         inst = packages._enabled_packages_list
-        for item in inst.findItems(pkg, QtCore.Qt.MatchExactly):
-            inst.setCurrentItem(item)
-            QtGui.QApplication.processEvents()
-            QtGui.QApplication.processEvents()
-            packages.disable_current_package()
-            QtGui.QApplication.processEvents()
-            QtGui.QApplication.processEvents()
+        item, = inst.findItems(pkg, QtCore.Qt.MatchExactly)
+        inst.setCurrentItem(item)
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
+        packages.disable_current_package()
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
 
         # force delayed calls
         packages.populate_lists()
