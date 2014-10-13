@@ -2,6 +2,7 @@ import contextlib
 import warnings
 
 import vistrails.core.application
+import vistrails.core.db.action
 import vistrails.core.db.io
 from vistrails.core.db.locator import UntitledLocator, FileLocator
 from vistrails.core.interpreter.default import get_default_interpreter
@@ -77,8 +78,11 @@ class Vistrail(object):
             locator = UntitledLocator()
             loaded_objs = vistrails.core.db.io.load_vistrail(locator)
             self.controller = VistrailController(*loaded_objs)
-        elif isinstance(arg, Pipeline):
-            pipeline = arg
+        elif isinstance(arg, (_Pipeline, Pipeline)):
+            if isinstance(arg, Pipeline):
+                pipeline = arg.pipeline
+            else:
+                pipeline = arg
             # Copied from VistrailsApplicationInterface#open_workflow()
             vistrail = _Vistrail()
             ops = []
