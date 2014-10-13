@@ -300,10 +300,10 @@ class Pipeline(object):
         # Read kwargs
         for key, value in kwargs.iteritems():
             key = self.get_input(key)  # Might raise KeyError
-            if key.module.id in inputs:
+            if key.module_id in inputs:
                 raise ValueError("Multiple values set for InputPort %r" %
                                  get_inputoutput_name(key.module))
-            inputs[key.module.id] = value
+            inputs[key.module_id] = value
 
         reason = "API pipeline execution"
         sinks = sinks or None
@@ -431,6 +431,9 @@ class ModuleValuePair(object):
         self.module = module
         self.value = value
 
+    def __nonzero__(self):
+        raise TypeError("Took truth value of ModuleValuePair!")
+
 
 class Module(object):
     """Wrapper for a module, which can be in a Pipeline or not yet.
@@ -452,6 +455,12 @@ class Module(object):
         if kwargs:
             raise TypeError("Module was given unexpected argument: %r" %
                             next(iter(kwargs)))
+
+    @property
+    def module(self):
+        if self.module_id is None:
+            raise ValueError("This module is not part of a pipeline")
+        return self.pipeline.pipeline.modules[self.module_id]
 
     def __repr__(self):
         desc = "<Module %r from %s" % (self.descriptor.name,
