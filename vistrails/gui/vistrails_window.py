@@ -158,8 +158,6 @@ class QBaseViewWindow(QtGui.QMainWindow):
                                      callback)
 
     def init_action_list(self):
-        global _app
-
         self._actions = [("file", "&File",
                    [("export", "Export",
                       [('savePDF', "PDF...",
@@ -377,7 +375,6 @@ class QVistrailViewWindow(QBaseViewWindow):
             self.setWindowTitle('%s - VisTrails' % self.view.get_name())
 
     def close_vistrail(self):
-        global _app
         return _app.close_vistrail(self.view)
         
     def closeEvent(self, event):
@@ -456,7 +453,6 @@ class QVistrailViewWindow(QBaseViewWindow):
             self.set_title('(empty)')
 
     def build_packages_menu_from_main_app(self):
-        global _app
         if len(self._package_menu_items) == 0:
             self.qmenus['packages'].menuAction().setEnabled(True)
             
@@ -473,7 +469,6 @@ class QVistrailViewWindow(QBaseViewWindow):
                     pkg_menu.addAction(action)
 
     def init_action_list(self):
-        global _app
         # This keeps track of the menu items for each package
         self._package_menu_items = {}
         
@@ -831,7 +826,6 @@ class QVistrailViewWindow(QBaseViewWindow):
         Construct all menu/toolbar actions for window.
 
         """
-        global _app
 
         # format of each item in the list is:
         # item: reference, title, options
@@ -1089,10 +1083,11 @@ class QVistrailsWindow(QVistrailViewWindow):
                  ('descriptor_changed', 'update_descriptor'))),
                ((QModuleIteration, True),
                 (('controller_changed', 'set_controller'),
-                 ('module_changed', 'update_module'))),
+                 ('module_changed', 'update_module')))] +
+              ([] if not get_shell_dialog() else [
                ((get_shell_dialog(), True),
-                (('controller_changed', 'set_controller'),)),
-               ((QDebugger, True),
+                (('controller_changed', 'set_controller'),))]) +
+              [((QDebugger, True),
                 (('controller_changed', 'set_controller'),)),
                (DebugView, True),
                (QJobView, True),
@@ -1119,8 +1114,6 @@ class QVistrailsWindow(QVistrailViewWindow):
                         notifications = visible
                         p_klass, visible = p_klass      
                 #print "generating instance", p_klass
-                if p_klass is None:
-                    continue
                 palette = p_klass.instance()
                 #print 'palette:', palette
                 self.palettes.append(palette)
@@ -1761,7 +1754,9 @@ class QVistrailsWindow(QVistrailViewWindow):
                 return
             view.version_view.select_current_version()
             conf = get_vistrails_configuration()
-            if conf.check('viewOnLoad') and conf.viewOnLoad == 'history':
+            if version:
+                self.qactions['pipeline'].trigger()
+            elif conf.check('viewOnLoad') and conf.viewOnLoad == 'history':
                 self.qactions['history'].trigger()
             elif conf.check('viewOnLoad') and conf.viewOnLoad == 'pipeline':
                 self.qactions['pipeline'].trigger()
@@ -2694,8 +2689,8 @@ class QPaletteMainWindow(QtGui.QMainWindow):
     def closeDockedPalettes(self):
         for p in self.palettes:
             if (p.toolWindow().isVisible() and 
-                not p.toolWindow().isFloating()):
-                        p.toolWindow().close()
+                    not p.toolWindow().isFloating()):
+                p.toolWindow().close()
             
     def closeEvent(self, event):
         if not QtCore.QCoreApplication.closingDown():

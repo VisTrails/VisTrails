@@ -87,8 +87,6 @@ class StoppableXMLRPCServer(SimpleXMLRPCServer):
     """This class allows a server to be stopped by a external request"""
     #accessList contains the list of ip addresses and hostnames that can send
     #request to this server. Change this according to your server
-    global accessList
-
     allow_reuse_address = True
     def __init__(self, addr, logger):
         self.logger = logger
@@ -342,6 +340,7 @@ class RequestHandler(object):
                         "Not all vistrail instances are free, please try again."], 1]
                 proxies.append(self.proxies_queue.get())
             for proxy in proxies:
+                result, s = 'Please contact the server admin', 0
                 try:
                     if codepath and status is not None:
                         result, s = proxy.get_server_packages(codepath, status)
@@ -357,7 +356,7 @@ class RequestHandler(object):
                     self.server_logger.error(err_msg)
                 finally:
                     self.proxies_queue.put(proxy)
-                if s == 0:  # FIXME : s might not be defined here
+                if s == 0:
                     messages.append('An error occurred: %s' % result)
                 else:
                     messages.append(result[1])
@@ -708,15 +707,15 @@ class RequestHandler(object):
             self.server_logger.info(xml_medley)
             xml_string = xml_medley.replace('\\"','"')
             root = ElementTree.fromstring(xml_string)
+            medley = None
             try:
                 medley = MedleySimpleGUI.from_xml(root)
+                self.server_logger.debug("%s medley: %s"%(medley._type, medley._name))
             except Exception:
                 #even if this error occurred there's still a chance of
                 # recovering from it... (the server can find cached images)
                 self.server_logger.error("couldn't instantiate medley")
 
-            # FIXME : there's no "recovering", this line will raise NameError
-            self.server_logger.debug("%s medley: %s"%(medley._type, medley._name))
             result = ""
             subdir = hashlib.sha224(xml_string).hexdigest()
             path_to_images = \
@@ -744,6 +743,7 @@ class RequestHandler(object):
             if not extra_info.has_key('pathDumpCells'):
                 extra_info['pathDumpCells'] = path_to_images
 
+            ok = False
             if not self.path_exists_and_not_empty(extra_info['pathDumpCells']):
                 if not os.path.exists(extra_info['pathDumpCells']):
                     os.mkdir(extra_info['pathDumpCells'])
@@ -848,7 +848,7 @@ class RequestHandler(object):
                                     ok = False
                                     result += str(errors[i])
 
-                    self.server_logger.info("success?  %s" % ok)  # FIXME : ok might not be defined
+                    self.server_logger.info("success?  %s" % ok)
 
                 elif medley._type == 'visit':
                     cur_dir = os.getcwd()
@@ -932,14 +932,14 @@ class RequestHandler(object):
                 self.server_logger.info("returning %s" % result)
                 return result
             except xmlrpclib.ProtocolError, err:
-                    err_msg = ("A protocol error occurred\n"
-                               "URL: %s\n"
-                               "HTTP/HTTPS headers: %s\n"
-                               "Error code: %d\n"
-                               "Error message: %s\n") % (err.url, err.headers,
-                                                         err.errcode, err.errmsg)
-                    self.server_logger.error(err_msg)
-                    return (str(err), 0)
+                err_msg = ("A protocol error occurred\n"
+                           "URL: %s\n"
+                           "HTTP/HTTPS headers: %s\n"
+                           "Error code: %d\n"
+                           "Error message: %s\n") % (err.url, err.headers,
+                                                     err.errcode, err.errmsg)
+                self.server_logger.error(err_msg)
+                return (str(err), 0)
             except Exception, e:
                 self.server_logger.error(str(e))
                 return (str(e), 0)
@@ -2253,7 +2253,6 @@ class VistrailsServerSingleton(VistrailsApplicationInterface,
         return True
 
     def start_other_instances(self, number):
-        global virtual_display, script_file
         self.others = []
         host = self.temp_configuration.check('rpcServer')
         port = self.temp_configuration.check('rpcPort')
@@ -2361,7 +2360,6 @@ VistrailsServer = None
 
 def stop_server():
     """Stop and finalize the application singleton."""
-    global VistrailsServer
     VistrailsServer.save_configuration()
     VistrailsServer.destroy()
     VistrailsServer.deleteLater()

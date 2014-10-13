@@ -96,6 +96,9 @@ parser.add_option("-V", "--verbose", action="store", type="int",
                   default=0, dest="verbose",
                   help="set verboseness level(0--2, default=0, "
                   "higher means more verbose)")
+parser.add_option("-v", "--vistrails-verbose", action="store", type="int",
+                  default=0, dest="debugLevel",
+                  help="set the debugLevel in VisTrails (0--2, default=0)")
 parser.add_option("-e", "--examples", action="store_true",
                   default=False,
                   help="run vistrails examples")
@@ -129,6 +132,7 @@ test_images = options.images
 installbundles = options.installbundles
 dotVistrails = options.dotVistrails
 debug_mode = options.debug
+vistrails_verbose = options.debugLevel
 
 # Makes stdout unbuffered, so python -u is not needed
 class Unbuffered(object):
@@ -247,6 +251,7 @@ optionsDict = {
         'enablePackagesSilently': True,
         'handlerDontAsk': True,
         'developerDebugger': debug_mode,
+        'debugLevel': vistrails_verbose
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails

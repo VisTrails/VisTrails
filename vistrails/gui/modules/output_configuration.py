@@ -41,10 +41,8 @@ from PyQt4 import QtCore, QtGui
 
 from vistrails.core.configuration import ConfigPath, ConfigField
 from vistrails.core.modules.basic_modules import Dictionary
-from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
-    QFileChooserToolButton, QDirectoryChooserToolButton
+from vistrails.gui.common_widgets import QDirectoryChooserToolButton
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
-from vistrails.gui.utils import YES_BUTTON, NO_BUTTON, show_question, show_warning
 
 class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
     def __init__(self, module, controller, parent=None):
@@ -99,6 +97,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         # do we want to add a manual config mode for modes that have
         # neither been set before nor are registered?
         # DK: not now...
+        layout.addStretch(5)
         scroll_area = QtGui.QScrollArea()
         inner_widget =  QtGui.QWidget()
         inner_widget.setLayout(layout)

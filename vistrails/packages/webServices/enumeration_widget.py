@@ -36,15 +36,17 @@
 ##############################################################################
 # Enumeration Widget for Web Services
 from PyQt4 import QtCore, QtGui
-import vistrails.core.modules
-from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin, \
-    StandardConstantWidget
-from vistrails.core.modules.basic_modules import Constant, Module
-import vistrails.core.modules.module_registry
+
+from vistrails.core.modules.basic_modules import Constant
+from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import new_module
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+
 import vistrails.packages.webServices
 
+
 class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
+    contentsChanged = QtCore.pyqtSignal(tuple)
     enumerationlist = []
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
@@ -78,38 +80,23 @@ class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
     
     def change_state(self, state):
         self.update_parent()
-    
-def initialize(namemodule,namespace,identifier, version):
-    enumerationConstant = new_constant(namemodule,
-                                            namespace,
-                                            identifier,
-                                            version,
-                                            EnumerationWidget)
-    return enumerationConstant
-
-def new_constant(name, namespace, identifier, 
-                 version, widget_type=StandardConstantWidget):
-    """new_constant(name: str, namespace: str,widget_type: QWidget type) -> Module
-    
-    new_constant dynamically creates a new Module derived from Constant
-    with a widget type."""
-    reg = vistrails.core.modules.module_registry.get_module_registry()
-    
-    def __init__(self):
-        Constant.__init__(self)
 
     @staticmethod
     def get_widget_class():
-        return widget_type
+        return EnumerationWidget
 
     @staticmethod
-    def conversion(self): return self
-    
-    m = new_module(Constant, name, {'__init__': __init__,
-                                    'get_widget_class': get_widget_class,
-                                    'translate_to_python': conversion})
-    m.name = name
-    m.isEnumeration = True
-    reg.add_module(m,namespace=namespace,package=identifier,
+    def translate_to_python(self):
+        return self
+
+
+def initialize(namemodule,namespace,identifier, version):
+    reg = get_module_registry()
+
+    enumerationConstant = new_module(Constant, namemodule, {})
+    enumerationConstant.name = namemodule
+    enumerationConstant.isEnumeration = True
+    reg.add_module(enumerationConstant, namespace=namespace, package=identifier,
                    package_version=version)
-    return m
+
+    return enumerationConstant

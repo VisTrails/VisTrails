@@ -731,362 +731,362 @@ class Graph(object):
 
 
 class TestGraph(unittest.TestCase):
-     """ Class to test Graph
+    """ Class to test Graph
 
-     It tests vertex addition, the out_degree of a sink and in_degree of a
-     source consistencies.
+    It tests vertex addition, the out_degree of a sink and in_degree of a
+    source consistencies.
     
-     """
+    """
 
-     def make_complete(self, v):
-         """returns a complete graph with v verts."""
-         g = Graph()
-         for x in xrange(v):
-             g.add_vertex(x)
-         for f in xrange(v):
-             for t in xrange(f+1, v):
-                 g.add_edge(f, t, f * v + t)
-         return g
+    def make_complete(self, v):
+        """returns a complete graph with v verts."""
+        g = Graph()
+        for x in xrange(v):
+            g.add_vertex(x)
+        for f in xrange(v):
+            for t in xrange(f+1, v):
+                g.add_edge(f, t, f * v + t)
+        return g
 
-     def make_linear(self, v, bw=False):
-         """returns a linear graph with v verts. if bw=True, add
-         backward links."""
-         g = Graph()
-         for x in xrange(v):
-             g.add_vertex(x)
-         for x,y in izip(xrange(v-1), xrange(1, v)):
-             g.add_edge(x, y, x)
-             if bw:
-                 g.add_edge(y, x, x + v)
-         return g
+    def make_linear(self, v, bw=False):
+        """returns a linear graph with v verts. if bw=True, add
+        backward links."""
+        g = Graph()
+        for x in xrange(v):
+            g.add_vertex(x)
+        for x,y in izip(xrange(v-1), xrange(1, v)):
+            g.add_edge(x, y, x)
+            if bw:
+                g.add_edge(y, x, x + v)
+        return g
 
-     def get_default_graph(self):
-         g = Graph()
-         g.add_vertex(0)
-         g.add_vertex(1)
-         g.add_vertex(2)
-         g.add_vertex(3)
-         g.add_vertex(4)
-         g.add_edge(0,1,0)
-         g.add_edge(1,2,1)
-         g.add_edge(0,3,2)
-         g.add_edge(3,2,3)
-         g.add_edge(2,4,4)
-         return g
-     
-     def test1(self):
-         """Test adding edges and vertices"""
-         g = Graph()
-         g.add_vertex('0')
-         g.add_vertex('1')
-         g.add_vertex('2')
-         g.add_vertex('3')
-         g.add_edge('0', '1', 0)
-         g.add_edge('1', '2', 1)
-         g.add_edge('2', '3', 2)
-         parent = g.bfs('0')
-         self.assertEquals(parent['3'], '2')
-         self.assertEquals(parent['2'], '1')
-         self.assertEquals(parent['1'], '0')
+    def get_default_graph(self):
+        g = Graph()
+        g.add_vertex(0)
+        g.add_vertex(1)
+        g.add_vertex(2)
+        g.add_vertex(3)
+        g.add_vertex(4)
+        g.add_edge(0,1,0)
+        g.add_edge(1,2,1)
+        g.add_edge(0,3,2)
+        g.add_edge(3,2,3)
+        g.add_edge(2,4,4)
+        return g
+    
+    def test1(self):
+        """Test adding edges and vertices"""
+        g = Graph()
+        g.add_vertex('0')
+        g.add_vertex('1')
+        g.add_vertex('2')
+        g.add_vertex('3')
+        g.add_edge('0', '1', 0)
+        g.add_edge('1', '2', 1)
+        g.add_edge('2', '3', 2)
+        parent = g.bfs('0')
+        self.assertEquals(parent['3'], '2')
+        self.assertEquals(parent['2'], '1')
+        self.assertEquals(parent['1'], '0')
 
-     def test2(self):
-         """Test bread-first-search"""
-         g = self.get_default_graph()
-         p = g.bfs(0)
-         k = p.keys()
-         k.sort()
-         self.assertEquals(k, [1, 2, 3, 4])
-         inv = g.inverse()
-         p_inv = inv.bfs(4)
-         k2 = p_inv.keys()
-         k2.sort()
-         self.assertEquals(k2, [0, 1, 2, 3])
-         
-     def test3(self):
-         """Test sink and source degree consistency"""
-         g = Graph()
-         for i in xrange(100):
-             g.add_vertex(i)
-         for i in xrange(1000):
-             v1 = random.randint(0,99)
-             v2 = random.randint(0,99)
-             g.add_edge(v1, v2, i)
-         sinkResult = [None for i in g.sinks() if g.out_degree(i) == 0]
-         sourceResult = [None for i in g.sources() if g.in_degree(i) == 0]
-         if len(sinkResult) <> len(g.sinks()):
-             assert False
-         if len(sourceResult) <> len(g.sources()):
-             assert False
+    def test2(self):
+        """Test bread-first-search"""
+        g = self.get_default_graph()
+        p = g.bfs(0)
+        k = p.keys()
+        k.sort()
+        self.assertEquals(k, [1, 2, 3, 4])
+        inv = g.inverse()
+        p_inv = inv.bfs(4)
+        k2 = p_inv.keys()
+        k2.sort()
+        self.assertEquals(k2, [0, 1, 2, 3])
+        
+    def test3(self):
+        """Test sink and source degree consistency"""
+        g = Graph()
+        for i in xrange(100):
+            g.add_vertex(i)
+        for i in xrange(1000):
+            v1 = random.randint(0,99)
+            v2 = random.randint(0,99)
+            g.add_edge(v1, v2, i)
+        sinkResult = [None for i in g.sinks() if g.out_degree(i) == 0]
+        sourceResult = [None for i in g.sources() if g.in_degree(i) == 0]
+        if len(sinkResult) <> len(g.sinks()):
+            assert False
+        if len(sourceResult) <> len(g.sources()):
+            assert False
 
-     def test_remove_vertices(self):
-         g = self.make_linear(5)
-         g.delete_vertex(1)
-         g.delete_vertex(2)
-     
-     def test_DFS(self):
-         """Test DFS on graph."""
-         g = self.get_default_graph()
-         g.dfs()
+    def test_remove_vertices(self):
+        g = self.make_linear(5)
+        g.delete_vertex(1)
+        g.delete_vertex(2)
+    
+    def test_DFS(self):
+        """Test DFS on graph."""
+        g = self.get_default_graph()
+        g.dfs()
 
-     def test_topological_sort(self):
-         """Test toposort on graph."""
-         g = self.get_default_graph()
-         g.vertices_topological_sort()
+    def test_topological_sort(self):
+        """Test toposort on graph."""
+        g = self.get_default_graph()
+        g.vertices_topological_sort()
 
-         g = self.make_linear(10)
-         r = g.vertices_topological_sort()
-         assert r == [0,1,2,3,4,5,6,7,8,9]
+        g = self.make_linear(10)
+        r = g.vertices_topological_sort()
+        assert r == [0,1,2,3,4,5,6,7,8,9]
 
-         g = Graph()
-         g.add_vertex('a')
-         g.add_vertex('b')
-         g.add_vertex('c')
-         g.add_edge('a', 'b')
-         g.add_edge('b', 'c')
-         assert g.vertices_topological_sort() == ['a', 'b', 'c']
+        g = Graph()
+        g.add_vertex('a')
+        g.add_vertex('b')
+        g.add_vertex('c')
+        g.add_edge('a', 'b')
+        g.add_edge('b', 'c')
+        assert g.vertices_topological_sort() == ['a', 'b', 'c']
 
-     def test_limited_DFS(self):
-         """Test DFS on graph using a limited set of starting vertices."""
-         g = self.get_default_graph()
-         g.dfs(vertex_set=[1])
-         g.dfs(vertex_set=[1,3])
-         g.dfs(vertex_set=[1,2])
+    def test_limited_DFS(self):
+        """Test DFS on graph using a limited set of starting vertices."""
+        g = self.get_default_graph()
+        g.dfs(vertex_set=[1])
+        g.dfs(vertex_set=[1,3])
+        g.dfs(vertex_set=[1,2])
 
-     def test_limited_topological_sort(self):
-         """Test toposort on graph using a limited set of starting vertices."""
-         g = self.get_default_graph()
-         g.vertices_topological_sort(vertex_set=[1])
-         g.vertices_topological_sort(vertex_set=[1,3])
-         g.vertices_topological_sort(vertex_set=[1,2])
+    def test_limited_topological_sort(self):
+        """Test toposort on graph using a limited set of starting vertices."""
+        g = self.get_default_graph()
+        g.vertices_topological_sort(vertex_set=[1])
+        g.vertices_topological_sort(vertex_set=[1,3])
+        g.vertices_topological_sort(vertex_set=[1,2])
 
-     def test_print_empty_graph(self):
-         """Test print on empty graph"""
-         g = Graph()
-         g.__str__()
+    def test_print_empty_graph(self):
+        """Test print on empty graph"""
+        g = Graph()
+        g.__str__()
 
-     def test_delete(self):
-         """Tests consistency of data structure after deletion."""
-         g = Graph()
-         g.add_vertex(0)
-         g.add_vertex(1)
-         g.add_vertex(2)
-         g.add_edge(0, 1, 0)
-         g.add_edge(1, 2, 1)
-         g.delete_vertex(2)
-         self.assertEquals(g.adjacency_list[1], [])
+    def test_delete(self):
+        """Tests consistency of data structure after deletion."""
+        g = Graph()
+        g.add_vertex(0)
+        g.add_vertex(1)
+        g.add_vertex(2)
+        g.add_edge(0, 1, 0)
+        g.add_edge(1, 2, 1)
+        g.delete_vertex(2)
+        self.assertEquals(g.adjacency_list[1], [])
 
-     def test_raising_DFS(self):
-         """Tests if DFS with cycle-checking will raise exceptions."""
-         g = Graph()
-         g.add_vertex(0)
-         g.add_vertex(1)
-         g.add_vertex(2)
-         g.add_edge(0, 1)
-         g.add_edge(1, 2)
-         g.add_edge(2, 0)
-         with self.assertRaises(Graph.GraphContainsCycles):
-             g.dfs(raise_if_cyclic=True)
+    def test_raising_DFS(self):
+        """Tests if DFS with cycle-checking will raise exceptions."""
+        g = Graph()
+        g.add_vertex(0)
+        g.add_vertex(1)
+        g.add_vertex(2)
+        g.add_edge(0, 1)
+        g.add_edge(1, 2)
+        g.add_edge(2, 0)
+        with self.assertRaises(Graph.GraphContainsCycles):
+            g.dfs(raise_if_cyclic=True)
 
-     def test_call_inverse(self):
-         """Test if calling inverse methods work."""
-         g = Graph()
-         g.add_vertex(0)
-         g.add_vertex(1)
-         g.add_vertex(2)
-         g.add_edge(0, 1)
-         g.add_edge(1, 2)
-         g.add_edge(2, 0)
-         g2 = g.inverse()
-         g3 = g.inverse_immutable()
-     
-     def test_subgraph(self):
-         """Test subgraph routines."""
-         g = self.make_complete(5)
-         sub = g.subgraph([0,1])
-         assert 0 in sub.vertices
-         assert 1 in sub.vertices
-         assert (1,1) in sub.adjacency_list[0]
-         assert (0,1) in sub.inverse_adjacency_list[1]
+    def test_call_inverse(self):
+        """Test if calling inverse methods work."""
+        g = Graph()
+        g.add_vertex(0)
+        g.add_vertex(1)
+        g.add_vertex(2)
+        g.add_edge(0, 1)
+        g.add_edge(1, 2)
+        g.add_edge(2, 0)
+        g2 = g.inverse()
+        g3 = g.inverse_immutable()
+    
+    def test_subgraph(self):
+        """Test subgraph routines."""
+        g = self.make_complete(5)
+        sub = g.subgraph([0,1])
+        assert 0 in sub.vertices
+        assert 1 in sub.vertices
+        assert (1,1) in sub.adjacency_list[0]
+        assert (0,1) in sub.inverse_adjacency_list[1]
 
-         g = self.make_linear(3)
-         sub = g.subgraph([0, 2])
-         assert 0 in sub.vertices
-         assert 2 in sub.vertices
-         assert sub.adjacency_list[0] == []
-         assert sub.adjacency_list[2] == []
-         
-     def test_connections_to_subgraph(self):
-         """Test connections_to_subgraph."""
-         g = self.make_linear(5)
-         sub = g.subgraph([3])
-         assert len(g.connections_to_subgraph(sub)) == 1
-         g = self.make_linear(5, True)
-         sub = g.subgraph([3])
-         assert len(g.connections_to_subgraph(sub)) == 2
+        g = self.make_linear(3)
+        sub = g.subgraph([0, 2])
+        assert 0 in sub.vertices
+        assert 2 in sub.vertices
+        assert sub.adjacency_list[0] == []
+        assert sub.adjacency_list[2] == []
+        
+    def test_connections_to_subgraph(self):
+        """Test connections_to_subgraph."""
+        g = self.make_linear(5)
+        sub = g.subgraph([3])
+        assert len(g.connections_to_subgraph(sub)) == 1
+        g = self.make_linear(5, True)
+        sub = g.subgraph([3])
+        assert len(g.connections_to_subgraph(sub)) == 2
 
-     def test_connections_from_subgraph(self):
-         """Test connections_from_subgraph."""
-         g = self.make_linear(5)
-         sub = g.subgraph([3])
-         assert len(g.connections_from_subgraph(sub)) == 1
-         g = self.make_linear(5, True)
-         sub = g.subgraph([3])
-         assert len(g.connections_from_subgraph(sub)) == 2
+    def test_connections_from_subgraph(self):
+        """Test connections_from_subgraph."""
+        g = self.make_linear(5)
+        sub = g.subgraph([3])
+        assert len(g.connections_from_subgraph(sub)) == 1
+        g = self.make_linear(5, True)
+        sub = g.subgraph([3])
+        assert len(g.connections_from_subgraph(sub)) == 2
 
-     def test_topologically_contractible(self):
-         """Test topologically_contractible."""
-         g = self.make_linear(5)
-         sub = g.subgraph([1, 2])
-         assert g.topologically_contractible(sub)
-         sub = g.subgraph([1, 3])
-         assert not g.topologically_contractible(sub)
+    def test_topologically_contractible(self):
+        """Test topologically_contractible."""
+        g = self.make_linear(5)
+        sub = g.subgraph([1, 2])
+        assert g.topologically_contractible(sub)
+        sub = g.subgraph([1, 3])
+        assert not g.topologically_contractible(sub)
 
-         g = Graph()
-         g.add_vertex(0)
-         g.add_vertex(1)
-         g.add_vertex(2)
-         g.add_vertex(3)
-         g.add_edge(0, 1)
-         g.add_edge(2, 3)
-         for i in xrange(1, 16):
-             s = []
-             for j in xrange(4):
-                 if i & (1 << j): s.append(j)
-             assert g.topologically_contractible(g.subgraph(s))
+        g = Graph()
+        g.add_vertex(0)
+        g.add_vertex(1)
+        g.add_vertex(2)
+        g.add_vertex(3)
+        g.add_edge(0, 1)
+        g.add_edge(2, 3)
+        for i in xrange(1, 16):
+            s = []
+            for j in xrange(4):
+                if i & (1 << j): s.append(j)
+            assert g.topologically_contractible(g.subgraph(s))
 
-     def test_iter_vertices(self):
-         g = self.get_default_graph()
-         l = list(g.iter_vertices())
-         l.sort()
-         assert l == [0,1,2,3,4]
+    def test_iter_vertices(self):
+        g = self.get_default_graph()
+        l = list(g.iter_vertices())
+        l.sort()
+        assert l == [0,1,2,3,4]
 
-     def test_iter_edges(self):
-         g = self.get_default_graph()
-         l = [v for v in g.iter_all_edges()]
-         l.sort()
-         assert l == [(0,1,0), (0,3,2), (1, 2, 1), (2, 4, 4), (3, 2, 3)]
+    def test_iter_edges(self):
+        g = self.get_default_graph()
+        l = [v for v in g.iter_all_edges()]
+        l.sort()
+        assert l == [(0,1,0), (0,3,2), (1, 2, 1), (2, 4, 4), (3, 2, 3)]
 
-     def test_iter_edges_empty(self):
-         """Test iterators on empty parts of the graph."""
-         g = Graph()
-         for a in g.iter_vertices():
-             assert False
-         g.add_vertex(0)
-         for a in g.iter_edges_from(0):
-             assert False
-         for a in g.iter_edges_to(0):
-             assert False
-         for a in g.iter_all_edges():
-             assert False
+    def test_iter_edges_empty(self):
+        """Test iterators on empty parts of the graph."""
+        g = Graph()
+        for a in g.iter_vertices():
+            assert False
+        g.add_vertex(0)
+        for a in g.iter_edges_from(0):
+            assert False
+        for a in g.iter_edges_to(0):
+            assert False
+        for a in g.iter_all_edges():
+            assert False
 
-     def test_get_edge_none(self):
-         g = Graph()
-         g.add_vertex(0)
-         g.add_vertex(1)
-         assert g.get_edge(0, 1) == None
+    def test_get_edge_none(self):
+        g = Graph()
+        g.add_vertex(0)
+        g.add_vertex(1)
+        assert g.get_edge(0, 1) == None
 
-     def test_dfs_before(self):
-         g = self.make_linear(10)
-         inc = []
-         dec = []
-         def before(id): inc.append(id)
-         def after(id): dec.append(id)
-         g.dfs(enter_vertex=before,
-               leave_vertex=after)
-         assert inc == [0,1,2,3,4,5,6,7,8,9]
-         assert inc == list(reversed(dec))
-         assert all(a < b for a, b in izip(inc[:-1], inc[1:]))
-         assert all(a > b for a, b in izip(dec[:-1], dec[1:]))
+    def test_dfs_before(self):
+        g = self.make_linear(10)
+        inc = []
+        dec = []
+        def before(id): inc.append(id)
+        def after(id): dec.append(id)
+        g.dfs(enter_vertex=before,
+              leave_vertex=after)
+        assert inc == [0,1,2,3,4,5,6,7,8,9]
+        assert inc == list(reversed(dec))
+        assert all(a < b for a, b in izip(inc[:-1], inc[1:]))
+        assert all(a > b for a, b in izip(dec[:-1], dec[1:]))
 
-     def test_parent_source(self):
-         g = self.make_linear(10)
-         self.assertRaises(g.VertexHasNoParentError,
-                           lambda: g.parent(0))
-         for i in xrange(1, 10):
-             assert g.parent(i) == i-1
+    def test_parent_source(self):
+        g = self.make_linear(10)
+        self.assertRaises(g.VertexHasNoParentError,
+                          lambda: g.parent(0))
+        for i in xrange(1, 10):
+            assert g.parent(i) == i-1
 
-     def test_rename_vertex(self):
-         g = self.make_linear(10)
-         self.assertRaises(g.RenameVertexError,
-                           lambda: g.rename_vertex(0, 1))
-         assert g.get_edge(0, 1) is not None
-         assert g.get_edge(0, 11) is None
-         g.rename_vertex(1, 11)
-         assert g.get_edge(0, 1) is None
-         assert g.get_edge(0, 11) is not None
-         g.rename_vertex(11, 1)
-         assert g.get_edge(0, 1) is not None
-         assert g.get_edge(0, 11) is None
+    def test_rename_vertex(self):
+        g = self.make_linear(10)
+        self.assertRaises(g.RenameVertexError,
+                          lambda: g.rename_vertex(0, 1))
+        assert g.get_edge(0, 1) is not None
+        assert g.get_edge(0, 11) is None
+        g.rename_vertex(1, 11)
+        assert g.get_edge(0, 1) is None
+        assert g.get_edge(0, 11) is not None
+        g.rename_vertex(11, 1)
+        assert g.get_edge(0, 1) is not None
+        assert g.get_edge(0, 11) is None
 
-     def test_delete_get_edge(self):
-         g = self.make_linear(10)
-         self.assertRaises(GraphException, lambda: g.delete_edge(7, 9))
-         assert g.has_edge(7, 8)
-         g.delete_edge(7, 8)
-         assert not g.has_edge(7, 8)
+    def test_delete_get_edge(self):
+        g = self.make_linear(10)
+        self.assertRaises(GraphException, lambda: g.delete_edge(7, 9))
+        assert g.has_edge(7, 8)
+        g.delete_edge(7, 8)
+        assert not g.has_edge(7, 8)
 
-     def test_bfs(self):
-         g = self.make_linear(5)
-         lst = g.bfs(0).items()
-         lst.sort()
-         assert lst == [(1, 0), (2, 1), (3, 2), (4, 3)]
-         lst = g.bfs(2).items()
-         lst.sort()
-         assert lst == [(3, 2), (4, 3)]
+    def test_bfs(self):
+        g = self.make_linear(5)
+        lst = g.bfs(0).items()
+        lst.sort()
+        assert lst == [(1, 0), (2, 1), (3, 2), (4, 3)]
+        lst = g.bfs(2).items()
+        lst.sort()
+        assert lst == [(3, 2), (4, 3)]
 
-     def test_undirected(self):
-         g = self.make_linear(5).undirected_immutable()
-         lst = g.bfs(0).items()
-         lst.sort()
-         assert lst == [(1, 0), (2, 1), (3, 2), (4, 3)]
-         lst = g.bfs(2).items()
-         lst.sort()
-         assert lst == [(0, 1), (1, 2), (3, 2), (4, 3)]
+    def test_undirected(self):
+        g = self.make_linear(5).undirected_immutable()
+        lst = g.bfs(0).items()
+        lst.sort()
+        assert lst == [(1, 0), (2, 1), (3, 2), (4, 3)]
+        lst = g.bfs(2).items()
+        lst.sort()
+        assert lst == [(0, 1), (1, 2), (3, 2), (4, 3)]
 
-     def test_closest_vertex(self):
-         g = self.make_linear(10)
-         g.delete_edge(7, 8)
-         g = g.undirected_immutable()
-         self.assertRaises(GraphException, lambda: g.closest_vertex(1, [9]))
-         assert g.closest_vertex(3, [2, 6, 7]) == 2
-         assert g.closest_vertex(3, [2, 3, 6, 7]) == 3
-         # Test using dictionary as target_list
+    def test_closest_vertex(self):
+        g = self.make_linear(10)
+        g.delete_edge(7, 8)
+        g = g.undirected_immutable()
+        self.assertRaises(GraphException, lambda: g.closest_vertex(1, [9]))
+        assert g.closest_vertex(3, [2, 6, 7]) == 2
+        assert g.closest_vertex(3, [2, 3, 6, 7]) == 3
+        # Test using dictionary as target_list
 
-         d1 = {2:True, 6:True, 7:False}
-         d2 = {2:True, 6:True, 7:False, 3:False}
-         d3 = {9:True}
-         self.assertRaises(GraphException, lambda: g.closest_vertex(1, d3))
-         assert g.closest_vertex(3, d1) == 2
-         assert g.closest_vertex(3, d2) == 3
+        d1 = {2:True, 6:True, 7:False}
+        d2 = {2:True, 6:True, 7:False, 3:False}
+        d3 = {9:True}
+        self.assertRaises(GraphException, lambda: g.closest_vertex(1, d3))
+        assert g.closest_vertex(3, d1) == 2
+        assert g.closest_vertex(3, d2) == 3
 
-     def test_copy_not_share(self):
-         g = self.make_linear(10)
-         g2 = copy.copy(g)
-         for v in g.vertices:
-             assert id(g.adjacency_list[v]) <> id(g2.adjacency_list[v])
-             assert id(g.inverse_adjacency_list[v]) <> id(g2.inverse_adjacency_list[v])
+    def test_copy_not_share(self):
+        g = self.make_linear(10)
+        g2 = copy.copy(g)
+        for v in g.vertices:
+            assert id(g.adjacency_list[v]) <> id(g2.adjacency_list[v])
+            assert id(g.inverse_adjacency_list[v]) <> id(g2.inverse_adjacency_list[v])
 
-     def test_copy_works(self):
-         g = self.make_linear(10)
-         g2 = copy.copy(g)
-         for v in g.vertices:
-             assert v in g2.vertices
-             assert g2.adjacency_list[v] == g.adjacency_list[v]
-             assert g2.inverse_adjacency_list[v] == g.inverse_adjacency_list[v]
+    def test_copy_works(self):
+        g = self.make_linear(10)
+        g2 = copy.copy(g)
+        for v in g.vertices:
+            assert v in g2.vertices
+            assert g2.adjacency_list[v] == g.adjacency_list[v]
+            assert g2.inverse_adjacency_list[v] == g.inverse_adjacency_list[v]
 
-     def test_equals(self):
-         g = self.make_linear(5)
-         assert copy.copy(g) == g
-         g2 = copy.copy(g)
-         g2.add_vertex(10)
-         assert g2 <> g
+    def test_equals(self):
+        g = self.make_linear(5)
+        assert copy.copy(g) == g
+        g2 = copy.copy(g)
+        g2.add_vertex(10)
+        assert g2 <> g
 
-     def test_map_vertices(self):
-         g = self.make_linear(5)
-         m = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
-         assert g == Graph.map_vertices(g, m)
-         m = {0: 5, 1: 6, 2: 7, 3: 8, 4: 9}
-         assert g <> Graph.map_vertices(g, m)
-         
+    def test_map_vertices(self):
+        g = self.make_linear(5)
+        m = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
+        assert g == Graph.map_vertices(g, m)
+        m = {0: 5, 1: 6, 2: 7, 3: 8, 4: 9}
+        assert g <> Graph.map_vertices(g, m)
+        
 if __name__ == '__main__':
     unittest.main()

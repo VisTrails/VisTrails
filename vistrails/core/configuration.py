@@ -105,6 +105,7 @@ shell.fontFace: Console Font
 shell.fontSize: Console Font Size
 showConnectionErrors: Show error when input value doesn't match type during execution
 showDebugPopups: Always bring debug messages to the front
+showInlineParameterWidgets: Show editable parameters inside modules
 showScrollbars: Show scrollbars on the version tree and workflow canvases
 showSplash: Show VisTrails splash screen during startup
 showSpreadsheetOnly: Hides the VisTrails main window
@@ -128,6 +129,7 @@ upgrades: Attempt to automatically upgrade old workflows
 useMacBrushedMetalStyle: Use a brushed metal interface (MacOS X only)
 user: The username for the database to the load vistrail from
 userPackageDir: Local packages directory
+viewOnLoad: Whether to show pipeline or history view when opening vistrail
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
 withVersionTree: Output the version tree as an image
@@ -499,6 +501,11 @@ userPackageDir: Boolean
     The location for user-installed packages (defaults to
     ~/.vistrails/userpackages).
 
+viewOnLoad: String
+
+    Whether to show pipeline or history view when opening vistrail
+    Can be either appropriate/pipeline/history
+
 webRepositoryURL: URL
 
     The URL of the web repository that should be attached to VisTrails
@@ -516,6 +523,10 @@ withVersionTree: Boolean
 withWorkflow: Boolean
 
     Output the workflow graph as an image.
+
+showInlineParameterWidgets: Boolean
+
+    Show editable parameters inside modules
 
 """
 
@@ -638,7 +649,9 @@ base_config = {
                  widget_type="combo",
                  widget_options={"allowed_values": [".vt", ".xml"],
                                  "label": "Default File Type/Extension"}),
-     ConfigField('debugLevel', 0, int, widget_type="combo",
+     ConfigField('debugLevel', 0, int,
+                 flag='-v',
+                 widget_type="combo",
                  widget_options={"allowed_values": [0,1,2],
                                  "label": "Show alerts for",
                                  "remap": {0: "Critical Errors Only",
@@ -664,6 +677,7 @@ base_config = {
      ConfigField('showVariantErrors', True, bool, ConfigType.SHOW_HIDE),
      ConfigField('showDebugPopups', False, bool, ConfigType.SHOW_HIDE),
      ConfigField('showScrollbars', True, bool, ConfigType.SHOW_HIDE),
+     ConfigField('showInlineParameterWidgets', False, bool, ConfigType.SHOW_HIDE),
      ConfigFieldParent('shell',
         [ConfigField('fontFace', system.shell_font_face(), str),
          ConfigField('fontSize', system.shell_font_size(), int)]),
@@ -790,8 +804,6 @@ def default():
     return retval
 
 def parse_documentation():
-    global _docs
-
     line_iter = iter(_documentation.splitlines())
     line_iter.next()
     for line in line_iter:
@@ -806,8 +818,6 @@ def parse_documentation():
         _docs[arg_path] = (arg_type, ' '.join(doc_lines))
 
 def parse_simple_docs():
-    global _simple_docs
-
     line_iter = iter(_simple_documentation.splitlines())
     line = line_iter.next()
     for line in line_iter:
@@ -895,9 +905,21 @@ def nested_action(parser, action_type):
     nested_cls = type(nested_name, (cls,), {"__call__": __call__})
     return nested_cls
 
-def build_command_line_parser(d, parser=None, prefix="", **parser_args):
-    global _usage_args
+class RawVersionAction(argparse.Action):
+    """Variant of the default _VersionAction that doesn't reflow.
+    """
+    def __init__(self, option_strings, version,
+                 dest=argparse.SUPPRESS, default=argparse.SUPPRESS,
+                 help="show program's version and exit"):
+        argparse.Action.__init__(self, option_strings=option_strings,
+                                 dest=dest, default=default, nargs=0,
+                                 help=help)
+        self.version = version
 
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.exit(message=self.version)
+
+def build_command_line_parser(d, parser=None, prefix="", **parser_args):
     # if k is not a command-line-option, skip
     # if k is show/hide, add --show-, --hide- options
     # if k is an on/off, add --option, --no-option flags
@@ -917,6 +939,8 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
         parser.add_argument('vistrails', metavar='vistrail', type=str,
                             nargs='*', help="Vistrail to open")
         _usage_args.add('vistrails')
+        parser.add_argument('--version', action=RawVersionAction,
+                            version=system.about_string())
 
 
     prefix_dashes = ''

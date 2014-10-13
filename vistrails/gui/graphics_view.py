@@ -93,7 +93,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         self.sceneBoundingRect = QtCore.QRectF()
         self.multiSelecting = False
         
-    def updateSceneBoundingRect(self, keep_square=True):
+    def updateSceneBoundingRect(self, keep_square=False):
         """ updateSceneBoundingRect() -> None        
         Compute the actual bounding rect of all shapes, then update
         the scene rect to be much wider for panning
@@ -234,8 +234,9 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.setRenderHints (QtGui.QPainter.Antialiasing |
                              QtGui.QPainter.TextAntialiasing |
                              QtGui.QPainter.SmoothPixmapTransform)
-        self.scaleMax = 1000
-        self.scaleRatio = self.scaleMax/5
+        self.scaleMax = 2000
+        self.scaleRatio = self.scaleMax/10
+        self.scaleOffset = 700
         self.currentScale = self.scaleMax/2
         self.startScroll = (0,0)
         self.lastPos = QtCore.QPoint(0,0)
@@ -273,6 +274,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 changeFlags = pinch.changeFlags()
                 if changeFlags & QtGui.QPinchGesture.ScaleFactorChanged:
                     if self.gestureStartScale is None:
+                        self.computeScale()
                         self.gestureStartScale = self.currentScale
                     newScale = self.gestureStartScale + self.scaleMax * \
                         math.log(pinch.property("scaleFactor"))/2
@@ -405,13 +407,14 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 # super(QInteractiveGraphicsView, self).mousePressEvent(e)
         else:
             if buttons & QtCore.Qt.RightButton:
+                self.computeScale()
                 if item is None:
                     self.setCursorState(2)
-                    self.computeScale()
                 else:
                     QtGui.QGraphicsView.mousePressEvent(self, e)
             elif buttons & QtCore.Qt.MidButton:
                 self.setCursorState(3)
+                self.computeScale()
                 self.startScroll = (self.horizontalScrollBar().value(),
                                     self.verticalScrollBar().value())
             self.lastPos = QtCore.QPoint(QtGui.QCursor.pos())
@@ -517,9 +520,10 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         """ updateMatrix() -> None
         Update the view matrix with the current scale
         
-        """        
+        """
         matrix = QtGui.QMatrix()
-        power = float(self.currentScale-self.scaleMax/2)/self.scaleRatio
+        power = float(self.currentScale - self.scaleMax/2 - self.scaleOffset
+                      )/self.scaleRatio
         scale = pow(2.0, power)
         matrix.scale(scale, scale)
         self.setMatrix(matrix)
@@ -530,7 +534,8 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         
         """
         self.currentScale = (math.log(self.matrix().m11(), 2.0)*
-                             self.scaleRatio + self.scaleMax/2)
+                             self.scaleRatio + self.scaleMax/2 +
+                             self.scaleOffset)
 
     def setPIPScene(self, scene):
         """ setPIPScene(scene: QGraphicsScene) -> None        
@@ -594,6 +599,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
 
     def zoomToFit(self):
         self.scene().fitToView(self, True)
+        self.computeScale()
 
     def zoomIn(self):
         self.setUpdatesEnabled(False)

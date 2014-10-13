@@ -38,7 +38,7 @@ import re
 import uuid
 
 from vistrails.core.modules.basic_modules import Path
-from vistrails.gui.common_widgets import QSearchBox, QSearchEditBox
+from vistrails.gui.common_widgets import QSearchBox
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 
@@ -985,6 +985,7 @@ class PersistentOutputPathConfiguration(PersistentPathConfiguration):
                                           False, path_type)
 
 class PersistentRefInlineWidget(QtGui.QWidget, ConstantWidgetMixin):
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         self.param = param
         self.strValue = param.strValue

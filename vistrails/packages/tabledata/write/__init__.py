@@ -6,10 +6,15 @@ try:
 except ImportError: # pragma: no cover
     numpy_modules = []
 else:
-    from write_numpy import _modules as numpy_modules
+    from .write_numpy import _modules as numpy_modules
 
-from write_csv import _modules as csv_modules
-from write_excel import _modules as excel_modules
+from .write_excel import get_xlwt
+if get_xlwt():
+    from .write_excel import _modules as excel_modules
+else: # pragma: no cover
+    excel_modules = []
+
+from .write_csv import _modules as csv_modules
 
 
 _modules = make_modules_dict(numpy_modules, csv_modules, excel_modules,
@@ -19,7 +24,6 @@ _modules = make_modules_dict(numpy_modules, csv_modules, excel_modules,
 ###############################################################################
 
 import unittest
-from .write_excel import get_xlwt
 
 
 class BaseWriteTestCase(object):

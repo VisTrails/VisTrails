@@ -265,7 +265,7 @@ class Query1c(Query):
            vistrails.vistrails_name = %s and
            vistrails.vistrails_id = wf_exec.vistrails_id""", name)
         lst = list(c.fetchall())
-        versions = set([x[1] for x in lst])
+        versions = set(x[1] for x in lst)
         executions = set(lst)
         result = []
         for version in versions:
@@ -305,7 +305,7 @@ class Query3(Query):
            vistrails.vistrails_name = %s and
            vistrails.vistrails_id = wf_exec.vistrails_id""", name)
         lst = list(c.fetchall())
-        versions = set([x[1] for x in lst])
+        versions = set(x[1] for x in lst)
         executions = set(lst)
         result = []
         for version in versions:

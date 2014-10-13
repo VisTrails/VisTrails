@@ -68,7 +68,6 @@ def finalize_vistrails(app):
     vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
 
 def get_vistrails_application():
-    global VistrailsApplication
     if VistrailsApplication is not None:
         return VistrailsApplication()
     return None
@@ -91,14 +90,6 @@ class VistrailsApplicationInterface(object):
     def __init__(self):
         self._initialized = False
         self.notifications = {}
-
-    def printVersion(self):
-        """ printVersion() -> None
-        Print version of Vistrail and exit
-        
-        """
-        print system.about_string()
-        sys.exit(0)
 
     def read_options(self, args=None):
         """ read_options() -> None
@@ -281,7 +272,7 @@ class VistrailsApplicationInterface(object):
                             # version number
                             if locator._vtag != '':
                                 version = locator._vtag
-                    execute = self.temp_configuration.execute
+                    execute = self.temp_configuration.check('execute')
                     mashuptrail = None
                     mashupversion = None
                     if hasattr(locator, '_mshptrail'):

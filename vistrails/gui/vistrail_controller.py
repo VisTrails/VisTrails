@@ -1303,7 +1303,8 @@ class VistrailController(QtCore.QObject, BaseController):
             if abstraction.is_abstraction() and \
                     abstraction.package == abstraction_pkg:
                 abstractions.append(abstraction)
-                [abstractions.extend(v) for v in self.find_abstractions(abstraction.vistrail).itervalues()]
+                for v in self.find_abstractions(abstraction.vistrail).itervalues():
+                    abstractions.extend(v)
         pkg_subworkflows = []
         pkg_dependencies = set()
         for abstraction in abstractions:
