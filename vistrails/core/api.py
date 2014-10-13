@@ -201,13 +201,6 @@ class Vistrail(object):
 
     # TODO : vistrail modification methods
 
-    def get_module(self, module_id):
-        """Gets a Module from a module id number or description (if unique).
-        """
-        # TODO : module ids are global to a vistrail, so, we should be able to
-        # get modules that are not part of the current pipeline as well
-        return self.current_pipeline.get_module(module_id)
-
     def __repr__(self):
         version_nb = self.controller.current_version
         if self.controller.vistrail.has_tag(version_nb):
@@ -444,37 +437,27 @@ class Module(object):
     """
     module_id = None
     pipeline = None
-    vistrail = None
 
     def __init__(self, descriptor, **kwargs):
         self.descriptor = descriptor
-        if 'module_id' in kwargs:
-            if 'pipeline' in kwargs and 'vistrail' in kwargs:
-                raise TypeError("Please pass either pipeline or vistrail "
-                                "arguments")
-            self.module_id = kwargs['module_id']
-            if 'pipeline' in kwargs:
-                pipeline = kwargs['pipeline']
-                if pipeline.vistrail is not None:
-                    self.vistrail = pipeline.vistrail
-                self.pipeline = pipeline
-            elif 'vistrail' in kwargs:
-                self.vistrail = kwargs['vistrail']
-            else:
-                raise TypeError("Module was given an id but no pipeline or "
-                                "vistrail")
-        else:
-            if kwargs:
-                raise TypeError("Module was given unexpected argument: %r" %
-                                next(iter(kwargs)))
+        if 'module_id' and 'pipeline' in kwargs:
+            self.module_id = kwargs.pop('module_id')
+            self.pipeline = kwargs.pop('pipeline')
+            if not (isinstance(self.module_id, (int, long)) and
+                    isinstance(self.pipeline, Pipeline)):
+                raise TypeError
+        elif 'module_id' in kwargs or 'pipeline' in kwargs:
+            raise TypeError("Module was given an id but no pipeline")
+
+        if kwargs:
+            raise TypeError("Module was given unexpected argument: %r" %
+                            next(iter(kwargs)))
 
     def __repr__(self):
         desc = "<Module %r from %s" % (self.descriptor.name,
                                        self.descriptor.identifier)
         if self.module_id is not None:
             desc += ", id %d" % self.module_id
-            if self.vistrail is not None:
-                desc += " in %r" % self.vistrail.controller.name
             if self.pipeline is not None:
                 mod = self.pipeline.pipeline.modules[self.module_id]
                 if '__desc__' in mod.db_annotations_key_index:
@@ -482,11 +465,17 @@ class Module(object):
                              mod.get_annotation_by_key('__desc__').value)
         return desc + ">"
 
-    def __eq__(self, value):
-        if isinstance(value, Module):
-            return self.module == value.module
+    def __eq__(self, other):
+        if isinstance(other, Module):
+            if self.module_id is None:
+                return other.module_id is None
+            else:
+                if other.module_id is None:
+                    return False
+                return (self.module_id == other.module_id and
+                        self.pipeline == other.pipeline)
         else:
-            return ModuleValuePair(self.module, value)
+            return ModuleValuePair(self.module, other)
 
 
 class ModuleNamespace(object):
@@ -601,8 +590,9 @@ class ExecutionResults(object):
     def module_output(self, module):
         """Gets all the output ports of a specified module.
         """
-        module_id = self.pipeline.get_module(module).module_id
-        return self._objects[module_id].outputPorts
+        if not isinstance(module, Module):
+            module = self.pipeline.get_module(module)
+        return self._objects[module.module_id].outputPorts
 
     def __repr__(self):
         return "<ExecutionResult: %d modules>" % len(self._objects)
