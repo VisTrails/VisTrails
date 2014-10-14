@@ -183,8 +183,11 @@ class RunCommand(RQModule):
     
     def compute(self):
         machine = self.get_machine()
-        if self.cache:
-            result = self.cache.parameters['result']
+
+        jm = self.job_monitor()
+        cache = jm.getCache(self.signature)
+        if cache:
+            result = cache.parameters['result']
         else:
             if not self.has_input('command'):
                 raise ModuleError(self, "No command specified")
@@ -194,11 +197,15 @@ class RunCommand(RQModule):
             use_machine(machine)
             m = current_machine()
             result = m.remote.send_command(command)
+            exitcode = m.remote.last_exitcode()
             end_machine()
-            jm = self.job_monitor()
-            d = {'result':result}
-            self.set_job_machine(d, machine)
-            jm.setCache(self.signature, d, self.getName())
+            if exitcode != 0:
+                raise ModuleError(self,
+                                  "Command failed with exit code %s: %s" %
+                                   (exitcode, result))
+        d = {'result':result}
+        self.set_job_machine(d, machine)
+        jm.setCache(self.signature, d, self.getName())
         self.set_output("output", result)
         self.set_output("machine", machine)
 
@@ -257,7 +264,7 @@ class RunJob(RQModule):
             self.job._popw()
             end_machine()
             raise ModuleError(self,
-                              "Command failed with error code %s: %s" %
+                              "Command failed with exit code %s: %s" %
                                (code.strip(), params['stderr'].strip()))
         end_machine()
         return params
