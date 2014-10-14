@@ -958,16 +958,6 @@ class VistrailController(QtCore.QObject, BaseController):
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True)
 
-    def set_num_versions_always_shown(self, num):
-        """ set_num_versions_always_shown(num: int) -> None
-
-        """
-        if num <> self.num_versions_always_shown:
-            self.num_versions_always_shown = num
-            self.set_changed(True)
-            self.recompute_terse_graph()
-            self.invalidate_version_tree(False)
-
     def setSavedQueries(self, queries):
         """ setSavedQueries(queries: list of (str, str, str)) -> None
         Set the saved queries of a vistail
