@@ -35,17 +35,15 @@
 """ Wrapper for Hadoop Streaming to use with Python mapper/reducer,
 cache files, etc...  """
 
-import copy
-from vistrails.core.interpreter.job import JobMixin, JobMonitor
+import os.path
+
 from vistrails.core.modules.basic_modules import File, String
-from vistrails.core.modules.config import IPort, OPort
-from vistrails.core.modules.vistrails_module import NotCacheable, ModuleError
+from vistrails.core.modules.config import IPort, OPort, ModuleSettings
+from vistrails.core.modules.vistrails_module import ModuleError
 from base import HadoopBaseModule
-from remoteq.core.stack import select_machine, end_machine, use_machine, \
-                                                                current_machine
+from remoteq.core.stack import use_machine
 from remoteq.batch.commandline import Subshell
 
-import os.path
 ################################################################################
 class HadoopStreaming(HadoopBaseModule):
     """
@@ -53,6 +51,7 @@ class HadoopStreaming(HadoopBaseModule):
     customized Python Mapper/Reducer/Combiner
     
     """
+    _settings = ModuleSettings(namespace='hadoop')
     _input_ports = [IPort('Mapper',       File),
                     IPort('Reducer',      File),
                     IPort('Combiner',     File),
@@ -205,6 +204,7 @@ class URICreator(HadoopBaseModule):
     The class for caching HDFS file onto the TaskNode local drive
     
     """
+    _settings = ModuleSettings(namespace='hadoop')
     _input_ports = [IPort('HDFS File/URI', String),
                     IPort('Symlink',       String),
                     IPort('Machine',        
@@ -216,7 +216,7 @@ class URICreator(HadoopBaseModule):
 
     def compute(self):
         machine = self.get_machine()
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         id = self.signature
         job = jm.getCache(id)
         if not job:

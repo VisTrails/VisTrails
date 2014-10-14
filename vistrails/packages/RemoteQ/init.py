@@ -34,19 +34,19 @@
 ###############################################################################
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleSuspended
+from vistrails.core.modules.vistrails_module import Module, ModuleError, \
+                                                               ModuleSuspended
 from vistrails.core.system import current_user
-from vistrails.core.interpreter.job import JobMixin, JobMonitor
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.vistrail.job import JobMixin
 
 from remoteq.pipelines.shell import FileCommander as BQMachine
 from remoteq.core.stack import select_machine, end_machine, use_machine, \
-                                                                current_machine
+                                                               current_machine
 from remoteq.batch.commandline import PBS, PBSScript
 from remoteq.batch.directories import CreateDirectory
 from remoteq.batch.files import TransferFiles
-from remoteq.pipelines.shell.ssh import SSHTerminal
 
-import hashlib
 
 class Machine(Module):
     _input_ports = [('server', '(edu.utah.sci.vistrails.basic:String)', True),
@@ -129,7 +129,7 @@ class RQModule(JobMixin, Module):
     def get_job_machine(self):
         """ Get machine info from job
         """
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         if jm.hasJob(self.getId({})):
             params = jm.getJob(self.signature).parameters
             if 'server' in params:
@@ -191,7 +191,7 @@ class RunCommand(RQModule):
             m = current_machine()
             result = m.remote.send_command(command)
             end_machine()
-            jm = JobMonitor.getInstance()
+            jm = self.job_monitor()
             d = {'result':result}
             self.set_job_machine(d, machine)
             jm.setCache(self.signature, d, self.getName())
@@ -365,7 +365,7 @@ class SyncDirectories(RQModule):
     
     def compute(self):
         machine = self.get_machine()
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         cache = jm.getCache(self.signature)
         if not cache:
             if not self.has_input('local_directory'):
@@ -403,7 +403,7 @@ class CopyFile(RQModule):
     
     def compute(self):
         machine = self.get_machine()
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         cache = jm.getCache(self.signature)
         if cache:
             result = cache.parameters['result']
@@ -427,6 +427,23 @@ class CopyFile(RQModule):
 
         self.set_output("machine", machine)
         self.set_output("output", result)
+
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    # prepend 'hadoop|' to hadoop modules < 0.3.1
+    reg = get_module_registry()
+
+    hadoop_remaps = ['PythonSourceToFile', 'HDFSPut', 'HDFSGet',
+                     'HDFSEnsureNew', 'URICreator', 'HadoopStreaming']
+
+    module_remap = {}
+    for name in hadoop_remaps:
+        module_remap[name] = [(None, '0.3.0', "hadoop|%s" % name, {})]
+    return UpgradeWorkflowHandler.remap_module(controller,
+                                               module_id,
+                                               pipeline,
+                                               module_remap)
+
 
 def initialize():
     global _modules
