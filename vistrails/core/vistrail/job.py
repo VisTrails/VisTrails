@@ -56,15 +56,19 @@ class JobMixin(NotCacheable):
 
     Provides a compute method implementing job handling.
     The package developer needs to implement the sub methods readInputs(),
-    getId(), setResults(), startJob(), getMonitor() and finishJob().
+    setResults(), startJob(), getMonitor() and finishJob().
     """
 
     def compute(self):
+        """ Calls user-implemented methods at the right times
+            It should always call addJob or setCache so that the callback works
 
+        """
         jm = self.job_monitor()
 
         cache = jm.getCache(self.signature)
         if cache is not None:
+            jm.setCache(self.signature, cache.parameters)
             # Result is available and cached
             self.setResults(cache.parameters)
             return
@@ -73,9 +77,9 @@ class JobMixin(NotCacheable):
         if job is None:
             params = self.readInputs()
             params = self.startJob(params)
-            jm.addJob(self.signature, params, self.getName())
         else:
             params = job.parameters
+        jm.addJob(self.signature, params, self.getName())
 
         # Might raise ModuleSuspended
         jm.checkJob(self, self.signature, self.getMonitor(params))
@@ -132,6 +136,7 @@ class JobMixin(NotCacheable):
         """ getId(params: dict) -> job identifier
             Should return an string completely identifying this job
             Class name + input values are usually unique
+            DEPRECATED
         """
         return self.signature
 
@@ -356,7 +361,7 @@ class JobMonitor(object):
         # delete jobs that only occur in this workflow
         for job_id in workflow.jobs:
             delete = True
-            for wf in self.workflows:
+            for wf in self.workflows.values():
                 if job_id in wf.jobs:
                     delete = False
             if delete:
