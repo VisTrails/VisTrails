@@ -148,6 +148,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_version_view = True
         self.quiet = False
         self.progress = None
+        self.create_job = False
         
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
@@ -378,6 +379,24 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         self.flush_delayed_actions()
+
+        if self.create_job:
+            version_id = self.current_version
+            # check if a job exist for this workflow
+            current_workflow = None
+            for wf in self.jobMonitor.workflows.itervalues():
+                try:
+                    wf_version = int(wf.version)
+                except ValueError:
+                    wf_version = self.vistrail.get_version_number(wf.version)
+                if version_id == wf_version:
+                    current_workflow = wf
+                    self.jobMonitor.startWorkflow(wf)
+            if not current_workflow:
+                current_workflow = JobWorkflow(version_id)
+                self.jobMonitor.startWorkflow(current_workflow)
+            self.create_job = False
+
         if self.current_pipeline:
             locator = self.get_locator()
             if locator:
@@ -404,6 +423,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Execute the current workflow (if exists) and monitors it if it contains jobs
         
         """
+
         # reset job view
         from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()
@@ -413,24 +433,12 @@ class VistrailController(QtCore.QObject, BaseController):
             return
         jobView.updating_now = True
 
-        if not self.jobMonitor.currentWorkflow():
-            version_id = self.current_version
-            # check if a job exist for this workflow
-            current_workflow = None
-            for wf in self.jobMonitor.workflows.itervalues():
-                try:
-                    wf_version = int(wf.version)
-                except ValueError:
-                    wf_version = self.vistrail.get_version_number(wf.version)
-                if version_id == wf_version:
-                    current_workflow = wf
-                    self.jobMonitor.startWorkflow(wf)
-            if not current_workflow:
-                current_workflow = JobWorkflow(version_id)
-                self.jobMonitor.startWorkflow(current_workflow)
         try:
             self.progress = ExecutionProgressDialog(self.vistrail_view)
             self.progress.show()
+
+            if not self.jobMonitor.currentWorkflow():
+                self.create_job = True
 
             result =  self.execute_current_workflow(reason=reason, sinks=sinks)
 
@@ -439,6 +447,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.progress.hide()
             self.progress.deleteLater()
             self.progress = None
+            self.create_job = False
             self.jobMonitor.finishWorkflow()
             jobView.updating_now = False
 
