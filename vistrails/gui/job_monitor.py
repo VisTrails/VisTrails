@@ -229,7 +229,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                         continue
                     ret = QtGui.QMessageBox.information(self, "Job Ready",
                             'Pending Jobs in workflow "%s" have finished, '
-                            'continue execution now?' % workflow.name,
+                            'continue execution now?' % workflow.text(0),
                             QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
                     if ret == QtGui.QMessageBox.Ok:
                         jm.startWorkflow(workflow.workflow)
@@ -339,7 +339,9 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
             workflow_item.updateJobs()
 
     def addJobRec(self, obj, parent_id=None):
-        """Recursively adds jobs that are executed by other modules like
+        """addJobRec(obj: ModuleSuspended, parent_id: signature)  -> None
+
+           Recursively adds jobs that are executed by other modules like
            Groups and Maps. This is only for display purposes.
         """
         workflow = self.jobMonitor.currentWorkflow()
@@ -347,9 +349,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         # top down. Base is assumed to have been added already
         base = (workflow_item.intermediates[parent_id] if parent_id is not None
                                                       else workflow_item)
-        id = obj.signature
-        if id not in workflow.jobs and parent_id:
-            id = '%s/%s' % (parent_id, obj.signature)
+        id = obj.module.signature
         if obj.children:
             # add parent items and their children
             if id not in workflow_item.intermediates:
@@ -359,9 +359,9 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
 
             for child in obj.children:
                 self.addJobRec(child, id)
-        elif obj.signature in workflow.jobs:
+        elif obj.module.signature in workflow.jobs:
             # this is an already existing new-style job
-            job = workflow_item.jobs[obj.signature]
+            job = workflow_item.jobs[obj.module.signature]
             job.monitor = obj.monitor
             # need to force takeChild
             base.addChild(job.parent().takeChild(job.parent().indexOfChild(job)))
@@ -392,8 +392,8 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         workflow = self.jobMonitor.currentWorkflow()
         if not workflow:
             if not monitor or not self.jobMonitor.isDone(monitor):
-                raise ModuleSuspended(module, 'Job is running', monitor=monitor,
-                                      job_id=id)
+                raise ModuleSuspended(module, 'Job is running',
+                                      monitor=monitor)
         workflow_item = self.workflowItems[workflow.id]
         item = workflow_item.jobs.get(id, None)
         item.setText(0, item.job.name)
@@ -404,7 +404,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         workflow = self.jobMonitor.currentWorkflow()
         workflow_item = self.workflowItems.get(workflow.id, None)
         workflow_item.updateJobs()
-        progress = workflow_item.view.controller.progress
+        progress = self.controller.progress
 
         conf = configuration.get_vistrails_configuration()
         interval = conf.jobCheckInterval
@@ -433,7 +433,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
                             new_progress.setLabelText(labelText)
                             new_progress.setMinimumDuration(0)
                             new_progress.suspended = True
-                            workflow_item.view.controller.progress = new_progress
+                            self.controller.progress = new_progress
                             progress.hide()
                             progress.deleteLater()
                             progress = new_progress
@@ -441,12 +441,10 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
                             QtCore.QCoreApplication.processEvents()
                             raise ModuleSuspended(module,
                                        'Interrupted by user, job'
-                                       ' is still running', monitor=monitor,
-                                       job_id=id)
+                                       ' is still running', monitor=monitor)
                 return
         if not monitor or not self.jobMonitor.isDone(monitor):
-            raise ModuleSuspended(module, 'Job is running', monitor=monitor,
-                                  job_id=id)
+            raise ModuleSuspended(module, 'Job is running', monitor=monitor)
 
 
 class QWorkflowItem(QtGui.QTreeWidgetItem):

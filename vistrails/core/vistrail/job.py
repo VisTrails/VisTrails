@@ -51,12 +51,6 @@ import time
 import unittest
 import weakref
 
-class BaseMonitor(object):
-    def finished(self):
-        """Indicates whether the job has completed (module can resume).
-        """
-        raise NotImplementedError
-
 class JobMixin(NotCacheable):
     """ Mixin for suspendable modules.
 
@@ -64,48 +58,43 @@ class JobMixin(NotCacheable):
     The package developer needs to implement the sub methods readInputs(),
     getId(), setResults(), startJob(), getMonitor() and finishJob().
     """
-    cache = None
-    params = None
 
     def compute(self):
-        if self.cache is not None:
-            # Result is available and cached
-            self.setResults(self.cache.parameters)
-            return
-        # Start new job
-        params = self.readInputs()
-        params = self.startJob(params)
+
         jm = self.job_monitor()
-        jm.addJob(self.signature, params, self.getName())
+
+        cache = jm.getCache(self.signature)
+        if cache is not None:
+            # Result is available and cached
+            self.setResults(cache.parameters)
+            return
+
+        job = jm.getJob(self.signature)
+        if job is None:
+            params = self.readInputs()
+            params = self.startJob(params)
+            jm.addJob(self.signature, params, self.getName())
+        else:
+            params = job.parameters
+
         # Might raise ModuleSuspended
         jm.checkJob(self, self.signature, self.getMonitor(params))
+
         # Didn't raise: job is finished
         params = self.finishJob(params)
-        self.setResults(params)
         jm.setCache(self.signature, params)
-        self.cache = jm.getCache(self.signature)
+        self.setResults(params)
 
     def update_upstream(self):
+        """ Skip upstream if job exists
+        """
         if not hasattr(self, 'signature'):
             raise ModuleError(self, "Module has no signature")
         jm = self.job_monitor()
-        self.cache = jm.getCache(self.signature)
-        if self.cache is not None:
-            return # compute() will use self.cache
-        job = jm.getJob(self.signature)
-        if job is not None:
-            # resume job
-            params = job.parameters
-            # Might raise ModuleSuspended
-            jm.checkJob(self, self.signature, self.getMonitor(params))
-            # Didn't raise: job is finished
-            params = self.finishJob(params)
-            jm.setCache(self.signature, params)
-            self.cache = jm.getCache(self.signature)
-            # compute() will set results
-        # We need to submit a new job
-        # Update upstream, compute() will need it
-        super(JobMixin, self).update_upstream()
+        if not (jm.getCache(self.signature) or jm.getJob(self.signature)):
+            # We need to submit a new job
+            # Update upstream, compute() will need it
+            super(JobMixin, self).update_upstream()
 
     def readInputs(self):
         """ readInputs() -> None
@@ -409,17 +398,15 @@ class JobMonitor(object):
 
     def addJobRec(self, obj, parent_id=None):
         workflow = self.currentWorkflow()
-        id = obj.signature
-        if id not in workflow.jobs and parent_id:
-            id = '%s/%s' % (parent_id, obj.signature)
+        id = obj.module.signature
         if obj.children:
             for child in obj.children:
                 self.addJobRec(child, id)
             return
-        if obj.signature in workflow.jobs:
+        if id in workflow.jobs:
             # this is an already existing new-style job
             # mark that it has been used
-            workflow.jobs[obj.signature].mark()
+            workflow.jobs[id].mark()
             return
         if id in workflow.jobs:
             # this is an already existing new-style job
@@ -510,8 +497,8 @@ class JobMonitor(object):
         """
         if not self.currentWorkflow():
             if not monitor or not self.isDone(monitor):
-                raise ModuleSuspended(module, 'Job is running', monitor=monitor,
-                                      job_id=id)
+                raise ModuleSuspended(module, 'Job is running',
+                                      monitor=monitor)
         job = self.getJob(id)
         if self.callback:
             self.callback.checkJob(module, id, monitor)

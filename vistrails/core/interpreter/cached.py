@@ -122,20 +122,15 @@ class ViewUpdatingLogController(object):
             ) -> None
             Report module as suspended
         """
-        # update job monitor because this may be an oldStyle job
+        # update job monitor because this may be an old-style job
         jm = obj.job_monitor()
         reg = get_module_registry()
         name = reg.get_descriptor(obj.__class__).name
-        i = "%s" % self.remap_id(obj.id)
         iteration = self.log.get_iteration_from_module(obj)
         if iteration is not None:
-            name = name + '/' + str(iteration)
-            i = i + '/' + str(iteration)
+            name += '/' + str(iteration)
         # add to parent list for computing the module tree later
         error.name = name
-        # if signature is not set we use the module identifier
-        if not error.signature:
-            error.signature = obj.signature
         jm.addParent(error)
 
     def end_update(self, obj, error=None, errorTrace=None,

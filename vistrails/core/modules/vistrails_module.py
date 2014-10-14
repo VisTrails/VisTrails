@@ -138,7 +138,7 @@ class ModuleSuspended(ModuleError):
     modules
     """
 
-    def __init__(self, module, errormsg, monitor=None, children=None, job_id=None, queue=None):
+    def __init__(self, module, errormsg, monitor=None, children=None, queue=None):
         self.monitor = monitor
         if monitor is None and queue is not None:
             warnings.warn("Use of deprecated argument 'queue' replaced by "
@@ -147,7 +147,6 @@ class ModuleSuspended(ModuleError):
                           stacklevel=2)
             self.monitor = queue
         self.children = children
-        self.signature = job_id
         self.name = None
         ModuleError.__init__(self, module, errormsg)
 
@@ -686,21 +685,21 @@ class Module(Serializable):
         loop = self.logging.begin_loop_execution(self, num_inputs)
         ## Update everything for each value inside the list
         outputs = {}
-        module = copy.copy(self)
-        module.list_depth = self.list_depth - 1
         for i in xrange(num_inputs):
             self.logging.update_progress(self, float(i)/num_inputs)
+            module = copy.copy(self)
+            module.list_depth = self.list_depth - 1
             module.had_error = False
+            module.was_suspended = False
 
             if not self.upToDate: # pragma: no partial
                 ## Type checking if first iteration and last iteration level
                 if i == 0 and self.list_depth == 1:
-                    module.typeChecking(module, port_names, elements)
+                    self.typeChecking(module, port_names, elements)
 
                 module.upToDate = False
                 module.computed = False
-
-                module.setInputValues(module, port_names, elements[i], i)
+                self.setInputValues(module, port_names, elements[i], i)
 
             loop.begin_iteration(module, i)
 
@@ -708,6 +707,7 @@ class Module(Serializable):
                 module.update()
             except ModuleSuspended, e:
                 e.loop_iteration = i
+                module.logging.end_update(module, e, was_suspended=True)
                 suspended.append(e)
                 loop.end_iteration(module)
                 continue
@@ -808,12 +808,12 @@ class Module(Serializable):
                 module.had_error = False
                 ## Type checking
                 if i == 0:
-                    module.typeChecking(module, ports, [elements])
+                    self.typeChecking(module, ports, [elements])
 
                 module.upToDate = False
                 module.computed = False
 
-                module.setInputValues(module, ports, elements, i)
+                self.setInputValues(module, ports, elements, i)
 
                 try:
                     module.compute()
@@ -863,8 +863,8 @@ class Module(Serializable):
                     # assembled all inputs so do the actual computation
                     elements = [inputs[port] for port in ports]
                     ## Type checking
-                    module.typeChecking(module, ports, zip(*elements))
-                    module.setInputValues(module, ports, elements, i)
+                    self.typeChecking(module, ports, zip(*elements))
+                    self.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
                     except Exception, e:
@@ -925,8 +925,8 @@ class Module(Serializable):
                 if None not in elements:
                     self.logging.begin_compute(module)
                     ## Type checking
-                    module.typeChecking(module, ports, [elements])
-                    module.setInputValues(module, ports, elements, i)
+                    self.typeChecking(module, ports, [elements])
+                    self.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
                     except Exception, e:
@@ -1487,8 +1487,8 @@ class Module(Serializable):
                         module.set_output(name_output, None)
                     yield None
                 ## Type checking
-                module.typeChecking(module, ports, [elements])
-                module.setInputValues(module, ports, elements, i)
+                self.typeChecking(module, ports, [elements])
+                self.setInputValues(module, ports, elements, i)
 
                 userGenerator.next()
                 # <compute here>
