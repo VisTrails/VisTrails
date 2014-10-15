@@ -46,7 +46,7 @@ from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 import vistrails.core.db.action
 from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.interpreter.job import Workflow as JobWorkflow
+from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
 from vistrails.core.log.opm_graph import OpmGraph
 from vistrails.core.log.prov_document import ProvDocument
@@ -65,6 +65,7 @@ from vistrails.gui.theme import CurrentTheme
 import vistrails.gui.utils
 from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from vistrails.gui.version_prop import QVersionProp
+
 
 
 ################################################################################
@@ -147,6 +148,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_version_view = True
         self.quiet = False
         self.progress = None
+        self.create_job = False
         
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
@@ -377,6 +379,24 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         self.flush_delayed_actions()
+
+        if self.create_job:
+            version_id = self.current_version
+            # check if a job exist for this workflow
+            current_workflow = None
+            for wf in self.jobMonitor.workflows.itervalues():
+                try:
+                    wf_version = int(wf.version)
+                except ValueError:
+                    wf_version = self.vistrail.get_version_number(wf.version)
+                if version_id == wf_version:
+                    current_workflow = wf
+                    self.jobMonitor.startWorkflow(wf)
+            if not current_workflow:
+                current_workflow = JobWorkflow(version_id)
+                self.jobMonitor.startWorkflow(current_workflow)
+            self.create_job = False
+
         if self.current_pipeline:
             locator = self.get_locator()
             if locator:
@@ -403,6 +423,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Execute the current workflow (if exists) and monitors it if it contains jobs
         
         """
+
         # reset job view
         from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()
@@ -412,25 +433,12 @@ class VistrailController(QtCore.QObject, BaseController):
             return
         jobView.updating_now = True
 
-        if not jobView.jobMonitor.currentWorkflow():
-            version_id = self.current_version
-            url = self.locator.to_url()
-            # check if a job for this workflow exists
-            current_workflow = None
-            for job in jobView.jobMonitor._running_workflows.itervalues():
-                try:
-                    job_version = int(job.version)
-                except ValueError:
-                    job_version = self.vistrail.get_version_number(job.version)
-                if version_id == job_version and url == job.vistrail:
-                    current_workflow = job
-                    jobView.jobMonitor.startWorkflow(job)
-            if not current_workflow:
-                current_workflow = JobWorkflow(url, version_id)
-                jobView.jobMonitor.startWorkflow(current_workflow)
         try:
             self.progress = ExecutionProgressDialog(self.vistrail_view)
             self.progress.show()
+
+            if not self.jobMonitor.currentWorkflow():
+                self.create_job = True
 
             result =  self.execute_current_workflow(reason=reason, sinks=sinks)
 
@@ -439,7 +447,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.progress.hide()
             self.progress.deleteLater()
             self.progress = None
-            jobView.jobMonitor.finishWorkflow()
+            self.create_job = False
+            self.jobMonitor.finishWorkflow()
             jobView.updating_now = False
 
         return result

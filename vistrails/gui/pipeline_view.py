@@ -651,8 +651,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.viewDocumentationAct,
                                QtCore.SIGNAL("triggered()"),
                                self.viewDocumentation)
-        self.editLoopingAct = QtGui.QAction("Looping Options", self.scene())
-        self.editLoopingAct.setStatusTip("Edit looping options")
+        self.editLoopingAct = QtGui.QAction("Execution Options", self.scene())
+        self.editLoopingAct.setStatusTip("Edit module execution options")
         QtCore.QObject.connect(self.editLoopingAct,
                                QtCore.SIGNAL("triggered()"),
                                self.editLooping)

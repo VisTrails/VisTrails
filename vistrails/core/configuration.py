@@ -80,8 +80,8 @@ installBundlesWithPip: Use pip to install missing Python dependencies
 isInServerMode: Indicates whether VisTrails is being run as a server
 jobAutorun: Run jobs automatically when they finish
 jobCheckInterval: How often to check for jobs (in seconds)
-jobList: List running jobs
-jobRun: Continue running specified job by id
+jobList: List running workflows
+jobInfo: List jobs in running workflow
 logDir: Log files directory
 maxRecentVistrails: Number of recent vistrails
 maximizeWindows: VisTrails windows should be maximized
@@ -241,11 +241,11 @@ jobCheckInterval: Integer:
 
 jobList: Boolean
 
-    List running jobs.
+    List running workflows.
 
-jobRun: String
+jobInfo: Boolean
 
-    Continue running specified job by id (use jobList to get).
+    List jobs in running workflow
 
 logDir: Path
 
@@ -730,8 +730,8 @@ base_config = {
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),
-     ConfigField('jobRun', None, str, ConfigType.COMMAND_LINE),
-     ConfigField('jobList', False, bool, ConfigType.COMMAND_LINE_FLAG)],
+     ConfigField('jobList', False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('jobInfo', False, bool, ConfigType.COMMAND_LINE_FLAG)],
 }
 
 # FIXME make sure that the platform-specific configs are added!

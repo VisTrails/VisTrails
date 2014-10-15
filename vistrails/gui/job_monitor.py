@@ -33,17 +33,15 @@
 ##
 ###############################################################################
 
+import time
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug, configuration
-from vistrails.core.db.locator import BaseLocator
 from vistrails.core.modules.vistrails_module import ModuleSuspended
-from vistrails.core.interpreter.job import JobMonitor
 from vistrails.gui import theme
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-
-import time
 
 
 refresh_states = [('Off', 0), ('10 sec', 10),
@@ -52,7 +50,7 @@ refresh_states = [('Off', 0), ('10 sec', 10),
 
 
 class QNumberValidator(QtGui.QIntValidator):
-    """Variant of QIntValidaator that rejects Intermediate values.
+    """Variant of QIntValidator that rejects Intermediate values.
 
     Intermediate strings are strings that could be the left part of an
     Acceptable string.
@@ -67,6 +65,13 @@ class QNumberValidator(QtGui.QIntValidator):
 class QJobTree(QtGui.QTreeWidget):
     def __init__(self, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setColumnCount(2)
+        self.header().setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
+        self.header().setResizeMode(1, QtGui.QHeaderView.Stretch)
+        self.header().close()
+        self.setExpandsOnDoubleClick(False)
+        self.controller = None
 
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
@@ -79,23 +84,19 @@ class QJobTree(QtGui.QTreeWidget):
                                    item.stdout)
             menu.addAction(act)
             act = QtGui.QAction("View Standard &Error", self)
-            act.setStatusTip("View Standard Error in new window")
             QtCore.QObject.connect(act,
                                    QtCore.SIGNAL("triggered()"),
                                    item.stderr)
             menu.addAction(act)
             menu.exec_(event.globalPos())
 
-
 class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
-        self.jobMonitor = JobMonitor.getInstance()
-        self.jobMonitor.setCallback(self)
         self.timer_id = None
-
-        self.workflowItems = {}
+        self.updating_now = False
+        self.widgets = {}
 
         self.layout = QtGui.QVBoxLayout()
 
@@ -130,21 +131,34 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.layout.addLayout(buttonsLayout)
 
         self.jobView = QJobTree()
-        self.jobView.setContentsMargins(0, 0, 0, 0)
-        self.jobView.setColumnCount(2)
-        self.jobView.setHeaderLabels(['Job', 'Message'])
-        self.jobView.header().setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
-        self.jobView.header().setResizeMode(1, QtGui.QHeaderView.Stretch)
-        self.jobView.setExpandsOnDoubleClick(False)
-        self.connect(self.jobView,
-                     QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'),
-                     self.item_clicked)
+        self.jobView.itemDoubleClicked.connect(self.item_clicked)
         self.layout.addWidget(self.jobView)
 
         self.setLayout(self.layout)
+
         self.setWindowTitle('Running Jobs')
         self.resize(QtCore.QSize(800, 600))
-        self.updating_now = False
+
+    def set_controller(self, controller):
+        # check if a controller has been closed
+        from vistrails.gui.vistrails_window import _app
+        controllers = [view.controller for view in _app.getAllViews()]
+        for c in self.widgets.keys():
+            if c not in controllers:
+                self.jobView.takeTopLevelItem(self.widgets[c])
+                del self.widgets[c]
+
+        if not controller:
+            return
+
+        # check if controller has been added
+        if controller not in self.widgets:
+            item = QVistrailItem(controller)
+            self.jobView.addTopLevelItem(item)
+            self.jobView.expandAll()
+            self.widgets[controller] = self.jobView.indexOfTopLevelItem(item)
+            if item.childCount() > 0:
+                self.set_visible(True)
 
     def autorunToggled(self, value):
         conf = configuration.get_vistrails_configuration()
@@ -175,38 +189,185 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         conf.jobCheckInterval = refresh
         self.updating_now = False
 
+    def update_jobs(self):
+        """Called via a timer.
+
+        Checks jobs for all workflows both with and without monitors.
+        """
+        for i in xrange(self.jobView.topLevelItemCount()):
+            vistrail = self.jobView.topLevelItem(i)
+            jm = vistrail.jobMonitor
+            for workflow in vistrail.workflowItems.values():
+                # jobs without a monitor can also be checked
+                if not workflow.has_queue:
+                    # restart job and execute
+                    jm.startWorkflow(workflow.workflow)
+                    self.updating_now = False
+                    workflow.execute()
+                    self.updating_now = True
+                    continue
+                if workflow.workflowFinished:
+                    continue
+                for job in workflow.jobs.itervalues():
+                    if job.jobFinished:
+                        continue
+                    try:
+                        # call monitor
+                        job.jobFinished = jm.isDone(job.monitor)
+                        if job.jobFinished:
+                            job.setText(1, "Finished")
+                    except Exception, e:
+                        debug.critical("Error checking job %s: %s" % workflow.name,
+                                       e)
+                workflow.updateJobs()
+                if workflow.workflowFinished:
+                    if self.autorun.isChecked():
+                        jm.startWorkflow(workflow.workflow)
+                        self.updating_now = False
+                        workflow.execute()
+                        self.updating_now = True
+                        continue
+                    ret = QtGui.QMessageBox.information(self, "Job Ready",
+                            'Pending Jobs in workflow "%s" have finished, '
+                            'continue execution now?' % workflow.text(0),
+                            QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
+                    if ret == QtGui.QMessageBox.Ok:
+                        jm.startWorkflow(workflow.workflow)
+                        self.updating_now = False
+                        workflow.execute()
+                        self.updating_now = True
+
+    def timerEvent(self, id=None):
+        if self.updating_now:
+            return
+        self.updating_now = True
+        self.update_jobs()
+        self.updating_now = False
+
+    def keyPressEvent(self, event):
+        if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
+            items = self.jobView.selectedItems()
+            if len(items) == 1:
+                item = items[0]
+                if isinstance(item, QWorkflowItem):
+                    item.parent().jobMonitor.deleteWorkflow(item.workflow.id)
+                elif isinstance(item, QJobItem):
+                    # find parent
+                    parent = item.parent()
+                    while not isinstance(parent, QWorkflowItem):
+                        parent = parent.parent()
+                    parent.parent().jobMonitor.deleteJob(item.job.id)
+        else:
+            QtGui.QWidget.keyPressEvent(self, event)
+
+    def item_clicked(self, item):
+        """Item activated.
+        """
+        if isinstance(item, QWorkflowItem):
+            item.goto()
+
+
+class QVistrailItem(QtGui.QTreeWidgetItem):
+    """A vistrail with running workflows.
+
+    This top-level item can have QWorkflowItem's as children.
+    """
+    def __init__(self, controller, parent=None):
+        self.controller = controller
+        self.jobMonitor = controller.jobMonitor
+        self.jobMonitor.setCallback(self)
+        self.locator = controller.vistrail.locator
+        QtGui.QTreeWidgetItem.__init__(self, parent,
+                                       [self.locator.short_name, ''])
+        self.setIcon(0, theme.get_current_theme().HISTORY_ICON)
+        self.setToolTip(0, self.locator.name)
+        self.workflowItems = {}
+        self.load_running_jobs()
+
+    def load_running_jobs(self):
+        """Loads the current jobs from the JSON file.
+        """
+        workflows = self.jobMonitor.workflows
+        # update gui
+        for workflow in workflows.itervalues():
+            if workflow.id not in self.workflowItems:
+                workflow_item = QWorkflowItem(workflow, self)
+                self.workflowItems[workflow.id] = workflow_item
+                for job in workflow.jobs.itervalues():
+                    if job.id not in workflow_item.jobs:
+                        workflow_item.jobs[job.id] = QJobItem(job, workflow_item)
+                        workflow_item.updateJobs()
+
     def startWorkflow(self, workflow):
         """Empty callback.
         """
 
+    def addJob(self, job):
+        """ addJob(self, job: job.Module) -> None
+        Callback, adds or updates a job in the interface.
+        """
+
+        workflow = self.jobMonitor.currentWorkflow()
+        if workflow.id not in self.workflowItems:
+            workflow_item = QWorkflowItem(workflow, self)
+            workflow_item.setExpanded(True)
+            self.workflowItems[workflow.id] = workflow_item
+
+        workflow_item = self.workflowItems[workflow.id]
+        if job.id not in workflow_item.jobs:
+            workflow_item.jobs[job.id] = QJobItem(job, workflow_item)
+        workflow_item.updateJobs()
+
+    def deleteWorkflow(self, id):
+        """ deleteWorkflow(id: str) -> None
+        Callback, deletes a workflow.
+        """
+        self.takeChild(self.indexOfChild(self.workflowItems[id]))
+        del self.workflowItems[id]
+
+    def deleteJob(self, id):
+        """ deleteJob(id: str, parent_id: str) -> None
+        Callback, deletes a a single job from all workflows.
+
+        """
+
+        for workflow_item in self.workflowItems.itervalues():
+            if id in workflow_item.jobs:
+                job_item = workflow_item.jobs[id]
+                job_item.parent().takeChild(job_item.parent().indexOfChild(job_item))
+            del workflow_item.jobs[id]
+            workflow_item.updateJobs()
+
     def addJobRec(self, obj, parent_id=None):
-        """Recursively adds jobs that are executed by other modules like
+        """addJobRec(obj: ModuleSuspended, parent_id: signature)  -> None
+
+           Recursively adds jobs that are executed by other modules like
            Groups and Maps. This is only for display purposes.
         """
         workflow = self.jobMonitor.currentWorkflow()
-        workflowItem = self.workflowItems[workflow.id]
+        workflow_item = self.workflowItems[workflow.id]
         # top down. Base is assumed to have been added already
-        base = (workflowItem.intermediates[parent_id] if parent_id is not None
-                                                      else workflowItem)
-        id = obj.signature
-        if id not in workflow.modules and parent_id:
-            id = '%s/%s' % (parent_id, obj.signature)
+        base = (workflow_item.intermediates[parent_id] if parent_id is not None
+                                                      else workflow_item)
+        id = obj.module.signature
         if obj.children:
             # add parent items and their children
-            if id not in workflowItem.intermediates:
-                workflowItem.intermediates[id] = QParentItem(id,
-                                                             obj.name, base)
+            if id not in workflow_item.intermediates:
+                parent_item = QParentItem(id, obj.name, base)
+                parent_item.setExpanded(True)
+                workflow_item.intermediates[id] = parent_item
+
             for child in obj.children:
                 self.addJobRec(child, id)
-        elif obj.signature in workflow.modules:
+        elif obj.module.signature in workflow.jobs:
             # this is an already existing new-style job
-            job = workflowItem.jobs[obj.signature]
+            job = workflow_item.jobs[obj.module.signature]
             job.monitor = obj.monitor
             # need to force takeChild
             base.addChild(job.parent().takeChild(job.parent().indexOfChild(job)))
-        elif id in workflow.modules:
+        elif id in workflow.jobs:
             # this is an already existing old-style job
-            job = workflowItem.jobs[id]
+            job = workflow_item.jobs[id]
             job.monitor = obj.monitor
             # need to force takeChild
             base.addChild(job.parent().takeChild(job.parent().indexOfChild(job)))
@@ -222,94 +383,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         workflowItem = self.workflowItems.get(workflow.id, None)
         if workflowItem:
             workflowItem.updateJobs()
-            self.set_visible(True)
-
-    def update_jobs(self):
-        """Called via a timer.
-
-        Checks all jobs for workflows both with and without monitors.
-        """
-        for workflow in self.workflowItems.values():
-            # jobs without a monitor can also be checked
-            if not workflow.has_queue:
-                # restart job and execute
-                self.jobMonitor.startWorkflow(workflow.workflow)
-                self.updating_now = False
-                workflow.execute()
-                self.updating_now = True
-                continue
-            if workflow.workflowFinished:
-                continue
-            for job in workflow.jobs.itervalues():
-                if job.jobFinished:
-                    continue
-                try:
-                    # call monitor
-                    job.jobFinished = self.jobMonitor.isDone(job.monitor)
-                    if job.jobFinished:
-                        job.setText(1, "Finished")
-                except Exception, e:
-                    debug.critical("Error checking job %s: %s" % workflow.name,
-                                   e)
-            workflow.updateJobs()
-            if workflow.workflowFinished:
-                if self.autorun.isChecked():
-                    self.jobMonitor.startWorkflow(workflow.workflow)
-                    self.updating_now = False
-                    workflow.execute()
-                    self.updating_now = True
-                    continue
-                ret = QtGui.QMessageBox.information(self, "Job Ready",
-                        'Pending Jobs in workflow "%s" have finished, '
-                        'continue execution now?' % workflow.name,
-                        QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
-                if ret == QtGui.QMessageBox.Ok:
-                    self.jobMonitor.startWorkflow(workflow.workflow)
-                    self.updating_now = False
-                    workflow.execute()
-                    self.updating_now = True
-
-    def timerEvent(self, id=None):
-        if self.updating_now:
-            return
-        self.updating_now = True
-        self.update_jobs()
-        self.updating_now = False
-
-    def keyPressEvent(self, event):
-        if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
-            items = self.jobView.selectedItems()
-            if len(items) == 1:
-                item = items[0]
-                if isinstance(item, QWorkflowItem):
-                    self.jobMonitor.deleteWorkflow(item.workflow.id)
-                elif isinstance(item, QJobItem):
-                    # find parent
-                    parent = item.parent()
-                    while not isinstance(parent, QWorkflowItem):
-                        parent = parent.parent()
-                    self.jobMonitor.deleteJob(item.job.id, parent.workflow.id)
-                index = self.jobView.indexOfTopLevelItem(items[0])
-                if index>=0:
-                    self.delete_job(items[0].controller, items[0].version)
-        else:
-            QtGui.QWidget.keyPressEvent(self, event)
-
-    def addJob(self, job):
-        """ addJob(self, job: job.Module) -> None
-        Callback, adds or updates a job in the interface.
-        """
-
-        workflow = self.jobMonitor.currentWorkflow()
-        if workflow.id not in self.workflowItems:
-            workflowItem = QWorkflowItem(workflow, self.jobView)
-            self.jobView.addTopLevelItem(workflowItem)
-            self.workflowItems[workflow.id] = workflowItem
-
-        workflowItem = self.workflowItems[workflow.id]
-        if job.id not in workflowItem.jobs:
-            workflowItem.jobs[job.id] = QJobItem(job, workflowItem)
-        workflowItem.updateJobs()
+            QJobView.instance().set_visible(True)
 
     def checkJob(self, module, id, monitor):
         """ checkJob(module: VistrailsModule, id: str, monitor: instance)
@@ -318,19 +392,19 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         workflow = self.jobMonitor.currentWorkflow()
         if not workflow:
             if not monitor or not self.jobMonitor.isDone(monitor):
-                raise ModuleSuspended(module, 'Job is running', monitor=monitor,
-                                      job_id=id)
-        workflowItem = self.workflowItems[workflow.id]
-        item = workflowItem.jobs.get(id, None)
+                raise ModuleSuspended(module, 'Job is running',
+                                      monitor=monitor)
+        workflow_item = self.workflowItems[workflow.id]
+        item = workflow_item.jobs.get(id, None)
         item.setText(0, item.job.name)
         # we should check the status using monitor and show dialog
         # get current view progress bar and hijack it
         if monitor:
             item.monitor = monitor
         workflow = self.jobMonitor.currentWorkflow()
-        workflowItem = self.workflowItems.get(workflow.id, None)
-        workflowItem.updateJobs()
-        progress = workflowItem.view.controller.progress
+        workflow_item = self.workflowItems.get(workflow.id, None)
+        workflow_item.updateJobs()
+        progress = self.controller.progress
 
         conf = configuration.get_vistrails_configuration()
         interval = conf.jobCheckInterval
@@ -353,13 +427,13 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                         if progress.wasCanceled():
                             # this does not work, need to create a new progress dialog
                             #progress.goOn()
-                            new_progress =  progress.__class__(progress.parent())
+                            new_progress = progress.__class__(progress.parent())
                             new_progress.setMaximum(progress.maximum())
                             new_progress.setValue(progress.value())
                             new_progress.setLabelText(labelText)
                             new_progress.setMinimumDuration(0)
                             new_progress.suspended = True
-                            workflowItem.view.controller.progress = new_progress
+                            self.controller.progress = new_progress
                             progress.hide()
                             progress.deleteLater()
                             progress = new_progress
@@ -367,87 +441,37 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                             QtCore.QCoreApplication.processEvents()
                             raise ModuleSuspended(module,
                                        'Interrupted by user, job'
-                                       ' is still running', monitor=monitor,
-                                       job_id=id)
+                                       ' is still running', monitor=monitor)
                 return
         if not monitor or not self.jobMonitor.isDone(monitor):
-            raise ModuleSuspended(module, 'Job is running', monitor=monitor,
-                                  job_id=id)
-
-    def deleteWorkflow(self, id):
-        """ deleteWorkflow(id: str) -> None
-        Callback, deletes a workflow.
-        """
-        self.jobView.takeTopLevelItem(
-            self.jobView.indexOfTopLevelItem(
-                self.workflowItems[id]))
-        del self.workflowItems[id]
-
-    def deleteJob(self, id, parent_id=None):
-        """ deleteJob(id: str, parent_id: str) -> None
-        Callback, deletes a a single job.
-
-        If parent_id is None, the current workflow is used
-        """
-        workflowItem = self.workflowItems[parent_id]
-        jobItem = workflowItem.jobs[id]
-        jobItem.parent().takeChild(jobItem.parent().indexOfChild(jobItem))
-        workflowItem.updateJobs()
-        del workflowItem.jobs[id]
-
-    def item_clicked(self, item):
-        """Item activated.
-        """
-        if isinstance(item, QWorkflowItem):
-            item.goto()
-
-    def load_running_jobs(self):
-        """Loads the current jobs from the JSON file.
-        """
-        workflows = self.jobMonitor._running_workflows
-        # update gui
-        for workflow in workflows.itervalues():
-            if workflow.id not in self.workflowItems:
-                workflowItem = QWorkflowItem(workflow, self.jobView)
-                self.jobView.addTopLevelItem(workflowItem)
-                self.workflowItems[workflow.id] = workflowItem
-                for job in workflow.modules.itervalues():
-                    if job.id not in workflowItem.jobs:
-                        workflowItem.jobs[job.id] = QJobItem(job, workflowItem)
-                        workflowItem.updateJobs()
-        if workflows:
-            self.set_visible(True)
+            raise ModuleSuspended(module, 'Job is running', monitor=monitor)
 
 
 class QWorkflowItem(QtGui.QTreeWidgetItem):
-    """A suspended workflow.
+    """A workflow with jobs.
 
-    This top-level item can have children items.
+    This item can have child items.
     """
     def __init__(self, workflow, parent):
-        self.locator = BaseLocator.from_url(workflow.vistrail)
         QtGui.QTreeWidgetItem.__init__(self, parent, ['', ''])
-        self.setToolTip(0, "Double-Click to View Pipeline")
-        self.setToolTip(1, workflow.id)
         self.workflow = workflow
         self.has_queue = True
-        self.setIcon(0, theme.get_current_theme().JOB_CHECKING)
-        self.setExpanded(True)
+        self.setIcon(0, theme.get_current_theme().PIPELINE_ICON)
+        self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
         self.workflowFinished = False
         self.jobs = {}
         self.intermediates = {}
         self.updateJobs()
 
     def updateJobs(self):
-        from vistrails.gui.vistrails_window import _app
-        self.view = _app.getViewFromLocator(self.locator)
-        if self.view:
-            self.name = "%s:%s" % (self.locator.short_name,
-                                   self.view.controller.get_pipeline_name())
-        else:
-            self.name = "%s:%s" % (self.locator.short_name,
-                                   self.workflow.version)
-        self.setText(0, self.name)
+        """ Updates name and job states
+        """
+        name = self.parent().controller.get_pipeline_name(
+                                                        self.workflow.version)
+        self.setText(0, name)
+        self.setToolTip(0, 'Double-Click to View Pipeline "%s" with id %s' %
+                           (name, self.workflow.version))
+        self.setToolTip(1, "Log id: %s" % self.workflow.id)
         self.has_queue = True
         for job in self.jobs.itervalues():
             job.updateJob()
@@ -458,24 +482,26 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         self.setText(1, "(%s/%s)" % (finished, count))
         self.workflowFinished = (finished == count)
         if self.workflowFinished:
-            self.setIcon(0, theme.get_current_theme().JOB_FINISHED)
+            self.setIcon(1, theme.get_current_theme().JOB_FINISHED)
         elif not self.has_queue:
-            self.setIcon(0, theme.get_current_theme().JOB_SCHEDULED)
+            self.setIcon(1, theme.get_current_theme().JOB_SCHEDULED)
         else:
-            self.setIcon(0, theme.get_current_theme().JOB_CHECKING)
+            self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
 
     def goto(self):
+        """ Shows this pipeline
+
+        """
         from vistrails.gui.vistrails_window import _app
-        if not self.view:
-            _app.open_vistrail_without_prompt(self.locator)
-            self.view = _app.getViewFromLocator(self.locator)
-        _app.change_view(self.view)
-        self.view.version_selected(self.workflow.version, True,
-                                   double_click=True)
+        view = _app.getViewFromLocator(self.parent().controller.locator)
+        _app.change_view(view)
+        view.version_selected(self.workflow.version, True, double_click=True)
+        return view
 
     def execute(self):
-        self.goto()
-        self.view.execute()
+        """ Shows and executes this pipeline
+        """
+        self.goto().execute()
 
 
 class QJobItem(QtGui.QTreeWidgetItem):
@@ -492,7 +518,6 @@ class QJobItem(QtGui.QTreeWidgetItem):
         self.jobFinished = self.job.finished
         self.monitor = None
         self.updateJob()
-        self.setExpanded(True)
 
     def updateJob(self):
         if self.job.finished:
@@ -500,13 +525,13 @@ class QJobItem(QtGui.QTreeWidgetItem):
         self.setText(1, self.job.parameters.get('__message__',
                         "Finished" if self.jobFinished else "Running"))
         if self.jobFinished:
-            self.setIcon(0, theme.get_current_theme().JOB_FINISHED)
+            self.setIcon(1, theme.get_current_theme().JOB_FINISHED)
             self.setToolTip(0, "This Job Has Finished")
         elif self.monitor:
-            self.setIcon(0, theme.get_current_theme().JOB_SCHEDULED)
+            self.setIcon(1, theme.get_current_theme().JOB_SCHEDULED)
             self.setToolTip(0, "This Job is Running and Scheduled for Checking")
         else:
-            self.setIcon(0, theme.get_current_theme().JOB_CHECKING)
+            self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
             self.setToolTip(0, "This Job is Running")
         self.setToolTip(1, self.job.id)
 
@@ -529,7 +554,6 @@ class QParentItem(QtGui.QTreeWidgetItem):
     def __init__(self, id, name, parent=None):
         QtGui.QTreeWidgetItem.__init__(self, parent, [name, ''])
         self.id = id
-        self.setExpanded(True)
         self.setToolTip(0, self.id)
 
 
