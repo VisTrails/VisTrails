@@ -426,8 +426,10 @@ class Pipeline(object):
 
 class ModuleClass(type):
     def __new__(cls, descriptor):
-        return type.__new__(cls, descriptor.name, (object,),
-                            {'descriptor': descriptor})
+        return type.__new__(cls, descriptor.name, (object,), {})
+
+    def __init__(self, descriptor):
+        self.descriptor = descriptor
 
     def __call__(self, *args, **kwargs):
         return Module(self.descriptor, *args, **kwargs)
