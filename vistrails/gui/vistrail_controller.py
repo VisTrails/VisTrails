@@ -881,14 +881,10 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         full = self.vistrail.getVersionGraph()
-        changed = False
         p = full.parent(v2)
         while p>v1:
             self.vistrail.expandVersion(p)
-            changed = True
             p = full.parent(p)
-        if changed:
-            self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True)
 
@@ -903,8 +899,6 @@ class VistrailController(QtCore.QObject, BaseController):
         am = self.vistrail.actionMap
         tm = self.vistrail.get_tagMap()
 
-        changed = False
-
         while 1:
             try:
                 current=x.pop()
@@ -916,15 +910,12 @@ class VistrailController(QtCore.QObject, BaseController):
             if len(children) > 1:
                 break
             self.vistrail.collapseVersion(current)
-            changed = True
 
             for child in children:
                 if (not child in tm and  # has no Tag
                     child != self.current_version): # not selected
                     x.append(child)
 
-        if changed:
-            self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True) 
 
@@ -941,8 +932,6 @@ class VistrailController(QtCore.QObject, BaseController):
         
         am = self.vistrail.actionMap
 
-        changed = False
-
         while 1:
             try:
                 current=x.pop()
@@ -955,13 +944,9 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.vistrail.expandVersion(current)
             else:
                 self.vistrail.collapseVersion(current)
-            changed = True
 
             for child in children:
                 x.append(child)
-
-        if changed:
-            self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True) 
 
@@ -979,19 +964,8 @@ class VistrailController(QtCore.QObject, BaseController):
         am = self.vistrail.actionMap
         for a in am.iterkeys():
             self.vistrail.collapseVersion(a)
-        self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True)
-
-    def set_num_versions_always_shown(self, num):
-        """ set_num_versions_always_shown(num: int) -> None
-
-        """
-        if num <> self.num_versions_always_shown:
-            self.num_versions_always_shown = num
-            self.set_changed(True)
-            self.recompute_terse_graph()
-            self.invalidate_version_tree(False)
 
     def setSavedQueries(self, queries):
         """ setSavedQueries(queries: list of (str, str, str)) -> None
