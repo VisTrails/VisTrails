@@ -424,6 +424,35 @@ class Pipeline(object):
         return desc + ">"
 
 
+class ModuleClass(type):
+    def __new__(cls, descriptor):
+        return type.__new__(cls, descriptor.name, (object,),
+                            {'descriptor': descriptor})
+
+    def __call__(self, *args, **kwargs):
+        return Module(self.descriptor, *args, **kwargs)
+
+    # Ignored by IPython because of bug 6709
+    # https://github.com/ipython/ipython/issues/6709
+    def __repr__(self):
+        return "<Module class %r from %s>" % (self.descriptor.name,
+                                              self.descriptor.identifier)
+    __str__ = __repr__
+    __unicode__ = __repr__
+
+    def __instancecheck__(self, instance):
+        return (isinstance(instance, Module) and
+                instance.descriptor == self.descriptor)
+
+    def __subclasscheck__(self, other):
+        if not issubclass(other, type):
+            raise TypeError
+        if not isinstance(other, ModuleClass):
+            return False
+        reg = get_module_registry()
+        return reg.is_descriptor_subclass(self.descriptor, other.descriptor)
+
+
 class ModuleValuePair(object):
     """Internal object returned by Module == value expressions.
     """
@@ -461,6 +490,10 @@ class Module(object):
         if self.module_id is None:
             raise ValueError("This module is not part of a pipeline")
         return self.pipeline.pipeline.modules[self.module_id]
+
+    @property
+    def module_class(self):
+        return ModuleClass(self.descriptor)
 
     def __repr__(self):
         desc = "<Module %r from %s" % (self.descriptor.name,
@@ -514,7 +547,7 @@ class ModuleNamespace(object):
         descr = reg.get_descriptor_by_name(self.identifier,
                                            name,
                                            namespace)
-        return Module(descriptor=descr)
+        return ModuleClass(descr)
 
     def __repr__(self):
         return "<Namespace %s of package %s>" % (self._namespace,
