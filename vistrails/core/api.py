@@ -1,5 +1,5 @@
 import contextlib
-import warnings
+from itertools import izip
 
 import vistrails.core.application
 import vistrails.core.db.action
@@ -8,11 +8,15 @@ from vistrails.core.db.locator import UntitledLocator, FileLocator
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package as _Package
+from vistrails.core.modules.sub_module import get_port_spec_info
+from vistrails.core.modules.utils import parse_port_spec_string
 from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import DummyView
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.pipeline import Pipeline as _Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail as _Vistrail
+from vistrails.db.domain import IdScope
 
 
 __all__ = ['Vistrail', 'Pipeline', 'Module', 'Package',
@@ -286,6 +290,11 @@ class Pipeline(object):
         sinks = set()
         inputs = {}
 
+        reg = get_module_registry()
+        InputPort_desc = reg.get_descriptor_by_name(
+                get_vistrails_basic_pkg_id(),
+                'InputPort')
+
         # Read args
         for arg in args:
             if isinstance(arg, ModuleValuePair):
@@ -293,7 +302,11 @@ class Pipeline(object):
                     raise ValueError(
                             "Multiple values set for InputPort %r" %
                             get_inputoutput_name(arg.module))
-                inputs[arg.module.id] = arg
+                if not reg.is_descriptor_subclass(arg.module.module_descriptor,
+                                                  InputPort_desc):
+                    raise ValueError("Module %d is not an InputPort" %
+                                     arg.module.id)
+                inputs[arg.module.id] = arg.value
             elif isinstance(arg, Module):
                 sinks.add(arg.module_id)
 
@@ -308,6 +321,7 @@ class Pipeline(object):
         reason = "API pipeline execution"
         sinks = sinks or None
 
+        # Use controller only if no inputs were passed in
         if (not inputs and self.vistrail is not None and
                 self.vistrail.current_version == self.version):
             controller = self.vistrail.controller
@@ -324,13 +338,50 @@ class Pipeline(object):
                     ]])
             result, = results
         else:
+            pipeline = self.pipeline
             if inputs:
-                # TODO : set input
-                warnings.warn("execute() does not yet support setting "
-                              "input ports")
+                id_scope = IdScope()
+                id_remap = {}
+                pipeline = pipeline.do_copy(True, id_scope, id_remap)
+                create_module = \
+                        VistrailController.create_module_from_descriptor_static
+                create_function = VistrailController.create_function_static
+                create_connection = VistrailController.create_connection_static
+                # Fills in the ExternalPipe ports
+                for module_id, values in inputs.iteritems():
+                    module = pipeline.modules[module_id]
+                    if not isinstance(values, (list, tuple)):
+                        values = [values]
+
+                    # Guess the type of the InputPort
+                    _, sigstrings, _, _, _ = get_port_spec_info(pipeline, module)
+                    sigstrings = parse_port_spec_string(sigstrings)
+
+                    # Convert whatever we got to a list of strings, for the
+                    # pipeline
+                    values = [reg.convert_port_val(val, sigstring, None)
+                              for val, sigstring in izip(values, sigstrings)]
+
+                    if len(values) == 1:
+                        # Create the constant module
+                        constant_desc = reg.get_descriptor_by_name(
+                                *sigstrings[0])
+                        constant_mod = create_module(id_scope, constant_desc)
+                        func = create_function(id_scope, constant_mod,
+                                               'value', values)
+                        constant_mod.add_function(func)
+                        pipeline.add_module(constant_mod)
+
+                        # Connect it to the ExternalPipe port
+                        conn = create_connection(id_scope,
+                                                 constant_mod, 'value',
+                                                 module, 'ExternalPipe')
+                        pipeline.db_add_connection(conn)
+                    else:
+                        raise RuntimeError("TODO : create tuple")
 
             interpreter = get_default_interpreter()
-            result = interpreter.execute(self.pipeline,
+            result = interpreter.execute(pipeline,
                                          reason=reason,
                                          sinks=sinks)
 
@@ -358,6 +409,7 @@ class Pipeline(object):
                                  module_id)
             else:
                 module, = modules
+
         else:
             raise TypeError("get_module() expects a string or integer, not "
                             "%r" % type(module_id).__name__)
@@ -426,8 +478,10 @@ class Pipeline(object):
 
 class ModuleClass(type):
     def __new__(cls, descriptor):
-        return type.__new__(cls, descriptor.name, (object,),
-                            {'descriptor': descriptor})
+        return type.__new__(cls, descriptor.name, (object,), {})
+
+    def __init__(self, descriptor):
+        self.descriptor = descriptor
 
     def __call__(self, *args, **kwargs):
         return Module(self.descriptor, *args, **kwargs)
