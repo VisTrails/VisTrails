@@ -2,7 +2,9 @@
 #If you get an error saying:
 #Found another instance of VisTrails running
 #Sending parameters to main instance  []
-#Failed:  QLocalSocket::connectToServer: Connection refused 
+#Failed:  QLocalSocket::connectToServer: Connection refused
 #make sure VisTrails is not already running and simply try to run the script again
-#This might indicate that VisTrails did not quit properly 
-DYLD_LIBRARY_PATH= /Applications/VisTrails/VisTrails.app/Contents/MacOS/vistrails
+#This might indicate that VisTrails did not quit properly
+
+cd "$(dirname "$0")"
+DYLD_LIBRARY_PATH= VisTrails.app/Contents/MacOS/vistrails
