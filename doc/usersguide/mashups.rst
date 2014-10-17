@@ -67,7 +67,7 @@ A Simple Example
 
    * Open :vtl:`brain_vistrail.vt`
    * Choose ``Save As`` and rename the file if you do not want to overwrite the original.
-   * Select the "counter 4" version
+   * Select the "contour 4" version
    * Press execute to ensure any necessary upgrades are made
    * Select ``Mashup`` from the toolbar.
    * In the Mashup Pipeline tab, look under ``vtkProperty`` :math:`\rightarrow` ``SetOpacity`` and double-click on ``Float``.  
