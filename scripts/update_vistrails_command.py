@@ -39,8 +39,13 @@ is located.
 
 """
 import os, os.path
+import sys
 
 if __name__ == "__main__":
+    sys.stderr.write("Running the update_vistrails_command.py script is not required anymore.\n"
+                     "It will be removed in future releases.\n")
+    # TODO : Remove this file after 2.2
+
     # get VisTrails folder
     vt_folder = os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
     command_file = os.path.join(vt_folder, 'VisTrails.command')
