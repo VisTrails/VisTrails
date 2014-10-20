@@ -233,7 +233,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 if not linux_default_application_set():
                     self.ask_update_default_application()
 
-        elif interactive:
+        if interactive:
             self.interactiveMode()
         else:
             r = self.noninteractiveMode()
