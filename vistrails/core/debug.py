@@ -150,6 +150,7 @@ class DebugPrint:
         self.console.setFormatter(self.format)
         self.console.setLevel(logging.WARNING)
         self.logger.addHandler(self.console)
+        self.logger.propagate = False
 
 #    if system.python_version() <= (2,4,0,'',0):
 #        raise VersionTooLow('Python', '2.4.0')
