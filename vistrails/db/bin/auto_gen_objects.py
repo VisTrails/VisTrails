@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,7 +40,7 @@ def capitalizeOne(str):
         result += a_str[0].upper() + a_str[1:]
     return result
 
-class Field:
+class Field(object):
     def __init__(self, params):
         self.params = params
 
@@ -164,7 +164,7 @@ class Field:
                 if key is not None:
                     indices.append(key.getRegularName())
             for index in self.getIndices():
-                if type(index) == type([]):
+                if isinstance(index, list):
                     index_field = []
                     for piece in index:
                         ignore_del_err = False
@@ -207,6 +207,9 @@ class Field:
  
     def shouldExpand(self):
         return self.params.get('expand','true') == 'true'
+
+    def shouldExpandAction(self):
+        return self.params.get('expandAction', 'true') == 'true'
 
     def hasDiscriminator(self):
         return self.params.has_key('discriminator')
@@ -291,7 +294,7 @@ class Property(Field):
     def isChoice(self):
         return False
 
-class Object:
+class Object(object):
     def __init__(self, params, properties, layouts, choices):
         self.params = params
         self.properties = properties
@@ -333,6 +336,10 @@ class Object:
         return 'db_' + Object.getName(self)
 
     def getClassName(self):
+        try:
+            return self.params['className']
+        except KeyError:
+            pass
         return 'DB%s' % capitalizeOne(Object.getName(self))
 
     def getChildren(self):

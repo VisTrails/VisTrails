@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,8 +33,12 @@
 ##
 ###############################################################################
 from vistrails.core.db.locator import BaseLocator
+from vistrails.core.system import strftime
+from datetime import datetime
 
 class Entity(object):
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
+
     def __init__(self):
         self.parent = None
         self.children = []
@@ -45,21 +49,24 @@ class Entity(object):
     def load(self, *args):
         (self.id, 
          _, 
-         self.name, 
+         self.name,
          self.user,
-         self.mod_time, 
+         self.mod_time,
          self.create_time,
          self.size,
          self.description,
          self.url) = args
+        self.mod_time = self.timeval(self.mod_time)
+        self.create_time = self.timeval(self.create_time)
+
 
     def save(self):
         return (self.id,
                 self.type_id,
                 self.name,
                 self.user,
-                self.mod_time,
-                self.create_time,
+                strftime(self.mod_time, self.DATE_FORMAT),
+                strftime(self.create_time, self.DATE_FORMAT),
                 self.size,
                 self.description,
                 self.url)
@@ -72,46 +79,60 @@ class Entity(object):
         return self.mod_time
     end_date = property(_get_end_date)
 
+    def now(self):
+        return datetime.now()
+
+    def timeval(self, time):
+        try:
+            return datetime.strptime(time, self.DATE_FORMAT)
+        except ValueError:
+            # try old format
+            try:
+                return datetime.strptime(time, '%d %b %Y %H:%M:%S')
+            except ValueError:
+                # locale or other error
+                return self.now()
+
 #     # returns string
 #     def get_name(self):
 #         return self.name
 
 #     # returns datetime
 #     def get_mod_time(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns datetime
 #     def get_create_time(self):
-#         raise Exception("Method is abstract")        
+#         raise RuntimeError("Method is abstract")
     
 #     # returns string
 #     # FIXME: perhaps this should be a User object at some point
 #     def get_user(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
     
 #     # returns tuple (<entity_type>, <entity_id>)
 #     def get_id(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns integer
 #     def get_size(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     def get_description(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
     
 #     # returns possibly empty list of Entity objects
 #     def get_children(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
 
 #     # returns list of strings representing paths
 #     # FIXME: should this be uris for database access?
 #     def get_image_fnames(self):
-#         raise Exception("Method is abstract")
+#         raise RuntimeError("Method is abstract")
     
     # returns boolean, True if search input is satisfied else False
     def match(self, search):
-        raise Exception("Method is abstract")
+        raise RuntimeError("Method is abstract")
 
     def locator(self):
         locator = BaseLocator.from_url(self.url)

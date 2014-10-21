@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -201,7 +201,10 @@ Would you like to create one?"
 
         """
         conn = self.connectionList.getCurrentItemId()
-        self.objectList.updateContents(conn)
+        try:
+            self.objectList.updateContents(conn)
+        except VistrailsDBException, e:
+            self.connectionList.setCurrentItem(None)
         self.updateEditButtons(conn)
 
     def updateButtons(self):
@@ -478,20 +481,13 @@ class QDBConnectionList(QtGui.QListWidget):
         If the connection exists it will update it, else it will add it
 
         """
-        if kwargs.has_key("id"):
-            id = kwargs["id"]
-        if kwargs.has_key("name"):
-            name = kwargs["name"]
-        if kwargs.has_key("host"):
-            host = kwargs["host"]
-        if kwargs.has_key("port"):
-            port = kwargs["port"]
-        if kwargs.has_key("user"):
-            user = kwargs["user"]
-        if kwargs.has_key("passwd"):
-            passwd = kwargs["passwd"]
-        if kwargs.has_key("db"):
-            db = kwargs["db"]
+        id = kwargs["id"]
+        name = kwargs["name"]
+        host = kwargs["host"]
+        port = kwargs["port"]
+        user = kwargs["user"]
+        passwd = kwargs["passwd"]
+        db = kwargs["db"]
 
         conn = DBConnection(id=id,
                             name=name,
@@ -549,10 +545,8 @@ class QDBConnectionList(QtGui.QListWidget):
         config = self.getConnectionInfo(conn_id)
         if conn.dbtype == 'MySQL':
             #removing extra keyword arguments for MySQldb
-            config_name = config['name']
-            del config['name']
-            config_id = config['id']
-            del config['id']
+            config_name = config.pop('name')
+            config_id = config.pop('id')
         vt_list = vistrails.db.services.io.get_db_object_list(config, obj_type)
         if conn.dbtype == 'MySQL':
             config['name'] = config_name
@@ -604,10 +598,14 @@ class QDBObjectList(QtGui.QListWidget):
                     self.addItem(item)
             except VistrailsDBException, e:
                 #show connection setup
+                if "Couldn't get list of vistrails objects" in str(e):
+                    debug.critical('An error has occurred', e)
+                    raise e
                 config = parent.connectionList.getConnectionInfo(int(conn_id))
                 if config != None:
                     config["create"] = False
-                    parent.showConnConfig(**config)
+                    if not parent.showConnConfig(**config):
+                        raise e
                 else:
                     raise e
             
@@ -750,7 +748,7 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
             show_info('Vistrails',"Connection succeeded!")
             
         except Exception, e:
-            debug.critical('An error has occurred', str(e))
+            debug.critical('An error has occurred', e)
 
     def updateButtons(self):
         """updateButtons() -> None

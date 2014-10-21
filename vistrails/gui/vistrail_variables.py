@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,7 +38,6 @@ drop constants from the module palette
 """
 from PyQt4 import QtCore, QtGui
 from vistrails.gui.variable_dropbox import QVariableDropBox
-from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################

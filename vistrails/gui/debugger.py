@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 from PyQt4 import QtGui, QtCore
+from vistrails.core.modules.vistrails_module import ModuleError
 import vistrails.core.system
 import copy
 import sys
@@ -85,24 +86,28 @@ class QDebugger(QtGui.QWidget, QVistrailsPaletteInterface):
         Update the debugger.  If the update requires querying modules for input
         changes, update_vals should be set to True
         """
-        pipeline = self.controller.current_pipeline
-        if pipeline is None:
-            return
-
         self.inspector.clear_modules()
-        for module in pipeline.module_list:
-            if module.is_breakpoint or module.is_watched:
-                self.inspector.add_module(module)
-        if update_vals:
-            (module_objects, _, _) = \
-                self.vistrails_interpreter.find_persistent_entities(pipeline)
-            for m_id in self.inspector.modules:
-                if m_id in module_objects and module_objects[m_id] is not None:
-                    self.inspector.update_values(m_id, module_objects[m_id])
-                elif module_objects[m_id] is None:
-                    edges = pipeline.graph.edges_to(m_id)
-                    self.inspector.update_inputs(m_id, module_objects, edges,
-                                                  pipeline.connections)
+        if self.controller is not None:
+            pipeline = self.controller.current_pipeline
+            if pipeline is None:
+                return
+
+            for module in pipeline.module_list:
+                if module.is_breakpoint or module.is_watched:
+                    self.inspector.add_module(module)
+            if update_vals:
+                (module_objects, _, _) = \
+                    self.vistrails_interpreter.find_persistent_entities(
+                        pipeline)
+                for m_id in self.inspector.modules:
+                    if (m_id in module_objects and 
+                            module_objects[m_id] is not None):
+                        self.inspector.update_values(m_id, module_objects[m_id])
+                    elif module_objects[m_id] is None:
+                        edges = pipeline.graph.edges_to(m_id)
+                        self.inspector.update_inputs(m_id, module_objects, 
+                                                     edges,
+                                                      pipeline.connections)
 
     def closeEvent(self, e):
         """closeEvent(e) -> None
@@ -199,7 +204,7 @@ class QObjectInspector(QtGui.QTreeWidget):
         if display_vals:
             p_item.setText(1, str(port_value))
         else:
-            typestr = str(port_val.__class__)
+            typestr = str(port_value.__class__)
             typestr = typestr.split('.')
             typestr = typestr[len(typestr)-1]
             typestr = typestr[0:len(typestr)-2]
@@ -216,7 +221,7 @@ class QObjectInspector(QtGui.QTreeWidget):
         inputs_item.setText(1, "")
         for port_name in m.inputPorts:
             try:
-                port_val = m.getInputListFromPort(port_name)
+                port_val = m.get_input_list(port_name)
                 if len(port_val) == 1:
                     port_val = port_val[0]
             except ModuleError:

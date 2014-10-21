@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -161,7 +161,7 @@ class MultipartParam(object):
                     fileobj.seek(0, 2)
                     self.filesize = fileobj.tell()
                     fileobj.seek(0)
-                except:
+                except IOError:
                     raise ValueError("Could not determine filesize")
 
     def __cmp__(self, other):
@@ -366,7 +366,7 @@ def get_headers(params, boundary):
     headers['Content-Length'] = str(get_body_size(params, boundary))
     return headers
 
-class multipart_yielder:
+class multipart_yielder(object):
     def __init__(self, params, boundary, cb):
         self.params = params
         self.boundary = boundary

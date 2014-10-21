@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -53,10 +53,12 @@ from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 
 class PortTable(QtGui.QTableWidget):
     def __init__(self, parent=None):
-        QtGui.QTableWidget.__init__(self,1,2,parent)
-        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
-        self.horizontalHeader().setMovable(False)
-        self.horizontalHeader().setStretchLastSection(True)
+        QtGui.QTableWidget.__init__(self,1,3,parent)
+        horiz = self.horizontalHeader()
+        horiz.setResizeMode(QtGui.QHeaderView.Interactive)
+        horiz.setMovable(False)
+        #horiz.setStretchLastSection(True)
+        horiz.setResizeMode(1, horiz.Stretch)
         self.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.delegate = PortTableItemDelegate(self)
@@ -82,7 +84,7 @@ class PortTable(QtGui.QTableWidget):
 
     def handleDataChanged(self, topLeft, bottomRight):
         if topLeft.column()==0:
-            text = str(self.model().data(topLeft, QtCore.Qt.DisplayRole).toString())
+            text = str(self.model().data(topLeft, QtCore.Qt.DisplayRole))
             changedGeometry = False
             if text!='' and topLeft.row()==self.rowCount()-1:
                 self.setRowCount(self.rowCount()+1)
@@ -107,14 +109,17 @@ class PortTable(QtGui.QTableWidget):
             sigstring = p.sigstring[1:-1]
             siglist = sigstring.split(':')
             short_name = "%s (%s)" % (siglist[1], siglist[0])
+            model.setData(model.index(self.rowCount()-1, 2),
+                          p.depth,
+                          QtCore.Qt.DisplayRole)
             model.setData(model.index(self.rowCount()-1, 1),
-                          QtCore.QVariant(sigstring),
+                          sigstring,
                           QtCore.Qt.UserRole)
             model.setData(model.index(self.rowCount()-1, 1),
-                          QtCore.QVariant(short_name),
+                          short_name,
                           QtCore.Qt.DisplayRole)
             model.setData(model.index(self.rowCount()-1, 0),
-                          QtCore.QVariant(p.name),
+                          p.name,
                           QtCore.Qt.DisplayRole)
             self.setRowCount(self.rowCount()+1)
         self.connect(self.model(),
@@ -123,48 +128,66 @@ class PortTable(QtGui.QTableWidget):
             
     def getPorts(self):
         ports = []
+        model = self.model()
         for i in xrange(self.rowCount()):
-            model = self.model()
-            name = str(model.data(model.index(i, 0), 
-                                  QtCore.Qt.DisplayRole).toString())
-            sigstring = str(model.data(model.index(i, 1), 
-                                       QtCore.Qt.UserRole).toString())
-            if name != '' and sigstring != '':
-                ports.append((name, '(' + sigstring + ')', i))
+            name = model.data(model.index(i, 0), QtCore.Qt.DisplayRole)
+            sigstring = model.data(model.index(i, 1), QtCore.Qt.UserRole)
+            depth = model.data(model.index(i, 2), QtCore.Qt.DisplayRole) or 0
+            if name is not None and sigstring is not None:
+                ports.append((name, '(%s)' % sigstring, i, depth))
         return ports
-        
+
 #    def focusOutEvent(self, event):
 #        if self.parent():
 #            QtCore.QCoreApplication.sendEvent(self.parent(), event)
 #        QtGui.QTableWidget.focusOutEvent(self, event)
-        
+
+
+class CompletingComboBox(QtGui.QComboBox):
+    def __init__(self, parent):
+        QtGui.QComboBox.__init__(self, parent)
+        self.setEditable(True)
+        self.setInsertPolicy(QtGui.QComboBox.NoInsert)
+        self._last_good_index = -1
+
+    def select_default_item(self, initial_idx):
+        self.setCurrentIndex(initial_idx)
+        self._last_good_index = initial_idx
+
+    def validate_input(self):
+        invalid = (self.currentIndex() == -1 or
+                   self.itemData(self.currentIndex()) == '')
+        completion = self.completer().currentCompletion()
+        if completion:
+            idx = self.findText(completion)
+            if idx:
+                invalid = False
+                self.setCurrentIndex(idx)
+        if invalid and self._last_good_index != -1:
+            self.setCurrentIndex(self._last_good_index)
+        elif invalid:
+            self.setEditText('')
+        else:
+            self._last_good_index = self.currentIndex()
+            self.setEditText(self.itemText(self.currentIndex()))
+
+
 class PortTableItemDelegate(QtGui.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         registry = get_module_registry()
-        if index.column()==1: #Port type
-            combo = QtGui.QComboBox(parent)
-            combo.setEditable(True)
-            combo.setInsertPolicy(QtGui.QComboBox.NoInsert)
-            def validateInput():
-                invalid = (combo.currentIndex() == -1 or
-                           combo.itemData(combo.currentIndex()) == QtCore.QVariant(''))
-                if invalid and validateInput.lastGoodIndex != -1:
-                    combo.setCurrentIndex(validateInput.lastGoodIndex)
-                elif invalid:
-                    combo.setEditText('')
-                else:
-                    validateInput.lastGoodIndex = combo.currentIndex()
-                    combo.setEditText(combo.itemText(combo.currentIndex()))
-            validateInput.lastGoodIndex = -1
-            self.connect(combo.lineEdit(), QtCore.SIGNAL('editingFinished()'),
-                         validateInput)
+        if index.column()==2: #Depth type
+            spinbox = QtGui.QSpinBox(parent)
+            spinbox.setValue(0)
+            return spinbox
+        elif index.column()==1: #Port type
+            combo = CompletingComboBox(parent)
             # FIXME just use descriptors here!!
             variant_desc = registry.get_descriptor_by_name(
                 get_vistrails_basic_pkg_id(), 'Variant')
             for _, pkg in sorted(registry.packages.iteritems()):
                 pkg_item = QtGui.QStandardItem("----- %s -----" % pkg.name)
-                pkg_item.setData(QtCore.QVariant(''), QtCore.Qt.UserRole)
+                pkg_item.setData('', QtCore.Qt.UserRole)
                 pkg_item.setFlags(pkg_item.flags() & ~(
                         QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable))
                 font = pkg_item.font()
@@ -176,26 +199,31 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
                         variant_index = combo.count()
                     combo.addItem("%s (%s)" % (descriptor.name,
                                                descriptor.identifier),
-                                  QtCore.QVariant(descriptor.sigstring))
+                                  descriptor.sigstring)
 
-            combo.setCurrentIndex(variant_index)
-            validateInput.lastGoodIndex = variant_index
+            combo.select_default_item(variant_index)
             return combo
         else:
             return QtGui.QItemDelegate.createEditor(self, parent, option, index)
 
     def setEditorData(self, editor, index):
-        if index.column()==1:
+        if index.column()==2:
+            data = index.model().data(index, QtCore.Qt.DisplayRole)
+            editor.setValue(data or 0)
+        elif index.column()==1:
             data = index.model().data(index, QtCore.Qt.UserRole)
             editor.setCurrentIndex(editor.findData(data))
         else:
             QtGui.QItemDelegate.setEditorData(self, editor, index)
 
     def setModelData(self, editor, model, index):
-        if index.column()==1:
+        if index.column()==2:
+            model.setData(index, editor.value() or 0, QtCore.Qt.DisplayRole)
+        elif index.column()==1:
+            editor.validate_input()
             model.setData(index, editor.itemData(editor.currentIndex()), 
                           QtCore.Qt.UserRole)
-            model.setData(index, QtCore.QVariant(editor.currentText()), 
+            model.setData(index, editor.currentText(), 
                           QtCore.Qt.DisplayRole)
         else:
             QtGui.QItemDelegate.setModelData(self, editor, model, index)
@@ -328,10 +356,10 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
     
     def getPortDiff(self, p_type, port_table):
         if p_type == 'input':
-            old_ports = [(p.name, p.sigstring, p.sort_key)
+            old_ports = [(p.name, p.sigstring, p.sort_key, p.depth)
                          for p in self.module.input_port_specs]
         elif p_type == 'output':
-            old_ports = [(p.name, p.sigstring, p.sort_key) 
+            old_ports = [(p.name, p.sigstring, p.sort_key, p.depth) 
                          for p in self.module.output_port_specs]
         else:
             old_ports = []
@@ -374,7 +402,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         # Then add a PortTable to our configuration widget
         self.portTable = PortTable(self)
         self.portTable.setHorizontalHeaderLabels(
-            QtCore.QStringList() << 'Input Port Name' << 'Type')
+            ['Input Port Name', 'Type', 'List Depth'])
         
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports
@@ -483,7 +511,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         # Then add a PortTable to our configuration widget
         self.portTable = PortTable(self)
         self.portTable.setHorizontalHeaderLabels(
-            QtCore.QStringList() << 'Output Port Name' << 'Type')
+            ['Output Port Name', 'Type'])
         
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports
@@ -528,7 +556,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
             self.controller.update_ports(self.module.id, deleted_ports, 
                                          added_ports)
         except PortAlreadyExists, e:
-            debug.critical('Port Already Exists %s' % str(e))
+            debug.critical('Port Already Exists %s' % e)
             return False
         return True
 

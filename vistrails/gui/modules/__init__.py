@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,31 +33,4 @@
 ##
 ###############################################################################
 
-from constant_configuration import StandardConstantWidgetBase
-from query_configuration import BaseQueryWidget
-
-def get_widget_class(module_klass):
-    klass = module_klass.get_widget_class()
-    if klass is None:
-        return StandardConstantWidgetBase
-    if type(klass) == tuple:
-        (path, klass_name) = klass
-        module = __import__(path, globals(), locals(), [klass_name])
-        return getattr(module, klass_name)
-    return klass
-
-def get_query_widget_class(module_klass):
-    klass = module_klass.get_query_widget_class()
-    if klass is None:
-        class DefaultQueryWidget(BaseQueryWidget):
-            def __init__(self, param, parent=None):
-                BaseQueryWidget.__init__(self, get_widget_class(module_klass), 
-                                         ["==", "!="],
-                                         param, parent)
-        return DefaultQueryWidget
-    if type(klass) == tuple:
-        (path, klass_name) = klass
-        module = __import__(path, globals(), locals(), [klass_name])
-        return getattr(module, klass_name)
-    return klass
-
+pass

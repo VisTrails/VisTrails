@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -103,12 +103,11 @@ class Mashuptrail(DBMashuptrail):
         return cp
     
     def getLatestVersion(self):
-        try:
-            max_ver = max(a.id for a in self.actions)
-            return max_ver
-        except:
+        if not self.actions:
             return 0
-        
+        max_ver = max(a.id for a in self.actions)
+        return max_ver
+
     def getMashup(self, version):
         if version in self.actionMap.keys():
             return self.actionMap[version].mashup
@@ -184,6 +183,19 @@ class Mashuptrail(DBMashuptrail):
         annot = ActionAnnotation(id=id, action_id=action_id, key=key,
                                  value=value, user=user, date=date)
         self.actionAnnotations.append(annot)
+
+
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        """ __str__() -> str - Returns a string representation of itself """
+        
+        return ("(Mashuptrail id='%s' vtVersion='%s' actions='%s')@%X" %
+                    (self.id,
+                     self.vtVersion,
+                     self.actions,
+                     id(self)))
     
     ######################################################################
     ## Serialization and Unserialization

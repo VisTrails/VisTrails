@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,7 +33,8 @@
 ##
 ###############################################################################
 
-from auto_gen import DBRegistry as _DBRegistry
+from auto_gen import DBRegistry as _DBRegistry, DBPackage, DBModuleDescriptor, \
+    DBPortSpec
 from id_scope import IdScope
 
 class DBRegistry(_DBRegistry):

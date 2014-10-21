@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,9 +35,9 @@
 
 """module responsible for smartly importing python modules, checking
 for necessary installs."""
-import traceback
 
 import vistrails.core.bundles.installbundle
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 
 ##############################################################################
@@ -66,7 +66,9 @@ def py_import(module_name, dependency_dictionary):
         result = _vanilla_import(module_name)
         return result
     except ImportError:
-        pass
+        if not getattr(get_vistrails_configuration(), 'installBundles'):
+            raise
+
     if module_name in _previously_failed_pkgs:
         raise PyImportException("Import of Python module '%s' failed again, "
                                 "not triggering installation" % module_name)

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -125,12 +125,14 @@ def get_workflow_diff(vt_pair_1, vt_pair_2):
     """
 
     from vistrails.core.vistrail.pipeline import Pipeline
-    (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes, \
-         _, _, _, _) = \
-         vistrails.db.services.vistrail.getWorkflowDiff(vt_pair_1, vt_pair_2, True)
+    (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes,
+     cparam_changes, annot_changes, _, _, _, _) = \
+         vistrails.db.services.vistrail.getWorkflowDiff(vt_pair_1, vt_pair_2,
+                                                        True)
     Pipeline.convert(v1)
     Pipeline.convert(v2)
-    return (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes)
+    return (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes,
+            cparam_changes, annot_changes)
 
 def get_workflow_diff_with_connections(vt_pair_1, vt_pair_2):
     """get_workflow_diff_with_connections
@@ -139,13 +141,15 @@ def get_workflow_diff_with_connections(vt_pair_1, vt_pair_2):
     """
 
     from vistrails.core.vistrail.pipeline import Pipeline
-    (v1, v2, m_pairs, m_heuristic, v1_only, v2_only, param_changes, \
-         c_pairs, c_heuristic, c1_only, c2_only) = \
-         vistrails.db.services.vistrail.getWorkflowDiff(vt_pair_1, vt_pair_2, False)
+    (v1, v2, m_pairs, m_heuristic, v1_only, v2_only, param_changes,
+     cparam_changes, annot_changes, c_pairs, c_heuristic, c1_only, c2_only) =\
+         vistrails.db.services.vistrail.getWorkflowDiff(vt_pair_1, vt_pair_2,
+                                                        False)
     Pipeline.convert(v1)
     Pipeline.convert(v2)
-    return (v1, v2, m_pairs, m_heustric, v1_only, v2_only, param_changes,
-            c_pairs, c_heuristic, c1_only, c2_only)
+    return (v1, v2, m_pairs, m_heuristic, v1_only, v2_only, param_changes,
+            cparam_changes, annot_changes, c_pairs, c_heuristic, c1_only,
+            c2_only)
 
 def getPathAsAction(vt, v1, v2, do_copy=False):
     a = vistrails.db.services.vistrail.getPathAsAction(vt, v1, v2, do_copy)
@@ -164,7 +168,7 @@ def convert_operation_list(ops):
         elif op.vtType == 'delete':
             DeleteOp.convert(op)
         else:
-            raise Exception("Unknown operation type '%s'" % op.vtType)
+            raise TypeError("Unknown operation type '%s'" % op.vtType)
 
 def create_action(action_list):
     """create_action(action_list: list) -> Action
@@ -224,3 +228,14 @@ def create_temp_folder(prefix='vt_save'):
 
 def remove_temp_folder(temp_dir):
     vistrails.db.services.io.remove_temp_folder(temp_dir)
+
+def load_startup(startup_fname):
+    from vistrails.core.startup import VistrailsStartup
+    startup = vistrails.db.services.io.open_startup_from_xml(startup_fname)
+    VistrailsStartup.convert(startup)
+    return startup
+
+def save_startup(startup, fname):
+    startup = vistrails.db.services.io.save_startup_to_xml(startup, fname)
+    return startup
+    

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -44,15 +44,52 @@ QVersionThumbs
 QVersionMashups
 
 """
-import os.path
+import re
 from PyQt4 import QtCore, QtGui
-from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
-from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.gui.theme import CurrentTheme
-from vistrails.gui.common_widgets import QSearchBox
-from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-from vistrails.core.utils import all
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.utils import all
+from vistrails.core.vistrail.controller import custom_color_key, \
+    parse_custom_color
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+
+################################################################################
+
+class ColorChooserButton(QtGui.QPushButton):
+    color_selected = QtCore.pyqtSignal(object)
+
+    def __init__(self, parent=None):
+        QtGui.QToolButton.__init__(self, parent)
+        self.setColor(None)
+
+        self.connect(self, QtCore.SIGNAL('clicked()'), self.changeColor)
+
+    def setColor(self, color, silent=True):
+        self.color = color
+        if color is not None:
+            self.setStyleSheet('ColorChooserButton {'
+                               'border: 1px solid black; '
+                               'background-color: rgb(%d, %d, %d); }' % (
+                               color.red(), color.green(), color.blue()))
+        else:
+            self.setStyleSheet('ColorChooserButton {'
+                               'border: 1px dashed black; }')
+        self.update()
+        if not silent:
+            self.color_selected.emit(self.color)
+
+    def sizeHint(self):
+        return QtCore.QSize(20, 20)
+
+    def changeColor(self):
+        if self.color is not None:
+            self.setColor(None, silent=False)
+        else:
+            color = QtGui.QColorDialog.getColor(QtCore.Qt.white, self)
+            if color.isValid():
+                self.setColor(color, silent=False)
 
 ################################################################################
 
@@ -68,7 +105,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         
         """
         QtGui.QWidget.__init__(self, parent)
-        self.setWindowTitle('Properties')
+        self.setWindowTitle('Workflow Info')
 
         vLayout = QtGui.QVBoxLayout()
         vLayout.setMargin(2)
@@ -82,7 +119,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         gLayout.setRowMinimumHeight(0,20)
         gLayout.setRowMinimumHeight(1,20)
         gLayout.setRowMinimumHeight(2,20)
-        gLayout.setRowMinimumHeight(3,20)        
+        gLayout.setRowMinimumHeight(3,20)
         vLayout.addLayout(gLayout)
         
         tagLabel = QtGui.QLabel('Tag:', self)
@@ -96,7 +133,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         editLayout.addWidget(self.tagEdit)
         self.tagEdit.setEnabled(False)
         self.tagEdit.setMinimumHeight(22)
-        
+
         self.tagReset = QtGui.QToolButton(self)
         self.tagReset.setIcon(QtGui.QIcon(
                 self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)))
@@ -104,6 +141,14 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.tagReset.setAutoRaise(True)
         self.tagReset.setEnabled(False)
         editLayout.addWidget(self.tagReset)
+
+        configuration = get_vistrails_configuration()
+        self.use_custom_colors = configuration.check('enableCustomVersionColors')
+
+        if self.use_custom_colors:
+            self.customColor = ColorChooserButton(self)
+            editLayout.addWidget(self.customColor)
+            self.customColor.color_selected.connect(self.custom_color_selected)
 
         gLayout.addLayout(editLayout, 0, 2, 1, 1)
 
@@ -119,8 +164,14 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.dateEdit = QtGui.QLabel('', self)
         gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
 
+        idLabel = QtGui.QLabel('ID:', self)
+        gLayout.addWidget(idLabel, 3, 0, 1, 1)
+        
+        self.idEdit = QtGui.QLabel('', self)
+        gLayout.addWidget(self.idEdit, 3, 2, 1, 1)
+
         self.notesLabel = QtGui.QLabel('Notes:')
-        gLayout.addWidget(self.notesLabel, 3, 0, 1, 1)
+        gLayout.addWidget(self.notesLabel, 4, 0, 1, 1)
 
         self.versionNotes = QVersionNotes()
         vLayout.addWidget(self.versionNotes)
@@ -147,11 +198,16 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         Assign the controller to the property page
         
         """
+        if self.controller == controller:
+            return
         self.controller = controller
         self.versionNotes.controller = controller
         self.versionThumbs.controller = controller
         self.versionMashups.controller = controller
-        self.updateVersion(controller.current_version)
+        if controller is not None:
+            self.updateVersion(controller.current_version)
+        else:
+            self.updateVersion(-1)
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
@@ -163,22 +219,36 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.versionThumbs.updateVersion(versionNumber)
         self.versionMashups.updateVersion(versionNumber)
         if self.controller:
+            if self.use_custom_colors:
+                custom_color = self.controller.vistrail.get_action_annotation(
+                        versionNumber, custom_color_key)
+                if custom_color is not None:
+                    try:
+                        custom_color = parse_custom_color(custom_color.value)
+                        custom_color = QtGui.QColor(*custom_color)
+                    except ValueError, e:
+                        debug.warning("Version %r has invalid color "
+                                      "annotation (%s)" % (versionNumber, e))
+                        custom_color = None
+                self.customColor.setColor(custom_color)
+
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 action = self.controller.vistrail.actionMap[versionNumber]
                 name = self.controller.vistrail.getVersionName(versionNumber)
                 self.tagEdit.setText(name)
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
+                self.idEdit.setText(unicode(action.id))
                 self.tagEdit.setEnabled(True)
                 return
             else:
                 self.tagEdit.setEnabled(False)
                 self.tagReset.setEnabled(False)
-                
+
         self.tagEdit.setText('')
         self.userEdit.setText('')
         self.dateEdit.setText('')
-        
+        self.idEdit.setText('')
 
     def tagFinished(self):
         """ tagFinished() -> None
@@ -205,6 +275,18 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         """ 
         self.tagEdit.setText('')
         self.tagFinished()
+
+    def custom_color_selected(self, color):
+        if color is not None:
+            self.controller.vistrail.set_action_annotation(
+                    self.controller.current_version, custom_color_key,
+                    '%d,%d,%d' % (color.red(), color.green(), color.blue()))
+        else:
+            self.controller.vistrail.set_action_annotation(
+                    self.controller.current_version, custom_color_key, None)
+        self.controller.set_changed(True)
+        self.controller.recompute_terse_graph()
+        self.controller.invalidate_version_tree()
 
 class QVersionNotes(QtGui.QTextEdit):
     """
@@ -313,7 +395,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.tag_label.palette().setBrush(QtGui.QPalette.Text,
                                           CurrentTheme.VERSION_PROPERTIES_PEN)
         self.tag_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
-        self.tag_label.setText(QtCore.QString("Tag:"))
+        self.tag_label.setText("Tag:")
 
         self.tag = QtGui.QLabel()
         self.tag.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
@@ -322,7 +404,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.description_label.palette().setBrush(QtGui.QPalette.Text,
                                                   CurrentTheme.VERSION_PROPERTIES_PEN)
         self.description_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
-        self.description_label.setText(QtCore.QString("Action:"))
+        self.description_label.setText("Action:")
 
         self.description = QtGui.QLabel()
         self.description.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
@@ -331,7 +413,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.user_label.palette().setBrush(QtGui.QPalette.Text,
                                            CurrentTheme.VERSION_PROPERTIES_PEN)
         self.user_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
-        self.user_label.setText(QtCore.QString("User:"))
+        self.user_label.setText("User:")
 
         self.user = QtGui.QLabel()
         self.user.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
@@ -340,7 +422,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.date_label.palette().setBrush(QtGui.QPalette.Text,
                                            CurrentTheme.VERSION_PROPERTIES_PEN)
         self.date_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
-        self.date_label.setText(QtCore.QString("Date:"))
+        self.date_label.setText("Date:")
         
         self.date = QtGui.QLabel()
         self.date.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
@@ -349,7 +431,7 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.notes_label.palette().setBrush(QtGui.QPalette.Text,
                                            CurrentTheme.VERSION_PROPERTIES_PEN)
         self.notes_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
-        self.notes_label.setText(QtCore.QString("Notes:"))
+        self.notes_label.setText("Notes:")
 
         self.notes = QtGui.QLabel()
         self.notes.setTextFormat(QtCore.Qt.PlainText)
@@ -404,6 +486,8 @@ class QVersionPropOverlay(QtGui.QFrame):
         Assign the controller to the properties
         
         """
+        if self.controller == controller:
+            return
         self.controller = controller
         self.notes_dialog.updateController(controller)
 
@@ -418,13 +502,13 @@ class QVersionPropOverlay(QtGui.QFrame):
                 action = self.controller.vistrail.actionMap[versionNumber]
                 name = self.controller.vistrail.getVersionName(versionNumber)
                 description = self.controller.vistrail.get_description(versionNumber)
-                self.tag.setText(self.truncate(QtCore.QString(name)))
-                self.description.setText(self.truncate(QtCore.QString(description)))
-                self.user.setText(self.truncate(QtCore.QString(action.user)))
-                self.date.setText(self.truncate(QtCore.QString(action.date)))
+                self.tag.setText(self.truncate(name))
+                self.description.setText(self.truncate(description))
+                self.user.setText(self.truncate(action.user))
+                self.date.setText(self.truncate(action.date))
                 notes = self.controller.vistrail.get_notes(action.id)
                 if notes:
-                    s = self.convertHtmlToText(QtCore.QString(notes))
+                    s = self.convertHtmlToText(notes)
                     self.notes.setText(self.truncate(s))
                 else:
                     self.notes.setText('')
@@ -443,21 +527,20 @@ class QVersionPropOverlay(QtGui.QFrame):
         
         """
         # Some text we want to ignore lives outside brackets in the header
-        str.replace(QtCore.QRegExp("<head>.*</head>"), "")
+        str = re.sub(r"<head>.*</head>", r"", str)
         # Remove all other tags
-        str.replace(QtCore.QRegExp("<[^>]*>"), "")
+        str = re.sub(r"<[^>]*>", r"", str)
         # Remove newlines
-        str.replace(QtCore.QRegExp("\n"), " ")
+        str = re.sub(r"\n", r"", str)
         return str
 
     def truncate(self, str):
-        """ truncate(str: QString) -> QString
+        """ truncate(str: string) -> string
         Shorten string to fit in smaller space
         
         """
-        if (str.size() > 24):
-            str.truncate(22)
-            str.append("...")
+        if len(str) > 24:
+            str = str[:22] + "..."
         return str
 
     def openNotes(self):
@@ -620,7 +703,7 @@ class QNotesDialog(QtGui.QDialog):
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 name = self.controller.vistrail.getVersionName(versionNumber)
-                title = QtCore.QString("Notes: "+name)
+                title = "Notes: "+name
                 self.setWindowTitle(title)
             else:
                 self.setWindowTitle("Notes")
@@ -783,7 +866,7 @@ class QVersionMashups(QtGui.QWidget):
                 
     def mashupSelected(self):
         action = self.sender()
-        version, ok = action.data().toInt()
+        version, ok = action.data()
         self.openMashup(version)
 
     def openMashup(self, version):

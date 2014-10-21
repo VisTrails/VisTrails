@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -49,11 +49,13 @@ def package_dependencies():
         return []
 
 def package_requirements():
-    import vistrails.core.requirements
-    if not vistrails.core.requirements.python_module_exists('vtk'):
-        raise vistrails.core.requirements.MissingRequirement('vtk')
-    if not vistrails.core.requirements.python_module_exists('PyQt4'):
+    from vistrails.core.requirements import require_python_module, \
+        python_module_exists
+    require_python_module('vtk', {
+            'linux-debian': 'python-vtk',
+            'linux-ubuntu': 'python-vtk',
+            'linux-fedora': 'vtk-python'})
+    if not python_module_exists('PyQt4'):
         from vistrails.core import debug
         debug.warning('PyQt4 is not available. There will be no interaction '
                       'between VTK and the spreadsheet.')
-    import vtk

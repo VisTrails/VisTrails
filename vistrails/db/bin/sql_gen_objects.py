@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -133,8 +133,8 @@ class SQLObject(Object):
                     if ref_prop.isReference() and \
                             ref_prop.getReference() == self.getRegularName():
                         return (choice, True)
-        raise Exception("didn't work", ref_obj.getRegularName(), 
-                        self.getRegularName())
+        raise RuntimeError("didn't work", ref_obj.getRegularName(),
+                           self.getRegularName())
             
 class SQLProperty (Property):
     def hasSpec(self):

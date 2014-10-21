@@ -12,8 +12,7 @@ from vistrails.core.system import vistrails_root_directory
 
 try:
     from PyQt4 import QtCore, QtGui
-    QtGui.QDialog
-except Exception:
+except ImportError:
     qt_available = False
 else:
     qt_available = True
@@ -220,7 +219,7 @@ class EngineManager(object):
             if qt_available:
                 bar = QtGui.QProgressDialog(
                         "Starting engines...",
-                        QtCore.QString(),
+                        None,
                         0, nb)
                 def progress(n):
                     bar.setValue(n)
@@ -271,7 +270,7 @@ class EngineManager(object):
             if qt_available:
                 bar.hide()
                 bar.deleteLater()
-            print "parallelflow: %d engines started" % (i + 1)
+            print "parallelflow: %d engines started" % nb
 
     def info(self):
         """Show some information on the cluster.
@@ -348,6 +347,7 @@ class EngineManager(object):
                 for fqdn, info in engine_tree.iteritems():
                     node = QtGui.QTreeWidgetItem([fqdn])
                     tree.addTopLevelItem(node)
+                    tree.setFirstItemColumnSpanned(node, True)
                     for ip_id, pid, system in info:
                         node.addChild(QtGui.QTreeWidgetItem([
                                 str(ip_id),
@@ -355,6 +355,7 @@ class EngineManager(object):
                                 system]))
                 for i in xrange(tree.columnCount()):
                     tree.resizeColumnToContents(i)
+                tree.expandAll()
                 layout.addWidget(tree)
 
             ok = QtGui.QPushButton("Ok")
@@ -417,8 +418,8 @@ class EngineManager(object):
                     if self.started_controller.poll() is not None:
                         self.started_controller.terminate()
                         self.started_controller.wait()
-                        self.started_controller = None
                     print "parallelflow: controller terminated"
+            self.started_controller = None
 
         if engines > 0 and not hub_shutdown:
             if qt_available:

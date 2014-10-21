@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -61,18 +61,22 @@ class QReadOnlyPortSelectPipelineView(QPipelineView):
         # Create custom scene
         scene_copy = QPipelineScene(self)
         scene_copy.controller = scene.controller
-        scene_copy.setupScene(scene.pipeline)
+        scene_copy.setupScene(scene.current_pipeline)
         scene_copy.selectAll()
         if include_module_ids:
             # Remove modules not in the include list and associated connections
             sel_modules, sel_connections = scene_copy.get_selected_item_ids()
-            [scene_copy.remove_module(m_id) for m_id in sel_modules if m_id not in include_module_ids]
-            [scene_copy.remove_connection(c_id) for c_id in sel_connections if c_id not in scene_copy.get_selected_item_ids()[1]]
+            for m_id in sel_modules:
+                if m_id not in include_module_ids:
+                    scene_copy.remove_module(m_id)
+            for c_id in sel_connections:
+                if c_id not in scene_copy.get_selected_item_ids()[1]:
+                    scene_copy.remove_connection(c_id)
         # Hide configure button on modules
         for item in scene_copy.selectedItems():
-            if type(item) == QGraphicsModuleItem:
+            if isinstance(item, QGraphicsModuleItem):
                 for c_item in item.childItems():
-                    if type(c_item) == QGraphicsConfigureItem:
+                    if isinstance(c_item, QGraphicsConfigureItem):
                         c_item.setVisible(False)
         # Unselect everything and use the newly created scene
         scene_copy.clearSelection()

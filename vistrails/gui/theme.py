@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -71,6 +71,9 @@ class DefaultTheme(DefaultCoreTheme):
         DefaultCoreTheme.__init__(self)
         ######################
         #### MEASUREMENTS ####
+
+        # pipeline view bounding rect
+        self.BOUNDING_RECT_MINIMUM = 512
 
         # Port shape
         self.PORT_RECT = QtCore.QRectF(0, 0, self.PORT_WIDTH, self.PORT_HEIGHT)
@@ -304,18 +307,25 @@ class DefaultTheme(DefaultCoreTheme):
     
         #### FONTS ####        
         # Font for module text
-        self.MODULE_FONT = QtGui.QFont("Arial", 14, QtGui.QFont.Bold)
+        # Use fixed dpi to get same font size on all platforms
+        def fixDPI(i):
+            return i*72/QtGui.QApplication.desktop().logicalDpiY()
+        GRAPHICS_FONT = "Arial"
+        self.MODULE_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(14), QtGui.QFont.Bold)
         self.MODULE_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_FONT)
-        self.MODULE_DESC_FONT = QtGui.QFont("Arial", 12)
+        self.MODULE_DESC_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(12))
         self.MODULE_DESC_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_DESC_FONT)
+        self.MODULE_EDIT_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(10))
+        self.MODULE_EDIT_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_EDIT_FONT)
     
         # Font for version text
-        self.VERSION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Bold)
+        self.VERSION_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(15), QtGui.QFont.Bold)
         self.VERSION_FONT_METRIC = QtGui.QFontMetrics(self.VERSION_FONT)
-        self.VERSION_DESCRIPTION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Normal, 
-                                                    True)
+        self.VERSION_DESCRIPTION_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(15),
+                                                    QtGui.QFont.Normal, True)
         self.VERSION_DESCRIPTION_FONT_METRIC = \
             QtGui.QFontMetrics(self.VERSION_DESCRIPTION_FONT)
+
         self.VERSION_PROPERTIES_FONT = QtGui.QFont("Arial", 12)
         self.VERSION_PROPERTIES_FONT_METRIC = \
             QtGui.QFontMetrics(self.VERSION_PROPERTIES_FONT)
@@ -624,10 +634,22 @@ class DefaultTheme(DefaultCoreTheme):
                 vistrails.core.system.vistrails_root_directory() +
                 '/gui/resources/images/multiline_string_icon.png'))
 
+        # icons for the port list combination modes
+        self.DOT_PRODUCT_ICON = QtGui.QIcon(QtGui.QPixmap(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/macro.png'))
+
+        self.CROSS_PRODUCT_ICON = QtGui.QIcon(QtGui.QPixmap(
+            vistrails.core.system.vistrails_root_directory() +
+            '/gui/resources/images/remove_param.png'))
+
         #### COLORS ####
         # Color for the PIP frame
         self.PIP_FRAME_COLOR = QtGui.QColor(
             *(ColorByName.get_int('yellow_light')))
+
+        # Color for invalid parameter frames
+        self.PARAM_INVALID_COLOR = QtGui.QColor('#efef00')
 
         # Color of selected methods in the modules method area
         self.METHOD_SELECT_COLOR = QtGui.QColor(
@@ -640,11 +662,12 @@ class DefaultTheme(DefaultCoreTheme):
             *ColorByName.get_int('blue'))
         
         # colors for debug messages
-        #self.DEBUG_INFO_COLOR = QtGui.QColor(QtCore.Qt.darkGray)
-        #self.DEBUG_WARNING_COLOR = QtGui.QColor(QtCore.Qt.black)
-        self.DEBUG_INFO_COLOR = QtGui.QColor(QtCore.Qt.black)
-        self.DEBUG_WARNING_COLOR = QtGui.QColor("#707000")
-        self.DEBUG_CRITICAL_COLOR = QtGui.QColor(QtCore.Qt.red)
+        self.DEBUG_COLORS = {
+                'DEBUG': QtGui.QColor("#777777"),
+                'INFO': QtGui.QColor(QtCore.Qt.black),
+                'WARNING': QtGui.QColor("#707000"),
+                'CRITICAL': QtGui.QColor(QtCore.Qt.red),
+            }
         class QTransparentColor(QtGui.QColor):
             def name(self):
                 return 'transparent'
@@ -722,8 +745,6 @@ def initializeCurrentTheme():
     Assign the current theme to the default theme
     
     """
-    global CurrentTheme
-    
     CurrentTheme.setTheme(get_current_theme())
 
 global CurrentTheme

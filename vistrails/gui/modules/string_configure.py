@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,30 +32,19 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4 import QtCore, QtGui
-from vistrails.core import system
-from vistrails.core.utils import PortAlreadyExists
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.bundles.pyimport import py_import
+import vistrails.core.requirements
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
+from PyQt4 import QtCore, QtGui
 from vistrails.gui.theme import CurrentTheme
-from vistrails.gui.utils import getBuilderWindow
-from vistrails.core import debug
-import sys
-import urllib
-import vistrails.core.bundles
 
-install_attempted = False
 def TextEditor(parent=None):
-    global install_attempted
-    installed = vistrails.core.requirements.python_module_exists('PyQt4.Qsci')
-    if not installed and not install_attempted:
-        install_attempted = True
-        from vistrails.core.bundles import installbundle
-        installed = installbundle.install({'linux-ubuntu': 'python-qscintilla2'})
-    if installed:
+    try:
+        py_import('PyQt4.Qsci', {'linux-ubuntu': 'python-qscintilla2'})
+    except ImportError:
+        return OldTextEditor(parent)
+    else:
         return NewTextEditor(parent)
-    return OldTextEditor(parent)
 
 def NewTextEditor(parent):
     vistrails.core.requirements.require_python_module('PyQt4.Qsci')
@@ -125,8 +114,7 @@ def NewTextEditor(parent):
             
             """
             text = self.text()
-            return text.replace('\r', '\n')
-    
+            return text.replace('\r\n', '\n').replace('\r', '\n')
 #        def focusOutEvent(self, event):
 #            if self.parent():
 #                QtCore.QCoreApplication.sendEvent(self.parent(), event)

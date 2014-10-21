@@ -1,6 +1,6 @@
 <startup version="0.1">
   <configuration>
-    <key name="nologger">
+    <key name="executionLog">
       <bool value="True"/>
     </key>
   </configuration>
@@ -9,8 +9,9 @@
     <package name="pythonCalc"/>
     <package name="spreadsheet"/>
     <package name="dialogs"/>
-    <package name="HTTP"/>
-    <package name="pylab"/>
+    <package name="URL"/>
+    <package name="controlflow"/>
+    <package name="tabledata"/>
   </packages>
   <disabledpackages/>
 </startup>
@@ -20,15 +21,15 @@
 
 <startup version="0.1">
   <configuration>
-    <key name="nologger">
+    <key name="executionLog">
       <bool value="True"/>
     </key>
     <key name="shell">
       <configuration>
-        <key name="font_face">
+        <key name="fontFace">
   	  <str value="Bitstream Vera mono"/>
         </key>
-        <key name="font_size">
+        <key name="fontSize">
 	  <int value="9"/>
         </key>
       </configuration>
@@ -39,9 +40,8 @@
     <package name="spreadsheet"/>
     <package name="pythonCalc"/>
     <package name="ImageMagick"/>
-    <package name="HTTP"/>
+    <package name="URL"/>
     <package name="teem"/>
-    <package name="pylab"/>
     <package name="ectmc"/>
     <package name="macet"/>
     <package name="trimesh2"/>

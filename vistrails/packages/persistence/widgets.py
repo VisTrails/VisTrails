@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,11 +34,11 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 import os
-import sqlite3
+import re
 import uuid
 
 from vistrails.core.modules.basic_modules import Path
-from vistrails.gui.common_widgets import QSearchBox, QSearchEditBox
+from vistrails.gui.common_widgets import QSearchBox
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 
@@ -61,35 +61,45 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
 
     _instance = None
 
+    # 2013-09-03 18:57:53.133000
+    _DATE_FORMAT = re.compile(r'^(?P<y>[0-9]{4})-'
+                              r'(?P<m>[0-9]{2})-'
+                              r'(?P<d>[0-9]{2}) '
+                              r'(?P<H>[0-9]{2}):'
+                              r'(?P<M>[0-9]{2}):'
+                              r'(?P<S>[0-9]{2}).'
+                              r'(?P<ms>[0-9]+)$')
+
+    cols = {0: "name",
+            1: "type",
+            2: "tags",
+            3: "user",
+            4: "date_created",
+            5: "date_modified",
+            6: "id",
+            7: "version",
+            8: "content_hash",
+            9: "signature"}
+    idxs = dict((v,k) for (k,v) in cols.iteritems())
+    headers = {"id": "ID",
+               "name": "Name",
+               "tags": "Tags",
+               "user": "User",
+               "date_created": "Date Created",
+               "date_modified": "Date Modified",
+               "content_hash": "Content Hash",
+               "version": "Version",
+               "signature": "Signature",
+               "type": "Type"}
+
     def __init__(self, parent=None):
         QtCore.QAbstractItemModel.__init__(self, parent)
-        self.cols = {0: "name",
-                     1: "type",
-                     2: "tags",
-                     3: "user",
-                     4: "date_created",
-                     5: "date_modified",
-                     6: "id",
-                     7: "version",
-                     8: "content_hash",
-                     9: "signature",
-                     }
-        self.idxs = dict((v,k) for (k,v) in self.cols.iteritems())
-        self.headers = {"id": "ID",
-                        "name": "Name",
-                        "tags": "Tags",
-                        "user": "User",
-                        "date_created": "Date Created",
-                        "date_modified": "Date Modified",
-                        "content_hash": "Content Hash",
-                        "version": "Version",
-                        "signature": "Signature",
-                        "type": "Type"}
 
         self.db_access = DatabaseAccessSingleton()
         self.db_access.set_model(self)
         rows = self.db_access.read_database(
-            [c[1] for c in sorted(self.cols.iteritems())])        
+            [c[1] for c in sorted(self.cols.iteritems())])
+        rows = map(self.fix_dates, rows)
 
         self.id_lists = {}
         for ref in rows:
@@ -100,6 +110,16 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
         self.id_lists_keys = self.id_lists.keys()
 
         self.integer_wrappers = {}
+
+    @staticmethod
+    def fix_dates(row):
+        row = list(row)
+        for c in ('date_created', 'date_modified'):
+            c = PersistentRefModel.idxs[c]
+            m = PersistentRefModel._DATE_FORMAT.match(row[c])
+            if m is not None:
+                row[c] = '{y}-{m}-{d} {H}:{M}'.format(**m.groupdict())
+        return tuple(row)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         if not parent.isValid():
@@ -129,14 +149,14 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
 
     def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
         if role != QtCore.Qt.DisplayRole:
-            return QtCore.QVariant()
+            return None
         if section in self.cols:
-            return QtCore.QVariant(self.headers[self.cols[section]])
-        return QtCore.QVariant()
+            return self.headers[self.cols[section]]
+        return None
     
     def data(self, index, role):
         if not index.isValid() or role != QtCore.Qt.DisplayRole:
-            return QtCore.QVariant()
+            return None
         # if index.parent().isValid():
         #     print 'data', index.row(), index.column(), index.parent().row()
         if index.parent().isValid():
@@ -151,19 +171,19 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
             # want to have the earliest created date and latest modified date
             if index.column() == self.idxs['date_created']:
                 dates = [l[index.column()] for l in id_list]
-                return QtCore.QVariant(min(dates))
+                return min(dates)
             if index.column() == self.idxs['date_modified']:
                 dates = [l[index.column()] for l in id_list]
-                return QtCore.QVariant(max(dates))
+                return max(dates)
             if index.column() == self.idxs['version'] or \
                     index.column() == self.idxs['signature'] or \
                     index.column() == self.idxs['content_hash'] or \
                     index.column() == self.idxs['user']:
-                return QtCore.QVariant()
+                return None
 
         if index.column() < len(data):
-            return QtCore.QVariant(data[index.column()])
-        return QtCore.QVariant()
+            return data[index.column()]
+        return None
     
     def parent(self, index):
         # print 'calling parent() method'
@@ -230,7 +250,7 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
 #                     (not version or data[self.idxs['version']] == version):
 #                 return self.createIndex(i, 0, 0)
         return QtCore.QModelIndex()
-    
+
     def add_data(self, value_dict):
         id = value_dict['id']
         value_list = []
@@ -242,29 +262,23 @@ class PersistentRefModel(QtCore.QAbstractItemModel):
         if id not in self.id_lists:
             self.id_lists[id] = []
             self.id_lists_keys.append(id)
-        self.id_lists[id].append(tuple(value_list))
+        self.id_lists[id].append(self.fix_dates(value_list))
         self.reset()
-            
+
     def remove_data(self, where_dict):
         id = where_dict['id']
         version = where_dict.get('version', None)
         if version is not None:
-            found = False
             for idx, value_tuple in enumerate(self.id_lists[id]):
                 if value_tuple[self.idxs['version']] == version:
-                    found = True
+                    del self.id_lists[id][idx]
                     break
-            if found:
-                del self.id_lists[id][idx]
         else:
             path_type = self.id_lists[id][0][self.idxs['type']]
-            found = False
             for idx, key_id in enumerate(self.id_lists_keys):
                 if key_id == id:
-                    found = True
+                    del self.id_lists_keys[idx]
                     break
-            if found:
-                del self.id_lists_keys[idx]
             del self.id_lists[id]
         self.reset()
 
@@ -286,6 +300,9 @@ class PersistentRefView(QtGui.QTreeView):
         self.current_id = None
         self.current_version = None
 
+        for i in xrange(self.my_model.columnCount()):
+            self.resizeColumnToContents(i)
+
     def set_visibility(self, path_type=None):
         if path_type == "blob":
             self.header().hideSection(self.my_model.idxs["type"])
@@ -301,7 +318,7 @@ class PersistentRefView(QtGui.QTreeView):
             self.header().hideSection(self.my_model.idxs["type"])
             for i, key in enumerate(self.my_model.id_lists_keys):
                 id_list = self.my_model.id_lists[key]
-                if id_list[0][self.my_model.idxs["type"]] != "blob":
+                if id_list[0][self.my_model.idxs["type"]] != "tree":
                     # if i not in self.my_model.dir_idxs:
                     print "setting index", i, "to hidden"
                     my_index = self.my_model.createIndex(i, 0, None)
@@ -507,7 +524,7 @@ class PersistentRefDialog(QtGui.QDialog):
                                               'Use File...',
                                               self.current_file,
                                               'All files (*.*)')
-        if chosen_file and not chosen_file.isEmpty():
+        if chosen_file:
             self.current_file = chosen_file
             self.filename_edit.setText(self.current_file)
     
@@ -581,7 +598,7 @@ class PathChooserLayout(QtGui.QHBoxLayout):
                                                   self.pathname_edit.text(),
                                                   'All files (*.*)')
 
-        if chosen_path and not chosen_path.isEmpty():
+        if chosen_path and chosen_path:
             self.pathname_edit.setText(chosen_path)
             self.emit(QtCore.SIGNAL('pathnameChanged()'))
 
@@ -813,6 +830,8 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         new_file = str(self.new_file.get_path())
         if new_file:
             base_name = os.path.basename(new_file)
+        else:
+            base_name = ''
         self.name_edit.setText(base_name)
         self.keep_local.setChecked(True)
         self.local_path.set_path(new_file)
@@ -833,11 +852,10 @@ class PersistentPathConfiguration(StandardModuleConfigurationWidget):
         def func_to_bool(function):
             try:
                 value = function.parameters[0].strValue
-                if value and value == 'True':
-                    return True
-            except:
-                pass
-            return False
+            except IndexError:
+                return False
+            if value and value == 'True':
+                return True
 
         ref_exists = False
         self.existing_ref = None
@@ -967,6 +985,7 @@ class PersistentOutputPathConfiguration(PersistentPathConfiguration):
                                           False, path_type)
 
 class PersistentRefInlineWidget(QtGui.QWidget, ConstantWidgetMixin):
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         self.param = param
         self.strValue = param.strValue
@@ -1067,9 +1086,10 @@ class PersistentConfiguration(QtGui.QDialog):
             # save single file/dir
             info = info_list[0]
             name = info[2]
-            chosen_path = str(QtGui.QFileDialog.getSaveFileName(self,
-                                                                'Save...',
-                                                                name))
+            chosen_path = QtGui.QFileDialog.getSaveFileName(
+                    self,
+                    'Save...',
+                    name)
             if not chosen_path:
                 return
 
@@ -1083,9 +1103,9 @@ class PersistentConfiguration(QtGui.QDialog):
                                              chosen_path)
         else:
             # have multiple files/dirs
-            get_dir = QtGui.QFileDialog.getExistingDirectory
-            chosen_path = str(get_dir(self,
-                                      'Save All to Directory...'))
+            chosen_path = QtGui.QFileDialog.getExistingDirectory(
+                    self,
+                    'Save All to Directory...')
             has_overwrite = False
             # if untitled (no name, use the uuid)
             for info in info_list:
@@ -1122,6 +1142,12 @@ class PersistentConfiguration(QtGui.QDialog):
                                                      full_path)
             
     def delete(self):
+        QtGui.QMessageBox.critical(self, "Delete",
+                                   "This feature is not functional in the "
+                                   "current version of VisTrails and has been "
+                                   "disabled for this release.")
+        return
+
         from init import PersistentPath
         info_list = self.ref_search.ref_widget.get_info_list()
         if len(info_list) < 1:

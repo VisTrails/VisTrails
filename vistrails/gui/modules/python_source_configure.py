@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,18 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from PyQt4 import QtCore, QtGui
-from vistrails.core import system
-from vistrails.core.utils import PortAlreadyExists
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.bundles.pyimport import py_import
+import vistrails.core.requirements
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
+from PyQt4 import QtCore, QtGui
 from vistrails.gui.theme import CurrentTheme
-from vistrails.gui.utils import getBuilderWindow
-from vistrails.core import debug
-import sys
-import urllib
-import vistrails.core.bundles
 
 class PythonHighlighter(QtGui.QSyntaxHighlighter):
     def __init__( self, document ):
@@ -124,17 +117,13 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
             else:
                 break
 
-install_attempted = False
 def PythonEditor(parent=None):
-    global install_attempted
-    installed = vistrails.core.requirements.python_module_exists('PyQt4.Qsci')
-    if not installed and not install_attempted:
-        install_attempted = True
-        from vistrails.core.bundles import installbundle
-        installed = installbundle.install({'linux-ubuntu': 'python-qscintilla2'})
-    if installed:
+    try:
+        py_import('PyQt4.Qsci', {'linux-ubuntu': 'python-qscintilla2'})
+    except ImportError:
+        return OldPythonEditor(parent)
+    else:
         return NewPythonEditor(parent)
-    return OldPythonEditor(parent)
 
 def NewPythonEditor(parent):
     vistrails.core.requirements.require_python_module('PyQt4.Qsci')
@@ -153,7 +142,6 @@ def NewPythonEditor(parent):
             # conventionally, margin 0 is for line numbers
             self.setMarginWidth(0, fm.width( "0000" ) + 4)
             self.setMarginLineNumbers(0, True)
-
             self.setAutoIndent(True)
 
             ## Edge Mode shows a red vetical bar at 80 chars
@@ -209,7 +197,8 @@ def NewPythonEditor(parent):
             redirect to self.text()
             
             """
-            return self.text()
+            text = self.text()
+            return text.replace('\r\n', '\n').replace('\r', '\n')
     
 #        def focusOutEvent(self, event):
 #            if self.parent():

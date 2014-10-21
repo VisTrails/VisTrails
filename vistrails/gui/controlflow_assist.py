@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,6 +37,10 @@
 QControlFlowAssistDialog
 """
 from PyQt4 import QtCore, QtGui
+
+from vistrails.core import debug
+from vistrails.core.modules.module_registry import MissingPackage
+from vistrails.core.packagemanager import get_package_manager
 from vistrails.gui.utils import show_info
 
 ################################################################################
@@ -70,7 +74,9 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         self.pipelineView = QReadOnlyPortSelectPipelineView(self, scene, True, selected_module_ids)
         self.controller = self.pipelineView.scene().controller
         layout.addWidget(self.pipelineView)
-        
+
+        self.enablePackage()
+
         # Add ok/cancel buttons
         buttonLayout = QtGui.QHBoxLayout()
         buttonLayout.setMargin(5)
@@ -86,7 +92,18 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         layout.addLayout(buttonLayout)
         self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'), self.okClicked)
         self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'), self.close)
-    
+
+    def enablePackage(self):
+        """ enablePackge() -> None
+        Tries to enable the controlflow package through the controller.
+        """
+        pm = get_package_manager()
+        cf_pkg_id = 'org.vistrails.vistrails.control_flow'
+        if not pm.has_package(cf_pkg_id):
+            dep_graph = pm.build_dependency_graph([cf_pkg_id])
+            if not self.controller.try_to_enable_package(cf_pkg_id, dep_graph):
+                raise MissingPackage(cf_pkg_id)
+
     def getInputPortsInfo(self):
         """ getInputPortsInfo() -> list
         Gets a list of tuples from the selected input port (QGraphicsPortItem) objects
@@ -108,6 +125,12 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         Verify selected ports and initiate control flow creation
         
         """
+        try:
+            self.enablePackage()
+        except MissingPackage:
+            debug.critical("The controlflow package is not available")
+            return
+
         # Verify that at least one input and one output have been chosen
         input_ports_info = self.getInputPortsInfo()
         output_ports_info = self.getOutputPortsInfo()
@@ -136,13 +159,14 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         
         # Create and connect InputPort for each of the inputs to force it to exist on group
         offset = {}
-        [offset.__setitem__(module, halfwidth+65) for module, portspec, connections, halfwidth in input_ports_info]
+        for module, portspec, connections, halfwidth in input_ports_info:
+            offset.__setitem__(module, halfwidth+65)
         for input_module, input_portspec, input_connections, halfwidth in input_ports_info:
             # Remove function calls to selected input ports
             try:
                 function_pos = [f.name for f in input_module.functions].index(input_portspec.name)
                 self.controller.delete_method(function_pos, input_module.id)
-            except:
+            except Exception:
                 pass
             # Disconnect connections to selected input ports
             for connection in input_connections:
@@ -220,13 +244,13 @@ psrc_module = self.moduleInfo['pipeline'].modules[self.moduleInfo['moduleId']]
 input_ports = [p.name for p in psrc_module.input_port_specs if p.name not in ['UseCartesianProduct', 'UserDefinedInputList']]
 InputPort = input_ports
 OutputPort = '%s'
-custom_input_list = self.forceGetInputFromPort('UserDefinedInputList', [])
+custom_input_list = self.force_get_input('UserDefinedInputList', [])
 if custom_input_list:
     InputList = custom_input_list
 else:
-    cartesian_product = self.forceGetInputFromPort('UseCartesianProduct', False)
+    cartesian_product = self.force_get_input('UseCartesianProduct', False)
     if cartesian_product:
-        input_lists = [self.getInputFromPort(input_ports[x]) for x in xrange(len(input_ports))]
+        input_lists = [self.get_input(input_ports[x]) for x in xrange(len(input_ports))]
         InputList = [[]]
         pools = map(tuple, input_lists)
         for pool in pools:
@@ -234,15 +258,15 @@ else:
     else:
         # Dot Product
         InputList = []
-        length = len(self.getInputFromPort(input_ports[0]))
+        length = len(self.get_input(input_ports[0]))
         if len(input_ports) > 1:
             for p in input_ports[1:]:
-                if len(self.getInputFromPort(p)) != length:
+                if len(self.get_input(p)) != length:
                     fail('One or more of the input lists have different lengths.')
         for x in xrange(length):
             element_list = []
             for p in input_ports:
-                element_list.append(self.getInputFromPort(p)[x])
+                element_list.append(self.get_input(p)[x])
             InputList.append(element_list)
     # Compact list format used when only one input port present
     if len(input_ports) == 1:

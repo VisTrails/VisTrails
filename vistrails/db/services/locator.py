@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -39,19 +39,18 @@ import locale
 import os.path
 import re
 import sys
-from time import strptime
 import urllib
 import urlparse
 import uuid
 
-import vistrails.core.configuration
 import vistrails.core.system
 from vistrails.db.services import io
 from vistrails.db.services.io import SaveBundle
 from vistrails.db.domain import DBVistrail, DBWorkflow
 from vistrails.db import VistrailsDBException
 from vistrails.core import debug
-from vistrails.core.system import get_elementtree_library, systemType
+from vistrails.core.system import get_elementtree_library, systemType, \
+    time_strptime
 
 ElementTree = get_elementtree_library()
 
@@ -188,7 +187,7 @@ class BaseLocator(object):
     def has_temporaries(self):
         return self.get_temporary() is not None
 
-    def to_xml(self, node=None): 
+    def to_xml(self, node=None):
         """Serialize locator, optionally into existing ElementTree node.
 
         """
@@ -306,11 +305,7 @@ class SaveTemporariesMixin(object):
 
     @staticmethod
     def get_autosave_dir():
-        config = vistrails.core.configuration.get_vistrails_configuration()
-        if config:
-            dot_vistrails = config.dotVistrails
-        else:
-            dot_vistrails = vistrails.core.system.default_dot_vistrails()
+        dot_vistrails = vistrails.core.system.current_dot_vistrails()
         auto_save_dir = os.path.join(dot_vistrails, "autosave")
         if not os.path.exists(auto_save_dir):
             # !!! we assume dot_vistrails exists !!!
@@ -655,7 +650,7 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
     # Operators
 
     def __eq__(self, other):
-        if type(other) != XMLFileLocator:
+        if not isinstance(other, XMLFileLocator):
             return False
         return self._name == other._name
 
@@ -707,7 +702,7 @@ class ZIPFileLocator(XMLFileLocator):
     # Operators
 
     def __eq__(self, other):
-        if type(other) != ZIPFileLocator:
+        if not isinstance(other, ZIPFileLocator):
             return False
         return self._name == other._name
 
@@ -753,7 +748,7 @@ class ZIPFileLocator(XMLFileLocator):
 # class URLLocator(ZIPFileLocator):
 #     def load(self, type):
         
-class DBLocator(BaseLocator):
+class DBLocator(BaseLocator, SaveTemporariesMixin):
     cache = {}
     cache_timestamps = {}
     connections = {}
@@ -825,7 +820,7 @@ class DBLocator(BaseLocator):
             return True
         try:
             self.get_connection()
-        except:
+        except Exception:
             return False
         return True
         
@@ -920,9 +915,9 @@ class DBLocator(BaseLocator):
         ts = io.get_db_object_modification_time(self.get_connection(),
                                                 self.obj_id,
                                                 obj_type)
-        ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
+        ts = datetime(*time_strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
         return ts
-    
+
     @classmethod
     def from_url(cls, url):
         format = re.compile(
@@ -1004,9 +999,9 @@ class DBLocator(BaseLocator):
                     elif type == 'bool':
                         return bool_conv(value)
                     elif type == 'date':
-                        return date(*strptime(value, '%Y-%m-%d')[0:3])
+                        return date(*time_strptime(value, '%Y-%m-%d')[0:3])
                     elif type == 'datetime':
-                        return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+                        return datetime(*time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
             return None
     
         if node.tag != 'locator':
@@ -1054,7 +1049,7 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                self._obj_id == other._obj_id and
+                long(self._obj_id) == long(other._obj_id) and
                 self._obj_type == other._obj_type)
 
     def __ne__(self, other):

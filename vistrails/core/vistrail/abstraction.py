@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,6 +40,7 @@ from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.db.domain import DBAbstraction
 
@@ -98,6 +99,8 @@ class Abstraction(DBAbstraction, Module):
             ModuleFunction.convert(_function)
         for _annotation in _abstraction.db_get_annotations():
             Annotation.convert(_annotation)
+        for _control_parameter in _abstraction.db_get_controlParameters():
+            ModuleControlParam.convert(_control_parameter)
         _abstraction.set_defaults()
 
     ##########################################################################
@@ -107,6 +110,7 @@ class Abstraction(DBAbstraction, Module):
     id = DBAbstraction.db_id
     cache = DBAbstraction.db_cache
     annotations = DBAbstraction.db_annotations
+    control_parameters = DBAbstraction.db_controlParameters
     location = DBAbstraction.db_location
     center = DBAbstraction.db_location
     name = DBAbstraction.db_name
@@ -124,7 +128,7 @@ class Abstraction(DBAbstraction, Module):
         try:
             desc = reg.get_descriptor_by_name(self.package, self.name, 
                                               self.namespace)
-        except:
+        except Exception:
             # Should only get here if the abstraction's descriptor was
             # removed from the registry which only happens when the
             # abstraction should be destroyed.
@@ -196,70 +200,3 @@ class Abstraction(DBAbstraction, Module):
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-################################################################################
-# Testing
-
-
-class TestAbstraction(unittest.TestCase):
-    pass
-#     def create_abstraction(self, id_scope=None):
-#         from core.vistrail.action import Action
-#         from core.vistrail.module import Module
-#         from core.vistrail.module_function import ModuleFunction
-#         from core.vistrail.module_param import ModuleParam
-#         from core.vistrail.operation import AddOp
-#         from core.vistrail.tag import Tag
-#         from db.domain import IdScope
-#         from datetime import datetime
-        
-#         if id_scope is None:
-#             id_scope = IdScope()
-#         function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
-#                                   name='value')
-#         m = Module(id=id_scope.getNewId(Module.vtType),
-#                    name='Float',
-#                    package='org.vistrails.vistrails.basic',
-#                    functions=[function])
-
-#         add_op = AddOp(id=id_scope.getNewId('operation'),
-#                        what='module',
-#                        objectId=m.id,
-#                        data=m)
-#         add_op2 = AddOp(id=id_scope.getNewId('operation'),
-#                        what='function',
-#                        objectId=function.id,
-#                        data=function)
-#         action = Action(id=id_scope.getNewId(Action.vtType),
-#                         prevId=0,
-#                         date=datetime(2007,11, 18),
-#                         operations=[add_op, add_op2])
-#         tag = Tag(id=id_scope.getNewId(Tag.vtType),
-#                   name='a tag')
-#         abstraction = Abstraction(id=id_scope.getNewId(Abstraction.vtType),
-#                                   name='blah',
-#                                   actions=[action],
-#                                   tags=[tag])
-#         return abstraction
-
-#     def test_copy(self):
-#         import copy
-#         from db.domain import IdScope
-
-#         id_scope = IdScope()
-
-#         a1 = self.create_abstraction(id_scope)
-#         a2 = copy.copy(a1)
-#         self.assertEquals(a1, a2)
-#         self.assertEquals(a1.id, a2.id)
-#         a3 = a1.do_copy(True, id_scope, {})
-#         self.assertEquals(a1, a3)
-#         self.assertNotEquals(a1.id, a3.id)
-
-#     def test_serialization(self):
-#         import core.db.io 
-#         a1 = self.create_abstraction()
-#         xml_str = core.db.io.serialize(a1)
-#         a2 = core.db.io.unserialize(xml_str, Abstraction)
-#         self.assertEquals(a1, a2)
-#         self.assertEquals(a1.id, a2.id)

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,6 +34,7 @@
 ###############################################################################
 
 identifier = 'org.vistrails.vistrails.persistence'
-version = '0.3.1'
+version = '0.3.2'
 name = 'Persistence'
-old_identifiers = ['edu.utah.sci.vistrails.persistence']
+old_identifiers = ['edu.utah.sci.vistrails.persistence',
+                   'edu.utah.sci.vistrails.persistence.exp']

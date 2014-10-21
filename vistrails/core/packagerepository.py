@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +35,7 @@
 from vistrails.core import debug
 import os
 import vistrails.core.configuration
+from vistrails.core import system
 import shutil
 import urllib2
 import tempfile
@@ -50,11 +51,12 @@ import os.path
 class PackageRepository(object):
 
     def __init__(self):
-        conf = vistrails.core.configuration.get_vistrails_configuration()
-        if conf.check('userPackageDirectory'):
-            self._upd = conf.userPackageDirectory
+        upd = system.get_vistrails_directory('userPackageDir')
+        if upd is not None:
+            self._upd = upd
         else:
-            self._upd = conf.get('dotVistrails') + '/.userpackages/'
+            conf = vistrails.core.configuration.get_vistrails_configuration()
+            self._upd = os.path.join(conf.get('dotVistrails'), '.userpackages')
 
     def create_main_directory(self, codepath):
         debug.log("Makedir '%s'" % (os.path.join(self._upd, codepath)))
@@ -107,7 +109,7 @@ class LocalPackageRepository(PackageRepository):
         try:
             f = open(os.path.join(self._path, codepath, 'MANIFEST'))
         except IOError, e:
-            raise InvalidPackage("Package is missing manifest.")
+            raise PackageRepository.InvalidPackage("Package is missing manifest.")
         # create directory
         self.create_main_directory(codepath)
         for l in f:
@@ -144,7 +146,7 @@ class HTTPPackageRepository(PackageRepository):
         try:
             f = urllib2.urlopen(self._path + '/' + codepath + '/MANIFEST')
         except urllib2.HTTPError, e:
-            raise InvalidPackage("Package is missing manifest.")
+            raise PackageRepository.InvalidPackage("Package is missing manifest.")
         self.create_main_directory(codepath)
         for l in f:
             l = l[:-1]

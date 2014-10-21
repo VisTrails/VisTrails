@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -150,7 +150,7 @@ class VistrailsTreeLayoutLW(object):
             child = mapTreeNodes[childId]
 #             if child.parent != None:
 #                 print "child already has a parent!!! %d -> %d" % (parentId, childId)
-#                 raise Exception()
+#                 raise ValueError("Node already has a parent")
             tree.changeParentOfNodeWithNoParent(parent, child)
 
         # return the tree

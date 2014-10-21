@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -62,6 +62,9 @@ class DefaultCoreTheme(object):
 
         # Padded space of Module shape into its label
         self.MODULE_LABEL_MARGIN = (20, 20, 20, 15)
+
+        # Padded space of Module shape into its edit widget
+        self.MODULE_EDIT_MARGIN = (8, 4, 8, 4)
 
         # Margin of Module shape into its ports
         self.MODULE_PORT_MARGIN = (4, 4, 4, 4)

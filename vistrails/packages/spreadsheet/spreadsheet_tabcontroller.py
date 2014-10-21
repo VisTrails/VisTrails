@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,6 +36,7 @@
 # This file implements the Spreadsheet Tab Controller, to manages tabs
 #   StandardWidgetTabController
 ################################################################################
+from ast import literal_eval
 import os.path
 from PyQt4 import QtCore, QtGui
 from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
@@ -249,7 +250,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         
         """
         if not hasattr(self, 'exportSheetToImageVar'):
-            self.exportSheetToImageVar = QtGui.QAction('Export', self)
+            self.exportSheetToImageVar = QtGui.QAction('Export Sheet', self)
             self.exportSheetToImageVar.setStatusTip(
                 'Export all cells in the spreadsheet to a montaged image')
 
@@ -257,34 +258,39 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             singleAction = exportMenu.addAction('As a Single Image')
             multiAction = exportMenu.addAction('Separately')
             self.exportSheetToImageVar.setMenu(exportMenu)
-            
+
             self.connect(self.exportSheetToImageVar,
                          QtCore.SIGNAL('triggered(bool)'),
-                         self.exportSheetToImageActionTriggered)
-            
-            self.connect(exportMenu,
-                         QtCore.SIGNAL('triggered(QAction*)'),
-                         self.exportSheetToImageActionTriggered)
+                         self.exportSheetToSingleImageActionTriggered)
+
+            self.connect(singleAction,
+                         QtCore.SIGNAL('triggered()'),
+                         self.exportSheetToSingleImageActionTriggered)
+            self.connect(multiAction,
+                         QtCore.SIGNAL('triggered()'),
+                         self.exportSheetToSeparateImagesActionTriggered)
         return self.exportSheetToImageVar
 
-    def exportSheetToImageActionTriggered(self, action=None):
-        """ exportSheetToImageActionTriggered(checked: boolean) -> None
-        Actual code to create export an image
-        
+    def exportSheetToSingleImageActionTriggered(self, action=None):
+        """ exportSheetToSingleImageActionTriggered() -> None
+        Exports the sheet as a big image
         """
-        if type(action)!=bool and action.text()=='Separately':
-            dir = QtGui.QFileDialog.getExistingDirectory(
-                self, 'Select a Directory to Export Images', ".",
-                QtGui.QFileDialog.ShowDirsOnly)
-            if not dir.isNull():
-                self.currentWidget().exportSheetToImages(str(dir))
-        else:
-            file = QtGui.QFileDialog.getSaveFileName(
-                self, "Select a File to Export the Sheet",
-                ".", "Images (*.png *.xpm *.jpg)")
-            if not file.isNull():
-                self.currentWidget().exportSheetToImage(str(file))
-        
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self, "Select a File to Export the Sheet",
+            ".", "Images (*.png *.xpm *.jpg)")
+        if filename:
+            self.currentWidget().exportSheetToImage(filename)
+
+    def exportSheetToSeparateImagesActionTriggered(self, action=None):
+        """ exportSheetToSeparateImagesActionTriggered() -> None
+        Exports the cells as separate images
+        """
+        dirname = QtGui.QFileDialog.getExistingDirectory(
+            self, 'Select a Directory to Export Images', ".",
+            QtGui.QFileDialog.ShowDirsOnly)
+        if dirname:
+            self.currentWidget().exportSheetToImages(dirname)
+
     def newSheetActionTriggered(self, checked=False):
         """ newSheetActionTriggered(checked: boolean) -> None
         Actual code to create a new sheet
@@ -527,7 +533,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         for idx in xrange(self.operatingWidget.count()):
             t = self.operatingWidget.widget(idx)
             action = menu.addAction(t.windowTitle())
-            action.setData(QtCore.QVariant(idx))
+            action.setData(idx)
             if t==self.operatingWidget.currentWidget():
                 action.setIcon(QtGui.QIcon(':/images/ok.png'))
         menu.addAction(self.parent().parent().fullScreenAction())
@@ -544,7 +550,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.showPrevTabAction().setEnabled(True)
         if not action: return
         if not action in self.actions():
-            self.operatingWidget.setCurrentIndex(action.data().toInt()[0])
+            self.operatingWidget.setCurrentIndex(action.data()[0])
         menu.deleteLater()
 
     def changeSpreadsheetFileName(self, fileName):
@@ -559,7 +565,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         else:
             displayName = 'Untitled'
         self.emit(QtCore.SIGNAL('needChangeTitle'),
-                  'VisTrails - Spreadsheet - %s' % displayName)
+                  '%s - VisTrails Spreadsheet' % displayName)
 
     def pipelineId(self, pipelineInfo):
         return (pipelineInfo['controller'], pipelineInfo['version'])
@@ -697,9 +703,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                      '',
                                                      'VisTrails Spreadsheet '
                                                      '(*.vss)')
-        if not fileName.isNull():
-            fileName = str(fileName)
-            (root,ext) = os.path.splitext(fileName)
+        if fileName:
+            (root, ext) = os.path.splitext(fileName)
             if ext=='':
                 fileName += '.vss'
             self.saveSpreadsheet(fileName)
@@ -734,13 +739,13 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         lidx += 1
         for tabIdx in xrange(tabCount):
             # FIXME: eval should pretty much never be used
-            tabInfo = eval(lines[lidx])
+            tabInfo = literal_eval(lines[lidx])
             lidx += 1
             sheet = spreadsheetRegistry.getSheet(tabInfo[1])(self)
             sheet.setDimension(tabInfo[2], tabInfo[3])
             self.addTabWidget(sheet, tabInfo[0])
             while lines[lidx]!='---':
-                (r, c, vistrail, pid, cid) = eval(lines[lidx])
+                (r, c, vistrail, pid, cid) = literal_eval(lines[lidx])
                 locator = vistrail['locator']
                 if locators.has_key(locator):
                     vistrail['locator'] = locators[locator]
@@ -758,11 +763,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                          "&Cancel", 0, pipelineCount,
                                          self,
                                          QtCore.Qt.WindowStaysOnTopHint
-                                         );
+                                         )
         progress.show()
         for pipelineIdx in xrange(pipelineCount):
             # FIXME: eval should pretty much never be used
-            (serializedLocator, version) = eval(lines[lidx])
+            (serializedLocator, version) = literal_eval(lines[lidx])
             try:
                 locator = locators[serializedLocator]
             except KeyError:
@@ -784,7 +789,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                           }
                 execution.execute(pipeline, **kwargs)
             else:
-                raise Exception("Couldn't load spreadsheet")
+                raise RuntimeError("Couldn't load spreadsheet")
             lidx += 1
         progress.setValue(pipelineCount)
         QtCore.QCoreApplication.processEvents()
@@ -803,7 +808,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                      'VisTrails Spreadsheet '
                                                      '(*.vss)',
                                                      )
-        if not fileName.isNull():
+        if fileName:
             self.openSpreadsheet(fileName)
 
     def cleanup(self):

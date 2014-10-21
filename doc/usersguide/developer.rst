@@ -12,4 +12,6 @@ Developer's Guide
    log
    example_itk
    controlflowdev
+   parallelization
    cltools
+   api_documentation

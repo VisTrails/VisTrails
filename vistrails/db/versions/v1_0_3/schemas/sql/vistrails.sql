@@ -1,6 +1,6 @@
 --#############################################################################
 --
--- Copyright (C) 2011-2013, NYU-Poly.
+-- Copyright (C) 2011-2014, NYU-Poly.
 -- Copyright (C) 2006-2011, University of Utah. 
 -- All rights reserved.
 -- Contact: contact@vistrails.org
@@ -45,77 +45,12 @@ CREATE TABLE thumbnail(
 
 -- generated automatically by auto_dao.py
 
-CREATE TABLE vistrail_variable(
-    name varchar(255),
-    uuid char(36),
-    package varchar(255),
-    module varchar(255),
-    namespace varchar(255),
-    value varchar(8191),
-    parent_id int,
-    entity_id int,
-    entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE port_spec(
-    id int,
-    name varchar(255),
-    type varchar(255),
-    optional int,
-    sort_key int,
-    min_conns int,
-    max_conns int,
-    parent_type char(32),
-    entity_id int,
-    entity_type char(16),
-    parent_id int
-) engine=InnoDB;
-
-CREATE TABLE module(
-    id int,
-    cache int,
-    name varchar(255),
-    namespace varchar(255),
-    package varchar(511),
-    version varchar(255),
-    parent_type char(32),
-    entity_id int,
-    entity_type char(16),
-    parent_id int
-) engine=InnoDB;
-
-CREATE TABLE module_descriptor(
-    id int,
-    name varchar(255),
-    package varchar(255),
-    namespace varchar(255),
-    package_version varchar(255),
-    version varchar(255),
-    base_descriptor_id int,
-    parent_id int,
-    entity_id int,
-    entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE tag(
+CREATE TABLE mashup_alias(
     id int,
     name varchar(255),
     parent_id int,
     entity_id int,
     entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE port(
-    id int,
-    type varchar(255),
-    moduleId int,
-    moduleName varchar(255),
-    name varchar(255),
-    signature varchar(4095),
-    parent_type char(32),
-    entity_id int,
-    entity_type char(16),
-    parent_id int
 ) engine=InnoDB;
 
 CREATE TABLE group_tbl(
@@ -131,65 +66,6 @@ CREATE TABLE group_tbl(
     parent_id int
 ) engine=InnoDB;
 
-CREATE TABLE log_tbl(
-    id int not null auto_increment primary key,
-    entity_type char(16),
-    version char(16),
-    name varchar(255),
-    last_modified datetime,
-    vistrail_id int
-) engine=InnoDB;
-
-CREATE TABLE mashup_alias(
-    id int,
-    name varchar(255),
-    parent_id int,
-    entity_id int,
-    entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE mashup(
-    id int,
-    name varchar(255),
-    version int,
-    type varchar(255),
-    vtid int,
-    layout mediumtext,
-    geometry mediumtext,
-    has_seq int,
-    parent_id int,
-    entity_id int,
-    entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE port_spec_item(
-    id int,
-    pos int,
-    module varchar(255),
-    package varchar(255),
-    namespace varchar(255),
-    label varchar(4095),
-    _default varchar(4095),
-    _values mediumtext,
-    entry_type varchar(255),
-    parent_id int,
-    entity_id int,
-    entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE machine(
-    id int,
-    name varchar(255),
-    os varchar(255),
-    architecture varchar(255),
-    processor varchar(255),
-    ram bigint,
-    vt_id int,
-    log_id int,
-    entity_id int,
-    entity_type char(16)
-) engine=InnoDB;
-
 CREATE TABLE add_tbl(
     id int,
     what varchar(255),
@@ -201,20 +77,17 @@ CREATE TABLE add_tbl(
     entity_type char(16)
 ) engine=InnoDB;
 
-CREATE TABLE other(
+CREATE TABLE group_exec(
     id int,
-    okey varchar(255),
-    value varchar(255),
-    parent_type char(32),
-    entity_id int,
-    entity_type char(16),
-    parent_id int
-) engine=InnoDB;
-
-CREATE TABLE location(
-    id int,
-    x DECIMAL(18,12),
-    y DECIMAL(18,12),
+    ts_start datetime,
+    ts_end datetime,
+    cached int,
+    module_id int,
+    group_name varchar(255),
+    group_type varchar(255),
+    completed int,
+    error varchar(1023),
+    machine_id int,
     parent_type char(32),
     entity_id int,
     entity_type char(16),
@@ -234,9 +107,186 @@ CREATE TABLE parameter(
     parent_id int
 ) engine=InnoDB;
 
-CREATE TABLE plugin_data(
+CREATE TABLE vistrail(
+    id int not null auto_increment primary key,
+    entity_type char(16),
+    version char(16),
+    name varchar(255),
+    last_modified datetime
+) engine=InnoDB;
+
+CREATE TABLE module(
     id int,
-    data varchar(8191),
+    cache int,
+    name varchar(255),
+    namespace varchar(255),
+    package varchar(511),
+    version varchar(255),
+    parent_type char(32),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
+CREATE TABLE port(
+    id int,
+    type varchar(255),
+    moduleId int,
+    moduleName varchar(255),
+    name varchar(255),
+    signature varchar(4095),
+    parent_type char(32),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
+CREATE TABLE pe_function(
+    id int,
+    module_id int,
+    port_name varchar(255),
+    is_alias int,
+    parent_type char(32),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE workflow(
+    id int not null auto_increment primary key,
+    entity_id int,
+    entity_type char(16),
+    name varchar(255),
+    version char(16),
+    last_modified datetime,
+    vistrail_id int,
+    parent_id int
+) engine=InnoDB;
+
+CREATE TABLE mashup_action(
+    id int,
+    prev_id int,
+    date datetime,
+    user varchar(255),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE change_tbl(
+    id int,
+    what varchar(255),
+    old_obj_id int,
+    new_obj_id int,
+    par_obj_id int,
+    par_obj_type char(16),
+    action_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE package(
+    id int not null auto_increment primary key,
+    name varchar(255),
+    identifier varchar(1023),
+    codepath varchar(1023),
+    load_configuration int,
+    version varchar(255),
+    description varchar(1023),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE loop_exec(
+    id int,
+    ts_start datetime,
+    ts_end datetime,
+    iteration int,
+    completed int,
+    error varchar(1023),
+    parent_type char(32),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
+CREATE TABLE connection_tbl(
+    id int,
+    parent_type char(32),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
+CREATE TABLE action(
+    id int,
+    prev_id int,
+    date datetime,
+    session int,
+    user varchar(255),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE port_spec(
+    id int,
+    name varchar(255),
+    type varchar(255),
+    optional int,
+    sort_key int,
+    min_conns int,
+    max_conns int,
+    parent_type char(32),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
+CREATE TABLE log_tbl(
+    id int not null auto_increment primary key,
+    entity_type char(16),
+    version char(16),
+    name varchar(255),
+    last_modified datetime,
+    vistrail_id int
+) engine=InnoDB;
+
+CREATE TABLE pe_parameter(
+    id int,
+    pos int,
+    interpolator varchar(255),
+    value mediumtext,
+    dimension int,
+    parent_type char(32),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE workflow_exec(
+    id int,
+    user varchar(255),
+    ip varchar(255),
+    session int,
+    vt_version varchar(255),
+    ts_start datetime,
+    ts_end datetime,
+    parent_id int,
+    parent_type varchar(255),
+    parent_version int,
+    completed int,
+    name varchar(255),
+    log_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE location(
+    id int,
+    x DECIMAL(18,12),
+    y DECIMAL(18,12),
     parent_type char(32),
     entity_id int,
     entity_type char(16),
@@ -265,57 +315,72 @@ CREATE TABLE action_annotation(
     entity_type char(16)
 ) engine=InnoDB;
 
-CREATE TABLE abstraction(
+CREATE TABLE plugin_data(
     id int,
-    cache int,
-    name varchar(255),
-    namespace varchar(255),
-    package varchar(511),
-    version varchar(255),
-    internal_version varchar(255),
+    data varchar(8191),
     parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
 ) engine=InnoDB;
 
-CREATE TABLE workflow(
-    id int not null auto_increment primary key,
+CREATE TABLE delete_tbl(
+    id int,
+    what varchar(255),
+    object_id int,
+    par_obj_id int,
+    par_obj_type char(16),
+    action_id int,
     entity_id int,
-    entity_type char(16),
-    name varchar(255),
-    version char(16),
-    last_modified datetime,
-    vistrail_id int,
-    parent_id int
+    entity_type char(16)
 ) engine=InnoDB;
 
-CREATE TABLE mashup_action(
-    id int,
-    prev_id int,
-    date datetime,
-    user varchar(255),
+CREATE TABLE vistrail_variable(
+    name varchar(255),
+    uuid char(36),
+    package varchar(255),
+    module varchar(255),
+    namespace varchar(255),
+    value varchar(8191),
     parent_id int,
     entity_id int,
     entity_type char(16)
 ) engine=InnoDB;
 
-CREATE TABLE mashuptrail(
-    id int not null auto_increment primary key,
-    name char(36),
-    version char(16),
-    vt_version int,
-    last_modified datetime,
+CREATE TABLE module_descriptor(
+    id int,
+    name varchar(255),
+    package varchar(255),
+    namespace varchar(255),
+    package_version varchar(255),
+    version varchar(255),
+    base_descriptor_id int,
+    parent_id int,
+    entity_id int,
     entity_type char(16)
 ) engine=InnoDB;
 
-CREATE TABLE registry(
-    id int not null auto_increment primary key,
-    entity_type char(16),
-    version char(16),
-    root_descriptor_id int,
+CREATE TABLE tag(
+    id int,
     name varchar(255),
-    last_modified datetime
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE port_spec_item(
+    id int,
+    pos int,
+    module varchar(255),
+    package varchar(255),
+    namespace varchar(255),
+    label varchar(4095),
+    _default varchar(4095),
+    _values mediumtext,
+    entry_type varchar(255),
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE mashup_component(
@@ -341,6 +406,75 @@ CREATE TABLE mashup_component(
     entity_type char(16)
 ) engine=InnoDB;
 
+CREATE TABLE mashup(
+    id int,
+    name varchar(255),
+    version int,
+    type varchar(255),
+    vtid int,
+    layout mediumtext,
+    geometry mediumtext,
+    has_seq int,
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE machine(
+    id int,
+    name varchar(255),
+    os varchar(255),
+    architecture varchar(255),
+    processor varchar(255),
+    ram bigint,
+    vt_id int,
+    log_id int,
+    entity_id int,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE other(
+    id int,
+    okey varchar(255),
+    value varchar(255),
+    parent_type char(32),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
+CREATE TABLE abstraction(
+    id int,
+    cache int,
+    name varchar(255),
+    namespace varchar(255),
+    package varchar(511),
+    version varchar(255),
+    internal_version varchar(255),
+    parent_type char(32),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
+CREATE TABLE mashuptrail(
+    id int not null auto_increment primary key,
+    name char(36),
+    version char(16),
+    vt_version int,
+    last_modified datetime,
+    entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE registry(
+    id int not null auto_increment primary key,
+    entity_type char(16),
+    version char(16),
+    root_descriptor_id int,
+    name varchar(255),
+    last_modified datetime
+) engine=InnoDB;
+
 CREATE TABLE annotation(
     id int,
     akey varchar(255),
@@ -349,66 +483,6 @@ CREATE TABLE annotation(
     entity_id int,
     entity_type char(16),
     parent_id int
-) engine=InnoDB;
-
-CREATE TABLE change_tbl(
-    id int,
-    what varchar(255),
-    old_obj_id int,
-    new_obj_id int,
-    par_obj_id int,
-    par_obj_type char(16),
-    action_id int,
-    entity_id int,
-    entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE group_exec(
-    id int,
-    ts_start datetime,
-    ts_end datetime,
-    cached int,
-    module_id int,
-    group_name varchar(255),
-    group_type varchar(255),
-    completed int,
-    error varchar(1023),
-    machine_id int,
-    parent_type char(32),
-    entity_id int,
-    entity_type char(16),
-    parent_id int
-) engine=InnoDB;
-
-CREATE TABLE package(
-    id int not null auto_increment primary key,
-    name varchar(255),
-    identifier varchar(1023),
-    codepath varchar(1023),
-    load_configuration int,
-    version varchar(255),
-    description varchar(1023),
-    parent_id int,
-    entity_id int,
-    entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE workflow_exec(
-    id int,
-    user varchar(255),
-    ip varchar(255),
-    session int,
-    vt_version varchar(255),
-    ts_start datetime,
-    ts_end datetime,
-    parent_id int,
-    parent_type varchar(255),
-    parent_version int,
-    completed int,
-    name varchar(255),
-    log_id int,
-    entity_id int,
-    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE parameter_exploration(
@@ -424,19 +498,6 @@ CREATE TABLE parameter_exploration(
     entity_type char(16)
 ) engine=InnoDB;
 
-CREATE TABLE loop_exec(
-    id int,
-    ts_start datetime,
-    ts_end datetime,
-    iteration int,
-    completed int,
-    error varchar(1023),
-    parent_type char(32),
-    entity_id int,
-    entity_type char(16),
-    parent_id int
-) engine=InnoDB;
-
 CREATE TABLE mashup_action_annotation(
     id int,
     akey varchar(255),
@@ -447,44 +508,6 @@ CREATE TABLE mashup_action_annotation(
     parent_id int,
     entity_id int,
     entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE connection_tbl(
-    id int,
-    parent_type char(32),
-    entity_id int,
-    entity_type char(16),
-    parent_id int
-) engine=InnoDB;
-
-CREATE TABLE action(
-    id int,
-    prev_id int,
-    date datetime,
-    session int,
-    user varchar(255),
-    parent_id int,
-    entity_id int,
-    entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE delete_tbl(
-    id int,
-    what varchar(255),
-    object_id int,
-    par_obj_id int,
-    par_obj_type char(16),
-    action_id int,
-    entity_id int,
-    entity_type char(16)
-) engine=InnoDB;
-
-CREATE TABLE vistrail(
-    id int not null auto_increment primary key,
-    entity_type char(16),
-    version char(16),
-    name varchar(255),
-    last_modified datetime
 ) engine=InnoDB;
 
 CREATE TABLE module_exec(

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -43,18 +43,12 @@ from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.port_spec import PortSpec
 from itertools import izip
 import copy
-import __builtin__
 
 import unittest
 import copy
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.db.domain import IdScope
 import vistrails.core
-
-################################################################################
-
-PipelineElementType = enum('PipelineElementType',
-                           ['Module', 'Connection', 'Function', 'Parameter'])
 
 ################################################################################
 
@@ -146,7 +140,7 @@ class ModuleFunction(DBFunction):
         child.setAttribute('name',self.name)
         child.setAttribute('returnType',self.type)
         for p in self.params:
-                p.serialize(doc,child)
+            p.serialize(doc,child)
         element.appendChild(child)
 
     def get_spec(self, port_type):

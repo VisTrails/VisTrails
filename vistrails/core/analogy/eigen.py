@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,23 +32,17 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.data_structures.bijectivedict import Bidict
-from itertools import imap, chain
 import copy
-
+from itertools import imap, chain
 import math
 import operator
-from pipeline_utils import *
+import scipy
+import tempfile
 
+from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.utils import append_to_dict_of_lists
-from vistrails.core.system import temporary_directory
 
-try:
-    import scipy
-    _analogies_available = True
-except ImportError:
-    _analogies_available = False
-
+from .pipeline_utils import pipeline_bbox, pipeline_centroid
 
 
 ##############################################################################
@@ -58,15 +52,11 @@ except ImportError:
 # EigenBase
 
 def mzeros(*args, **kwargs):
-    nkwargs = copy.copy(kwargs)
-    nkwargs['dtype'] = float
-    az = scipy.zeros(*args, **nkwargs)
+    az = scipy.zeros(*args, dtype=float, **kwargs)
     return scipy.matrix(az)
 
 def mones(*args, **kwargs):
-    nkwargs = copy.copy(kwargs)
-    nkwargs['dtype'] = float
-    az = scipy.ones(*args, **nkwargs)
+    az = scipy.ones(*args, dtype=float, **kwargs)
     return scipy.matrix(az)
 
 #mzeros = lambda *args, **kwargs: scipy.matrix(scipy.zeros(*args, **kwargs))
@@ -265,7 +255,7 @@ class EigenBase(object):
     def pv(v, digits=5, left_digits=None):
         # FIXME - some scipy indexing seems to be currently
         # inconsistent across different deployed versions. Fix this.
-        if type(v) == scipy.matrix:
+        if isinstance(v, scipy.matrix):
             v = scipy.array(v)[0]
         (c,) = v.shape
         print "[ ",
@@ -320,99 +310,14 @@ class EigenBase(object):
         return (inputs, outputs)
 
 ##############################################################################
-# EigenPipelineSimilarity
-
-class EigenPipelineSimilarity(EigenBase):
-
-    ##########################################################################
-    # Constructor and initialization
-
-    def __init__(self,
-                 pipeline1,
-                 pipeline2):
-        EigenBase.__init__(self, pipeline1, pipeline2)
-        self.init_operator()
-
-    def init_operator(self):
-        num_verts_p1 = len(self._p1.graph.vertices)
-        num_verts_p2 = len(self._p2.graph.vertices)
-        def ix(a,b): return num_verts_p2 * a + b
-        self._operator = mzeros((num_verts_p1 * num_verts_p2,
-                                 num_verts_p1 * num_verts_p2))
-
-        u = 0.85
-        
-        for i in xrange(num_verts_p1):
-            v1_id = self._g1_vertex_map.inverse[i]
-            for j in xrange(num_verts_p2):
-                ix_ij = ix(i,j)
-                self._operator[ix_ij, ix_ij] = u
-                v2_id = self._g2_vertex_map.inverse[j]
-                def edges(pip, v_id):
-                    return chain(imap(lambda (f, t, i): (t, i),
-                                      self._p1.graph.iter_edges_from(v1_id)),
-                                 imap(lambda (f, t, i): (f, i),
-                                      self._p1.graph.iter_edges_to(v1_id)))
-                p1_edges = edges(self._p1, v1_id)
-                p2_edges = edges(self._p2, v2_id)
-                running_sum = 0.0
-                for (_, p1_edge) in p1_edges:
-                    for (_, p2_edge) in p2_edges:
-                        e1_id = self._g1_edge_map[p1_edge]
-                        e2_id = self._g2_edge_map[p2_edge]
-                        running_sum += self._edge_s8y[e1_id, e2_id]
-                p1_edges = edges(self._p1, v1_id)
-                p2_edges = edges(self._p2, v2_id)
-                if not running_sum:
-                    continue
-                for (p1_v, p1_edge_id) in p1_edges:
-                    for (p2_v, p2_edge_id) in p2_edges:
-                        e1_id = self._g1_edge_map[p1_edge_id]
-                        e2_id = self._g2_edge_map[p2_edge_id]
-                        p1_v_id = self._g1_vertex_map[p1_v]
-                        p2_v_id = self._g2_vertex_map[p2_v]
-                        value = self._edge_s8y[e1_id, e2_id]
-                        value *= (1.0 - u) / running_sum
-                        self._operator[ix_ij, ix(p1_v_id, p2_v_id)] = value
-
-    ##############################################################################
-    # Solve
-
-    def step(self, m):
-        v = m.reshape(len(self._p1.modules) *
-                      len(self._p2.modules))
-        v = scipy.dot(self._operator, v)
-        v = v.reshape(len(self._p1.modules),
-                      len(self._p2.modules)).transpose()
-        v = (v / v.sum(0)).transpose()
-        return v
-
-    def solve(self):
-        i = 0
-        while i < 50:
-            i += 1
-            v = self.step(self._vertex_s8y)
-            residue = self._vertex_s8y - v
-            residue *= residue
-            if residue.sum() < 0.0001:
-                break
-            self._vertex_s8y = v
-        mp = [(self._g1_vertex_map.inverse[ix],
-               self._g2_vertex_map.inverse[v])
-              for (ix, v) in
-              enumerate(self._vertex_s8y.argmax(1))]
-        return dict(mp)
-        
-##############################################################################
 # EigenPipelineSimilarity2
 
 class EigenPipelineSimilarity2(EigenBase):
 
     def __init__(self, *args, **kwargs):
-        basekwargs = copy.copy(kwargs)
-        del basekwargs['alpha']
-        EigenBase.__init__(self, *args, **basekwargs)
-        self.init_operator(alpha=kwargs['alpha'])
+        alpha = kwargs.pop('alpha')
+        EigenBase.__init__(self, *args, **kwargs)
+        self.init_operator(alpha=alpha)
 
     def init_operator(self, alpha):
         def edges(pip, v_id):
@@ -470,7 +375,7 @@ class EigenPipelineSimilarity2(EigenBase):
         v = copy.copy(self._e)
         step = 0
         def write_current_matrix():
-            f = open('%s/%s_%03d.v' % (temporary_directory(),
+            f = open('%s/%s_%03d.v' % (tempfile.gettempdir(),
                                        self._debug_matrix_file, step), 'w')
             x = v.reshape(len(self._p1.modules),
                           len(self._p2.modules))
@@ -505,13 +410,14 @@ class EigenPipelineSimilarity2(EigenBase):
                 f.write('%d %s %f %f\n' % (i, m.name, nc.x, nc.y))
             for i, c in pipeline.connections.iteritems():
                 f.write('%d %d %d\n' % (i, c.sourceId, c.destinationId))
-            
+
         if self._debug:
-            out = open('%s/pipelines.txt' % temporary_directory(), 'w')
+            out = open('%s/pipelines.txt' % tempfile.gettempdir(), 'w')
             write_debug_pipeline_positions(self._p1, self._g1_vertex_map, out)
             write_debug_pipeline_positions(self._p2, self._g2_vertex_map, out)
             self.print_s8ys()
-            
+            out.close()
+
         self._debug_matrix_file = 'input_matrix'
         r_in  = self.solve_v(self._input_vertex_s8y)
         self._debug_matrix_file = 'output_matrix'

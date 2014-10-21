@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,20 +35,19 @@
 ################################################################################
 # Spreadsheet Package for VisTrails
 ################################################################################
+import os
+import sys
+
 from PyQt4 import QtCore, QtGui
+
 from vistrails.core import debug
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.system import vistrails_root_directory
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+
 from spreadsheet_controller import spreadsheetController
 from spreadsheet_registry import spreadsheetRegistry
-from spreadsheet_window import SpreadsheetWindow
-import os
-import string
-import sys
-from spreadsheet_config import configuration
-import vistrails.core
 
 # This must be here because of VisTrails protocol
 
@@ -84,8 +83,8 @@ def addWidget(packagePath):
         widget.registerWidget(registry, basic_modules, basicWidgets)
         spreadsheetRegistry.registerPackage(widget, packagePath)
         debug.log('  ==> Successfully import <%s>' % widgetName)
-    except:
-        debug.log('  ==> Ignored package <%s>' % packagePath)
+    except Exception, e:
+        debug.log('  ==> Ignored package <%s>' % packagePath, e)
         widget = None
     return widget
 
@@ -112,7 +111,7 @@ def initialize(*args, **keywords):
     """
     import vistrails.core.application
     if not vistrails.core.application.is_running_gui():
-        raise Exception, "GUI is not running. The Spreadsheet package requires the GUI"
+        raise RuntimeError, "GUI is not running. The Spreadsheet package requires the GUI"
     
     # initialize widgets
     debug.log('Loading Spreadsheet widgets...')
@@ -127,7 +126,7 @@ def initialize(*args, **keywords):
     if app==None:
         app = QtGui.QApplication(sys.argv)
     if hasattr(app, 'builderWindow'):
-        global spreadsheetWindow        
+        global spreadsheetWindow
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(show=False)
 
 def menu_items():
@@ -151,3 +150,30 @@ def finalize():
     ### It is not supposed to be called directly
     spreadsheetWindow.cleanup()
     spreadsheetWindow.deleteLater()
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    module_remap = {
+            'CellLocation': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+            'SheetReference': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+            'SingleCellSheetReference': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+        }
+
+    return UpgradeWorkflowHandler.remap_module(controller,
+                                               module_id,
+                                               pipeline,
+                                               module_remap)

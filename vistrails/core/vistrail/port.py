@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,7 +40,6 @@ from vistrails.db.domain import DBPort
 from vistrails.core.utils import VistrailsInternalError, all
 from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
 import vistrails.core.modules.vistrails_module
-import __builtin__
 import copy
 
 import unittest

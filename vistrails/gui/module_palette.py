@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -41,6 +41,7 @@ QModuleTreeWidgetItem
 """
 from PyQt4 import QtCore, QtGui
 from vistrails.core import get_vistrails_application
+from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import systemType
 from vistrails.core.utils import VistrailsInternalError
@@ -188,7 +189,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
         package_item = \
-            QPackageTreeWidgetItem(None, QtCore.QStringList(package_name))
+            QPackageTreeWidgetItem(None, [package_name])
         self.packages[package_identifier] = weakref.ref(package_item)
         if prepend:
             self.treeWidget.insertTopLevelItem(0, package_item)
@@ -222,7 +223,8 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
                     package_item.get_namespace(namespace.split('|'))
 
             item = QModuleTreeWidgetItem(descriptor, parent_item,
-                                         QtCore.QStringList(descriptor.name))
+                                         [descriptor.name],
+                                         descriptor.is_hidden)
             if descriptor.is_hidden:
                 item.setHidden(True)
         if recurse:
@@ -291,24 +293,29 @@ class QModuleTreeWidget(QSearchTreeWidget):
                 identifier = identifiers[0]
                 registry = get_module_registry()
                 package = registry.packages[identifier]
-                if package.has_contextMenuName():
-                    name = package.contextMenuName(str(item.text(0)))
-                    if name:
-                        act = QtGui.QAction(name, self)
-                        act.setStatusTip(name)
-                        def callMenu():
-                            if package.has_callContextMenu():
-                                name = package.callContextMenu(str(item.text(0)))
-                            
-                        QtCore.QObject.connect(act,
-                                               QtCore.SIGNAL("triggered()"),
-                                               callMenu)
-                        menu = QtGui.QMenu(self)
-                        menu.addAction(act)
-                        menu.exec_(event.globalPos())
-                    return
+                try:
+                    if package.has_contextMenuName():
+                        name = package.contextMenuName(str(item.text(0)))
+                        if name:
+                            act = QtGui.QAction(name, self)
+                            act.setStatusTip(name)
+                            def callMenu():
+                                if package.has_callContextMenu():
+                                    name = package.callContextMenu(str(item.text(0)))
 
-                    
+                            QtCore.QObject.connect(act,
+                                                   QtCore.SIGNAL("triggered()"),
+                                                   callMenu)
+                            menu = QtGui.QMenu(self)
+                            menu.addAction(act)
+                            menu.exec_(event.globalPos())
+                        return
+                except Exception, e:
+                    debug.warning("Got exception trying to display %s's "
+                                  "context menu in the palette: %s: %s" % (
+                                  package.name,
+                                  type(e).__name__, ', '.join(e.args)))
+
             item.contextMenuEvent(event, self)
 
     def startDrag(self, actions):
@@ -320,7 +327,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
             item = mime_data.items[0]
             
             app = get_vistrails_application()
-            pipeline_view = app.builderWindow.get_current_view().get_current_tab()
+            pipeline_view = app.builderWindow.get_current_controller().current_pipeline_view
             if hasattr(pipeline_view.scene(), 'add_tmp_module'):
                 module_item = \
                     pipeline_view.scene().add_tmp_module(item.descriptor)
@@ -400,7 +407,7 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
                                     r.height())
             text = option.fontMetrics.elidedText(
                 model.data(index,
-                           QtCore.Qt.DisplayRole).toString(),
+                           QtCore.Qt.DisplayRole),
                 QtCore.Qt.ElideMiddle,
                 textrect.width())
             style.drawItemText(painter,
@@ -428,11 +435,11 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
     
     """
     
-    def __init__(self, descriptor, parent, labelList):
+    def __init__(self, descriptor, parent, labelList, is_hidden):
         """ QModuleTreeWidgetItem(descriptor: ModuleDescriptor
                                     (or None for top-level),
                                   parent: QTreeWidgetItem
-                                  labelList: QStringList)
+                                  labelList: string)
                                   -> QModuleTreeWidget                                  
         Create a new tree widget item with a specific parent and
         labels
@@ -447,6 +454,8 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
 
         # This is necessary since we override setFlags
         self.setFlags(self._real_flags)
+
+        self.is_hidden = is_hidden
 
     def added_input_port(self):
         self.setFlags(self._real_flags)
@@ -507,7 +516,7 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
 
 class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
     def __init__(self, parent, labelList):
-        QModuleTreeWidgetItem.__init__(self, None, parent, labelList)
+        QModuleTreeWidgetItem.__init__(self, None, parent, labelList, False)
         self.setFlags(self.flags() & ~QtCore.Qt.ItemIsDragEnabled)
         self.namespaces = {}
 
@@ -518,8 +527,7 @@ class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
         if namespace_item in self.namespaces and self.namespaces[namespace_item]():
             item = self.namespaces[namespace_item]()
         else:
-            item = QNamespaceTreeWidgetItem(self,
-                                            QtCore.QStringList(namespace_item))
+            item = QNamespaceTreeWidgetItem(self, [namespace_item])
             self.namespaces[namespace_item] = weakref.ref(item)
         return item.get_namespace(namespace_items)
 

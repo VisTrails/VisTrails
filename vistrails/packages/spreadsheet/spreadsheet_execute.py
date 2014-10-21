@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -53,11 +53,6 @@ import vistrails.db.services.action
 import copy
 
 from identifiers import identifier as spreadsheet_pkg
-
-# FIXME broke this as Actions have been changed around
-#
-# from core.vistrail.action import AddModuleAction, AddConnectionAction, \
-#      DeleteConnectionAction, ChangeParameterAction
 
 ################################################################################
 
@@ -150,12 +145,12 @@ def assignPipelineCellLocations(pipeline, sheetName,
         cellLocation.add_function(colFunction)
 
         # Then connect the SheetReference to the CellLocation
-        sheet_conn = create_connection(id_scope, sheetReference, "self",
+        sheet_conn = create_connection(id_scope, sheetReference, "value",
                                        cellLocation, "SheetReference")
 
         # Then connect the CellLocation to the spreadsheet cell
         cell_module = pipeline.get_module_by_id(mId)
-        cell_conn = create_connection(id_scope, cellLocation, "self",
+        cell_conn = create_connection(id_scope, cellLocation, "value",
                                       cell_module, "Location")
 
         pipeline.add_module(sheetReference)

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -202,7 +202,6 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
             return self.toolBars[cell.toolBarType]
         else:
             return self.blankCellToolBar
-        return self.sheet.getCellToolBar(row, col)
 
     def getCellRect(self, row, col):
         """ getCellRect(row: int, col: int) -> QRect

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -103,11 +103,11 @@ def report_stack(method):
         print "-" * 78
         try:
             print "Method: " + method.im_class.__name__ + '.' + method.__name__
-        except:
+        except AttributeError:
             pass
         try:
             print "Function: " + method.func_name
-        except:
+        except AttributeError:
             pass
         traceback.print_stack()
         print "-" * 78

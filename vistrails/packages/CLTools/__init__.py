@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,9 +36,6 @@
 """
 from vistrails.core.configuration import ConfigurationObject
 
-name = 'CLTools'
-identifier = "org.vistrails.vistrails.cltools"
-version = "0.1.2"
-old_identifiers = ["edu.utah.sci.vistrails.cltools"]
+from identifiers import *
 
 configuration = ConfigurationObject(env=(None, str))

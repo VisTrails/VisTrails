@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -92,7 +92,8 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         """
         if pipeline and self.scene():
             self.inspector.inspect_ambiguous_modules(pipeline)
-            self.scene().fitToView(self)
+            self.scene().fitToAllViews(True)
+
 
     @staticmethod
     def drawId(painter, rect, id, align=QtCore.Qt.AlignCenter):

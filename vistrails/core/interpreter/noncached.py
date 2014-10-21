@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -32,18 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core import modules
-from vistrails.core.common import *
-from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.modules.vistrails_module import ModuleConnector, ModuleError
-from vistrails.core.utils import DummyView
-import copy
 import vistrails.core.interpreter.base
 import vistrails.core.interpreter.utils
 import vistrails.core.vistrail.pipeline
 import atexit
-
-# from core.modules.module_utils import FilePool
 
 ################################################################################
 

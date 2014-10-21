@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,7 +35,8 @@
 """ Module used when running  vistrails uninteractively """
 from __future__ import absolute_import
 import os.path
-import uuid
+import unittest
+
 from vistrails.core.application import is_running_gui
 from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.interpreter.default
@@ -43,23 +44,22 @@ import vistrails.core.db.io
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import XMLFileLocator, ZIPFileLocator
 from vistrails.core import debug
-from vistrails.core.utils import VistrailsInternalError, expression
+from vistrails.core.vistrail.job import Workflow as JobWorkflow
+from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.controller import VistrailController
-from vistrails.core.vistrail.vistrail import Vistrail
-
 import vistrails.core.packagemanager
 import vistrails.core.system
-import unittest
 import vistrails.core.vistrail
 import vistrails.db
 
+
 ################################################################################
     
-def run_and_get_results(w_list, parameters='', workflow_info=None, 
+def run_and_get_results(w_list, parameters='', output_dir=None, 
                         update_vistrail=True, extra_info=None, 
                         reason='Console Mode Execution'):
     """run_and_get_results(w_list: list of (locator, version), parameters: str,
-                           workflow_info:str, update_vistrail: boolean,
+                           output_dir:str, update_vistrail: boolean,
                            extra_info:dict)
     Run all workflows in w_list, and returns an interpreter result object.
     version can be a tag name or a version id.
@@ -67,14 +67,15 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
     """
     elements = parameters.split("$&$")
     aliases = {}
+    params = []
     result = []
     for locator, workflow in w_list:
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-        controller = VistrailController(v, locator, abstractions, thumbnails, 
+        controller = VistrailController(v, locator, abstractions, thumbnails,
                                         mashups, auto_save=update_vistrail)
-        if type(workflow) == type("str"):
+        if isinstance(workflow, basestring):
             version = v.get_version_number(workflow)
-        elif type(workflow) in [ type(1), long]:
+        elif isinstance(workflow, (int, long)):
             version = workflow
         elif workflow is None:
             version = controller.get_latest_version_in_graph()
@@ -91,34 +92,60 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
             
                 if controller.current_pipeline.has_alias(key):
                     aliases[key] = value
-                    
-        if workflow_info is not None and controller.current_pipeline is not None:
+                elif 'mashup_id' in extra_info:
+                    # new-style mashups can have aliases not existing in pipeline
+                    for mashuptrail in mashups:
+                        if mashuptrail.vtVersion == version:
+                            mashup = mashuptrail.getMashup(extra_info['mashup_id'])
+                            c = mashup.getAliasByName(key).component
+                            params.append((c.vttype, c.vtid, value))
+
+        if output_dir is not None and controller.current_pipeline is not None:
             # FIXME DAK: why is this always done?!? there is a flag for it...
             if is_running_gui():
                 controller.updatePipelineScene()
                 base_fname = "%s_%s_pipeline.pdf" % (locator.short_filename, version)
-                filename = os.path.join(workflow_info, base_fname)
+                filename = os.path.join(output_dir, base_fname)
                 controller.current_pipeline_scene.saveToPDF(filename)
             else:
                 debug.critical("Cannot save pipeline figure when not "
                                "running in gui mode")
             base_fname = "%s_%s_pipeline.xml" % (locator.short_filename, version)
-            filename = os.path.join(workflow_info, base_fname)
+            filename = os.path.join(output_dir, base_fname)
             vistrails.core.db.io.save_workflow(controller.current_pipeline, filename)
         if not update_vistrail:
             conf = get_vistrails_configuration()
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False
         
-        (results, _) = \
+        jobMonitor = controller.jobMonitor
+        current_workflow = jobMonitor.currentWorkflow()
+        if not current_workflow:
+            for job in jobMonitor.workflows.itervalues():
+                try:
+                    job_version = int(job.version)
+                except ValueError:
+                    job_version =  v.get_version_number(job.version)
+                if version == job_version:
+                    current_workflow = job
+                    jobMonitor.startWorkflow(job)
+            if not current_workflow:
+                current_workflow = JobWorkflow(version)
+                jobMonitor.startWorkflow(current_workflow)
+
+        try:
+            (results, _) = \
             controller.execute_current_workflow(custom_aliases=aliases,
+                                                custom_params=params,
                                                 extra_info=extra_info,
                                                 reason=reason)
+        finally:
+            jobMonitor.finishWorkflow()
         new_version = controller.current_version
         if new_version != version:
-            debug.warning("Version '%s' (%s) was upgraded. The actual "
-                          "version executed was %s" % \
-                              (workflow, version, new_version))
+            debug.log("Version '%s' (%s) was upgraded. The actual "
+                      "version executed was %s" % (
+                      workflow, version, new_version))
         run = results[0]
         run.workflow_info = (locator.name, new_version)
         run.pipeline = controller.current_pipeline
@@ -126,14 +153,23 @@ def run_and_get_results(w_list, parameters='', workflow_info=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
+        if current_workflow.jobs:
+            if current_workflow.completed():
+                run.job = "COMPLETED"
+            else:
+                run.job = "RUNNING: %s" % current_workflow.id
+                for job in current_workflow.jobs.itervalues():
+                    if not job.finished:
+                        run.job += "\n  %s %s %s" % (job.start, job.name, job.description())
+            print run.job
     return result
 
 ################################################################################
 
-def get_wf_graph(w_list, workflow_info=None, pdf=False):
+def get_wf_graph(w_list, output_dir=None, pdf=False):
     """run_and_get_results(w_list: list of (locator, version), 
-                           workflow_info:str, pdf:bool)
-    Load all workflows in wf_list and dump their graph to workflow_info.
+                           output_dir:str, pdf:bool)
+    Load all workflows in wf_list and dump their graph to output_dir.
     
     """
     result = []
@@ -147,9 +183,9 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
                                                    thumbnails, mashups,
                                                    auto_save=False)
                 version = None
-                if type(workflow) == type("str"):
+                if isinstance(workflow, basestring):
                     version = v.get_version_number(workflow)
-                elif type(workflow) in [ type(1), long]:
+                elif isinstance(workflow, (int, long)):
                     version = workflow
                 elif workflow is None:
                     version = controller.get_latest_version_in_graph()
@@ -157,22 +193,22 @@ def get_wf_graph(w_list, workflow_info=None, pdf=False):
                     msg = "Invalid version tag or number: %s" % workflow
                     raise VistrailsInternalError(msg)
             
-                if (workflow_info is not None and 
+                if (output_dir is not None and 
                     controller.current_pipeline is not None):
                     controller.updatePipelineScene()
                     if pdf:
                         base_fname = "%s_%s_pipeline.pdf" % \
                                      (locator.short_filename, version)
-                        filename = os.path.join(workflow_info, base_fname)
+                        filename = os.path.join(output_dir, base_fname)
                         controller.current_pipeline_scene.saveToPDF(filename)
                     else:
                         base_fname = "%s_%s_pipeline.png" % \
                                      (locator.short_filename, version)
-                        filename = os.path.join(workflow_info, base_fname)
+                        filename = os.path.join(output_dir, base_fname)
                         controller.current_pipeline_scene.saveToPNG(filename)
                     result.append((True, ""))
             except Exception, e:
-                result.append((False, str(e)))
+                result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save pipeline figure when not " \
             "running in gui mode"
@@ -197,21 +233,21 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
                 controller = GUIVistrailController(v, locator, abstractions, 
                                                    thumbnails, mashups)
                 if tree_info is not None:
-                        from vistrails.gui.version_view import QVersionTreeView
-                        version_view = QVersionTreeView()
-                        version_view.scene().setupScene(controller)
-                        if pdf:
-                            base_fname = "graph_%s.pdf" % locator.short_filename
-                            filename = os.path.join(tree_info, base_fname)
-                            version_view.scene().saveToPDF(filename)
-                        else:
-                            base_fname = "graph_%s.png" % locator.short_filename
-                            filename = os.path.join(tree_info, base_fname)
-                            version_view.scene().saveToPNG(filename)
-                        del version_view
-                        result.append((True, ""))
+                    from vistrails.gui.version_view import QVersionTreeView
+                    version_view = QVersionTreeView()
+                    version_view.scene().setupScene(controller)
+                    if pdf:
+                        base_fname = "graph_%s.pdf" % locator.short_filename
+                        filename = os.path.join(tree_info, base_fname)
+                        version_view.scene().saveToPDF(filename)
+                    else:
+                        base_fname = "graph_%s.png" % locator.short_filename
+                        filename = os.path.join(tree_info, base_fname)
+                        version_view.scene().saveToPNG(filename)
+                    del version_view
+                    result.append((True, ""))
             except Exception, e:
-                result.append((False, str(e)))
+                result.append((False, debug.format_exception(e)))
     else:
         error_str = "Cannot save version tree figure when not " \
             "running in gui mode"
@@ -221,14 +257,14 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
 
 ################################################################################
 
-def run(w_list, parameters='', workflow_info=None, update_vistrail=True,
+def run(w_list, parameters='', output_dir=None, update_vistrail=True,
         extra_info=None, reason="Console Mode Execution"):
     """run(w_list: list of (locator, version), parameters: str) -> boolean
     Run all workflows in w_list, version can be a tag name or a version id.
     Returns list of errors (empty list if there are no errors)
     """
     all_errors = []
-    results = run_and_get_results(w_list, parameters, workflow_info, 
+    results = run_and_get_results(w_list, parameters, output_dir, 
                                   update_vistrail,extra_info, reason)
     for result in results:
         (objs, errors, executed) = (result.objects,
@@ -263,7 +299,8 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
                                                    showProgress=False)
         except Exception, e:
             import traceback
-            return (locator, pe_id, str(e), traceback.format_exc())
+            return (locator, pe_id,
+                    debug.format_exception(e), traceback.format_exc())
 
 def run_parameter_explorations(w_list, extra_info = {},
                        reason="Console Mode Parameter Exploration Execution"):
@@ -305,10 +342,21 @@ class TestConsoleMode(unittest.TestCase):
             manager.late_disable_package('console_mode_test')
             
     def test1(self):
-        locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
-                                 '/tests/resources/dummy.xml')
-        result = run([(locator, "int chain")], update_vistrail=False)
-        self.assertEqual(len(result), 0)
+        from vistrails.core.modules.basic_modules import StandardOutput
+        values = []
+        def mycompute(s):
+            v = s.get_input('value')
+            values.append(v)
+        orig_compute = StandardOutput.compute
+        StandardOutput.compute = mycompute
+        try:
+            locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
+                                     '/tests/resources/dummy.xml')
+            result = run([(locator, "int chain")], update_vistrail=False)
+            self.assertEqual(len(result), 0)
+            self.assertEqual(values, [2])
+        finally:
+            StandardOutput.compute = orig_compute
 
     def test_tuple(self):
         from vistrails.core.vistrail.module_param import ModuleParam
@@ -339,14 +387,13 @@ class TestConsoleMode(unittest.TestCase):
                            package='org.vistrails.vistrails.console_mode_test',
                            version='0.9.1')
         module.add_function(function)
-        
+
         p.add_module(module)
-        
-        kwargs = {'locator': XMLFileLocator('foo'),
-                  'current_version': 1L,
-                  'view': v,
-                  }
-        interpreter.execute(p, **kwargs)
+
+        interpreter.execute(p,
+                            locator=XMLFileLocator('foo'),
+                            current_version=1L,
+                            view=v)
 
     def test_python_source(self):
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +

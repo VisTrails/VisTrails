@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -51,8 +51,8 @@ class VisualQuery(query.Query):
                                 target_ids, template_ids):
         resultIds = set()
         while 1:
-            templateNames = set([(i, template.modules[i].name)
-                                 for i in template_ids])
+            templateNames = set((i, template.modules[i].name)
+                                for i in template_ids)
             targetNames = {}
             for i in target_ids:
                 append_to_dict_of_lists(targetNames, target.modules[i].name, i)

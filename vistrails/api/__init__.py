@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -74,6 +74,14 @@ def switch_to_query_view():
     """
     get_vistrails_application().builderWindow.qactions['search'].trigger()
 
+def switch_to_mashup_view():
+    """switch_to_mashup_view():
+
+    Changes current viewing mode to mashup view in the builder window.
+
+    """
+    get_vistrails_application().builderWindow.qactions['mashup'].trigger()
+ 
 ################################################################################
 # Access to current state
 
@@ -167,8 +175,9 @@ def add_connection(output_id, output_port_spec, input_id, input_port_spec,
 def create_group(module_ids, connection_ids, controller=None):
     if controller is None:
         controller = get_current_controller()
-    controller.create_group(module_ids, connection_ids)
+    group = controller.create_group(module_ids, connection_ids)
     controller.updatePipelineScene()
+    return group
 
 def get_modules_by_name(name, package=None, namespace=None, controller=None):
     if controller is None:
@@ -256,7 +265,7 @@ def add_port_spec(module_id, port_spec, controller=None):
     # module = controller.current_pipeline.modules[module_id]
     controller.add_module_port(module_id, (port_spec.type, port_spec.name,
                                            port_spec.sigstring))
-    controller.updatePipleineScene()
+    controller.updatePipelineScene()
 
 ##############################################################################
 
@@ -272,7 +281,7 @@ def select_version(version, ctrl=None):
     if ctrl is None:
         ctrl = get_current_controller()
     vistrail = ctrl.vistrail
-    if type(version) == str:
+    if isinstance(version, str):
         version = vistrail.get_tag_str(version).action_id
     ctrl.change_selected_version(version)
     ctrl.invalidate_version_tree(False)
@@ -322,7 +331,7 @@ def get_vistrail_from_file(filename):
     from vistrails.core.db.locator import FileLocator
     from vistrails.core.vistrail.vistrail import Vistrail
     v = FileLocator(filename).load()
-    if type(v) != Vistrail:
+    if not isinstance(v, Vistrail):
         v = v.vistrail
     return v
 
@@ -358,6 +367,12 @@ class TestAPI(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(get_vistrails_application().builderWindow.qactions['saveFile'].isEnabled(),
                          view.has_changes())
         assert get_vistrails_application().builderWindow.qactions['saveFileAs'].isEnabled()
+
+    def test_detach_vistrail(self):
+        view = new_vistrail()
+        get_vistrails_application().builderWindow.detach_view(view)
+        get_vistrails_application().builderWindow.attach_view(view)
+        close_vistrail(view)
 
     
     

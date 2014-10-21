@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -33,10 +33,11 @@
 ##
 ###############################################################################
 import copy
+import pydoc
 
+from vistrails.core import debug
 from vistrails.core.utils import VistrailsInternalError
-from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
-import vistrails.core.debug
+from vistrails.core.vistrail.port_spec import PortSpec
 import vistrails.core.modules.module_registry
 from vistrails.core.modules.utils import create_descriptor_string
 from vistrails.db.domain import DBModuleDescriptor
@@ -138,6 +139,7 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._widget_item = None
             self._is_hidden = False
             self._namespace_hidden = False
+            self._widget_classes = {}
             self.children = []
             # The ghost attributes represent the original values
             # for the descriptor of an upgraded package subworkflow
@@ -162,6 +164,8 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._hasher_callable = other._hasher_callable
             self._widget_item = other._widget_item
             self._is_hidden = other._is_hidden
+            self._widget_classes = dict((k,copy.copy(v)) for k, v in \
+                                         other._widget_classes.iteritems())
             self._namespace_hidden = other._namespace_hidden
             self.ghost_identifier = other.ghost_identifier
             self.ghost_package_version = other.ghost_package_version
@@ -249,12 +253,32 @@ class ModuleDescriptor(DBModuleDescriptor):
     def configuration_widget(self):
         return self._configuration_widget
 
+    def set_constant_config_widget(self, widget_class, widget_use, 
+                                   widget_type):
+        if widget_use not in self._widget_classes:
+            self._widget_classes[widget_use] = {}
+        self._widget_classes[widget_use][widget_type] = widget_class
+
+    def has_constant_config_widget(self, widget_use, widget_type):
+        return widget_use in self._widget_classes and \
+            widget_type in self._widget_classes[widget_use]
+
+    def get_constant_config_widget(self, widget_use, widget_type):
+        if self.has_constant_config_widget(widget_use, widget_type):
+            return self._widget_classes[widget_use][widget_type]
+        return None
+
+    def get_all_constant_config_widgets(self, widget_use):
+        if widget_use in self._widget_classes:
+            return self._widget_classes[widget_use]
+        return {}
+
     def set_module_color(self, color):
         if color:
-            assert type(color) == tuple
+            assert isinstance(color, tuple)
             assert len(color) == 3
             for i in 0,1,2:
-                assert type(color[i]) == float
+                assert isinstance(color[i], float)
         self._module_color = color
 
     def module_color(self):
@@ -275,6 +299,19 @@ class ModuleDescriptor(DBModuleDescriptor):
         if self._left_fringe is None and self._right_fringe is None:
             return None
         return (self._left_fringe, self._right_fringe)
+
+    def module_documentation(self, module=None):
+        doc = pydoc.getdoc(self.module)
+        if hasattr(self.module, 'get_documentation'):
+            try:
+                doc = self.module.get_documentation(doc, module)
+            except Exception, e:
+                debug.critical("Exception calling get_documentation on %r" %
+                               self.module,
+                               e)
+                doc = doc or "(Error getting documentation)"
+        doc = doc or "(No documentation available)"
+        return doc
 
     def module_package(self):
         return self.identifier
@@ -314,7 +351,7 @@ class ModuleDescriptor(DBModuleDescriptor):
                 "version=%s, base_descriptor_id=%s)" % \
                     (self.id, self.package, self.name, self.namespace,
                      self.version, self.base_descriptor_id))
- 
+
     ##########################################################################
     # Abstract module detection support
 
@@ -358,8 +395,8 @@ class ModuleDescriptor(DBModuleDescriptor):
 
     def get_port_spec(self, name, port_type):
         if not self.db_has_portSpec_with_name((name, port_type)):
-            raise Exception("ModuleDescriptor.get_port_spec called when spec "
-                            " (%s, %s) doesn't exist" % (name, port_type))
+            raise ValueError("ModuleDescriptor.get_port_spec called when spec "
+                             " (%s, %s) doesn't exist" % (name, port_type))
         return self.db_get_portSpec_by_name((name, port_type))
 
     def set_port_spec(self, name, port_type, port_spec):
@@ -370,42 +407,6 @@ class ModuleDescriptor(DBModuleDescriptor):
 
     def delete_port_spec(self, port_spec):
         self.db_delete_portSpec(port_spec)
-
-    def new_port_spec(self, name, type, signature=None, sigstring=None,
-                      optional=False, sort_key=-1):
-        # DEPRECATED: create using ModuleRegistry
-        if signature is None and sigstring is None:
-            raise VistrailsInternalError("new_port_spec: signature and "
-                                         "sigstring cannot both be None")
-        if sigstring is not None:
-            return PortSpec(id=-1,
-                            name=name,
-                            type=type,
-                            sigstring=sigstring,
-                            optional=optional,
-                            sort_key=sort_key)
-        return PortSpec(id=-1,
-                        name=name,
-                        type=type,
-                        signature=signature,
-                        optional=optional,
-                        sort_key=sort_key)
-
-    def add_input_port(self, name, signature, optional):
-        # DEPRECATED: use add_port_spec
-        sort_key = len(port_specs_list)
-        result = self.new_port_spec(name, 'input', signature=signature, 
-                                    optional=optional, sort_key=sort_key)
-        self.add_port_spec(result)
-        return result
-        
-    def add_output_port(self, name, signature, optional):
-        # DEPRECATED: use add_port_spec
-        sort_key = len(port_specs_list)
-        result = self.new_port_spec(name, 'output', signature=signature, 
-                                    optional=optional, sort_key=sort_key)
-        self.add_port_spec(result)
-        return result
         
     def delete_input_port(self, name):
         key = (name, 'input')

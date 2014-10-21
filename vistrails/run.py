@@ -1,6 +1,8 @@
+#!/usr/bin/env python
+# pragma: no testimport
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,7 +39,6 @@
 import os
 import sys
 
-
 # Allows the userpackages directory to be overridden through an environment
 # variable
 # As this variable is set by the package manager, this also allows
@@ -73,9 +74,11 @@ def disable_lion_restore():
         os.system('rm -rf "%s"' % ssPath)
     os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
 
-def enable_user_base():
-    # USER_BASE and USER_SITE in site.py is not set when running from py2app,
-    # this is neded by at least scipy.weave
+
+def fix_site():
+    # py2app ships a stripped version of site.py
+    # USER_BASE and USER_SITE is not set,
+    # this is needed by at least scipy.weave
     import platform
     if platform.system()!='Darwin': return
     import site
@@ -83,56 +86,54 @@ def enable_user_base():
     from vistrails.core.system import mac_site
     site.USER_BASE = mac_site.getuserbase()
     site.USER_SITE = mac_site.getusersitepackages()
+    site._Helper = mac_site._Helper
 
-if __name__ == '__main__':
+def fix_paths():
+    import site
+    if not hasattr(site, "USER_BASE"): return # We are running py2app
+
     # Fix import path: add parent directory(so that we can
     # import vistrails.[gui|...] and remove other paths below it (we might have
     # been started from a subdir)
-
-    # DAK: the deletes screw things up in the binary (definitely for
-    #   Mac) and since subdir is unlikely, I'm commenting them out. A
-    #   better solution is probably to move run.py up a
-    #   directory in the repo
+    # A better solution is probably to move run.py up a
+    # directory in the repo
+    old_dir = os.path.realpath(os.path.dirname(__file__))
     vistrails_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
-    # i = 0
-    # print "vistrails_dir:", vistrails_dir
-    # while i < len(sys.path):
-    #     rpath = os.path.realpath(sys.path[i])
-    #     if rpath.startswith(vistrails_dir):
-    #         print " deleting", rpath, sys.path[i]
-    #         del sys.path[i]
-    #     else:
-    #         i += 1
-    sys.path.insert(0, vistrails_dir)
+    i = 0
+    while i < len(sys.path):
+        rpath = os.path.realpath(sys.path[i])
+        if rpath.startswith(old_dir):
+            del sys.path[i]
+        else:
+            i += 1
+    if vistrails_dir not in sys.path:
+        sys.path.insert(0, vistrails_dir)
 
+def main():
+    fix_paths()
     disable_lion_restore()
-    enable_user_base()
-    # does not work because it checks if gui already running
-    #import gui.requirements
-    #gui.requirements.check_pyqt4()
+    fix_site()
 
-    import vistrails.core.requirements
-    import vistrails.gui.bundles.installbundle
-    try:
-        vistrails.core.requirements.require_python_module('PyQt4.QtGui')
-        vistrails.core.requirements.require_python_module('PyQt4.QtOpenGL')
-    except vistrails.core.requirements.MissingRequirement, req:
-        r = vistrails.gui.bundles.installbundle.install(
-            {'linux-debian': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
-             'linux-ubuntu': ['python-qt4', 'python-qt4-gl', 'python-qt4-sql'],
-             'linux-fedora': ['PyQt4']})
-        if not r:
-            raise req
+    # Load the default locale (from environment)
+    import locale
+    locale.setlocale(locale.LC_ALL, '')
 
-    from PyQt4 import QtGui
+    # Log to the console
+    from vistrails.core import debug
+    debug.DebugPrint.getInstance().log_to_console()
+
+    from vistrails.gui.requirements import require_pyqt4_api2
+    require_pyqt4_api2()
+
     import vistrails.gui.application
+    from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
     try:
-        v = vistrails.gui.application.start_application()
-        if v != 0:
+        v = vistrails.gui.application.start_application(args=sys.argv[1:])
+        if v != APP_SUCCESS:
             app = vistrails.gui.application.get_vistrails_application()
             if app:
                 app.finishSession()
-            sys.exit(v)
+            sys.exit(APP_SUCCESS if v == APP_DONE else APP_FAIL)
         app = vistrails.gui.application.get_vistrails_application()()
     except SystemExit, e:
         app = vistrails.gui.application.get_vistrails_application()
@@ -143,13 +144,17 @@ if __name__ == '__main__':
         app = vistrails.gui.application.get_vistrails_application()
         if app:
             app.finishSession()
-        print "Uncaught exception on initialization: %s" % e
         import traceback
-        traceback.print_exc()
+        print >>sys.stderr, "Uncaught exception on initialization: %s" % (
+                traceback._format_final_exc_line(type(e).__name__, e).strip())
+        traceback.print_exc(None, sys.stderr)
         sys.exit(255)
-    if (app.temp_configuration.interactiveMode and
-        not app.temp_configuration.check('spreadsheetDumpCells')): 
+    if (not app.temp_configuration.batch and
+        not app.temp_configuration.check('outputDirectory')):
         v = app.exec_()
-        
+
     vistrails.gui.application.stop_application()
     sys.exit(v)
+
+if __name__ == '__main__':
+    main()

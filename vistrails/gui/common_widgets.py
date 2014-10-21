@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,11 +35,13 @@
 """ This common widgets using on the interface of VisTrails. These are
 only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
+import os
+
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot, pyqtSignal
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
-from vistrails.core.system import systemType
+from vistrails.core.system import systemType, set_vistrails_data_directory
 ################################################################################
 
 class QToolWindow(QtGui.QDockWidget):
@@ -89,6 +91,10 @@ class QToolWindow(QtGui.QDockWidget):
         self.mwindow.addToolBar(self.toolbar)
                    
     def setDefaultPinStatus(self, topLevel):
+        # Fixes QTBUG-30276
+        if self.acceptDrops():
+            self.setAcceptDrops(False)
+            self.setAcceptDrops(True)
         if topLevel:
             self.setPinStatus(False)
             self.pinButton.setEnabled(False)
@@ -147,7 +153,7 @@ class QToolWindowInterface(object):
         
         """
         if not hasattr(self, '_toolWindow'):
-            self._toolWindow = QToolWindow(self, self.parent())
+            self._toolWindow = QToolWindow(self, self.parent and self.parent())
         elif self._toolWindow.centralwidget!=self:
             self._toolWindow.window.setCentralWidget(self)
         return self._toolWindow
@@ -242,7 +248,8 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
             return visible
 
         if str(name)=='':
-            testFunction = lambda x: True
+            testFunction = lambda x: (not hasattr(x, 'is_hidden') or
+                                      not x.is_hidden)
             if not self._search_was_empty:
                 self.collapseAll()
                 self._search_was_empty = True
@@ -320,7 +327,7 @@ class QSearchTreeWindow(QtGui.QWidget):
         Return the default search tree
 
         """
-        self.treeWidget.searchItemName(QtCore.QString(''))
+        self.treeWidget.searchItemName('')
 
     def createTreeWidget(self):
         """ createTreeWidget() -> QSearchTreeWidget
@@ -470,48 +477,9 @@ class QStringEdit(QtGui.QFrame):
                                                      self.text(),
                                                      'All files '
                                                      '(*.*)')
-        if not fileName.isEmpty():
+        if fileName:
             self.setText(fileName)
-        
-###############################################################################
 
-class MultiLineWidget(StandardConstantWidget):
-    def __init__(self, contents, contentType, parent=None):
-        """__init__(contents: str, contentType: str, parent: QWidget) ->
-                                             StandardConstantWidget
-        Initialize the line edit with its contents. Content type is limited
-        to 'int', 'float', and 'string'
-        
-        """
-        StandardConstantWidget.__init__(self, parent)
-
-    def update_parent(self):
-        pass
-     
-    def keyPressEvent(self, event):
-        """ keyPressEvent(event) -> None       
-        If this is a string line edit, we can use Ctrl+Enter to enter
-        the file name
-
-        """
-        k = event.key()
-        s = event.modifiers()
-        if ((k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return) and
-            s & QtCore.Qt.ShiftModifier):
-            event.accept()
-            if self.contentIsString and self.multiLines:
-                fileNames = QtGui.QFileDialog.getOpenFileNames(self,
-                                                               'Use Filename '
-                                                               'as Value...',
-                                                               self.text(),
-                                                               'All files '
-                                                               '(*.*)')
-                fileName = fileNames.join(',')
-                if not fileName.isEmpty():
-                    self.setText(fileName)
-                    return
-        QtGui.QLineEdit.keyPressEvent(self,event)
-        
 ###############################################################################
 
 class QSearchEditBox(QtGui.QComboBox):
@@ -709,101 +677,6 @@ class QSearchBox(QtGui.QWidget):
 
 ###############################################################################
 
-class QTabBarDetachButton(QtGui.QAbstractButton):
-    """QTabBarDetachButton is a special button to be added to a tab
-    
-    """
-    def __init__(self, parent):
-        QtGui.QAbstractButton.__init__(self)
-        self.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.setCursor(QtCore.Qt.ArrowCursor)
-        self.setToolTip("Detach Tab")
-        self.setIcon(CurrentTheme.DETACH_TAB_ICON)
-        self.activePixmap = self.icon().pixmap(self.sizeHint(),
-                                               mode=QtGui.QIcon.Active)
-        self.normalPixmap = self.icon().pixmap(self.sizeHint(),
-                                               mode=QtGui.QIcon.Normal)
-        
-        self.resize(self.sizeHint())
-        
-    def sizeHint(self):
-        self.ensurePolished()
-        size = QtCore.QSize()
-        if not self.icon().isNull():
-            iconSize = self.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize, 
-                                                None, self)
-            sz = self.icon().actualSize(QtCore.QSize(iconSize, iconSize))
-            size = max(sz.width(), sz.height())
-        
-        return QtCore.QSize(size, size)
-    
-    def enterEvent(self, event):
-        if self.isEnabled():
-            icon = QtGui.QIcon(self.activePixmap)
-            self.setIcon(icon)
-            self.update()
-        else:
-            icon = QtGui.QIcon(self.normalPixmap)
-            self.setIcon(icon)
-        QtGui.QAbstractButton.enterEvent(self, event)
-        
-    def leaveEvent(self, event):
-        icon = QtGui.QIcon(self.normalPixmap)
-        self.setIcon(icon)
-        if self.isEnabled():
-            self.update()
-        QtGui.QAbstractButton.leaveEvent(self, event)
-        
-    def closePosition(self):
-        tb = self.parent()
-        if isinstance(tb, QtGui.QTabBar):
-            close_position = self.style().styleHint(QtGui.QStyle.SH_TabBar_CloseButtonPosition,
-                                                  None, tb)
-            return close_position
-        return -1
-    
-    def otherPosition(self):
-        tb = self.parent()
-        if isinstance(tb, QtGui.QTabBar):
-            close_position = self.closePosition()
-            if close_position == QtGui.QTabBar.LeftSide:
-                position = QtGui.QTabBar.RightSide
-            else:
-                position = QtGui.QTabBar.LeftSide
-            return position
-        return -1
-            
-    def paintEvent(self, event):
-        p = QtGui.QPainter(self)
-        opt = QtGui.QStyleOptionToolButton()
-        opt.init(self)
-        opt.state |= QtGui.QStyle.State_AutoRaise
-        if (self.isEnabled() and self.underMouse() and 
-            not self.isChecked() and not self.isDown()):
-            opt.state |= QtGui.QStyle.State_Raised
-        if self.isChecked():
-            opt.state |= QtGui.QStyle.State_On
-        if self.isDown():
-            opt.state |= QtGui.QStyle.State_Sunken
-        tb = self.parent()
-        if isinstance(tb, QtGui.QTabBar):
-            index = tb.currentIndex()
-            position = self.otherPosition()
-            if tb.tabButton(index, position) == self:
-                opt.state |= QtGui.QStyle.State_Selected
-            opt.icon = self.icon()
-            opt.subControls = QtGui.QStyle.SC_None
-            opt.activeSubControls = QtGui.QStyle.SC_None
-            opt.features = QtGui.QStyleOptionToolButton.None
-            opt.arrowType = QtCore.Qt.NoArrow
-            size = self.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize, 
-                                                None, self)
-            opt.iconSize = QtCore.QSize(size,size)
-            self.style().drawComplexControl(QtGui.QStyle.CC_ToolButton, opt, p, 
-                                            self)
-
-###############################################################################
-
 class QMouseTabBar(QtGui.QTabBar):
     """QMouseTabBar is a QTabBar that emits a signal when a tab
     receives a mouse event. For now only doubleclick events are
@@ -830,3 +703,114 @@ class QDockPushButton(QtGui.QPushButton):
         QtGui.QPushButton.__init__(self, text, parent) 
         if systemType in ['Darwin']:
             self.setMinimumHeight(32)
+
+class QPathChooserToolButton(QtGui.QToolButton):
+    """
+    QPathChooserToolButton is a toolbar button that opens a browser for
+    paths.  The lineEdit is updated with the pathname that is selected.
+    
+    emits pathChanged when the path is changed
+
+    """
+    pathChanged = pyqtSignal()
+
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        """
+        PathChooserToolButton(parent: QWidget, 
+                              lineEdit: StandardConstantWidget) ->
+                 PathChooserToolButton
+
+        """
+        QtGui.QToolButton.__init__(self, parent)
+        self.setIcon(QtGui.QIcon(
+                self.style().standardPixmap(QtGui.QStyle.SP_DirOpenIcon)))
+        self.setIconSize(QtCore.QSize(12,12))
+        if toolTip is None:
+            toolTip = 'Open a path chooser'
+        self.defaultPath = defaultPath
+        self.setToolTip(toolTip)
+        self.setAutoRaise(True)
+        self.lineEdit = lineEdit
+        self.connect(self,
+                     QtCore.SIGNAL('clicked()'),
+                     self.runDialog)
+
+    def setPath(self, path):
+        """
+        setPath() -> None
+
+        """
+        if self.lineEdit and path:
+            self.lineEdit.setText(path)
+            self.pathChanged.emit()
+    
+    def getDefaultText(self):
+        return self.lineEdit.text() or self.defaultPath
+
+    def openChooser(self):
+        path = QtGui.QFileDialog.getOpenFileName(self,
+                                                 'Select Path...',
+                                                 self.getDefaultText(),
+                                                 'All files '
+                                                 '(*.*)')
+        return self.setDataDirectory(path)
+
+    def runDialog(self):
+        path = self.openChooser()
+        self.setPath(path)
+
+    def setDataDirectory(self, path):
+        if path:
+            absPath = os.path.abspath(str(QtCore.QFile.encodeName(path)))
+            dirName = os.path.dirname(absPath)
+            set_vistrails_data_directory(dirName)
+            return absPath
+        return path
+
+class QFileChooserToolButton(QPathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        if toolTip is None:
+            toolTip = "Open a file chooser dialog"
+        QPathChooserToolButton.__init__(self, parent, lineEdit, toolTip,
+                                        defaultPath)
+
+    def openChooser(self):
+        path = QtGui.QFileDialog.getOpenFileName(self,
+                                                 'Select File...',
+                                                 self.getDefaultText(),
+                                                 'All files '
+                                                 '(*.*)')
+        return self.setDataDirectory(path)
+
+class QDirectoryChooserToolButton(QPathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        if toolTip is None:
+            toolTip = "Open a directory chooser dialog"
+        QPathChooserToolButton.__init__(self, parent, lineEdit, toolTip,
+                                       defaultPath)
+
+    def openChooser(self):
+        path = QtGui.QFileDialog.getExistingDirectory(self,
+                                                      'Select Directory...',
+                                                      self.getDefaultText())
+        return self.setDataDirectory(path)
+
+class QOutputPathChooserToolButton(QPathChooserToolButton):
+    def __init__(self, parent=None, lineEdit=None, toolTip=None,
+                 defaultPath=None):
+        if toolTip is None:
+            toolTip = "Open a path chooser dialog"
+        QPathChooserToolButton.__init__(self, parent, lineEdit, toolTip,
+                                       defaultPath)
+    
+    def openChooser(self):
+        path = QtGui.QFileDialog.getSaveFileName(self,
+                                                 'Select Output Location...',
+                                                 self.getDefaultText(),
+                                                 'All files (*.*)')
+        return self.setDataDirectory(path)
+    
+    

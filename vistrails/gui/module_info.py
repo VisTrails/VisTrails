@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,20 +34,79 @@
 ###############################################################################
 from PyQt4 import QtCore, QtGui
 
+from vistrails.core.configuration import get_vistrails_configuration, \
+                                         get_vistrails_persistent_configuration
+from vistrails.core.system import systemType, vistrails_root_directory
 from vistrails.core.utils import versions_increasing
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.module_annotation import QModuleAnnotationTable
-from vistrails.gui.ports_pane import PortsList
+from vistrails.gui.ports_pane import PortsList, letterIcon
+from vistrails.gui.version_prop import QVersionProp
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+
+import os
 
 class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None, flags=QtCore.Qt.Widget):
         QtGui.QWidget.__init__(self, parent, flags)
+        self.ports_visible = True
+        self.types_visible = True
+
         self.build_widget()
         self.controller = None
         self.module = None
         self.pipeline_view = None # pipeline_view
         self.read_only = False
+        self.is_updating = False
+        self.addButtonsToToolbar()
+
+    def addButtonsToToolbar(self):
+        # button for toggling executions
+        eye_open_icon = \
+            QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                                 'gui/resources/images/eye.png'))
+
+        self.portVisibilityAction = QtGui.QAction(eye_open_icon,
+                                        "Show/hide port visibility toggle buttons",
+                                        None,
+                                        triggered=self.showPortVisibility)
+        self.portVisibilityAction.setCheckable(True)
+        self.portVisibilityAction.setChecked(True)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.portVisibilityAction)
+        self.showTypesAction = QtGui.QAction(letterIcon('T'),
+                                        "Show/hide type information",
+                                        None,
+                                        triggered=self.showTypes)
+        self.showTypesAction.setCheckable(True)
+        self.showTypesAction.setChecked(True)
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.showTypesAction)
+        self.showEditsAction = QtGui.QAction(
+                 QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                                          'gui/resources/images/pencil.png')),
+                 "Show/hide parameter widgets",
+                 None,
+                 triggered=self.showEdits)
+        self.showEditsAction.setCheckable(True)
+        self.showEditsAction.setChecked(
+            get_vistrails_configuration().check('showInlineParameterWidgets'))
+        self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
+                                               self.showEditsAction)
+
+    def showPortVisibility(self, checked):
+        self.ports_visible = checked
+        self.update_module(self.module)
+
+    def showTypes(self, checked):
+        self.types_visible = checked
+        self.update_module(self.module)
+
+    def showEdits(self, checked):
+        get_vistrails_configuration().showInlineParameterWidgets = checked
+        get_vistrails_persistent_configuration().showInlineParameterWidgets = checked
+        scene = self.controller.current_pipeline_scene
+        scene.setupScene(self.controller.current_pipeline)
 
     def build_widget(self):
         name_label = QtGui.QLabel("Name:")
@@ -61,6 +120,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         package_label = QtGui.QLabel("Package:")
         self.package_edit = QtGui.QLabel("")
         # self.package_edit.setReadOnly(True)
+        id = QtGui.QLabel("Id:")
+        self.module_id = QtGui.QLabel("")
+        # self.module_id.setReadOnly(True)
         self.configure_button = QDockPushButton("Configure")
         self.connect(self.configure_button, QtCore.SIGNAL('clicked()'),
                      self.configure)
@@ -71,34 +133,23 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         layout = QtGui.QVBoxLayout()
         layout.setMargin(2)
         layout.setSpacing(4)
+        def add_line(left, right):
+            h_layout = QtGui.QHBoxLayout()
+            h_layout.setMargin(2)
+            h_layout.setSpacing(2)
+            h_layout.setAlignment(QtCore.Qt.AlignLeft)
+            h_layout.addWidget(left)
+            h_layout.addWidget(right)
+            h_widget = QtGui.QWidget()
+            h_widget.setLayout(h_layout)
+            h_widget.setSizePolicy(QtGui.QSizePolicy.Ignored,
+                                   QtGui.QSizePolicy.Preferred)
+            layout.addWidget(h_widget)
+        add_line(name_label, self.name_edit)
+        add_line(type_label, self.type_edit)
+        add_line(package_label, self.package_edit)
+        add_line(id, self.module_id)
         h_layout = QtGui.QHBoxLayout()
-        h_layout.setMargin(2)
-        h_layout.setSpacing(2)
-        h_layout.setAlignment(QtCore.Qt.AlignLeft)
-        h_layout.addWidget(name_label)
-        h_layout.addWidget(self.name_edit)
-        layout.addLayout(h_layout)
-        h_layout = QtGui.QHBoxLayout()        
-        h_layout.setMargin(2)
-        h_layout.setSpacing(2)
-        h_layout.setAlignment(QtCore.Qt.AlignLeft)
-        h_layout.addWidget(type_label)
-        h_layout.addWidget(self.type_edit)
-        h_widget = QtGui.QWidget()
-        h_widget.setLayout(h_layout)
-        h_widget.setSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Preferred)
-        layout.addWidget(h_widget)
-        h_layout = QtGui.QHBoxLayout()        
-        h_layout.setMargin(2)
-        h_layout.setSpacing(2)
-        h_layout.setAlignment(QtCore.Qt.AlignLeft)
-        h_layout.addWidget(package_label)
-        h_layout.addWidget(self.package_edit)
-        h_widget = QtGui.QWidget()
-        h_widget.setLayout(h_layout)
-        h_widget.setSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Preferred)
-        layout.addWidget(h_widget)
-        h_layout = QtGui.QHBoxLayout()        
         h_layout.setMargin(2)
         h_layout.setSpacing(5)
         h_layout.setAlignment(QtCore.Qt.AlignCenter)
@@ -107,6 +158,9 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         layout.addLayout(h_layout)
         
         self.tab_widget = QtGui.QTabWidget()
+        # keep from overflowing on mac
+        if systemType in ['Darwin']:
+            self.tab_widget.tabBar().setStyleSheet('font-size: 12pt')
         # this causes a crash when undocking the palette in Mac OS X
         # see https://bugreports.qt-project.org/browse/QTBUG-16851
         # self.tab_widget.setDocumentMode(True)
@@ -122,7 +176,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
 
         layout.setAlignment(QtCore.Qt.AlignTop)
         self.setLayout(layout)
-        self.setWindowTitle('Module Information')
+        self.setWindowTitle('Module Info')
 
     def setReadOnly(self, read_only):
         if read_only != self.read_only:
@@ -131,27 +185,41 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                 widget.setReadOnly(read_only)
 
     def set_controller(self, controller):
+        if self.controller == controller:
+            return
         self.controller = controller
         for ports_list in self.ports_lists:
             ports_list.set_controller(controller)
         self.annotations.set_controller(controller)
 
-        scene = self.controller.current_pipeline_scene
-        selected_ids = scene.get_selected_module_ids() 
-        modules = [self.controller.current_pipeline.modules[i] 
-                   for i in selected_ids]
-        if len(modules) == 1:
-            self.update_module(modules[0])
+        if self.controller is not None:
+            scene = self.controller.current_pipeline_scene
+            selected_ids = scene.get_selected_module_ids() 
+            modules = [self.controller.current_pipeline.modules[i] 
+                       for i in selected_ids]
+            if len(modules) == 1:
+                self.update_module(modules[0])
+            else:
+                self.update_module(None)
         else:
-            self.update_module(None)
+            self.update_module()
 
     def update_module(self, module=None):
+        for plist in self.ports_lists:
+            plist.types_visible = self.types_visible
+            plist.ports_visible = self.ports_visible
         self.module = module
         for ports_list in self.ports_lists:
             ports_list.update_module(module)
         self.annotations.updateModule(module)
 
         if module is None:
+            # We show the version properties tab if both are tabified and
+            # self is visible
+            if not self.toolWindow().isFloating() and \
+               not QVersionProp.instance().toolWindow().isFloating() and \
+               not self.toolWindow().visibleRegion().isEmpty():
+                QVersionProp.instance().set_visible(True)
             self.name_edit.setText("")
             if not versions_increasing(QtCore.QT_VERSION_STR, '4.7.0'):
                 self.name_edit.setPlaceholderText("")
@@ -159,7 +227,14 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.type_edit.setText("")
             # self.type_edit.setEnabled(False)
             self.package_edit.setText("")
+            self.module_id.setText("")
         else:
+            # We show self  if both are tabified and
+            # the version properties tab is visible
+            if not self.toolWindow().isFloating() and \
+               not QVersionProp.instance().toolWindow().isFloating() and \
+               not QVersionProp.instance().toolWindow().visibleRegion().isEmpty():
+                self.set_visible(True)
             if module.has_annotation_with_key('__desc__'):
                 label = module.get_annotation_by_key('__desc__').value.strip()
             else:
@@ -167,7 +242,6 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.name_edit.setText(label)
             if not label and not versions_increasing(QtCore.QT_VERSION_STR, 
                                                      '4.7.0'):
-                #print QtCore.QT_VERSION_STR, versions_increasing(QtCore.QT_VERSION_STR, '4.7.0')
                 self.name_edit.setPlaceholderText(self.module.name)
 
             # self.name_edit.setEnabled(True)
@@ -175,27 +249,31 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             # self.type_edit.setEnabled(True)
             self.package_edit.setText(self.module.package)
             # self.package_edit.setEnabled(True)
-            
+            self.module_id.setText('%d' % self.module.id)
+            # self.module_id.setEnabled(True)
+
     def name_editing_finished(self):
-        if self.module is not None:
+        # updating module may trigger a second call so we check for that
+        if self.is_updating or self.module is None:
+            return
+        try:
+            self.is_updating = True
             old_text = ''
             if self.module.has_annotation_with_key('__desc__'):
                 old_text = self.module.get_annotation_by_key('__desc__').value
             new_text = str(self.name_edit.text()).strip()
             if not new_text:
                 if old_text:
-                    #print 'delete annotation'
                     self.controller.delete_annotation('__desc__', 
                                                       self.module.id)
             elif old_text != new_text:
-                #print 'add annotation', old_text, new_text
                 self.controller.add_annotation(('__desc__', new_text), 
                                                self.module.id)
-                
-
             scene = self.controller.current_pipeline_scene
             scene.recreate_module(self.controller.current_pipeline, 
                                   self.module.id)
+        finally:
+            self.is_updating = False
             
     def configure(self):
         from vistrails.gui.vistrails_window import _app

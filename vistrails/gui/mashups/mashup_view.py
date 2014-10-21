@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,6 +35,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.mashups.mashups_manager import MashupsManager
 from vistrails.gui.mashups.alias_list import QAliasListPanel
@@ -131,12 +132,17 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         from vistrails.gui.vistrails_window import _app
         if self.vtversion > 0:
             if self.mshpController is not None:
-                self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
-                self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
-                if self.mshpController.vtController is not None:
-                    self.disconnect(self.mshpController.vtController,
-                                    QtCore.SIGNAL('vistrailChanged()'),
-                                    self.mshpControllerVistrailChanged)
+                try:
+                    self.mshpController.versionChanged.disconnect(self.mshpVersionChanged)
+                    self.mshpController.stateChanged.disconnect(self.mshpStateChanged)
+                    if self.mshpController.vtController is not None:
+                        self.disconnect(self.mshpController.vtController,
+                                        QtCore.SIGNAL('vistrailChanged()'),
+                                        self.mshpControllerVistrailChanged)
+                except Exception, e:
+                    debug.unexpected_exception(e)
+                    import traceback
+                    traceback.print_exc()
             self.controller.flush_delayed_actions()
             self.vtversion = self.controller.current_version
             self.mshpController = self.manager.createMashupController(self.controller,
@@ -250,7 +256,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         tab_idx = self.tabBar.count()-1
         while self.tabBar.count() > 1:
             idx = self.tab_to_stack_idx[tab_idx]
-            if type(self.stack.widget(idx)) == QMashupViewTab:
+            if isinstance(self.stack.widget(idx), QMashupViewTab):
                 self.tabBar.removeTab(tab_idx)
                 if idx >= 0:
                     self.stack.removeWidget(self.stack.widget(idx))
@@ -270,10 +276,11 @@ class QMashupView(QtGui.QMainWindow, BaseView):
         (pid, pname) = self.mshpController.findFirstTaggedParent(self.mshpController.currentVersion)
         if pid >= 1:
             res = show_question("VisTrails::Mashups", 
-                """You've decided to keep a modified version of '%s'.
-Would you like to update it (this will move the tag to the current version)?
-Click on No to create a new tag.""" %pname,
-                [CANCEL_BUTTON, YES_BUTTON, NO_BUTTON], 0)
+                                "You've decided to keep a modified version "
+                                "of '%s'. Would you like to update it (this "
+                                "will move the tag to the current version)? "
+                                "Click on No to create a new tag." % pname,
+                                [CANCEL_BUTTON, YES_BUTTON, NO_BUTTON], 0)
             if res == YES_BUTTON:
                 #move tag
                 self.mshpController.moveTag(pid, 
@@ -287,7 +294,7 @@ Click on No to create a new tag.""" %pname,
                     (text, ok) = QtGui.QInputDialog.getText(self, "VisTrails::Mashups",
                                                             "Enter a new tag:",
                                                             text="")
-                    if ok and not text.isEmpty():
+                    if ok and text:
                         tag = str(text)
                         if self.mshpController.updateCurrentTag(tag):
                             tag_exists = False
@@ -310,7 +317,7 @@ Click on No to create a new tag.""" %pname,
     def mshpStateChanged(self):
         for idx in range(self.stack.count()):
             view = self.stack.widget(idx)
-            if type(view) == QMashupViewTab:
+            if isinstance(view, QMashupViewTab):
                 tab_idx = view.tab_idx
                 self.tabBar.setTabText(tab_idx,
                   "Preview: %s"%self.mshpController.getMashupName(view.version))

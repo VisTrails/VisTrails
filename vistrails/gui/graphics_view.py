@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -93,7 +93,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         self.sceneBoundingRect = QtCore.QRectF()
         self.multiSelecting = False
         
-    def updateSceneBoundingRect(self, keep_square=True):
+    def updateSceneBoundingRect(self, keep_square=False):
         """ updateSceneBoundingRect() -> None        
         Compute the actual bounding rect of all shapes, then update
         the scene rect to be much wider for panning
@@ -123,10 +123,10 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             else:
                 self.sceneBoundingRect.adjust(0, -diff/2, 0, diff/2)
         panRect = self.sceneBoundingRect.adjusted(
-            -self.sceneBoundingRect.width()*100,
-            -self.sceneBoundingRect.height()*100,
-            self.sceneBoundingRect.width()*100,
-            self.sceneBoundingRect.height()*100)
+            -self.sceneBoundingRect.width()*2,
+            -self.sceneBoundingRect.height()*2,
+            self.sceneBoundingRect.width()*2,
+            self.sceneBoundingRect.height()*2)
         if panRect.width()<1e-6 and panRect.height()<1e-6:
             panRect = QtCore.QRectF(-1000,-1000,2000,2000)
         self.setSceneRect(panRect)
@@ -213,7 +213,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             pixmap.save(filename)
             self.setBackgroundBrush(brush)
         except Exception, e:
-            debug.critical("Exception: %s"%str(e))
+            debug.critical("Exception saving to PNG", e)
 
 class QInteractiveGraphicsView(QtGui.QGraphicsView):
     """
@@ -236,6 +236,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                              QtGui.QPainter.SmoothPixmapTransform)
         self.scaleMax = 2000
         self.scaleRatio = self.scaleMax/10
+        self.scaleOffset = 700
         self.currentScale = self.scaleMax/2
         self.startScroll = (0,0)
         self.lastPos = QtCore.QPoint(0,0)
@@ -244,8 +245,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.resetButton = None
         self.selectionBox = QGraphicsRubberBandItem(None)
         self.startSelectingPos = None
-        self.setProperty('captureModifiers',
-                         QtCore.QVariant(1))
+        self.setProperty('captureModifiers', 1)
         self.defaultCursorState = 0
         self.setCursorState(self.defaultCursorState)
         self.canSelectBackground = True
@@ -274,9 +274,10 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 changeFlags = pinch.changeFlags()
                 if changeFlags & QtGui.QPinchGesture.ScaleFactorChanged:
                     if self.gestureStartScale is None:
+                        self.computeScale()
                         self.gestureStartScale = self.currentScale
-                    newScale = self.gestureStartScale * \
-                        pinch.property("scaleFactor").toReal()[0]
+                    newScale = self.gestureStartScale + self.scaleMax * \
+                        math.log(pinch.property("scaleFactor"))/2
                     # Clamp the scale
                     if newScale<0: newScale = 0
                     if newScale>self.scaleMax: newScale = self.scaleMax
@@ -406,13 +407,14 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 # super(QInteractiveGraphicsView, self).mousePressEvent(e)
         else:
             if buttons & QtCore.Qt.RightButton:
+                self.computeScale()
                 if item is None:
                     self.setCursorState(2)
-                    self.computeScale()
                 else:
                     QtGui.QGraphicsView.mousePressEvent(self, e)
             elif buttons & QtCore.Qt.MidButton:
                 self.setCursorState(3)
+                self.computeScale()
                 self.startScroll = (self.horizontalScrollBar().value(),
                                     self.verticalScrollBar().value())
             self.lastPos = QtCore.QPoint(QtGui.QCursor.pos())
@@ -518,9 +520,10 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         """ updateMatrix() -> None
         Update the view matrix with the current scale
         
-        """        
+        """
         matrix = QtGui.QMatrix()
-        power = float(self.currentScale-self.scaleMax/2)/self.scaleRatio
+        power = float(self.currentScale - self.scaleMax/2 - self.scaleOffset
+                      )/self.scaleRatio
         scale = pow(2.0, power)
         matrix.scale(scale, scale)
         self.setMatrix(matrix)
@@ -531,7 +534,8 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         
         """
         self.currentScale = (math.log(self.matrix().m11(), 2.0)*
-                             self.scaleRatio + self.scaleMax/2)
+                             self.scaleRatio + self.scaleMax/2 +
+                             self.scaleOffset)
 
     def setPIPScene(self, scene):
         """ setPIPScene(scene: QGraphicsScene) -> None        
@@ -595,6 +599,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
 
     def zoomToFit(self):
         self.scene().fitToView(self, True)
+        self.computeScale()
 
     def zoomIn(self):
         self.setUpdatesEnabled(False)
@@ -634,10 +639,9 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             fileName = QtGui.QFileDialog.getSaveFileName(self.window(),
                 "Save PDF...",
                 vistrails.core.system.vistrails_file_directory(),
-                "PDF files (*.pdf)",
-                None)
+                "PDF files (*.pdf)")
 
-            if fileName.isEmpty():
+            if not fileName:
                 return None
             f = str(fileName)
         else:

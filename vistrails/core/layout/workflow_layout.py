@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -68,21 +68,21 @@ class Vec2(object):
         self.x = x
         self.y = y
     def __add__(self, other):
-        if (type(other) == float or type(other) == int):
+        if isinstance(other, (float, int)):
             return Vec2(self.x + other, self.y + other)
         else:
             return Vec2(self.x + other.x, self.y + other.y)
     def __radd__(self, other):
         return self.__add__(other)
     def __sub__(self, other):
-        if (type(other) == float or type(other) == int):
+        if isinstance(other, (float, int)):
             return Vec2(self.x - other, self.y - other)
         else:
             return Vec2(self.x - other.x, self.y - other.y)
     def __rsub__(self, other):
         return self.__sub__(other)
     def __mul__(self, other):
-        if (type(other) == float or type(other) == int):
+        if isinstance(other, (float, int)):
             return Vec2(self.x * other, self.y * other)
         else:
             return Vec2(self.x * other.x, self.y * other.y)
@@ -229,7 +229,7 @@ class Connection(object):
         elif self.target_port == port:
             return self.source_port
         else:
-            raise Exception("oppositePort problem: no opposite port")
+            raise ValueError("oppositePort problem: no opposite port")
 
 
 
@@ -348,7 +348,7 @@ class Layers(object):
         # print "layers",self.layers
         
         if layer_number >= num_layers:
-           self.layers.extend([Layer(i) for i in xrange(num_layers,layer_number+1)])
+            self.layers.extend([Layer(i) for i in xrange(num_layers,layer_number+1)])
         
         layer = self.layers[layer_number]
         layer.addModule(module)

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,9 +35,9 @@
 from PyQt4 import QtCore, QtGui
 import os
 
-from vistrails.core.db.locator import FileLocator, DBLocator
-from vistrails.core.publishing.parse_latex import parse_latex_file, parse_vt_command, \
-    build_vt_command
+from vistrails.core.db.locator import FileLocator, DBLocator, UntitledLocator
+from vistrails.core.publishing.parse_latex import parse_latex_file, \
+     parse_vt_command, build_vt_command
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
@@ -115,7 +115,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         # use current version
         self.figure_type = QtGui.QComboBox()
         self.figure_type.setEditable(False)
-        # items = QtCore.QStringList()
+        # items = []
         # items << "Workflow Results" << "Workflow Graph" << "History Tree Graph";
         self.figure_type.addItems(["Workflow Results", "Workflow Graph",
                                    "Version Tree"])
@@ -213,7 +213,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
                                                   'Load LaTeX File...',
                                                   self.source_edit.text(),
                                                   'LaTeX files (*.tex)')
-        if fname and not fname.isEmpty():
+        if fname:
             self.source_edit.setText(fname)
             self.texts = parse_latex_file(fname)
             for cmd_tuple in self.texts[1]:
@@ -283,7 +283,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
             opt_dict = {}
         for k, v in check_links.iteritems():
             opt_set = k in opt_dict
-            if type(v) == tuple:
+            if isinstance(v, tuple):
                 chb = v[0]
                 chb_default = v[1]
                 if len(v) > 2:
@@ -377,7 +377,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
             opt_dict['_args'] = graphicx_text
 
         locator = self.figure_ref.locator
-        if type(locator) == DBLocator:
+        if isinstance(locator, DBLocator):
             opt_dict['host'] = locator.host
             opt_dict['port'] = locator.port
             opt_dict['db'] = locator.db
@@ -453,15 +453,13 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         label1 = QtGui.QLabel("Embed:")
         self.cbcontent = QtGui.QComboBox()
         self.cbcontent.setEditable(False)
-        items = QtCore.QStringList()
-        items << "Workflow Results" << "Workflow Graph" << "History Tree Graph";
+        items = ["Workflow Results", "Workflow Graph", "History Tree Graph"]
         self.cbcontent.addItems(items)
         label2 = QtGui.QLabel("In:")
         
         self.cbtype = QtGui.QComboBox()
         self.cbtype.setEditable(False)
-        items = QtCore.QStringList()
-        items << "Wiki" << "Latex" << "Shared Memory";
+        items = ["Wiki", "Latex", "Shared Memory"]
         self.cbtype.addItems(items)
         
         self.controller = None
@@ -590,7 +588,8 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
     
     def focusInEvent(self, event):
         if self.controller:
-            if self.controller.locator:
+            if self.controller.locator and \
+               not isinstance(self.controller.locator, UntitledLocator):
                 from vistrails.gui.vistrails_window import _app
                 _app.ensureVistrail(self.controller.locator)
                     
@@ -600,7 +599,8 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         Only vistrails on a database are allowed to embed a tag"""
         result = False
         if self.controller:
-            if self.controller.locator:
+            if self.controller.locator and \
+               not isinstance(self.controller.locator, UntitledLocator):
                 title = "Embed Options for %s"%self.controller.locator.name
                 self.setWindowTitle(title)
                 result = True
@@ -622,7 +622,9 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         self.embededt.setText('')
 
         if self.controller and self.versionNumber > 0:
-            if self.controller.locator and not self.controller.changed:
+            if self.controller.locator and \
+               not isinstance(self.controller.locator, UntitledLocator) and \
+               not self.controller.changed:
                 loc = self.controller.locator
                 if hasattr(loc,'host'):
                     self.updateCbtype('db')    
@@ -721,10 +723,10 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         self.chbLatexVTL.setEnabled(text == 'Latex')
         self.chbPdf.setEnabled(text == 'Latex')
         if self.controller is not None:
-            self.setEmbedText()
+            self.updateEmbedText()
         
     def changeOption(self, value):
-        self.setEmbedText()
+        self.updateEmbedText()
         
     def changeContent(self, text):
         if text == "Workflow Results":
@@ -749,13 +751,16 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
     def updateCbtype(self, type):
         currentText = self.cbtype.currentText()
         self.cbtype.clear()
-        items = QtCore.QStringList()
+        items = []
         if type == 'db':
-            items << "Wiki" << "Latex" << "Shared Memory";
+            items = ["Wiki", "Latex", "Shared Memory"]
         elif type == 'file':
-            items << "Latex";
+            items = ["Latex"]
         self.cbtype.addItems(items)
-        index = items.indexOf(currentText)
+        try:
+            index = items.index(currentText)
+        except ValueError:
+            index = -1
         if index > 0:
             self.cbtype.setCurrentIndex(index)
         text = str(self.cbtype.currentText())

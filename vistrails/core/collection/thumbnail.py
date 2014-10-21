@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -49,9 +49,9 @@ class ThumbnailEntity(Entity):
         self.update(thumbnail)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = ThumbnailEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
 
     def update(self, thumbnail):
@@ -64,8 +64,8 @@ class ThumbnailEntity(Entity):
             statinfo = os.stat(self.thumbnail)
             self.user = statinfo[stat.ST_UID]
             self.size = statinfo[stat.ST_SIZE]
-            time = datetime(*localtime(statinfo[stat.ST_MTIME])[:6]).strftime('%d %b %Y %H:%M:%S')
-            self.mod_time = ''
+            time = datetime(*localtime(statinfo[stat.ST_MTIME])[:6])
+            self.mod_time = time
             self.create_time = time
             self.description = ""
             self.url = 'test'

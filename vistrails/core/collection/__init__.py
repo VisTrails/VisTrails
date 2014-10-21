@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -45,11 +45,10 @@ from thumbnail import ThumbnailEntity
 from mashup import MashupEntity
 from parameter_exploration import ParameterExplorationEntity
 
-from vistrails.core.db.locator import ZIPFileLocator, DBLocator, FileLocator, BaseLocator
+from vistrails.core.db.locator import FileLocator, BaseLocator
 from vistrails.core.db.io import load_vistrail
 import vistrails.core.system
 import vistrails.db.services.io
-from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 
 schema = ["create table entity(id integer primary key, type integer, "
@@ -84,33 +83,37 @@ class Collection(object):
             self.conn = sqlite3.connect(self.database)
             try:
                 cur = self.conn.cursor()
-                [cur.execute(s) for s in schema]
+                for s in schema:
+                    cur.execute(s)
                 self.conn.commit()
             except Exception, e:
-                debug.critical("Could not create vistrail index schema",
-                               str(e))
+                debug.critical("Could not create vistrail index schema", e)
         else:
             self.conn = sqlite3.connect(self.database)
         self.load_entities()
 
     #Singleton technique
     _instance = None
-    class CollectionSingleton():
-        def __call__(self, *args, **kw):
-            if Collection._instance is None:
-                config = get_vistrails_configuration()
-                if config:
-                    self.dotVistrails = config.dotVistrails
-                else:
-                    self.dotVistrails = vistrails.core.system.default_dot_vistrails()
 
-                config = get_vistrails_configuration()
-                path = os.path.join(self.dotVistrails, "index.db")
-                obj = Collection(path)
-                Collection._instance = obj
-            return Collection._instance
+    @staticmethod
+    def getInstance():
+        if Collection._instance is False:
+            debug.critical("Collection.getInstance() called but the "
+                           "Collection has been deleted!")
+            raise RuntimeError("Collection has been deleted!")
+        elif Collection._instance is None:
+            dotVistrails = vistrails.core.system.current_dot_vistrails()
 
-    getInstance = CollectionSingleton()
+            path = os.path.join(dotVistrails, "index.db")
+            obj = Collection(path)
+            Collection._instance = obj
+        return Collection._instance
+
+    @staticmethod
+    def clearInstance():
+        if Collection._instance:
+            Collection._instance.conn.close()
+        Collection._instance = False
 
     def add_listener(self, c):
         """ Add objects that listen to entity creation/removal
@@ -184,7 +187,7 @@ class Collection(object):
 
     def load_entity(self, *args):
         if args[1] in Collection.entity_types:
-            entity = Collection.entity_types[args[1]].load(*args)
+            entity = Collection.entity_types[args[1]].create(*args)
             return entity
         else:
             debug.critical("Cannot find entity type '%s'" % args[1])
@@ -285,25 +288,6 @@ class Collection(object):
         self.add_entity(entity)
         return entity
 
-    def update_from_database(self, db_locator):
-        # db_conn = db_locator.get_connection()
-        config = (('host', db_locator._host),
-                  ('port', int(db_locator._port)),
-                  ('db', db_locator._db),
-                  ('user', db_locator._user),
-                  ('passwd', db_locator._passwd))
-        rows = vistrails.db.services.io.get_db_object_list(dict(config), 'vistrail')
-        for row in rows:
-            if row[0] in [1,]:
-                continue
-            kwargs = {'obj_type': 'vistrail', 'obj_id': row[0]}
-            locator = DBLocator(*[x[1] for x in config], **kwargs)
-            (vistrail, abstractions, thumbnails, mashups) = load_vistrail(locator)
-            vistrail.abstractions = abstractions
-            vistrail.thumbnails = thumbnails
-            vistrail.mashups = mashups
-            self.create_vistrail_entity(vistrail)
-
     def update_from_directory(self, directory):
         filenames = glob.glob(os.path.join(directory, '*.vt'))
         for filename in filenames:
@@ -322,7 +306,7 @@ class Collection(object):
         """ Check if entity with this url exist """
         locator = BaseLocator.from_url(url)
         if locator.is_valid():
-                return True
+            return True
         return False
 
     def updateVistrail(self, url, vistrail=None):
@@ -356,33 +340,3 @@ class Collection(object):
             # probably an unsaved vistrail
             pass
 #            debug.critical("Locator is not valid!")
-
-def main():
-    from vistrails.db.services.locator import BaseLocator
-    import sys
-    sys.path.append('/home/tommy/git/vistrails/vistrails')
-
-    # vistrail = load_vistrail(ZIPFileLocator('/vistrails/examples/spx.vt'))[0]
-#    db_locator = DBLocator('vistrails.sci.utah.edu', 3306,
-#                           'vistrails', 'vistrails', '8edLj4',
-#                           obj_id=9, obj_type='vistrail')
-    # vistrail = load_vistrail(db_locator)[0]
-    c = Collection('/home/tommy/git/vistrails/vistrails/core/collection/test.db')
-    c.clear()
-    c.update_from_directory('/home/tommy/git/vistrails/examples')
-#    c.update_from_database(db_locator)
-
-    # entity = c.create_vistrail_entity(vistrail)
-    c.entities = {}
-    c.load_entities()
-#    print c.entities[2].url
-#    locator = BaseLocator.from_url(c.entities[2].url)
-#    c.entities[1].description = 'blah blah blah'
-#    c.save_entity(c.entities[1])
-#    print locator.to_url()
-    # c.load_entities()
-
-#    print BaseLocator.from_url('/vistrails/examples/spx.xml').to_url()
-
-if __name__ == '__main__':
-    main()

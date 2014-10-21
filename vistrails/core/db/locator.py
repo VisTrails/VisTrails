@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,7 +38,7 @@ import os.path
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import vistrails_default_file_type, get_elementtree_library, \
-                        default_connections_file, default_dot_vistrails
+                        default_connections_file, vistrails_examples_directory
 from vistrails.core.external_connection import ExtConnectionList, DBConnection
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
@@ -58,7 +58,7 @@ class BaseLocator(_BaseLocator):
         elif locator.__class__ == _ZIPFileLocator:
             locator.__class__ = ZIPFileLocator
         elif locator.__class__ == _DBLocator:
-            locator.__class__ = DBLocator
+            DBLocator.convert(locator)
         elif locator.__class__ == _UntitledLocator:
             locator.__class__ = UntitledLocator
             
@@ -107,7 +107,7 @@ class CoreLocator(object):
                      OpmGraph.vtType: OpmGraph}
         return klass_map[vt_type]
 
-class UntitledLocator(_UntitledLocator):
+class UntitledLocator(_UntitledLocator, CoreLocator):
     def load(self, klass=None):
         from vistrails.core.vistrail.vistrail import Vistrail
         if klass is None:
@@ -162,7 +162,7 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
     ##########################################################################
 
     def __eq__(self, other):
-        if type(other) != XMLFileLocator:
+        if not isinstance(other, XMLFileLocator):
             return False
         return self._name == other._name
 
@@ -192,9 +192,6 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
 #        return db_gui.get_load_file_locator_from_gui(parent_widget, klass.vtType)
 
 class DBLocator(_DBLocator, CoreLocator):
-    
-    __list = ExtConnectionList.getInstance(default_connections_file())
-    
     class getKeyChain(object):
         def set_key(self, key, passwd):
             get_vistrails_application().keyChain.set_key(key,passwd)
@@ -206,9 +203,9 @@ class DBLocator(_DBLocator, CoreLocator):
     
     def __init__(self, host, port, database, user, passwd, name=None,
                  **kwargs):
-        
         _DBLocator.__init__(self, host, port, database, user, passwd, name,
                             **kwargs)
+        self.__list = ExtConnectionList.getInstance(default_connections_file())
         self.ext_connection_id = -1
 
     def load(self, klass=None):
@@ -258,8 +255,9 @@ class DBLocator(_DBLocator, CoreLocator):
                     shutil.copyfile(thumbnail, cachedir_thumbnail)
                     new_thumbnails.append(cachedir_thumbnail)
                 except Exception, e:
-                    debug.critical('copying %s -> %s failed: %s' % \
-                                       (thumbnail, cachedir_thumbnail, str(e)))
+                    debug.critical("copying %s -> %s failed" % (
+                                   thumbnail, cachedir_thumbnail),
+                                   e)
         save_bundle.thumbnails = new_thumbnails
         # Need to update thumbnail cache in case some references have changed
         thumb_cache.add_entries_from_files(save_bundle.thumbnails)
@@ -306,7 +304,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 f.write("\nConnect to db with username [%s]: "%self._user)
                 f.close()
                 user = raw_input()
-            except:
+            except IOError:
                 debug.warning("Couldn't write to terminal. Will try stdout")
                 user = raw_input("Connecting to db with username[%s]: "%self._user)
             try:
@@ -325,10 +323,10 @@ class DBLocator(_DBLocator, CoreLocator):
                 config['name'] = '%s@%s'%(self._user,self._host)
                 config['id'] = -1
             except VistrailsDBException, e:
-                debug.critical('VisTrails DB Exception',  str(e))
+                debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
             except Exception, e2:
-                debug.critical('VisTrails Exception', str(e2))
+                debug.critical('VisTrails Exception', e2)
                 config['succeeded'] = False
         if config is not None:
             if config['succeeded'] == False:
@@ -346,7 +344,7 @@ class DBLocator(_DBLocator, CoreLocator):
                     config['succeeded'] = True
                     config['passwd'] = self._passwd
                 except VistrailsDBException, e:
-                    debug.critical('VisTrails DB Exception',  str(e))
+                    debug.critical('VisTrails DB Exception', e)
                     config['succeeded'] = False
             
             if config['succeeded'] == True:
@@ -403,20 +401,13 @@ class DBLocator(_DBLocator, CoreLocator):
         If the connection exists it will update it, else it will add it
 
         """
-        if kwargs.has_key("id"):
-            id = kwargs["id"]
-        if kwargs.has_key("name"):
-            name = kwargs["name"]
-        if kwargs.has_key("host"):
-            host = kwargs["host"]
-        if kwargs.has_key("port"):
-            port = kwargs["port"]
-        if kwargs.has_key("user"):
-            user = kwargs["user"]
-        if kwargs.has_key("passwd"):
-            passwd = kwargs["passwd"]
-        if kwargs.has_key("db"):
-            db = kwargs["db"]
+        id = kwargs["id"]
+        name = kwargs["name"]
+        host = kwargs["host"]
+        port = kwargs["port"]
+        user = kwargs["user"]
+        passwd = kwargs["passwd"]
+        db = kwargs["db"]
 
         conn = DBConnection(id=id,
                             name=name,
@@ -447,7 +438,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                self._obj_id == other._obj_id and
+                long(self._obj_id) == long(other._obj_id) and
                 self._obj_type == other._obj_type)
 
     ##########################################################################
@@ -473,6 +464,12 @@ class DBLocator(_DBLocator, CoreLocator):
         locator.__class__ = DBLocator
         return locator
     
+    @staticmethod
+    def convert(locator):
+        locator.__class__ = DBLocator
+        locator.__list = ExtConnectionList.getInstance(
+                                                   default_connections_file())
+
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
     def __init__(self, filename, **kwargs):
@@ -510,7 +507,7 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
     ##########################################################################
 
     def __eq__(self, other):
-        if type(other) != ZIPFileLocator:
+        if not isinstance(other, ZIPFileLocator):
             return False
         return self._name == other._name
 
@@ -673,17 +670,17 @@ class FileLocator(CoreLocator):
             showSpreadsheetOnly = False
         try:
             version = int(version)
-        except:
+        except (ValueError, TypeError):
             pass
 
         if tag is None:
-            tag = '';
+            tag = ''
             
         ## execute and showSpreadsheetOnly should be written to the current
         ## configuration
         config = get_vistrails_configuration()
-        config.executeWorkflows = execute
-        config.showSpreadsheetOnly = showSpreadsheetOnly
+        config.execute = execute
+        config.showWindow = not showSpreadsheetOnly
         if not forceDB:
             if vtcontent is not None:
                 if url is not None:
@@ -742,13 +739,10 @@ class FileLocator(CoreLocator):
                 newvtname = os.path.join(dirname,vtname)
                 if os.path.exists(newvtname):
                     vtname = newvtname
+            #check for magic strings
+            if "@examples" in vtname:
+                vtname=vtname.replace("@examples", vistrails_examples_directory())
             return FileLocator(vtname, version_node=version, version_tag=tag,
                                mashuptrail=mashuptrail,
                                mashupVersion=mashupVersion,
                                parameterExploration=parameterExploration)
-        
-        
-    ##########################################################################
-
-def untitled_locator():
-    return UntitledLocator()

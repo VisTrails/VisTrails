@@ -1,6 +1,7 @@
+#!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -78,10 +79,15 @@ def update_db(config, new_version=None, tmp_dir=None, restore=False):
                 print 'getting', obj_type, 'id', obj_id
                 local_tmp_dir = os.path.join(tmp_dir, str(obj_id))
                 vt_name = os.path.join(tmp_dir, str(obj_id) + '.vt')
-                filenames.append(vt_name)
-                os.mkdir(local_tmp_dir)
-                res = obj_types[obj_type](obj_type, db_connection, obj_id,
+                try:
+                    res = obj_types[obj_type](obj_type, db_connection, obj_id,
                                           thumbnail_dir)
+                    filenames.append(vt_name)
+                    os.mkdir(local_tmp_dir)
+                except:
+                    import traceback
+                    print "Could not read:", traceback.format_exc()
+                    continue
                 io.save_vistrail_bundle_to_zip_xml(res, vt_name, local_tmp_dir)
 
         # drop the old database

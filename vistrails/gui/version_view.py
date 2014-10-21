@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -45,20 +45,21 @@ QVersionTreeScene
 QVersionTreeView
 """
 from PyQt4 import QtCore, QtGui
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import debug
 from vistrails.core.system import systemType
 from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.vistrail.controller import custom_color_key, \
+    parse_custom_color
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
-                               QGraphicsItemInterface,
-                               QGraphicsRubberBandItem)
+                               QGraphicsItemInterface)
 from vistrails.gui.qt import qt_super
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.version_prop import QVersionPropOverlay
-from vistrails.gui.vis_diff import QVisualDiff
 from vistrails.gui.collection.workspace import QParamExplorationEntityItem
 import vistrails.gui.utils
-import math
 
 
 ################################################################################
@@ -242,12 +243,12 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
             painter.drawLine(line)
 
     def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+        """ itemChange(change: GraphicsItemChange, value: variant) -> variant
         Do not allow link to be selected with version shape
         
         """
-        if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
-            return QtCore.QVariant(False)
+        if change==QtGui.QGraphicsItem.ItemSelectedChange and value:
+            return False
         return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
 
 
@@ -378,7 +379,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         qt_super(QGraphicsVersionTextItem, self).focusOutEvent(event)
-        if not self.updatingTag and QtCore.QString.compare(self.label, self.toPlainText()) != 0:
+        if not self.updatingTag and self.label != self.toPlainText():
             self.updatingTag = True
             if (self.label == str(self.toPlainText()) or 
                 not self.scene().controller.update_current_tag(str(self.toPlainText()))):
@@ -477,7 +478,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                 self._versionPen = self._versionPenNormal
             self.updatePainterState()
 
-    def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted):
+    def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted,
+                     new_customcolor):
         """ update_color(isThisUs: bool,
                          new_rank, new_max_rank: int) -> None
 
@@ -487,22 +489,35 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         NOTE: if username changes during execution, this might break.
         """
         if (new_rank == self.rank and new_max_rank == self.max_rank and
-            new_ghosted == self.ghosted):
+            new_ghosted == self.ghosted and
+            new_customcolor == self.custom_color):
             # nothing changed
             return
         self.setGhosted(new_ghosted)
+        self.custom_color = new_customcolor
         self.rank = new_rank
         self.max_rank = new_max_rank
         if not self.ghosted:
-            if isThisUs:
-                brush = CurrentTheme.VERSION_USER_BRUSH
+            if self.custom_color is not None:
+                configuration = get_vistrails_configuration()
+                sat_from_rank = not configuration.check(
+                        'fixedCustomVersionColorSaturation')
+                brush = QtGui.QBrush(QtGui.QColor.fromRgb(*self.custom_color))
             else:
-                brush = CurrentTheme.VERSION_OTHER_BRUSH
-            sat = float(new_rank+1) / new_max_rank
-            (h, s, v, a) = brush.color().getHsvF()
-            newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
-            self.versionBrush = QtGui.QBrush(QtGui.QColor.fromHsvF(*newHsv))
-                
+                if isThisUs:
+                    brush = CurrentTheme.VERSION_USER_BRUSH
+                else:
+                    brush = CurrentTheme.VERSION_OTHER_BRUSH
+                sat_from_rank = True
+            if sat_from_rank:
+                sat = float(new_rank+1) / new_max_rank
+                (h, s, v, a) = brush.color().getHsvF()
+                newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
+                brush = QtGui.QBrush(brush)
+                brush.setColor(QtGui.QColor.fromHsvF(*newHsv))
+            self.versionBrush = brush
+        self.update()
+
     def setSaturation(self, isThisUser, sat):
         """ setSaturation(isThisUser: bool, sat: float) -> None        
         Set the color of this version depending on whose is the user
@@ -573,7 +588,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             textToDraw=self.label
         else:
             textToDraw=self.descriptionLabel
-        
+
         if (ThumbnailCache.getInstance().conf.mouseHover and
             action and action.thumbnail is not None):
             fname = ThumbnailCache.getInstance().get_abs_name_entry(action.thumbnail)
@@ -657,7 +672,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             data.versionId!=self.id) or \
            (hasattr(data, 'items') and 
             len(data.items) == 1 and
-            type(data.items[0]) == QParamExplorationEntityItem):
+            isinstance(data.items[0], QParamExplorationEntityItem)):
             event.accept()
         else:
             event.ignore()
@@ -677,7 +692,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             # visDiff.show()
         elif (hasattr(data, 'items') and 
               len(data.items) == 1 and
-              type(data.items[0]) == QParamExplorationEntityItem):
+              isinstance(data.items[0], QParamExplorationEntityItem)):
             # apply this parameter exploration to the new version, validate it and switch to PE view
             from vistrails.gui.vistrails_window import _app
             view = _app.get_current_view()
@@ -775,12 +790,13 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.select_by_click = True
         self.connect(self, QtCore.SIGNAL("selectionChanged()"),
                      self.selectionChanged)
-   
+
     def addVersion(self, node, action, tag, description):
-        """ addModule(node, action: DBAction, tag: str, description: str) 
+        """ addModule(node, action: DBAction, tag: str, description: str,
+                custom_color: (int, int, int))
                 -> None
         Add a module to the scene.
-        
+
         """
         versionShape = QGraphicsVersionItem(None)
         versionShape.setupVersion(node, action, tag, description)
@@ -860,9 +876,24 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             else:
                 max_rank = otherMaxRank
 #             max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
+            configuration = get_vistrails_configuration()
+            if configuration.check('enableCustomVersionColors'):
+                custom_color = controller.vistrail.get_action_annotation(
+                    nodeId,
+                    custom_color_key)
+                if custom_color is not None:
+                    try:
+                        custom_color = parse_custom_color(custom_color.value)
+                    except ValueError, e:
+                        debug.warning("Version %r has invalid color annotation "
+                                      "(%s)" % (nodeId, e))
+                        custom_color = None
+            else:
+                custom_color = None
+            ####
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],
-                              max_rank, ghosted)
+                              max_rank, ghosted, custom_color)
         for (version_from, version_to), link in self.edges.iteritems():
             if self.versions[version_from].ghosted and \
                     self.versions[version_to].ghosted:
@@ -1070,7 +1101,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         """        
         selectedItems = self.selectedItems()
         versions = [item.id for item in selectedItems 
-                    if type(item)==QGraphicsVersionItem
+                    if isinstance(item, QGraphicsVersionItem)
                     and not item.text.hasFocus()] 
         if (self.controller and len(versions)>0 and
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
@@ -1183,7 +1214,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         return pipeline is not None and len(pipeline.modules) > 0
     
     def execute(self):
-        res = self.controller.execute_current_workflow()
+        res = self.controller.execute_user_workflow()
         from vistrails.gui.vistrails_window import _app
         if len(res[0][0].errors) > 0:
             _app.qactions['pipeline'].trigger()
@@ -1214,7 +1245,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         items = self.scene().items(br)
         if len(items)==0 or items==[self.selectionBox]:
             for item in self.scene().selectedItems():
-                if type(item) == vistrails.gui.version_view.QGraphicsVersionItem:
+                if isinstance(item, vistrails.gui.version_view.QGraphicsVersionItem):
                     item.text.clearFocus()
         qt_super(QVersionTreeView, self).selectModules()
                 

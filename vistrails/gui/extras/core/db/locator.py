@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -96,7 +96,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
                 config['name'] = str(dialog.nameEdt.text())
                 config['id'] = dialog.id
             except VistrailsDBException, e:
-                debug.critical('VisTrails DB Exception',  str(e))
+                debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
         return config
     #check if the information is already there
@@ -143,12 +143,12 @@ def get_load_file_locator_from_gui(parent, obj_type):
         "Open %s..." % obj_type.capitalize(),
         vistrails.core.system.vistrails_file_directory(),
         "VisTrails files (%s)\nOther files (*)" % suffixes)
-    if fileName.isEmpty():
+    if not fileName:
         return None
     filename = os.path.abspath(str(QtCore.QFile.encodeName(fileName)))
     dirName = os.path.dirname(filename)
-    setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
-    setattr(get_vistrails_configuration(), 'fileDirectory', dirName)
+    setattr(get_vistrails_persistent_configuration(), 'fileDir', dirName)
+    setattr(get_vistrails_configuration(), 'fileDir', dirName)
     vistrails.core.system.set_vistrails_file_directory(dirName)
     return FileLocator(filename)
 
@@ -161,10 +161,9 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         parent,
         "Save Vistrail...",
         vistrails.core.system.vistrails_file_directory(),
-        "VisTrails files (%s)" % suffixes, # filetypes.strip()
-        None,
-        QtGui.QFileDialog.DontConfirmOverwrite)
-    if fileName.isEmpty():
+        filter="VisTrails files (%s)" % suffixes, # filetypes.strip()
+        options=QtGui.QFileDialog.DontConfirmOverwrite)
+    if not fileName:
         return None
     f = str(QtCore.QFile.encodeName(fileName))
 
@@ -190,8 +189,8 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         if msg.exec_() == QtGui.QMessageBox.No:
             return None
     dirName = os.path.dirname(f)
-    setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
-    setattr(get_vistrails_configuration(), 'fileDirectory', dirName)
+    setattr(get_vistrails_persistent_configuration(), 'fileDir', dirName)
+    setattr(get_vistrails_configuration(), 'fileDir', dirName)
     vistrails.core.system.set_vistrails_file_directory(dirName)
     return FileLocator(f)
    
@@ -200,8 +199,8 @@ def get_autosave_prompt(parent):
     
     """
     result = QtGui.QMessageBox.question(parent, 
-                                        QtCore.QString("AutoSave"),
-                                        QtCore.QString("Autosave data has been found.\nDo you want to open autosave data?"),
+                                        "AutoSave",
+                                        "Autosave data has been found.\nDo you want to open autosave data?",
                                         QtGui.QMessageBox.Open,
                                         QtGui.QMessageBox.Ignore)
     return result == QtGui.QMessageBox.Open

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,7 +38,7 @@ import os
 from vistrails.core.system import vistrails_root_directory
 from vistrails.db import VistrailsDBException
 
-currentVersion = '1.0.3'
+currentVersion = '1.0.4'
 
 def getVersionDAO(version=None):
     if version is None:
@@ -80,9 +80,11 @@ def translate_object(obj, method_name, version=None, target_version=None):
         '1.0.0': '1.0.1',
         '1.0.1': '1.0.2',
         '1.0.2': '1.0.3',
+        '1.0.3': '1.0.4',
         }
 
     rev_version_map = {
+        '1.0.4': '1.0.3',
         '1.0.3': '1.0.2',
         '1.0.2': '1.0.1',
         '1.0.1': '1.0.0',
@@ -155,6 +157,9 @@ def translate_registry(registry, version=None, target_version=None):
 
 def translate_mashup(mashup, version=None, target_version=None):
     return translate_object(mashup, 'translateMashup', version,
+
+def translate_startup(startup, version=None, target_version=None):
+    return translate_object(startup, 'translateStartup', version,
                             target_version)
 
 def get_version_name(version_no):

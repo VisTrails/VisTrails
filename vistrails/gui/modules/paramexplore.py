@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -38,40 +38,26 @@ in parameter exploration, provided the user implements the appropriate
 API in the classes.
 """
 from PyQt4 import QtCore, QtGui
-from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.basic_modules import Color
+from vistrails.core import debug
 from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
    FloatLinearInterpolator, RGBColorInterpolator, HSVColorInterpolator
 
 from vistrails.gui.common_widgets import QStringEdit
 from vistrails.gui.modules.constant_configuration import ColorChooserButton
 from vistrails.gui.modules.python_source_configure import PythonEditor
+from vistrails.gui.modules.utils import get_param_explore_widget_list
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning
 from vistrails.core.utils import all, unimplemented
 
 ##############################################################################
 
-def get_param_explore_widget_list(module_klass):
-    widget_list = []
-    klass_list = module_klass.get_param_explore_widget_list()
-    for klass in klass_list:
-        if klass is None:
-            pass
-        elif type(klass) == tuple:
-            (path, klass_name) = klass
-            module = __import__(path, globals(), locals(), [klass_name])
-            widget_list.append(getattr(module, klass_name))
-        else:
-            widget_list.append(klass)
-    return widget_list
-
 class QParameterEditor(QtGui.QWidget):
     """
     QParameterEditor specifies the method used for interpolating
     parameter values. It suppports Linear Interpolation, List and
-    User-define function. There are only 4 types that can be editable
-    with this editor: Integer, Float, String and Boolean
+    User-define function.
     
     """
     def __init__(self, param_info, size, parent=None):
@@ -90,7 +76,7 @@ class QParameterEditor(QtGui.QWidget):
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
 
-        module = param_info.spec.descriptor.module
+        descriptor = param_info.spec.descriptor
 
         self.stackedEditors = QtGui.QStackedWidget()
         self.stackedEditors.setSizePolicy(QtGui.QSizePolicy.Expanding,
@@ -101,7 +87,7 @@ class QParameterEditor(QtGui.QWidget):
             self._exploration_widgets.append(wd)
             self.stackedEditors.addWidget(wd)
 
-        for widget_class in get_param_explore_widget_list(module):
+        for widget_class in get_param_explore_widget_list(descriptor):
             new_widget = widget_class(param_info, size)
             add_exploration_widget(new_widget)
 
@@ -123,8 +109,8 @@ class QParameterEditor(QtGui.QWidget):
         stacked widget
         
         """
-        widgetIdx = action.data().toInt()[0]
-        if widgetIdx<self.stackedEditors.count():
+        widgetIdx = action.data()
+        if widgetIdx < self.stackedEditors.count():
             self.stackedEditors.setCurrentIndex(widgetIdx)
 
     def selectInterpolator(self, type):
@@ -157,7 +143,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
         self.setPopupMode(QtGui.QToolButton.InstantPopup)
         
-        self.setText(QtCore.QString(QtCore.QChar(0x25bc))) # Down triangle
+        self.setText(unichr(0x25bc)) # Down triangle
 
         self.actionGroup = QtGui.QActionGroup(self)
 
@@ -169,7 +155,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
         aId = 0
         for action in self.actionGroup.actions():
             action.setCheckable(True)
-            action.setData(QtCore.QVariant(aId))
+            action.setData(aId)
             aId += 1
 
         menu = QtGui.QMenu(self)
@@ -440,7 +426,7 @@ class QListEditDialog(QtGui.QDialog):
         vLayout.addWidget(label)
 
         self.table = QtGui.QTableWidget(0, 1, parent)
-        self.table.setHorizontalHeaderLabels(QtCore.QStringList('Values'))
+        self.table.setHorizontalHeaderLabels(['Values'])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.verticalHeader().setMovable(True)
         self.table.verticalHeader().setResizeMode(
@@ -519,9 +505,9 @@ class QListEditDialog(QtGui.QDialog):
         
         """
         vHeader = self.table.verticalHeader()
-        labels = QtCore.QStringList()        
+        labels = []        
         for i in xrange(self.table.rowCount()):
-            labels << str(vHeader.visualIndex(i)+1)
+            labels.append(str(vHeader.visualIndex(i)+1))
         self.table.setVerticalHeaderLabels(labels)
 
     def addRow(self, text=None):
@@ -577,7 +563,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         Set the editor to reflects data at index
         
         """
-        editor.setText(index.data().toString())
+        editor.setText(index.data())
         editor.selectAll()
 
     def updateEditorGeometry(self, editor, option, index):
@@ -596,7 +582,7 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         Set the text of the editor back to the item model
         
         """
-        model.setData(index, QtCore.QVariant(editor.text()))        
+        model.setData(index, editor.text())
         self.editor = None
 
     def finishEditing(self):
@@ -679,7 +665,6 @@ class QUserFunctionEditor(QtGui.QFrame):
         param_info = self._param_info
         module = param_info.spec.descriptor.module
         def get():
-            import code
             values = []
             d = {}
             try:
@@ -693,7 +678,8 @@ class QUserFunctionEditor(QtGui.QFrame):
                         return module.default_value
                     return v
                 except Exception, e:
-                    return str(e)
+                    debug.unexpected_exception(e)
+                    return debug.format_exception(e)
             return [evaluate(i) for i in xrange(self.size)]
         result = get()
         

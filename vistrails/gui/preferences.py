@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,15 +35,20 @@
 from PyQt4 import QtGui, QtCore
 from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.package import Package
+from vistrails.core.requirements import MissingRequirement
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import InvalidPipeline
 from vistrails.core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
-from vistrails.gui.configuration import (QConfigurationWidget, QGeneralConfiguration,
-                               QThumbnailConfiguration)
+from vistrails.gui.configuration import QConfigurationWidget, \
+    QConfigurationPane
 from vistrails.gui.module_palette import QModulePalette
+from vistrails.gui.modules.output_configuration import OutputModeConfigurationWidget
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.core.configuration import get_vistrails_persistent_configuration, \
-    get_vistrails_configuration
+    get_vistrails_configuration, base_config
 from vistrails.core import debug
 import os.path
 
@@ -66,10 +71,8 @@ class QPackageConfigurationDialog(QtGui.QDialog):
 
         layout = QtGui.QVBoxLayout(self)
         self.setLayout(layout)
-        self._status_bar = QtGui.QStatusBar(self)
 
-        self._configuration_widget = QConfigurationWidget(self, c, c,
-                                                          self._status_bar)
+        self._configuration_widget = QConfigurationWidget(self, c, c)
         layout.addWidget(self._configuration_widget)
 
         btns = (QtGui.QDialogButtonBox.Close |
@@ -85,7 +88,6 @@ class QPackageConfigurationDialog(QtGui.QDialog):
                      QtCore.SIGNAL('configuration_changed'),
                      self.configuration_changed)
                      
-        layout.addWidget(self._status_bar)
         layout.addWidget(self._button_box)
 
     def button_clicked(self, button):
@@ -113,7 +115,7 @@ class QPackageConfigurationDialog(QtGui.QDialog):
         self.done(0)
 
     def configuration_changed(self, item, new_value):
-        self._package.set_persistent_configuration()
+        self._package.persist_configuration()
 
 ##############################################################################
 
@@ -125,9 +127,8 @@ class QPackagesWidget(QtGui.QWidget):
     ##########################################################################
     # Initialization
 
-    def __init__(self, parent, status_bar):
+    def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
-        self._status_bar = status_bar
 
         base_layout = QtGui.QHBoxLayout(self)
         
@@ -268,7 +269,6 @@ class QPackagesWidget(QtGui.QWidget):
         self.populate_lists()
 
         self._current_package = None
-        self.erase_cache = False
 
     def populate_lists(self):
         pkg_manager = get_package_manager()
@@ -291,19 +291,17 @@ class QPackagesWidget(QtGui.QWidget):
 
     def enable_current_package(self):
         av = self._available_packages_list
-        inst = self._enabled_packages_list
         item = av.currentItem()
-        pos = av.indexFromItem(item).row()
         codepath = str(item.text())
         pm = get_package_manager()
 
-        dependency_graph = pm.dependency_graph()
         try:
             new_deps = self._current_package.dependencies()
         except Exception, e:
             debug.critical("Failed getting dependencies of package %s, "
-                           "so it will not be enabled" % \
-                            self._current_package.name, str(e))
+                           "so it will not be enabled" %
+                            self._current_package.name,
+                            e)
             return
         from vistrails.core.modules.basic_modules import identifier as basic_modules_identifier
         if self._current_package.identifier != basic_modules_identifier:
@@ -311,29 +309,33 @@ class QPackagesWidget(QtGui.QWidget):
 
         try:
             pm.check_dependencies(self._current_package, new_deps)
-        except self._current_package.MissingDependency, e:
-            debug.critical("Missing dependencies", str(e))
+        except Package.MissingDependency, e:
+            debug.critical("Missing dependencies", e)
         else:
+            # Deselects available list to prevent another package from getting
+            # selected once the current item leaves the list
+            self._available_packages_list.setCurrentItem(None)
+
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(False)
             try:
                 pm.late_enable_package(codepath)
-            except self._current_package.InitializationFailed, e:
+            except (Package.InitializationFailed, MissingRequirement), e:
                 debug.critical("Initialization of package '%s' failed" %
-                               codepath, str(e))
+                               codepath,
+                               e)
+                # Loading failed: reselect the item
+                self._available_packages_list.setCurrentItem(item)
                 raise
             finally:
                 palette.setUpdatesEnabled(True)
-                palette.treeWidget.expandAll()
             # the old code that used to be here to update the lists
             # has been moved to package_added
             self.invalidate_current_pipeline()
 
     def disable_current_package(self):
-        av = self._available_packages_list
         inst = self._enabled_packages_list
         item = inst.currentItem()
-        pos = inst.indexFromItem(item).row()
         codepath = str(item.text())
         pm = get_package_manager()
 
@@ -356,32 +358,39 @@ class QPackagesWidget(QtGui.QWidget):
         dlg.exec_()
 
     def reload_current_package(self):
-        # DISABLES the current package and all reverse dependencies
-        inst = self._enabled_packages_list
-        item = inst.currentItem()
-        pm = get_package_manager()
-        codepath = str(item.text())
-        
-        palette = QModulePalette.instance()
-        palette.setUpdatesEnabled(False)
-        pm.reload_package_disable(codepath)
-        self.erase_cache = True
+        if self._enabled_packages_list.currentItem() is not None:
+            # Disables the selected package (which was enabled) and all its
+            # reverse dependencies, then enables it all again
+            item = self._enabled_packages_list.currentItem()
+            pm = get_package_manager()
+            codepath = str(item.text())
+
+            palette = QModulePalette.instance()
+            palette.setUpdatesEnabled(False)
+            pm.reload_package_disable(codepath)
+        elif self._available_packages_list.currentItem() is not None:
+            # Reloads the selected package's (which was not enabled) __init__
+            # module
+            item = self._available_packages_list.currentItem()
+            pm = get_package_manager()
+            codepath = str(item.text())
+            pm._available_packages.pop(codepath).unload()
+            self.selected_available_list()
 
     def reload_current_package_finisher(self, codepath, reverse_deps, prefix_dictionary):
         # REENABLES the current package and all reverse dependencies
         pm = get_package_manager()
         try:
             pm.reload_package_enable(reverse_deps, prefix_dictionary)
-        except self._current_package.InitializationFailed, e:
+        except Package.InitializationFailed, e:
             debug.critical("Re-initialization of package '%s' failed" % 
-                            codepath, str(e))
+                            codepath,
+                            e)
             raise
         finally:
             self.populate_lists()
             palette = QModulePalette.instance()
             palette.setUpdatesEnabled(True)
-            palette.treeWidget.expandAll()
-            self.erase_cache = True
             self.select_package_after_update(codepath)
             self.invalidate_current_pipeline()
 
@@ -400,23 +409,14 @@ class QPackagesWidget(QtGui.QWidget):
             av.takeItem(pos)
             inst.addItem(item)
             inst.sortItems()
-            self.erase_cache = True
             self.select_package_after_update(codepath)
 
     def package_removed(self, codepath):
         # package was removed, we need to update list
-        av = self._available_packages_list
-        inst = self._enabled_packages_list
         # if we run a late-enable with a prefix (console_mode_test),
         # we don't actually have the package later
         self.populate_lists()
-        for item in inst.findItems(codepath, QtCore.Qt.MatchExactly):
-            pos = inst.indexFromItem(item).row()
-            inst.takeItem(pos)
-            av.addItem(item)
-            av.sortItems()
-            self.erase_cache = True
-            self.select_package_after_update(codepath)
+        self.select_package_after_update(codepath)
 
     def select_package_after_update(self, codepath):
         # Selecting the package causes self._current_package to be set,
@@ -458,7 +458,7 @@ class QPackagesWidget(QtGui.QWidget):
         self._configure_button.setEnabled(False)
         self._disable_button.setEnabled(False)
         self._enable_button.setEnabled(True)
-        self._reload_button.setEnabled(False)
+        self._reload_button.setEnabled(True)
 
     def set_package_information(self):
         """Looks at current package and sets all labels (name,
@@ -478,15 +478,16 @@ class QPackagesWidget(QtGui.QWidget):
             self._dependencies_label.setText(msg)
             self._description_label.setText(msg)
             self._reverse_dependencies_label.setText(msg)
-            debug.critical('Cannot load package', str(e))
+            debug.critical('Cannot load package', e)
         else:
             self._name_label.setText(p.name)
             try:
                 deps = ', '.join(str(d) for d in p.dependencies()) or \
                     'No package dependencies.'
             except Exception, e:
-                debug.critical("Failed getting dependencies of package %s "
-                               "" % p.name, str(e))
+                debug.critical("Failed getting dependencies of package %s" %
+                               p.name,
+                               e)
                 deps = "ERROR: Failed getting dependencies"
             try:
                 pm = get_package_manager()
@@ -536,12 +537,76 @@ class QPackagesWidget(QtGui.QWidget):
     def invalidate_current_pipeline(self):
         from vistrails.gui.vistrails_window import _app
         _app.invalidate_pipelines()
+
+class QOutputConfigurationPane(QtGui.QWidget):
+    def __init__(self, parent, persistent_config, temp_config):
+        QtGui.QWidget.__init__(self, parent)
+
+        self.persistent_config = persistent_config
+        self.temp_config = temp_config
+
+        scroll_area = QtGui.QScrollArea()
+        inner_widget =  QtGui.QWidget()
+        self.inner_layout = QtGui.QVBoxLayout()
+        inner_widget.setLayout(self.inner_layout)
+        scroll_area.setWidget(inner_widget)
+        scroll_area.setWidgetResizable(True)
+        self.setLayout(QtGui.QVBoxLayout())
+        self.layout().addWidget(scroll_area, 1)
+        self.layout().setContentsMargins(0,0,0,0)
+
+        app = get_vistrails_application()
+        app.register_notification("package_added", self.update_output_modules)
+        app.register_notification("package_removed", self.update_output_modules)
+
+        self.mode_widgets = {}
+
+    def update_output_modules(self, *args, **kwargs):
+        # need to find all currently loaded output modes (need to
+        # check after modules are loaded and spin through registery)
+        # and display them here
+        reg = get_module_registry()
+        output_d = reg.get_descriptor_by_name(get_vistrails_basic_pkg_id(),
+                                              "OutputModule")
+        sublist = reg.get_descriptor_subclasses(output_d)
+        modes = {}
+        for d in sublist:
+            if hasattr(d.module, '_output_modes'):
+                for mode in d.module._output_modes:
+                    modes[mode.mode_type] = mode
+
+        found_modes = set()
+        for mode_type, mode in modes.iteritems():
+            found_modes.add(mode_type)
+            if mode_type not in self.mode_widgets:
+                mode_config = None
+                output_settings = self.persistent_config.outputDefaultSettings
+                if output_settings.has(mode_type):
+                    mode_config = getattr(output_settings, mode_type)
+                widget = OutputModeConfigurationWidget(mode, mode_config)
+                widget.fieldChanged.connect(self.field_was_changed)
+                self.inner_layout.addWidget(widget)
+                self.mode_widgets[mode_type] = widget
         
+        for mode_type, widget in self.mode_widgets.items():
+            if mode_type not in found_modes:
+                self.inner_layout.removeWidget(self.mode_widgets[mode_type])
+                del self.mode_widgets[mode_type]
+
+    def field_was_changed(self, mode_widget):
+        # FIXME need to use temp_config to show command-line overrides
+        for k1, v_dict in mode_widget._changed_config.iteritems():
+            for k2, v in v_dict.iteritems():
+                k = "%s.%s" % (k1, k2)
+                self.persistent_config.outputDefaultSettings.set_deep_value(
+                    k, v, True)
+                self.temp_config.outputDefaultSettings.set_deep_value(
+                    k, v, True)
+
 class QPreferencesDialog(QtGui.QDialog):
 
     def __init__(self, parent):
         QtGui.QDialog.__init__(self, parent)
-        self._status_bar = QtGui.QStatusBar(self)
         self.setWindowTitle('VisTrails Preferences')
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
@@ -559,71 +624,47 @@ class QPreferencesDialog(QtGui.QDialog):
         self._tab_widget.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                        QtGui.QSizePolicy.Expanding)
 
-        self._general_tab = self.create_general_tab()
-        self._tab_widget.addTab(self._general_tab, 'General Configuration')
+        tabs = [("General", ["General", "Packages"]),
+                ("Interface", ["Interface", "Startup"]),
+                ("Paths && URLs", ["Paths", "Web Sharing"]),
+                ("Advanced", ["Upgrades", "Thumbnails", "Advanced"]),
+                ]
+        for (tab_name, categories) in tabs:
+            tab = QConfigurationPane(self, 
+                                     get_vistrails_persistent_configuration(),
+                                     get_vistrails_configuration(),
+                                     [(c, base_config[c]) for c in categories])
+            self._tab_widget.addTab(tab, tab_name)
 
-        self._thumbs_tab = self.create_thumbs_tab()
-        self._tab_widget.addTab(self._thumbs_tab, 'Thumbnails Configuration')
-        
+        output_tab = QOutputConfigurationPane(self,
+                                    get_vistrails_persistent_configuration(), 
+                                    get_vistrails_configuration())
+        self._tab_widget.addTab(output_tab, "Output")
+
         self._packages_tab = self.create_packages_tab()
-        self._tab_widget.addTab(self._packages_tab, 'Module Packages')
+        self._tab_widget.addTab(self._packages_tab, 'Packages')
         
         self._configuration_tab = self.create_configuration_tab()
-        self._tab_widget.addTab(self._configuration_tab, 'Expert Configuration')
+        self._tab_widget.addTab(self._configuration_tab, 'Expert')
 
-        self._button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close,
-                                                  QtCore.Qt.Horizontal,
-                                                  f)
         self.connect(self._tab_widget,
                      QtCore.SIGNAL('currentChanged(int)'),
                      self.tab_changed)
-
-        self.connect(self._button_box,
-                     QtCore.SIGNAL('clicked(QAbstractButton *)'),
-                     self.close_dialog)
 
         self.connect(self._configuration_tab._tree.treeWidget,
                      QtCore.SIGNAL('configuration_changed'),
                      self.configuration_changed)
 
-        self.connect(self._general_tab,
-                     QtCore.SIGNAL('configuration_changed'),
-                     self.configuration_changed)
-        
-        self.connect(self._thumbs_tab,
-                     QtCore.SIGNAL('configuration_changed'),
-                     self.configuration_changed)
-
-        l.addWidget(self._button_box)
-        l.addWidget(self._status_bar)
-
     def close_dialog(self):
         self.done(0)
-
-    def create_general_tab(self):
-        """ create_general_tab() -> QGeneralConfiguration
-        
-        """
-        return QGeneralConfiguration(self,
-                                     get_vistrails_persistent_configuration(),
-                                     get_vistrails_configuration())
-        
-    def create_thumbs_tab(self):
-        """ create_thumbs_tab() -> QThumbnailConfiguration
-        
-        """
-        return QThumbnailConfiguration(self,
-                                       get_vistrails_persistent_configuration(),
-                                       get_vistrails_configuration())
 
     def create_configuration_tab(self):
         return QConfigurationWidget(self,
                                     get_vistrails_persistent_configuration(),
-                                    get_vistrails_configuration(),
-                                    self._status_bar)
+                                    get_vistrails_configuration())
 
     def create_packages_tab(self):
-        return QPackagesWidget(self, self._status_bar)
+        return QPackagesWidget(self)
 
     def sizeHint(self):
         return QtCore.QSize(800, 600)
@@ -633,10 +674,9 @@ class QPreferencesDialog(QtGui.QDialog):
         Keep general and advanced configurations in sync
         
         """
+
+        # FIXME Need to fix this
         self._configuration_tab.configuration_changed(
-                                       get_vistrails_persistent_configuration(),
-                                       get_vistrails_configuration())
-        self._general_tab.update_state(
                                        get_vistrails_persistent_configuration(),
                                        get_vistrails_configuration())
     
@@ -649,6 +689,62 @@ class QPreferencesDialog(QtGui.QDialog):
         we guarantee the changes were saved before VisTrails crashes.
         
         """
-        from PyQt4 import QtCore
         from vistrails.gui.application import get_vistrails_application
         get_vistrails_application().save_configuration()
+
+
+#############################################################################
+
+import unittest
+
+class TestPreferencesDialog(unittest.TestCase):
+    def test_remove_package(self):
+        """ Tests if the package really gets deleted, and that it gets
+            selected again in the available packages list.
+        """
+        
+        pkg = "dialogs"
+        _app = get_vistrails_application()
+        builder = _app.builderWindow
+        builder.showPreferences()
+        prefs = builder.preferencesDialog
+        packages = prefs._packages_tab
+        prefs._tab_widget.setCurrentWidget(packages)
+        QtGui.QApplication.processEvents()
+
+        # check if package is loaded
+        av = packages._available_packages_list
+        item, = av.findItems(pkg, QtCore.Qt.MatchExactly)
+        av.setCurrentItem(item)
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
+        packages.enable_current_package()
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
+
+        inst = packages._enabled_packages_list
+        item, = inst.findItems(pkg, QtCore.Qt.MatchExactly)
+        inst.setCurrentItem(item)
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
+        packages.disable_current_package()
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
+
+        # force delayed calls
+        packages.populate_lists()
+        packages.select_package_after_update_slot(pkg)
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
+
+        # This does not work because the selection is delayed
+        av = packages._available_packages_list
+        items = av.selectedItems()
+        self.assertEqual(len(items), 1, "No available items selected!")
+        self.assertEqual(items[0].text(), unicode(pkg),
+                         "Wrong available item selected: %s" % items[0].text())
+
+        # check if configuration has been written correctly
+        startup = _app.startup
+        self.assertIn(pkg, startup.disabled_packages)
+        self.assertNotIn(pkg, startup.enabled_packages)

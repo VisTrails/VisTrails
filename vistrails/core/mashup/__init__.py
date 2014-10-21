@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,31 +35,30 @@
 
 import uuid
 from datetime import date, datetime
-from time import strptime
 ################################################################################                           
 
 def conv_to_bool(x):
-    if type(x) == str:
+    if isinstance(x, str):
         s = str(x).upper()
         if s == 'TRUE':
             return True
         if s == 'FALSE':
             return False
-    elif type(x) == int:
+    elif isinstance(x, (int, long)):
         if x == 0:
             return False
         else:
             return True
-    elif type(x) == bool:
+    elif isinstance(x, bool):
         return x
         
 def conv_from_bool(x):
-    if type(x) == bool:
+    if isinstance(x, bool):
         if x == True:
             return 1
         else:
             return 0
-    elif type(x) == int:
+    elif isinstance(x, (int, long)):
         return x
     
 def convert_symbols(val):
@@ -94,9 +93,9 @@ def convert_symbols(val):
 #                elif type == 'bool':
 #                    return bool_conv(value)
 #                elif type == 'date':
-#                    return date(*strptime(value, '%Y-%m-%d')[0:3])
+#                    return date(*time_strptime(value, '%Y-%m-%d')[0:3])
 #                elif type == 'datetime':
-#                    return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+#                    return datetime(*time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
 #                elif type == 'uuid':
 #                    return uuid.UUID(value)
 #        return None
@@ -107,7 +106,7 @@ def convert_symbols(val):
 #            if type == 'date':
 #                return value.isoformat()
 #            elif type == 'datetime':
-#                return value.strftime('%Y-%m-%d %H:%M:%S')
+#                return strftime(value, '%Y-%m-%d %H:%M:%S')
 #            else:
 #                return str(value)
 #        return ''

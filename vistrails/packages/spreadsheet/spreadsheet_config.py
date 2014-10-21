@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,5 +35,6 @@
 from vistrails.core.configuration import ConfigurationObject
 configuration = ConfigurationObject(rowCount=2,
                                     columnCount=3,
-                                    dumpfileType='PNG')
+                                    dumpfileType='PNG',
+                                    fixedCellSize=False)
 # other possible value for dumpfileType is PDF

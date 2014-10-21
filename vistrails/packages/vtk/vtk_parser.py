@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -43,6 +43,7 @@
 type information, and organizes them.
 
 """
+from ast import literal_eval
 import re
 import vtk
 import class_tree
@@ -308,11 +309,11 @@ class VTKMethodParser(object):
 
             # Now quote the args and eval them.  Easy!
             if ret:
-                ret = eval(pat.sub('\"', ret))
+                ret = literal_eval(pat.sub('\"', ret))
             if arg:
-                arg = eval(pat.sub('\"', arg))
-                if type(arg) == type('str'):
-                    arg = [arg]        
+                arg = literal_eval(pat.sub('\"', arg))
+                if isinstance(arg, basestring):
+                    arg = [arg]
 
             sig.append(([ret], arg))
 
@@ -442,7 +443,7 @@ class VTKMethodParser(object):
                     for x in values[:]:
                         try:
                             getattr(obj, 'Set%sTo%s'%(key, x[0]))()
-                        except:
+                        except Exception:
                             continue
                         val = getattr(obj, 'Get%s'%key)()
                         x[1] = val
@@ -536,7 +537,7 @@ class VTKMethodParser(object):
         obj = None
         try:
             obj = klass()
-        except TypeError:
+        except (TypeError, NotImplementedError):
             if self._tree:
                 t = self._tree
                 n = t.get_node(klass.__name__)

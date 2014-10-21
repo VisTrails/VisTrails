@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -49,8 +49,7 @@ class QConfigurationWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self.setLayout(QtGui.QVBoxLayout())
         self.widget = None
-        #self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        
+
     def setUpWidget(self, widget):
         self.widget = widget
         self.layout().addWidget(self.widget)
@@ -58,14 +57,14 @@ class QConfigurationWidget(QtGui.QWidget):
     def clear(self):
         """ clear() -> None
         Clear and delete widget in the layout
-        
+
         """
-        if self.widget:
+        if self.widget is not None:
             self.widget.setVisible(False)
             self.layout().removeWidget(self.widget)
             self.widget.deleteLater()
-        self.widget = None
-        
+            self.widget = None
+
     def askToSaveChanges(self):
         if self.widget:
             return self.widget.askToSaveChanges()
@@ -95,14 +94,19 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
         self.hasChanges = False
         
     def set_controller(self, controller):
+        if self.controller == controller:
+            return
         self.controller = controller
-        self.scene = controller.current_pipeline_scene
+        if self.controller is not None:
+            self.scene = controller.current_pipeline_scene
 
-        selected_ids = self.scene.get_selected_module_ids() 
-        modules = [controller.current_pipeline.modules[i] 
-                   for i in selected_ids]
-        if len(modules) == 1:
-            self.updateModule(modules[0])
+            selected_ids = self.scene.get_selected_module_ids() 
+            modules = [controller.current_pipeline.modules[i] 
+                       for i in selected_ids]
+            if len(modules) == 1:
+                self.updateModule(modules[0])
+            else:
+                self.updateModule(None)
         else:
             self.updateModule(None)
 
@@ -114,13 +118,6 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
         self.confWidget.setVisible(False)
         self.confWidget.clear()
         if module and self.controller:
-            # if module.has_annotation_with_key('__desc__'):
-            #     label = module.get_annotation_by_key('__desc__').value.strip()
-            #     title = '%s (%s) Module Configuration'%(label,
-            #                                             module.name)
-            # else:
-            #     title = '%s Module Configuration'%module.name
-            # self.setWindowTitle(title)
             registry = get_module_registry()
             getter = registry.get_configuration_widget
             widgetType = None

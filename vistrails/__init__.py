@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -34,4 +34,21 @@
 ###############################################################################
 """Main file for the VisTrails distribution."""
 
-# FIXME: In the future, bootstrap everything from here.
+# This makes sure we use unittest2 everywhere
+# If we are running 2.6, since our tests are in the same files as our code,
+# VisTrails might choke up because of missing unittest features
+
+import sys
+try:
+    import unittest2
+except ImportError:
+    pass
+else:
+    sys.modules['unittest'] = unittest2
+import unittest
+
+if not hasattr(unittest, 'skipIf'):
+    # We don't have unittest2, and unittest is pre-2.7
+    sys.stderr.write("WARNING: Your unittest is missing 2.7 features. Please "
+                     "upgrade Python or\ninstall unittest2, else VisTrails "
+                     "might fail because of missing symbols.\n")

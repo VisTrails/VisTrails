@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -40,16 +40,61 @@ from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
 from vistrails.gui.theme import CurrentTheme
 import copy
-import string
 import os.path
-import vistrails.gui
 
-# FIXME broke this as Actions have been changed around
-#
-# from core.vistrail.action import AddModuleAction, AddConnectionAction, \
-#      DeleteConnectionAction, ChangeParameterAction
+###############################################################################
 
-################################################################################
+def split_camel_case(text):
+    if not text:
+        return u''
+    lines = []
+    # State machine!
+    #                                 empty?
+    #          initial ------------------------>
+    #           |    \             return empty
+    #           |      \
+    #           |        \
+    #           |          \
+    #           |            \
+    #         U | mark       L \ mark
+    #           |                \
+    #          \/        L       \/
+    #          1  ---------------> 2 ----\
+    #       /  /\ |\             / |\    | L
+    #     /    |   \      U     /   \___/
+    #    /     |    \-----------
+    #   |      |      emit, mark
+    #   |      |
+    # U |    L | emit -1
+    #   |      | mark -1
+    #   |     /
+    #   |   /
+    #  \/ /
+    #    3 ----\
+    #    |\    | U
+    #     \___/
+    #
+    state = 0
+    for i, c in enumerate(text):
+        u = c.isupper()
+        if state == 1:
+            state = 3 if u else 2
+        elif state == 2 and u:
+            state = 1
+            lines.append(text[mark:i])
+            mark = i
+        elif state == 3 and not u:
+            lines.append(text[mark:i-1])
+            mark = i-1
+            state = 1
+        elif state == 0:
+            state = 1 if u else 2
+            mark = i
+    lines.append(text[mark:])
+
+    return u'\n'.join(lines)
+
+###############################################################################
 
 def decodeConfiguration(pipeline, cells):
     """ decodeConfiguration(pipeline: Pipeline,
@@ -438,7 +483,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         getConfiguration could be passed directly to
         setConfiguration (the dimensions aren't used).
         """
-        if type(info) == type({}):
+        if isinstance(info, dict):
             result = info
         else:
             rCount, cCount, result = info
@@ -478,26 +523,6 @@ class QVirtualCellLabel(QtGui.QLabel):
         self.setFrameStyle(QtGui.QFrame.Panel)
         self.palette().setColor(QtGui.QPalette.WindowText,
                                 CurrentTheme.HOVER_SELECT_COLOR)
-
-    def formatLabel(self, text):
-        """ formatLabel(text: str) -> str
-        Convert Camel Case to end-line separator
-        
-        """
-        if text=='':
-            return 'Empty'
-        lines = []
-        prev = 0
-        lt = len(text)
-        for i in xrange(lt):
-            if (not (text[i] in string.lowercase)
-                and (i==lt-1 or
-                     text[i+1] in string.lowercase)):
-                if i>0:
-                    lines.append(text[prev:i])
-                prev = i
-        lines.append(text[prev:])
-        return '\n'.join(lines)
 
     def setCellData(self, cellType, cellId):
         """ setCellData(cellType: str, cellId: int) -> None Create an
@@ -539,7 +564,7 @@ class QVirtualCellLabel(QtGui.QLabel):
         if self.type!=None:
             painter.drawText(QtCore.QRect(QtCore.QPoint(6, 6), size),
                              QtCore.Qt.AlignCenter | QtCore.Qt.TextWrapAnywhere,
-                                self.formatLabel(self.type))
+                             split_camel_case(self.type))
             # Draw the lower right corner number if there is an id
             if self.id>=0 and self.type:
                 QAnnotatedPipelineView.drawId(painter, image.rect(), self.id,
@@ -617,10 +642,22 @@ class QVirtualCellLabel(QtGui.QLabel):
             self.setFrameStyle(QtGui.QFrame.Panel | QtGui.QFrame.Plain)
         else:
             self.setFrameStyle(QtGui.QFrame.Panel)
-                
-################################################################################
 
-if __name__=="__main__":        
+###############################################################################
+
+import unittest
+
+class TestCamelCase(unittest.TestCase):
+    def test_simple(self):
+        self.assertEqual(split_camel_case('camelCaseH'), 'camel\nCase\nH')
+        self.assertEqual(split_camel_case('CamelCase'), 'Camel\nCase')
+
+    def test_long(self):
+        self.assertEqual(split_camel_case('parseHTML'), 'parse\nHTML')
+        self.assertEqual(split_camel_case('HTMLParser'), 'HTML\nParser')
+        self.assertEqual(split_camel_case('vHTMLParser'), 'v\nHTML\nParser')
+
+if __name__=="__main__":
     import sys
     import vistrails.gui.theme
     app = QtGui.QApplication(sys.argv)

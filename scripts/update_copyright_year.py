@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,10 +36,10 @@
 # and updates 2007 year with 2008 in the file header. 
 import re
 import os
-new_copyright = ["## Copyright (C) 2011-2013, NYU-Poly.\n"]
+new_copyright = ["## Copyright (C) 2011-2014, NYU-Poly.\n"]
 
-re_copyright = re.compile(r"\s+## Copyright \(C\) 2006-2011, University of Utah\. \s+")
-line_copyright = re.compile(r"## Copyright \(C\) 2006-2011, University of Utah\.")
+re_copyright = re.compile(r"\s+## Copyright \(C\) 2011-2014, NYU-Poly\.\s+")
+line_copyright = re.compile(r"## Copyright \(C\) 2011-2014, NYU-Poly\.")
 IGNORE_LIST = ["update_copyright_year.py"]
 files = []
 for (path, dnames, fnames) in os.walk('.'):
@@ -62,7 +62,7 @@ for fname in files:
                 print "Updating: %s"%fname
                 newlines = lines[:i]
                 newlines.extend(new_copyright)
-                cropped = lines[i:] #Replace by i+1 when it is to update just the year.
+                cropped = lines[i+1:] #Replace by i+1 when it is to update just the year.
                 newlines.extend(cropped)
                 fout = file(fname, 'w')
                 fout.writelines(newlines)

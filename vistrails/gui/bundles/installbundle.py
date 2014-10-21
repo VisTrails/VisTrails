@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -35,71 +35,92 @@
 
 """Module with utilities to try and install a bundle if possible."""
 from vistrails.core import get_vistrails_application
-from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.configuration import get_vistrails_configuration, \
+    get_vistrails_persistent_configuration
 from vistrails.core import debug
-from vistrails.core.system import get_executable_path, vistrails_root_directory
+from vistrails.core.system import executable_is_in_path, get_executable_path
+from vistrails.core.system import vistrails_root_directory, systemType
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
+from vistrails.gui.requirements import qt_available
+import imp
 import os
-
+import subprocess
+import sys
 
 ##############################################################################
 
-def has_qt():
-    try:
-        import PyQt4.QtGui
-        # Must import this on Ubuntu linux, because PyQt4 doesn't come with
-        # PyQt4.QtOpenGL by default
-        import PyQt4.QtOpenGL
-        return True
-    except ImportError:
-        return False
-
+pip_installed = True
+try:
+    imp.find_module('pip')
+    # Here we do not actually import pip, to avoid pip issue #1314
+    # https://github.com/pypa/pip/issues/1314
+except ImportError:
+    pip_installed = False
 
 def hide_splash_if_necessary():
-    qt = has_qt()
-    # HACK, otherwise splashscreen stays in front of windows
-    if qt:
-        try:
-            get_vistrails_application().splashScreen.hide()
-        except:
-            pass
+    """Disables the splashscreen, otherwise it sits in front of windows.
+    """
+    app = get_vistrails_application()
+    if hasattr(app, 'splashScreen') and app.splashScreen:
+        app.splashScreen.hide()
 
 
-def run_install_command_as_root(graphical, cmd, args):
-    if type(args) == str:
-        cmd += ' ' + args
-    elif type(args) == list:
+def shell_escape(arg):
+    return '"%s"' % arg.replace('\\', '\\\\').replace('"', '\\"')
+
+
+def run_install_command(graphical, cmd, args, as_root=True):
+    if isinstance(args, str):
+        cmd += ' %s' % shell_escape(args)
+    elif isinstance(args, list):
         for package in args:
-            if type(package) != str:
+            if not isinstance(package, str):
                 raise TypeError("Expected string or list of strings")
-            cmd += ' ' + package
+            cmd += ' %s' % shell_escape(package)
     else:
         raise TypeError("Expected string or list of strings")
 
-    if graphical:
-        sucmd, escape = guess_graphical_sudo()
-    else:
-        debug.warning("VisTrails wants to install package(s) %r" %
-                      args)
-        if get_executable_path('sudo'):
-            sucmd, escape = "sudo", False
+    debug.warning("VisTrails wants to install package(s) %r" %
+                  args)
+
+    if as_root and systemType != 'Windows':
+        if graphical:
+            sucmd, escape = guess_graphical_sudo()
         else:
-            sucmd, escape = "su -c", True
+            if get_executable_path('sudo'):
+                sucmd, escape = "sudo %s", False
+            elif systemType != 'Darwin':
+                sucmd, escape = "su -c %s", True
+            else:
+                sucmd, escape = '%s', False
 
-    if escape:
-        sucmd = '%s "%s"' % (sucmd, cmd.replace('\\', '\\\\').replace('"', '\\"'))
-    else:
-        sucmd = '%s %s' % (sucmd, cmd)
+        if escape:
+            cmd = sucmd % shell_escape(cmd)
+        else:
+            cmd = sucmd % cmd
 
-    print "about to run: %s" % sucmd
-    result = os.system(sucmd)
+    print "about to run: %s" % cmd
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT,
+                              shell=True)
+    lines = []
+    try:
+        for line in iter(p.stdout.readline, ''):
+            print line,
+            lines.append(line)
+    except IOError, e:
+        print "Ignoring IOError:", str(e)
+    result = p.wait()
+
+    if result != 0:
+        debug.critical("Error running: %s" % cmd, ''.join(lines))
 
     return result == 0 # 0 indicates success
 
 
 def linux_debian_install(package_name):
-    qt = has_qt()
+    qt = qt_available()
     try:
         import apt
         import apt_pkg
@@ -108,73 +129,89 @@ def linux_debian_install(package_name):
     hide_splash_if_necessary()
 
     if qt:
-        cmd = vistrails_root_directory()
-        cmd += '/gui/bundles/linux_debian_install.py'
+        cmd = shell_escape(vistrails_root_directory() +
+                           '/gui/bundles/linux_debian_install.py')
     else:
-        cmd = '%s install -y' % ('aptitude' if get_executable_path('aptitude') else 'apt-get')
+        cmd = '%s install -y' % ('aptitude'
+                                 if executable_is_in_path('aptitude')
+                                 else 'apt-get')
 
-    return run_install_command_as_root(qt, cmd, package_name)
+    return run_install_command(qt, cmd, package_name)
 
 linux_ubuntu_install = linux_debian_install
 
 
 def linux_fedora_install(package_name):
-    qt = has_qt()
+    qt = qt_available()
     hide_splash_if_necessary()
 
     if qt:
-        cmd = vistrails_root_directory()
-        cmd += '/gui/bundles/linux_fedora_install.py'
+        cmd = shell_escape(vistrails_root_directory() +
+                           '/gui/bundles/linux_fedora_install.py')
     else:
         cmd = 'yum -y install'
 
-    return run_install_command_as_root(qt, cmd, package_name)
+    return run_install_command(qt, cmd, package_name)
 
 
 def pip_install(package_name):
     hide_splash_if_necessary()
 
-    if vistrails.core.system.executable_is_in_path('pip'):
-        cmd = 'pip install'
+    if executable_is_in_path('pip'):
+        cmd = '%s install' % shell_escape(get_executable_path('pip'))
     else:
-        cmd = 'python -m pip install'
-    return run_install_command_as_root(has_qt(), cmd, package_name)
+        cmd = shell_escape(sys.executable) + ' -m pip install'
 
+    if systemType != 'Windows':
+        use_root = True
+        try:
+            from distutils.sysconfig import get_python_lib
+            f = get_python_lib()
+        except Exception:
+            f = sys.executable
+        use_root = os.stat(f).st_uid == 0
+    else:
+        use_root = False
+
+    return run_install_command(qt_available(), cmd, package_name, use_root)
 
 def show_question(which_files, has_distro_pkg, has_pip):
-    if has_qt():
+    if isinstance(which_files, str):
+        which_files = [which_files]
+    if qt_available():
         from PyQt4 import QtCore, QtGui
-        if type(which_files) == str:
-            which_files = [which_files]
         dialog = QtGui.QDialog()
         dialog.setWindowTitle("Required packages missing")
         layout = QtGui.QVBoxLayout()
 
         label = QtGui.QLabel(
                 "One or more required packages are missing: %s. VisTrails can "
-                "automaticallly install them. If you click OK, VisTrails will "
+                "automatically install them. If you click OK, VisTrails will "
                 "need administrator privileges, and you might be asked for "
                 "the administrator password." % (" ".join(which_files)))
         label.setWordWrap(True)
         layout.addWidget(label)
 
-        use_pip = QtGui.QCheckBox("Use pip")
-        use_pip.setChecked(
+        if pip_installed and has_pip:
+            use_pip = QtGui.QCheckBox("Use pip")
+            use_pip.setChecked(
                 not has_distro_pkg or (
                     has_pip and
                     getattr(get_vistrails_configuration(),
                             'installBundlesWithPip')))
-        use_pip.setEnabled(has_distro_pkg and has_pip)
-        layout.addWidget(use_pip)
+            use_pip.setEnabled(has_distro_pkg and has_pip)
+            layout.addWidget(use_pip)
 
-        remember_align = QtGui.QHBoxLayout()
-        remember_align.addSpacing(20)
-        remember_pip = QtGui.QCheckBox("Remember my choice")
-        remember_pip.setChecked(False)
-        remember_pip.setEnabled(use_pip.isEnabled())
-        remember_align.addWidget(remember_pip)
-        layout.addLayout(remember_align)
-
+            remember_align = QtGui.QHBoxLayout()
+            remember_align.addSpacing(20)
+            remember_pip = QtGui.QCheckBox("Remember my choice")
+            remember_pip.setChecked(False)
+            remember_pip.setEnabled(use_pip.isEnabled())
+            remember_align.addWidget(remember_pip)
+            layout.addLayout(remember_align)
+        elif has_pip:
+            label = QtGui.QLabel("pip package is available but pip is not installed")
+            layout.addWidget(label)
         buttons = QtGui.QDialogButtonBox(
                 QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
         QtCore.QObject.connect(buttons, QtCore.SIGNAL('accepted()'),
@@ -184,24 +221,30 @@ def show_question(which_files, has_distro_pkg, has_pip):
         layout.addWidget(buttons)
 
         dialog.setLayout(layout)
+        hide_splash_if_necessary()
         if dialog.exec_() != QtGui.QDialog.Accepted:
             return False
         else:
-            if remember_pip.isChecked():
-                setattr(get_vistrails_configuration(), 'installBundlesWithPip',
-                        use_pip.isChecked())
+            if pip_installed and has_pip:
+                if remember_pip.isChecked():
+                    setattr(get_vistrails_persistent_configuration(),
+                            'installBundlesWithPip',
+                            use_pip.isChecked())
 
-            if use_pip.isChecked():
-                return 'pip'
-            else:
-                return 'distro'
+                if use_pip.isChecked():
+                    return 'pip'
+            return 'distro'
     else:
-        print "Required package missing"
-        print ("A required package is missing, but VisTrails can " +
-               "automatically install it. " +
-               "If you say Yes, VisTrails will need "+
-               "administrator privileges, and you" +
+        print "\nRequired package(s) missing: %s" % (" ".join(which_files))
+        print ("A required package is missing, but VisTrails can "
+               "automatically install it. "
+               "If you say Yes, VisTrails will need "
+               "administrator privileges, and you "
                "might be asked for the administrator password.")
+        if has_distro_pkg:
+            print "(VisTrails will use your distribution's package manager)"
+        else:
+            print "(VisTrails will use the 'pip' installer)"
         print "Give VisTrails permission to try to install package? (y/N)"
         v = raw_input().upper()
         if v == 'Y' or v == 'YES':
@@ -215,12 +258,13 @@ def install(dependency_dictionary):
     """Tries to install a bundle after a py_import() failed.."""
 
     distro = guess_system()
-
     files = (dependency_dictionary.get(distro) or
              dependency_dictionary.get('pip'))
     if not files:
         return None
-    else:
+    can_install = (('pip' in dependency_dictionary and pip_installed) or
+                   distro in dependency_dictionary)
+    if can_install:
         action = show_question(
                 files,
                 distro in dependency_dictionary,
@@ -230,6 +274,9 @@ def install(dependency_dictionary):
                                 distro.replace('-', '_') + '_install')
             return callable_(files)
         elif action == 'pip':
-            return pip_install(files)
+            if not pip_installed:
+                debug.warning("Attempted to use pip, but it is not installed.")
+                return False
+            return pip_install(dependency_dictionary.get('pip'))
         else:
             return False

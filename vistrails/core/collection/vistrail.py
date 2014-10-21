@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -65,9 +65,9 @@ class VistrailEntity(Entity):
         self.reload(vistrail)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = VistrailEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
     
     def create_workflow_entity(self, workflow, action):
@@ -80,8 +80,8 @@ class VistrailEntity(Entity):
         else:
             entity.description = ''
         entity.user = action.user
-        entity.mod_time = action.date
-        entity.create_time = action.date
+        entity.mod_time = action.db_date
+        entity.create_time = action.db_date
         locator = BaseLocator.from_url(self.url)
         locator.kwargs['version_node'] = action.id
         entity.url = locator.to_url()
@@ -98,8 +98,8 @@ class VistrailEntity(Entity):
         else:
             entity.description = ''
         entity.user = action.user
-        entity.mod_time = action.date
-        entity.create_time = action.date
+        entity.mod_time = action.db_date
+        entity.create_time = action.db_date
         locator = BaseLocator.from_url(self.url)
         locator.kwargs['mashuptrail'] = trail_id
         locator.kwargs['mashupVersion'] = action.id
@@ -115,7 +115,8 @@ class VistrailEntity(Entity):
             entity.name = pe.name
         else:
             # find logical name using vistrail tag
-            entity.name = "Latest for " + self.get_pipeline_name(pe.action_id)
+            entity.name = "Latest for " + \
+                          self.vistrail.get_pipeline_name(pe.action_id)
         locator = BaseLocator.from_url(self.url)
         locator.kwargs['parameterExploration'] = pe.id
         entity.url = locator.to_url()
@@ -152,11 +153,11 @@ class VistrailEntity(Entity):
             latestVersionId = vistrail.get_latest_version()
             latestVersion = vistrail.actionMap[latestVersionId]
             user = latestVersion.user
-            mod_time = latestVersion.date
+            mod_time = latestVersion.db_date
             # FIXME: relies on 1 being the first version...
             firstVersion = vistrail.actionMap[1] \
                 if 1 in vistrail.actionMap else latestVersion
-            create_time = firstVersion.date
+            create_time = firstVersion.db_date
         url = vistrail.locator.to_url() if vistrail.locator else "untitled:"
         return (name, size, user, mod_time, create_time, url)
 
@@ -177,7 +178,8 @@ class VistrailEntity(Entity):
             tag = self.vistrail.get_tag(version_id)
         try:
             workflow = self.vistrail.getPipeline(version_id)
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             import traceback
             debug.critical("Failed to construct pipeline '%s'" % 
                                (tag if tag else version_id),
@@ -253,12 +255,13 @@ class VistrailEntity(Entity):
             is_new = True
             # FIXME add new workflow entity for this version
             if version_id not in self.vistrail.actionMap:
-                raise Exception("Version %d does not occur in vistrail." % \
-                                    version_id)
+                raise LookupError("Version %d does not occur in vistrail." %
+                                  version_id)
             action = self.vistrail.actionMap[version_id]
             try:
                 workflow = self.vistrail.getPipeline(version_id)
-            except:
+            except Exception, e:
+                debug.unexpected_exception(e)
                 import traceback
                 if self.vistrail.has_tag(version_id):
                     tag_str = self.vistrail.get_tag(version_id)
@@ -343,9 +346,11 @@ class VistrailEntity(Entity):
                 #             self.add_parameter_exploration_entity(pe)
                 
             # read persisted log entries
+            log = None
             try:
                 log = vistrail.get_persisted_log()
-            except:
+            except Exception, e:
+                debug.unexpected_exception(e)
                 import traceback
                 debug.critical("Failed to read log", traceback.format_exc())
                 
@@ -468,23 +473,6 @@ class VistrailEntity(Entity):
                     del self.pe_entity_map[pe_name]
         return (added_pes, deleted_pes)
                 
-    def get_pipeline_name(self, version):
-        tag_map = self.vistrail.get_tagMap()
-        action_map = self.vistrail.actionMap
-        count = 0
-        while True:
-            if version in tag_map or version <= 0:
-                if version in tag_map:
-                    name = tag_map[version]
-                else:
-                    name = "ROOT"
-                count_str = ""
-                if count > 0:
-                    count_str = " + " + str(count)
-                return name + count_str
-            version = action_map[version].parent
-            count += 1
-
 #        for key, mashup in self.mshp_entity_map.iteritems():
 #            deleted_mashups.append(mashup)
 #        self.mshp_entity_map = {}

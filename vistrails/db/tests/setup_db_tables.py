@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,8 +36,6 @@
 import os
 import sys
 from vistrails.db.services import io
-
-sys.path.append("../..")
 
 def setup_tables(host, port, user, passwd, db):
     config = {'host': host, 

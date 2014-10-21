@@ -7,7 +7,7 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
                     port=None):
     if qualifier == "alternate":
         if port is None:
-            raise Exception("Must specify port with alternate")
+            raise ValueError("Must specify port with alternate")
         out_port_specs = dict((ps.name, ps) for ps in out_ps_list)
         in_port_specs = dict((ps.name, ps) for ps in in_ps_list)
     else:
@@ -18,8 +18,6 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
     in_port_specs_set = set(in_port_specs.iterkeys())
 
     for arg in in_port_specs_set - out_port_specs_set:
-        # print 'argument "%s" of code reference "%s" removed' % \
-        #     (arg, code_ref)
         print "- %s.%s.%s" % (code_ref, qualifier, arg)
         elt = ET.Element("deletePortSpec")
         elt.set("code_ref", code_ref)
@@ -33,8 +31,6 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
 
     for arg, out_ps in out_port_specs.iteritems():
         if arg not in in_port_specs:
-            # print 'argument "%s" of code reference "%s" added' % \
-            #     (arg, code_ref)
             print "out_ps:", out_ps
             print "+ %s.%s.%s %s" % (code_ref, qualifier, arg, 
                                      ET.tostring(out_ps.to_xml()))
@@ -54,8 +50,6 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
 
         in_ps = in_port_specs[arg]
 
-        # attrs = ['name', 'port_type', 'docstring', 'hide', 'entry_types',
-        #          'values', 'defaults', 'translations']
         if qualifier == "output":
             attr_list = OutputPortSpec.attrs
         elif qualifier == "input":
@@ -63,13 +57,11 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
         elif qualifier == "alternate":
             attr_list = AlternatePortSpec.attrs
         else:
-            raise Exception('Unknown port type "%s"' % qualifier)
+            raise ValueError('Unknown port type "%s"' % qualifier)
         for attr in attr_list:
             in_val = getattr(in_ps, attr) 
             out_val = getattr(out_ps, attr)
             if in_val != out_val:
-                # print '%s of argument "%s" changed from "%s" to "%s"' % \
-                #     (attr, arg, in_val, out_val)
                 print "C %s.%s.%s.%s %s" % (code_ref, qualifier, arg, attr, 
                                             out_val)
                 elt = ET.Element("changePortSpec")
@@ -110,7 +102,6 @@ def compute_diff(in_fname, out_fname, diff_fname):
         root.append(elt)
 
     for ref in in_refs_set - out_refs_set:
-        # print 'code reference "%s" removed' % ref
         print "- %s" % ref
         elt = ET.Element("deleteModule")
         elt.set("code_ref", ref)
@@ -119,7 +110,6 @@ def compute_diff(in_fname, out_fname, diff_fname):
     for code_ref, out_spec in out_refs.iteritems():
         # need to check port specs, which removed, which added
         if code_ref not in in_refs:
-            # print 'code reference "%s" added' % code_ref
             print "+ %s %s" % (ref, ET.tostring(out_spec.to_xml()))
             elt = ET.Element("addModule")
             elt.set("code_ref", ref)
@@ -143,51 +133,12 @@ def compute_diff(in_fname, out_fname, diff_fname):
                 subelt.text = str(out_val)
                 elt.append(subelt)
                 root.append(elt)
-        
-        # if in_spec.name != out_spec.name:
-        #     # print 'name of ref "%s" changed from "%s" to "%s"' % \
-        #     #     (out_spec.code_ref, in_spec.name, out_spec.name)
-        #     print "C %s.name %s" % (out_spec.code_ref, out_spec.name)
-        # if in_spec.superklass != out_spec.superklass:
-        #     print 'superclass of ref "%s" changed from "%s" to "%s"' % \
-        #         (out_spec.code_ref, in_spec.superklass, out_spec.superklass)
-            
 
         compute_ps_diff(root, in_spec.port_specs, out_spec.port_specs, 
                         code_ref, "input")
         compute_ps_diff(root, in_spec.output_port_specs, 
                         out_spec.output_port_specs,
                         code_ref, "output")
-        # out_port_specs = dict((ps.arg, ps) for ps in out_spec.port_specs)
-        # in_port_specs = dict((ps.arg, ps) for ps in in_spec.port_specs)
-
-        # out_port_specs_set = set(out_port_specs.iterkeys())
-        # in_port_specs_set = set(in_port_specs.iterkeys())
-
-        # for arg in in_port_specs_set - out_port_specs_set:
-        #     # print 'argument "%s" of code reference "%s" removed' % \
-        #     #     (arg, code_ref)
-        #     print "- %s.%s" % (code_ref, arg)
-
-        # for arg, out_ps in out_port_specs.iteritems():
-        #     if arg not in in_port_specs:
-        #         # print 'argument "%s" of code reference "%s" added' % \
-        #         #     (arg, code_ref)
-        #         print "+ %s.%s" % (code_ref, arg)
-        #         print ET.tostring(out_ps.to_xml())
-        #         continue
-            
-        #     in_ps = in_port_specs[arg]
-
-        #     # attrs = ['name', 'port_type', 'docstring', 'hide', 'entry_types',
-        #     #          'values', 'defaults', 'translations']
-        #     for attr in PortSpec.attrs:
-        #         in_val = getattr(in_ps, attr) 
-        #         out_val = getattr(out_ps, attr)
-        #         if in_val != out_val:
-        #             # print '%s of argument "%s" changed from "%s" to "%s"' % \
-        #             #     (attr, arg, in_val, out_val)
-        #             print "C %s.%s.%s %s" % (code_ref, arg, attr, out_val)
 
     tree = ET.ElementTree(root)
     def indent(elem, level=0):
@@ -250,8 +201,8 @@ def apply_diff(in_fname, diff_fname, out_fname):
                     idx = in_alt_refs[(code_ref, port, alt_name)][0]
                     del ps.alternate_specs[idx]
                 else:
-                    raise Exception('Cannot access list of type "%s"' % \
-                                        port_type)
+                    raise ValueError('Cannot access list of type "%s"' %
+                                     port_type)
             else:
                 idx = in_refs[code_ref][0]
                 del in_specs.module_specs[idx]
@@ -264,15 +215,14 @@ def apply_diff(in_fname, diff_fname, out_fname):
                 if port_type == "input":
                     m_spec.port_specs.append(InputPortSpec.from_xml(value))
                 elif port_type == "output":
-                    # print "VALUE:", ET.tostring(value)
                     m_spec.output_port_specs.append(
                         OutputPortSpec.from_xml(value))
                 elif port_type == "alternate":
                     ps = in_ips_refs[(code_ref, port)][1]
                     ps.alternate_specs.append(AlternatePortSpec.from_xml(value))
                 else:
-                    raise Exception('Cannot access list of type "%s"' % \
-                                        port_type)
+                    raise ValueError('Cannot access list of type "%s"' %
+                                     port_type)
             else:
                 in_specs.module_specs.append(ModuleSpec.from_xml(value))
         elif elt.tag.startswith('change'):
@@ -296,37 +246,6 @@ def apply_diff(in_fname, diff_fname, out_fname):
             else:
                 setattr(m_spec, attr, value)
 
-    # with f = open(diff_fname):
-    #     f_iter = f.__iter__()
-    #     for line in f_iter:
-    #         line = line.strip()
-    #         if not re.match("[+-C]", line):
-    #             raise Exception("Problem parsing line\n%s" % line)
-    #         if line.startswith('-'):
-    #             arr = line.split(' ', 1)
-    #             prop = arr[1].split('.')
-    #             if len(prop) < 2:
-    #                 idx = in_refs[prop[0]][0]
-    #                 del in_specs.module_specs[idx]
-    #             else:
-    #                 m_specs = in_refs[prop[0]][1]
-    #                 if prop[1] == 'input':
-    #                     idx = in_ips_refs[prop[0], prop[2]][0]
-    #                     del m_specs.port_specs[idx]
-    #                 elif prop[1] == 'output':
-    #                     idx = in_ops_refs[prop[0], prop[2]][0]
-    #                     del m_specs.output_port_specs[idx]
-    #                 else:
-    #                     raise Exception('Cannot access list of type "%s"' % \
-    #                                         prop[1])
-    #         elif line.startswith('+'):
-    #             arr = line.split(' ', 2)
-    #             prop = arr[1].split('.')
-    #             if len(prop) < 2:
-    #                 in_specs.module_specs.append(ModuleSpec.from_xml(arr[2]))
-                
-    #         line.split(' ', 2)
-            
     in_specs.write_to_xml(out_fname)
 
 def run_compute():
