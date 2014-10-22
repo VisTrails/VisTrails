@@ -89,7 +89,7 @@ def translateWorkflow(_workflow):
     return workflow
 
 def translateLog(_log):
-    global id_scope
+    id_scope = _log.id_scope
     def update_loop_execs(old_obj, translate_dict):
         if len(old_obj.db_loop_execs) == 0:
             return []
@@ -107,6 +107,7 @@ def translateLog(_log):
                     item_execs.append(DBGroupExec.update_version(item_exec,
                                                                  translate_dict))
                 # skip DBLoopExecs
+            print "new_iter", loop_exec.db_iteration
             new_iter = DBLoopIteration(item_execs=item_execs,
                                        id=id_scope.getNewId(DBLoopIteration.vtType),
                                        ts_start=loop_exec.db_ts_start,
