@@ -107,7 +107,6 @@ def translateLog(_log):
                     item_execs.append(DBGroupExec.update_version(item_exec,
                                                                  translate_dict))
                 # skip DBLoopExecs
-            print "new_iter", loop_exec.db_iteration
             new_iter = DBLoopIteration(item_execs=item_execs,
                                        id=id_scope.getNewId(DBLoopIteration.vtType),
                                        ts_start=loop_exec.db_ts_start,
