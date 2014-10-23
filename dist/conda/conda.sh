@@ -23,7 +23,7 @@ fi
 
 DEST_DIR="$1"
 
-TEMP_DIR=$(mktemp -d)
+TEMP_DIR=$(mktemp -d /tmp/vt_conda_XXXXXXXX)
 
 # Builds source distribution
 if ! python setup.py sdist --dist-dir $TEMP_DIR; then
