@@ -611,9 +611,27 @@ class QCustomDockWidget(QtGui.QDockWidget):
 
 
 class TestMashupApp(TestVisTrailsGUI):
+    def setUp(self):
+        super(TestMashupApp, self).setUp()
+        try:
+            import vtk
+        except ImportError:
+            self.skipTest("VTK is not available")
+        from vistrails.core.packagemanager import get_package_manager
+        from vistrails.core.modules.module_registry import MissingPackage
+        pm = get_package_manager()
+        identifier = 'org.vistrails.vistrails.vtk'
+        try:
+            pkg = pm.get_package(identifier)
+        except MissingPackage:
+            pkg = pm.identifier_is_available(identifier)
+            if pkg:
+                pm.late_enable_package(pkg.codepath)
+                pkg = pm.get_package(identifier)
 
     def test_load_mashup(self):
         import vistrails.core.system
+        import vistrails.api
         filename = (vistrails.core.system.vistrails_root_directory() + 
                     '/tests/resources/spx_loop.vt')
         view = vistrails.api.open_vistrail_from_file(filename)
