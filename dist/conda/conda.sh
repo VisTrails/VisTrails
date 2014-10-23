@@ -44,6 +44,11 @@ sedi(){
     mv $TEMPFILE "$2"
 }
 
+absolutepathname(){
+    cd "$(dirname "$1")"
+    echo "$(pwd)/$(basename "$1")"
+}
+
 # Changes version in recipe
 VERSION_ESCAPED="$(echo "$VERSION" | sed 's/\\/\\\\/g' | sed 's/\//\\\//g')"
 sedi "s/_REPLACE_version_REPLACE_/$VERSION_ESCAPED/g" $TEMP_DIR/vistrails/meta.yaml
@@ -55,6 +60,7 @@ sedi "s/_REPLACE_url_REPLACE_/$URL_ESCAPED/g" $TEMP_DIR/vistrails/meta.yaml
 # Builds Conda package
 cd $TEMP_DIR
 OUTPUT_PKG="$(conda build --output vistrails)"
+OUTPUT_PKG="$(absolutepathname "$OUTPUT_PKG")"
 if ! conda build vistrails; then
     rm -Rf $TEMP_DIR
     rm -f "$ANACONDA_CACHE"
@@ -62,7 +68,8 @@ if ! conda build vistrails; then
 fi
 
 # Copies result out
-cp "$OUTPUT_PKG" $DEST_DIR/
+cd "$VT_DIR"
+cp "$OUTPUT_PKG" "$DEST_DIR/"
 
 # Removes temporary directory
 rm -Rf $TEMP_DIR
