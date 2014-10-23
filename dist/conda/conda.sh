@@ -5,6 +5,10 @@
 cd "$(dirname "$0")/../.."
 VT_DIR="$(pwd)"
 
+# Clears Conda cache
+ANACONDA_CACHE="$(dirname "$(which python)")/../conda-bld/src_cache/vistrails.tar.gz"
+rm -f "$ANACONDA_CACHE"
+
 if [ -z "$1" ]; then
     echo "Usage: $(basename $0) <target_directory> [version]" >&2
     exit 1
@@ -41,6 +45,7 @@ cd $TEMP_DIR
 OUTPUT_PKG="$(conda build --output vistrails)"
 if ! conda build vistrails; then
     rm -Rf $TEMP_DIR
+    rm -f "$ANACONDA_CACHE"
     exit 1
 fi
 
@@ -49,3 +54,6 @@ cp "$OUTPUT_PKG" $DEST_DIR/
 
 # Removes temporary directory
 rm -Rf $TEMP_DIR
+
+# Clears Conda cache
+rm -f "$ANACONDA_CACHE"
