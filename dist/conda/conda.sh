@@ -20,7 +20,10 @@ DEST_DIR="$1"
 TEMP_DIR=$(mktemp -d)
 
 # Builds source distribution
-python setup.py sdist --dist-dir $TEMP_DIR
+if ! python setup.py sdist --dist-dir $TEMP_DIR; then
+    rm -Rf $TEMP_DIR
+    exit 1
+fi
 
 # Creates symlink
 TEMP_FILE="$(echo $TEMP_DIR/*)"
@@ -36,7 +39,10 @@ sed -i "s/_REPLACE_version_REPLACE_/$VERSION_ESCAPED/g" $TEMP_DIR/vistrails/meta
 # Builds Conda package
 cd $TEMP_DIR
 OUTPUT_PKG="$(conda build --output vistrails)"
-conda build vistrails
+if ! conda build vistrails; then
+    rm -Rf $TEMP_DIR
+    exit 1
+fi
 
 # Copies result out
 cp "$OUTPUT_PKG" $DEST_DIR/
