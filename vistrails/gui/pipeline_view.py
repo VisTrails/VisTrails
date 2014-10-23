@@ -1149,17 +1149,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
     def functions_have_been_deleted(self, core_module):
         # check if a visible function has been deleted
-        before = set(f.name for f in
-                     self.module.functions)
+        before = self._cur_function_names
         after = set(f.name for f in core_module.functions)
         return (before - after) & core_module.editable_input_ports
 
     def moduleFunctionsHaveChanged(self, core_module):
-        m1 = self.module
         m2 = core_module
-        f1_names = set(f.name for f in m1.functions)
         f2_names = set(f.name for f in m2.functions)
-        return (len(f1_names ^ f2_names) > 0)
+        return (len(self._cur_function_names ^ f2_names) > 0)
 
     def update_function_ports(self, core_module=None):
         if core_module is None:
@@ -1199,6 +1196,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 item = self.getInputPortItem(f_spec)
                 if item is not None:
                     item.connect()
+        self.module = core_module
+
         
     def update_function_values(self, core_module):
         """ Updates widget values if they have changed
@@ -1599,13 +1598,15 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         
         """
         controller = self.scene().controller
-        # FIXME: Why is self.module not up-to-date?
         module = controller.current_pipeline.modules[self.module.id]
         controller.update_function(module, name, values)
-        module = controller.current_pipeline.modules[self.module.id]
+
+        if self.moduleFunctionsHaveChanged(module):
+            self.update_function_ports(module)
 
         if self.isSelected():
             from vistrails.gui.vistrails_window import _app
+            module = controller.current_pipeline.modules[self.module.id]
             _app.notify('module_changed', module)
 
     def create_shape_from_fringe(self, fringe):
@@ -2226,6 +2227,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if self.modules[m_id].functions_have_been_deleted(module):
             self.recreate_module(pipeline, m_id)
             return
+
+        self.modules[m_id].update_function_values(module)
+
         if self.modules[m_id].moduleFunctionsHaveChanged(module):
             self.modules[m_id].update_function_ports(module)
 
@@ -2294,6 +2298,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 nm = pipeline.modules[m_id]
                 if tm_item.moduleHasChanged(nm):
                     self.recreate_module(pipeline, m_id)
+                    tm_item = self.modules[m_id]
                 elif tm_item.moduleFunctionsHaveChanged(nm):
                     tm_item.update_function_ports(pipeline.modules[m_id])
                 tm_item.update_function_values(pipeline.modules[m_id])
@@ -2307,7 +2312,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 else:
                     tm_item.setGhosted(False)
                 tm_item.setBreakpoint(nm.is_breakpoint)
-                tm_item.module = nm
 
             # create new connection shapes
             for c_id in connections_to_be_added:
