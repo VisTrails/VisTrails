@@ -14,7 +14,9 @@ if [ -z "$1" ]; then
     exit 1
 fi
 if [ -z "$2" ]; then
-    VERSION="$(../get_version.sh)"
+    # describe gives us either "v2.1.4" or "v2.1.4-40-g1234567"
+    # note: no 'sed -r' on OS X
+    VERSION="$(git describe --always --tags | sed 's/^v//' | sed 's/^\([0-9.]*\)-\([0-9]*\)-g\([a-z0-9]*\)$/\1.\2/')"
 else
     VERSION="$2"
 fi

@@ -9,7 +9,8 @@ re_version = re.compile(r'(?<=\bversion=[\'"])([0-9a-zA-Z._+-]+)')
 
 if __name__ == '__main__':
     # Get version from git describe
-    version = subprocess.check_output(['git', 'describe', '--always']).strip()
+    version = subprocess.check_output(['git', 'describe',
+                                       '--always', '--tags']).strip()
 
     setup_py = sys.argv[1]
 
