@@ -12,13 +12,21 @@ fi
 
 DEST_DIR="$1"
 
+SUCCESS=0
+
 # Builds source distribution
-python setup.py sdist --dist-dir $DEST_DIR
+if ! python setup.py sdist --dist-dir $DEST_DIR; then
+    SUCCESS=1
+fi
 
 # Is wheel available?
 if python -c "import wheel" >/dev/null 2>&1; then
     # Build the wheel
-    python setup.py bdist_wheel --dist-dir $DEST_DIR
+    if ! python setup.py bdist_wheel --dist-dir $DEST_DIR; then
+        SUCCESS=1
+    fi
 else
     echo "'wheel' is not installed, not building wheel" >&2
 fi
+
+exit $SUCCESS
