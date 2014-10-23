@@ -62,27 +62,27 @@ for dir in $OLD_DIRS
 do
     if [ -e "$2/$BIN_PATH/$dir" ]
     then
-        rm -r $2/$BIN_PATH/$dir
+        rm -r "$2/$BIN_PATH/$dir"
     fi
 done
 
 if [ -e "$2/$BIN_PATH/$ROOT_DIR_NAME" ]
 then
-    rm -r $2/$BIN_PATH/$ROOT_DIR_NAME
+    rm -r "$2/$BIN_PATH/$ROOT_DIR_NAME"
 fi
-ln -s -f -F $1/$ROOT_DIR_NAME $2/$BIN_PATH/$ROOT_DIR_NAME
+ln -s -f -F "$1/$ROOT_DIR_NAME" "$2/$BIN_PATH/$ROOT_DIR_NAME"
 
 if [ -e "$2/$BIN_PATH/../../run.py" ]
 then
-    rm $2/$BIN_PATH/../../run.py
+    rm "$2/$BIN_PATH/../../run.py"
 fi
-ln -s -f -F $1/$ROOT_DIR_NAME/run.py $2/$BIN_PATH/../../run.py
+ln -s -f -F "$1/$ROOT_DIR_NAME/run.py" "$2/$BIN_PATH/../../run.py"
 
 if [ -e "$2/../$EXAMPLES_DIR_NAME" ]
 then
-    rm -r $2/../$EXAMPLES_DIR_NAME
+    rm -r "$2/../$EXAMPLES_DIR_NAME"
 fi
-ln -s -f -F $1/$EXAMPLES_DIR_NAME $2/../$EXAMPLES_DIR_NAME
+ln -s -f -F "$1/$EXAMPLES_DIR_NAME" "$2/../$EXAMPLES_DIR_NAME"
 
 
 exit 0

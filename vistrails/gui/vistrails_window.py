@@ -1634,10 +1634,11 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         """
         old_view = self.getViewFromLocator(locator)
-        self.close_first_vistrail_if_necessary()
         
-        get_vistrails_application().open_vistrail(locator, version, 
-                                                  is_abstraction)
+        if not get_vistrails_application().open_vistrail(locator, version, 
+                                                         is_abstraction):
+            return None
+        self.close_first_vistrail_if_necessary()
         view = self.get_current_view()
         view.is_abstraction = view.controller.is_abstraction
         if not old_view:
@@ -1745,6 +1746,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                     if not locator.prompt_autosave(self):
                         locator.clean_temporaries()
             view = self.open_vistrail(locator, version, is_abstraction)
+            if view is None:
+                return
             view.version_view.select_current_version()
             conf = get_vistrails_configuration()
             has_tag = len(view.controller.vistrail.get_tagMap()) > 0
@@ -1823,10 +1826,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.import_workflow(DBLocator)
 
     def open_workflow(self, locator):
-        self.close_first_vistrail_if_necessary()
-
         get_vistrails_application().open_workflow(locator)
-
+        self.close_first_vistrail_if_necessary()
         self.qactions['pipeline'].trigger()
     
     def close_vistrail(self, current_view=None, quiet=False):
