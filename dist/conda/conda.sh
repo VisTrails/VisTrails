@@ -38,13 +38,19 @@ ln -s "$TEMP_FILE" $TEMP_DIR/vistrails.tar.gz
 # Copies conda recipe
 cp -r dist/conda/vistrails $TEMP_DIR/vistrails
 
+sedi(){
+    TEMPFILE=$(mktemp /tmp/vt_conda_XXXXXXXX)
+    sed "$1" "$2" > $TEMPFILE
+    mv $TEMPFILE "$2"
+}
+
 # Changes version in recipe
 VERSION_ESCAPED="$(echo "$VERSION" | sed 's/\\/\\\\/g' | sed 's/\//\\\//g')"
-sed -i "s/_REPLACE_version_REPLACE_/$VERSION_ESCAPED/g" $TEMP_DIR/vistrails/meta.yaml
+sedi "s/_REPLACE_version_REPLACE_/$VERSION_ESCAPED/g" $TEMP_DIR/vistrails/meta.yaml
 
 # Changes URL
 URL_ESCAPED="$(echo "file://$TEMP_DIR/vistrails.tar.gz" | sed 's/\\/\\\\/g' | sed 's/\//\\\//g')"
-sed -i "s/_REPLACE_url_REPLACE_/$URL_ESCAPED/g" $TEMP_DIR/vistrails/meta.yaml
+sedi "s/_REPLACE_url_REPLACE_/$URL_ESCAPED/g" $TEMP_DIR/vistrails/meta.yaml
 
 # Builds Conda package
 cd $TEMP_DIR
