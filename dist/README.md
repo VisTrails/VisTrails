@@ -34,9 +34,6 @@ can be built from the `setup.py`  script with:
 
 The resulting files are in `dist/`.
 
-TODO: Script to replace version number with `git describe` output (at least in
-`setup.py`) then run these commands, for use in buildbot.
-
 ## Anaconda
 
 The recipe for building a Conda package is in `dist/conda/`. Packages must be

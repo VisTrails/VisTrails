@@ -6,10 +6,18 @@
 cd "$(dirname "$0")/.."
 
 if [ -z "$1" ]; then
-    echo "Usage: $(basename $0) <target_directory>" >&2
+    echo "Usage: $(basename $0) <target_directory> [--no-set-version]" >&2
     exit 1
 fi
+if [ "$2" != "--no-set-version" ]; then
+    if ! python dist/common/set_version.py setup.py; then
+        echo "Setting version number in setup.py failed" >&2
+        exit 1
+    fi
+fi
 
+# Warning: if this path is relative, it is relative to VisTrails's source
+# directory, not the directory this script is called from!
 DEST_DIR="$1"
 
 SUCCESS=0
