@@ -40,6 +40,10 @@ cp -r dist/conda/vistrails $TEMP_DIR/vistrails
 VERSION_ESCAPED="$(echo "$VERSION" | sed 's/\\/\\\\/g' | sed 's/\//\\\//g')"
 sed -i "s/_REPLACE_version_REPLACE_/$VERSION_ESCAPED/g" $TEMP_DIR/vistrails/meta.yaml
 
+# Changes URL
+URL_ESCAPED="$(echo "file://$TEMP_DIR/vistrails.tar.gz" | sed 's/\\/\\\\/g' | sed 's/\//\\\//g')"
+sed -i "s/_REPLACE_url_REPLACE_/$URL_ESCAPED/g" $TEMP_DIR/vistrails/meta.yaml
+
 # Builds Conda package
 cd $TEMP_DIR
 OUTPUT_PKG="$(conda build --output vistrails)"
