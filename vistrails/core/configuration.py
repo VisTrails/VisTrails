@@ -1235,7 +1235,7 @@ class ConfigurationObject(DBConfiguration):
                 self.db_add_config_key(key)
 
         # InstanceObject.__init__(self, *args, **kwargs)
-        self.__subscribers__ = {}
+        self._subscribers = {}
         self.vistrails = []
 
     def __copy__(self):
@@ -1247,7 +1247,7 @@ class ConfigurationObject(DBConfiguration):
         cp._in_init = False
         cp.__class__ = ConfigurationObject
         cp._unset_keys = copy.copy(self._unset_keys)
-        cp.__subscribers__ = copy.copy(self.__subscribers__)
+        cp._subscribers = copy.copy(self._subscribers)
         cp.vistrails = copy.copy(self.vistrails)
         return cp
 
@@ -1257,7 +1257,7 @@ class ConfigurationObject(DBConfiguration):
         _config_obj.__class__ = ConfigurationObject
         for _key in _config_obj.db_config_keys:
             ConfigKey.convert(_key)
-        _config_obj.__subscribers__ = {}
+        _config_obj._subscribers = {}
         _config_obj._unset_keys = {}
         _config_obj.vistrails = []
 
@@ -1283,7 +1283,7 @@ class ConfigurationObject(DBConfiguration):
                 raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        if name == '__subscribers__' or name == '_unset_keys' or name == '_in_init' or name == 'is_dirty' or name == 'vistrails' or self._in_init:
+        if name == '_subscribers' or name == '_unset_keys' or name == '_in_init' or name == 'is_dirty' or name == 'vistrails' or self._in_init:
             object.__setattr__(self, name, value)
         else:
             if name in self.db_config_keys_name_index:
@@ -1307,16 +1307,16 @@ class ConfigurationObject(DBConfiguration):
                     del self._unset_keys[name]
                     config_key = ConfigKey(name=name, value=value)
                     self.db_add_config_key(config_key)
-            if name in self.__subscribers__:
+            if name in self._subscribers:
                 to_remove = []
-                for subscriber in self.__subscribers__[name]:
+                for subscriber in self._subscribers[name]:
                     obj = subscriber()
                     if obj:
                         obj(name, value)
                     else:
                         to_remove.append(obj)
                 for ref in to_remove:
-                    self.__subscribers__[name].remove(ref)
+                    self._subscribers[name].remove(ref)
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -1360,13 +1360,13 @@ class ConfigurationObject(DBConfiguration):
     def unsubscribe(self, field, callable_):
         """unsubscribe(field, callable_): remove observer from subject
         """
-        self.__subscribers__[field].remove(weakref.ref(callable_))
+        self._subscribers[field].remove(weakref.ref(callable_))
 
     def subscribe(self, field, callable_):
         """subscribe(field, callable_): call observer callable_ when
         self.field is set.
         """
-        append_to_dict_of_lists(self.__subscribers__, field,
+        append_to_dict_of_lists(self._subscribers, field,
                                 Ref(callable_))
 
     def has(self, key):

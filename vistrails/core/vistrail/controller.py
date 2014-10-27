@@ -3657,7 +3657,7 @@ class VistrailController(object):
             # Save jobs as annotation
             if self.jobMonitor.workflows:
                 self.vistrail.set_annotation('__jobs__',
-                                             self.jobMonitor.__serialize__())
+                                             self.jobMonitor.serialize())
             else:
                 self.vistrail.set_annotation('__jobs__', '')
             # FIXME create this on-demand?
