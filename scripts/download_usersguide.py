@@ -37,8 +37,8 @@ import os.path
 import sys
 import urllib2
 
-DOWNLOAD_URL = "http://www.vistrails.org/usersguide/dev/html/VisTrails.pdf"
-SAVE_TO = os.path.dirname(os.path.abspath(__file__)) #saving to the directory where this script is
+DOWNLOAD_URL = "http://www.vistrails.org/usersguide/v2.1/html/VisTrails.pdf"
+SAVE_TO = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == "__main__":
     response = urllib2.urlopen(DOWNLOAD_URL)

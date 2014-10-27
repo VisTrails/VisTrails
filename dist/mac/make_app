@@ -82,10 +82,11 @@ echo "adding script files..."
 cp -r ../../scripts dist/scripts
 echo "copying GDAL's resource files..."
 cp -r /Library/Frameworks/GDAL.framework/Versions/1.8/Resources/gdal dist/VisTrails.app/Contents/Frameworks/GDAL.framework/Versions/1.8/Resources/
-echo "Building User's Guide and adding it distribution"
-#make sure that build_usersguide is configured for this step
+echo "Downloading User's Guide and adding it distribution"
+
+#make sure that the online usersguide is updated for this step
 mkdir dist/doc
-python ../../scripts/build_usersguide.py
+python ../../scripts/download_usersguide.py dist/doc/
 echo "packing everything inside the VisTrails folder..."
 mkdir dist/VisTrails
 mv dist/VisTrails.app dist/VisTrails/
