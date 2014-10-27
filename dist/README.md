@@ -16,11 +16,11 @@ packages need to be built from the Git tree for each type.
 
 # Preparing for a new release
 
-* Update release notes in `dist/mac/Input/README` and `dist/windows/Input/releaseNotes.txt`
- * TODO: needs main `CHANGELOG` file
- * TODO: remove these, copy/generate from main `CHANGELOG`
-* Update version number and hash with `scripts/update_hash.py`
+* Update CHANGELOG with version, branch, hash and release notes
+* In "dist/common/" run ./prepare_release.py, this updates the values
+  from CHANGELOG where it is needed. TODO: Auto-generate values in CHANGELOG?
 * Create a new annotated tag, e.g.: `git tag -a v2.1.0`
+* Run the usersguide buildbot so it updates the usersguide version
 
 # Releases
 
@@ -54,3 +54,4 @@ The Windows installer uses [Inno Setup][inno].
 TODO: There seem to be a lot of hardcoded paths in the `.iss` scripts, so this
 is probably not very portable. But a script could configure that. Also, the
 command to run Inno Setup?
+NOTE: the master scripts have been refactored to remove a lot of the redundancy

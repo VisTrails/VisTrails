@@ -11,7 +11,7 @@ VT_REVISION = "269e4808eca3"
 
 #Sourceforge information
 SF_ROOT_URL = "http://downloads.sourceforge.net/project/vistrails/vistrails/"
-SF_FOLDER_NAME = "v2.1.1"
+SF_FOLDER_NAME = "v2.1.4"
 SF_DOWNLOAD_URL = "%s%s"%(SF_ROOT_URL,SF_FOLDER_NAME)
 #binaries names
 MAC_64_BIN = "vistrails-mac-10.6-intel-%s-%s.dmg"%(VT_VERSION, VT_REVISION)

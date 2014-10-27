@@ -14,7 +14,7 @@ Bug fixes:
 
 From Release: v2.1.3 build 8262f078ed3b from v2.1 branch
 
-Bug fixes:
+Bug fixes: 
  - Fixes scripting examples (8dd634391b71)
  - Fixes Map and Filter modules outputting Variant (d597dcd6027f)
  - Makes StringFormat handle {!r} or {:.2f} correctly (5f99a90fdc87)
@@ -58,10 +58,10 @@ Bug fixes:
 From Release: v2.1.1 build 90975fc00211 from v2.1 branch
 
 Bug fixes: 
- - Ticket 816: Saved vistrail doesn't appear in 'my vistrails' (784414a617d2)
  - Ticket 814: Parameter Exploration Broken (13da70d0b35f)
- - Ticket Fix font issue for OS X 10.9. (22c0f0cca937)
  - Fixes early gui import in application_server (3b2f6186cea9)
+ - Ticket 816: Saved vistrail doesn't appear in 'my vistrails' (784414a617d2)
+ - Ticket Fix font issue for OS X 10.9. (22c0f0cca937)
 
 From Release: v2.1 build 179c82045907 from v2.1 branch
 
@@ -476,10 +476,10 @@ Bug fixes:
  - Fix issue with subworkflow caching (294574341168)
  - Ticket #634: Package Documentation says port sigstring can contain spaces (dfc9db1f4dc5)
 
-From Release: v2.0.1 build 5e35e2b83b90 from v2.0 branch
+From release: v2.0.1 build 5e35e2b83b90 from v2.0 branch
 
 Enhancements:
- - ALPS package: Updated to version 2.1.1 (4741aa04a9d7) 
+ - ALPS package: Updated to version 2.1.1 (4741aa04a9d7)
  - Support import of schema v1.0.3 (94bb430fa0f0)
  - CLTools: Preview command line arguments and module ports (6c737e297a60)
  - CLTools: Reload modules from the wizard (6c737e297a60)
@@ -665,7 +665,8 @@ Bug fixes:
  - Export to DB did not work (1b742a9f70cc)
  - Reloading a vistrail from the database gave it the name "None" (1b742a9f70cc)
 
-From Release: v2.0-beta build 716501f8b2fd from v2.0 branch
+
+From Release: v2.0-beta build 2d428fbd26cc from v2.0 branch
 
 Enhancements: 
  - Mashup View: Added float slider (b5d481049666)
@@ -683,8 +684,7 @@ Bug fixes:
  - Fixed arguments of get_wf_graph_png rpc call (7cc451bdb606)
  - updateUpstream* failed when modules did not contain the suspended attribute (256f4b4dd8a5)
  - Mediawiki extension: fixed undefined variable  (334083cc69e1)
- - WorkflowExecution.completed were set to False in the vis_log, it
- should be an int. (cb47d3fc66b7)
+ - WorkflowExecution.completed were set to False in the vis_log, it should be an int. (cb47d3fc66b7)
 
 
 From Release: v2.0-beta build 10836452c19a from v2.0 branch
@@ -694,6 +694,7 @@ Bug fixes:
  - VTK package: fix problem when upgrading vtkCellArray.InsertNextCell input port (e29a873af4a1)
  - Ticket #525: The create analogy button is too small (bf61e06b0a50)
  - Ticket #526: "Show raw pipeline" and "construct from root" commands should switch to the pipeline view (3ada5972d872)
+
 
 From Release: v2.0-beta build b074d3a4eb44 from v2.0 branch
 
@@ -799,20 +800,7 @@ Bug fixes:
  - Ticket #508: Add port documentation back to ports panel (d83b2637f5b5)
  - Ticket #502: change_selected_version causes key error in adjacency_list (815d38ff608a)
  - Ticket #472: parameters in parameter exploration are reset if not executed (829303e1efeb)
- - Parameter exploration with Color Constant was not working
- (ecfbedcd4406)
-
-From Release: v2.0-alpha build c4e3600b6481 from v2.0 branch
-
-Enhancements: 
- - Wizard for CLTools - gui for wrapper creation (de5fbcd6144a)
-
-Bug fixes: 
- - Ticket #508: Add port documentation back to ports panel (d83b2637f5b5)
- - Ticket #502: change_selected_version causes key error in adjacency_list (815d38ff608a)
- - Ticket #472: parameters in parameter exploration are reset if not executed (829303e1efeb)
- - Parameter exploration with Color Constant was not working
- (ecfbedcd4406)
+ - Parameter exploration with Color Constant was not working (ecfbedcd4406)
 
 
 From Release: v2.0-alpha build 1b88c3949efd from v2.0 branch
@@ -1483,6 +1471,7 @@ Bug fixes:
  - when merging a vistrail with one on the web repository, a check is made 
    to see if that vistrail still exists (r1834)
 
+
 From Release: v1.5 build 1832
 
 Enhancements: 
@@ -1699,7 +1688,7 @@ Bug fixes:
  - Upgraded ZSI library in the binary releases to use trunk r1495
  - Ticket #336: VisTrails fails when opening files with an older schema (r1683)
  - Fix upgrades when module's version does not exist. (r1683)
- 
+
 
 From Release: v1.4 build 1682
 
@@ -1872,13 +1861,13 @@ the begin id. (r1571)
  - Fixed the pipeline execution mechanism in the spreadsheet that didn't work
 with the new interpreter interface. (r1567)
 
-From release v1.3 build 1561
+From Release v1.3 build 1561
 
 Bug Fixes:
  - Fixed bug that was preventing files from being saved on Windows
 
 
-From release: v1.3 build 1559
+From Release v1.3 build 1559
 
 Changes:
  - Schema upgrade. Current version: 1.0.0.
@@ -1994,7 +1983,7 @@ Bug Fixes:
    + Installer always creates desktop shortcut and uninstaller did not remove 
      all pyc files
  - Other minor fixes
- 
+     
 From Release v1.2.1 build 1336
 Changes:
  - Schema upgrade. Current version: 0.9.3. If you keep vt files in a database,
@@ -2131,7 +2120,7 @@ Bug fixes:
  - Fixed bug where options passed through the command line were
    written to the startup.xml file
 
-
+----------------------------------------
 From Release v1.0.1 build 1063 
 Changes:
  - In VTK Package: Exporters now take a VTKCell as input when exporting 
@@ -2155,8 +2144,8 @@ Bug fixes:
  - Creating/Applying analogies  on the spreadsheet
  - Opening/Saving spreadsheets
 
-Release Name: v1.0 rev954
 
+From Release 1.0 beta rev954:
 Changes:
  - Added module VTKRenderOffscreen to vtk package
 
@@ -2179,5 +2168,10 @@ Changes:
  - Interface was improved and it is now more consistent
  - General configuration and package management accessible through menu Edit->Preferences
  - Using a more efficient file format (*.vt)
- - Auto saving feature 
+ - Auto saving feature
+
+--------------------------------------------------------------------
+
+
+
 
