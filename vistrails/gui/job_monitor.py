@@ -348,7 +348,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         workflow_item = self.workflowItems[workflow.id]
         # top down. Base is assumed to have been added already
         base = (workflow_item.intermediates[parent_id] if parent_id is not None
-                                                      else workflow_item)
+                                                       else workflow_item)
         id = obj.module.signature
         if obj.children:
             # add parent items and their children

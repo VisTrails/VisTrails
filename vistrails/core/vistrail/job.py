@@ -172,7 +172,7 @@ class Workflow(object):
         self.name = name
         self.id = id if id else str(uuid1())
         self.user = getpass.getuser()
-        self.start = start if start else str(datetime.datetime.now())
+        self.start = start if start else datetime.datetime.now().isoformat()
         self.jobs = jobs if jobs else {}
         # parent modules are stored as temporary exceptions
         self.parents = {}
@@ -231,7 +231,7 @@ class Job(object):
         self.id = id
         self.parameters = parameters
         self.name = name
-        self.start = start if start else str(datetime.datetime.now())
+        self.start = start if start else datetime.datetime.now().isoformat()
         self.finished = finished
         self.updated = True
 

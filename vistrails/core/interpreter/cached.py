@@ -128,7 +128,7 @@ class ViewUpdatingLogController(object):
         name = reg.get_descriptor(obj.__class__).name
         iteration = self.log.get_iteration_from_module(obj)
         if iteration is not None:
-            name += '/' + str(iteration)
+            name += '/%d' % iteration
         # add to parent list for computing the module tree later
         error.name = name
         jm.addParent(error)
