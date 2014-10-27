@@ -8,8 +8,7 @@ import sys
 
 CHANGELOG = "CHANGELOG"
 
-CHANGELOG_FILES = ["dist/mac/Input/README",
-                   "dist/windows/Input/releaseNotes.txt"]
+CHANGELOG_FILES = ["dist/windows/Input/releaseNotes.txt"]
 
 re_base = r'(?<=%s)([0-9a-zA-Z._+-]+)'
 

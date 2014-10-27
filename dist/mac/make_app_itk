@@ -47,7 +47,7 @@ echo "copying plugins..."
 echo "copying examples folder..."
 cp -r Input/examples dist/
 echo "copying README file..."
-cp Input/README dist/
+cp ../../CHANGELOG dist/README
 echo "packing everything inside the VisTrails folder..."
 mkdir dist/VisTrails
 mv dist/Vistrails.app dist/VisTrails/
