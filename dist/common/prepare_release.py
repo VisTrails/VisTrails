@@ -8,7 +8,7 @@ import sys
 
 CHANGELOG = "CHANGELOG"
 
-CHANGELOG_FILES = ["dist/windows/Input/releaseNotes.txt"]
+CHANGELOG_FILES = []
 
 re_base = r'(?<=%s)([0-9a-zA-Z._+-]+)'
 
