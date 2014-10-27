@@ -9,6 +9,8 @@
 # It uses py2app to build the bundle and
 # DMG Canvas - http://www.araelium.com/dmgcanvas/ to generate the dmg
 
+cd "$(dirname "$0")"
+
 if [ $# != 1 ]; then
 echo "Usage: make_app volname"
 exit 0
