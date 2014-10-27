@@ -17,6 +17,7 @@ packages need to be built from the Git tree for each type.
 # Preparing for a new release
 
 * Update CHANGELOG with version, branch, hash and release notes
+* Make sure inkscape is installed and in your path
 * In "dist/common/" run ./prepare_release.py, this updates the values
   from CHANGELOG where it is needed. TODO: Auto-generate values in CHANGELOG?
 * Create a new annotated tag, e.g.: `git tag -a v2.1.0`

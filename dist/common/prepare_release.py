@@ -23,7 +23,9 @@ VERSION_FILES = [
    ["../windows/custom/vistrails-gdal.iss", r'AppVerName=VisTrails '],
    ["../windows/custom/vistrailsx64-gdal.iss", r'AppVerName=VisTrails x64 '],
    ["../source/make-vistrails-src-release.py", r'VT_VERSION = [\'"]'],
-   ["../../doc/usersguide/conf.py", r'release = [\'"]']]
+   ["../../doc/usersguide/conf.py", r'release = [\'"]'],
+   ["splash/splash.svg", r'tspan4025">'],
+   ["splash/splash.svg", r'tspan4025-7">']] # second pass for shadow
 
 HASH_FILES = [["../../scripts/create_release_wiki_table.py", r'VT_REVISION = [\'"]'],
               ["../../vistrails/core/system/__init__.py", r'RELEASE = [\'"]'],
@@ -95,3 +97,7 @@ if __name__ == '__main__':
        update_value(fname, pre, BRANCH)
 
     # TODO: Update splash
+    try:
+        subprocess.check_call('inkscape -e ../../vistrails/gui/resources/images/vistrails_splash.png -w 546 splash/splash.svg'.split())
+    except (OSError, subprocess.CalledProcessError):
+        print "Calling inkscape failed, make sure inkscape is installed and in your path, or generate vistrails/gui/resources/images/vistrails_splash.png manually from dist/common/splash.svg."
