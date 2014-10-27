@@ -8,8 +8,6 @@ import sys
 
 CHANGELOG = "CHANGELOG"
 
-CHANGELOG_FILES = []
-
 re_base = r'(?<=%s)([0-9a-zA-Z._+-]+)'
 
 # [filename, preceding string]
@@ -74,12 +72,6 @@ if __name__ == '__main__':
     # Read CHANGELOG
     with open(CHANGELOG, 'rb') as fp:
         lines = fp.readlines()
-
-    # copy changelog to win and mac binary
-    for fname in CHANGELOG_FILES:
-        with open(fname, 'wb') as fp:
-            for line in lines:
-                fp.write(line)
 
     # Get info from CHANGELOG
     # Assume 3:rd line and non-changing format
