@@ -38,25 +38,27 @@ initializations to the theme, packages and the builder...
 """
 from __future__ import division
 
-from PyQt4 import QtGui, QtCore, QtNetwork
-from vistrails.core.application import VistrailsApplicationInterface, \
-    get_vistrails_application, set_vistrails_application
-from vistrails.core import debug
-from vistrails.core import system
-from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
-from vistrails.core.db.locator import FileLocator, DBLocator, BaseLocator
-from vistrails.core.interpreter.job import JobMonitor
-import vistrails.core.requirements
-from vistrails.db import VistrailsDBException
-from vistrails.db.services.io import test_db_connection
-from vistrails.gui import qt
-import vistrails.gui.theme
 from ast import literal_eval
 import os.path
 import getpass
 import re
 import sys
 import StringIO
+
+from PyQt4 import QtGui, QtCore, QtNetwork
+
+from vistrails.core.application import VistrailsApplicationInterface, \
+    get_vistrails_application, set_vistrails_application
+from vistrails.core import debug
+from vistrails.core import system
+from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
+from vistrails.core.db.locator import FileLocator, DBLocator
+import vistrails.core.requirements
+from vistrails.db import VistrailsDBException
+from vistrails.db.services.io import test_db_connection
+from vistrails.gui import qt
+import vistrails.gui.theme
+
 
 ################################################################################
 
@@ -233,14 +235,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 if not linux_default_application_set():
                     self.ask_update_default_application()
 
-        if self.temp_configuration.check('jobList'):
-            job = JobMonitor.getInstance()
-            for i, j in job._running_workflows.iteritems():
-                print "JOB: ", i, j.vistrail, j.version, j.start, \
-                      "FINISHED" if j.completed() else "RUNNING"
-        elif self.temp_configuration.check('jobRun'):
-            return self.runJob(self.temp_configuration.jobRun)
-        elif interactive:
+        if interactive:
             self.interactiveMode()
         else:
             r = self.noninteractiveMode()
@@ -453,7 +448,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # self.builderWindow.modulePalette.connect_registry_signals()
         self.builderWindow.link_registry()
         
-        self.builderWindow.check_running_jobs()
         self.process_interactive_input()
         if self.temp_configuration.showWindow:
             self.showBuilderWindow()
@@ -519,6 +513,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                             ok = locator.update_from_console()
                         if not ok:
                             debug.critical("Cannot login to database")
+                if self.temp_configuration.check('jobList'):
+                    return self.printJobs(locator)
+                if self.temp_configuration.check('jobInfo'):
+                    return self.printJob(locator, version)
+
                 w_list.append((locator, version))
                 vt_list.append(locator)
             import vistrails.core.console_mode
@@ -572,6 +571,35 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         else:
             debug.warning("no input vistrails provided")
             return True
+
+    def printJobs(self, locator):
+        (v, abstractions, thumbnails, mashups)  = load_vistrail(locator)
+        controller = VistrailController(v, locator, abstractions, thumbnails,
+                                        mashups, auto_save=False)
+        text = "### Workflows with jobs ###\n"
+        text += "workflow | start date | status\n"
+        text += '\n'.join(
+            ["%s %s %s" %(j.version,
+                          j.start,
+                          "FINISHED" if j.completed() else "RUNNING")
+             for i, j in controller.jobMonitor.workflows.iteritems()])
+        print text
+        return text
+
+    def printJob(self, locator, version):
+        (v, abstractions, thumbnails, mashups)  = load_vistrail(locator)
+        controller = VistrailController(v, locator, abstractions, thumbnails,
+                                        mashups, auto_save=False)
+        text = "### Jobs in workflow ###\n"
+        text += "name | start date | status\n"
+        workflow = controller.jobMonitor.workflows[int(version)]
+        text += '\n'.join(
+            ["%s %s %s" %(i.name,
+                          i.start,
+                          "FINISHED" if i.finished else "RUNNING")
+             for i in workflow.jobs.values()])
+        print text
+        return text
 
     def setIcon(self):
         """ setIcon() -> None
@@ -738,22 +766,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 except SystemExit:
                     debug.critical("Invalid options: %s" % ' '.join(args))
                     return False
-                if self.temp_configuration.check('jobList'):
-                    job = JobMonitor.getInstance()
-                    return '\n'.join(
-                        ["JOB: %s %s %s %s %s" %(i,
-                                                 j.vistrail,
-                                                 j.version,
-                                                 j.start,
-                              "FINISHED" if j.completed() else "RUNNING")
-                         for i, j in job._running_workflows.iteritems()])
-                if self.temp_configuration.check('jobRun'):
-                    # skip waiting for completion
-                    autoRun = self.configuration.check('autoRun')
-                    self.configuration.autoRun = True
-                    result = self.runJob(self.temp_configuration.jobRun)
-                    self.configuration.autoRun = autoRun
-                    return result == APP_SUCCESS
                 interactive = not self.temp_configuration.check('batch')
                 if interactive:
                     result = self.process_interactive_input()
@@ -770,20 +782,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         else:
             debug.critical("Invalid input: %s" % msg)
         return False
-
-    def runJob(self, job_id):
-        jobMonitor = JobMonitor.getInstance()
-        workflow = jobMonitor.getWorkflow(job_id)
-        if not workflow:
-            print "No job with that id exists"
-            return APP_FAIL
-        locator = BaseLocator.from_url(workflow.vistrail)
-        jobMonitor.startWorkflow(workflow)
-        import vistrails.core.console_mode
-        error = vistrails.core.console_mode.run([(locator, workflow.version)],
-                                                update_vistrail=True)
-        return APP_SUCCESS
-
 
 def linux_default_application_set():
     """linux_default_application_set() -> True|False|None
@@ -900,7 +898,6 @@ def start_application(optionsDict=None, args=[]):
 
 def stop_application():
     """Stop and finalize the application singleton."""
-    JobMonitor.getInstance().save_to_file()
     VistrailsApplication = get_vistrails_application()
     VistrailsApplication.finishSession()
     VistrailsApplication.save_configuration()

@@ -219,7 +219,7 @@ class PythonSourceToFile(Module):
     temporary Python file. The code will not be passed around.
     
     """
-    _settings = ModuleSettings(
+    _settings = ModuleSettings(namespace='hadoop',
                         configure_widget=PythonSourceToFileConfigurationWidget)
 
     _input_ports = [IPort('Input File', File),

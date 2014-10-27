@@ -669,8 +669,8 @@ class QDiffView(QPipelineView):
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
         # Then add parameter changed version
-        inChanged = set([m for (m, matching)
-                        in chain(paramChanged, cparamChanged, annotChanged)])
+        inChanged = set(m for (m, matching)
+                        in chain(paramChanged, cparamChanged, annotChanged))
         for (m1id, m2id) in inChanged:
             m1 = p1.modules[m1id]
             m2 = p2.modules[m2id]

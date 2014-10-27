@@ -35,7 +35,6 @@
 from __future__ import division
 
 from base64 import b16encode, b16decode
-
 import copy
 import json
 import time
@@ -142,7 +141,7 @@ class ModuleSuspended(ModuleError):
     modules
     """
 
-    def __init__(self, module, errormsg, monitor=None, children=None, job_id=None, queue=None):
+    def __init__(self, module, errormsg, monitor=None, children=None, queue=None):
         self.monitor = monitor
         if monitor is None and queue is not None:
             warnings.warn("Use of deprecated argument 'queue' replaced by "
@@ -151,7 +150,6 @@ class ModuleSuspended(ModuleError):
                           stacklevel=2)
             self.monitor = queue
         self.children = children
-        self.signature = job_id
         self.name = None
         ModuleError.__init__(self, module, errormsg)
 
@@ -405,6 +403,68 @@ class Module(Serializable):
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.remove_input_connector(port_name, connector)
 
+
+    def useJobCache(self):
+        """ useJobCache() -> Module/None
+            Checks if this is a job cache
+        """
+        if not self.moduleInfo.get('pipeline', None):
+            return False
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        if p_module.has_control_parameter_with_name(
+                                            ModuleControlParam.JOB_CACHE_KEY):
+            jobCache = p_module.get_control_parameter_by_name(
+                                       ModuleControlParam.JOB_CACHE_KEY).value
+            if jobCache and jobCache.lower() == 'true':
+                return p_module
+        return False
+
+    def setJobCache(self):
+        """ setJobCache() -> Boolean
+            Checks if this is a job cache and it exists
+        """
+        p_module = self.useJobCache()
+        if not p_module:
+            return False
+        jm = self.job_monitor()
+        specs = p_module.sourcePorts()
+        if jm.getCache(self.signature):
+            self.cache = jm.getCache(self.signature)
+            from vistrails.core.modules.basic_modules import Constant
+            for param, value in jm.getCache(self.signature).parameters.iteritems():
+                # get type for output param
+                spec = [s for s in specs if s.name == param][0]
+                module = spec.descriptors()[0].module
+                if not issubclass(module, Constant):
+                    raise ModuleError(self, "Trying to use a non-constant type a cache: %s" % spec.name)
+                self.set_output(param, module.translate_to_python(value))
+            self.upToDate = True
+            return True
+        return False
+    
+    def addJobCache(self):
+        """ addJobCache() -> None
+            Add outputs from job cache
+        """
+        p_module = self.useJobCache()
+        if not p_module:
+            return False
+        jm = self.job_monitor()
+        specs = p_module.sourcePorts()
+        params = {}
+        if not jm.getCache(self.signature):
+            from vistrails.core.modules.basic_modules import Constant
+            for spec in specs:
+                if spec.name == 'self':
+                    continue
+                # get type for output param
+                module = spec.descriptors()[0].module
+                if not issubclass(module, Constant):
+                    raise ModuleError(self, "Trying to cache a non-constant type: %s" % spec.name)
+                params[spec.name] = module.translate_to_string(self.get_output(spec.name))
+                jm.setCache(self.signature, params, p_module.name)
+
     def update_upstream(self):
         """ update_upstream() -> None
         Go upstream from the current module, then update its upstream
@@ -505,7 +565,8 @@ class Module(Serializable):
         elif self.computed:
             return
         self.logging.begin_update(self)
-        self.update_upstream()
+        if not self.setJobCache():
+            self.update_upstream()
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
@@ -530,6 +591,7 @@ class Module(Serializable):
                 self.compute_while()
             else:
                 self.compute()
+                self.addJobCache()
             self.computed = True
         except ModuleSuspended, e:
             self.had_error, self.was_suspended = False, True
@@ -626,21 +688,21 @@ class Module(Serializable):
         loop = self.logging.begin_loop_execution(self, num_inputs)
         ## Update everything for each value inside the list
         outputs = {}
-        module = copy.copy(self)
-        module.list_depth = self.list_depth - 1
         for i in xrange(num_inputs):
             self.logging.update_progress(self, float(i)/num_inputs)
+            module = copy.copy(self)
+            module.list_depth = self.list_depth - 1
             module.had_error = False
+            module.was_suspended = False
 
             if not self.upToDate: # pragma: no partial
                 ## Type checking if first iteration and last iteration level
                 if i == 0 and self.list_depth == 1:
-                    module.typeChecking(module, port_names, elements)
+                    self.typeChecking(module, port_names, elements)
 
                 module.upToDate = False
                 module.computed = False
-
-                module.setInputValues(module, port_names, elements[i], i)
+                self.setInputValues(module, port_names, elements[i], i)
 
             loop.begin_iteration(module, i)
 
@@ -648,6 +710,7 @@ class Module(Serializable):
                 module.update()
             except ModuleSuspended, e:
                 e.loop_iteration = i
+                module.logging.end_update(module, e, was_suspended=True)
                 suspended.append(e)
                 loop.end_iteration(module)
                 continue
@@ -748,12 +811,12 @@ class Module(Serializable):
                 module.had_error = False
                 ## Type checking
                 if i == 0:
-                    module.typeChecking(module, ports, [elements])
+                    self.typeChecking(module, ports, [elements])
 
                 module.upToDate = False
                 module.computed = False
 
-                module.setInputValues(module, ports, elements, i)
+                self.setInputValues(module, ports, elements, i)
 
                 try:
                     module.compute()
@@ -803,8 +866,8 @@ class Module(Serializable):
                     # assembled all inputs so do the actual computation
                     elements = [inputs[port] for port in ports]
                     ## Type checking
-                    module.typeChecking(module, ports, zip(*elements))
-                    module.setInputValues(module, ports, elements, i)
+                    self.typeChecking(module, ports, zip(*elements))
+                    self.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
                     except Exception, e:
@@ -865,8 +928,8 @@ class Module(Serializable):
                 if None not in elements:
                     self.logging.begin_compute(module)
                     ## Type checking
-                    module.typeChecking(module, ports, [elements])
-                    module.setInputValues(module, ports, elements, i)
+                    self.typeChecking(module, ports, [elements])
+                    self.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
                     except Exception, e:
@@ -1427,8 +1490,8 @@ class Module(Serializable):
                         module.set_output(name_output, None)
                     yield None
                 ## Type checking
-                module.typeChecking(module, ports, [elements])
-                module.setInputValues(module, ports, elements, i)
+                self.typeChecking(module, ports, [elements])
+                self.setInputValues(module, ports, elements, i)
 
                 userGenerator.next()
                 # <compute here>
@@ -1499,6 +1562,16 @@ class Module(Serializable):
                                         module=module,
                                         generator=_generator,
                                         port=port))
+
+    def job_monitor(self):
+        """ job_monitor() -> JobMonitor
+        Returns the JobMonitor for the associated controller if it exists
+        """
+        controller = self.moduleInfo['controller']
+        if controller is None:
+            raise ModuleError(self,
+                              "Cannot run job, no controller is specified!")
+        return controller.jobMonitor
 
     @classmethod
     def provide_input_port_documentation(cls, port_name):

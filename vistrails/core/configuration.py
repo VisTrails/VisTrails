@@ -81,8 +81,8 @@ installBundlesWithPip: Use pip to install missing Python dependencies
 isInServerMode: Indicates whether VisTrails is being run as a server
 jobAutorun: Run jobs automatically when they finish
 jobCheckInterval: How often to check for jobs (in seconds)
-jobList: List running jobs
-jobRun: Continue running specified job by id
+jobList: List running workflows
+jobInfo: List jobs in running workflow
 logDir: Log files directory
 maxRecentVistrails: Number of recent vistrails
 maximizeWindows: VisTrails windows should be maximized
@@ -129,9 +129,9 @@ upgrades: Attempt to automatically upgrade old workflows
 useMacBrushedMetalStyle: Use a brushed metal interface (MacOS X only)
 user: The username for the database to the load vistrail from
 userPackageDir: Local packages directory
+viewOnLoad: Whether to show pipeline or history view when opening vistrail
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
-viewOnLoad: Whether to show pipeline or history view when opening vistrail
 withVersionTree: Output the version tree as an image
 withWorkflow: Output the workflow graph as an image
 """
@@ -242,11 +242,11 @@ jobCheckInterval: Integer:
 
 jobList: Boolean
 
-    List running jobs.
+    List running workflows.
 
-jobRun: String
+jobInfo: Boolean
 
-    Continue running specified job by id (use jobList to get).
+    List jobs in running workflow
 
 logDir: Path
 
@@ -497,6 +497,11 @@ userPackageDir: Boolean
     The location for user-installed packages (defaults to
     ~/.vistrails/userpackages).
 
+viewOnLoad: String
+
+    Whether to show pipeline or history view when opening vistrail
+    Can be either appropriate/pipeline/history
+
 webRepositoryURL: URL
 
     The URL of the web repository that should be attached to VisTrails
@@ -506,11 +511,6 @@ webRepositoryUser: String
 
     The default username for logging into a VisTrails web repository
     like crowdLabs.
-
-viewOnLoad: String
-
-    Whether to show pipeline or history view when opening vistrail
-    Can be either appropriate/pipeline/history
 
 withVersionTree: Boolean
 
@@ -648,7 +648,9 @@ base_config = {
                  widget_type="combo",
                  widget_options={"allowed_values": [".vt", ".xml"],
                                  "label": "Default File Type/Extension"}),
-     ConfigField('debugLevel', 0, int, widget_type="combo",
+     ConfigField('debugLevel', 0, int,
+                 flag='-v',
+                 widget_type="combo",
                  widget_options={"allowed_values": [0,1,2],
                                  "label": "Show alerts for",
                                  "remap": {0: "Critical Errors Only",
@@ -732,8 +734,8 @@ base_config = {
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),
-     ConfigField('jobRun', None, str, ConfigType.COMMAND_LINE),
-     ConfigField('jobList', False, bool, ConfigType.COMMAND_LINE_FLAG)],
+     ConfigField('jobList', False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('jobInfo', False, bool, ConfigType.COMMAND_LINE_FLAG)],
 }
 
 # FIXME make sure that the platform-specific configs are added!
@@ -903,6 +905,20 @@ def nested_action(parser, action_type):
                       {"__call__": __call__})
     return nested_cls
 
+class RawVersionAction(argparse.Action):
+    """Variant of the default _VersionAction that doesn't reflow.
+    """
+    def __init__(self, option_strings, version,
+                 dest=argparse.SUPPRESS, default=argparse.SUPPRESS,
+                 help="show program's version and exit"):
+        argparse.Action.__init__(self, option_strings=option_strings,
+                                 dest=dest, default=default, nargs=0,
+                                 help=help)
+        self.version = version
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.exit(message=self.version)
+
 def build_command_line_parser(d, parser=None, prefix="", **parser_args):
     # if k is not a command-line-option, skip
     # if k is show/hide, add --show-, --hide- options
@@ -923,6 +939,8 @@ def build_command_line_parser(d, parser=None, prefix="", **parser_args):
         parser.add_argument('vistrails', metavar='vistrail', type=str,
                             nargs='*', help="Vistrail to open")
         _usage_args.add('vistrails')
+        parser.add_argument('--version', action=RawVersionAction,
+                            version=system.about_string())
 
 
     prefix_dashes = ''

@@ -40,14 +40,13 @@ import os
 import os.path
 from PyQt4 import QtGui, QtCore
 
-from vistrails.core import debug
 from vistrails.core.configuration import ConfigurationObject, \
-    ConfigFieldParent, ConfigPath, ConfigURL, \
+    ConfigFieldParent, ConfigPath, \
     get_vistrails_configuration, find_simpledoc
 
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
-    QFileChooserToolButton, QDirectoryChooserToolButton
+    QDirectoryChooserToolButton
 from vistrails.gui.utils import YES_BUTTON, NO_BUTTON, show_question, show_warning
 
 from vistrails.core import system

@@ -41,12 +41,10 @@ import gc
 import cPickle as pickle
 
 from vistrails.core.common import InstanceObject, VistrailsInternalError
-from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
-from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg, \
@@ -58,6 +56,7 @@ from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
 from vistrails.core.utils import DummyView
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
+
 
 ###############################################################################
 
@@ -125,20 +124,15 @@ class ViewUpdatingLogController(object):
             ) -> None
             Report module as suspended
         """
-        # update job monitor because this may be an oldStyle job
-        jm = JobMonitor.getInstance()
+        # update job monitor because this may be an old-style job
+        jm = obj.job_monitor()
         reg = get_module_registry()
         name = reg.get_descriptor(obj.__class__).name
-        i = "%s" % self.remap_id(obj.id)
         iteration = self.log.get_iteration_from_module(obj)
         if iteration is not None:
-            name = name + '/' + unicode(iteration)
-            i = i + '/' + unicode(iteration)
+            name += '/%d' % iteration
         # add to parent list for computing the module tree later
         error.name = name
-        # if signature is not set we use the module identifier
-        if not error.signature:
-            error.signature = obj.signature
         jm.addParent(error)
 
     def end_update(self, obj, error=None, errorTrace=None,

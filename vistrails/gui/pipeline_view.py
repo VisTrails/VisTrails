@@ -653,8 +653,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.viewDocumentationAct,
                                QtCore.SIGNAL("triggered()"),
                                self.viewDocumentation)
-        self.editLoopingAct = QtGui.QAction("Looping Options", self.scene())
-        self.editLoopingAct.setStatusTip("Edit looping options")
+        self.editLoopingAct = QtGui.QAction("Execution Options", self.scene())
+        self.editLoopingAct.setStatusTip("Edit module execution options")
         QtCore.QObject.connect(self.editLoopingAct,
                                QtCore.SIGNAL("triggered()"),
                                self.editLooping)
@@ -1081,10 +1081,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.progressBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
         self.connectionItems = {}
         self._cur_function_names = set()
-        self.function_overview = 'No functions set'
+        self.function_overview = ''
         self.show_widgets = get_vistrails_configuration(
                                          ).check('showInlineParameterWidgets')
-        self.function_widget = None
         self.function_widgets = []
         self.functions_widget = None
         self.edit_rect = QtCore.QRectF(0.0, 0.0, 0.0, 0.0)
@@ -1103,8 +1102,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             return False
 
         # def module_functions_have_changed(m1, m2):
-        #     f1_names = set([f.name for f in m1.functions])
-        #     f2_names = set([f.name for f in m2.functions])
+        #     f1_names = set(f.name for f in m1.functions)
+        #     f2_names = set(f.name for f in m2.functions)
         #     return (len(f1_names ^ f2_names) > 0)
 
         if self.show_widgets != get_vistrails_configuration(
@@ -1123,6 +1122,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             if core_module.editable_input_ports != \
                self.module.editable_input_ports:
                 # shape has changed so we need to recreate the module
+                return True
+
+            # check for deleted edit widgets
+            if self.functions_have_been_deleted(core_module):
                 return True
             # Check for changed ports
             # _db_name because this shows up in the profile.
@@ -1146,12 +1149,16 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 return True
         return False
 
+    def functions_have_been_deleted(self, core_module):
+        # check if a visible function has been deleted
+        before = self._cur_function_names
+        after = set(f.name for f in core_module.functions)
+        return (before - after) & core_module.editable_input_ports
+
     def moduleFunctionsHaveChanged(self, core_module):
-        m1 = self.module
         m2 = core_module
-        f1_names = set([f.name for f in m1.functions])
-        f2_names = set([f.name for f in m2.functions])
-        return (len(f1_names ^ f2_names) > 0)
+        f2_names = set(f.name for f in m2.functions)
+        return (len(self._cur_function_names ^ f2_names) > 0)
 
     def update_function_ports(self, core_module=None):
         if core_module is None:
@@ -1161,7 +1168,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self._cur_function_names = copy.copy(added_functions)
         else:
             before_names = self._cur_function_names
-            after_names = set([f.name for f in core_module.functions])
+            after_names = set(f.name for f in core_module.functions)
             added_functions = after_names - before_names
             deleted_functions = before_names - after_names
             self._cur_function_names = copy.copy(after_names)
@@ -1191,30 +1198,19 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 item = self.getInputPortItem(f_spec)
                 if item is not None:
                     item.connect()
-        
-        if core_module.functions:
-            function_overview = []
-            for f in core_module.functions:
-                if len(f.params)>1:
-                    params = ', '.join([p.strValue for p in f.params])
-                elif len(f.params)>0:
-                    params = f.params[0].strValue
-                else:
-                    params = ''
-                if len(params)>100:
-                    params = params[:97] + '...'
-                function_template = "<b>%s(</b>%s<b>)</b>"
-                function_overview.append(function_template % (f.name, params))
-                template = '<html><p style="background:#FFFFFF;">%s</p></html>'
-            self.function_overview = template % '<br/>'.join(function_overview)
-        else:
-            self.function_overview = 'No functions set'
-
         self.module = core_module
+
+        
+    def update_function_values(self, core_module):
+        """ Updates widget values if they have changed
+        """
         for function_widget in self.function_widgets:
-            for f in self.module.functions:
+            for f in core_module.functions:
                 if f.name == function_widget.function.name:
-                    function_widget.setContents([p.strValue for p in f.params])
+                    value = [p.strValue for p in f.params]
+                    if function_widget.getContents() != value:
+                        function_widget.setContents(value)
+                    continue
 
     def setProgress(self, progress):
         self.progress = progress
@@ -1333,7 +1329,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 port.setGhosted(ghosted)
             for port in self.outputPorts.itervalues():
                 port.setGhosted(ghosted)
-            self._needs_state_udpated = True
+            self._needs_state_updated = True
 
 #             if ghosted:
 #                 self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
@@ -1599,25 +1595,21 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         else:
             self.setInvalid(True)
 
-    def value_changed(self, values):
-        widget, value = values
-        controller = self.scene().controller
-        controller.update_function(self.module, 'value', [value])
-        self.update_function_ports(controller.current_pipeline.modules[self.module.id])
-        if self.isSelected():
-            from vistrails.gui.vistrails_window import _app
-            _app.notify('module_changed', self.module)
-
     def function_changed(self, name, values):
         """ Called when a function value has changed by the inline edit widget
         
         """
         controller = self.scene().controller
-        controller.update_function(self.module, name, values)
-        self.update_function_ports(controller.current_pipeline.modules[self.module.id])
+        module = controller.current_pipeline.modules[self.module.id]
+        controller.update_function(module, name, values)
+
+        if self.moduleFunctionsHaveChanged(module):
+            self.update_function_ports(module)
+
         if self.isSelected():
             from vistrails.gui.vistrails_window import _app
-            _app.notify('module_changed', self.module)
+            module = controller.current_pipeline.modules[self.module.id]
+            _app.notify('module_changed', module)
 
     def create_shape_from_fringe(self, fringe):
         left_fringe, right_fringe = fringe
@@ -1876,21 +1868,43 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
     def hoverEnterEvent(self, event):
         if QtGui.QApplication.keyboardModifiers() == QtCore.Qt.ControlModifier:
-            if self.function_widget:
-                self.scene().removeItem(self.function_widget)
-            self.function_widget = QtGui.QGraphicsTextItem()
+
+            scene = self.scene()
+            if scene.function_tooltip:
+                scene.removeItem(scene.function_tooltip)
+
+            module = scene.controller.current_pipeline.modules[self.module.id]
+            if module.functions:
+                function_overview = []
+                for f in module.functions:
+                    if len(f.params)>1:
+                        params = ', '.join([p.strValue for p in f.params])
+                    elif len(f.params)>0:
+                        params = f.params[0].strValue
+                    else:
+                        params = ''
+                    if len(params)>100:
+                        params = params[:97] + '...'
+                    function_template = "<b>%s(</b>%s<b>)</b>"
+                    function_overview.append(function_template % (f.name, params))
+                    template = '<html><p style="background:#FFFFFF;">%s</p></html>'
+                self.function_overview = template % '<br/>'.join(function_overview)
+            else:
+                self.function_overview = ''
+
+            scene.function_tooltip = QtGui.QGraphicsTextItem()
             pos = self.paddedRect.bottomLeft()+self.pos()
-            self.function_widget.setPos(pos)
-            self.function_widget.setAcceptHoverEvents(False)
-            self.scene().addItem(self.function_widget)
-            self.function_widget.setHtml(self.function_overview)
-            self.function_widget.setZValue(1000000)
+            scene.function_tooltip.setPos(pos)
+            scene.function_tooltip.setAcceptHoverEvents(False)
+            scene.addItem(scene.function_tooltip)
+            scene.function_tooltip.setHtml(self.function_overview)
+            scene.function_tooltip.setZValue(1000000)
         return QtGui.QGraphicsItem.hoverEnterEvent(self, event)
 
     def hoverLeaveEvent(self, event):
-        if self.function_widget:
-            self.scene().removeItem(self.function_widget)
-            self.function_widget = None
+        if self.scene().function_tooltip:
+            self.scene().removeItem(self.scene().function_tooltip)
+            self.scene().function_tooltip = None
         return QtGui.QGraphicsItem.hoverLeaveEvent(self, event)
 
     def itemChange(self, change, value):
@@ -2052,6 +2066,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.current_pipeline = None
         self.current_version = -1
         self.skip_update = False
+        self.function_tooltip = None
 
         self.tmp_module_item = None
         self.tmp_input_conn = None
@@ -2072,6 +2087,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         moduleItem = QGraphicsModuleItem(None)
         if self.controller and self.controller.search:
             moduleQuery = (self.controller.current_version, module)
+            matched = self.controller.search.matchModule(*moduleQuery)
             matched = self.controller.search.matchModule(*moduleQuery)
             moduleItem.setGhosted(not matched)
         moduleItem.controller = self.controller
@@ -2184,7 +2200,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
 
         Recreates a module on the scene."""
         selected = self.modules[m_id].isSelected()
-
         depending_connections = \
             [c_id for c_id in self.modules[m_id].dependingConnectionItems()]
         # old_depending_connections = self.modules[m_id]._old_connection_ids
@@ -2205,18 +2220,20 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                
         if selected:
             self.modules[m_id].setSelected(True)
-            
+
     def update_module_functions(self, pipeline, m_id):
+        """ Used by ports_pane to update modules
+
+        """
         module = pipeline.modules[m_id]
-        # check if a visible function has been deleted
-        before = set([f.name for f in
-                    self.controller.current_pipeline.modules[m_id].functions])
-        after = set([f.name for f in module.functions])
-        if (before - after) & module.editable_input_ports:
-            # function deleted so we need to recreate module with empty widget
+        if self.modules[m_id].functions_have_been_deleted(module):
             self.recreate_module(pipeline, m_id)
             return
-        self.modules[m_id].update_function_ports(pipeline.modules[m_id])
+
+        self.modules[m_id].update_function_values(module)
+
+        if self.modules[m_id].moduleFunctionsHaveChanged(module):
+            self.modules[m_id].update_function_ports(module)
 
     def setupScene(self, pipeline):
         """ setupScene(pipeline: Pipeline) -> None
@@ -2280,12 +2297,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
             # Update common modules
             for m_id in common_modules:
                 tm_item = self.modules[m_id]
-                tm = tm_item.module
                 nm = pipeline.modules[m_id]
                 if tm_item.moduleHasChanged(nm):
                     self.recreate_module(pipeline, m_id)
+                    tm_item = self.modules[m_id]
                 elif tm_item.moduleFunctionsHaveChanged(nm):
                     tm_item.update_function_ports(pipeline.modules[m_id])
+                tm_item.update_function_values(pipeline.modules[m_id])
                 if tm_item.isSelected():
                     selected_modules.append(m_id)
                 if self.controller and self.controller.search:
@@ -3449,6 +3467,9 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
     def setContents(self, values):
         for pw, value in zip(self.param_widgets, values):
             pw.setContents(value, silent=True)
+
+    def getContents(self):
+        return [pw.contents() for pw in self.param_widgets]
 
     def boundingRect(self):
         return self.bounds

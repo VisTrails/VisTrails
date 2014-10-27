@@ -93,14 +93,6 @@ class VistrailsApplicationInterface(object):
         self._initialized = False
         self.notifications = {}
 
-    def printVersion(self):
-        """ printVersion() -> None
-        Print version of Vistrail and exit
-        
-        """
-        print system.about_string()
-        sys.exit(0)
-
     def read_options(self, args=None):
         """ read_options() -> None
         Read arguments from the command line

@@ -218,7 +218,7 @@ class DebugPrint(object):
         # Then we define a handler to log to the console
         self.console = logging.StreamHandler()
         self.console.setFormatter(self.format)
-        self.console.setLevel(logging.WARNING)
+        self.console.setLevel(logging.DEBUG)
 
         # We also propagate to a second logger, that API users might want to
         # configure

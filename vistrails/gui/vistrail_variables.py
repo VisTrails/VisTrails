@@ -40,7 +40,6 @@ from __future__ import division
 
 from PyQt4 import QtCore, QtGui
 from vistrails.gui.variable_dropbox import QVariableDropBox
-from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################

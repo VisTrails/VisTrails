@@ -40,7 +40,6 @@ from __future__ import division
 
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import current_dot_vistrails
-from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import NotCacheable, \
     ModuleError, ModuleSuspended
 
@@ -54,59 +53,54 @@ import time
 import unittest
 import weakref
 
-
-JOBS_FILENAME = "jobs.json"
-
-
 class JobMixin(NotCacheable):
     """ Mixin for suspendable modules.
 
     Provides a compute method implementing job handling.
     The package developer needs to implement the sub methods readInputs(),
-    getId(), setResults(), startJob(), getMonitor() and finishJob().
+    setResults(), startJob(), getMonitor() and finishJob().
     """
-    cache = None
-    params = None
 
     def compute(self):
-        if self.cache is not None:
+        """ Calls user-implemented methods at the right times
+            It should always call addJob or setCache so that the callback works
+
+        """
+        jm = self.job_monitor()
+
+        cache = jm.getCache(self.signature)
+        if cache is not None:
+            jm.setCache(self.signature, cache.parameters)
             # Result is available and cached
-            self.setResults(self.cache.parameters)
+            self.setResults(cache.parameters)
             return
-        # Start new job
-        params = self.readInputs()
-        params = self.startJob(params)
-        jm = JobMonitor.getInstance()
+
+        job = jm.getJob(self.signature)
+        if job is None:
+            params = self.readInputs()
+            params = self.startJob(params)
+        else:
+            params = job.parameters
         jm.addJob(self.signature, params, self.getName())
+
         # Might raise ModuleSuspended
         jm.checkJob(self, self.signature, self.getMonitor(params))
+
         # Didn't raise: job is finished
         params = self.finishJob(params)
-        self.setResults(params)
         jm.setCache(self.signature, params)
-        self.cache = jm.getCache(self.signature)
+        self.setResults(params)
 
     def update_upstream(self):
+        """ Skip upstream if job exists
+        """
         if not hasattr(self, 'signature'):
             raise ModuleError(self, "Module has no signature")
-        jm = JobMonitor.getInstance()
-        self.cache = jm.getCache(self.signature)
-        if self.cache is not None:
-            return # compute() will use self.cache
-        job = jm.getJob(self.signature)
-        if job is not None:
-            # resume job
-            params = job.parameters
-            # Might raise ModuleSuspended
-            jm.checkJob(self, self.signature, self.getMonitor(params))
-            # Didn't raise: job is finished
-            params = self.finishJob(params)
-            jm.setCache(self.signature, params)
-            self.cache = jm.getCache(self.signature)
-            # compute() will set results
-        # We need to submit a new job
-        # Update upstream, compute() will need it
-        super(JobMixin, self).update_upstream()
+        jm = self.job_monitor()
+        if not (jm.getCache(self.signature) or jm.getJob(self.signature)):
+            # We need to submit a new job
+            # Update upstream, compute() will need it
+            super(JobMixin, self).update_upstream()
 
     def readInputs(self):
         """ readInputs() -> None
@@ -144,6 +138,7 @@ class JobMixin(NotCacheable):
         """ getId(params: dict) -> job identifier
             Should return an string completely identifying this job
             Class name + input values are usually unique
+            DEPRECATED
         """
         return self.signature
 
@@ -158,76 +153,66 @@ class JobMixin(NotCacheable):
  
 
 class Workflow(object):
-    """ Represents a suspended workflow.
+    """ Represents a workflow that has jobs.
 
     It can have one or several suspended modules.
     It can be serialized to disk.
     """
-    def __init__(self, vistrail, version, name='untitled', id=None, user=None,
-                 start=None, modules=[]):
-        """ __init__(vistrail: str, version: str/int, name: str, id: str,
-            user: str, start: str, modules: list) -> None
+    def __init__(self, version, name='untitled', id=None, user=None,
+                 start=None, jobs=None):
+        """ __init__(version: str/int, name: str, id: str,
+            user: str, start: str, jobs: list) -> None
 
-            vistrail - the vistrail url
             version - workflow version
             name - a human readable name for the job
             id - persistent identifier
             user - who started the job
             start - start time
-            finished - is it finished or running?
+            jobs - a dict with jobs
         """
-        self.vistrail = vistrail
         self.version = version
         self.name = name
         self.id = id if id else unicode(uuid1())
         self.user = getpass.getuser()
-        self.start = start if start else unicode(datetime.datetime.now())
-        self.modules = modules if modules else {}
+        self.start = start if start else datetime.datetime.now().isoformat()
+        self.jobs = jobs if jobs else {}
         # parent modules are stored as temporary exceptions
         self.parents = {}
 
     def to_dict(self):
         wf = dict()
-        wf['vistrail'] = self.vistrail
         wf['version'] = self.version
         wf['id'] = self.id
         wf['name'] = self.name
         wf['user'] = self.user
         wf['start'] = self.start
-        modules = dict()
-        for module in self.modules.itervalues():
-            modules[module.id] = module.to_dict()
-        wf['modules'] = modules
+        wf['jobs'] = self.jobs.keys()
         return wf
 
     @staticmethod
     def from_dict(wf):
-        modules = {}
-        for id, module in wf['modules'].iteritems():
-            modules[id] = Job.from_dict(module)
-        return Workflow(wf['vistrail'], wf['version'], wf['name'], wf['id'],
-                        wf['user'], wf['start'], modules)
+        return Workflow(wf['version'], wf['name'], wf['id'],
+                        wf['user'], wf['start'], wf['jobs'])
 
     def __eq__(self, other):
-        if self.vistrail != other.vistrail: return False
         if self.version != other.version: return False
         if self.name != other.name: return False
         if self.id != other.id: return False
         if self.user != other.user: return False
         if self.start != other.start: return False
-        if len(self.modules) != len(other.modules): return False
-        if self.modules != other.modules: return False
+        if len(self.jobs) != len(other.jobs): return False
+        if set(self.jobs) != set(other.jobs): return False
         return True
 
     def reset(self):
-        for job in self.modules.itervalues():
+        for job in self.jobs.itervalues():
             job.reset()
         self.parents = {}
 
     def completed(self):
         """ Returns true if there are no suspended jobs
         """
-        for job in self.modules.itervalues():
+        for job in self.jobs.itervalues():
             if not job.finished:
                 return False
         return True
@@ -248,7 +233,7 @@ class Job(object):
         self.id = id
         self.parameters = parameters
         self.name = name
-        self.start = start if start else unicode(datetime.datetime.now())
+        self.start = start if start else datetime.datetime.now().isoformat()
         self.finished = finished
         self.updated = True
 
@@ -286,24 +271,19 @@ class Job(object):
         return True
 
 class JobMonitor(object):
-    """ A singleton class keeping a list of running jobs and the current job.
+    """ Keeps a list of running jobs and the current job for a vistrail.
 
-    Jobs can be loaded from a JSON file and are added from the interpreter.
+    Jobs are added by the interpreter are saved with the vistrail.
     A callback mechanism is used to interact with the associated GUI component.
     """
-    #Singleton technique
-    _instance = None
-    @staticmethod
-    def getInstance(*args, **kwargs):
-        if JobMonitor._instance is None:
-            JobMonitor._instance = JobMonitor(*args, **kwargs)
-        return JobMonitor._instance
 
-    def __init__(self, filename=None):
+    def __init__(self, json_string=None):
         self._current_workflow = None
-        self._running_workflows = {}
+        self.workflows = {}
+        self.jobs = {}
         self.callback = None
-        self.load_from_file(filename)
+        if json_string is not None:
+            self.__unserialize__(json_string)
 
     def setCallback(self, callback=None):
         """ setCallback(callback: class) -> None
@@ -313,54 +293,57 @@ class JobMonitor(object):
         self.callback = weakref.proxy(callback)
 
 ##############################################################################
-# Running Workflow
+# Running Workflows
 
     def __serialize__(self):
         """ __serialize__() -> None
             serializes the running jobs to json
 
         """
+        _dict = {}
+
         jobs = dict()
-        for id, workflow in self._running_workflows.items():
-            jobs[id] = workflow.to_dict()
-        return json.dumps(jobs)
+        for id, job in self.jobs.items():
+            jobs[id] = job.to_dict()
+        _dict['jobs'] = jobs
+
+        workflows = dict()
+        for id, workflow in self.workflows.items():
+            workflows[id] = workflow.to_dict()
+        _dict['workflows'] = workflows
+
+        return json.dumps(_dict)
 
     def __unserialize__(self, s):
         """ __unserialize__(s: str) -> None
             unserializes the running jobs from json
 
         """
-        jobs = json.loads(s)
-        self._running_workflows = {}
-        for id, workflow in jobs.iteritems():
-            self._running_workflows[id] = Workflow.from_dict(workflow)
-        return self._running_workflows
 
-    def save_to_file(self, filename=None):
-        """ save_to_file(filename: str) -> None
-            Saves running jobs to a file
+        _dict = json.loads(s)
+        
+        jobs = _dict.get('jobs', {})        
+        self.jobs = {}
+        for id, job in jobs.iteritems():
+            self.jobs[id] = Job.from_dict(job)
+
+        workflows = _dict.get('workflows', {})
+        self.workflows = {}
+        for id, workflow in workflows.iteritems():
+            workflow['jobs'] = dict([(i, self.jobs[i])
+                                     for i in workflow['jobs']
+                                     if i in self.jobs])
+            wf = Workflow.from_dict(workflow)
+            self.workflows[id] = wf
+        return self.workflows
+
+    def addWorkflow(self, workflow):
+        """ addWorkflow(workflow: Workflow) -> None
 
         """
-        if not filename:
-            filename = os.path.join(current_dot_vistrails(), JOBS_FILENAME)
-        f = open(filename, 'w')
-        f.write(self.__serialize__())
-        f.close()
-
-    def load_from_file(self, filename=None):
-        """ load_from_file(filename: str) -> None
-            Loads running jobs from a file
-
-        """
-        if not filename:
-            filename = os.path.join(current_dot_vistrails(), JOBS_FILENAME)
-        if not os.path.exists(filename):
-            self.__unserialize__('{}')
-            return {}
-        f = open(filename)
-        result =  self.__unserialize__(f.read())
-        f.close()
-        return result
+        self.workflows[workflow.id] = workflow
+        for id, job in workflow.jobs.iteritems():
+            self.jobs[id] = job
 
     def getWorkflow(self, id):
         """ getWorkflow(id: str) -> Workflow
@@ -368,29 +351,36 @@ class JobMonitor(object):
             Checks if a workflow exists using its id and returns it
 
         """
-        return self._running_workflows.get(id, None)
+        return self.workflows.get(id, None)
 
     def deleteWorkflow(self, id):
         """ deleteWorkflow(id: str) -> None
             deletes a workflow
 
         """
-        del self._running_workflows[id]
+        workflow = self.workflows[id]
+        del self.workflows[id]
+        # delete jobs that only occur in this workflow
+        for job_id in workflow.jobs:
+            delete = True
+            for wf in self.workflows.values():
+                if job_id in wf.jobs:
+                    delete = False
+            if delete:
+                del self.jobs[job_id]
         if self.callback:
             self.callback.deleteWorkflow(id)
 
-    def deleteJob(self, id, parent_id=None):
+    def deleteJob(self, id):
         """ deleteJob(id: str, parent_id: str) -> None
-            deletes a job
-            if parent_id is None, the current workflow is used
+            deletes a job from all workflows
         """
-        if not parent_id:
-            if not self._current_workflow:
-                raise Exception("No workflow is running!")
-            parent_id = self._current_workflow.id
-        del self._running_workflows[parent_id].modules[id]
+        del self.jobs[id]
+        for wf in self.workflows.itervalues():
+            if id in wf.jobs:
+                del wf.jobs[id]
         if self.callback:
-            self.callback.deleteJob(id, parent_id)
+            self.callback.deleteJob(id)
 
 ##############################################################################
 # _current_workflow methods
@@ -413,25 +403,22 @@ class JobMonitor(object):
         if self.callback:
             self.callback.startWorkflow(workflow)
 
-
     def addJobRec(self, obj, parent_id=None):
         workflow = self.currentWorkflow()
-        id = obj.signature
-        if id not in workflow.modules and parent_id:
-            id = '%s/%s' % (parent_id, obj.signature)
+        id = obj.module.signature
         if obj.children:
             for child in obj.children:
                 self.addJobRec(child, id)
             return
-        if obj.signature in workflow.modules:
+        if id in workflow.jobs:
             # this is an already existing new-style job
-            # mark that it have been used
-            workflow.modules[obj.signature].mark()
+            # mark that it has been used
+            workflow.jobs[id].mark()
             return
-        if id in workflow.modules:
+        if id in workflow.jobs:
             # this is an already existing new-style job
-            # mark that it have been used
-            workflow.modules[id].mark()
+            # mark that it has been used
+            workflow.jobs[id].mark()
             return
         # this is a new old-style job that we need to add
         self.addJob(id, {'__message__':obj.msg}, obj.name)
@@ -456,26 +443,19 @@ class JobMonitor(object):
             self.addJobRec(parent)
 
         # Assume all unfinished jobs that were not updated are now finished
-        for job in workflow.modules.values():
+        for job in workflow.jobs.values():
             if not job.finished and not job.updated:
                 job.finish()
         if self.callback:
             self.callback.finishWorkflow(workflow)
         self._current_workflow = None
-        self.save_to_file()
 
     def addJob(self, id, params=None, name='', finished=False):
         """ addJob(id: str, params: dict, name: str, finished: bool) -> uuid
 
-            Adds a module to the current running workflow
+            Adds a job to the currently running workflow
 
         """
-        workflow = self.currentWorkflow()
-        if not workflow:
-            return # ignore non-monitored jobs
-        # we add workflows permanently if they have at least one job
-        if not workflow.id in self._running_workflows:
-            self._running_workflows[workflow.id] = workflow
 
         params = params if params is not None else {}
 
@@ -488,8 +468,14 @@ class JobMonitor(object):
             job.finished = finished
             # we want to keep the start date
         else:
-            self._current_workflow.modules[id] = Job(id, params, name,
-                                                            finished=finished)
+            job = Job(id, params, name, finished=finished)
+            self.jobs[id] = job
+
+        workflow = self.currentWorkflow()
+        if workflow:
+            workflow.jobs[id] = job
+            # we add workflows permanently if they have at least one job
+            self.workflows[workflow.id] = workflow
         if self.callback:
             self.callback.addJob(self.getJob(id))
 
@@ -518,8 +504,8 @@ class JobMonitor(object):
         """
         if not self.currentWorkflow():
             if not monitor or not self.isDone(monitor):
-                raise ModuleSuspended(module, 'Job is running', monitor=monitor,
-                                      job_id=id)
+                raise ModuleSuspended(module, 'Job is running',
+                                      monitor=monitor)
         job = self.getJob(id)
         if self.callback:
             self.callback.checkJob(module, id, monitor)
@@ -547,36 +533,26 @@ class JobMonitor(object):
     def getJob(self, id):
         """ getJob(id: str) -> Job
 
-            Checks if a module exists using its id and returns it
-
         """
-        if not self._current_workflow:
-            return None
-        return self._current_workflow.modules.get(id, None)
+        return self.jobs.get(id, None)
 
     def getCache(self, id):
         """ getCache(id: str) -> Job
             Checks if a completed module exists using its id and returns it
         """
-        if not self._current_workflow:
-            return None
-        job = self._current_workflow.modules.get(id, None)
-        if not job:
-            return None
-        return job if job.finished else None
+        job = self.jobs.get(id, None)
+        return job if job and job.finished else None
 
     def hasJob(self, id):
         """ hasJob(id: str) -> bool
 
-            Checks if a module exists
+            Checks if a job exists
 
         """
-        if not self._current_workflow:
-            return None
-        return id in self._current_workflow.modules
+        return id in self.jobs
 
     def updateUrl(self, new, old):
-        for workflow in self._running_workflows.values():
+        for workflow in self.workflows.values():
             if workflow.vistrail == old:
                 workflow.vistrail = new
 
@@ -610,40 +586,38 @@ class JobMonitor(object):
 class TestJob(unittest.TestCase):
 
     def test_job(self):
-        job = JobMonitor.getInstance()
-        module1 = Job('`13/5', {'a':3, 'b':'7'})
-        module2 = Job('3', {'a':6}, 'my_name', 'a_string_date', True)
+        jm = JobMonitor()
+        job1 = Job('`13/5', {'a':3, 'b':'7'})
+        job2 = Job('3', {'a':6}, 'my_name', 'a_string_date', True)
         # test module to/from dict
-        module3 = Job.from_dict(module2.to_dict())
-        self.assertEqual(module2, module3)
+        job3 = Job.from_dict(job2.to_dict())
+        self.assertEqual(job2, job3)
 
-        workflow1 = Workflow('a.vt', 26)
-        workflow2 = Workflow('b.vt', 'tagname', 'myjob', 'myid', 'tommy',
+        workflow1 = Workflow(26)
+        workflow2 = Workflow('tagname', 'myjob', 'myid', 'tommy',
                              '2013-10-07 13:06',
-                             {module1.id: module1, module2.id: module2})
+                             {job1.id: job1, job2.id: job2})
         # test workflow to/from dict
         workflow3 = Workflow.from_dict(workflow2.to_dict())
         self.assertEqual(workflow2, workflow3)
 
         # test start/finish job
-        job.startWorkflow(workflow2)
-        self.assertEqual(workflow2, job._current_workflow)
-        job.finishWorkflow()
-        self.assertEqual(None, job._current_workflow)
+        jm.startWorkflow(workflow2)
+        self.assertEqual(workflow2, jm._current_workflow)
+        jm.finishWorkflow()
+        self.assertEqual(None, jm._current_workflow)
 
         # test add job
-        job.startWorkflow(workflow2)
-        job.addJob('my_uuid_id', {'myparam': 0})
-        self.assertIn('my_uuid_id', workflow2.modules)
-        job.finishWorkflow()
+        jm.startWorkflow(workflow2)
+        jm.addJob('my_uuid_id', {'myparam': 0})
+        self.assertIn('my_uuid_id', workflow2.jobs)
+        jm.finishWorkflow()
 
         # test serialization
-        job._running_workflows[workflow1.id] = workflow1
-        job._running_workflows[workflow2.id] = workflow2
-        job.save_to_file()
-        job.load_from_file()
-        self.assertIn(workflow1.id, job._running_workflows)
-        self.assertIn(workflow2.id, job._running_workflows)
-        self.assertEqual(workflow1, job._running_workflows[workflow1.id])
-        self.assertEqual(workflow2, job._running_workflows[workflow2.id])
-        job._running_workflows = dict()
+        jm.addWorkflow(workflow1)
+        jm.addWorkflow(workflow2)
+        jm.__unserialize__(jm.__serialize__())
+        self.assertIn(workflow1.id, jm.workflows)
+        self.assertIn(workflow2.id, jm.workflows)
+        self.assertEqual(workflow1, jm.workflows[workflow1.id])
+        self.assertEqual(workflow2, jm.workflows[workflow2.id])
