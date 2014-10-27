@@ -45,7 +45,7 @@ InfoAfterFile=..\..\..\CHANGELOG
 PrivilegesRequired=none
 RestartIfNeededByRun=false
 ChangesAssociations=true
-LicenseFile=..\Input\license.txt
+LicenseFile=..\..\..\LICENSE
 ArchitecturesInstallIn64BitMode=x64
 OutputBaseFilename=vistrails-x64-gdal-setup
 
@@ -72,7 +72,7 @@ Source: ..\Input\git.exe; DestDir: {app}
 Source: ..\Input\tar.exe; DestDir: {app}
 Source: ..\Input\runvistrails.py; DestDir: {app}
 Source: ..\Input\*.dll; DestDir: {app}
-Source: ..\Input\license.txt; DestDir: {app}
+Source: ..\..\..\LICENSE; DestDir: {app}; DestName="license.txt"
 Source: ..\Input\vcredist_x64.exe; DestDir: {tmp}; Flags: deleteafterinstall
 Source: ..\Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
 Source: ..\Input\qt.conf; DestDir: {app}\Python27_64
