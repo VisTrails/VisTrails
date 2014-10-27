@@ -47,10 +47,6 @@ local tarball.
 
 TODO
 
-## Linux
-
-TODO: We don't seem to distribute these. Remove build scripts?
-
 ## Windows
 
 The Windows installer uses [Inno Setup][inno].
