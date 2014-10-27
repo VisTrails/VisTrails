@@ -1,39 +1,40 @@
 #!/usr/bin/env python
 # Updates the binary changelogs, version numbers, hash, and branch from CHANGELOG
 # Run and commit changes to git before building release
+import os
 import re
 import subprocess
 import sys
 
-CHANGELOG="../../CHANGELOG"
+CHANGELOG = "CHANGELOG"
 
-CHANGELOG_FILES=["../mac/Input/README",
-                 "../windows/Input/releaseNotes.txt"]
+CHANGELOG_FILES = ["dist/mac/Input/README",
+                   "dist/windows/Input/releaseNotes.txt"]
 
 re_base = r'(?<=%s)([0-9a-zA-Z._+-]+)'
 
 # [filename, preceding string]
 VERSION_FILES = [
-   ["../../scripts/create_release_wiki_table.py", r'VT_VERSION = [\'"]'],
-   ["../../scripts/create_release_wiki_table.py", r'SF_FOLDER_NAME = [\'"]v'], # a second pass
-   ["../../vistrails/core/system/__init__.py", r'VERSION = [\'"]'],
-   ["../mac/setup.py", r'VERSION = [\'"]'],
-   ["../windows/vistrails.iss", r'AppVerName=VisTrails '],
-   ["../windows/vistrailsx64.iss", r'AppVerName=VisTrails x64 '],
-   ["../windows/custom/vistrails-gdal.iss", r'AppVerName=VisTrails '],
-   ["../windows/custom/vistrailsx64-gdal.iss", r'AppVerName=VisTrails x64 '],
-   ["../source/make-vistrails-src-release.py", r'VT_VERSION = [\'"]'],
-   ["../../doc/usersguide/conf.py", r'release = [\'"]'],
-   ["splash/splash.svg", r'tspan4025">'],
-   ["splash/splash.svg", r'tspan4025-7">']] # second pass for shadow
+    ["scripts/create_release_wiki_table.py", r'VT_VERSION = [\'"]'],
+    ["scripts/create_release_wiki_table.py", r'SF_FOLDER_NAME = [\'"]v'], # a second pass
+    ["vistrails/core/system/__init__.py", r'VERSION = [\'"]'],
+    ["dist/mac/setup.py", r'VERSION = [\'"]'],
+    ["dist/windows/vistrails.iss", r'AppVerName=VisTrails '],
+    ["dist/windows/vistrailsx64.iss", r'AppVerName=VisTrails x64 '],
+    ["dist/windows/custom/vistrails-gdal.iss", r'AppVerName=VisTrails '],
+    ["dist/windows/custom/vistrailsx64-gdal.iss", r'AppVerName=VisTrails x64 '],
+    ["dist/source/make-vistrails-src-release.py", r'VT_VERSION = [\'"]'],
+    ["doc/usersguide/conf.py", r'release = [\'"]'],
+    ["dist/common/splash/splash.svg", r'tspan4025">'],
+    ["dist/common/splash/splash.svg", r'tspan4025-7">']] # second pass for shadow
 
-HASH_FILES = [["../../scripts/create_release_wiki_table.py", r'VT_REVISION = [\'"]'],
-              ["../../vistrails/core/system/__init__.py", r'RELEASE = [\'"]'],
-              ["../source/make-vistrails-src-release.py", r'VT_HASH = [\'"]']]
+HASH_FILES = [["scripts/create_release_wiki_table.py", r'VT_REVISION = [\'"]'],
+              ["vistrails/core/system/__init__.py", r'RELEASE = [\'"]'],
+              ["dist/source/make-vistrails-src-release.py", r'VT_HASH = [\'"]']]
 
 BRANCH_FILES = [
-   ["../source/make-vistrails-src-release.py", r'VT_BRANCH = [\'"]v'],
-   ["../../doc/usersguide/conf.py", r'version = [\'"]']]
+   ["dist/source/make-vistrails-src-release.py", r'VT_BRANCH = [\'"]v'],
+   ["doc/usersguide/conf.py", r'version = [\'"]']]
 
 def update_value(fname, pre, value):
     """
@@ -69,6 +70,8 @@ def update_value(fname, pre, value):
             fp.write(line)
 
 if __name__ == '__main__':
+    os.chdir(os.path.join(os.path.dirname(__file__), '..', '..'))
+
     # Read CHANGELOG
     with open(CHANGELOG, 'rb') as fp:
         lines = fp.readlines()
@@ -98,6 +101,6 @@ if __name__ == '__main__':
 
     # TODO: Update splash
     try:
-        subprocess.check_call('inkscape -e ../../vistrails/gui/resources/images/vistrails_splash.png -w 546 splash/splash.svg'.split())
+        subprocess.check_call('inkscape -e vistrails/gui/resources/images/vistrails_splash.png -w 546 dist/common/splash/splash.svg'.split())
     except (OSError, subprocess.CalledProcessError):
         print "Calling inkscape failed, make sure inkscape is installed and in your path, or generate vistrails/gui/resources/images/vistrails_splash.png manually from dist/common/splash.svg."
