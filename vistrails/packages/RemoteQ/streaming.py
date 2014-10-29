@@ -72,7 +72,7 @@ class HadoopStreaming(HadoopBaseModule):
         self.job = None
         self.job_machine = None
 
-    def readInputs(self):
+    def job_read_inputs(self):
         p = {}
         self.localMapper = self.force_get_input('Mapper')
         self.localReducer = self.force_get_input('Reducer')
@@ -99,7 +99,7 @@ class HadoopStreaming(HadoopBaseModule):
                             working_directory=p['workdir'],
                             identifier=p['job_identifier'])
 
-    def startJob(self, p):
+    def job_start(self, p):
         self.createJob(p)
         if not self.job_machine.remote.isdir(p['workdir']):
             self.job_machine.remote.mkdir(p['workdir'])
@@ -164,12 +164,12 @@ class HadoopStreaming(HadoopBaseModule):
                                   p['job_identifier'], self.job_machine)
         return p
 
-    def getMonitor(self, p):
+    def job_get_monitor(self, p):
         if not self.job:
             self.createJob(p)
         return self.job
 
-    def finishJob(self, p):
+    def job_finish(self, p):
         r = {}
         r['output'] = p['output']
         r['workdir'] = p['workdir']
@@ -181,7 +181,7 @@ class HadoopStreaming(HadoopBaseModule):
             raise ModuleError(self, error)
         return r
 
-    def setResults(self, p):
+    def job_set_results(self, p):
         self.set_output('Output', p['output'])
         self.set_output('Machine', self.job_machine)
 
@@ -230,7 +230,7 @@ class URICreator(HadoopBaseModule):
             uri += '#' + symlink
             d = {'uri':uri}
             self.set_job_machine(d, machine)
-            jm.setCache(id, d, self.getName())
+            jm.setCache(id, d, self.job_name())
             job = jm.getCache(id)
         self.set_output('URI', job.parameters['uri'])
         self.set_output('Machine', machine)

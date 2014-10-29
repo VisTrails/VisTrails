@@ -85,7 +85,7 @@ class HDFSPut(HadoopBaseModule):
             result = machine.remote.rm(tempfile,force=True,recursively=True)
             d = {'remote':remote,'local':local.name}
             self.set_job_machine(d, machine)
-            jm.setCache(id, d, self.getName())
+            jm.setCache(id, d, self.job_name())
             job = jm.getJob(id)
         self.set_output('Remote Location', job.parameters['remote'])
         self.set_output('Machine', machine)
@@ -143,7 +143,7 @@ class HDFSGet(HadoopBaseModule):
             result = machine.remote.rm(tempfile,force=True,recursively=True)
             d = {'remote':remote,'local':local.name}
             self.set_job_machine(d, machine)
-            jm.setCache(id, d, self.getName())
+            jm.setCache(id, d, self.job_name())
             job = jm.getCache(id)
         self.set_output('Local File', PathObject(job.parameters['local']))
         self.set_output('Machine', machine)
@@ -180,7 +180,7 @@ class HDFSEnsureNew(HadoopBaseModule):
                 self.call_hdfs('dfs -rmr ' + entry_name, machine)
             d = {'entry_name':entry_name}
             self.set_job_machine(d, machine)
-            jm.setCache(id, d, self.getName())
+            jm.setCache(id, d, self.job_name())
             job = jm.getCache(id)
         self.set_output('Name', job.parameters['entry_name'])
         self.set_output('Machine', machine)

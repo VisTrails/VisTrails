@@ -55,8 +55,8 @@ class JobMixin(NotCacheable):
     """ Mixin for suspendable modules.
 
     Provides a compute method implementing job handling.
-    The package developer needs to implement the sub methods readInputs(),
-    setResults(), startJob(), getMonitor() and finishJob().
+    The package developer needs to implement the sub methods job_read_inputs(),
+    job_set_results(), job_start(), job_get_monitor() and job_finish().
     """
 
     def compute(self):
@@ -70,24 +70,24 @@ class JobMixin(NotCacheable):
         if cache is not None:
             jm.setCache(self.signature, cache.parameters)
             # Result is available and cached
-            self.setResults(cache.parameters)
+            self.job_set_results(cache.parameters)
             return
 
         job = jm.getJob(self.signature)
         if job is None:
-            params = self.readInputs()
-            params = self.startJob(params)
+            params = self.job_read_inputs()
+            params = self.job_start(params)
         else:
             params = job.parameters
-        jm.addJob(self.signature, params, self.getName())
+        jm.addJob(self.signature, params, self.job_name())
 
         # Might raise ModuleSuspended
-        jm.checkJob(self, self.signature, self.getMonitor(params))
+        jm.checkJob(self, self.signature, self.job_get_monitor(params))
 
         # Didn't raise: job is finished
-        params = self.finishJob(params)
+        params = self.job_finish(params)
         jm.setCache(self.signature, params)
-        self.setResults(params)
+        self.job_set_results(params)
 
     def update_upstream(self):
         """ Skip upstream if job exists
@@ -100,47 +100,47 @@ class JobMixin(NotCacheable):
             # Update upstream, compute() will need it
             super(JobMixin, self).update_upstream()
 
-    def readInputs(self):
-        """ readInputs() -> None
+    def job_read_inputs(self):
+        """ job_read_inputs() -> None
             Should read inputs, and return them in a dict
         """
         raise NotImplementedError
 
-    def startJob(self, params):
-        """ startJob(params: dict) -> None
+    def job_start(self, params):
+        """ job_start(params: dict) -> None
             Should start the job, and return a dict with the
             parameters needed to check the job
         """
         raise NotImplementedError
 
-    def finishJob(self, params):
-        """ finishJob(params: dict) -> None
+    def job_finish(self, params):
+        """ job_finish(params: dict) -> None
             Should finish the job and set outputs
         """
         raise NotImplementedError
 
-    def setResults(self, params):
-        """ setResults(params: dict) -> None
+    def job_set_results(self, params):
+        """ job_set_results(params: dict) -> None
             Sets outputs using the params dict
         """
         raise NotImplementedError
 
-    def getMonitor(self, params):
-        """ getMonitor(params: dict) -> None
+    def job_get_monitor(self, params):
+        """ job_get_monitor(params: dict) -> None
             Should return an implementation of BaseMonitor, whose methods will
             be used to check the job state.
         """
         return None
 
-    def getId(self, params):
-        """ getId(params: dict) -> job identifier
+    def job_id(self, params):
+        """ job_id(params: dict) -> job identifier
             Should return an string completely identifying this job
             Class name + input values are usually unique
             DEPRECATED
         """
         return self.signature
 
-    def getName(self):
+    def job_name(self):
         # use module description if it exists
         if 'pipeline' in self.moduleInfo and self.moduleInfo['pipeline']:
             p_modules = self.moduleInfo['pipeline'].modules
