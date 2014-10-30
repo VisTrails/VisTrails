@@ -78,12 +78,24 @@ if __name__ == '__main__':
         lines = fp.readlines()
 
     # Get info from CHANGELOG
-    # Assume 3:rd line and non-changing format
+    # Assumes 3:rd line and fixed format
     line = lines[2].split()
     VERSION = line[2][1:] # Drop "v" prefix
     HASH = line[4]
     BRANCH = line[6]
-    print "Updating to:", VERSION, HASH, "on branch v%s" % BRANCH
+ 
+    try:
+        hash = subprocess.check_output(['git', 'rev-parse', '--verify', 'HEAD',
+                                       '--short=12']).strip()
+        if hash != HASH:
+            # update hash in changelog
+            update_value('CHANGELOG', r'Release Name: v%s build ' % VERSION, hash)
+            HASH = hash
+    except subprocess.CalledProcessError: # Not a git repository
+        pass
+
+
+    print "Updating to:", VERSION, HASH, "on branch %s" % BRANCH
 
     for fname, pre in VERSION_FILES:
        update_value(fname, pre, VERSION)
