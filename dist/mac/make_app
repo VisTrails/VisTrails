@@ -84,9 +84,10 @@ echo "copying GDAL's resource files..."
 cp -r /Library/Frameworks/GDAL.framework/Versions/1.8/Resources/gdal dist/VisTrails.app/Contents/Frameworks/GDAL.framework/Versions/1.8/Resources/
 echo "Downloading User's Guide and adding it distribution"
 
-#make sure that the online usersguide is updated for this step
+#Tries to build the usersguide if sphinx and latex are available. Otherwise,
+#downloads it, so make sure that the online usersguide is updated
 mkdir dist/doc
-python ../../scripts/download_usersguide.py dist/doc/
+python ../../scripts/get_usersguide.py dist/doc/
 echo "packing everything inside the VisTrails folder..."
 mkdir dist/VisTrails
 mv dist/VisTrails.app dist/VisTrails/

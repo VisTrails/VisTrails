@@ -194,7 +194,7 @@ CompileLogFile=Output\build.log
 CompileLogMethod=append
 
 [PreCompile]
-Name: "C:\Python27_64\python.exe"; Parameters: "C:\Users\vistrails\code\vistrails\scripts\download_usersguide.py C:\Users\vistrails\code\vistrails\dist\windows\Input"; Flags: abortonerror cmdprompt
+Name: "C:\Python27_64\python.exe"; Parameters: "C:\Users\vistrails\code\vistrails\scripts\get_usersguide.py C:\Users\vistrails\code\vistrails\dist\windows\Input"; Flags: abortonerror cmdprompt
 
 [Code]
 var
@@ -302,6 +302,3 @@ end;
 [InnoIDE_Settings]
 LogFile=Output\build.log
 LogFileOverwrite=false
-
-[InnoIDE_PreCompile]
-Name: C:\Python27_64\python.exe; Parameters: C:\Users\vistrails\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 

@@ -29,9 +29,14 @@ HASH_FILES = [["scripts/create_release_wiki_table.py", r'VT_REVISION = [\'"]'],
               ["vistrails/core/system/__init__.py", r'RELEASE = [\'"]'],
               ["dist/source/make-vistrails-src-release.py", r'VT_HASH = [\'"]']]
 
-BRANCH_FILES = [
-   ["dist/source/make-vistrails-src-release.py", r'VT_BRANCH = [\'"]v'],
+BRANCH_FILES = [ # For places that should not use 'v' prefix
    ["doc/usersguide/conf.py", r'version = [\'"]']]
+
+BRANCH_FILES_V = [
+   ["dist/source/make-vistrails-src-release.py", r'VT_BRANCH = [\'"]']]
+
+BRANCH_URLS = [ # For places that should use dev for master
+   ["scripts/get_usersguide.py", r'http://www.vistrails.org/usersguide/']]
 
 def update_value(fname, pre, value):
     """
@@ -41,7 +46,6 @@ def update_value(fname, pre, value):
 
     """
     rexp = re.compile(re_base % pre)
-
 
     with open(fname, 'rb') as fp:
         lines = fp.readlines()
@@ -78,7 +82,7 @@ if __name__ == '__main__':
     line = lines[2].split()
     VERSION = line[2][1:] # Drop "v" prefix
     HASH = line[4]
-    BRANCH = line[6][1:] # Drop "v" prefix
+    BRANCH = line[6]
     print "Updating to:", VERSION, HASH, "on branch v%s" % BRANCH
 
     for fname, pre in VERSION_FILES:
@@ -88,9 +92,19 @@ if __name__ == '__main__':
        update_value(fname, pre, HASH)
 
     for fname, pre in BRANCH_FILES:
-       update_value(fname, pre, BRANCH)
+        # Cut off 'v' in versioned branches
+        branch = BRANCH[1:] if BRANCH[0] == 'v' else BRANCH
+        update_value(fname, pre, branch)
 
-    # TODO: Update splash
+    for fname, pre in BRANCH_FILES_V:
+        update_value(fname, pre, BRANCH)
+
+    for fname, pre in BRANCH_URLS:
+        # master version of usersguide url is 'dev'
+        branch = 'dev' if BRANCH in ['dev', 'master'] else BRANCH
+        update_value(fname, pre, branch)
+
+    # Update splash using inkscape
     try:
         subprocess.check_call('inkscape -e vistrails/gui/resources/images/vistrails_splash.png -w 546 dist/common/splash/splash.svg'.split())
     except (OSError, subprocess.CalledProcessError):
