@@ -195,10 +195,8 @@ CompileLogFile=Output\build.log
 CompileLogMethod=append
 
 [PreCompile]
-Name: "C:\Python27\python.exe"; Parameters: "C:\Users\vistrails\code\vistrails\scripts\get_usersguide.py C:\Users\vistrails\code\vistrails\dist\windows\Input"; Flags: abortonerror cmdprompt
-
-[PreCompile]
-Name: "C:\Python27\python.exe"; Parameters: "-m compileall C:\Users\vistrails\code"; Flags: abortonerror cmdprompt
+Name: "C:\Python27\python.exe"; Parameters: "..\..\scripts\get_usersguide.py ..\..\dist\windows\Input"; Flags: abortonerror cmdprompt
+Name: "C:\Python27\python.exe"; Parameters: "-m compileall ..\..\vistrails"; Flags: abortonerror cmdprompt
 
 [Code]
 var
