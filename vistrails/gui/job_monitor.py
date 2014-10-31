@@ -249,16 +249,16 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
-            items = self.jobView.selectedItems()
-            if len(items) == 1:
-                item = items[0]
+            for item in self.jobView.selectedItems():
                 if isinstance(item, QWorkflowItem):
+                    item.parent().controller.set_changed(True)
                     item.parent().jobMonitor.deleteWorkflow(item.workflow.id)
                 elif isinstance(item, QJobItem):
                     # find parent
                     parent = item.parent()
                     while not isinstance(parent, QWorkflowItem):
                         parent = parent.parent()
+                    parent.parent().controller.set_changed(True)
                     parent.parent().jobMonitor.deleteJob(item.job.id)
         else:
             QtGui.QWidget.keyPressEvent(self, event)
