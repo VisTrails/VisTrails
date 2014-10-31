@@ -58,6 +58,7 @@ cp Input/git dist/VisTrails.app/Contents/MacOS/
 echo "copying qt.conf..."
 cp Input/qt.conf dist/VisTrails.app/Contents/Resources/
 echo "copying plugins..."
+echo "copying plugins..."
 cp -r Input/plugins/* dist/VisTrails.app/Contents/MacOS
 if [ ! -e "Input/alps_libs/${ALPS_FILE}" ]
 then
@@ -69,9 +70,9 @@ tar -xzf Input/alps_libs/${ALPS_FILE} -C dist/
 echo "copying example files..."
 cp -r ../../examples dist/
 echo "copying README file..."
-cp Input/README dist/
-echo "copying LICENSE file..."
 cp ../../CHANGELOG dist/README
+echo "copying LICENSE file..."
+cp ../../LICENCE dist/
 echo "copying VisTrails.command file..."
 cp Input/VisTrails.command dist/
 echo "copying CLToolsWizard.command file..."
