@@ -197,18 +197,19 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         for i in xrange(self.jobView.topLevelItemCount()):
             vistrail = self.jobView.topLevelItem(i)
             jm = vistrail.jobMonitor
-            for workflow in vistrail.workflowItems.values():
+            for workflow_item in vistrail.workflowItems.values():
+                workflow = workflow_item.workflow
                 # jobs without a monitor can also be checked
-                if not workflow.has_queue:
+                if not workflow_item.has_queue:
                     # restart job and execute
-                    jm.startWorkflow(workflow.workflow)
+                    jm.startWorkflow(workflow)
                     self.updating_now = False
-                    workflow.execute()
+                    workflow_item.execute()
                     self.updating_now = True
                     continue
-                if workflow.workflowFinished:
+                if workflow_item.workflowFinished:
                     continue
-                for job in workflow.jobs.itervalues():
+                for job in workflow_item.jobs.itervalues():
                     if job.jobFinished:
                         continue
                     try:
@@ -217,32 +218,34 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                         if job.jobFinished:
                             job.setText(1, "Finished")
                     except Exception, e:
-                        debug.critical("Error checking job %s: %s" % workflow.name,
-                                       e)
-                workflow.updateJobs()
-                if workflow.workflowFinished:
+                        debug.critical("Error checking job %s: %s" %
+                                       (workflow_item.text(0), e))
+                workflow_item.updateJobs()
+                if workflow_item.workflowFinished:
                     if self.autorun.isChecked():
-                        jm.startWorkflow(workflow.workflow)
+                        jm.startWorkflow(workflow)
                         self.updating_now = False
-                        workflow.execute()
+                        workflow_item.execute()
                         self.updating_now = True
                         continue
                     ret = QtGui.QMessageBox.information(self, "Job Ready",
                             'Pending Jobs in workflow "%s" have finished, '
-                            'continue execution now?' % workflow.text(0),
+                            'continue execution now?' % workflow_item.text(0),
                             QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
                     if ret == QtGui.QMessageBox.Ok:
-                        jm.startWorkflow(workflow.workflow)
+                        jm.startWorkflow(workflow)
                         self.updating_now = False
-                        workflow.execute()
+                        workflow_item.execute()
                         self.updating_now = True
 
     def timerEvent(self, id=None):
         if self.updating_now:
             return
         self.updating_now = True
-        self.update_jobs()
-        self.updating_now = False
+        try:
+            self.update_jobs()
+        finally:
+            self.updating_now = False
 
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
