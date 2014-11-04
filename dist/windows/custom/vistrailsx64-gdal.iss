@@ -102,8 +102,8 @@ Source: ..\Input\qt.conf; DestDir: {app}\Python27_64
 ;Source: D:\Qt\4.6.3\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
 ;Source: D:\Qt\4.6.3\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
-Source: ..\Input\x64\python27.dll; DestDir: {app}
-Source: ..\Input\x64\python27.dll; DestDir: {app}\Python27_64
+Source: C:\Windows\SysWOW64\python27.dll; DestDir: {app}
+Source: C:\Windows\SysWOW64\python27.dll; DestDir: {app}\Python27_64
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.dll; DestDir: {app}
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.pyd; DestDir: {app}
 ;Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
