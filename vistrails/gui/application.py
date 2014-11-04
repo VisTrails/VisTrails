@@ -389,8 +389,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     m(*args)
                 except Exception, e:
                     debug.unexpected_exception(e)
-                    import traceback
-                    traceback.print_exc()
+                    debug.print_exc()
         notifications = {}
 
         current_window = self.builderWindow
@@ -405,8 +404,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                         m(*args)
                     except Exception, e:
                         debug.unexpected_exception(e)
-                        import traceback
-                        traceback.print_exc()
+                        debug.print_exc()
 
         if current_window is not None:
             current_view = current_window.current_view
@@ -422,8 +420,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                         m(*args)
                     except Exception, e:
                         debug.unexpected_exception(e)
-                        import traceback
-                        traceback.print_exc()
+                        debug.print_exc()
 
     def showBuilderWindow(self):
         # in some systems (Linux and Tiger) we need to make both calls
@@ -708,9 +705,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout = old_stdout
             except Exception, e:
                 debug.unexpected_exception(e)
-                import traceback
                 debug.critical("Unknown error", e)
-                result = traceback.format_exc()
+                result = debug.format_exc()
             if None == result:
                 result = True
             if True == result:
