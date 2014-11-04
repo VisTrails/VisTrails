@@ -72,7 +72,7 @@ Source: Input\tar.exe; DestDir: {app}
 Source: Input\runvistrails.py; DestDir: {app}
 Source: Input\*.dll; DestDir: {app}
 Source: ..\..\LICENSE; DestDir: {app}; DestName="license.txt"
-Source: Input\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
+Source: C:\Users\vistrails\vcredist_x86.exe; DestDir: {tmp}; Flags: deleteafterinstall
 Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
 Source: Input\qt.conf; DestDir: {app}\Python27
 
