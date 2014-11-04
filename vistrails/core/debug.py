@@ -104,8 +104,32 @@ def unexpected_exception(e, tb=None, frame=None):
 
 ###############################################################################
 
+def _format_exception(etype, value, etb, rtb):
+    yield "Traceback (most recent call last):\n"
+    if isinstance(rtb, (int, long)):
+        try:
+            raise ZeroDivisionError
+        except ZeroDivisionError:
+            f = sys.exc_info()[2].tb_frame
+            while rtb > 0:
+                f = f.f_back
+                rtb -= 1
+            rtb = f
+    for line in traceback.format_stack(rtb):
+        yield line
+    yield "--- Exception caught here ---\n"
+    if etb:
+        for line in traceback.format_tb(etb):
+            yield line
+    if value is not None:
+        if etype is None:
+            etype = type(value)
+        lines = traceback.format_exception_only(etype, value)
+        for line in lines:
+            yield line
+
 def print_exception(etype, value, etb, rtb=2, file=None):
-    """Like :func:`traceback.print_exception` but prints full stack.
+    """Like :func:`traceback.print_exception` but prints the full stack.
 
     In addition to the stack frames between the exception and the point it is
     caught, this prints the stack frames above the catching location.
@@ -116,26 +140,23 @@ def print_exception(etype, value, etb, rtb=2, file=None):
     """
     if file is None:
         file = sys.stderr
-    file.write("Traceback (most recent call last):\n")
-    if isinstance(rtb, (int, long)):
-        try:
-            raise ZeroDivisionError
-        except ZeroDivisionError:
-            f = sys.exc_info()[2].tb_frame
-            while rtb > 0:
-                f = f.f_back
-                rtb -= 1
-            rtb = f
-    traceback.print_stack(rtb, file=file)
-    file.write("--- Exception caught here ---\n")
-    if etb:
-        traceback.print_tb(etb, file=file)
-    lines = traceback.format_exception_only(etype, value)
-    for line in lines:
+    for line in _format_exception(etype, value, etb, rtb + 1):
         file.write(line)
 
+def format_exc():
+    """Like :func:`traceback.format_exc` but uses the full stack.
+
+    In addition to the stack frames between the exception and the point it is
+    caught, this prints the stack frames above the catching location.
+    """
+    try:
+        etype, value, tb = sys.exc_info()
+        return ''.join(_format_exception(etype, value, tb, 3))
+    finally:
+        etype = value = tb = None
+
 def print_exc(file=None):
-    """Like :func:`traceback.print_exc` but prints full stack.
+    """Like :func:`traceback.print_exc` but prints the full stack.
 
     In addition to the stack frames between the exception and the point it is
     caught, this prints the stack frames above the catching location.
