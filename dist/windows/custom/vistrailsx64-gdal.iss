@@ -198,6 +198,8 @@ CompileLogMethod=append
 
 [PreCompile]
 Name: "C:\Python27_64\python.exe"; Parameters: "..\..\..\scripts\get_usersguide.py ..\..\..\dist\windows\Input"; Flags: abortonerror cmdprompt
+Name: "C:\Python27_64\python.exe"; Parameters: "..\update_alps.py alps-vistrails-2.2.b3-win64.zip Input\x64\alps_libs"; Flags: abortonerror cmdprompt
+Name: "C:\Python27_64\python.exe"; Parameters: "..\update_alps.py alps-vistrails-2.2.b3-win64.zip Input\x64\alps_libs"; Flags: abortonerror cmdprompt
 Name: "C:\Python27_64\python.exe"; Parameters: "-m compileall ..\..\..\vistrails"; Flags: abortonerror cmdprompt
 
 [Code]
