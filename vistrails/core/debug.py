@@ -91,9 +91,7 @@ def unexpected_exception(e, tb=None, frame=None):
     # Prints the exception and traceback
     print >>sys.stderr, "!!!!!!!!!!"
     print >>sys.stderr, "Got unexpected exception, starting debugger"
-    traceback.print_tb(tb, file=sys.stderr)
-    if e is not None:
-        print >>sys.stderr, format_exception(e)
+    print_exception(None, e, tb, 3, file=sys.stderr)
 
     # Starts the debugger
     print >>sys.stderr, "!!!!!!!!!!"
