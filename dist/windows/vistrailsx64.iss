@@ -49,6 +49,19 @@ LicenseFile=..\..\LICENSE
 ArchitecturesInstallIn64BitMode=x64
 OutputBaseFilename=vistrails-x64-setup
 
+#if Exec("C:\Python27_64\python.exe", "..\..\scripts\get_usersguide.py ..\..\dist\windows\Input", ".")
+  #error Failed to get usersguide
+#endif
+#if Exec("C:\Python27_64\python.exe", "update_alps.py alps-vistrails-2.2.b3-win32.zip Input\x64\alps_libs", ".")
+  #error Failed to download ALPS
+#endif
+#if Exec("C:\Python27_64\python.exe", "..\common\prepare_release.py", ".")
+  #error Failed to prepare release
+#endif
+#if Exec("C:\Python27_64\python.exe", "-m compileall ..\..\vistrails", ".")
+  #error Failed to compile source
+#endif
+
 [Files]
 Source: C:\Python27_64\LICENSE.txt; DestDir: {app}\Python27_64
 Source: C:\Python27_64\python.exe; DestDir: {app}\Python27_64
@@ -192,11 +205,6 @@ Filename: {tmp}\vcredist_x64.exe; Parameters: /Q; Components: ; Tasks:
 [ThirdPartySettings]
 CompileLogFile=Output\build.log
 CompileLogMethod=append
-
-[PreCompile]
-Name: "C:\Python27_64\python.exe"; Parameters: "..\..\scripts\get_usersguide.py ..\..\dist\windows\Input"; Flags: abortonerror cmdprompt
-Name: "C:\Python27_64\python.exe"; Parameters: "update_alps.py alps-vistrails-2.2.b3-win64.zip Input\x64\alps_libs"; Flags: abortonerror cmdprompt
-Name: "C:\Python27_64\python.exe"; Parameters: "-m compileall ..\..\vistrails"; Flags: abortonerror cmdprompt
 
 [Code]
 var
