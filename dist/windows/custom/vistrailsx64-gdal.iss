@@ -58,7 +58,7 @@ OutputBaseFilename=vistrails-x64-gdal-setup
 #if Exec("C:\Python27_64\python.exe", "..\common\prepare_release.py", ".")
   #error Failed to prepare release
 #endif
-#if Exec("C:\Python27_64\python.exe", "-m compileall ..\..\vistrails", ".")
+#if Exec("C:\Python27_64\python.exe", "-m compileall -q ..\..\vistrails", ".")
   #error Failed to compile source
 #endif
 
