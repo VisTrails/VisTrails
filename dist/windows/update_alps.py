@@ -63,7 +63,7 @@ def ensure_dir(dirname):
             raise
 
 if __name__ == "__main__":
-    os.chdir(os.path.dirname(__file__))
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     print "Downloading alps zip from", ZIP_URL
     response = urllib2.urlopen(ZIP_URL)
     ensure_dir(DEST)
