@@ -52,7 +52,7 @@ OutputBaseFilename=vistrails-x64-setup
 #if Exec("C:\Python27_64\python.exe", "..\..\scripts\get_usersguide.py ..\..\dist\windows\Input", ".")
   #error Failed to get usersguide
 #endif
-#if Exec("C:\Python27_64\python.exe", "update_alps.py alps-vistrails-2.2.b3-win32.zip Input\x64\alps_libs", ".")
+#if Exec("C:\Python27_64\python.exe", "update_alps.py alps-vistrails-2.2.b3-win64.zip Input\x64\alps_libs", ".")
   #error Failed to download ALPS
 #endif
 #if Exec("C:\Python27_64\python.exe", "..\common\prepare_release.py", ".")
