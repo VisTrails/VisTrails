@@ -330,7 +330,7 @@ def add_tool(path):
             f.close()
 
         if not file_std:
-            if stdout and "stdout" in self.conf:
+            if "stdout" in self.conf:
                 name, type, options = self.conf["stdout"]
                 type = type.lower()
                 if "file" == type:
@@ -344,7 +344,7 @@ def add_tool(path):
                     self.set_output(name, stdout)
                 else: # pragma: no cover
                     raise ValueError
-            if stderr and "stderr" in self.conf:
+            if "stderr" in self.conf:
                 name, type, options = self.conf["stderr"]
                 type = type.lower()
                 if "file" == type:
