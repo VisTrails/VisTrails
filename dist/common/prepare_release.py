@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # Updates the binary changelogs, version numbers, hash, and branch from CHANGELOG
+# First updates hash in changelog if git is available
 # Run and commit changes to git before building release
 import os
 import re
@@ -8,7 +9,7 @@ import sys
 
 CHANGELOG = "CHANGELOG"
 
-re_base = r'(?<=%s)([0-9a-zA-Z._+-]+)'
+RE_BASE = r'(?<=%s)([0-9a-zA-Z._+-]+)'
 
 # [filename, preceding string]
 VERSION_FILES = [
@@ -20,20 +21,20 @@ VERSION_FILES = [
     ["dist/windows/vistrailsx64.iss", r'AppVerName=VisTrails x64 '],
     ["dist/windows/custom/vistrails-gdal.iss", r'AppVerName=VisTrails '],
     ["dist/windows/custom/vistrailsx64-gdal.iss", r'AppVerName=VisTrails x64 '],
-    ["dist/source/make-vistrails-src-release.py", r'VT_VERSION = [\'"]'],
+    ["dist/source/make-vistrails-src-build.py", r'VT_VERSION = [\'"]'],
     ["doc/usersguide/conf.py", r'release = [\'"]'],
     ["dist/common/splash/splash.svg", r'tspan4025">'],
     ["dist/common/splash/splash.svg", r'tspan4025-7">']] # second pass for shadow
 
 HASH_FILES = [["scripts/create_release_wiki_table.py", r'VT_REVISION = [\'"]'],
               ["vistrails/core/system/__init__.py", r'RELEASE = [\'"]'],
-              ["dist/source/make-vistrails-src-release.py", r'VT_HASH = [\'"]']]
+              ["dist/source/make-vistrails-src-build.py", r'VT_HASH = [\'"]']]
 
 BRANCH_FILES = [ # For places that should not use 'v' prefix
    ["doc/usersguide/conf.py", r'version = [\'"]']]
 
 BRANCH_FILES_V = [
-   ["dist/source/make-vistrails-src-release.py", r'VT_BRANCH = [\'"]']]
+   ["dist/source/make-vistrails-src-build.py", r'VT_BRANCH = [\'"]']]
 
 BRANCH_URLS = [ # For places that should use dev for master
    ["scripts/get_usersguide.py", r'http://www.vistrails.org/usersguide/']]
@@ -41,11 +42,11 @@ BRANCH_URLS = [ # For places that should use dev for master
 def update_value(fname, pre, value):
     """
     fname: file name
-    rexp: regular expression to search for
+    pre: prefix to search for
     value: new value
 
     """
-    rexp = re.compile(re_base % pre)
+    rexp = re.compile(RE_BASE % pre)
 
     with open(fname, 'rb') as fp:
         lines = fp.readlines()
@@ -57,7 +58,8 @@ def update_value(fname, pre, value):
         m = rexp.search(line)
         if m is not None:
             lines[i] = rexp.sub(value, line)
-            print fname, '---', lines[i],
+            if line != lines[i]:
+                print '%s:\n' % fname, line, lines[i],
             replaced = True
             break
         i += 1
@@ -94,9 +96,6 @@ if __name__ == '__main__':
     except subprocess.CalledProcessError: # Not a git repository
         pass
 
-
-    print "Updating to:", VERSION, HASH, "on branch %s" % BRANCH
-
     for fname, pre in VERSION_FILES:
        update_value(fname, pre, VERSION)
 
@@ -120,4 +119,4 @@ if __name__ == '__main__':
     try:
         subprocess.check_call('inkscape -e vistrails/gui/resources/images/vistrails_splash.png -w 546 dist/common/splash/splash.svg'.split())
     except (OSError, subprocess.CalledProcessError):
-        print "Calling inkscape failed, make sure inkscape is installed and in your path, or generate vistrails/gui/resources/images/vistrails_splash.png manually from dist/common/splash.svg."
+        print "Calling inkscape failed, skipping splash screen update!"
