@@ -51,7 +51,7 @@ OutputBaseFilename=vistrails-gdal-setup
 #if Exec("C:\Python27\python.exe", "..\..\..\scripts\get_usersguide.py ..\Input", ".")
   #error Failed to get usersguide
 #endif
-#if Exec("C:\Python27\python.exe", "update_alps.py alps-vistrails-2.2.b3-win32.zip Input\x86\alps_libs", ".")
+#if Exec("C:\Python27\python.exe", "..\update_alps.py alps-vistrails-2.2.b3-win32.zip ..\Input\x86\alps_libs", ".")
   #error Failed to download ALPS
 #endif
 #if Exec("C:\Python27\python.exe", "..\..\common\prepare_release.py", ".")
