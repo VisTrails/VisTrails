@@ -23,10 +23,8 @@
 
 import os
 import sys
-import shutil
 import tarfile
-import datetime
-import subprocess as proc
+import subprocess
 
 ####################
 ###### Config ######
@@ -43,10 +41,11 @@ VT_VERSION = '2.1.4'
 VT_BRANCH = 'v2.1'
 
 # Hash used in the release
-VT_HASH = '269e4808eca3'
+VT_HASH = '6364eff8ee47'
 
 # Distribution Tarball name (Do not add ".tar.gz")
-TARBALL_NAME = "vistrails-src-%s-%s" % (VT_VERSION, VT_HASH)
+#TARBALL_NAME = "vistrails-src-%s-%s" % (VT_VERSION, VT_HASH)
+TARBALL_NAME = "vistrails-src"
 
 # Tarball file name
 TARBALL_FILENAME = TARBALL_NAME + ".tar.gz"
@@ -99,6 +98,18 @@ SF_UPLOAD_CMD = "scp -v -i %s %s %s,%s@frs.sourceforge.net:/home/frs/project/%s/
 if __name__ == "__main__":
     os.chdir(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+    # prepare release
+    proc = subprocess.Popen(['dist/common/prepare_release.py'],
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    proc.wait()
+    if proc.returncode != 0:
+        print "ERROR: preparing release."
+        if proc.stdout:
+            print proc.stdout.readlines()
+        sys.exit(1)
+
     print "Creating tarball: '%s' ..." % TARBALL_FILENAME
     tarball = None
     try:
@@ -120,7 +131,7 @@ if __name__ == "__main__":
             upload_attempts += 1
             print "Uploading tarball to Sourceforge (attempt %d of %d): '%s' ..." % (upload_attempts, SF_UPLOAD_ATTEMPTS, SF_UPLOAD_CMD)
             try:
-                upload_proc = proc.Popen(SF_UPLOAD_CMD, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
+                upload_proc = subprocess.Popen(SF_UPLOAD_CMD, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
                 upload_log = upload_proc.communicate()[0]
                 # Indent upload log and print
                 upload_log = "\n".join(['    ' + line for line in upload_log.splitlines()])
