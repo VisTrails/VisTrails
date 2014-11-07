@@ -53,6 +53,7 @@ from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import FileLocator, DBLocator
 import vistrails.core.requirements
+from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import test_db_connection
 from vistrails.gui import qt
