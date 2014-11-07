@@ -49,7 +49,7 @@ LicenseFile=..\..\LICENSE
 ArchitecturesInstallIn64BitMode=x64
 OutputBaseFilename=vistrails-x64-setup
 
-#if Exec("C:\Python27_64\python.exe", "..\..\scripts\get_usersguide.py ..\..\dist\windows\Input", ".")
+#if Exec("C:\Python27_64\python.exe", "..\..\scripts\get_usersguide.py Input", ".")
   #error Failed to get usersguide
 #endif
 #if Exec("C:\Python27_64\python.exe", "update_alps.py alps-vistrails-2.2.b3-win64.zip Input\x64\alps_libs", ".")

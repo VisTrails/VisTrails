@@ -48,7 +48,7 @@ ChangesAssociations=true
 LicenseFile=..\..\LICENSE
 OutputBaseFilename=vistrails-setup
 
-#if Exec("C:\Python27\python.exe", "..\..\scripts\get_usersguide.py ..\..\dist\windows\Input", ".")
+#if Exec("C:\Python27\python.exe", "..\..\scripts\get_usersguide.py Input", ".")
   #error Failed to get usersguide
 #endif
 #if Exec("C:\Python27\python.exe", "update_alps.py alps-vistrails-2.2.b3-win32.zip Input\x86\alps_libs", ".")
