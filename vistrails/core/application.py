@@ -359,7 +359,7 @@ class VistrailsApplicationInterface(object):
         """
         raise NotImplementedError("Subclass must implement ensure_vistrail")
 
-    def select_version(self, version=None):
+    def select_version(self, version):
         """select_version changes the version of the currently open vistrail
         to the specified version.
 

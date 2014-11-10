@@ -1172,9 +1172,9 @@ class Module(Serializable):
         """Returns the value coming in on the input port named **port_name**.
 
         :param port_name: the name of the input port being queried
-        :type port_name: String
+        :type port_name: str
         :param allow_default: whether to return the default value if it exists
-        :type allow_default: Boolean
+        :type allow_default: bool
         :returns: the value being passed in on the input port
         :raises: ``ModuleError`` if there is no value on the port (and no default value if allow_default is True)
 
@@ -1217,7 +1217,7 @@ class Module(Serializable):
         this method obtains all the values being passed in.
 
         :param port_name: the name of the input port being queried
-        :type port_name: String
+        :type port_name: str
         :returns: a list of all the values being passed in on the input port
         :raises: ``ModuleError`` if there is no value on the port
         """
@@ -1280,7 +1280,7 @@ class Module(Serializable):
         """This method is used to set a value on an output port.
 
         :param port_name: the name of the output port to be set
-        :type port_name: String
+        :type port_name: str
         :param value: the value to be assigned to the port
 
         """
@@ -1291,7 +1291,7 @@ class Module(Serializable):
         Raises an exception if the input port named *port_name* is not set.
 
         :param port_name: the name of the input port being checked
-        :type port_name: String
+        :type port_name: str
         :raises: ``ModuleError`` if there is no value on the port
         """
         if not self.has_input(port_name):
@@ -1302,8 +1302,8 @@ class Module(Serializable):
         the input port named **port_name**.
 
         :param port_name: the name of the input port being queried
-        :type port_name: String
-        :rtype: Boolean
+        :type port_name: str
+        :rtype: bool
 
         """
         return port_name in self.inputPorts
@@ -1313,7 +1313,7 @@ class Module(Serializable):
         returns a user-specified default_value or None.
 
         :param port_name: the name of the input port being queried
-        :type port_name: String
+        :type port_name: str
         :param default_value: the default value to be used if there is \
         no value on the input port
         :returns: the value being passed in on the input port or the default
@@ -1330,7 +1330,7 @@ class Module(Serializable):
         exist, it returns an empty list
 
         :param port_name: the name of the input port being queried
-        :type port_name: String
+        :type port_name: str
         :returns: a list of all the values being passed in on the input port
 
         """
@@ -1403,7 +1403,7 @@ class Module(Serializable):
         might add the seed that was used to initialize the generator.
 
         :param d: a dictionary where both the keys and values are strings
-        :type d: Dictionary
+        :type d: dict
 
         """
 
@@ -1522,10 +1522,10 @@ class Module(Serializable):
         """This method is used to set a streaming output port.
 
         :param port: the name of the output port to be set
-        :type port: String
+        :type port: str
         :param generator: An iterator object supporting .next()
         :param size: The number of values if known (default=0)
-        :type size: Integer
+        :type size: int
         """
         from vistrails.core.modules.basic_modules import Generator
         module = copy.copy(self)

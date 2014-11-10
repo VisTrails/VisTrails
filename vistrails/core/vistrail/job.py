@@ -283,7 +283,7 @@ class JobMonitor(object):
         self.jobs = {}
         self.callback = None
         if json_string is not None:
-            self.__unserialize__(json_string)
+            self.unserialize(json_string)
 
     def setCallback(self, callback=None):
         """ setCallback(callback: class) -> None
@@ -295,8 +295,8 @@ class JobMonitor(object):
 ##############################################################################
 # Running Workflows
 
-    def __serialize__(self):
-        """ __serialize__() -> None
+    def serialize(self):
+        """ serialize() -> None
             serializes the running jobs to json
 
         """
@@ -314,8 +314,8 @@ class JobMonitor(object):
 
         return json.dumps(_dict)
 
-    def __unserialize__(self, s):
-        """ __unserialize__(s: str) -> None
+    def unserialize(self, s):
+        """ unserialize(s: str) -> None
             unserializes the running jobs from json
 
         """
@@ -616,7 +616,7 @@ class TestJob(unittest.TestCase):
         # test serialization
         jm.addWorkflow(workflow1)
         jm.addWorkflow(workflow2)
-        jm.__unserialize__(jm.__serialize__())
+        jm.unserialize(jm.serialize())
         self.assertIn(workflow1.id, jm.workflows)
         self.assertIn(workflow2.id, jm.workflows)
         self.assertEqual(workflow1, jm.workflows[workflow1.id])

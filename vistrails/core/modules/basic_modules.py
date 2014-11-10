@@ -1240,7 +1240,11 @@ class AssertEqual(Module):
         values = (self.get_input('value1'),
                   self.get_input('value2'))
         if values[0] != values[1]:
-            raise ModuleError(self, "AssertEqual: values are different",
+            reprs = tuple(repr(v) for v in values)
+            reprs = tuple('%s...' % v[:17] if len(v) > 20 else v
+                          for v in reprs)
+            raise ModuleError(self, "AssertEqual: values are different: "
+                                    "%r, %r" % reprs,
                               abort=True)
 
 ##############################################################################
