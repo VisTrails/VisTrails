@@ -1,4 +1,4 @@
-from core.modules.vistrails_module import Module  # , ModuleError
+from vistrails.core.modules.vistrails_module import Module  # , ModuleError
 
 import numpy as np
 from sklearn.svm import LinearSVC as _LinearSVC
@@ -21,6 +21,14 @@ class SklearnClassifierPrediction(Module):
 
 
 class SklearnClassifier(Module):
+    pass
+
+
+class SklearnMetric(Module):
+    pass
+
+
+class SklearnAccuracyScore(SklearnMetric):
     pass
 
 
