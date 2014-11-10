@@ -74,7 +74,7 @@ cp -r ../../examples dist/
 echo "copying README file..."
 cp ../../CHANGELOG dist/README
 echo "copying LICENSE file..."
-cp ../../LICENCE dist/
+cp ../../LICENSE dist/
 echo "copying VisTrails.command file..."
 cp Input/VisTrails.command dist/
 echo "copying CLToolsWizard.command file..."
