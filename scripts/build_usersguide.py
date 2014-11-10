@@ -63,7 +63,6 @@ HTML_FOLDER = None
 # Complete file path to where copy final pdf file
 PDF_FILE = os.path.join(PATH_TO_VISTRAILS_GIT, "scripts", "VisTrails.pdf")
 
-
 # Should we run a `git pull` before building docs? 
 PERFORM_GIT_PULL = False
 
@@ -74,8 +73,12 @@ GIT_PULL_CMD = ["git", "pull"]
 BUILD_HTML_SUBPATH = ["_build", "html"]
 BUILD_LATEX_SUBPATH = ["_build", "latex"]
 PDF_BUILD_NAME = "VisTrails.pdf"
+if len(sys.argv)>1:
+    PDF_FILE = os.path.abspath(sys.argv[1])
+    if PDF_FILE[-4:] != '.pdf':
+        PDF_FILE = os.path.join(PDF_FILE, PDF_BUILD_NAME)
 if __name__ == '__main__':
-    if (PATH_TO_VISTRAILS_GIT is not None and 
+    if (PATH_TO_VISTRAILS_GIT is not None and
         os.path.exists(PATH_TO_VISTRAILS_GIT)):
         current_folder = os.getcwd()
         if PERFORM_GIT_PULL:
@@ -118,8 +121,7 @@ if __name__ == '__main__':
                     shutil.move(html_build, HTML_FOLDER)
         
         if BUILD_PDF:
-            if len(sys.argv)>1:
-                PDF_FILE = sys.argv[1]
+            print "Building usersguide to ", PDF_FILE
             #build latex files
             print "now preparing latex files..."
             latex_path = os.path.join(".",
@@ -130,7 +132,7 @@ if __name__ == '__main__':
                                         stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT)
-            proc.wait()
+                proc.wait()
             print "building latex files..."
             proc = subprocess.Popen(["make", "latex"],
                                     stdin=subprocess.PIPE,
@@ -157,6 +159,8 @@ if __name__ == '__main__':
                 else:
                     #now move file to its final place
                     if PDF_FILE is not None:
+                        if os.path.exists(PDF_FILE):
+                            os.unlink(PDF_FILE)
                         pdf_build = os.path.join(os.getcwd(),
                                                  PDF_BUILD_NAME)
                         shutil.move(pdf_build, PDF_FILE)
