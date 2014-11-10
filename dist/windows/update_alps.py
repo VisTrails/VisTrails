@@ -45,7 +45,7 @@ if len(sys.argv) != 3:
     sys.exit(-1)
 
 ALPS_ZIP = sys.argv[1]
-DEST = sys.argv[2]
+DEST = os.path.abspath(sys.argv[2])
 
 DOWNLOAD_URL = "http://archive.comp-phys.org/software/vistrails/"
 ZIP_URL = DOWNLOAD_URL + ALPS_ZIP
