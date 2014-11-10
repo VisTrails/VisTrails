@@ -84,7 +84,7 @@ def _eintr_retry_call(func, *args):
             raise
 
 
-def add_tool(path):
+def _add_tool(path):
     # first create classes
     tool_name = os.path.basename(path)
     if not tool_name.endswith(SUFFIX): # pragma: no cover
@@ -332,7 +332,7 @@ def add_tool(path):
             f.close()
 
         if not file_std:
-            if stdout and "stdout" in self.conf:
+            if "stdout" in self.conf:
                 name, type, options = self.conf["stdout"]
                 type = type.lower()
                 if "file" == type:
@@ -346,7 +346,7 @@ def add_tool(path):
                     self.set_output(name, stdout)
                 else: # pragma: no cover
                     raise ValueError
-            if stderr and "stderr" in self.conf:
+            if "stderr" in self.conf:
                 name, type, options = self.conf["stderr"]
                 type = type.lower()
                 if "file" == type:
@@ -409,6 +409,16 @@ def add_tool(path):
     cl_tools[tool_name] = M
 
 
+def add_tool(path):
+    try:
+        _add_tool(path)
+    except Exception as exc:  # pragma: no cover
+        import traceback
+        debug.critical("Package CLTools failed to create module "
+           "from '%s': %s" % (path, exc),
+           traceback.format_exc())
+
+
 def initialize(*args, **keywords):
     reload_scripts(initial=True)
 
@@ -419,9 +429,15 @@ def remove_all_scripts():
         del cl_tools[tool_name]
         reg.delete_module(identifiers.identifier, tool_name)
 
-def reload_scripts(initial=False):
+def reload_scripts(initial=False, name=None):
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     if not initial:
-        remove_all_scripts()
+        if name is None:
+            remove_all_scripts()
+        else:
+            del cl_tools[name]
+            reg.delete_module(identifiers.identifier, name)
+
     if "CLTools" == identifiers.name:
         # this is the original package
         location = os.path.join(vistrails.core.system.current_dot_vistrails(),
@@ -432,25 +448,25 @@ def reload_scripts(initial=False):
                 debug.log("Creating CLTools directory...")
                 os.mkdir(location)
             except Exception, e:
-                debug.critical("""Could not create CLTools directory. Make
- sure '%s' does not exist and parent directory is writable""" % location, e)
+                debug.critical("Could not create CLTools directory. Make "
+                               "sure '%s' does not exist and parent directory "
+                               "is writable" % location,
+                               e)
                 sys.exit(1)
-    else: # pragma: no cover
+    else:  # pragma: no cover
         # this is a standalone package so modules are placed in this directory
         location = os.path.dirname(__file__)
 
     if initial:
-        reg = vistrails.core.modules.module_registry.get_module_registry()
         reg.add_module(CLTools, abstract=True)
-    for path in os.listdir(location):
-        if path.endswith(SUFFIX): # pragma: no branch
-            try:
+    if name is None:
+        for path in os.listdir(location):
+            if path.endswith(SUFFIX):  # pragma: no branch
                 add_tool(os.path.join(location, path))
-            except Exception as exc: # pragma: no cover
-                import traceback
-                debug.critical("Package CLTools failed to create module "
-                   "from '%s': %s" % (os.path.join(location, path), exc),
-                   traceback.format_exc())
+    else:
+        path = os.path.join(location, name + SUFFIX)
+        if os.path.exists(path):
+            add_tool(path)
 
     if not initial:
         from vistrails.core.interpreter.cached import CachedInterpreter
@@ -491,6 +507,20 @@ def finalize():
     pass
 
 
+def contextMenuName(name):
+    if "CLTools" == name:
+        return "Reload All Scripts"
+    else:
+        return "Reload Script"
+
+
+def callContextMenu(name):
+    if "CLTools" == name:
+        reload_scripts()
+    else:
+        reload_scripts(name=name)
+
+
 ###############################################################################
 
 import unittest
@@ -510,7 +540,7 @@ class TestCLTools(unittest.TestCase):
         for name in os.listdir(cls.testdir):
             if not name.endswith(SUFFIX):
                 continue
-            add_tool(os.path.join(cls.testdir, name))
+            _add_tool(os.path.join(cls.testdir, name))
             toolname = os.path.splitext(name)[0]
             cls._tools[toolname] = cl_tools[toolname]
         cls._old_dir = os.getcwd()

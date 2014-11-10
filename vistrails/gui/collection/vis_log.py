@@ -286,9 +286,15 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
                                                self.openVersionAction)
 
     def openVersion(self):
-        if not hasattr(self.parentItem, 'item'):
+
+        parent = self.executionList.selectedItems()
+        if len(parent) != 1:
             return
-        version = self.parentItem.item.wf_item.parent_version
+        parent = parent[0]
+        while not isinstance(parent.execution, WorkflowExec):
+            parent = parent.parent()
+
+        version = parent.execution.parent_version
         from vistrails.gui.vistrails_window import _app
         _app.get_current_view().version_selected(version, True)
         self.controller.recompute_terse_graph()
@@ -479,7 +485,7 @@ class QLogView(QPipelineView):
                 item = self.scene().selectedItems()[0]
                 self.notify_app(self.parentItem, item.execution)
         elif self.execution != self.parentItem.execution:
-                self.notify_app(self.parentItem, self.parentItem.execution)
+            self.notify_app(self.parentItem, self.parentItem.execution)
 
     def set_exec_by_id(self, exec_id):
         if not self.log:

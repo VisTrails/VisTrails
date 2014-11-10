@@ -36,19 +36,19 @@ from __future__ import division
 
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleSuspended
+from vistrails.core.modules.vistrails_module import Module, ModuleError, \
+                                                               ModuleSuspended
 from vistrails.core.system import current_user
-from vistrails.core.interpreter.job import JobMixin, JobMonitor
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.vistrail.job import JobMixin
 
 from remoteq.pipelines.shell import FileCommander as BQMachine
 from remoteq.core.stack import select_machine, end_machine, use_machine, \
-                                                                current_machine
-from remoteq.batch.commandline import PBS, PBSScript
+                                                               current_machine
+from remoteq.batch.commandline import PBS, PBSScript, Subshell
 from remoteq.batch.directories import CreateDirectory
 from remoteq.batch.files import TransferFiles
-from remoteq.pipelines.shell.ssh import SSHTerminal
 
-import hashlib
 
 class Machine(Module):
     _input_ports = [('server', '(edu.utah.sci.vistrails.basic:String)', True),
@@ -131,7 +131,7 @@ class RQModule(JobMixin, Module):
     def get_job_machine(self):
         """ Get machine info from job
         """
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         if jm.hasJob(self.getId({})):
             params = jm.getJob(self.signature).parameters
             if 'server' in params:
@@ -171,6 +171,10 @@ class RQModule(JobMixin, Module):
         return server, port, username, password
 
 class RunCommand(RQModule):
+    """ Runs a command over SSH and waits until it finishes
+
+    """
+
     _input_ports = [('machine', Machine),
                     ('command', '(edu.utah.sci.vistrails.basic:String)',True),
                    ]
@@ -181,8 +185,11 @@ class RunCommand(RQModule):
     
     def compute(self):
         machine = self.get_machine()
-        if self.cache:
-            result = self.cache.parameters['result']
+
+        jm = self.job_monitor()
+        cache = jm.getCache(self.signature)
+        if cache:
+            result = cache.parameters['result']
         else:
             if not self.has_input('command'):
                 raise ModuleError(self, "No command specified")
@@ -192,13 +199,81 @@ class RunCommand(RQModule):
             use_machine(machine)
             m = current_machine()
             result = m.remote.send_command(command)
+            exitcode = m.remote.last_exitcode()
             end_machine()
-            jm = JobMonitor.getInstance()
-            d = {'result':result}
-            self.set_job_machine(d, machine)
-            jm.setCache(self.signature, d, self.getName())
+            if exitcode != 0:
+                raise ModuleError(self,
+                                  "Command failed with exit code %s: %s" %
+                                   (exitcode, result))
+        d = {'result':result}
+        self.set_job_machine(d, machine)
+        jm.setCache(self.signature, d, self.getName())
         self.set_output("output", result)
         self.set_output("machine", machine)
+
+class RunJob(RQModule):
+    """ Run an asynchronous command that can be detached and polled.
+        This is preferable over RunCommand for long-running operations
+    """
+
+    _input_ports = [('machine', Machine),
+                    ('command', '(edu.utah.sci.vistrails.basic:String)', True),
+                    ('working_directory', '(edu.utah.sci.vistrails.basic:String)'),
+                   ]
+
+    _output_ports = [('stdout', '(edu.utah.sci.vistrails.basic:String)'),
+                     ('stderr', '(edu.utah.sci.vistrails.basic:String)'),
+                    ]
+
+    job = None
+    def readInputs(self):
+        d = {}
+        if not self.has_input('command'):
+            raise ModuleError(self, "No command specified")
+        d['command'] = self.get_input('command').strip()
+        d['working_directory'] = self.get_input('working_directory') \
+              if self.has_input('working_directory') else '.'
+        return d
+
+    def startJob(self, params):
+        work_dir = params['working_directory']
+        self.machine = self.get_machine()
+        use_machine(self.machine)
+        self.job = Subshell("remote", params['command'], work_dir)
+        self.job.run()
+        ret = self.job._ret
+        if ret:
+            try:
+                job_id = int(ret.split('\n')[0])
+            except ValueError:
+                end_machine()
+                raise ModuleError(self, "Error submitting job: %s" % ret)
+        self.set_job_machine(params, self.machine)
+        return params
+
+    def getMonitor(self, params):
+        if not self.job:
+            self.startJob(params)
+        return self.job
+
+    def finishJob(self, params):
+        params['stdout'] = self.job.standard_output()
+        params['stderr'] = self.job.standard_error()
+        if self.job.failed():
+            self.job._pushw()
+            code = self.job.terminal.cat("%s.failed" %
+                                         self.job._identifier_filename)
+            self.job._popw()
+            end_machine()
+            raise ModuleError(self,
+                              "Command failed with exit code %s: %s" %
+                               (code.strip(), params['stderr'].strip()))
+        end_machine()
+        return params
+
+    def setResults(self, params):
+        self.set_output('stdout', params['stdout'])
+        self.set_output('stderr', params['stderr'])
 
 class PBSJob(RQModule):
     _input_ports = [('machine', Machine),
@@ -243,13 +318,13 @@ class PBSJob(RQModule):
         job = PBS("remote", command, working_directory, dependencies = [trans],
                   **additional_arguments)
         job.run()
-        try:
-            ret = job._ret
-            if ret:
+        ret = job._ret
+        if ret:
+            try:
                 job_id = int(ret)
-        except ValueError:
-            end_machine()
-            raise ModuleError(self, "Error submitting job: %s" % ret)
+            except ValueError:
+                end_machine()
+                raise ModuleError(self, "Error submitting job: %s" % ret)
         finished = job.finished()
         job_info = job.get_job_info()
         if job_info:
@@ -278,6 +353,10 @@ class PBSJob(RQModule):
                        [f.split(' ')[-1] for f in files.split('\n')[1:]])
 
 class RunPBSScript(RQModule):
+    """ Run a pbs script by submitting it to a PBS scheduler
+
+    """
+
     _input_ports = [('machine', Machine),
                     ('command', '(edu.utah.sci.vistrails.basic:String)', True),
                     ('working_directory', '(edu.utah.sci.vistrails.basic:String)'),
@@ -322,13 +401,13 @@ class RunPBSScript(RQModule):
         self.job = PBSScript("remote", params['command'], work_dir,
                       dependencies = [trans], **params['additional_arguments'])
         self.job.run()
-        try:
-            ret = self.job._ret
-            if ret:
+        ret = self.job._ret
+        if ret:
+            try:
                 job_id = int(ret.split('\n')[0])
-        except ValueError:
-            end_machine()
-            raise ModuleError(self, "Error submitting job: %s" % ret)
+            except ValueError:
+                end_machine()
+                raise ModuleError(self, "Error submitting job: %s" % ret)
         self.set_job_machine(params, self.machine)
         return params
         
@@ -356,6 +435,10 @@ class RunPBSScript(RQModule):
         self.set_output('stderr', params['stderr'])
 
 class SyncDirectories(RQModule):
+    """ Copy all files in a directory to/from a remote server using SFTP
+
+    """
+
     _input_ports = [('machine', Machine),
                     ('local_directory', '(edu.utah.sci.vistrails.basic:String)'),
                     ('remote_directory', '(edu.utah.sci.vistrails.basic:String)'),
@@ -367,7 +450,7 @@ class SyncDirectories(RQModule):
     
     def compute(self):
         machine = self.get_machine()
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         cache = jm.getCache(self.signature)
         if not cache:
             if not self.has_input('local_directory'):
@@ -393,6 +476,10 @@ class SyncDirectories(RQModule):
         self.set_output("machine", machine)
 
 class CopyFile(RQModule):
+    """ Copy a single file to/from a remote server using SFTP
+
+    """
+
     _input_ports = [('machine', Machine),
                     ('local_file', '(edu.utah.sci.vistrails.basic:String)'),
                     ('remote_file', '(edu.utah.sci.vistrails.basic:String)'),
@@ -405,7 +492,7 @@ class CopyFile(RQModule):
     
     def compute(self):
         machine = self.get_machine()
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         cache = jm.getCache(self.signature)
         if cache:
             result = cache.parameters['result']
@@ -430,9 +517,26 @@ class CopyFile(RQModule):
         self.set_output("machine", machine)
         self.set_output("output", result)
 
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    # prepend 'hadoop|' to hadoop modules < 0.3.1
+    reg = get_module_registry()
+
+    hadoop_remaps = ['PythonSourceToFile', 'HDFSPut', 'HDFSGet',
+                     'HDFSEnsureNew', 'URICreator', 'HadoopStreaming']
+
+    module_remap = {}
+    for name in hadoop_remaps:
+        module_remap[name] = [(None, '0.3.0', "hadoop|%s" % name, {})]
+    return UpgradeWorkflowHandler.remap_module(controller,
+                                               module_id,
+                                               pipeline,
+                                               module_remap)
+
+
 def initialize():
     global _modules
-    _modules = [Machine, RQModule, RunPBSScript, RunCommand,
+    _modules = [Machine, RQModule, RunPBSScript, RunCommand, RunJob,
                 SyncDirectories, CopyFile]
     import base
     import hdfs

@@ -319,7 +319,7 @@ class TestTranslate(unittest.TestCase):
         pes = vistrail.db_get_parameter_explorations()
         self.assertEqual(len(pes), 1)
         funs = pes[0].db_functions
-        self.assertEqual(set([f.db_port_name for f in funs]),
+        self.assertEqual(set(f.db_port_name for f in funs),
                          set(['SetCoefficients', 'SetBackgroundWidget']))
         parameters = funs[0].db_parameters
         self.assertEqual(len(parameters), 10)

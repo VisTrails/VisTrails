@@ -74,7 +74,7 @@ def unexpected_exception(e, tb=None, frame=None):
     try:
         from vistrails.core.configuration import get_vistrails_configuration
         debugger = getattr(get_vistrails_configuration(),
-                           'developperDebugger',
+                           'developerDebugger',
                            False)
     except Exception:
         debugger = False
@@ -136,6 +136,19 @@ class EmitWarnings(logging.Handler):
 
 ################################################################################
 
+class LoggerHandler(logging.Handler):
+    """A logging Handler Handler re-logs on a specified Logger.
+    """
+    def __init__(self, logger):
+        logging.Handler.__init__(self)
+        self.logger = logger
+
+    def emit(self, record):
+        if self.logger.isEnabledFor(record.levelno):
+            self.logger.handle(record)
+
+################################################################################
+
 class DebugPrint(object):
     """ Class to be used for debugging information.
 
@@ -155,7 +168,7 @@ class DebugPrint(object):
     so it will only get information of who called the DebugPrint functions.
 
     Example of usage:
-        >>> from core import debug
+        >>> from vistrails.core import debug
         >>> debug.DebugPrint.getInstance().set_message_level(
                     debug.DebugPrint.WARNING)
         # the following messages will be shown
@@ -185,8 +198,9 @@ class DebugPrint(object):
         We will configure log so it outputs to both stderr and a file.
 
         """
-        # Setup root logger
-        self.logger = logging.getLogger('VisLog')
+        # Internal logger, the one we log on
+        self.logger = logging.getLogger('vistrails.logger')
+
         self.logger.setLevel(logging.DEBUG)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
 
@@ -201,14 +215,16 @@ class DebugPrint(object):
         if f:
             self.set_logfile(f)
 
-        #then we define a handler to log to the console
+        # Then we define a handler to log to the console
         self.console = logging.StreamHandler()
         self.console.setFormatter(self.format)
-        self.console.setLevel(logging.WARNING)
-        self.logger.addHandler(self.console)
+        self.console.setLevel(logging.DEBUG)
 
-#    if system.python_version() <= (2,4,0,'',0):
-#        raise VersionTooLow('Python', '2.4.0')
+        # We also propagate to a second logger, that API users might want to
+        # configure
+        self.visible_logger = logging.getLogger('vistrails')
+        self.logger.propagate = False
+        self.logger.addHandler(LoggerHandler(self.visible_logger))
 
     def __init__(self):
         self.make_logger()
@@ -267,13 +283,19 @@ class DebugPrint(object):
             self.logger.addHandler(handler)
 
         except Exception, e:
-            self.critical("Could not set log file %s: %s" % f, e)
+            self.critical("Could not set log file %s:" % f, e)
+
+    def log_to_console(self, enable=True):
+        if enable:
+            logging.getLogger().addHandler(self.console)
+        else:
+            logging.getLogger().removeHandler(self.console)
 
     def set_message_level(self,level):
         """self.set_message_level(level) -> None. Sets the logging
         verboseness.  level must be one of (DebugPrint.CRITICAL,
         DebugPrint.WARNING, DebugPrint.INFO, DebugPrint.DEBUG)."""
-        self.console.setLevel(level)
+        self.visible_logger.setLevel(level)
 
     def register_splash(self, app):
         """ register_splash(self, classname)
@@ -367,6 +389,8 @@ def object_at(desc):
         target_id = desc
     elif isinstance(desc, basestring):
         target_id = int(desc, 16) # Reads desc as the hex address
+    else:
+        raise TypeError
     import gc
     for obj in gc.get_objects():
         if id(obj) == target_id:

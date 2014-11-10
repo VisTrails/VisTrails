@@ -4,6 +4,11 @@ from .gmap_cell import _modules as gmap_modules
 from .vis import _modules as vis_modules
 from .identifiers import identifier
 
+from vistrails.core.modules.utils import create_port_spec_string
+from vistrails.core.vistrail.port import Port
+from vistrails.core.vistrail.port_spec import PortSpec
+from vistrails.core.vistrail.port_spec_item import PortSpecItem
+
 _modules = gmap_modules + vis_modules
 
 def handle_module_upgrade_request(controller, module_id, pipeline):

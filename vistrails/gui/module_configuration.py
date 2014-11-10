@@ -51,8 +51,7 @@ class QConfigurationWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self.setLayout(QtGui.QVBoxLayout())
         self.widget = None
-        #self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        
+
     def setUpWidget(self, widget):
         self.widget = widget
         self.layout().addWidget(self.widget)
@@ -60,14 +59,14 @@ class QConfigurationWidget(QtGui.QWidget):
     def clear(self):
         """ clear() -> None
         Clear and delete widget in the layout
-        
+
         """
-        if self.widget:
+        if self.widget is not None:
             self.widget.setVisible(False)
             self.layout().removeWidget(self.widget)
             self.widget.deleteLater()
-        self.widget = None
-        
+            self.widget = None
+
     def askToSaveChanges(self):
         if self.widget:
             return self.widget.askToSaveChanges()
@@ -121,13 +120,6 @@ class QModuleConfiguration(QtGui.QScrollArea, QVistrailsPaletteInterface):
         self.confWidget.setVisible(False)
         self.confWidget.clear()
         if module and self.controller:
-            # if module.has_annotation_with_key('__desc__'):
-            #     label = module.get_annotation_by_key('__desc__').value.strip()
-            #     title = '%s (%s) Module Configuration'%(label,
-            #                                             module.name)
-            # else:
-            #     title = '%s Module Configuration'%module.name
-            # self.setWindowTitle(title)
             registry = get_module_registry()
             getter = registry.get_configuration_widget
             widgetType = None

@@ -348,6 +348,7 @@ class VistrailEntity(Entity):
                 #             self.add_parameter_exploration_entity(pe)
                 
             # read persisted log entries
+            log = None
             try:
                 log = vistrail.get_persisted_log()
             except Exception, e:

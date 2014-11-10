@@ -36,15 +36,15 @@
 
 from __future__ import division
 
-from vistrails.core.interpreter.job import JobMonitor
-from vistrails.core.modules.basic_modules import File, Boolean, String, \
-                                                 PathObject, Path
-from vistrails.core.modules.config import IPort, OPort
-from vistrails.core.modules.vistrails_module import Module, NotCacheable, \
-                                                                    ModuleError
-from base import HadoopBaseModule
 import os
 import shutil
+
+from vistrails.core.modules.basic_modules import File, Boolean, String, \
+                                                 PathObject, Path
+from vistrails.core.modules.config import IPort, OPort, ModuleSettings
+from vistrails.core.modules.vistrails_module import ModuleError
+from base import HadoopBaseModule
+
 
 ################################################################################
 class HDFSPut(HadoopBaseModule):
@@ -52,6 +52,7 @@ class HDFSPut(HadoopBaseModule):
     Putting a local file to the Hadoop DFS
     First copying it to the server
     """
+    _settings = ModuleSettings(namespace='hadoop')
     _input_ports = [IPort('Local File', File),
                     IPort('Remote Location', String),
                     IPort('Override', Boolean),
@@ -65,7 +66,7 @@ class HDFSPut(HadoopBaseModule):
 
     def compute(self):
         machine = self.get_machine()
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         id = self.signature
         job = jm.getCache(id)
         if not job:
@@ -98,6 +99,7 @@ class HDFSGet(HadoopBaseModule):
     Then getting it from the server
     
     """
+    _settings = ModuleSettings(namespace='hadoop')
     _input_ports = [IPort('Local File', Path),
                     IPort('Remote Location', String),
                     IPort('Override', Boolean),
@@ -112,7 +114,7 @@ class HDFSGet(HadoopBaseModule):
 
     def compute(self):
         machine = self.get_machine()
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         id = self.signature
         job = jm.getCache(id)
         if not job:
@@ -154,6 +156,7 @@ class HDFSEnsureNew(HadoopBaseModule):
     Make sure the file is removed
     
     """
+    _settings = ModuleSettings(namespace='hadoop')
     _input_ports = [IPort('Name', String),
                     IPort('Machine', '(org.vistrails.vistrails.remoteq:Machine)')]
 
@@ -165,7 +168,7 @@ class HDFSEnsureNew(HadoopBaseModule):
 
     def compute(self):
         machine = self.get_machine()
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         id = self.signature
         job = jm.getCache(id)
         if not job:

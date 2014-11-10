@@ -49,7 +49,7 @@ import vistrails.core.db.locator
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.interpreter.job import JobMonitor
+from vistrails.core.vistrail.job import JobMonitor
 from vistrails.core.layout.workflow_layout import WorkflowLayout, \
     Pipeline as LayoutPipeline, Defaults as LayoutDefaults
 from vistrails.core.log.controller import LogController, DummyLogController
@@ -64,9 +64,8 @@ from vistrails.core.modules.module_registry import ModuleRegistryException, \
     MissingPackage, PortsIncompatible
 from vistrails.core.modules.package import Package
 from vistrails.core.modules.sub_module import new_abstraction, read_vistrail, \
-    get_all_abs_namespaces, get_cur_abs_namespace, get_cur_abs_annotation_key, \
-    get_next_abs_annotation_key, save_abstraction, parse_abstraction_name
-from vistrails.core.packagemanager import PackageManager, get_package_manager
+    get_all_abs_namespaces, get_cur_abs_namespace, get_next_abs_annotation_key, save_abstraction, parse_abstraction_name
+from vistrails.core.packagemanager import get_package_manager
 import vistrails.core.packagerepository
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
@@ -80,7 +79,7 @@ from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.location import Location
-from vistrails.core.vistrail.module import Module, ModuleFunction, ModuleParam
+from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
@@ -96,6 +95,7 @@ from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
 from vistrails.db.services.vistrail import getSharedRoot
 from vistrails.core.utils import any
+
 
 def vt_action(description_or_f=None):
     def get_f(f, description=None):
@@ -189,7 +189,7 @@ class VistrailController(object):
         # theme used to estimate module size for layout
         self.layoutTheme = DefaultCoreTheme()
         
-        self.set_vistrail(vistrail, locator, 
+        self.set_vistrail(vistrail, locator,
                           abstractions=abstractions, 
                           thumbnails=thumbnails,
                           mashups=mashups,
@@ -231,6 +231,7 @@ class VistrailController(object):
         self.id_scope = id_scope
         self.current_session = -1
         self.log = Log()
+        self.jobMonitor = JobMonitor()
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
             self.current_session = self.vistrail.idScope.getNewId("session")
@@ -243,6 +244,9 @@ class VistrailController(object):
                 ThumbnailCache.getInstance().add_entries_from_files(thumbnails)
             if mashups is not None:
                 self._mashups = mashups
+            job_annotation = vistrail.get_annotation('__jobs__')
+            self.jobMonitor = JobMonitor(job_annotation and job_annotation.value)
+
         self.current_version = -1
         self.current_pipeline = Pipeline()
         if self.locator != locator and self.locator is not None:
@@ -256,7 +260,7 @@ class VistrailController(object):
             self.set_changed(True)
         if self.vistrail is not None:
             self.recompute_terse_graph()
-        
+
     def close_vistrail(self, locator):
         if not self.vistrail.is_abstraction:
             self.unload_abstractions()
@@ -1421,31 +1425,6 @@ class VistrailController(object):
         result = self.perform_action(action)
         return abstraction
 
-    def create_abstractions_from_groups(self, group_ids):
-        for group_id in group_ids:
-            self.create_abstraction_from_group(group_id)
-
-    def create_abstraction_from_group(self, group_id, name=""):
-        self.flush_delayed_actions()
-        name = self.get_abstraction_name(name)
-        
-        (abstraction, connections) = \
-            self.build_abstraction_from_group(self.current_pipeline, 
-                                              group_id, name)
-
-        op_list = []
-        getter = self.get_connections_to_and_from
-        op_list.extend(('delete', c)
-                       for c in getter(self.current_pipeline, [group_id]))
-        op_list.append(('delete', self.current_pipeline.modules[group_id]))
-        op_list.append(('add', abstraction))
-        op_list.extend(('add', c) for c in connections)
-        action = vistrails.core.db.action.create_action(op_list)
-        self.add_new_action(action)
-        result = self.perform_action(action)
-        return abstraction
-
-
     def ungroup_set(self, module_ids):
         self.flush_delayed_actions()
         for m_id in module_ids:
@@ -1581,10 +1560,11 @@ class VistrailController(object):
                     names = in_names
                     cur_names = in_cur_names
                     process_list = in_process_list
-                elif m.name == 'OutputPort':
+                else:  # m.name == 'OutputPort'
                     neighbors = self.get_upstream_neighbors(pipeline, m)
                     names = out_names
                     cur_names = out_cur_names
+                    process_list = out_process_list
                     
                 if len(neighbors) < 1:
                     # print "not adding, no neighbors"
@@ -1682,7 +1662,7 @@ class VistrailController(object):
                 if m.name == 'InputPort':
                     neighbors = self.get_downstream_neighbors(full_pipeline, m)
                     names = in_names
-                elif m.name == 'OutputPort':
+                else:  # m.name == 'OutputPort'
                     neighbors = self.get_upstream_neighbors(full_pipeline, m)
                     names = out_names
                 if len(neighbors) < 1:
@@ -2399,7 +2379,6 @@ class VistrailController(object):
                                     new_desc.namespace, new_desc.package_version,
                                     str(new_desc.version))
             return self.check_abstraction(descriptor_tuple, lookup)
-        return None
         
     def ensure_abstractions_loaded(self, vistrail, abs_fnames):
         lookup = {}
@@ -3677,6 +3656,12 @@ class VistrailController(object):
         export=True means you should not update the current controller"""
         result = False 
         if self.vistrail and (self.changed or self.locator != locator):
+            # Save jobs as annotation
+            if self.jobMonitor.workflows:
+                self.vistrail.set_annotation('__jobs__',
+                                             self.jobMonitor.serialize())
+            else:
+                self.vistrail.set_annotation('__jobs__', '')
             # FIXME create this on-demand?
             abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
             is_abstraction = self.vistrail.is_abstraction
@@ -3745,8 +3730,6 @@ class VistrailController(object):
                     # Load all abstractions from new namespaces
                     self.ensure_abstractions_loaded(new_vistrail, 
                                                     save_bundle.abstractions) 
-                    JobMonitor.getInstance().updateUrl(locator.to_url(),
-                                                       old_locator.to_url())
                     self.set_file_name(locator.name)
                     if old_locator and not export:
                         old_locator.clean_temporaries()

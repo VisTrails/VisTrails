@@ -41,12 +41,10 @@ from __future__ import division
 
 from PyQt4 import QtCore, QtGui
 
-from vistrails.core.configuration import ConfigPath
+from vistrails.core.configuration import ConfigPath, ConfigField
 from vistrails.core.modules.basic_modules import Dictionary
-from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
-    QFileChooserToolButton, QDirectoryChooserToolButton
+from vistrails.gui.common_widgets import QDirectoryChooserToolButton
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
-from vistrails.gui.utils import YES_BUTTON, NO_BUTTON, show_question, show_warning
 
 class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
     def __init__(self, module, controller, parent=None):
@@ -101,6 +99,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         # do we want to add a manual config mode for modes that have
         # neither been set before nor are registered?
         # DK: not now...
+        layout.addStretch(5)
         scroll_area = QtGui.QScrollArea()
         inner_widget =  QtGui.QWidget()
         inner_widget.setLayout(layout)
@@ -235,7 +234,6 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         self.field_widgets[config_key] = widget
 
     def reset_field(self, widget, field, mode_config, mode_type):
-        config_key = (mode_type, field.name)
         if mode_config is not None and field.name in mode_config:
             config_val = mode_config[field.name]
         else:
@@ -256,7 +254,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
                 widget_type = "lineedit"
 
         if widget_type == "combo":
-            self.set_combo_value(widget, val)
+            self.set_combo_value(widget, val, field)
         elif widget_type == "lineedit":
             self.set_line_edit_value(widget, val)
         elif widget_type == "pathedit":
@@ -375,8 +373,8 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
                 entries = values
             for entry in entries:
                 combo.addItem(entry)
-        self.set_combo_value(combo, config_val)
-        laout.addWidget(combo, row, 1)
+        self.set_combo_value(combo, config_val, field)
+        layout.addWidget(combo, row, 1)
 
         def call_field_changed(val):
             if inv_remap is not None:
@@ -385,7 +383,11 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         combo.currentIndexChanged[unicode].connect(call_field_changed)
         return combo
 
-    def set_combo_value(self, combo, config_val):
+    def set_combo_value(self, combo, config_val, field):
+        options = {}
+        if field.widget_options is not None:
+            options = field.widget_options
+
         if "allowed_values" in options:
             if "remap" in options:
                 remap = options["remap"]

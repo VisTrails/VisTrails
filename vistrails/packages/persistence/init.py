@@ -600,11 +600,12 @@ def initialize():
             check_paths = literal_eval(configuration.search_dbs)
         except Exception:
             print "*** persistence error: cannot parse search_dbs ***"
-        for path in check_paths:
-            if os.path.exists(path):
-                search_dbs.append(path)
-            else:
-                print '*** persistence warning: cannot find path "%s"' % path
+        else:
+            for path in check_paths:
+                if os.path.exists(path):
+                    search_dbs.append(path)
+                else:
+                    print '*** persistence warning: cannot find path "%s"' % path
 
 _configuration_widget = None
 

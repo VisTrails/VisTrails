@@ -48,7 +48,7 @@ from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 import vistrails.core.db.action
 from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.interpreter.job import Workflow as JobWorkflow
+from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
 from vistrails.core.log.opm_graph import OpmGraph
 from vistrails.core.log.prov_document import ProvDocument
@@ -67,6 +67,7 @@ from vistrails.gui.theme import CurrentTheme
 import vistrails.gui.utils
 from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from vistrails.gui.version_prop import QVersionProp
+
 
 
 ################################################################################
@@ -149,6 +150,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_version_view = True
         self.quiet = False
         self.progress = None
+        self.create_job = False
         
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
@@ -379,6 +381,24 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         self.flush_delayed_actions()
+
+        if self.create_job:
+            version_id = self.current_version
+            # check if a job exist for this workflow
+            current_workflow = None
+            for wf in self.jobMonitor.workflows.itervalues():
+                try:
+                    wf_version = int(wf.version)
+                except ValueError:
+                    wf_version = self.vistrail.get_version_number(wf.version)
+                if version_id == wf_version:
+                    current_workflow = wf
+                    self.jobMonitor.startWorkflow(wf)
+            if not current_workflow:
+                current_workflow = JobWorkflow(version_id)
+                self.jobMonitor.startWorkflow(current_workflow)
+            self.create_job = False
+
         if self.current_pipeline:
             locator = self.get_locator()
             if locator:
@@ -405,6 +425,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Execute the current workflow (if exists) and monitors it if it contains jobs
         
         """
+
         # reset job view
         from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()
@@ -414,25 +435,12 @@ class VistrailController(QtCore.QObject, BaseController):
             return
         jobView.updating_now = True
 
-        if not jobView.jobMonitor.currentWorkflow():
-            version_id = self.current_version
-            url = self.locator.to_url()
-            # check if a job for this workflow exists
-            current_workflow = None
-            for job in jobView.jobMonitor._running_workflows.itervalues():
-                try:
-                    job_version = int(job.version)
-                except ValueError:
-                    job_version = self.vistrail.get_version_number(job.version)
-                if version_id == job_version and url == job.vistrail:
-                    current_workflow = job
-                    jobView.jobMonitor.startWorkflow(job)
-            if not current_workflow:
-                current_workflow = JobWorkflow(url, version_id)
-                jobView.jobMonitor.startWorkflow(current_workflow)
         try:
             self.progress = ExecutionProgressDialog(self.vistrail_view)
             self.progress.show()
+
+            if not self.jobMonitor.currentWorkflow():
+                self.create_job = True
 
             result =  self.execute_current_workflow(reason=reason, sinks=sinks)
 
@@ -441,7 +449,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.progress.hide()
             self.progress.deleteLater()
             self.progress = None
-            jobView.jobMonitor.finishWorkflow()
+            self.create_job = False
+            self.jobMonitor.finishWorkflow()
             jobView.updating_now = False
 
         return result
@@ -874,14 +883,10 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         full = self.vistrail.getVersionGraph()
-        changed = False
         p = full.parent(v2)
         while p>v1:
             self.vistrail.expandVersion(p)
-            changed = True
             p = full.parent(p)
-        if changed:
-            self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True)
 
@@ -896,8 +901,6 @@ class VistrailController(QtCore.QObject, BaseController):
         am = self.vistrail.actionMap
         tm = self.vistrail.get_tagMap()
 
-        changed = False
-
         while 1:
             try:
                 current=x.pop()
@@ -907,17 +910,14 @@ class VistrailController(QtCore.QObject, BaseController):
             children = [to for (to, _) in full.adjacency_list[current]
                         if (to in am) and not self.vistrail.is_pruned(to)]
             if len(children) > 1:
-                break;
+                break
             self.vistrail.collapseVersion(current)
-            changed = True
 
             for child in children:
                 if (not child in tm and  # has no Tag
                     child != self.current_version): # not selected
                     x.append(child)
 
-        if changed:
-            self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True) 
 
@@ -934,8 +934,6 @@ class VistrailController(QtCore.QObject, BaseController):
         
         am = self.vistrail.actionMap
 
-        changed = False
-
         while 1:
             try:
                 current=x.pop()
@@ -948,13 +946,9 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.vistrail.expandVersion(current)
             else:
                 self.vistrail.collapseVersion(current)
-            changed = True
 
             for child in children:
                 x.append(child)
-
-        if changed:
-            self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True) 
 
@@ -972,19 +966,8 @@ class VistrailController(QtCore.QObject, BaseController):
         am = self.vistrail.actionMap
         for a in am.iterkeys():
             self.vistrail.collapseVersion(a)
-        self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True)
-
-    def set_num_versions_always_shown(self, num):
-        """ set_num_versions_always_shown(num: int) -> None
-
-        """
-        if num <> self.num_versions_always_shown:
-            self.num_versions_always_shown = num
-            self.set_changed(True)
-            self.recompute_terse_graph()
-            self.invalidate_version_tree(False)
 
     def setSavedQueries(self, queries):
         """ setSavedQueries(queries: list of (str, str, str)) -> None
@@ -1202,7 +1185,31 @@ class VistrailController(QtCore.QObject, BaseController):
         setattr(get_vistrails_configuration(), 'fileDir', dir_name)
         vistrails.core.system.set_vistrails_file_directory(dir_name)
         return dir_name
-    
+
+    def create_abstractions_from_groups(self, group_ids):
+        for group_id in group_ids:
+            self.create_abstraction_from_group(group_id)
+
+    def create_abstraction_from_group(self, group_id, name=""):
+        self.flush_delayed_actions()
+        name = self.get_abstraction_name(name)
+
+        (abstraction, connections) = \
+            self.build_abstraction_from_group(self.current_pipeline,
+                                              group_id, name)
+
+        op_list = []
+        getter = self.get_connections_to_and_from
+        op_list.extend(('delete', c)
+                       for c in getter(self.current_pipeline, [group_id]))
+        op_list.append(('delete', self.current_pipeline.modules[group_id]))
+        op_list.append(('add', abstraction))
+        op_list.extend(('add', c) for c in connections)
+        action = vistrails.core.db.action.create_action(op_list)
+        self.add_new_action(action)
+        result = self.perform_action(action)
+        return abstraction
+
     def export_abstractions(self, abstraction_ids):
         save_dir = self.do_save_dir_prompt()
         if not save_dir:
@@ -1281,7 +1288,8 @@ class VistrailController(QtCore.QObject, BaseController):
             if abstraction.is_abstraction() and \
                     abstraction.package == abstraction_pkg:
                 abstractions.append(abstraction)
-                [abstractions.extend(v) for v in self.find_abstractions(abstraction.vistrail).itervalues()]
+                for v in self.find_abstractions(abstraction.vistrail).itervalues():
+                    abstractions.extend(v)
         pkg_subworkflows = []
         pkg_dependencies = set()
         for abstraction in abstractions:

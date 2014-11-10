@@ -53,8 +53,8 @@ class VisualQuery(query.Query):
                                 target_ids, template_ids):
         resultIds = set()
         while 1:
-            templateNames = set([(i, template.modules[i].name)
-                                 for i in template_ids])
+            templateNames = set((i, template.modules[i].name)
+                                for i in template_ids)
             targetNames = {}
             for i in target_ids:
                 append_to_dict_of_lists(targetNames, target.modules[i].name, i)
