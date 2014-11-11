@@ -34,9 +34,6 @@
 ;###############################################################################
 
 #define root "..\..\.."
-#define python "Python27"
-#define bits "x86"
-#define nbits "32"
 
 [Setup]
 AppName=VisTrails

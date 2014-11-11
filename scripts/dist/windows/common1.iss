@@ -9,6 +9,19 @@ RestartIfNeededByRun=false
 ChangesAssociations=true
 LicenseFile={#root}\LICENSE
 
+; Set 32/64 bit differences
+#ifdef bit64
+  #define python "Python27"
+  #define bits "x86"
+  #define nbits "32"
+  #define sys "system32"
+#else
+  #define python "Python27_64"
+  #define bits "x64"
+  #define nbits "64"
+  #define sys "SysWOW64"
+#endif
+
 #if Exec("C:\" + python + "\python.exe", root + "\scripts\get_usersguide.py Input", ".")
   #error Failed to get usersguide
 #endif
@@ -48,8 +61,8 @@ Source: C:\Users\vistrails\vcredist_{#bits}.exe; DestDir: {tmp}; Flags: deleteaf
 Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
 Source: Input\qt.conf; DestDir: {app}\{#python}
 
-Source: Input\{#bits}\python27.dll; DestDir: {app}
-Source: Input\{#bits}\python27.dll; DestDir: {app}\{#python}
+Source: C:\Windows\{#sys}\python27.dll; DestDir: {app}
+Source: C:\Windows\{#sys}\python27.dll; DestDir: {app}\{#python}
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.dll; DestDir: {app}
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.pyd; DestDir: {app}
 
