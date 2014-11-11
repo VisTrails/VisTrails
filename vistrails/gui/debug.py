@@ -55,17 +55,6 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
            import gui.debug
            gui.debug.watch_signal(my_signal)
      """
-    #Singleton technique
-    # _instance = None
-    # class DebugViewSingleton():
-    #     def __call__(self, *args, **kw):
-    #         if DebugView._instance is None:
-    #             obj = DebugView(*args, **kw)
-    #             DebugView._instance = obj
-    #         return DebugView._instance
-        
-    # getInstance = DebugViewSingleton()
-
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         ui = logging.StreamHandler(debugStream(self.write))
@@ -298,7 +287,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         item.setForeground(CurrentTheme.DEBUG_COLORS[msgs[0]])
         self.list.setItemHidden(item, not self.levels[msgs[0]].isChecked())
         alwaysShowDebugPopup = getattr(get_vistrails_configuration(),
-                                       'alwaysShowDebugPopup',
+                                       'showDebugPopups',
                                        False)
         if msgs[0] == 'CRITICAL':
             if self.isVisible() and not alwaysShowDebugPopup:

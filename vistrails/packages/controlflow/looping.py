@@ -1,11 +1,20 @@
+from base64 import b16encode, b16decode
 import copy
 from itertools import izip
 import time
 
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
-    ModuleSuspended, ModuleError, ModuleConnector
+    ModuleError, ModuleConnector, ModuleSuspended, ModuleWasSuspended
+from vistrails.core.utils import xor, long2bytes
 
 from fold import create_constant
+
+try:
+    import hashlib
+    sha1_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha1_hash = sha.new
 
 
 class While(Module):
@@ -14,39 +23,56 @@ class While(Module):
     is false. Then, it returns the result.
     """
 
-    def __init__(self):
-        Module.__init__(self)
-        self.is_looping_module = True
-
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update_upstream(self):
+        """A modified version of the update_upstream method."""
 
         # everything is the same except that we don't update the module on
         # FunctionPort
+        suspended = []
+        was_suspended = None
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    try:
+                        connector.obj.update_upstream()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
             else:
                 for connector in connector_list:
-                    connector.obj.update()
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+                    try:
+                        connector.obj.update()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
+        elif was_suspended is not None:
+            raise was_suspended
+        for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
-                            InvalidOutput:
-                        self.removeInputConnector(port_name, connector)
+                            InvalidOutput: # pragma: no cover
+                        self.remove_input_connector(port_name, connector)
 
     def compute(self):
-        name_output = self.getInputFromPort('OutputPort')
-        name_condition = self.forceGetInputFromPort('ConditionPort')
-        name_state_input = self.forceGetInputFromPort('StateInputPorts')
-        name_state_output = self.forceGetInputFromPort('StateOutputPorts')
-        max_iterations = self.getInputFromPort('MaxIterations')
-        delay = self.forceGetInputFromPort('Delay')
+        name_output = self.get_input('OutputPort')
+        name_condition = self.force_get_input('ConditionPort')
+        name_state_input = self.force_get_input('StateInputPorts')
+        name_state_output = self.force_get_input('StateOutputPorts')
+        max_iterations = self.get_input('MaxIterations')
+        delay = self.force_get_input('Delay')
 
         if (name_condition is None and
-                not self.hasInputFromPort('MaxIterations')):
+                not self.has_input('MaxIterations')):
             raise ModuleError(self,
                               "Please set MaxIterations or use ConditionPort")
 
@@ -71,30 +97,35 @@ class While(Module):
 
         state = None
 
+        loop = self.logging.begin_loop_execution(self, max_iterations)
         for i in xrange(max_iterations):
             if not self.upToDate:
                 module.upToDate = False
                 module.computed = False
 
-                # For logging
-                module.is_looping = True
-                module.first_iteration = i == 0
-                module.last_iteration = False
-                module.loop_iteration = i
-
                 # Set state on input ports
                 if i > 0 and name_state_input:
-                    for value, port in izip(state, name_state_input):
-                        if port in module.inputPorts:
-                            del module.inputPorts[port]
+                    for value, input_port, output_port \
+                    in izip(state, name_state_input, name_state_output):
+                        if input_port in module.inputPorts:
+                            del module.inputPorts[input_port]
                         new_connector = ModuleConnector(
-                                create_constant(value),
-                                'value')
-                        module.set_input_port(port, new_connector)
+                                           create_constant(value), 'value',
+                                           module.output_specs.get(output_port, None))
+                        module.set_input_port(input_port, new_connector)
+                        # Affix a fake signature on the module
+                        inputPort_hash = sha1_hash()
+                        inputPort_hash.update(input_port)
+                        module.signature = b16encode(xor(
+                                b16decode(self.signature.upper()),
+                                inputPort_hash.digest()))
 
-            module.update()
-            if hasattr(module, 'suspended') and module.suspended:
-                raise ModuleSuspended(module._module_suspended)
+            loop.begin_iteration(module, i)
+
+            module.update() # might raise ModuleError, ModuleSuspended,
+                            # ModuleHadError, ModuleWasSuspended
+
+            loop.end_iteration(module)
 
             if name_condition is not None:
                 if name_condition not in module.outputPorts:
@@ -111,46 +142,66 @@ class While(Module):
             if name_state_output:
                 state = [module.get_output(port) for port in name_state_output]
 
+            self.logging.update_progress(self, i * 1.0 / max_iterations)
+
+        loop.end_loop_execution()
+
         if name_output not in module.outputPorts:
             raise ModuleError(module,
                               "Invalid output port: %s" % name_output)
         result = module.get_output(name_output)
-        self.setResult('Result', result)
-
+        self.set_output('Result', result)
 
 class For(Module):
     """
     The For Module runs a module with input from a range.
     """
 
-    def __init__(self):
-        Module.__init__(self)
-        self.is_looping_module = True
-
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update_upstream(self):
+        """A modified version of the update_upstream method."""
 
         # everything is the same except that we don't update the module on
         # FunctionPort
+        suspended = []
+        was_suspended = None
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    try:
+                        connector.obj.update_upstream()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
             else:
                 for connector in connector_list:
-                    connector.obj.update()
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+                    try:
+                        connector.obj.update()
+                    except ModuleWasSuspended, e:
+                        was_suspended = e
+                    except ModuleSuspended, e:
+                        suspended.append(e)
+        if len(suspended) == 1:
+            raise suspended[0]
+        elif suspended:
+            raise ModuleSuspended(
+                    self,
+                    "multiple suspended upstream modules",
+                    children=suspended)
+        elif was_suspended is not None:
+            raise was_suspended
+        for port_name, connectorList in list(self.inputPorts.items()):
             if port_name != 'FunctionPort':
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
-                            InvalidOutput:
+                            InvalidOutput: # pragma: no cover
                         self.removeInputConnector(port_name, connector)
 
     def compute(self):
-        name_output = self.getInputFromPort('OutputPort') # or 'self'
-        name_input = self.forceGetInputFromPort('InputPort') # or None
-        lower_bound = self.getInputFromPort('LowerBound') # or 0
-        higher_bound = self.getInputFromPort('HigherBound') # required
+        name_output = self.get_input('OutputPort') # or 'self'
+        name_input = self.force_get_input('InputPort') # or None
+        lower_bound = self.get_input('LowerBound') # or 0
+        higher_bound = self.get_input('HigherBound') # required
 
         connectors = self.inputPorts.get('FunctionPort')
         if len(connectors) != 1:
@@ -159,6 +210,8 @@ class For(Module):
 
         outputs = []
         suspended = []
+        loop = self.logging.begin_loop_execution(self,
+                                                 higher_bound - lower_bound)
         for i in xrange(lower_bound, higher_bound):
             module = copy.copy(connectors[0].obj)
 
@@ -166,26 +219,31 @@ class For(Module):
                 module.upToDate = False
                 module.computed = False
 
-                # For logging
-                module.is_looping = True
-                module.first_iteration = i == lower_bound
-                module.last_iteration = i+1 == higher_bound
-                module.loop_iteration = i - lower_bound
-
                 # Pass iteration number on input port
                 if name_input is not None:
                     if name_input in module.inputPorts:
                         del module.inputPorts[name_input]
-                    new_connector = ModuleConnector(
-                            create_constant(i),
-                            'value')
+                    new_connector = ModuleConnector(create_constant(i),
+                                                    'value')
                     module.set_input_port(name_input, new_connector)
+                    # Affix a fake signature on the module
+                    inputPort_hash = sha1_hash()
+                    inputPort_hash.update(name_input)
+                    module.signature = b16encode(xor(
+                            b16decode(self.signature.upper()),
+                            long2bytes(i, 20),
+                            inputPort_hash.digest()))
 
-            module.update()
+            loop.begin_iteration(module, i)
 
-            if hasattr(module, 'suspended') and module.suspended:
-                suspended.append(module._module_suspended)
+            try:
+                module.update()
+            except ModuleSuspended, e:
+                suspended.append(e)
+                loop.end_iteration(module)
                 continue
+
+            loop.end_iteration(module)
 
             if name_output not in module.outputPorts:
                 raise ModuleError(module,
@@ -193,12 +251,14 @@ class For(Module):
             outputs.append(module.get_output(name_output))
 
         if suspended:
-            self.suspended = "%d module(s) suspended: %s" % (
-                    len(suspended), suspended[0].msg)
-            self._module_suspended = suspended
-        else:
-            self.setResult('Result', outputs)
+            raise ModuleSuspended(
+                    self,
+                    "function module suspended in %d/%d iterations" % (
+                            len(suspended), higher_bound - lower_bound),
+                        children=suspended)
+        loop.end_loop_execution()
 
+        self.set_output('Result', outputs)
 
 ###############################################################################
 

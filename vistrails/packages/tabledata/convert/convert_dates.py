@@ -6,6 +6,10 @@ import warnings
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.bundles import py_import
+from vistrails.core.utils import VistrailsWarning
+
+
+PYTZ_MIN_VER = LooseVersion('2012')
 
 
 class UTC(datetime.tzinfo):
@@ -99,17 +103,17 @@ def make_timezone(s):
                 'linux-debian': 'python-tz',
                 'linux-ubuntu': 'python-tz',
                 'linux-fedora': 'pytz'})
-    except ImportError:
+    except ImportError: # pragma: no cover
         raise ValueError("can't understand timezone %r (maybe you should "
                          "install pytz?)" % s)
     else:
         ver = LooseVersion(pytz.__version__)
-        if ver < LooseVersion('2012'):
+        if ver < PYTZ_MIN_VER: # pragma: no cover
             warnings.warn(
                     "You are using an old version of pytz (%s). You might "
                     "run into some issues with daylight saving handling." %
                     pytz.__version__,
-                    category=UserWarning)
+                    category=VistrailsWarning)
         try:
             return pytz.timezone(s)
         except KeyError:
@@ -136,10 +140,10 @@ class TimestampsToDates(Module):
         return [datetime.datetime.fromtimestamp(t, utc) for t in timestamps]
 
     def compute(self):
-        timestamps = self.getInputFromPort('timestamps')
+        timestamps = self.get_input('timestamps')
 
         result = self.convert(timestamps)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class StringsToDates(Module):
@@ -185,7 +189,7 @@ class StringsToDates(Module):
                     'linux-debian': 'python-dateutil',
                     'linux-ubuntu': 'python-dateutil',
                     'linux-fedora': 'python-dateutil'})
-            except ImportError:
+            except ImportError: # pragma: no cover
                 raise ValueError("can't read dates without a format without "
                                  "the dateutil package")
             from dateutil import parser
@@ -223,16 +227,16 @@ class StringsToDates(Module):
         return result
 
     def compute(self):
-        tz = self.getInputFromPort('timezone')
+        tz = self.get_input('timezone')
 
-        strings = self.getInputFromPort('strings')
-        fmt = self.getInputFromPort('format')
+        strings = self.get_input('strings')
+        fmt = self.get_input('format')
 
         try:
             result = self.convert(strings, fmt, tz)
         except ValueError, e:
             raise ModuleError(self, e.message)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class DatesToMatplotlib(Module):
@@ -254,12 +258,12 @@ class DatesToMatplotlib(Module):
                     'linux-debian': 'python-matplotlib',
                     'linux-ubuntu': 'python-matplotlib',
                     'linux-fedora': 'python-matplotlib'})
-        except ImportError:
+        except ImportError: # pragma: no cover
             raise ModuleError(self, "matplotlib is not available")
 
-        datetimes = self.getInputFromPort('datetimes')
+        datetimes = self.get_input('datetimes')
         result = self.convert(datetimes)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class TimestampsToMatplotlib(Module):
@@ -284,12 +288,12 @@ class TimestampsToMatplotlib(Module):
                     'linux-debian': 'python-matplotlib',
                     'linux-ubuntu': 'python-matplotlib',
                     'linux-fedora': 'python-matplotlib'})
-        except ImportError:
+        except ImportError: # pragma: no cover
             raise ModuleError(self, "matplotlib is not available")
 
-        timestamps = self.getInputFromPort('timestamps')
+        timestamps = self.get_input('timestamps')
         result = self.convert(timestamps)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 class StringsToMatplotlib(Module):
@@ -318,19 +322,19 @@ class StringsToMatplotlib(Module):
                     'linux-debian': 'python-matplotlib',
                     'linux-ubuntu': 'python-matplotlib',
                     'linux-fedora': 'python-matplotlib'})
-        except ImportError:
+        except ImportError: # pragma: no cover
             raise ModuleError(self, "matplotlib is not available")
 
-        tz = self.getInputFromPort('timezone')
+        tz = self.get_input('timezone')
 
-        strings = self.getInputFromPort('strings')
-        fmt = self.getInputFromPort('format')
+        strings = self.get_input('strings')
+        fmt = self.get_input('format')
 
         try:
             result = self.convert(strings, fmt, tz)
         except ValueError, e:
             raise ModuleError(self, e.message)
-        self.setResult('dates', result)
+        self.set_output('dates', result)
 
 
 _modules = {'dates': [
@@ -367,7 +371,7 @@ class TestTimestampToDates(unittest.TestCase):
                  '2013-01-02 19:05:00 UTC +0000'])
         try:
             import pytz
-        except ImportError:
+        except ImportError: # pragma: no cover
             pass
         else:
             self.assertEqual(
@@ -408,7 +412,7 @@ class TestStringsToDates(unittest.TestCase):
         """
         try:
             import dateutil
-        except ImportError:
+        except ImportError: # pragma: no cover
             self.skipTest("dateutil is not available")
 
         dates = ['2013-05-20 9:25',
@@ -457,9 +461,9 @@ class TestStringsToDates(unittest.TestCase):
         """
         try:
             import pytz
-        except ImportError:
+        except ImportError: # pragma: no cover
             self.skipTest("pytz is not available")
-        if LooseVersion(pytz.__version__) < LooseVersion('2012'):
+        if LooseVersion(pytz.__version__) < PYTZ_MIN_VER: # pragma: no cover
             self.skipTest("pytz version is known to cause issues (%s)" %
                           pytz.__version__)
 
@@ -492,7 +496,7 @@ class TestDatesToMatplotlib(unittest.TestCase):
         """
         try:
             import matplotlib
-        except ImportError:
+        except ImportError: # pragma: no cover
             self.skipTest("matplotlib is not available")
 
         from matplotlib.dates import date2num
@@ -535,7 +539,7 @@ class TestTimestampsToMatplotlib(unittest.TestCase):
         """
         try:
             import matplotlib
-        except ImportError:
+        except ImportError: # pragma: no cover
             self.skipTest("matplotlib is not available")
 
         from matplotlib.dates import date2num
@@ -559,7 +563,7 @@ class TestStringsToMatplotlib(unittest.TestCase):
         """
         try:
             import matplotlib
-        except ImportError:
+        except ImportError: # pragma: no cover
             self.skipTest("matplotlib is not available")
 
         from matplotlib.dates import date2num

@@ -63,33 +63,33 @@ addToPipeline([renderer])
 #this is missing when running from script??
 # cell = newModule(vtkpkg, 'VTKCell')
 # cell = newModule(vtkpkg, 'vtkCell')
-# renderer_cell = newConnection(renderer, 'self',
+# renderer_cell = newConnection(renderer, 'Instance',
 #                               cell, 'AddRenderer')
 # layoutAndAdd(cell, renderer_cell)
 
 qcActor = newModule(vtkpkg, 'vtkActor')
-qcActor_renderer = newConnection(qcActor, 'self',
+qcActor_renderer = newConnection(qcActor, 'Instance',
                                  renderer, 'AddActor')
 layoutAndAdd(qcActor, qcActor_renderer)
 
 oActor = newModule(vtkpkg, 'vtkActor')
-oActor_renderer = newConnection(oActor, 'self',
+oActor_renderer = newConnection(oActor, 'Instance',
                                 renderer, 'AddActor')
 layoutAndAdd(oActor, oActor_renderer)
 
 qcMapper = newModule(vtkpkg, 'vtkPolyDataMapper')
-qcMapper_actor = newConnection(qcMapper, 'self',
+qcMapper_actor = newConnection(qcMapper, 'Instance',
                                qcActor, 'SetMapper')
 layoutAndAdd(qcMapper, qcMapper_actor)
 
 oProp = newModule(vtkpkg, 'vtkProperty')
 setPortValue(oProp, 'SetColor', (0,0,0))
-oProp_actor = newConnection(oProp, 'self',
+oProp_actor = newConnection(oProp, 'Instance',
                             oActor, 'SetProperty')
 layoutAndAdd(oProp, oProp_actor)
 
 oMapper = newModule(vtkpkg, 'vtkPolyDataMapper')
-oMapper_actor = newConnection(oMapper, 'self',
+oMapper_actor = newConnection(oMapper, 'Instance',
                               oActor, 'SetMapper')
 layoutAndAdd(oMapper, oMapper_actor)
 
@@ -114,7 +114,7 @@ layoutAndAdd(outline, [outline_mapper, sample_outline])
 
 quad = newModule(vtkpkg, 'vtkQuadric')
 setPortValue(quad, 'SetCoefficients', (0.5,1,0.2,0,0.1,0,0,0.2,0,0))
-quad_sample = newConnection(quad, 'self',
+quad_sample = newConnection(quad, 'Instance',
                             sample, 'SetImplicitFunction')
 layoutAndAdd(quad, quad_sample)
 

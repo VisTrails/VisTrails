@@ -38,6 +38,7 @@ from itertools import izip
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
 from vistrails.db.domain import DBGroup
@@ -108,6 +109,8 @@ class Group(DBGroup, Module):
             ModuleFunction.convert(_function)
         for _annotation in _group.db_get_annotations():
             Annotation.convert(_annotation)
+        for _control_parameter in _group.db_get_controlParameters():
+            ModuleControlParam.convert(_control_parameter)
         _group.set_defaults()
 
     ##########################################################################
@@ -117,6 +120,7 @@ class Group(DBGroup, Module):
     id = DBGroup.db_id
     cache = DBGroup.db_cache
     annotations = DBGroup.db_annotations
+    control_parameters = DBGroup.db_controlParameters
     location = DBGroup.db_location
     center = DBGroup.db_location
     # version = DBGroup.db_version
@@ -131,22 +135,6 @@ class Group(DBGroup, Module):
     namespace = None
     version = basic_pkg_version
     internal_version = ''
-
-    def summon(self):
-        result = self.module_descriptor.module()
-        result.pipeline = self.pipeline
-        if self._port_specs is None:
-            self.make_port_specs()
-        result.input_remap = self._input_remap
-        result.output_remap = self._output_remap
-        if self.cache != 1:
-            result.is_cacheable = lambda *args: False
-        if hasattr(result, 'input_ports_order'):
-            result.input_ports_order = [p.name for p in self.destinationPorts()]
-        if hasattr(result, 'output_ports_order'):
-            result.output_ports_order = [p.name for p in self.sourcePorts()]
-        result.registry = get_module_registry()
-        return result
 
     def is_group(self):
         return True
@@ -235,20 +223,20 @@ class Group(DBGroup, Module):
         registry = get_module_registry()
         for module in self.pipeline.module_list:
             if module.name == 'OutputPort' and module.package == basic_pkg:
-                (port_name, sigstring, optional, _) = \
+                (port_name, sigstring, optional, depth, _) = \
                     self.get_port_spec_info(module)
                 port_spec = registry.create_port_spec(port_name, 'output',
                                                       None, sigstring,
-                                                      optional)
+                                                      optional, depth=depth)
                 self._port_specs[(port_name, 'output')] = port_spec
                 self._output_port_specs.append(port_spec)
                 self._output_remap[port_name] = module
             elif module.name == 'InputPort' and module.package == basic_pkg:
-                (port_name, sigstring, optional, _) = \
+                (port_name, sigstring, optional, depth, _) = \
                     self.get_port_spec_info(module)
                 port_spec = registry.create_port_spec(port_name, 'input',
                                                       None, sigstring,
-                                                      optional)
+                                                      optional, depth=depth)
                 self._port_specs[(port_name, 'input')] = port_spec
                 self._input_port_specs.append(port_spec)
                 self._input_remap[port_name] = module

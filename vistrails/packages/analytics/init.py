@@ -32,8 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.modules.basic_modules import new_constant
-from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleConnector
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 import vistrails.core.vistrail.vistrail
 import vistrails.core.log.log 
 import vistrails.db.services.io
@@ -83,12 +82,12 @@ class ReadVistrail(Module):
         return None
 
     def compute(self):
-        fname = self.getInputFromPort('file').name
+        fname = self.get_input('file').name
         vistrail = self.read_vistrail(fname)
-        self.setResult('vistrail', vistrail)
-        fname = self.getInputFromPort('file').name
+        self.set_output('vistrail', vistrail)
+        fname = self.get_input('file').name
         log = self.read_log(fname)
-        self.setResult('log', log)
+        self.set_output('log', log)
 
 class CountActions(Module):
     _input_ports = [('vistrail', '(Vistrail)')]
@@ -114,14 +113,14 @@ class CountActions(Module):
                         Tally[action.what] = {action.vtType : 1}
 
                 # if is there, if subdictionary does not have vtType key, create entry
-                elif Tally.has_key(action.what) == none:
+                elif Tally.has_key(action.what) is None:
                     Tally[action.what] = {action.vtType : 1}
         return Tally
 
     def compute(self):
-        vistrail = self.getInputFromPort('vistrail')
+        vistrail = self.get_input('vistrail')
         Tally = self.count_actions(vistrail)
-        self.setResult('counts', Tally)
+        self.set_output('counts', Tally)
 
 class CountExecutedWorkflows(Module):
     _input_ports = [('log', '(Log)')]
@@ -137,9 +136,9 @@ class CountExecutedWorkflows(Module):
         return users
 
     def compute(self):
-        log = self.getInputFromPort('log')
+        log = self.get_input('log')
         users = self.count_executed_workflows(log)
-        self.setResult('completed', users)
+        self.set_output('completed', users)
 
 class TotalDays(Module):
     _input_ports = [('vistrail','(Vistrail)')]
@@ -169,9 +168,9 @@ class TotalDays(Module):
         return totals
                 
     def compute(self):
-        vistrail = self.getInputFromPort('vistrail')
+        vistrail = self.get_input('vistrail')
         totals = self.calc_time(vistrail)
-        self.setResult('completed', totals)
+        self.set_output('completed', totals)
 
 #class TimevsTags(Module):
     #Compare a few workflows to see how long the project took vs. how many tags were made

@@ -61,13 +61,17 @@ class QReadOnlyPortSelectPipelineView(QPipelineView):
         # Create custom scene
         scene_copy = QPipelineScene(self)
         scene_copy.controller = scene.controller
-        scene_copy.setupScene(scene.pipeline)
+        scene_copy.setupScene(scene.current_pipeline)
         scene_copy.selectAll()
         if include_module_ids:
             # Remove modules not in the include list and associated connections
             sel_modules, sel_connections = scene_copy.get_selected_item_ids()
-            [scene_copy.remove_module(m_id) for m_id in sel_modules if m_id not in include_module_ids]
-            [scene_copy.remove_connection(c_id) for c_id in sel_connections if c_id not in scene_copy.get_selected_item_ids()[1]]
+            for m_id in sel_modules:
+                if m_id not in include_module_ids:
+                    scene_copy.remove_module(m_id)
+            for c_id in sel_connections:
+                if c_id not in scene_copy.get_selected_item_ids()[1]:
+                    scene_copy.remove_connection(c_id)
         # Hide configure button on modules
         for item in scene_copy.selectedItems():
             if isinstance(item, QGraphicsModuleItem):

@@ -34,13 +34,12 @@
 ###############################################################################
 # search functions for entity-type objects
 # notes in plain text, not html, should be fix later
+import datetime
 import re
 import time
+import unittest
 
 from vistrails.core.query import extract_text
-
-import unittest
-import datetime
 
 ################################################################################
 

@@ -52,11 +52,6 @@ import vistrails.core
 
 ################################################################################
 
-PipelineElementType = enum('PipelineElementType',
-                           ['Module', 'Connection', 'Function', 'Parameter'])
-
-################################################################################
-
 class ModuleFunction(DBFunction):
     __fields__ = ['name', 'returnType', 'params']
     """ Stores a function from a vistrail module """
@@ -145,7 +140,7 @@ class ModuleFunction(DBFunction):
         child.setAttribute('name',self.name)
         child.setAttribute('returnType',self.type)
         for p in self.params:
-                p.serialize(doc,child)
+            p.serialize(doc,child)
         element.appendChild(child)
 
     def get_spec(self, port_type):

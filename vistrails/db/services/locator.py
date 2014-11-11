@@ -39,7 +39,6 @@ import locale
 import os.path
 import re
 import sys
-from time import strptime
 import urllib
 import urlparse
 import uuid
@@ -50,7 +49,8 @@ from vistrails.db.services.io import SaveBundle
 from vistrails.db.domain import DBVistrail, DBWorkflow
 from vistrails.db import VistrailsDBException
 from vistrails.core import debug
-from vistrails.core.system import get_elementtree_library, systemType
+from vistrails.core.system import get_elementtree_library, systemType, \
+    time_strptime
 
 ElementTree = get_elementtree_library()
 
@@ -804,7 +804,7 @@ class DBLocator(BaseLocator):
             return True
         try:
             self.get_connection()
-        except:
+        except Exception:
             return False
         return True
         
@@ -899,7 +899,7 @@ class DBLocator(BaseLocator):
         ts = io.get_db_object_modification_time(self.get_connection(),
                                                 self.obj_id,
                                                 obj_type)
-        ts = datetime(*strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
+        ts = datetime(*time_strptime(str(ts).strip(), '%Y-%m-%d %H:%M:%S')[0:6])
         return ts
         
     def serialize(self, dom, element):
@@ -938,7 +938,7 @@ class DBLocator(BaseLocator):
                     name = str(n.firstChild.nodeValue).strip(" \n\t")
                     #print host, port, database, name, vt_id
                     return DBLocator(host, port, database,
-                                     user, passwd, name, vt_id, None)
+                                     user, passwd, name, obj_id=vt_id)
             return None
         else:
             return None
@@ -1024,9 +1024,9 @@ class DBLocator(BaseLocator):
                     elif type == 'bool':
                         return bool_conv(value)
                     elif type == 'date':
-                        return date(*strptime(value, '%Y-%m-%d')[0:3])
+                        return date(*time_strptime(value, '%Y-%m-%d')[0:3])
                     elif type == 'datetime':
-                        return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+                        return datetime(*time_strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
             return None
     
         if node.tag != 'locator':

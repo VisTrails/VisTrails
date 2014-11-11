@@ -36,12 +36,12 @@
 #settings
 LOG_DIR=/server/vistrails/logs
 
-VISTRAILS_DIR=/server/vistrails/trunk/vistrails
-ADDRESS="crowdlabs.sci.utah.edu"
+VISTRAILS_DIR=../vistrails
+ADDRESS="localhost"
 PORT="8081"
 CONF_FILE="server.cfg"
 NUMBER_OF_OTHER_VISTRAILS_INSTANCES="2"
-MULTI_OPTION="-M"
+MULTI_OPTION="--multithread"
 if (("$#" > "0")); then
     VIRTUAL_DISPLAY="$1"
 fi
@@ -58,7 +58,7 @@ if (("$#" == "5")); then
    if(("$5" == "0")); then
        MULTI_OPTION=""
    else
-       MULTI_OPTION="-M"
+       MULTI_OPTION="--multithread"
    fi
 fi
 
@@ -77,6 +77,6 @@ kill -9 `cat $PID`
 
 export PYTHONPATH=/home/emanuele/src/titan/build/lib:$PYTHONPATH
 export LD_LIBRARY_PATH=/home/emanuele/src/titan/build/lib:$LD_LIBRARY_PATH
-python vistrails_server.py -T $ADDRESS -R $PORT -C $CONF_FILE -O$NUMBER_OF_OTHER_VISTRAILS_INSTANCES $MULTI_OPTION&
+python vistrails_server.py --rpc-server $ADDRESS --rpc-port $PORT --rpc-config $CONF_FILE --rpc-instances $NUMBER_OF_OTHER_VISTRAILS_INSTANCES $MULTI_OPTION&
 echo $! > $PID
 

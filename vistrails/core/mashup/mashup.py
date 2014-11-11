@@ -189,9 +189,9 @@ class Mashup(DBMashup):
                 alias.component.vtparent_id = new_pid
                 new_id = id_remap[(alias.component.vttype,alias.component.vtid)]
                 alias.component.vtid = new_id
-            except:
+            except Exception:
                 pass
-            
+
     def validateForPipeline(self, pipeline):
         """validateForPipeline(pipeline) -> None
         This will make sure that the parameters in the alias list are present
@@ -202,7 +202,7 @@ class Mashup(DBMashup):
             try:
                 param = pipeline.db_get_object(alias.component.vttype,
                                                alias.component.vtid)
-            except:
+            except Exception:
                 to_remove.append(alias)
         for a in to_remove:
             self.alias_list.remove(a)    

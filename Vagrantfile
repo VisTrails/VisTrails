@@ -15,10 +15,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     inline: <<SCRIPT
 sudo aptitude update -y
 sudo aptitude install -y python python-dateutil python-dev python-docutils \
-    python-mako python-matplotlib python-mysqldb python-numpy python-pip \
-    python-qt4 python-qt4-gl python-qt4-sql python-scipy python-setuptools \
-    python-sphinx python-suds python-tz python-unittest2  python-virtualenv \
-    python-vtk python-xlrd zip unzip
+    python-mako python-matplotlib python-mysqldb python-numpy python-paramiko \
+    python-pip python-qt4 python-qt4-gl python-qt4-sql python-scipy \
+    python-setuptools python-sphinx python-sqlalchemy python-suds python-tz \
+    python-unittest2 python-virtualenv python-vtk python-xlrd python-xlwt \
+    zip unzip xvfb
 cd /home/vagrant
 virtualenv --system-site-packages venv
 source venv/bin/activate

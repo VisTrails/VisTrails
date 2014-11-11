@@ -35,8 +35,10 @@
 from getpass import getuser
 
 from PyQt4 import QtCore, QtGui
+from ast import literal_eval
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape, unescape
+from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.common_widgets import QPromptWidget
 from vistrails.gui.modules.paramexplore import QParameterEditor
@@ -45,7 +47,7 @@ from vistrails.gui.utils import show_warning
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import Constant
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.system import current_time
+from vistrails.core.system import current_time, strftime
 from vistrails.core.paramexplore.param import PEParam
 from vistrails.core.paramexplore.function import PEFunction
 from vistrails.core.vistrail.module import Module as VistrailModule
@@ -134,7 +136,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         """
         # Construct xml for persisting parameter exploration
         escape_dict = { "'":"&apos;", '"':'&quot;', '\n':'&#xa;' }
-        timestamp = current_time().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp = strftime(current_time(), '%Y-%m-%d %H:%M:%S')
         palette = self.get_palette()
         # TODO: For now, we use the timestamp as the 'name' - Later, we should set 'name' based on a UI input field
         xml = '\t<paramexp dims="%s" layout="%s" date="%s" name="%s">' % (str(self.table.label.getCounts()), str(palette.virtual_cell.getConfiguration()[2]), timestamp, timestamp)
@@ -264,19 +266,21 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                                   'HSV Interpolation']:
                                 try:
                                     # Set min/max
-                                    i_range = eval('%s' % unescape(p.value,
-                                                               unescape_dict))
+                                    i_range = literal_eval('%s' % unescape(
+                                                           p.value,
+                                                           unescape_dict))
                                     p_min = str(i_range[0])
                                     p_max =str(i_range[1])
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
-                                except:
+                                except Exception:
                                     pass
                             elif p.interpolator == 'List':
                                 p_values = '%s' % unescape(p.value,
                                                         unescape_dict)
                                 # Set internal list structure
-                                interpolator._str_values = eval(p_values)
+                                interpolator._str_values = \
+                                        literal_eval(p_values)
                                 # Update UI list
                                 if interpolator.type == 'String':
                                     interpolator.listValues.setText(p_values)
@@ -299,17 +303,18 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         # Parse/validate the xml
         try:
             xmlDoc = parseString(xmlString).documentElement
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Parameter Exploration load failed because of "
                            "invalid XML:\n\n%s" % xmlString)
             return
         palette = self.get_palette()
         paramView = self.get_param_view()
         # Set the exploration dimensions
-        dims = eval(str(xmlDoc.attributes['dims'].value))
+        dims = literal_eval(xmlDoc.attributes['dims'].value)
         self.table.label.setCounts(dims)
         # Set the virtual cell layout
-        layout = eval(str(xmlDoc.attributes['layout'].value))
+        layout = literal_eval(xmlDoc.attributes['layout'].value)
         palette.virtual_cell.setConfiguration(layout)
         # Populate parameter exploration window with stored functions and aliases
         for f in xmlDoc.getElementsByTagName('function'):
@@ -349,12 +354,12 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                     p_max = str(p.attributes['max'].value)
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
-                                except:
+                                except Exception:
                                     pass
                             elif p_intType == 'List':
                                 p_values = str(p.attributes['values'].value)
                                 # Set internal list structure
-                                interpolator._str_values = eval(p_values)
+                                interpolator._str_values = literal_eval(p_values)
                                 # Update UI list
                                 if interpolator.type == 'String':
                                     interpolator.listValues.setText(p_values)

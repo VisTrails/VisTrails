@@ -39,6 +39,9 @@
 #   SingleCellSheetReference
 #   SpreadsheetCell
 ################################################################################
+from vistrails.core.configuration import ConfigField, \
+    get_vistrails_configuration
+from vistrails.core.modules.output_modules import OutputMode, OutputModeConfig
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 from spreadsheet_base import (StandardSheetReference,
                               StandardSingleCellSheetReference)
@@ -66,8 +69,8 @@ def registerWidget(reg, basicModules, basicWidgets):
     reg.add_input_port(SheetReference, "MinColumnCount",
                        basicModules.Integer, True)
     reg.add_input_port(SheetReference, "SheetName", basicModules.String, True)
-    reg.add_output_port(SheetReference, "self", SheetReference)
-     
+    reg.add_output_port(SheetReference, "value", SheetReference)
+
     reg.add_module(CellLocation)
     reg.add_input_port(CellLocation, "ColumnRowAddress",
                        basicModules.String, True)
@@ -76,7 +79,7 @@ def registerWidget(reg, basicModules, basicWidgets):
     reg.add_input_port(CellLocation, "RowSpan", basicModules.Integer, True)
     reg.add_input_port(CellLocation, "ColumnSpan", basicModules.Integer, True)
     reg.add_input_port(CellLocation, "SheetReference", SheetReference)
-    reg.add_output_port(CellLocation, "self", CellLocation)
+    reg.add_output_port(CellLocation, "value", CellLocation)
 
     reg.add_module(SpreadsheetCell)
     reg.add_input_port(SpreadsheetCell, "Location", CellLocation)
@@ -85,7 +88,7 @@ def registerWidget(reg, basicModules, basicWidgets):
     reg.add_module(SingleCellSheetReference)
     reg.add_input_port(SingleCellSheetReference, "SheetName",
                        basicModules.String, True)
-    reg.add_output_port(SingleCellSheetReference, "self",
+    reg.add_output_port(SingleCellSheetReference, "value",
                         SingleCellSheetReference)
      
 class SheetReference(Module):
@@ -95,33 +98,18 @@ class SheetReference(Module):
     well a wrapper to simply contain real sheet reference classes
     
     """
-    def __init__(self):
-        """ SheetReference() -> SheetReference
-        Instantiate an empty SheetReference
-        
-        """
-        Module.__init__(self)
-        self.sheetReference = None
-
     def compute(self):
         """ compute() -> None
         Store information on input ports and ready to be passed on to whoever
         needs it
         
         """
-        if self.sheetReference==None:
-            self.sheetReference = StandardSheetReference()
-        ref = self.sheetReference
-        ref.minimumRowCount = self.forceGetInputFromPort("MinRowCount", 1)
-        ref.minimumColumnCount = self.forceGetInputFromPort("MinColumnCount", 1)
-        ref.sheetName = self.forceGetInputFromPort("SheetName")
+        ref = StandardSheetReference()
+        ref.minimumRowCount = self.force_get_input("MinRowCount", 1)
+        ref.minimumColumnCount = self.force_get_input("MinColumnCount", 1)
+        ref.sheetName = self.force_get_input("SheetName")
 
-    def getSheetReference(self):
-        """ getSheetReference() -> subclass of StandardSheetReference
-        Return the actual information stored in the SheetReference
-        
-        """
-        return self.sheetReference
+        self.set_output('value', ref)
 
 class CellLocation(Module):
     """
@@ -130,47 +118,47 @@ class CellLocation(Module):
     location
     
     """
-    def __init__(self):
-        """ CellLocation() -> CellLocation
-        Instantiate an empty cell location, i.e. any available cell
-        
-        """
-        Module.__init__(self)
-        self.row = -1
-        self.col = -1
-        self.rowSpan = -1
-        self.colSpan = -1
-        self.sheetReference = None
+    class Location(object):
+        def __init__(self):
+            self.row = -1
+            self.col = -1
+            self.rowSpan = -1
+            self.colSpan = -1
+            self.sheetReference = None
 
     def compute(self):
         """ compute() -> None
         Translate input ports into (row, column) location
         
         """
+        loc = CellLocation.Location()
+
         def set_row_col(row, col):
             try:
-                self.col = ord(col)-ord('A')
-                self.row = int(row)-1
-            except:
+                loc.col = ord(col) - ord('A')
+                loc.row = int(row) - 1
+            except (TypeError, ValueError):
                 raise ModuleError(self, 'ColumnRowAddress format error')
-            
-        ref = self.forceGetInputFromPort("SheetReference")
-        if ref:
-            self.sheetReference = ref.getSheetReference()
 
-        self.rowSpan = self.forceGetInputFromPort("RowSpan", -1)
-        self.colSpan = self.forceGetInputFromPort("ColumnSpan", -1)
-        if self.hasInputFromPort("Row") and self.hasInputFromPort("Column"):
-            self.row = self.getInputFromPort("Row")-1
-            self.col = self.getInputFromPort("Column")-1
-        elif self.hasInputFromPort("ColumnRowAddress"):
-            address = self.getInputFromPort("ColumnRowAddress")
+        ref = self.force_get_input("SheetReference")
+        if ref:
+            loc.sheetReference = ref
+
+        loc.rowSpan = self.force_get_input("RowSpan", -1)
+        loc.colSpan = self.force_get_input("ColumnSpan", -1)
+        if self.has_input("Row") and self.has_input("Column"):
+            loc.row = self.get_input("Row")-1
+            loc.col = self.get_input("Column")-1
+        elif self.has_input("ColumnRowAddress"):
+            address = self.get_input("ColumnRowAddress")
             address = address.replace(' ', '').upper()
-            if len(address)>1:
+            if len(address) > 1:
                 if address[0] >= 'A' and address[0] <= 'Z':
                     set_row_col(address[1:], address[0])
                 else:
                     set_row_col(address[:-1], address[-1])
+
+        self.set_output('value', loc)
 
 class SpreadsheetCell(NotCacheable, Module):
     """
@@ -207,7 +195,7 @@ class SpreadsheetCell(NotCacheable, Module):
         if self.location:
             location = self.location
         else:
-            location = self.forceGetInputFromPort("Location")
+            location = self.force_get_input("Location")
         if location:
             e.row = location.row
             e.col = location.col
@@ -234,10 +222,99 @@ class SpreadsheetCell(NotCacheable, Module):
         if spreadsheetWindow.echoMode == False:
             spreadsheetWindow.configShow(show=True)
         self.cellWidget = spreadsheetWindow.displayCellEvent(e)
-        self.setResult('Widget', self.cellWidget)
+        self.set_output('Widget', self.cellWidget)
         return self.cellWidget
 
     display = displayAndWait
+
+class SpreadsheetModeConfig(OutputModeConfig):
+    mode_type = "spreadsheet"
+    _fields = [ConfigField('row', None, int),
+               ConfigField('col', None, int),
+               ConfigField('sheetName', None, str),
+               ConfigField('sheetRowCount', None, int),
+               ConfigField('sheetColCount', None, int),
+               ConfigField('rowSpan', None, int),
+               ConfigField('colSpan', None, int)]
+
+class SpreadsheetMode(OutputMode):
+    mode_type = "spreadsheet"
+    priority = 3
+    config_cls = SpreadsheetModeConfig
+
+    @classmethod
+    def can_compute(cls):
+        if get_vistrails_configuration().batch:
+            return False
+        return True
+
+    def create_display_event(self, output_module, configuration,
+                             cell_cls, input_ports):
+        """create_display_event(output_module: Module,
+                                configuration: OutputModeConfig,
+                                cell_cls: class,
+                                input_ports: tuple) -> None
+        Create a DisplayEvent with all the parameters from the cell
+        locations and inputs
+
+        """
+        e = DisplayCellEvent()
+        if configuration is not None:
+            e.row = configuration['row']
+            e.col = configuration['col']
+            if (configuration['sheetName'] or configuration['sheetRowCount'] or
+                configuration['sheetColCount']):
+                ref = StandardSheetReference()
+                if configuration['sheetName']:
+                    ref.sheetName = configuration['sheetName']
+                if configuration['sheetRowCount']:
+                    ref.minimumRowCount = configuration['sheetRowCount']
+                if configuration['sheetColCount']:
+                    ref.minimumColumnCount = configuration['sheetColCount']
+                e.sheetReference = ref
+            e.rowSpan = configuration['rowSpan']
+            e.colSpan = configuration['colSpan']
+        e.vistrail = output_module.moduleInfo
+        e.cellType = cell_cls
+        e.inputPorts = input_ports
+        return e
+
+    def display(self, output_module, configuration, cell_type, input_ports):
+        """display(output_module: Module,
+                   configuration: OutputModeConfig,
+                   cell_cls: class,
+                   input_ports: tuple) -> None
+        Dispatch the cellType to the spreadsheet with appropriate input data
+        to display it
+
+        """
+        if spreadsheetController.echoMode():
+            return self.display_and_wait(output_module, configuration,
+                                         cell_type, input_ports)
+        e = self.create_display_event(cell_type, input_ports)
+        spreadsheetController.postEventToSpreadsheet(e)
+
+    def display_and_wait(self, output_module, configuration, cell_type,
+                         input_ports):
+        """display_and_wait(output_module: Module,
+                            configuration: OutputModeConfig,
+                            cell_cls: class,
+                            input_ports: tuple) -> None
+        Send the message and wait for the cell to complete its movement
+        constructed to return it
+
+        """
+        e = self.create_display_event(output_module, configuration,
+                                      cell_type, input_ports)
+        QtCore.QCoreApplication.processEvents()
+        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
+        if spreadsheetWindow.echoMode == False:
+            spreadsheetWindow.configShow(show=True)
+        cell = spreadsheetWindow.displayCellEvent(e)
+        if cell is not None:
+            cell.set_output_module(output_module, configuration)
+        return cell
+
 
 class SingleCellSheetReference(SheetReference):
     """
@@ -251,7 +328,7 @@ class SingleCellSheetReference(SheetReference):
         Store information from input ports into internal structure
         
         """
-        if self.sheetReference==None:
-            self.sheetReference = StandardSingleCellSheetReference()
-        self.sheetReference.sheetName = self.forceGetInputFromPort("SheetName")
+        ref = StandardSingleCellSheetReference()
+        ref.sheetName = self.force_get_input("SheetName")
 
+        self.set_output('value', ref)

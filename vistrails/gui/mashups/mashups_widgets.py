@@ -35,7 +35,7 @@
 from PyQt4 import QtCore, QtGui
 from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.theme import CurrentTheme
-from vistrails.gui.modules import get_widget_class
+from vistrails.gui.modules.utils import get_widget_class
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin, \
     StandardConstantWidget
 from vistrails.core.modules.module_registry import get_module_registry
@@ -77,6 +77,7 @@ class QAliasSliderWidget(QtGui.QWidget):
 ###############################################################################        
 
 class QSliderWidget(ConstantWidgetMixin, QtGui.QSlider):
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         QtGui.QSlider.__init__(self, QtCore.Qt.Horizontal, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
@@ -180,6 +181,7 @@ class QAliasNumericStepperWidget(QtGui.QWidget):
         
 ###############################################################################
 class QNumericStepperIntegerWidget(ConstantWidgetMixin, QtGui.QSpinBox):
+    contentsChanged = QtCore.pyqtSignal(object, object)
     def __init__(self, param, parent=None):
         QtGui.QSpinBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
@@ -208,6 +210,7 @@ class QNumericStepperIntegerWidget(ConstantWidgetMixin, QtGui.QSpinBox):
 ###############################################################################
 
 class QNumericStepperFloatWidget(ConstantWidgetMixin, QtGui.QDoubleSpinBox):
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         QtGui.QDoubleSpinBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)
@@ -325,9 +328,9 @@ class QDropDownWidget(QtGui.QWidget):
         else:
             idn = self.vtparam.identifier
         reg = get_module_registry()
-        p_module = reg.get_module_by_name(idn, self.vtparam.type, 
-                                          self.vtparam.namespace)
-        widget_type = get_widget_class(p_module)
+        p_descriptor = reg.get_descriptor_by_name(idn, self.vtparam.type,
+                                                  self.vtparam.namespace)
+        widget_type = get_widget_class(p_descriptor)
         if val:
             self.vtparam.strValue = val
         return widget_type(self.vtparam, parent)

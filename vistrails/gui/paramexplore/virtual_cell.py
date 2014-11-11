@@ -42,11 +42,6 @@ from vistrails.gui.theme import CurrentTheme
 import copy
 import os.path
 
-# FIXME broke this as Actions have been changed around
-#
-# from core.vistrail.action import AddModuleAction, AddConnectionAction, \
-#      DeleteConnectionAction, ChangeParameterAction
-
 ###############################################################################
 
 def split_camel_case(text):

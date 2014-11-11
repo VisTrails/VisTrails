@@ -36,6 +36,7 @@
 # This file implements the Spreadsheet Tab Controller, to manages tabs
 #   StandardWidgetTabController
 ################################################################################
+from ast import literal_eval
 import os.path
 from PyQt4 import QtCore, QtGui
 from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
@@ -249,7 +250,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         
         """
         if not hasattr(self, 'exportSheetToImageVar'):
-            self.exportSheetToImageVar = QtGui.QAction('Export', self)
+            self.exportSheetToImageVar = QtGui.QAction('Export Sheet', self)
             self.exportSheetToImageVar.setStatusTip(
                 'Export all cells in the spreadsheet to a montaged image')
 
@@ -257,34 +258,39 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             singleAction = exportMenu.addAction('As a Single Image')
             multiAction = exportMenu.addAction('Separately')
             self.exportSheetToImageVar.setMenu(exportMenu)
-            
+
             self.connect(self.exportSheetToImageVar,
                          QtCore.SIGNAL('triggered(bool)'),
-                         self.exportSheetToImageActionTriggered)
-            
-            self.connect(exportMenu,
-                         QtCore.SIGNAL('triggered(QAction*)'),
-                         self.exportSheetToImageActionTriggered)
+                         self.exportSheetToSingleImageActionTriggered)
+
+            self.connect(singleAction,
+                         QtCore.SIGNAL('triggered()'),
+                         self.exportSheetToSingleImageActionTriggered)
+            self.connect(multiAction,
+                         QtCore.SIGNAL('triggered()'),
+                         self.exportSheetToSeparateImagesActionTriggered)
         return self.exportSheetToImageVar
 
-    def exportSheetToImageActionTriggered(self, action=None):
-        """ exportSheetToImageActionTriggered(checked: boolean) -> None
-        Actual code to create export an image
-        
+    def exportSheetToSingleImageActionTriggered(self, action=None):
+        """ exportSheetToSingleImageActionTriggered() -> None
+        Exports the sheet as a big image
         """
-        if not isinstance(action, bool) and action.text() == 'Separately':
-            dir = QtGui.QFileDialog.getExistingDirectory(
-                self, 'Select a Directory to Export Images', ".",
-                QtGui.QFileDialog.ShowDirsOnly)
-            if dir:
-                self.currentWidget().exportSheetToImages(dir)
-        else:
-            file = QtGui.QFileDialog.getSaveFileName(
-                self, "Select a File to Export the Sheet",
-                ".", "Images (*.png *.xpm *.jpg)")
-            if file:
-                self.currentWidget().exportSheetToImage(str(file))
-        
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self, "Select a File to Export the Sheet",
+            ".", "Images (*.png *.xpm *.jpg)")
+        if filename:
+            self.currentWidget().exportSheetToImage(filename)
+
+    def exportSheetToSeparateImagesActionTriggered(self, action=None):
+        """ exportSheetToSeparateImagesActionTriggered() -> None
+        Exports the cells as separate images
+        """
+        dirname = QtGui.QFileDialog.getExistingDirectory(
+            self, 'Select a Directory to Export Images', ".",
+            QtGui.QFileDialog.ShowDirsOnly)
+        if dirname:
+            self.currentWidget().exportSheetToImages(dirname)
+
     def newSheetActionTriggered(self, checked=False):
         """ newSheetActionTriggered(checked: boolean) -> None
         Actual code to create a new sheet
@@ -733,13 +739,13 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         lidx += 1
         for tabIdx in xrange(tabCount):
             # FIXME: eval should pretty much never be used
-            tabInfo = eval(lines[lidx])
+            tabInfo = literal_eval(lines[lidx])
             lidx += 1
             sheet = spreadsheetRegistry.getSheet(tabInfo[1])(self)
             sheet.setDimension(tabInfo[2], tabInfo[3])
             self.addTabWidget(sheet, tabInfo[0])
             while lines[lidx]!='---':
-                (r, c, vistrail, pid, cid) = eval(lines[lidx])
+                (r, c, vistrail, pid, cid) = literal_eval(lines[lidx])
                 locator = vistrail['locator']
                 if locators.has_key(locator):
                     vistrail['locator'] = locators[locator]
@@ -757,11 +763,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                          "&Cancel", 0, pipelineCount,
                                          self,
                                          QtCore.Qt.WindowStaysOnTopHint
-                                         );
+                                         )
         progress.show()
         for pipelineIdx in xrange(pipelineCount):
             # FIXME: eval should pretty much never be used
-            (serializedLocator, version) = eval(lines[lidx])
+            (serializedLocator, version) = literal_eval(lines[lidx])
             try:
                 locator = locators[serializedLocator]
             except KeyError:

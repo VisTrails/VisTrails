@@ -159,13 +159,14 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         
         # Create and connect InputPort for each of the inputs to force it to exist on group
         offset = {}
-        [offset.__setitem__(module, halfwidth+65) for module, portspec, connections, halfwidth in input_ports_info]
+        for module, portspec, connections, halfwidth in input_ports_info:
+            offset.__setitem__(module, halfwidth+65)
         for input_module, input_portspec, input_connections, halfwidth in input_ports_info:
             # Remove function calls to selected input ports
             try:
                 function_pos = [f.name for f in input_module.functions].index(input_portspec.name)
                 self.controller.delete_method(function_pos, input_module.id)
-            except:
+            except Exception:
                 pass
             # Disconnect connections to selected input ports
             for connection in input_connections:
@@ -243,13 +244,13 @@ psrc_module = self.moduleInfo['pipeline'].modules[self.moduleInfo['moduleId']]
 input_ports = [p.name for p in psrc_module.input_port_specs if p.name not in ['UseCartesianProduct', 'UserDefinedInputList']]
 InputPort = input_ports
 OutputPort = '%s'
-custom_input_list = self.forceGetInputFromPort('UserDefinedInputList', [])
+custom_input_list = self.force_get_input('UserDefinedInputList', [])
 if custom_input_list:
     InputList = custom_input_list
 else:
-    cartesian_product = self.forceGetInputFromPort('UseCartesianProduct', False)
+    cartesian_product = self.force_get_input('UseCartesianProduct', False)
     if cartesian_product:
-        input_lists = [self.getInputFromPort(input_ports[x]) for x in xrange(len(input_ports))]
+        input_lists = [self.get_input(input_ports[x]) for x in xrange(len(input_ports))]
         InputList = [[]]
         pools = map(tuple, input_lists)
         for pool in pools:
@@ -257,15 +258,15 @@ else:
     else:
         # Dot Product
         InputList = []
-        length = len(self.getInputFromPort(input_ports[0]))
+        length = len(self.get_input(input_ports[0]))
         if len(input_ports) > 1:
             for p in input_ports[1:]:
-                if len(self.getInputFromPort(p)) != length:
+                if len(self.get_input(p)) != length:
                     fail('One or more of the input lists have different lengths.')
         for x in xrange(length):
             element_list = []
             for p in input_ports:
-                element_list.append(self.getInputFromPort(p)[x])
+                element_list.append(self.get_input(p)[x])
             InputList.append(element_list)
     # Compact list format used when only one input port present
     if len(input_ports) == 1:

@@ -51,7 +51,7 @@ from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.mashup.alias import Alias
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import get_vistrails_basic_pkg_id
-from vistrails.gui.modules import get_widget_class
+from vistrails.gui.modules.utils import get_widget_class
 from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning
@@ -268,14 +268,14 @@ class QAliasDetailsWidget(QtGui.QWidget):
             return
         if new_alias in self.table.aliases.keys():
             show_warning("Mashup",
-                         """Label name %s already exists. 
-Please type a different name. """ % new_alias)
+                         "Label name %s already exists. "
+                         "Please type a different name." % new_alias)
             self.name_edit.setText(old_alias)
             self.name_edit.setFocus()
         elif new_alias == '':
             show_warning("Mashup",
-                         """Variables with empty name are not allowed. 
-Please type a unique name. """ % new_alias)
+                         "Variables with empty name are not allowed. "
+                         "Please type a unique name.")
             self.name_edit.setText(old_alias)
             self.name_edit.setFocus()
         else:
@@ -431,8 +431,8 @@ Please type a unique name. """ % new_alias)
         else:
             idn = p.identifier
         reg = get_module_registry()
-        p_module = reg.get_module_by_name(idn, p.type, p.namespace)
-        widget_type = get_widget_class(p_module)
+        p_descriptor = reg.get_descriptor_by_name(idn, p.type, p.namespace)
+        widget_type = get_widget_class(p_descriptor)
         p.strValue = alias.component.val
         return widget_type(p, parent)
     

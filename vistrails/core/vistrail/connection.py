@@ -37,49 +37,10 @@ from vistrails.core.configuration import get_vistrails_configuration
 """
 import copy
 from vistrails.db.domain import DBConnection
-from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.vistrails_module import ModuleConnector
 from vistrails.core.vistrail.port import PortEndPoint, Port
 
 import unittest
 from vistrails.db.domain import IdScope
-
-################################################################################
-
-Variant_desc = None
-InputPort_desc = None
-
-def moduleConnection(conn):
-    """moduleConnection(conn)-> function
-    Returns a function to build a module connection
-
-    """
-    def theFunction(src, dst):
-        global Variant_desc, InputPort_desc
-        if Variant_desc is None:
-            reg = get_module_registry()
-            Variant_desc = reg.get_descriptor_by_name(
-                    'org.vistrails.vistrails.basic', 'Variant')
-            InputPort_desc = reg.get_descriptor_by_name(
-                    'org.vistrails.vistrails.basic', 'InputPort')
-
-        iport = conn.destination.name
-        oport = conn.source.name
-        src.enableOutputPort(oport)
-        conf = get_vistrails_configuration()
-        error_on_others = getattr(conf, 'errorOnConnectionTypeerror')
-        error_on_variant = (error_on_others or
-                            getattr(conf, 'errorOnVariantTypeerror'))
-        errors = [error_on_others, error_on_variant]
-        if isinstance(src, InputPort_desc.module):
-            typecheck = [False]
-        else:
-            typecheck = [errors[desc is Variant_desc]
-                         for desc in conn.source.spec.descriptors()]
-        dst.set_input_port(
-                iport,
-                ModuleConnector(src, oport, conn.destination.spec, typecheck))
-    return theFunction
 
 ################################################################################
 
@@ -127,9 +88,6 @@ class Connection(DBConnection):
         if not len(self.ports) > 0:
             self.source = Port(type='source')
             self.destination = Port(type='destination')
-#             self.source.endPoint = PortEndPoint.Source
-#             self.destination.endPoint = PortEndPoint.Destination
-        self.makeConnection = moduleConnection(self)
 
     def __copy__(self):
         """__copy__() -> Connection -  Returns a clone of self.
@@ -140,7 +98,6 @@ class Connection(DBConnection):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConnection.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Connection
-        cp.makeConnection = moduleConnection(cp)
         for port in cp.ports:
             Port.convert(port)
         return cp
@@ -156,46 +113,6 @@ class Connection(DBConnection):
 
         for port in _connection.ports:
             Port.convert(port)
-
-#         _connection.sourceInfo = \
-#             (_connection.source.moduleName, _connection.source.sig)
-#         _connection.destinationInfo = \
-#             (_connection.destination.moduleName, _connection.destination.sig)
-# #        print _connection.sourceInfo
-# #        print _connection.destinationInfo
-#         portFromRepresentation = registry.portFromRepresentation
-#         newSource = \
-#             portFromRepresentation(_connection.source.moduleName, 
-#                                    _connection.source.sig,
-#                                    PortEndPoint.Source, None, True)
-#         newDestination = \
-#             portFromRepresentation(_connection.destination.moduleName,
-#                                    _connection.destination.sig,
-#                                    PortEndPoint.Destination, None, True)
-#         newSource.moduleId = _connection.source.moduleId
-#         newDestination.moduleId = _connection.destination.moduleId
-#         _connection.source = newSource
-#         _connection.destination = newDestination
-        _connection.makeConnection = moduleConnection(_connection)
-
-
-    ##########################################################################
-    # Debugging
-
-    def show_comparison(self, other):
-        if type(other) != type(self):
-            print "Type mismatch"
-            return
-        if self.__source != other.__source:
-            print "Source mismatch"
-            self.__source.show_comparison(other.__source)
-            return
-        if self.__dest != other.__dest:
-            print "Dest mismatch"
-            self.__dest.show_comparison(other.__dest)
-            return
-        print "no difference found"
-        assert self == other
 
     ##########################################################################
     # Properties
@@ -216,8 +133,8 @@ class Connection(DBConnection):
 
     def _set_sourceId(self, id):
         """ _set_sourceId(id : int) -> None 
-        Sets this connection source id. It updates both self.__source.moduleId
-        and self.__source.id. Do not use this function, use sourceId 
+        Sets this connection source id. It updates both self.source.moduleId
+        and self.source.id. Do not use this function, use sourceId
         property: c.sourceId = id
 
         """
@@ -235,32 +152,13 @@ class Connection(DBConnection):
 
     def _set_destinationId(self, id):
         """ _set_destinationId(id : int) -> None 
-        Sets this connection destination id. It updates self.__dest.moduleId. 
+        Sets this connection destination id. It updates self.dest.moduleId.
         Do not use this function, use destinationId property: 
         c.destinationId = id
 
         """
         self.destination.moduleId = id
     destinationId = property(_get_destinationId, _set_destinationId)
-
-    def _get_type(self):
-        """_get_type() -> VistrailModuleType - Returns this connection type.
-        Do not use this function, use type property: c.type = t 
-
-        """
-        return self.source.type
-
-    def _set_type(self, t):
-        """ _set_type(t: VistrailModuleType) -> None 
-        Sets this connection type and updates self.__source.type and 
-        self.__dest.type. It also updates the correct makeConnection function.
-        Do not use this function, use type property: c.type = t
-
-        """
-        self.source.type = t
-        self.destination.type = t
-        self.updateMakeConnection()
-    type = property(_get_type, _set_type)
 
     def _get_source(self):
         """_get_source() -> Port
@@ -276,9 +174,8 @@ class Connection(DBConnection):
 
     def _set_source(self, source):
         """_set_source(source: Port) -> None 
-        Sets this connection source port. It also updates this connection 
-        makeConnection function. Do not use this function, use source 
-        property instead: c.source = source
+        Sets this connection source port. Do not use this function,
+        use source property instead: c.source = source
 
         """
         try:
@@ -304,10 +201,9 @@ class Connection(DBConnection):
         return None
 
     def _set_destination(self, dest):
-        """_set_destination(dest: Port) -> None 
-        Sets this connection destination port. It also updates this connection 
-        makeConnection function. Do not use this function, use destination 
-        property instead: c.destination = dest
+        """_set_destination(dest: Port) -> None
+         Sets this connection destination port. Do not use this
+        function, use destination property instead: c.destination = dest
 
         """
         try:
@@ -390,13 +286,6 @@ class TestConnection(unittest.TestCase):
         c2 = vistrails.core.db.io.unserialize(xml_str, Connection)
         self.assertEquals(c1, c2)
         self.assertEquals(c1.id, c2.id)
-
-    def testModuleConnection(self):
-        a = Connection.fromID(0)
-        c = moduleConnection(a)
-        def bogus(asd):
-            return 3
-        assert type(c) == type(bogus)
 
     def testEmptyConnection(self):
         """Tests sane initialization of empty connection"""

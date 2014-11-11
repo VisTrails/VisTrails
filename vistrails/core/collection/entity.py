@@ -33,6 +33,7 @@
 ##
 ###############################################################################
 from vistrails.core.db.locator import BaseLocator
+from vistrails.core.system import strftime
 from datetime import datetime
 
 class Entity(object):
@@ -64,8 +65,8 @@ class Entity(object):
                 self.type_id,
                 self.name,
                 self.user,
-                self.mod_time.strftime(self.DATE_FORMAT),
-                self.create_time.strftime(self.DATE_FORMAT),
+                strftime(self.mod_time, self.DATE_FORMAT),
+                strftime(self.create_time, self.DATE_FORMAT),
                 self.size,
                 self.description,
                 self.url)

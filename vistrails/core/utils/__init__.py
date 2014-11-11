@@ -44,12 +44,14 @@ from vistrails.core.utils.timemethod import time_method, time_call
 from vistrails.core.utils.tracemethod import trace_method, bump_trace, report_stack, \
      trace_method_options, trace_method_args
 from vistrails.core.utils.color import ColorByName
-from vistrails.core.utils.lockmethod import lock_method
 import copy
+from distutils.version import LooseVersion
 import errno
+import functools
 import itertools
 import os
 import sys
+import warnings
 import weakref
 
 
@@ -59,10 +61,13 @@ import tempfile
 ################################################################################
 
 def invert(d):
-    """invert(dict) -> dict. Returns an inverted dictionary by
-    switching key-value pairs. If you use this repeatedly,
-    consider switching the underlying data structure to a
-    core.data_structures.bijectivedict.Bidict instead."""
+    """invert(dict) -> dict. 
+
+    Returns an inverted dictionary by switching key-value pairs. If
+    you use this repeatedly, consider switching the underlying data
+    structure to a core.data_structures.bijectivedict.Bidict instead.
+
+    """
     return dict([[v,k] for k,v in d.items()])
 
 ################################################################################
@@ -81,38 +86,69 @@ class VistrailsWarning(Warning):
 class VistrailsDeprecation(VistrailsWarning):
     pass
 
+def deprecated(*args):
+    new_name = None
+    def _deprecated(func):
+        @functools.wraps(func)
+        def new_func(*args, **kwargs):
+            if new_name is not None:
+                warnings.warn("Call to deprecated function %s "
+                              "replaced by %s" % (
+                                  func.__name__, new_name),
+                              category=VistrailsDeprecation,
+                              stacklevel=2)
+            else:
+                warnings.warn("Call to deprecated function %s" % func.__name__,
+                              category=VistrailsDeprecation,
+                              stacklevel=2)
+            return func(*args, **kwargs)
+        return new_func
+    if len(args) == 1 and callable(args[0]):
+        return _deprecated(args[0])
+    else:
+        new_name = args[0]
+        return _deprecated
+
 ################################################################################
 
 class NoMakeConnection(Exception):
-    """NoMakeConnection is raised when a VisConnection doesn't know
-    how to create a live version of itself. This is an internal error
-    that should never be seen by a user. Please report a bug if you
-    see this."""
+    """NoMakeConnection is raised when a VisConnection doesn't know how to
+    create a live version of itself. This is an internal error that
+    should never be seen by a user. Please report a bug if you see
+    this.
+
+    """
     def __init__(self, conn):
         self.conn = conn
     def __str__(self):
         return "Connection %s has no makeConnection method" % self.conn
 
 class NoSummon(Exception):
-    """NoSummon is raised when a VisObject doesn't know how to create
-    a live version of itself. This is an internal error that should
-    never be seen by a user. Please report a bug if you see this."""
+    """NoSummon is raised when a VisObject doesn't know how to create a
+    live version of itself. This is an internal error that should
+    never be seen by a user. Please report a bug if you see this.
+
+    """
     def __init__(self, obj):
         self.obj = obj
     def __str__(self):
         return "Module %s has no summon method" % self.obj
 
 class UnimplementedException(Exception):
-    """UnimplementedException is raised when some interface hasn't
-    been implemented yet. This is an internal error that should never
-    be seen by a user. Please report a bug if you see this."""
+    """UnimplementedException is raised when some interface hasn't been
+    implemented yet. This is an internal error that should never be
+    seen by a user. Please report a bug if you see this.
+
+    """
     def __str__(self):
         return "Object is Unimplemented"
 
 class AbstractException(Exception):
     """AbstractException is raised when an abstract method is called.
     This is an internal error that should never be seen by a
-    user. Please report a bug if you see this."""
+    user. Please report a bug if you see this.
+
+    """
     def __str__(self):
         return "Abstract Method was called"
 
@@ -120,15 +156,17 @@ class VistrailsInternalError(Exception):
     """VistrailsInternalError is raised when an unexpected internal
     inconsistency happens. This is (clearly) an internal error that
     should never be seen by a user. Please report a bug if you see
-    this."""
-    def __init__(self, msg):
-        self.emsg = msg
+    this.
+
+    """
     def __str__(self):
-        return "Vistrails Internal Error: " + str(self.emsg)
+        return "Vistrails Internal Error: " + str(self.message)
 
 class VersionTooLow(Exception):
-    """VersionTooLow is raised when you're running an outdated version
-    of some necessary software or package."""
+    """VersionTooLow is raised when you're running an outdated version of
+    some necessary software or package.
+
+    """
     def __init__(self, sw, required_version):
         self.sw = sw
         self.required_version = required_version
@@ -140,8 +178,10 @@ class VersionTooLow(Exception):
                 " or later")
 
 class InvalidModuleClass(Exception):
-    """InvalidModuleClass is raised when there's something wrong with
-a class that's being registered as a module within VisTrails."""
+    """InvalidModuleClass is raised when there's something wrong with a
+    class that's being registered as a module within VisTrails.
+
+    """
 
     def __init__(self, klass):
         self.klass = klass
@@ -205,7 +245,7 @@ class InvalidPipeline(Exception):
         # it is invalid. So if it throws an Exception, we will just ignore
         try:
             self._pipeline = copy.copy(pipeline)
-        except:
+        except Exception:
             self._pipeline = None
         self._version = version
 
@@ -289,9 +329,7 @@ def save_profile_to_disk(callable_, filename):
     callable_.profiler_object.dump_stats(filename)
 
 def save_all_profiles():
-    # This is internal because core.system imports core.utils... :/
-    import vistrails.core.system
-    td = vistrails.core.system.temporary_directory()
+    td = tempfile.gettempdir()
     for (name, method) in get_profiled_methods():
         fout = td + name + '.pyp'
         #print fout
@@ -414,38 +452,13 @@ def version_string_to_list(version):
     numbers and strings:
 
     version_string('0.1') -> [0, 1]
-    version_string('0.9.9alpha') -> [0, 9, '9alpha']
+    version_string('0.9.9alpha1') -> [0, 9, 9, alpha', 1]
 
     """
-    def convert(value):
-        try:
-            return int(value)
-        except ValueError:
-            return value
-    return [convert(value) for value in version.split('.')]
+    return LooseVersion(version).version
 
 def versions_increasing(v1, v2):
-    v1_list = v1.split('.')
-    v1_list.reverse()
-    v2_list = v2.split('.')
-    v2_list.reverse()
-    try:
-        while len(v1_list) > 0 and len(v2_list) > 0:
-            v1_num = int(v1_list.pop())
-            v2_num = int(v2_list.pop())
-            if v1_num < v2_num:
-                return True
-            elif v1_num > v2_num:
-                return False
-        if len(v1_list) < len(v2_list):
-            return True
-        elif len(v1_list) > len(v2_list):
-            return False
-    except ValueError:
-        vistrails.core.debug.critical("Cannot compare versions whose components " +
-                       "are not integers")
-    return False
-                
+    return LooseVersion(v1) < LooseVersion(v2)
 
 ##############################################################################
 # DummyView & DummyScene
@@ -469,6 +482,7 @@ class DummyView(object):
     def set_module_not_executed(self, *args, **kwargs): pass
     def set_module_progress(self, *args, **kwargs): pass
     def set_module_persistent(self, *args, **kwargs): pass
+    def set_execution_progress(self, *args, **kwargs): pass
     def flushMoveActions(self, *args, **kwargs): pass
     def scene(self): 
         return self._scene
@@ -524,7 +538,44 @@ class Ref(object):
             import new
             instance_method = new.instancemethod
         return instance_method(self._func, self._obj(), self._clas)
-    
+
+###############################################################################
+
+def xor(first, *others):
+    """XORs bytestrings.
+
+    Example: xor('abcd', '\x20\x01\x57\x56') = 'Ac42'
+    """
+    l = len(first)
+    first = [ord(c) for c in first]
+    for oth in others:
+        if len(oth) != l:
+            raise ValueError("All bytestrings should have the same length: "
+                             "%d != %d" % (l, len(oth)))
+        first = [c ^ ord(o) for (c, o) in itertools.izip(first, oth)]
+    return ''.join(chr(c) for c in first)
+
+def long2bytes(nb, length=None):
+    """Turns a single integer into a little-endian bytestring.
+
+    Uses as many bytes as necessary or optionally pads to length bytes.
+    Might return a result longer than length.
+
+    Example: long2bytes(54321, 4) = b'\x31\xD4\x00\x00'
+    """
+    if nb < 0:
+        raise ValueError
+    elif nb == 0:
+        result = b'\x00'
+    else:
+        result = b''
+        while nb > 0:
+            result += chr(nb & 0xFF)
+            nb = nb >> 8
+    if length is not None and len(result) < length:
+        result += '\x00' * (length - len(result))
+    return result
+
 ################################################################################
 
 class Chdir(object):
@@ -609,7 +660,8 @@ class TestCommon(unittest.TestCase):
     def test_version_string_to_list(self):
         self.assertEquals(version_string_to_list("0.1"), [0, 1])
         self.assertEquals(version_string_to_list("1.0.2"), [1, 0, 2])
-        self.assertEquals(version_string_to_list("1.0.2beta"), [1, 0, '2beta'])
+        self.assertEquals(version_string_to_list("1.0.2beta"),
+                          [1, 0, 2, 'beta'])
     
     def test_ref(self):
         class C(object):
@@ -639,6 +691,61 @@ class TestCommon(unittest.TestCase):
         
         self.assertRaises(Exception, raise_exception)
         self.assertEquals(os.getcwd(), currentpath)
-        
+
+    def test_deprecated(self):
+        import re
+        def canon_path(path):
+            path = os.path.realpath(path)
+            p, f = os.path.dirname(path), os.path.basename(path)
+            f = re.split(r'[$.]', f)[0]
+            return os.path.join(p, f)
+        def check_warning(msg, f):
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter('always')
+                f(1, 2)
+            self.assertEqual(len(w), 1)
+            w, = w
+            self.assertEqual(w.message.message, msg)
+            self.assertEqual(w.category, VistrailsDeprecation)
+            self.assertTrue(canon_path(w.filename),
+                            canon_path(__file__))
+
+        @deprecated('repl1')
+        def func1(a, b):
+            self.assertEqual((a, b), (1, 2))
+        @deprecated
+        def func2(a, b):
+            self.assertEqual((a, b), (1, 2))
+        check_warning('Call to deprecated function func1 replaced by repl1',
+                      func1)
+        check_warning('Call to deprecated function func2', func2)
+
+        foo = None
+        class Foo(object):
+            @deprecated('repl1')
+            def meth1(s, a, b):
+                self.assertEqual((s, a, b), (foo, 1, 2))
+            @deprecated
+            def meth2(s, a, b):
+                self.assertEqual((s, a, b), (foo, 1, 2))
+            @staticmethod
+            @deprecated('repl3')
+            def meth3(a, b):
+                self.assertEqual((a, b), (1, 2))
+            @staticmethod
+            @deprecated
+            def meth4(a, b):
+                self.assertEqual((a, b), (1, 2))
+        foo = Foo()
+        check_warning('Call to deprecated function meth1 replaced by repl1',
+                      foo.meth1)
+        check_warning('Call to deprecated function meth2',
+                      foo.meth2)
+        check_warning('Call to deprecated function meth3 replaced by repl3',
+                      foo.meth3)
+        check_warning('Call to deprecated function meth4',
+                      foo.meth4)
+
+
 if __name__ == '__main__':
     unittest.main()

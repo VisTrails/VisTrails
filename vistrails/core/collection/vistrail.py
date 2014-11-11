@@ -178,7 +178,8 @@ class VistrailEntity(Entity):
             tag = self.vistrail.get_tag(version_id)
         try:
             workflow = self.vistrail.getPipeline(version_id)
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             import traceback
             debug.critical("Failed to construct pipeline '%s'" % 
                                (tag if tag else version_id),
@@ -259,7 +260,8 @@ class VistrailEntity(Entity):
             action = self.vistrail.actionMap[version_id]
             try:
                 workflow = self.vistrail.getPipeline(version_id)
-            except:
+            except Exception, e:
+                debug.unexpected_exception(e)
                 import traceback
                 if self.vistrail.has_tag(version_id):
                     tag_str = self.vistrail.get_tag(version_id)
@@ -344,9 +346,11 @@ class VistrailEntity(Entity):
                 #             self.add_parameter_exploration_entity(pe)
                 
             # read persisted log entries
+            log = None
             try:
                 log = vistrail.get_persisted_log()
-            except:
+            except Exception, e:
+                debug.unexpected_exception(e)
                 import traceback
                 debug.critical("Failed to read log", traceback.format_exc())
                 

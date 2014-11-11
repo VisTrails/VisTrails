@@ -32,17 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.data_structures.graph import Graph
-from vistrails.core.utils import expression
-from vistrails.core.utils import trace_method
 from vistrails.core import debug
 import copy
-import parser
 
 ##############################################################################
 
 class InternalTuple(object):
     """Tuple used internally for constant tuples."""
+
+    list_depth = 0
 
     def _get_length(self, length):
         return len(self._values)
@@ -145,18 +143,20 @@ class BaseInterpreter(object):
 
     def evaluate_exp(self, atype, base, exps, aliases):
         # FIXME: eval should pretty much never be used
-        import datetime        
-        for e in exps: base = (base[:e[0]] +
-                               str(eval(e[1],
-                                        {'datetime':locals()['datetime']},
-                                        aliases)) +
-                               base[e[0]:])
+        import datetime
+        for e in exps:
+            base = (
+                    base[:e[0]] + str(eval(
+                        e[1],
+                        {'datetime': locals()['datetime']},
+                        aliases)) +
+                    base[e[0]:])
         if not atype in ['string', 'String']:
             if base=='':
                 base = '0'
             try:
-                base = eval(base,None,None)
-            except:
+                base = eval(base)
+            except Exception:
                 pass
         return base
 
@@ -208,7 +208,7 @@ class BaseInterpreter(object):
                     param = pipeline.db_get_object(vttype,oId)
                     param.strValue = str(strval)
                 except Exception, e:
-                    debug.debug("Problem when updating params: %s"%str(e))
+                    debug.debug("Problem when updating params", e)
 
     def resolve_variables(self, vistrail_variables, pipeline):
         for m in pipeline.module_list:

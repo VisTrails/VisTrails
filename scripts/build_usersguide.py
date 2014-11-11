@@ -94,6 +94,10 @@ if __name__ == '__main__':
                 if proc.stdout:
                     print proc.stdout.readlines()
         
+        # The api needs path to source set
+        env = os.environ.copy()
+        env['PYTHONPATH'] = PATH_TO_VISTRAILS_GIT
+
         os.chdir(os.path.join(PATH_TO_VISTRAILS_GIT,
                               *USERSGUIDE_SUBPATH))
         
@@ -117,7 +121,6 @@ if __name__ == '__main__':
                         shutil.rmtree(HTML_FOLDER)
                     html_build = os.path.join(os.getcwd(),
                                               *BUILD_HTML_SUBPATH)
-            
                     shutil.move(html_build, HTML_FOLDER)
         
         if BUILD_PDF:

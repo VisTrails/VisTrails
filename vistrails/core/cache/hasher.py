@@ -75,6 +75,14 @@ class Hasher(object):
         return hasher.digest()
 
     @staticmethod
+    def control_param_signature(control_param, constant_hasher_map={}):
+        hasher = sha_hash()
+        u = hasher.update
+        u(control_param.name)
+        u(control_param.value)
+        return hasher.digest()
+
+    @staticmethod
     def connection_signature(c):
         hasher = sha_hash()
         u = hasher.update
@@ -84,8 +92,10 @@ class Hasher(object):
 
     @staticmethod
     def connection_subpipeline_signature(c, source_sig, dest_sig):
-        """Returns the signature for the connection, including source
-and dest subpipelines"""
+        """Returns the signature for the connection, including source and dest
+        subpipelines
+
+        """
         hasher = sha_hash()
         u = hasher.update
         u(Hasher.connection_signature(c))
@@ -102,15 +112,19 @@ and dest subpipelines"""
         u(obj.module_descriptor.namespace or '')
         u(obj.module_descriptor.package_version or '')
         u(obj.module_descriptor.version or '')
-        u(hash_list(obj.functions, Hasher.function_signature, constant_hasher_map))
+        u(hash_list(obj.functions, Hasher.function_signature,
+                    constant_hasher_map))
+        u(hash_list(obj.control_parameters, Hasher.control_param_signature,
+                    constant_hasher_map))
         return hasher.digest()
 
     @staticmethod
     def subpipeline_signature(module_sig, upstream_sigs):
-        """Returns the signature for a subpipeline, given the
-signatures for the upstream pipelines and connections.
+        """Returns the signature for a subpipeline, given the signatures for
+        the upstream pipelines and connections.
 
         WARNING: For efficiency, upstream_sigs is mutated!
+
         """
         hasher = sha_hash()
         hasher.update(module_sig)
@@ -121,9 +135,11 @@ signatures for the upstream pipelines and connections.
 
     @staticmethod
     def compound_signature(sig_list):
-        """compound_signature(list of signatures) -> sha digest
-        returns the signature of the compound object formed by the list
-        of signatures, assuming the list order is irrelevant"""
+        """compound_signature(list of signatures) -> sha digest returns the
+        signature of the compound object formed by the list of
+        signatures, assuming the list order is irrelevant
+
+        """
         hasher = sha_hash()
         for h in sorted(sig_list):
             hasher.update(h)

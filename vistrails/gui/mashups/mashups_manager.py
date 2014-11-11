@@ -60,14 +60,12 @@ ElementTree = get_elementtree_library()
 
 class MashupsManager(object):
     _instance = None
-    class MashupsManagerSingleton(object):
-        def __call__(self, *args, **kw):
-            if MashupsManager._instance is None:
-                obj = MashupsManager(*args, **kw)
-                MashupsManager._instance = obj
-            return MashupsManager._instance
-    
-    getInstance = MashupsManagerSingleton()
+    @staticmethod
+    def getInstance(*args, **kwargs):
+        if MashupsManager._instance is None:
+            obj = MashupsManager(*args, **kwargs)
+            MashupsManager._instance = obj
+        return MashupsManager._instance
 
     def __init__(self):
         if not MashupsManager._instance:
@@ -118,7 +116,7 @@ class MashupsManager(object):
                         MashupsManager.addMashuptrailtoVistrailController(vt_controller,
                                                                           mashuptrail)    
                         
-                    elif res == 'Move':
+                    else:  # res == 'Move'
                         # we will move the parent trail and validate all mashups
                         # for the current pipeline to make sure they will be 
                         # executable for the current version

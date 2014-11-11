@@ -1,8 +1,9 @@
 import itertools
 
 import vistrails.core.application
-from vistrails.core.db.locator import FileLocator, untitled_locator
+from vistrails.core.db.locator import FileLocator
 import vistrails.core.db.io
+from vistrails.core import debug
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.utils import create_port_spec_string
@@ -65,13 +66,11 @@ class Module(object):
         if self._module.has_port_spec(attr_name, 'input'):
             port_spec = self._module.get_port_spec(attr_name, 'input')
 
-            args = None
             # FIXME want this to be any iterable
             if isinstance(value, tuple):
-                args = value
+                self._update_func(port_spec, *value)
             else:
-                args = (value,)
-            self._update_func(port_spec, *args)
+                self._update_func(port_spec, value)
         else:
             raise AttributeError("type object '%s' has no "
                                  "attribute '%s'" % \
@@ -131,7 +130,7 @@ class Module(object):
                 # print 'update literal', type(value), value
                 num_params += 1
         if num_ports > 1 or (num_ports == 1 and num_params > 0):
-            reg = vistrails.core.modules.module_registry.get_module_registry()
+            reg = get_module_registry()
             tuple_desc = reg.get_descriptor_by_name(basic_pkg, 'Tuple')
             tuple_module = vt_api.add_module_from_descriptor(tuple_desc)
             output_port_spec = PortSpec(id=-1,
@@ -139,7 +138,7 @@ class Module(object):
                                         type='output',
                                         sigstring=port_spec.sigstring)
             vt_api.add_port_spec(tuple_module, output_port_spec)
-            self._update_func(port_spec, *[tuple_module.value()])
+            self._update_func(port_spec, tuple_module.value())
             assert len(port_spec.descriptors()) == len(args)
             for i, descriptor in enumerate(port_spec.descriptors()):
                 arg_name = 'arg%d' % i
@@ -357,7 +356,7 @@ class VisTrailsAPI(object):
     def execute(self, custom_aliases=None, custom_params=None,
                  extra_info=None, reason='API Pipeline Execution'):
         return self.controller.execute_current_workflow(custom_aliases, custom_params,
-                                                  extra_info, reason)
+                                                        extra_info, reason)
 
     def get_packages(self):
         if self._packages is None:
@@ -401,7 +400,8 @@ class VisTrailsAPI(object):
             try:
                 version = \
                     self.controller.vistrail.get_version_number(version)
-            except:
+            except Exception, e:
+                debug.unexpected_exception(e)
                 raise ValueError('Cannot locate version "%s"' % version)
         return version
 
@@ -448,8 +448,8 @@ class VisTrailsAPI(object):
         return wf_execs
 
 import os
+import tempfile
 import unittest
-from vistrails.core.system import temporary_directory
 
 class TestAPI(unittest.TestCase):
     if not hasattr(unittest.TestCase, 'assertIsInstance'):
@@ -559,13 +559,18 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(get_api().new_vistrail())
         basic = self.get_basic_package()
         s1, s2 = self.create_modules(basic)
-        fname = os.path.join(temporary_directory(), "test_write_read.vt")
-        self.assertTrue(get_api().save_vistrail(fname))
-        self.assertTrue(os.path.exists(fname))
-        get_api().close_vistrail()
-        self.assertTrue(get_api().open_vistrail(fname))
-        self.assertEqual(get_api().controller.current_version, 4)
-        get_api().close_vistrail()
+        fdesc, fname = tempfile.mkstemp(prefix='vt_test_write_read_',
+                                 suffix='.vt')
+        os.close(fdesc)
+        try:
+            self.assertTrue(get_api().save_vistrail(fname))
+            self.assertTrue(os.path.exists(fname))
+            get_api().close_vistrail()
+            self.assertTrue(get_api().open_vistrail(fname))
+            self.assertEqual(get_api().controller.current_version, 4)
+            get_api().close_vistrail()
+        finally:
+            os.remove(fname)
 
 if __name__ == '__main__':
     vistrails.core.application.init()

@@ -33,25 +33,32 @@
 ##
 ###############################################################################
 from itertools import izip, chain
+from ast import literal_eval
+import collections
 import copy
 import os
 import tempfile
 import traceback
 import uuid
+import warnings
 
 from vistrails.core import debug, get_vistrails_application
 from vistrails.core.data_structures.graph import Graph
 import vistrails.core.modules
+from vistrails.core.modules.config import ConstantWidgetConfig, \
+    ModuleSettings, InputPort, OutputPort, CompoundInputPort, \
+    CompoundOutputPort, DeprecatedInputPort
 import vistrails.core.modules.vistrails_module
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.package import Package
+from vistrails.core.requirements import MissingRequirement
 import vistrails.core.modules.utils
+from vistrails.core.modules.utils import create_port_spec_item_string
 from vistrails.core.utils import VistrailsInternalError, memo_method, \
-     InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
-     all, profile, versions_increasing, InvalidPipeline
+    InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
+    all, profile, versions_increasing, InvalidPipeline, VistrailsDeprecation
 from vistrails.core.system import vistrails_root_directory, vistrails_version, \
     get_vistrails_basic_pkg_id
-from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.port_spec_item import PortSpecItem
 import vistrails.core.cache.hasher
@@ -280,6 +287,7 @@ class ModuleRegistryException(Exception):
 
         return "RegistryException: %s%s%s" % (self._identifier,
                                               p_version_str, m_str)
+    __repr__ = __str__
 
     def __eq__(self, other):
         return type(self) == type(other) and \
@@ -314,6 +322,7 @@ class MissingPackage(ModuleRegistryException):
 
     def __str__(self):
         return "Missing package: %s" % self._identifier
+    __repr__ = __str__
 
     def _get_module_id(self):
         return None
@@ -331,6 +340,7 @@ class MissingModule(ModuleRegistryException):
     def __str__(self):
         return "Missing module %s in package %s" % (self._module_name,
                                                     self._package_name)
+    __repr__ = __str__
 
 class MissingPackageVersion(ModuleRegistryException):
     def __init__(self, identifier, version):
@@ -340,6 +350,7 @@ class MissingPackageVersion(ModuleRegistryException):
     def __str__(self):
         return "Missing version %s of package %s" % \
             (self._package_version, self._identifier)
+    __repr__ = __str__
 
 class MissingModuleVersion(ModuleRegistryException):
     def __init__(self, identifier, name, namespace, module_version, 
@@ -350,6 +361,7 @@ class MissingModuleVersion(ModuleRegistryException):
     def __str__(self):
         return "Missing version %s of module %s from package %s" % \
             (self._module_version, self._module_name, self._package_name)
+    __repr__ = __str__
 
 class AmbiguousResolution(ModuleRegistryException):
     def __init__(self, name, namespace, matches):
@@ -361,6 +373,7 @@ class AmbiguousResolution(ModuleRegistryException):
         return ("Ambiguous resolution of module %s.  Could resolve to:\n%s" % \
                     (self._module_name, 
                      ',\n'.join(str(m) for m in self.matches)))
+    __repr__ = __str__
 
 class MissingPort(ModuleRegistryException):
     def __init__(self, descriptor, port_name, port_type):
@@ -375,6 +388,7 @@ class MissingPort(ModuleRegistryException):
         return "Missing %s port %s from module %s in package %s" % \
             (self._port_type, self._port_name, self._module_name, 
              self._package_name)
+    __repr__ = __str__
 
 class PortMismatch(MissingPort):
     def __init__(self, identifier, name, namespace, port_name, port_type, port_sigstring):
@@ -392,6 +406,7 @@ class PortMismatch(MissingPort):
                 " in module %s of package %s") % \
                 (self._port_type.capitalize(), self._port_name,
                  self._port_sigstring, self._module_name, self._package_name)
+    __repr__ = __str__
 
 class PortsIncompatible(ModuleRegistryException):
 
@@ -423,6 +438,7 @@ class PortsIncompatible(ModuleRegistryException):
                                                        out_name,
                                                        self._input_port,
                                                        in_name))
+    __repr__ = __str__
 
 class DuplicateModule(ModuleRegistryException):
     def __init__(self, old_descriptor, new_identifier, new_name, 
@@ -443,6 +459,7 @@ class DuplicateModule(ModuleRegistryException):
                 "%s in package %s") % \
                 (self._module_name, self._package_name, old_name, 
                  self.old_descriptor.identifier)
+    __repr__ = __str__
 
 class DuplicateIdentifier(ModuleRegistryException):
     def __init__(self, identifier, name, namespace=None,
@@ -453,6 +470,7 @@ class DuplicateIdentifier(ModuleRegistryException):
     def __str__(self):
         return "There is already a module %s in package %s" % \
             (self._module_name, self._package_name)
+    __repr__ = __str__
 
 class InvalidPortSpec(ModuleRegistryException):
     def __init__(self, descriptor, port_name, port_type, exc):
@@ -469,6 +487,7 @@ class InvalidPortSpec(ModuleRegistryException):
                 'has bad specification\n  %s' % \
             (self._port_type, self._port_name, self._module_name,
              self._package_name, str(self._exc)))
+    __repr__ = __str__
 
 class MissingBaseClass(Exception):
     def __init__(self, base):
@@ -477,6 +496,7 @@ class MissingBaseClass(Exception):
 
     def __str__(self):
         return "Base class has not been registered : %s" % (self._base.__name__)
+    __repr__ = __str__
 
 class ModuleRegistry(DBRegistry):
     """ModuleRegistry serves as a registry of VisTrails modules.
@@ -636,24 +656,7 @@ class ModuleRegistry(DBRegistry):
         # this can be slow
         self.setup_indices()
 
-    def create_default_package(self):
-        basic_pkg = get_vistrails_basic_pkg_id()
-        default_codepath = os.path.join(vistrails_root_directory(), 
-                                        "core", "modules", "basic_modules.py")
-        self._default_package = \
-            Package(id=self.idScope.getNewId(Package.vtType),
-                    codepath=default_codepath,
-                    load_configuration=False,
-                    identifier=basic_pkg,
-                    name='Basic Modules',
-                    version=vistrails_version(),
-                    description="Basic modules for VisTrails")
-        # FIXME need to serialize old_identifiers!
-        self._default_package.old_identifiers = ['edu.utah.sci.vistrails.basic']
-        self.add_package(self._default_package)
-        return self._default_package
-
-    def has_abs_upgrade(self, identifier, name, namespace='', 
+    def has_abs_upgrade(self, identifier, name, namespace='',
                         package_version='', module_version=''):
 
         # if this fails, we want to raise the exception
@@ -681,28 +684,6 @@ class ModuleRegistry(DBRegistry):
 
     ##########################################################################
     # Per-module registry functions
-
-    def add_hierarchy(self, global_registry, module):
-        # a per-module registry needs to have all the module hierarchy
-        # registered there so that add_module doesn't fail with
-        # missing base class. We do _NOT_ add the ports, so watch out!
-        
-        reg = global_registry
-        d = reg.get_descriptor_by_name(module.package, module.name, 
-                                       module.namespace)
-        # we exclude the first module in the hierarchy because it's Module
-        # which we know exists (constructor adds)
-        hierarchy = reg.get_module_hierarchy(d)
-        for desc in reversed(hierarchy[:-1]):
-            old_base = desc.base_descriptor
-            base_descriptor = self.get_descriptor_by_name(old_base.package,
-                                                          old_base.name,
-                                                          old_base.namespace)
-            # FIXME: this package_version should live on descriptor?
-            package = self.get_package_by_name(desc.package)
-            self.update_registry(base_descriptor, desc.module, desc.package, 
-                                 desc.name, desc.namespace, package.version,
-                                 desc.version)
 
     def get_package_by_name(self, identifier, package_version=''):
         package_version = package_version or ''
@@ -774,32 +755,28 @@ class ModuleRegistry(DBRegistry):
 
         try:
             package = self.packages[identifier]
-            if package_version:
-                package_version_key = (identifier, package_version)
-                package = self.package_versions[package_version_key]
-            if not module_version:
+        except KeyError:
+            raise MissingPackage(identifier)
+        if package_version:
+            try:
+                package = self.package_versions[(identifier, package_version)]
+            except KeyError:
+                raise MissingPackageVersion(identifier, package_version)
+        if not module_version:
+            try:
                 descriptor = package.descriptors[(name, namespace)]
-            else:
-                descriptor_version_key = (name, namespace, module_version)
+            except KeyError:
+                raise MissingModule(identifier, name, namespace,
+                                    package_version)
+        else:
+            descriptor_version_key = (name, namespace, module_version)
+            try:
                 descriptor = \
                     package.descriptor_versions[descriptor_version_key]
-            return descriptor
-        except KeyError:
-            if identifier not in self.packages:
-                raise MissingPackage(identifier)
-            elif (name, namespace) not in package.descriptors:
-                raise MissingModule(identifier, name, namespace, 
-                                    package_version)
-            elif package_version and \
-                    package_version_key not in self.package_versions:
-                raise MissingPackageVersion(identifier, package_version)
-            elif module_version and descriptor_version_key not in \
-                    package.descriptor_versions:
+            except KeyError:
                 raise MissingModuleVersion(identifier, name, namespace,
                                            module_version, package_version)
-            else:
-                raise ModuleRegistryException(identifier, name, namespace,
-                                              package_version, module_version)
+        return descriptor
 
     def get_similar_descriptor(self, identifier, name, namespace=None,
                                package_version=None, module_version=None):
@@ -812,10 +789,6 @@ class ModuleRegistry(DBRegistry):
         except MissingModuleVersion:
             return self.get_similar_descriptor(identifier, name, namespace,
                                                package_version, None)
-#         except Exception:
-#             raise
-
-        return None
             
     def get_descriptor(self, module):
         """get_descriptor(module: class) -> ModuleDescriptor
@@ -974,39 +947,134 @@ class ModuleRegistry(DBRegistry):
                                             package_version, version)
         return descriptor
 
+    def convert_port_val(self, val, sig=None, cls=None):
+        basic_pkg = get_vistrails_basic_pkg_id()
+        if sig is None and cls is None:
+            raise ValueError("One of sig or cls must be set")
+        try:
+            if sig is not None:
+                desc = self.get_descriptor_by_name(*sig)
+            else:
+                desc = self.get_descriptor(cls)
+        except Exception, e:
+            debug.unexpected_exception(e)
+            raise VistrailsInternalError("Cannot convert value %r due to "
+                                         "missing descriptor for port" % val)
+        constant_desc = self.get_descriptor_by_name(basic_pkg, 'Constant')
+        if not self.is_descriptor_subclass(desc, constant_desc):
+            raise TypeError("Cannot convert value for non-constant type")
+        if desc.module is None:
+            return None
+        
+        if not isinstance(val, basestring):
+            retval = desc.module.translate_to_string(val)
+        else:
+            checkval = desc.module.translate_to_python(val)
+            retval = desc.module.translate_to_string(checkval)
+            if isinstance(checkval, basestring) and retval != val:
+                # we have a string -> string conversion that doesn't
+                # match
+                retval = desc.module.translate_to_string(val)
+        return retval
+
+    def decode_port(self, port_info, simple_t, compound_t, deprecated_t,
+                    is_input):
+        if (not isinstance(port_info, simple_t) and
+                not isinstance(port_info, compound_t)):
+            port_name = port_info[0]
+            port_sig = port_info[1]
+            if len(port_info) > 2:
+                if isinstance(port_info[2], dict):
+                    port_info = compound_t(port_info[0],
+                                                port_info[1],
+                                                **port_info[2])
+
+                else:
+                    dep_port_info = deprecated_t(*port_info)
+                    port_info = \
+                        compound_t(**dep_port_info._asdict())
+            else:
+                port_info = compound_t(*port_info)
+
+        # convert simple ports to compound ones
+        kwargs = port_info._asdict()
+        port_name = kwargs.pop('name')
+        port_sig = kwargs.pop('signature')
+        if is_input and isinstance(port_info, simple_t):
+            kwargs['labels'] = [kwargs.pop('label')]
+            kwargs['defaults'] = [kwargs.pop('default')]
+            kwargs['values'] = [kwargs.pop('values')]
+            kwargs['entry_types'] = [kwargs.pop('entry_type')]
+        elif isinstance(port_info, compound_t):
+            # have compound port
+            port_items = kwargs.pop('items')
+            if port_items is not None:
+                sig_items = []
+                labels = []
+                defaults = []
+                values = []
+                entry_types = []
+                for item in port_info.items:
+                    if not isinstance(item.signature,
+                                      basestring):
+                        d = self.get_descriptor(item.signature)
+                        sig_items.append(create_port_spec_item_string(
+                            d.package, d.name, d.namespace))
+                    else:
+                        sig_items.append(item.signature)
+                    labels.append(item.label)
+                    defaults.append(item.default)
+                    values.append(item.values)
+                    entry_types.append(item.entry_type)
+                kwargs['signature'] = ','.join(sig_items)
+                if is_input:
+                    kwargs['labels'] = labels
+                    kwargs['defaults'] = defaults
+                    kwargs['values'] = values
+                    kwargs['entry_types'] = entry_types
+
+        return port_name, port_sig, kwargs
+
+    def decode_input_port(self, port_info):
+        return self.decode_port(
+                port_info,
+                InputPort, CompoundInputPort, DeprecatedInputPort,
+                True)
+
+    def decode_output_port(self, port_info):
+        return self.decode_port(
+                port_info,
+                OutputPort, CompoundOutputPort, OutputPort,
+                False)
+
     def auto_add_ports(self, module):
-        """auto_add_module(module or (module, kwargs)): add
+        """auto_add_ports(module or (module, kwargs)): add
         input/output ports to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
-        for (port_key, adder_f) in [('_input_ports', self.add_input_port),
-                                    ('_output_ports', self.add_output_port)]:
-            if port_key in module.__dict__:
-                for port_info in module.__dict__[port_key]:
-                    added = False
-                    if isinstance(port_info, PortSpec):
-                        # force port type to match list it occurs in
-                        # we just need "input" or "output"
-                        port_info.type = port_key[1:-6]
-                        descriptor = self.get_descriptor(module)
-                        self.add_port_spec(descriptor, port_info)
-                        added = True
-                    elif len(port_info) >= 2:
-                        port_name, port_sig = port_info[:2]
-                        if len(port_info) > 2 and \
-                                isinstance(port_info[2], dict):
-                            kwargs = port_info[2]
-                            adder_f(module, port_name, port_sig, **kwargs)
-                            added = True
-                        else:
-                            args = port_info[2:]
-                            adder_f(module, port_name, port_sig, *args)
-                            added = True
-                        
-                    if not added:
-                        raise TypeError("Expected (port_name, port_signature, "
-                                        "kwargs_dict) or (port_name, "
-                                        "port_signature, *args)")
+        if '_input_ports' in module.__dict__:
+            for port_info in module._input_ports:
+                try:
+                    name, sig, kwargs = self.decode_input_port(port_info)
+                    self.add_input_port(module, name, sig, **kwargs)
+                except Exception, e:
+                    debug.unexpected_exception(e)
+                    debug.critical('Failed to add input port "%s" to module '
+                                   '"%s"' % (name, module.__name__),
+                                   e)
+                    raise
+
+        if '_output_ports' in module.__dict__:
+            for port_info in module._output_ports:
+                try:
+                    name, sig, kwargs = self.decode_output_port(port_info)
+                    self.add_output_port(module, name, sig, **kwargs)
+                except Exception, e:
+                    debug.unexpected_exception(e)
+                    debug.critical('Failed to add output port "%s" to module '
+                                   '"%s"' % (name, module.__name__),
+                                   e)
+                    raise
 
     def auto_add_module(self, module):
         """auto_add_module(module or (module, kwargs)): add module
@@ -1025,136 +1093,82 @@ class ModuleRegistry(DBRegistry):
             raise TypeError("Expected module or (module, kwargs)")
 
     def add_module(self, module, **kwargs):
-        """add_module(module: class, **kwargs) -> Tree
+        """add_module(module: class, **kwargs) -> ModuleDescriptor
 
-        kwargs:
-          name=None,
-          configureWidgetType=None,
-          signatureCallable=None,
-          moduleColor=None,
-          moduleFringe=None,
-          moduleLeftFringe=None,
-          moduleRightFringe=None,
-          abstract=None,
-          package=None,
-          namespace=None,
-          version=None,
-          package_version=None,
-          hide_namespace=False,
-          hide_descriptor=False,
-          is_root=False,
-          ghost_package=None,
-          ghost_package_version=None,
-          ghost_namespace=None,
-
-        Registers a new module with VisTrails. Receives the class
-        itself and an optional name that will be the name of the
-        module (if not given, uses module.__name__).  This module will
-        be available for use in pipelines.
-
-        If moduleColor is not None, then registry stores it so that
-        the gui can use it correctly. moduleColor must be a tuple of
-        three floats between 0 and 1.
-
-        if moduleFringe is not None, then registry stores it so that
-        the gui can use it correctly. moduleFringe must be a list of
-        pairs of floating points.  The first point must be (0.0, 0.0),
-        and the last must be (0.0, 1.0). This will be used to generate
-        custom lateral fringes for module boxes. It must be the case
-        that all x values must be positive, and all y values must be
-        between 0.0 and 1.0. Alternatively, the user can set
-        moduleLeftFringe and moduleRightFringe to set two different
-        fringes.
-
-        if package is not None, then we override the current package
-        to be the given one. This is only intended to be used with
-        local per-module module registries (in other words: if you
-        don't know what a local per-module registry is, you can ignore
-        this, and never use the 'package' option).        
-
-        If namespace is not None, then we associate a namespace with
-        the module. A namespace is essentially appended to the package
-        identifier so that multiple modules inside the same package
-        can share the same name.
-
-        If signatureCallable is not None, then the cache uses this
-        callable as the function to generate the signature for the
-        module in the cache. The function should take three
-        parameters: the pipeline (of type core.vistrail.Pipeline), the
-        module (of type core.vistrail.Module), and a dict that stores
-        parameter hashers. This dict is supposed to be passed to
-        core/cache/hasher.py:Hasher, in case that needs to be called.
-
-        If constantSignatureCallable is not None, then the cache uses
-        this callable as the funciton to generate the signature for
-        the given constant.  If this is not None, then the added
-        module must be a subclass of Constant.
-
-        If hide_namespace is True, the ModulePalette will not display
-        the namespace for that module.  If hide_descriptor is True,
-        the ModulePalette will not display that module in its list
-        (similar to abstract).
-
-        If is_root is True, the added module will become the root
-        module.  Note that this is only possible for the first module
-        added.
-        
-        If ghost_package is not None, then the 'ghost_identifier'
-        'ghost_identifier' is set on the descriptor, which will cause
-        the module to be displayed under that package in the module
-        palette, rather than the package specified by the
-        'identifier' attribute of the descriptor.
-        
-        If ghost_package_version is not None, then the attribute
-        'ghost_package_version' is set on the descriptor.  Currently
-        this value is unused, but eventually if multiple packages
-        with the same identifier but different package versions
-        are loaded simultaneously, this will allow overriding of
-        the package_version to associate with in the module palette.
-
-        If ghost_namespace is not None, the descriptor will be
-        displayed under the specified namespace instead of the
-        'namespace' attribute of the descriptor.
-
-        Notice: in the future, more named parameters might be added to
-        this method, and the order is not specified. Always call
-        add_module with named parameters.
+        See :py:class:`vistrails.core.modules.config.ModuleSettings`.
+        All of its attributes may also be used as kwargs to
+        add_module.
 
         """
-        # Setup named arguments. We don't use named parameters so
-        # that positional parameter calls fail earlier
-        def fetch(name, default):
-            r = kwargs.get(name, default)
-            try:
-                del kwargs[name]
-            except KeyError:
-                pass
-            return r
-        name = fetch('name', module.__name__)
-        configureWidgetType = fetch('configureWidgetType', None)
-        signatureCallable = fetch('signatureCallable', None)
-        constantSignatureCallable = fetch('constantSignatureCallable', None)
-        moduleColor = fetch('moduleColor', None)
-        moduleFringe = fetch('moduleFringe', None)
-        moduleLeftFringe = fetch('moduleLeftFringe', None) 
-        moduleRightFringe = fetch('moduleRightFringe', None)
-        is_abstract = fetch('abstract', False)
-        identifier = fetch('package', self._current_package.identifier)
-        namespace = fetch('namespace', None)
-        version = fetch('version', None)
-        package_version = fetch('package_version', 
-                                self._current_package.version)
-        hide_namespace = fetch('hide_namespace', False)
-        hide_descriptor = fetch('hide_descriptor', False)
-        is_root = fetch('is_root', False)
-        ghost_identifier = fetch('ghost_package', None)
-        ghost_package_version = fetch('ghost_package_version', None)
-        ghost_namespace = fetch('ghost_namespace', None)
+        def remap_dict(d):
+            remap = {'configureWidgetType': 'configure_widget',
+                     'constantWidget': 'constant_widget',
+                     'constantWidgets': 'constant_widgets',
+                     'signatureCallable': 'signature',
+                     'constantSignatureCallable': 'constant_signature',
+                     'moduleColor': 'color',
+                     'moduleFringe': 'fringe',
+                     'moduleLeftFringe': 'left_fringe',
+                     'moduleRightFringe': 'right_fringe',
+                     'is_abstract': 'abstract'}
+            remapped_d = {}
+            for k, v in d.iteritems():
+                if k in remap:
+                    remapped_d[remap[k]] = v
+                else:
+                    remapped_d[k] = v
+            return remapped_d
 
-        if len(kwargs) > 0:
-            raise VistrailsInternalError(
-                'Wrong parameters passed to addModule: %s' % kwargs)
-        
+        module_settings = None
+        if '_settings' in module.__dict__:
+            settings = module.__dict__['_settings']
+            if isinstance(settings, ModuleSettings):
+                module_settings = settings
+            elif isinstance(settings, dict):
+                module_settings = ModuleSettings(**remap_dict(settings))
+            else:
+                raise TypeError("Expected module._settings to be "
+                                "ModuleSettings or dict")
+                
+        remapped_kwargs = remap_dict(kwargs)
+        if module_settings is not None:
+            module_settings = module_settings._replace(**remapped_kwargs)
+        else:
+            module_settings = ModuleSettings(**remapped_kwargs)
+        return self.add_module_from_settings(module, module_settings)
+
+    def add_module_from_settings(self, module, settings):
+        """add_module(module: class, settings) -> ModuleDescriptor
+
+        See :py:class:`vistrails.core.modules.config.ModuleSettings`.
+        All of its attributes may also be used as kwargs to
+        add_module.
+
+        """
+
+        def get_setting(attr, default_val):
+            val = getattr(settings, attr)
+            if val is None:
+                return default_val
+            return val
+
+        name = get_setting('name', module.__name__)
+
+        default_identifier = None
+        default_version = ""
+        if self._current_package is not None:
+            default_identifier = self._current_package.identifier
+            default_version = self._current_package.version
+        identifier = get_setting('package', default_identifier)
+        package_version = get_setting('package_version', default_version)
+        namespace = settings.namespace
+        version = settings.version
+
+        if identifier is None:
+            raise VistrailsInternalError("No package is currently being "
+                                         "loaded and arugment 'package' is "
+                                         "not specified.")
+
         package = self.package_versions[(identifier, package_version)]
         desc_key = (name, namespace, version)
         if desc_key in package.descriptor_versions:
@@ -1162,16 +1176,16 @@ class ModuleRegistry(DBRegistry):
 
         # We allow multiple inheritance as long as only one of the superclasses
         # is a subclass of Module.
-        if is_root:
+        if settings.is_root:
             base_descriptor = None
         else:
             candidates = self.get_subclass_candidates(module)
             if len(candidates) != 1:
                 raise InvalidModuleClass(module)
-            baseClass = candidates[0]
-            if not self._module_key_map.has_key(baseClass) :
-                raise MissingBaseClass(baseClass)
-            base_descriptor = self.get_descriptor(baseClass)
+            base_class = candidates[0]
+            if base_class not in self._module_key_map:
+                raise MissingBaseClass(base_class)
+            base_descriptor = self.get_descriptor(base_class)
 
         if module in self._module_key_map:
             # This is really obsolete as having two descriptors
@@ -1187,47 +1201,66 @@ class ModuleRegistry(DBRegistry):
         descriptor = self.update_registry(base_descriptor, module, identifier, 
                                           name, namespace, package_version,
                                           version)
-        if is_root:
+        if settings.is_root:
             self.root_descriptor = descriptor
 
-        descriptor.set_module_abstract(is_abstract)
-        descriptor.set_configuration_widget(configureWidgetType)
-        descriptor.is_hidden = hide_descriptor
-        descriptor.namespace_hidden = hide_namespace
+        descriptor.set_module_abstract(settings.abstract)
+        descriptor.set_configuration_widget(settings.configure_widget)
+        # descriptor.set_configuration_widget(configureWidget)
+        descriptor.is_hidden = settings.hide_descriptor
+        descriptor.namespace_hidden = settings.hide_namespace
 
-        if signatureCallable:
-            descriptor.set_hasher_callable(signatureCallable)
+        if settings.signature:
+            descriptor.set_hasher_callable(settings.signature)
 
-        if constantSignatureCallable:
-            try:
-                basic_pkg = get_vistrails_basic_pkg_id()
-                c = self.get_descriptor_by_name(basic_pkg, 'Constant').module
-            except ModuleRegistryException:
-                msg = "Constant not found - can't set constantSignatureCallable"
-                raise VistrailsInternalError(msg)
-            if not issubclass(module, c):
-                raise TypeError("To set constantSignatureCallable, module " +
+        if settings.constant_signature:
+            if not self.is_constant_module(module):
+                raise TypeError("To set constant_signature, module "
                                 "must be a subclass of Constant")
+                
             # FIXME, currently only allow one per hash, no versioning
             hash_key = (identifier, name, namespace)
-            self._constant_hasher_map[hash_key] = constantSignatureCallable
-        descriptor.set_module_color(moduleColor)
-
-        if moduleFringe:
-            _check_fringe(moduleFringe)
-            leftFringe = list(reversed([(-x, 1.0-y) for (x, y) in moduleFringe]))
-            descriptor.set_module_fringe(leftFringe, moduleFringe)
-        elif moduleLeftFringe and moduleRightFringe:
-            _check_fringe(moduleLeftFringe)
-            _check_fringe(moduleRightFringe)
-            descriptor.set_module_fringe(moduleLeftFringe, moduleRightFringe)
+            self._constant_hasher_map[hash_key] = settings.constant_signature
         
-        if ghost_identifier:
-            descriptor.ghost_identifier = ghost_identifier
-        if ghost_package_version:
-            descriptor.ghost_package_version = ghost_package_version
-        if ghost_namespace:
-            descriptor.ghost_namespace = ghost_namespace
+        constant_widgets = []
+        if settings.constant_widget:
+            constant_widgets += [settings.constant_widget]
+        if settings.constant_widgets is not None:
+            constant_widgets += settings.constant_widgets
+        if len(constant_widgets) > 0:
+            if not self.is_constant_module(module):
+                raise TypeError("To set constant widgets, module " +
+                                "must be a subclass of Constant")
+            for widget_t in constant_widgets:
+                if isinstance(widget_t, tuple):
+                    widget_t = ConstantWidgetConfig(*widget_t)
+                else:
+                    widget_t = ConstantWidgetConfig(widget_t)
+                if widget_t.widget is not None:
+                    self.set_constant_config_widget(descriptor, 
+                                                    widget_t.widget,
+                                                    widget_t.widget_type, 
+                                                    widget_t.widget_use)
+
+        descriptor.set_module_color(settings.color)
+
+        if settings.fringe:
+            _check_fringe(settings.fringe)
+            left_fringe = list(reversed([(-x, 1.0-y) for (x, y) in \
+                                    settings.fringe]))
+            descriptor.set_module_fringe(left_fringe, settings.fringe)
+        elif settings.left_fringe and settings.right_fringe:
+            _check_fringe(settings.left_fringe)
+            _check_fringe(settings.right_fringe)
+            descriptor.set_module_fringe(settings.left_fringe, 
+                                         settings.right_fringe)
+        
+        if settings.ghost_package:
+            descriptor.ghost_identifier = settings.ghost_package
+        if settings.ghost_package_version:
+            descriptor.ghost_package_version = settings.ghost_package_version
+        if settings.ghost_namespace:
+            descriptor.ghost_namespace = settings.ghost_namespace
                  
         self.signals.emit_new_module(descriptor)
         if self.is_abstraction(descriptor):
@@ -1268,7 +1301,7 @@ class ModuleRegistry(DBRegistry):
         else:
             name = _parse_abstraction_name(vt_fname)
             kwargs['name'] = name
- 
+
         package = self.package_versions[(identifier, package_version)]
         if not os.path.isabs(vt_fname):
             vt_fname = os.path.join(package.package_dir, vt_fname)
@@ -1364,11 +1397,73 @@ class ModuleRegistry(DBRegistry):
                          optional=False, sort_key=-1, labels=None, 
                          defaults=None, values=None, entry_types=None,
                          docstring=None, shape=None, 
-                         min_conns=0, max_conns=-1):
+                         min_conns=0, max_conns=-1, depth=0):
         if signature is None and sigstring is None:
             raise VistrailsInternalError("create_port_spec: one of signature "
                                          "and sigstring must be specified")
         spec_id = self.idScope.getNewId(PortSpec.vtType)
+
+        # convert values of defaults and values if necessary
+        if defaults is not None or values is not None:
+            parse_port_spec_string = \
+                            vistrails.core.modules.utils.parse_port_spec_string
+            # parse port specs as necessary
+            if sigstring is not None:
+                sigstrings = parse_port_spec_string(sigstring)
+                sig_cls_list = [None,] * len(sigstrings)
+            else:
+                if isinstance(signature, collections.Sequence):
+                    sig_cls_list = signature
+                    sigstrings = [None,] * len(sig_cls_list)
+                else:
+                    sig_cls_list = [signature]
+                    sigstrings = [None,]
+            if defaults is not None:
+                new_defaults = []
+                if isinstance(defaults, basestring):
+                    defaults = literal_eval(defaults)
+                if not isinstance(defaults, list):
+                    raise ValueError('Defaults for port "%s" must be a list' %
+                                     name)
+                for i, default_val in enumerate(defaults):
+                    if default_val is not None:
+                        default_conv = self.convert_port_val(default_val,
+                                                             sigstrings[i], 
+                                                             sig_cls_list[i])
+                        if default_conv is not None:
+                            new_defaults.append(default_conv)
+                        else:
+                            new_defaults.append(None)
+                    else:
+                        new_defaults.append(None)
+                defaults = new_defaults
+            if values is not None:
+                new_values = []
+                if isinstance(values, basestring):
+                    values = literal_eval(values)
+                if not isinstance(values, list):
+                    raise ValueError('Values for port "%s" must be a list '
+                                     'of lists' % name)
+                for i, values_list in enumerate(values):
+                    if isinstance(values_list, basestring):
+                        values_list = literal_eval(values_list)
+                    if values_list is not None:
+                        if not isinstance(values_list, list):
+                            raise ValueError('Values for port "%s" must be '
+                                             'a list of lists' % name)
+                        new_values_list = []
+                        for val in values_list:
+                            if val is not None:
+                                val_conv = self.convert_port_val(val, 
+                                                                 sigstrings[i],
+                                                                 sig_cls_list[i])
+                                if val_conv is not None:
+                                    new_values_list.append(val_conv)
+                        new_values.append(new_values_list)
+                    else:
+                        new_values.append(None)
+                values = new_values        
+        
         spec = PortSpec(id=spec_id,
                         name=name,
                         type=type,
@@ -1383,7 +1478,8 @@ class ModuleRegistry(DBRegistry):
                         docstring=docstring,
                         shape=shape,
                         min_conns=min_conns,
-                        max_conns=max_conns)
+                        max_conns=max_conns,
+                        depth=depth)
 
         # don't know how many port spec items are created until after...
         for psi in spec.port_spec_items:
@@ -1434,19 +1530,20 @@ class ModuleRegistry(DBRegistry):
     def add_port(self, descriptor, port_name, port_type, port_sig=None, 
                  port_sigstring=None, optional=False, sort_key=-1,
                  labels=None, defaults=None, values=None, entry_types=None, 
-                 docstring=None, shape=None, min_conns=0, max_conns=-1):
+                 docstring=None, shape=None, min_conns=0, max_conns=-1,
+                 depth=0):
         spec = self.create_port_spec(port_name, port_type, port_sig,
                                      port_sigstring, optional, sort_key,
                                      labels, defaults, values, entry_types,
                                      docstring, shape,
-                                     min_conns, max_conns)
+                                     min_conns, max_conns, depth)
 
         self.add_port_spec(descriptor, spec)
 
     def add_input_port(self, module, portName, portSignature, optional=False, 
-                       sort_key=-1, labels=None, defaults=None, values=None,
-                       entry_types=None, docstring=None, shape=None, 
-                       min_conns=0, max_conns=-1):
+                       sort_key=-1, labels=None, defaults=None,
+                       values=None, entry_types=None, docstring=None,
+                       shape=None, min_conns=0, max_conns=-1, depth=0):
         """add_input_port(module: class,
                           portName: string,
                           portSignature: string,
@@ -1459,7 +1556,8 @@ class ModuleRegistry(DBRegistry):
                           docstring: string,
                           shape: tuple,
                           min_conns: int,
-                          max_conns: int) -> None
+                          max_conns: int,
+                          depth: int) -> None
 
         Registers a new input port with VisTrails. Receives the module
         that will now have a certain port, a string representing the
@@ -1468,18 +1566,20 @@ class ModuleRegistry(DBRegistry):
         input port is optional."""
         descriptor = self.get_descriptor(module)
         if isinstance(portSignature, basestring):
-            self.add_port(descriptor, portName, 'input', None, portSignature, 
+            self.add_port(descriptor, portName, 'input', None, portSignature,
                           optional, sort_key, labels, defaults, values,
-                          entry_types, docstring, shape, min_conns, max_conns)
+                          entry_types, docstring, shape, min_conns, max_conns,
+                          depth)
         else:
             self.add_port(descriptor, portName, 'input', portSignature, None, 
                           optional, sort_key, labels, defaults, values,
-                          entry_types, docstring, shape, min_conns, max_conns)
+                          entry_types, docstring, shape, min_conns, max_conns,
+                          depth)
 
 
     def add_output_port(self, module, portName, portSignature, optional=False, 
                         sort_key=-1, docstring=None, shape=None, 
-                        min_conns=0, max_conns=-1):
+                        min_conns=0, max_conns=-1, depth=0):
         """add_output_port(module: class,
                            portName: string,
                            portSignature: string,
@@ -1488,7 +1588,8 @@ class ModuleRegistry(DBRegistry):
                            docstring: string,
                            shape: tuple,
                            min_conns: int,
-                           max_conns: int) -> None
+                           max_conns: int,
+                           depth: int) -> None
 
         Registers a new output port with VisTrails. Receives the
         module that will now have a certain port, a string
@@ -1499,17 +1600,19 @@ class ModuleRegistry(DBRegistry):
         if isinstance(portSignature, basestring):
             self.add_port(descriptor, portName, 'output', None, portSignature, 
                           optional, sort_key, None, None, None, None, 
-                          docstring, shape, min_conns, max_conns)
+                          docstring, shape, min_conns, max_conns, depth)
         else:
             self.add_port(descriptor, portName, 'output', portSignature, None, 
                           optional, sort_key, None, None, None, None, 
-                          docstring, shape, min_conns, max_conns)
+                          docstring, shape, min_conns, max_conns, depth)
 
-    def create_package(self, codepath, load_configuration=True):
+    def create_package(self, codepath, load_configuration=True, prefix=None):
         package_id = self.idScope.getNewId(Package.vtType)
         package = Package(id=package_id,
                           codepath=codepath,
                           load_configuration=load_configuration)
+        if prefix is not None:
+            package.prefix = prefix
         return package
 
     def initialize_package(self, package):
@@ -1533,6 +1636,11 @@ class ModuleRegistry(DBRegistry):
                             if isinstance(module, tuple):
                                 m_dict.update(module[1])
                                 module_list.append((module[0], m_dict))
+                            elif '_settings' in module.__dict__:
+                                kwargs = module._settings._asdict()
+                                kwargs.update(m_dict)
+                                module._settings = ModuleSettings(**kwargs)
+                                module_list.append(module)
                             else:
                                 module_list.append((module, m_dict))
                 else:
@@ -1561,6 +1669,8 @@ class ModuleRegistry(DBRegistry):
                     if hasattr(descriptor, 'module'):
                         self.auto_add_ports(descriptor.module)
                         added_descriptors.add(descriptor)
+        except MissingRequirement:
+            raise
         except Exception, e:
             raise package.InitializationFailed(package, 
                                                [traceback.format_exc()])
@@ -1680,6 +1790,12 @@ class ModuleRegistry(DBRegistry):
                 for d in port_spec.descriptors())
     is_constant = is_method
 
+    def is_constant_module(self, module):
+        basic_pkg = get_vistrails_basic_pkg_id()
+        constant_cls = \
+                    self.get_descriptor_by_name(basic_pkg, 'Constant').module
+        return issubclass(module, constant_cls)
+
     def method_ports(self, module_descriptor):
         """method_ports(module_descriptor: ModuleDescriptor) 
               -> [PortSpec]}
@@ -1760,14 +1876,35 @@ class ModuleRegistry(DBRegistry):
         self._conversions[key] = converters
         return converters
 
+    def is_descriptor_list_subclass(self, sub_descs, super_descs):
+        basic_pkg = get_vistrails_basic_pkg_id()
+        variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
+        module_desc = self.get_descriptor_by_name(basic_pkg, 'Module')
+
+        for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+            if sub_desc == variant_desc or super_desc == variant_desc:
+                continue
+            if super_desc == module_desc and sub_desc != module_desc:
+                warnings.warn(
+                        "Connecting any type on a Module input port is "
+                        "deprecated\nPlease make the output port a Variant to "
+                        "get this behavior.",
+                        category=VistrailsDeprecation)
+                #return False
+            if not self.is_descriptor_subclass(sub_desc, super_desc):
+                return False
+        return True
+
     def are_specs_matched(self, sub, super, allow_conversion=False,
                           out_converters=None):
         """ are_specs_matched(sub: Port, super: Port) -> bool        
         Check if specs of sub and super port are matched or not
         
         """
+        # For a connection, this gets called for sub -> super
         basic_pkg = get_vistrails_basic_pkg_id()
         variant_desc = self.get_descriptor_by_name(basic_pkg, 'Variant')
+        list_desc = self.get_descriptor_by_name(basic_pkg, 'List')
         # sometimes sub is coming None
         # I don't know if this is expected, so I will put a test here
         sub_descs = []
@@ -1784,17 +1921,20 @@ class ModuleRegistry(DBRegistry):
             return False
         elif super_descs == [variant_desc]:
             return True
-
-        def check_types(sub_descs, super_descs):
-            for (sub_desc, super_desc) in izip(sub_descs, super_descs):
-                if (sub_desc == variant_desc or super_desc == variant_desc):
-                    continue
-                if not self.is_descriptor_subclass(sub_desc, super_desc):
-                    return False
+        elif [list_desc] in [super_descs, sub_descs]:
+            # Allow Lists to connect to anything
             return True
+        #elif super_descs == [list_desc] and sub_descs != [list_desc] \
+        #     and sub.depth > 0:
+        #    # List is handled as Variant with depth 1
+        #    return True
+        #elif sub_descs == [list_desc] and super_descs != [list_desc] \
+        #     and super.depth > 0:
+        #    # List is handled as Variant with depth 1
+        #    return True
 
         if (len(sub_descs) == len(super_descs) and
-                check_types(sub_descs, super_descs)):
+                self.is_descriptor_list_subclass(sub_descs, super_descs)):
             return True
 
         if allow_conversion:
@@ -1821,6 +1961,15 @@ class ModuleRegistry(DBRegistry):
         return [self.get_descriptor(klass)
                 for klass in descriptor.module.mro()
                 if issubclass(klass, vistrails.core.modules.vistrails_module.Module)]
+
+    def get_descriptor_subclasses(self, descriptor):
+        # need to find all descriptors that are subdescriptors of descriptor
+        sub_list = []
+        for pkg in self.package_versions.itervalues():
+            for d in pkg.descriptor_list:
+                if self.is_descriptor_subclass(d, descriptor):
+                    sub_list.append(d)
+        return sub_list
         
     def get_input_port_spec(self, module, portName):
         """ get_input_port_spec(module: Module, portName: str) ->
@@ -1884,12 +2033,48 @@ class ModuleRegistry(DBRegistry):
 
     def get_configuration_widget(self, identifier, name, namespace):
         descriptor = self.get_descriptor_by_name(identifier, name, namespace)
-        klass = descriptor.configuration_widget()
-        if isinstance(klass, tuple):
-            (path, klass_name) = klass
-            module = __import__(path, globals(), locals(), [klass_name])
-            klass = getattr(module, klass_name)            
-        return klass
+        package = self.get_package_by_name(identifier)
+        prefix = None
+        if package.prefix is not None and package.codepath is not None:
+            prefix = package.prefix + package.codepath
+        cls = descriptor.configuration_widget()
+        return vistrails.core.modules.utils.load_cls(cls, prefix)
+
+    def get_constant_config_params(self, widget_type=None, widget_use=None):
+        if widget_type is None:
+            widget_type = 'default'
+        if widget_use is None:
+            widget_use = 'default'
+        return (widget_type, widget_use)
+
+    def get_constant_config_widget(self, descriptor, widget_type=None, 
+                                   widget_use=None):
+        widget_type, widget_use = self.get_constant_config_params(widget_type,
+                                                                  widget_use)
+        for desc in self.get_module_hierarchy(descriptor):
+            if desc.has_constant_config_widget(widget_use, widget_type):
+                return desc.get_constant_config_widget(widget_use, widget_type)
+        return None
+
+    def get_all_constant_config_widgets(self, descriptor, widget_use=None):
+        widget_use = self.get_constant_config_params(None, widget_use)[1]
+        widgets = {}
+        for desc in reversed(self.get_module_hierarchy(descriptor)):
+            widgets.update(desc.get_all_constant_config_widgets(widget_use))
+        return widgets.values()
+
+    def set_constant_config_widget(self, descriptor, widget_class, 
+                                   widget_type=None, widget_use=None):
+        widget_type, widget_use = self.get_constant_config_params(widget_type,
+                                                                  widget_use)
+        basic_pkg = get_vistrails_basic_pkg_id()
+        constant_desc = self.get_descriptor_by_name(basic_pkg, 'Constant')
+        if not self.is_descriptor_subclass(descriptor, constant_desc):
+            raise Exception('Descriptor "%s" must be a subclass of Constant '
+                            'to use a constant configuration widget.' % \
+                            descriptor.sigstring)
+        descriptor.set_constant_config_widget(widget_class,
+                                              widget_use, widget_type)
 
     def is_descriptor_subclass(self, sub, super):
         """is_descriptor_subclass(sub : ModuleDescriptor, 
@@ -1976,13 +2161,11 @@ class ModuleRegistry(DBRegistry):
 # get_descriptor           = registry.get_descriptor
 
 def get_module_registry():
-    global registry
     if not registry:
         raise VistrailsInternalError("Registry not constructed yet.")
     return registry
 
 def module_registry_loaded():
-    global registry
     return registry is not None
 
 ##############################################################################

@@ -36,11 +36,11 @@ class PromptIsOkay(Module):
     def compute(self):
         vt_configuration = get_vistrails_configuration()
         if not getattr(vt_configuration, 'interactiveMode', False):
-            self.setResult('result', True)
+            self.set_output('result', True)
             return
 
-        cell = self.getInputFromPort('cell')
-        label = self.forceGetInputFromPort('label', None)
+        cell = self.get_input('cell')
+        label = self.force_get_input('label', None)
 
         # FIXME : This should be done via the spreadsheet, removing it properly
         # and then sending a new DisplayCellEvent
@@ -54,9 +54,9 @@ class PromptIsOkay(Module):
         result = dialog.exec_() == QtGui.QDialog.Accepted
         oldparent.setWidget(cell)
 
-        self.setResult('result', result)
+        self.set_output('result', result)
 
-        if not result and not self.getInputFromPort('carry_on'):
+        if not result and not self.get_input('carry_on'):
             raise ModuleError(self, "Execution aborted")
 
 
