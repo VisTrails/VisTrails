@@ -9,16 +9,16 @@ RestartIfNeededByRun=false
 ChangesAssociations=true
 LicenseFile={#root}\LICENSE
 
-#if Exec("C:\{#python}\python.exe", "{#root}\scripts\get_usersguide.py Input", ".")
+#if Exec("C:\" + python + "\python.exe", root + "\scripts\get_usersguide.py Input", ".")
   #error Failed to get usersguide
 #endif
-#if Exec("C:\{#python}\python.exe", "update_alps.py alps-vistrails-2.2.b3-win{#nbits}.zip Input\{#bits}\alps_libs", ".")
+#if Exec("C:\" + python + "\python.exe", "update_alps.py alps-vistrails-2.2.b3-win" + nbits + ".zip Input\" + bits + "\alps_libs", ".")
   #error Failed to download ALPS
 #endif
-#if Exec("C:\{#python}\python.exe", "..\common\prepare_release.py", ".")
+#if Exec("C:\" + python + "\python.exe", "..\common\prepare_release.py", ".")
   #error Failed to prepare release
 #endif
-#if Exec("C:\{#python}\python.exe", "-m compileall -q {#root}\vistrails", ".")
+#if Exec("C:\" + python + "\python.exe", "-m compileall -q " + root + "\vistrails", ".")
   #error Failed to compile source
 #endif
 
