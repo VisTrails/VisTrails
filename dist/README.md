@@ -18,9 +18,9 @@ packages need to be built from the Git tree for each type.
 
 * Make sure `inkscape` is installed and in your path (for updating splash screen)
 * Update ALPS version from http://archive.comp-phys.org/software/vistrails/
-  in `dist/windows/*.iss` scripts and `dist/mac/make_app`
+  in `scripts/dist/windows/*.iss` scripts and `scripts/dist/mac/make_app`
 * Update CHANGELOG with version, branch, hash and release notes
-* In `dist/common/` run `./prepare_release.py`, this updates the values
+* In `scripts/dist/common/` run `./prepare_release.py`, this updates the values
   from CHANGELOG where it is needed.
 * Commit changes
 * Create a new annotated tag, e.g.: `git tag -a v2.1.0`
@@ -40,9 +40,10 @@ The resulting files are in `dist/`.
 
 ## Anaconda
 
-The recipe for building a Conda package is in `dist/conda/`. Packages must be
-built for each OS and architecture here, typically `osx-64`, `linux-32` and
-`linux-64`. Anaconda also supports Windows, but we didn't build there so far.
+The recipe for building a Conda package is in `scripts/dist/conda/`. Packages
+must be built for each OS and architecture here, typically `osx-64`, `linux-32`
+and `linux-64`. Anaconda also supports Windows, but we didn't build there so
+far.
 
 ## Mac
 
@@ -50,14 +51,14 @@ Set up your machine as described in [doc/dist/setup_build_system_mac.txt](doc/di
 
 Build the mac binary with:
 
-    dist/mac$ ./make_app name-of-binary
+    scripts/dist/mac$ ./make_app name-of-binary
 
 ## Windows
 
 Set up your machine using as described in [doc/dist/setup_build_system_windows.txt](doc/dist/setup_build_system_windows.txt)
 
 The Windows installer uses [Inno Setup][inno].he build scripts are in
-`dist/windows/`. There are one each for 32/64 bit, and 2 more for GDAL versions.
+`scripts/dist/windows/`. There are one each for 32/64 bit, and 2 more for GDAL versions.
 The generated `.exe` is placed in the `.\Output\` directory.
 
 The scripts can be run from the command line using `ISCC.exe`.
