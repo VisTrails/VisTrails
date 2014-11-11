@@ -108,7 +108,8 @@ if __name__ == '__main__':
             proc = subprocess.Popen(["make", "html"],
                                     stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
+                                    stderr=subprocess.STDOUT,
+                                    env=env)
             proc.wait()
             if proc.returncode != 0:
                 print "ERROR: make html failed."
@@ -122,7 +123,7 @@ if __name__ == '__main__':
                     html_build = os.path.join(os.getcwd(),
                                               *BUILD_HTML_SUBPATH)
                     shutil.move(html_build, HTML_FOLDER)
-        
+
         if BUILD_PDF:
             print "Building usersguide to ", PDF_FILE
             #build latex files
@@ -140,7 +141,8 @@ if __name__ == '__main__':
             proc = subprocess.Popen(["make", "latex"],
                                     stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
+                                    stderr=subprocess.STDOUT,
+                                    env=env)
             proc.wait()
             if proc.returncode != 0:
                 print "ERROR: make latex failed."
@@ -154,7 +156,8 @@ if __name__ == '__main__':
                 proc = subprocess.Popen(["make", "LATEXOPTS=-interaction=nonstopmode -halt-on-error", "all-pdf"],
                                     stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
+                                    stderr=subprocess.STDOUT,
+                                    env=env)
                 output, error = proc.communicate()
                 if proc.returncode != 0:
                     print "ERROR: make all-pdf failed."
