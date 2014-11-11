@@ -297,7 +297,7 @@ def python_version():
     Returns python version info."""
     return sys.version_info
 
-VERSION = '2.1.4'
+VERSION = '2.2'
 def vistrails_version():
     """vistrails_version() -> string - Returns the current VisTrails version."""
     # 0.1 was the Vis2005 version

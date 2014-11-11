@@ -32,16 +32,15 @@ import subprocess
 
 # Paths of files and/or directories to be included in the exported repository (relative to export dir)
 EXPORT_PATHS = "vistrails doc examples extensions scripts CHANGELOG LICENSE".split()
-EXPORT_IGNORE_PATHS = [] #["scripts/dist"] # enable on master
 
 # VisTrails Release Version
-VT_VERSION = '2.1.4'
+VT_VERSION = '2.2'
 
 # Branch to be used to build release
-VT_BRANCH = 'v2.1'
+VT_BRANCH = 'master'
 
 # Hash used in the release
-VT_HASH = '41eb2e32883a'
+VT_HASH = 'b5341fe97287'
 
 # Distribution Tarball name (Do not add ".tar.gz")
 #TARBALL_NAME = "vistrails-src-%s-%s" % (VT_VERSION, VT_HASH)
@@ -96,10 +95,10 @@ SF_UPLOAD_CMD = "scp -v -i %s %s %s,%s@frs.sourceforge.net:/home/frs/project/%s/
                     SF_PROJECT[0:2], SF_PROJECT, SF_DIRNAME)
 
 if __name__ == "__main__":
-    os.chdir(os.path.join(os.path.dirname(__file__), '..', '..'))
+    os.chdir(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
     # prepare release
-    proc = subprocess.Popen(['dist/common/prepare_release.py'],
+    proc = subprocess.Popen(['scripts/dist/common/prepare_release.py'],
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
@@ -114,8 +113,9 @@ if __name__ == "__main__":
     tarball = None
     try:
         tarball = tarfile.open(TARBALL_FILENAME, "w:gz")
+        dist = os.path.join('scripts', 'dist')
         for fname in EXPORT_PATHS:
-            tarball.add(fname) # TODO: use filter
+            tarball.add(fname, filter=lambda x: None if x.name.startswith(dist) else x)
     except:
         print "ERROR: Failed to create tarball"
         raise

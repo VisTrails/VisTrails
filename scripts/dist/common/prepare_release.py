@@ -16,24 +16,24 @@ VERSION_FILES = [
     ["scripts/create_release_wiki_table.py", r'VT_VERSION = [\'"]'],
     ["scripts/create_release_wiki_table.py", r'SF_FOLDER_NAME = [\'"]v'], # a second pass
     ["vistrails/core/system/__init__.py", r'VERSION = [\'"]'],
-    ["dist/mac/setup.py", r'VERSION = [\'"]'],
-    ["dist/windows/vistrails.iss", r'AppVerName=VisTrails '],
-    ["dist/windows/vistrailsx64.iss", r'AppVerName=VisTrails x64 '],
-    ["dist/windows/custom/vistrails-gdal.iss", r'AppVerName=VisTrails '],
-    ["dist/windows/custom/vistrailsx64-gdal.iss", r'AppVerName=VisTrails x64 '],
-    ["dist/source/make-vistrails-src-build.py", r'VT_VERSION = [\'"]'],
+    ["scripts/dist/mac/setup.py", r'VERSION = [\'"]'],
+    ["scripts/dist/windows/vistrails.iss", r'AppVerName=VisTrails '],
+    ["scripts/dist/windows/vistrailsx64.iss", r'AppVerName=VisTrails x64 '],
+    ["scripts/dist/windows/vistrails-gdal.iss", r'AppVerName=VisTrails '],
+    ["scripts/dist/windows/vistrailsx64-gdal.iss", r'AppVerName=VisTrails x64 '],
+    ["scripts/dist/source/make-vistrails-src-build.py", r'VT_VERSION = [\'"]'],
     ["doc/usersguide/conf.py", r'release = [\'"]'],
-    ["dist/common/splash/splash.svg", r'tspan4025">'],
-    ["dist/common/splash/splash.svg", r'tspan4025-7">']] # second pass for shadow
+    ["scripts/dist/common/splash/splash.svg", r'tspan4025">'],
+    ["scripts/dist/common/splash/splash.svg", r'tspan4025-7">']] # second pass for shadow
 
 HASH_FILES = [["scripts/create_release_wiki_table.py", r'VT_REVISION = [\'"]'],
-              ["dist/source/make-vistrails-src-build.py", r'VT_HASH = [\'"]']]
+              ["scripts/dist/source/make-vistrails-src-build.py", r'VT_HASH = [\'"]']]
 
 BRANCH_FILES = [ # For places that should not use 'v' prefix
    ["doc/usersguide/conf.py", r'version = [\'"]']]
 
 BRANCH_FILES_V = [
-   ["dist/source/make-vistrails-src-build.py", r'VT_BRANCH = [\'"]']]
+   ["scripts/dist/source/make-vistrails-src-build.py", r'VT_BRANCH = [\'"]']]
 
 BRANCH_URLS = [ # For places that should use dev for master
    ["scripts/get_usersguide.py", r'http://www.vistrails.org/usersguide/']]
@@ -72,7 +72,7 @@ def update_value(fname, pre, value):
             fp.write(line)
 
 if __name__ == '__main__':
-    os.chdir(os.path.join(os.path.dirname(__file__), '..', '..'))
+    os.chdir(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
     # Read CHANGELOG
     with open(CHANGELOG, 'rb') as fp:
@@ -116,6 +116,6 @@ if __name__ == '__main__':
 
     # Update splash using inkscape
     try:
-        subprocess.check_call('inkscape -e vistrails/gui/resources/images/vistrails_splash.png -w 546 dist/common/splash/splash.svg'.split())
+        subprocess.check_call('inkscape -e vistrails/gui/resources/images/vistrails_splash.png -w 546 scripts/dist/common/splash/splash.svg'.split())
     except (OSError, subprocess.CalledProcessError):
         print "Calling inkscape failed, skipping splash screen update!"

@@ -2,7 +2,7 @@
 
 # This script automatically builds a Conda package
 
-cd "$(dirname "$0")/../.."
+cd "$(dirname "$0")/../../.."
 VT_DIR="$(pwd)"
 
 # Clears Conda cache
@@ -36,7 +36,7 @@ TEMP_FILE="$(echo $TEMP_DIR/*)"
 ln -s "$TEMP_FILE" $TEMP_DIR/vistrails.tar.gz
 
 # Copies conda recipe
-cp -r dist/conda/vistrails $TEMP_DIR/vistrails
+cp -r scripts/dist/conda/vistrails $TEMP_DIR/vistrails
 
 sedi(){
     TEMPFILE=$(mktemp /tmp/vt_conda_XXXXXXXX)
