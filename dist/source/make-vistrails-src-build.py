@@ -41,7 +41,7 @@ VT_VERSION = '2.1.4'
 VT_BRANCH = 'v2.1'
 
 # Hash used in the release
-VT_HASH = '6364eff8ee47'
+VT_HASH = '41eb2e32883a'
 
 # Distribution Tarball name (Do not add ".tar.gz")
 #TARBALL_NAME = "vistrails-src-%s-%s" % (VT_VERSION, VT_HASH)
@@ -131,7 +131,7 @@ if __name__ == "__main__":
             upload_attempts += 1
             print "Uploading tarball to Sourceforge (attempt %d of %d): '%s' ..." % (upload_attempts, SF_UPLOAD_ATTEMPTS, SF_UPLOAD_CMD)
             try:
-                upload_proc = subprocess.Popen(SF_UPLOAD_CMD, shell=True, stdout=proc.PIPE, stderr=proc.STDOUT)
+                upload_proc = subprocess.Popen(SF_UPLOAD_CMD, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 upload_log = upload_proc.communicate()[0]
                 # Indent upload log and print
                 upload_log = "\n".join(['    ' + line for line in upload_log.splitlines()])
