@@ -6,6 +6,7 @@ import core
 import core.db
 from packages.uvcdat_cdms.pipeline_helper import CDMSPipelineHelper
 from core.modules.module_registry import get_module_registry
+import core.system
 import api
 
 
@@ -62,8 +63,8 @@ class QColormapEditor(QtGui.QColorDialog):
             self.colormap.addItem(i)
             
         h.addWidget(self.colormap)
-        le =QtGui.QLineEdit()
-        h.addWidget(le)
+        self.newname = QtGui.QLineEdit()
+        h.addWidget(self.newname)
         b=QtGui.QPushButton("Rename")
         self.connect(b,QtCore.SIGNAL("clicked()"),self.renamed)
         h.addWidget(b)
@@ -73,23 +74,24 @@ class QColormapEditor(QtGui.QColorDialog):
         ## Toolbar section
         self.toolBar = QtGui.QToolBar()
         self.toolBar.setIconSize(QtCore.QSize(customizeUVCDAT.iconsize, customizeUVCDAT.iconsize))
-        actionInfo = [
-            ('folder_image_blue.ico', 'Save Colormap To File.',self.save,False),
-            ('blender-icon.png', 'Blend From First To Last Highlighted Colors.',self.blend,True),
-            ('symbol_refresh.ico', 'Reset Changes.',self.resetChanges,True),
-            ('symbol_check.ico', 'Apply Changes.',self.applyChanges,True),
-            ]
-        for info in actionInfo:
-            icon = QtGui.QIcon(os.path.join(customizeUVCDAT.ICONPATH, info[0]))
+        icons_base = os.path.join(core.system.vistrails_root_directory(),
+                                  'gui/uvcdat/resources/icons')
+        action_info = [
+            (icons_base + '/folder_blue.png', 'Save Colormap To File.', self.save, True),
+            (icons_base + '/blender.png', 'Blend From First To Last Highlighted Colors.', self.blend, True),
+            (icons_base + '/refresh.png', 'Reset Changes.', self.resetChanges, True),
+            (icons_base + '/check.png', 'Apply Changes.', self.applyChanges, True),
+        ]
+        for icon_name, tooltip, callback, enabled in action_info:
+            icon = QtGui.QIcon(os.path.join(customizeUVCDAT.ICONPATH, icon_name))
             action = self.toolBar.addAction(icon, 'help')
-            action.setToolTip(info[1])
-            self.connect(action,QtCore.SIGNAL("triggered()"),info[2])
-            action.setEnabled(info[3])
-        
+            action.setToolTip(tooltip)
+            self.connect(action, QtCore.SIGNAL("triggered()"), callback)
+            action.setEnabled(enabled)
+
         # add combo box to select which plot's colormap to update
         # self.plotCb = QtGui.QComboBox(self)
-        # self.toolBar.addWidget(self.plotCb)    
-        
+        # self.toolBar.addWidget(self.plotCb)
 
         l.addWidget(self.toolBar)
 
@@ -105,9 +107,14 @@ class QColormapEditor(QtGui.QColorDialog):
         self.connect(buttons.widget(),QtCore.SIGNAL("accepted()"),self.applyChanges)
         #self.connect(buttons.widget(),QtCore.SIGNAL("rejected()"),self.resetChanges)
         l.addItem(buttons)
+        self.buttons = buttons
         
         ## select the colormap before connecting
         self.colormap.setCurrentIndex(colormaps.index(self.activeCanvas.getcolormapname()))
+
+        ## Need to deactivate if default (not editable)
+        if self.activeCanvas.getcolormapname() == "default":
+            self.buttons.widget().setEnabled(False)
 
         ## SIGNALS
         self.connect(self.colormap,QtCore.SIGNAL("currentIndexChanged(int)"),self.colorMapComboChanged)
@@ -191,6 +198,11 @@ class QColormapEditor(QtGui.QColorDialog):
         
     def setColorsFromMapName(self):
         #n = self.layout().count()
+        ## Need to deactivate if default (not editable)
+        if str(self.colormap.currentText()) == "default":
+            self.buttons.widget().setEnabled(False)
+        else:
+            self.buttons.widget().setEnabled(True)
         self.cellsDirty = False
         cmap = self.activeCanvas.getcolormap(str(self.colormap.currentText()))
         #self.colors=QtGui.QFrame()
@@ -346,9 +358,16 @@ class QColormapEditor(QtGui.QColorDialog):
         self.cellsDirty = True
             
     def save(self): 
-        pass
+        out = QtGui.QFileDialog.getSaveFileName(self,"JSON File",filter="json Files (*.json *.jsn *.JSN *.JSON) ;; All Files (*.*)",options=QtGui.QFileDialog.DontConfirmOverwrite)
+        cmap = self.activeCanvas.getcolormap(str(self.colormap.currentText()))
+        cmap.script(out)
 
     def renamed(self):
+        newname = str(self.newname.text())
+        newcmap = self.activeCanvas.createcolormap(newname,str(self.colormap.currentText()))
+        self.colormap.addItem(newname)
+        self.colormap.model().sort(0)
+        self.colormap.setCurrentIndex(self.colormap.findText(newname))
         pass
 
     def colorButtonClicked(self,b):
