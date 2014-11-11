@@ -46,18 +46,25 @@ import subprocess
 import sys
 import time
 ### Begin configuration ###
+
+# Should we build the pdf version
+BUILD_PDF = True
+
+# Should we build the html version
+BUILD_HTML = False
+
 # Folder where vistrails is
-PATH_TO_VISTRAILS_GIT = "/Users/emanuele/code/vistrails"
+PATH_TO_VISTRAILS_GIT = os.path.realpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
 # Folder where the html files will be placed. This script will build
 # the docs in the standard location and move files later
 HTML_FOLDER = None
 
 # Complete file path to where copy final pdf file
-PDF_FILE = "/Users/vistrails/code/vistrails/dist/mac/dist/VisTrails/doc/VisTrails.pdf"
+PDF_FILE = os.path.join(PATH_TO_VISTRAILS_GIT, "scripts", "VisTrails.pdf")
 
 # Should we run a `git pull` before building docs? 
-PERFORM_GIT_PULL = True
+PERFORM_GIT_PULL = False
 
 ### End configuration ### 
 ### The following variables usually don't need to be changed
@@ -66,8 +73,12 @@ GIT_PULL_CMD = ["git", "pull"]
 BUILD_HTML_SUBPATH = ["_build", "html"]
 BUILD_LATEX_SUBPATH = ["_build", "latex"]
 PDF_BUILD_NAME = "VisTrails.pdf"
+if len(sys.argv)>1:
+    PDF_FILE = os.path.abspath(sys.argv[1])
+    if PDF_FILE[-4:] != '.pdf':
+        PDF_FILE = os.path.join(PDF_FILE, PDF_BUILD_NAME)
 if __name__ == '__main__':
-    if (PATH_TO_VISTRAILS_GIT is not None and 
+    if (PATH_TO_VISTRAILS_GIT is not None and
         os.path.exists(PATH_TO_VISTRAILS_GIT)):
         current_folder = os.getcwd()
         if PERFORM_GIT_PULL:
@@ -87,82 +98,72 @@ if __name__ == '__main__':
                               *USERSGUIDE_SUBPATH))
         
         print "Going into directory %s"%os.getcwd()
-        # now build html documentation    
-        print "now building html documentation..."
-        proc = subprocess.Popen(["make", "html"],
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
-        proc.wait()
-        if proc.returncode != 0:
-            print "ERROR: make html failed."
-            if proc.stdout:
-                print proc.stdout.readlines()
-        else:
-            # now move files to their final place
-            if HTML_FOLDER is not None:
-                if os.path.exists(HTML_FOLDER):
-                    shutil.rmtree(HTML_FOLDER)
-                html_build = os.path.join(os.getcwd(),
-                                          *BUILD_HTML_SUBPATH)
-            
-                shutil.move(html_build, HTML_FOLDER)
-        
-        #build latex files
-        print "now preparing latex files..."
-        latex_path = os.path.join(".",
-                                  *BUILD_LATEX_SUBPATH)
-        if os.path.exists(latex_path):
-            print "removing old %s directory..."%latex_path
-            proc = subprocess.Popen(["rm", "-rf", latex_path],
+        if BUILD_HTML:
+            # now build html documentation    
+            print "now building html documentation..."
+            proc = subprocess.Popen(["make", "html"],
                                     stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
             proc.wait()
-        print "building latex files..."
-        proc = subprocess.Popen(["make", "latex"],
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
-        proc.wait()
-        if proc.returncode != 0:
-            print "ERROR: make latex failed."
-            if proc.stdout:
-                print proc.stdout.readlines()
-        else:
-            #now build pdf
-            print "now building pdf file..."
-            os.chdir(os.path.join(os.getcwd(),
-                     *BUILD_LATEX_SUBPATH))
-            proc = subprocess.Popen(["make", "all-pdf"],
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
-            # when the pdflatex command fails, it waits indefinitely for user
-            #input. We will wait for up to 90 seconds and terminate the process
-            result = None 
-            i = 0
-            while (result == None and i < 15):
-                result = proc.poll()
-                time.sleep(20)
-                i += 1
-                print proc.stdout.readlines()
-                sys.stdout.flush()
-            if result == None:
-                proc.terminate()
-                print "ERROR: make all-pdf failed."
-                if proc.stdout:
-                    print proc.stdout.readlines()
-            elif proc.returncode != 0:
-                print "ERROR: make all-pdf failed."
+            if proc.returncode != 0:
+                print "ERROR: make html failed."
                 if proc.stdout:
                     print proc.stdout.readlines()
             else:
-                #now move file to its final place
-                if PDF_FILE is not None:
-                    pdf_build = os.path.join(os.getcwd(),
-                                             PDF_BUILD_NAME)
-                    shutil.move(pdf_build, PDF_FILE)
+                # now move files to their final place
+                if HTML_FOLDER is not None:
+                    if os.path.exists(HTML_FOLDER):
+                        shutil.rmtree(HTML_FOLDER)
+                    html_build = os.path.join(os.getcwd(),
+                                              *BUILD_HTML_SUBPATH)
+            
+                    shutil.move(html_build, HTML_FOLDER)
+        
+        if BUILD_PDF:
+            print "Building usersguide to ", PDF_FILE
+            #build latex files
+            print "now preparing latex files..."
+            latex_path = os.path.join(".",
+                                  *BUILD_LATEX_SUBPATH)
+            if os.path.exists(latex_path):
+                print "removing old %s directory..."%latex_path
+                proc = subprocess.Popen(["rm", "-rf", latex_path],
+                                        stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT)
+                proc.wait()
+            print "building latex files..."
+            proc = subprocess.Popen(["make", "latex"],
+                                    stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT)
+            proc.wait()
+            if proc.returncode != 0:
+                print "ERROR: make latex failed."
+                if proc.stdout:
+                    print proc.stdout.readlines()
+            else:
+                #now build pdf
+                print "now building pdf file..."
+                os.chdir(os.path.join(os.getcwd(),
+                         *BUILD_LATEX_SUBPATH))
+                proc = subprocess.Popen(["make", "LATEXOPTS=-interaction=nonstopmode -halt-on-error", "all-pdf"],
+                                    stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT)
+                output, error = proc.communicate()
+                if proc.returncode != 0:
+                    print "ERROR: make all-pdf failed."
+                    print output, error
+                else:
+                    #now move file to its final place
+                    if PDF_FILE is not None:
+                        if os.path.exists(PDF_FILE):
+                            os.unlink(PDF_FILE)
+                        pdf_build = os.path.join(os.getcwd(),
+                                                 PDF_BUILD_NAME)
+                        shutil.move(pdf_build, PDF_FILE)
         os.chdir(current_folder)
         print "Done."
     else:

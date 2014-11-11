@@ -271,6 +271,7 @@ def python_version():
     Returns python version info."""
     return sys.version_info
 
+VERSION = '2.1.4'
 def vistrails_version():
     """vistrails_version() -> string - Returns the current VisTrails version."""
     # 0.1 was the Vis2005 version
@@ -278,7 +279,7 @@ def vistrails_version():
     # 0.3 was the plugin/vtk version
     # 0.4 is cleaned up version with new GUI
     # 1.0 is version with new schema
-    return '2.1.4'
+    return VERSION
 
 def get_latest_vistrails_version():
     """get_latest_vistrails_version() -> string - Returns latest vistrails
@@ -316,6 +317,7 @@ def new_vistrails_release_exists():
 
     return (False, None)
 
+RELEASE = "269e4808eca3"
 def vistrails_revision():
     """vistrails_revision() -> str 
     When run on a working copy, shows the current svn revision else
@@ -324,7 +326,7 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "269e4808eca3"
+        release = RELEASE
         import vistrails.core.requirements
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []

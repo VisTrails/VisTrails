@@ -41,13 +41,26 @@ WizardImageBackColor=$009D5942
 DefaultDirName={code:CustomAppDir}\VisTrails
 SetupIconFile=..\resources\icons\vistrails_install2.ico
 DefaultGroupName=VisTrails x64
-InfoAfterFile=..\Input\releaseNotes.txt
+InfoAfterFile=..\..\..\CHANGELOG
 PrivilegesRequired=none
 RestartIfNeededByRun=false
 ChangesAssociations=true
-LicenseFile=..\Input\license.txt
+LicenseFile=..\..\..\LICENSE
 ArchitecturesInstallIn64BitMode=x64
 OutputBaseFilename=vistrails-x64-gdal-setup
+
+#if Exec("C:\Python27_64\python.exe", "..\..\..\scripts\get_usersguide.py ..\Input", ".")
+  #error Failed to get usersguide
+#endif
+#if Exec("C:\Python27_64\python.exe", "..\update_alps.py alps-vistrails-2.2.b3-win64.zip ..\Input\x64\alps_libs", ".")
+  #error Failed to download ALPS
+#endif
+#if Exec("C:\Python27_64\python.exe", "..\..\common\prepare_release.py", ".")
+  #error Failed to prepare release
+#endif
+#if Exec("C:\Python27_64\python.exe", "-m compileall -q ..\..\..\vistrails", ".")
+  #error Failed to compile source
+#endif
 
 [Files]
 Source: C:\Python27_64\LICENSE.txt; DestDir: {app}\Python27_64
@@ -72,8 +85,8 @@ Source: ..\Input\git.exe; DestDir: {app}
 Source: ..\Input\tar.exe; DestDir: {app}
 Source: ..\Input\runvistrails.py; DestDir: {app}
 Source: ..\Input\*.dll; DestDir: {app}
-Source: ..\Input\license.txt; DestDir: {app}
-Source: ..\Input\vcredist_x64.exe; DestDir: {tmp}; Flags: deleteafterinstall
+Source: ..\..\..\LICENSE; DestDir: {app}; DestName: license.txt
+Source: C:\Users\vistrails\vcredist_x64.exe; DestDir: {tmp}; Flags: deleteafterinstall
 Source: ..\Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
 Source: ..\Input\qt.conf; DestDir: {app}\Python27_64
 ;;;; ------- QT LIBS ------- ;;;;
@@ -102,8 +115,8 @@ Source: ..\Input\qt.conf; DestDir: {app}\Python27_64
 ;Source: D:\Qt\4.6.3\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
 ;Source: D:\Qt\4.6.3\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
-Source: ..\Input\x64\python27.dll; DestDir: {app}
-Source: ..\Input\x64\python27.dll; DestDir: {app}\Python27_64
+Source: C:\Windows\SysWOW64\python27.dll; DestDir: {app}
+Source: C:\Windows\SysWOW64\python27.dll; DestDir: {app}\Python27_64
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.dll; DestDir: {app}
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build64\bin\Release\*.pyd; DestDir: {app}
 ;Source: E:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
@@ -195,9 +208,6 @@ Filename: {tmp}\vcredist_x64.exe; Parameters: /Q; Components: ; Tasks:
 [ThirdPartySettings]
 CompileLogFile=Output\build.log
 CompileLogMethod=append
-
-[PreCompile]
-Name: C:\Python27_64\python.exe; Parameters: C:\Users\vistrails\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt;
 
 [Code]
 var
@@ -305,6 +315,3 @@ end;
 [InnoIDE_Settings]
 LogFile=Output\build.log
 LogFileOverwrite=false
-
-[InnoIDE_PreCompile]
-Name: C:\Python27_64\python.exe; Parameters: C:\Users\vistrails\code\vistrails\dist\windows\Input\download_usersguide.py; Flags: AbortOnError CmdPrompt; 

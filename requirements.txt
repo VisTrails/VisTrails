@@ -1,0 +1,14 @@
+docutils
+dulwich
+IPython
+Mako
+matplotlib
+mysql-python
+numpy
+# PyQt<5.0
+pyth
+python-dateutil
+scipy
+Sphinx
+suds
+VTK
