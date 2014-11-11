@@ -81,30 +81,30 @@ a different buildbot for 2.1 and 2.2 releases due to changed directory structure
 
 For all releases:
 
-* http://128.238.102.101:9050/builders/build-src
+* http://vistrails.poly.edu:9050/builders/build-src
 
 For 2.1 releases:
 
-* http://128.238.102.101:9050/builders/binary-build-mac-2.1
-* http://128.238.102.101:9050/builders/binary-build-win32-2.1
-* http://128.238.102.101:9050/builders/binary-build-win64-2.1
-* http://128.238.102.101:9050/builders/binary-build-win32-gdal-2.1
-* http://128.238.102.101:9050/builders/binary-build-win64-gdal-2.1
+* http://vistrails.poly.edu:9050/builders/binary-build-mac-2.1
+* http://vistrails.poly.edu:9050/builders/binary-build-win32-2.1
+* http://vistrails.poly.edu:9050/builders/binary-build-win64-2.1
+* http://vistrails.poly.edu:9050/builders/binary-build-win32-gdal-2.1
+* http://vistrails.poly.edu:9050/builders/binary-build-win64-gdal-2.1
 
 For 2.2+ releases:
 
-* http://128.238.102.101:9050/builders/binary-build-mac-2.2
-* http://128.238.102.101:9050/builders/binary-build-win32-2.2
-* http://128.238.102.101:9050/builders/binary-build-win64-2.2
-* http://128.238.102.101:9050/builders/binary-build-win32-gdal-2.2
-* http://128.238.102.101:9050/builders/binary-build-win64-gdal-2.2
+* http://vistrails.poly.edu:9050/builders/binary-build-mac-2.2
+* http://vistrails.poly.edu:9050/builders/binary-build-win32-2.2
+* http://vistrails.poly.edu:9050/builders/binary-build-win64-2.2
+* http://vistrails.poly.edu:9050/builders/binary-build-win32-gdal-2.2
+* http://vistrails.poly.edu:9050/builders/binary-build-win64-gdal-2.2
 
 # Testing the release
 
 Windows and mac builds can be tested by running the test suite with buildbot:
 
-*  http://128.238.102.101:9050/builders/TestWinBinary
-*  http://128.238.102.101:9050/builders/TestMacBinary
+*  http://vistrails.poly.edu:9050/builders/TestWinBinary
+*  http://vistrails.poly.edu:9050/builders/TestMacBinary
 
 # Publishing the release
 
