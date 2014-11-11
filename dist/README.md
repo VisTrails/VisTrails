@@ -44,9 +44,6 @@ The recipe for building a Conda package is in `dist/conda/`. Packages must be
 built for each OS and architecture here, typically `osx-64`, `linux-32` and
 `linux-64`. Anaconda also supports Windows, but we didn't build there so far.
 
-TODO: Currently, Conda builds from PyPI. There should be a way to build from a
-local tarball.
-
 ## Mac
 
 Set up your machine as described in [doc/dist/setup_build_system_mac.txt](doc/dist/setup_build_system_mac.txt)
@@ -65,10 +62,9 @@ The generated `.exe` is placed in the `.\Output\` directory.
 
 The scripts can be run from the command line using `ISCC.exe`.
 
-TODO: The `.iss` scripts are hardcoded for the described system setup, so this
-is not very portable. But a script could configure that.
-
-NOTE: The master scripts have been refactored to remove a lot of the redundancy.
+Note: The `.iss` scripts are hardcoded for the described system setup, so this
+is not very portable. You will need to download the required program/libraries,
+and update this file if you are using different paths.
 
 # Building the release
 
