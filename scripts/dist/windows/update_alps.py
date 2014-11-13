@@ -1,8 +1,10 @@
+#!/usr/bin/env python
 ###############################################################################
 ##
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
-## Contact: vistrails@sci.utah.edu
+## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
@@ -31,3 +33,39 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+import os, os.path
+import zipfile
+import sys
+import urllib2
+import cStringIO
+
+if len(sys.argv) != 3:
+    print "Error: You need to specify zip file and destination dir"
+    sys.exit(-1)
+
+ALPS_ZIP = sys.argv[1]
+DEST = os.path.abspath(sys.argv[2])
+
+DOWNLOAD_URL = "http://archive.comp-phys.org/software/vistrails/"
+ZIP_URL = DOWNLOAD_URL + ALPS_ZIP
+
+import os, errno
+
+def ensure_dir(dirname):
+    """
+    Ensure that a named directory exists; if it does not, attempt to create it.
+    """
+    try:
+        os.makedirs(dirname)
+    except OSError, e:
+        if e.errno != errno.EEXIST:
+            raise
+
+if __name__ == "__main__":
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    print "Downloading alps zip from", ZIP_URL
+    response = urllib2.urlopen(ZIP_URL)
+    ensure_dir(DEST)
+    zipfile.ZipFile(cStringIO.StringIO(response.read())).extractall(DEST)
+

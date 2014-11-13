@@ -33,13 +33,12 @@
 ;##
 ;###############################################################################
 
-#define root "../../.."
-#define python "Python27_64"
-#define bits "x64"
+#define root "..\..\.."
+#define bit64
 
 [Setup]
 AppName=VisTrails x64
-AppVerName=VisTrails x64 2.1.4
+AppVerName=VisTrails x64 2.2
 ArchitecturesInstallIn64BitMode=x64
 OutputBaseFilename=vistrails-x64-setup
 DefaultGroupName=VisTrails x64
