@@ -37,6 +37,7 @@
 """
 
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import NotCacheable, \
     ModuleError, ModuleSuspended
 
@@ -70,29 +71,47 @@ class JobMixin(NotCacheable):
         This provides the base code and calls the methods that the module
         developer should provide.
         """
+        debug.log("%s compute() starting\n"
+                  "signature = %r" % (self.__class__.__name__,
+                                      self.signature))
+
         jm = self.job_monitor()
 
         cache = jm.getCache(self.signature)
         if cache is not None:
+            # Result is available from cache
             jm.setCache(self.signature, cache.parameters)
-            # Result is available and cached
+            debug.log("Cached results found; calling job_set_results()")
             self.job_set_results(cache.parameters)
             return
+        else:
+            debug.log("Cache miss")
 
         job = jm.getJob(self.signature)
         if job is None:
+            debug.log("Job doesn't exist")
             params = self.job_read_inputs()
             params = self.job_start(params)
         else:
+            debug.log("Got job from JobMonitor")
             params = job.parameters
         jm.addJob(self.signature, params, self.job_name())
 
         # Might raise ModuleSuspended
-        jm.checkJob(self, self.signature, self.job_get_handle(params))
+        debug.log("Calling checkJob()")
+        try:
+            jm.checkJob(self, self.signature, self.job_get_handle(params))
+        except ModuleSuspended, e:
+            debug.log("checkJob() raised ModuleSuspended, job handle is %r" %
+                      e.handle)
+            raise
 
         # Didn't raise: job is finished
+        debug.log("Calling job_finish()")
         params = self.job_finish(params)
+        debug.log("Filling cache")
         jm.setCache(self.signature, params)
+        debug.log("Calling job_set_results()")
         self.job_set_results(params)
 
     def update_upstream(self):
@@ -163,9 +182,8 @@ class JobMixin(NotCacheable):
 
         This returns a string that completely identifies this job.
 
-        Deprecated.
+        Deprecated, don't use this in new modules
         """
-        # FIXME: unused?
         return self.signature
 
     def job_name(self):
@@ -443,7 +461,7 @@ class JobMonitor(object):
 
         """
         if self._current_workflow:
-            raise Exception("A workflow is still running!: %s" %
+            raise Exception("A workflow is still running: %s!" %
                             self._current_workflow)
         workflow.reset()
         self._current_workflow = workflow
@@ -609,20 +627,19 @@ class JobMonitor(object):
             val() is used by stable batchq branch
         """
         finished = handle.finished()
-        if type(finished) == bool:
-            if finished:
-                return True
-        else:
-            if finished.val():
-                return True
+        if hasattr(finished, 'val'):
+            finished = finished.val()
+        if finished:
+            return True
+
+        # FIXME : deprecate this, remove from RemoteQ
+        # finished should just return True here too
         if hasattr(handle, 'failed'):
             failed = handle.failed()
-            if type(failed) == bool:
-                if failed:
-                    return True
-            else:
-                if failed.val():
-                    return True
+            if hasattr(failed, 'val'):
+                failed = failed.val()
+            if failed:
+                return True
         return False
 
 
