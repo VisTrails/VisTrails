@@ -49,18 +49,26 @@ import time
 import unittest
 import weakref
 
+
 class JobMixin(NotCacheable):
     """ Mixin for suspendable modules.
 
-    Provides a compute method implementing job handling.
-    The package developer needs to implement the sub methods job_read_inputs(),
-    job_set_results(), job_start(), job_get_monitor() and job_finish().
+    This provides the base behavior for modules that submit jobs by handling
+    the serialization & JobMonitor interaction for you.
+
+    The module developer needs only implement the following methods:
+        job_read_inputs()
+        job_set_results()
+        job_start()
+        job_get_handle()
+        job_finish()
     """
 
     def compute(self):
-        """ Calls user-implemented methods at the right times
-            It should always call addJob or setCache so that the callback works
+        """ Base behavior for job-submitting modules.
 
+        This provides the base code and calls the methods that the module
+        developer should provide.
         """
         jm = self.job_monitor()
 
@@ -88,7 +96,13 @@ class JobMixin(NotCacheable):
         self.job_set_results(params)
 
     def update_upstream(self):
-        """ Skip upstream if job exists
+        """ Decides whether or not to run the upstream.
+
+        If a job has already been submitted and the local JobMonitor knows of
+        it, we don't need to run upstream modules to check the status.
+
+        If status check indicates that the job no longer exists, then we should
+        run upstream then submit again.
         """
         if not hasattr(self, 'signature'):
             raise ModuleError(self, "Module has no signature")
@@ -99,46 +113,67 @@ class JobMixin(NotCacheable):
             super(JobMixin, self).update_upstream()
 
     def job_read_inputs(self):
-        """ job_read_inputs() -> None
-            Should read inputs, and return them in a dict
+        """ Implemented by modules to read job parameters from input ports.
+
+        Returns the `params` dictionary used by subsequent methods.
         """
         raise NotImplementedError
 
     def job_start(self, params):
-        """ job_start(params: dict) -> None
-            Should start the job, and return a dict with the
-            parameters needed to check the job
+        """ Implemented by modules to submit the job.
+
+        Gets the `params` dictionary and returns a new dictionary, for example
+        with additional info necessary to check the status later.
         """
         raise NotImplementedError
 
     def job_finish(self, params):
-        """ job_finish(params: dict) -> None
-            Should finish the job and set outputs
+        """ Implemented by modules to get info from the finished job.
+
+        This is called once the job is finished to get the results. These can
+        be added to the `params` dictionary that this method returns.
+
+        This is the right place to clean up the job from the server if they are
+        not supposed to persist.
         """
         raise NotImplementedError
 
     def job_set_results(self, params):
-        """ job_set_results(params: dict) -> None
-            Sets outputs using the params dict
+        """ Implemented by modules to set the output ports.
+
+        This is called after job_finished() or after getting the cached results
+        to set the output ports on this module, from the `params` dictionary.
         """
         raise NotImplementedError
 
-    def job_get_monitor(self, params):
-        """ job_get_monitor(params: dict) -> None
-            Should return an implementation of BaseMonitor, whose methods will
-            be used to check the job state.
+    def job_get_handle(self, params):
+        """ Implemented by modules to return the JobHandle object.
+
+        This returns an object following the JobHandle interface. The
+        JobMonitor will use it to check the status of the job and call back
+        this module once the job is done.
+
+        JobHandle needs the following method:
+          * finished(): returns True if the job is finished
         """
         return None
 
     def job_id(self, params):
-        """ job_id(params: dict) -> job identifier
-            Should return an string completely identifying this job
-            Class name + input values are usually unique
-            DEPRECATED
+        """ Implemented by modules to return a unique identifier for the job.
+
+        This returns a string that completely identifies this job.
+
+        Deprecated.
         """
+        # FIXME: unused?
         return self.signature
 
     def job_name(self):
+        """ Readable name for the job.
+
+        Modules needn't override this, in which case a default will be
+        provided.
+        """
         # use module description if it exists
         if 'pipeline' in self.moduleInfo and self.moduleInfo['pipeline']:
             p_modules = self.moduleInfo['pipeline'].modules
@@ -146,7 +181,7 @@ class JobMixin(NotCacheable):
             if p_module.has_annotation_with_key('__desc__'):
                 return p_module.get_annotation_by_key('__desc__').value
         return self.__class__.__name__
- 
+
 
 class Workflow(object):
     """ Represents a workflow that has jobs.
@@ -240,7 +275,7 @@ class Job(object):
         self.updated = True
 
     def finish(self, params=None):
-        self.params = params if params else {}
+        self.params = params if params else {}  # FIXME: != self.parameters?
         self.finished = True
 
     def description(self):
@@ -260,11 +295,16 @@ class Job(object):
         return Job(m['id'], m['parameters'], m['name'], m['start'], m['finished'])
 
     def __eq__(self, other):
-        if self.id != other.id: return False
-        if self.parameters != other.parameters: return False
-        if self.start != other.start: return False
-        if self.finished != other.finished: return False
+        if self.id != other.id:
+            return False
+        if self.parameters != other.parameters:
+            return False
+        if self.start != other.start:
+            return False
+        if self.finished != other.finished:
+            return False
         return True
+
 
 class JobMonitor(object):
     """ Keeps a list of running jobs and the current job for a vistrail.
@@ -288,8 +328,8 @@ class JobMonitor(object):
         """
         self.callback = weakref.proxy(callback)
 
-##############################################################################
-# Running Workflows
+    ###########################################################################
+    # Running Workflows
 
     def serialize(self):
         """ serialize() -> None
@@ -317,8 +357,8 @@ class JobMonitor(object):
         """
 
         _dict = json.loads(s)
-        
-        jobs = _dict.get('jobs', {})        
+
+        jobs = _dict.get('jobs', {})
         self.jobs = {}
         for id, job in jobs.iteritems():
             self.jobs[id] = Job.from_dict(job)
@@ -378,8 +418,8 @@ class JobMonitor(object):
         if self.callback:
             self.callback.deleteJob(id)
 
-##############################################################################
-# _current_workflow methods
+    ###########################################################################
+    # _current_workflow methods
 
     def currentWorkflow(self):
         """ currentWorkflow() -> Workflow
@@ -520,11 +560,11 @@ class JobMonitor(object):
                 except KeyboardInterrupt, e:
                     raise ModuleSuspended(module, 'Interrupted by user, job'
                                            ' is still running', monitor=monitor,
-                                           job_id=id)
+                                           job_id=id)  # FIXME : there is no 'job_id'
         else:
             if not monitor or not self.isDone(monitor):
                 raise ModuleSuspended(module, 'Job is running', monitor=monitor,
-                                      job_id=id)
+                                      job_id=id)  # FIXME : there is no 'job_id'
 
     def getJob(self, id):
         """ getJob(id: str) -> Job
@@ -575,12 +615,11 @@ class JobMonitor(object):
                     return True
         return False
 
-##############################################################################
+
+###############################################################################
 # Testing
 
-
 class TestJob(unittest.TestCase):
-
     def test_job(self):
         jm = JobMonitor()
         job1 = Job('`13/5', {'a':3, 'b':'7'})
