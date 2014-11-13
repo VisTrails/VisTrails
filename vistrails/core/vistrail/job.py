@@ -570,13 +570,11 @@ class JobMonitor(object):
                                "press Ctrl+C to suspend") % job.name
                 except KeyboardInterrupt:
                     raise ModuleSuspended(module, 'Interrupted by user, job'
-                                          ' is still running', monitor=monitor,
-                                          job_id=id)  # FIXME : there is no 'job_id'
+                                          ' is still running', monitor=monitor)
         else:
             if not monitor or not self.isDone(monitor):
                 raise ModuleSuspended(module, 'Job is running',
-                                      monitor=monitor,
-                                      job_id=id)  # FIXME : there is no 'job_id'
+                                      monitor=monitor)
 
     def getJob(self, id):
         """ getJob(id: str) -> Job
