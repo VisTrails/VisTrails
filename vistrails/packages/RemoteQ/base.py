@@ -175,7 +175,7 @@ class HadoopBaseModule(RQModule):
         finished = job.finished()
         if not finished:
             status = job.status()
-            # The Subshell class provides the BaseMonitor interface, i.e.
+            # The Subshell class provides the JobHandle interface, i.e.
             # finished()
             raise ModuleSuspended(self, '%s' % status, monitor=job)
         self.is_cacheable = lambda *args, **kwargs: True

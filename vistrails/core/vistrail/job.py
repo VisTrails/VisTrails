@@ -37,7 +37,6 @@
 """
 
 from vistrails.core.configuration import get_vistrails_configuration
-from vistrails.core.system import current_dot_vistrails
 from vistrails.core.modules.vistrails_module import NotCacheable, \
     ModuleError, ModuleSuspended
 
@@ -46,7 +45,6 @@ from uuid import uuid1
 import datetime
 import getpass
 import json
-import os
 import time
 import unittest
 import weakref
@@ -82,7 +80,7 @@ class JobMixin(NotCacheable):
         jm.addJob(self.signature, params, self.job_name())
 
         # Might raise ModuleSuspended
-        jm.checkJob(self, self.signature, self.job_get_monitor(params))
+        jm.checkJob(self, self.signature, self.job_get_handle(params))
 
         # Didn't raise: job is finished
         params = self.job_finish(params)

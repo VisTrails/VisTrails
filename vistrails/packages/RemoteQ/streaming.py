@@ -164,7 +164,7 @@ class HadoopStreaming(HadoopBaseModule):
                                   p['job_identifier'], self.job_machine)
         return p
 
-    def job_get_monitor(self, p):
+    def job_get_handle(self, p):
         if not self.job:
             self.createJob(p)
         return self.job

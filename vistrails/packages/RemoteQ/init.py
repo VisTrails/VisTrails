@@ -249,7 +249,7 @@ class RunJob(RQModule):
         self.set_job_machine(params, self.machine)
         return params
 
-    def job_get_monitor(self, params):
+    def job_get_handle(self, params):
         if not self.job:
             self.job_start(params)
         return self.job
@@ -336,7 +336,7 @@ class PBSJob(RQModule):
                 if comment:
                     status += ': ' + comment[10:]
             end_machine()
-            # The PBS class provides the BaseMonitor interface, i.e. finished()
+            # The PBS class provides the JobHandle interface, i.e. finished()
             raise ModuleSuspended(self, '%s' % status, monitor=job)
         # copies the created files to the client
         get_result = TransferFiles("local", input_directory, working_directory,
@@ -409,7 +409,7 @@ class RunPBSScript(RQModule):
         self.set_job_machine(params, self.machine)
         return params
         
-    def job_get_monitor(self, params):
+    def job_get_handle(self, params):
         if not self.job:
             self.job_start(params)
         return self.job
