@@ -2333,8 +2333,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 self.modules[m_id].setSelected(True)
 
         except ModuleRegistryException, e:
-            import traceback
-            traceback.print_exc()
+            debug.print_exc()
             views = self.views()
             assert len(views) > 0
             debug.critical("Missing package/module",

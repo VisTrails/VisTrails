@@ -1270,31 +1270,6 @@ class QVistrailsWindow(QVistrailViewWindow):
         vt_app = get_vistrails_application()
         vt_app.send_notification(notification_id, *args)
 
-        # # do global notifications
-        # if notification_id in self.notifications:
-        #     print 'global notification ', notification_id
-        #     for m in self.notifications[notification_id]:
-        #         try:
-        #             #print "  m: ", m
-        #             m(*args)
-        #         except Exception, e:
-        #             import traceback
-        #             traceback.print_exc()
-        # notifications = {}
-        # # do local notifications
-        # if self.current_view in self.view_notifications:
-        #     notifications = self.view_notifications[self.current_view]
-        #     print 'local notification ', notification_id, self.current_view
-                
-        # if notification_id in notifications:
-        #     for m in notifications[notification_id]:
-        #         try:
-        #             #print "  m: ", m
-        #             m(*args)
-        #         except Exception, e:
-        #             import traceback
-        #             traceback.print_exc()
-
     def clipboard_changed(self):
         self.notify("clipboard_changed")
 

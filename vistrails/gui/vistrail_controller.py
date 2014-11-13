@@ -571,10 +571,9 @@ class VistrailController(QtCore.QObject, BaseController):
 #                 else:
 #                     process_err(exception_set.__iter__().next())
 
-        except Exception, e:
-            import traceback
+        except Exception:
             debug.critical('Unexpected Exception',
-                           traceback.format_exc())
+                           debug.format_exc())
         
         # FIXME: this code breaks undo/redo, and seems to be ok with normal
         # pipeline manipulations so I am leaving it commented out for now

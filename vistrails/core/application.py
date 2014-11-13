@@ -34,7 +34,6 @@
 ###############################################################################
 import os
 import sys
-import traceback
 import weakref
 import warnings
 
@@ -105,7 +104,7 @@ class VistrailsApplicationInterface(object):
             parser.parse_args(args, namespace=command_line_config)
         except SystemError:
             print "GOT SYSTEM ERROR!"
-            traceback.print_exc()
+            debug.print_exc()
 
         self.input = command_line_config.vistrails
         if len(self.input) == 0:
@@ -338,7 +337,7 @@ class VistrailsApplicationInterface(object):
                     m(*args)
                 except Exception, e:
                     debug.unexpected_exception(e)
-                    traceback.print_exc()
+                    debug.print_exc()
 
     def showBuilderWindow(self):
         pass
@@ -424,7 +423,7 @@ class VistrailsApplicationInterface(object):
                 collection.commit()
             except VistrailsDBException:
                 debug.critical("Exception from the database",
-                               traceback.format_exc())
+                               debug.format_exc())
                 return None
 
         version = self.convert_version(version)
@@ -456,7 +455,7 @@ class VistrailsApplicationInterface(object):
             controller.change_selected_version(action.id)
         except VistrailsDBException:
             debug.critical("Exception from the database",
-                           traceback.format_exc())
+                           debug.format_exc())
             return None
 
         controller.select_latest_version()
@@ -482,7 +481,7 @@ class VistrailsApplicationInterface(object):
             controller.write_vistrail(locator, export=export)
         except Exception, e:
             debug.unexpected_exception(e)
-            debug.critical("Failed to save vistrail", traceback.format_exc())
+            debug.critical("Failed to save vistrail", debug.format_exc())
             raise
         if export:
             return controller.locator
@@ -504,7 +503,7 @@ class VistrailsApplicationInterface(object):
             collection.add_to_workspace(entity)
             collection.commit()
         except Exception, e:
-            debug.critical('Failed to index vistrail', traceback.format_exc())
+            debug.critical('Failed to index vistrail', debug.format_exc())
         return controller.locator
 
     def close_vistrail(self, locator=None, controller=None):
