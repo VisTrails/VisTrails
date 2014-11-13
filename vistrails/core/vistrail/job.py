@@ -226,13 +226,20 @@ class Workflow(object):
                         wf['user'], wf['start'], wf['jobs'])
 
     def __eq__(self, other):
-        if self.version != other.version: return False
-        if self.name != other.name: return False
-        if self.id != other.id: return False
-        if self.user != other.user: return False
-        if self.start != other.start: return False
-        if len(self.jobs) != len(other.jobs): return False
-        if set(self.jobs) != set(other.jobs): return False
+        if self.version != other.version:
+            return False
+        if self.name != other.name:
+            return False
+        if self.id != other.id:
+            return False
+        if self.user != other.user:
+            return False
+        if self.start != other.start:
+            return False
+        if len(self.jobs) != len(other.jobs):
+            return False
+        if set(self.jobs) != set(other.jobs):
+            return False
         return True
 
     def reset(self):
@@ -292,7 +299,11 @@ class Job(object):
 
     @staticmethod
     def from_dict(m):
-        return Job(m['id'], m['parameters'], m['name'], m['start'], m['finished'])
+        return Job(m['id'],
+                   m['parameters'],
+                   m['name'],
+                   m['start'],
+                   m['finished'])
 
     def __eq__(self, other):
         if self.id != other.id:
@@ -457,7 +468,7 @@ class JobMonitor(object):
             workflow.jobs[id].mark()
             return
         # this is a new old-style job that we need to add
-        self.addJob(id, {'__message__':obj.msg}, obj.name)
+        self.addJob(id, {'__message__': obj.msg}, obj.name)
 
     def finishWorkflow(self):
         """ finish_job() -> None
@@ -523,7 +534,7 @@ class JobMonitor(object):
         """
         workflow = self.currentWorkflow()
         if not workflow:
-            return # ignore non-monitored jobs
+            return  # ignore non-monitored jobs
         workflow.parents[id(error)] = error
 
     def setCache(self, id, params, name=''):
@@ -557,13 +568,14 @@ class JobMonitor(object):
                         time.sleep(interval)
                         print ("Waiting for job: %s,"
                                "press Ctrl+C to suspend") % job.name
-                except KeyboardInterrupt, e:
+                except KeyboardInterrupt:
                     raise ModuleSuspended(module, 'Interrupted by user, job'
-                                           ' is still running', monitor=monitor,
-                                           job_id=id)  # FIXME : there is no 'job_id'
+                                          ' is still running', monitor=monitor,
+                                          job_id=id)  # FIXME : there is no 'job_id'
         else:
             if not monitor or not self.isDone(monitor):
-                raise ModuleSuspended(module, 'Job is running', monitor=monitor,
+                raise ModuleSuspended(module, 'Job is running',
+                                      monitor=monitor,
                                       job_id=id)  # FIXME : there is no 'job_id'
 
     def getJob(self, id):
@@ -599,7 +611,7 @@ class JobMonitor(object):
             val() is used by stable batchq branch
         """
         finished = monitor.finished()
-        if type(finished)==bool:
+        if type(finished) == bool:
             if finished:
                 return True
         else:
@@ -607,7 +619,7 @@ class JobMonitor(object):
                 return True
         if hasattr(monitor, 'failed'):
             failed = monitor.failed()
-            if type(failed)==bool:
+            if type(failed) == bool:
                 if failed:
                     return True
             else:
@@ -622,8 +634,8 @@ class JobMonitor(object):
 class TestJob(unittest.TestCase):
     def test_job(self):
         jm = JobMonitor()
-        job1 = Job('`13/5', {'a':3, 'b':'7'})
-        job2 = Job('3', {'a':6}, 'my_name', 'a_string_date', True)
+        job1 = Job('`13/5', {'a': 3, 'b': '7'})
+        job2 = Job('3', {'a': 6}, 'my_name', 'a_string_date', True)
         # test module to/from dict
         job3 = Job.from_dict(job2.to_dict())
         self.assertEqual(job2, job3)
