@@ -282,7 +282,7 @@ class Job(object):
         self.updated = True
 
     def finish(self, params=None):
-        self.params = params if params else {}  # FIXME: != self.parameters?
+        self.parameters = params if params else {}
         self.finished = True
 
     def description(self):
