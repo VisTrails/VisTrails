@@ -138,21 +138,22 @@ class ModuleSuspended(ModuleError):
     modules
     """
 
-    def __init__(self, module, errormsg, monitor=None, children=None, queue=None):
-        self.monitor = monitor
-        if monitor is None and queue is not None:
+    def __init__(self, module, errormsg, handle=None, children=None,
+                 queue=None):
+        ModuleError.__init__(self, module, errormsg)
+        self.handle = handle
+        if handle is None and queue is not None:
             warnings.warn("Use of deprecated argument 'queue' replaced by "
-                          "'monitor'",
+                          "'handle'",
                           category=VistrailsDeprecation,
                           stacklevel=2)
-            self.monitor = queue
+            self.handle = queue
         self.children = children
         self.name = None
-        ModuleError.__init__(self, module, errormsg)
 
     @property
     def queue(self):
-        return self.monitor
+        return self.handle
 
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.

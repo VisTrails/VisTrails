@@ -199,7 +199,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             jm = vistrail.jobMonitor
             for workflow_item in vistrail.workflowItems.values():
                 workflow = workflow_item.workflow
-                # jobs without a monitor can also be checked
+                # jobs without a handle can also be checked
                 if not workflow_item.has_queue:
                     # restart job and execute
                     jm.startWorkflow(workflow)
@@ -214,7 +214,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                         continue
                     try:
                         # call monitor
-                        job.jobFinished = jm.isDone(job.monitor)
+                        job.jobFinished = jm.isDone(job.handle)
                         if job.jobFinished:
                             job.setText(1, "Finished")
                     except Exception, e:
@@ -365,13 +365,13 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         elif obj.module.signature in workflow.jobs:
             # this is an already existing new-style job
             job = workflow_item.jobs[obj.module.signature]
-            job.monitor = obj.monitor
+            job.handle = obj.handle
             # need to force takeChild
             base.addChild(job.parent().takeChild(job.parent().indexOfChild(job)))
         elif id in workflow.jobs:
             # this is an already existing old-style job
             job = workflow_item.jobs[id]
-            job.monitor = obj.monitor
+            job.handle = obj.handle
             # need to force takeChild
             base.addChild(job.parent().takeChild(job.parent().indexOfChild(job)))
 
@@ -388,22 +388,22 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
             workflowItem.updateJobs()
             QJobView.instance().set_visible(True)
 
-    def checkJob(self, module, id, monitor):
-        """ checkJob(module: VistrailsModule, id: str, monitor: instance)
+    def checkJob(self, module, id, handle):
+        """ checkJob(module: VistrailsModule, id: str, handle: object)
         Callback, checks if job has completed.
         """
         workflow = self.jobMonitor.currentWorkflow()
         if not workflow:
-            if not monitor or not self.jobMonitor.isDone(monitor):
+            if not handle or not self.jobMonitor.isDone(handle):
                 raise ModuleSuspended(module, 'Job is running',
-                                      monitor=monitor)
+                                      handle=handle)
         workflow_item = self.workflowItems[workflow.id]
         item = workflow_item.jobs.get(id, None)
         item.setText(0, item.job.name)
-        # we should check the status using monitor and show dialog
+        # we should check the status using the JobHandle and show dialog
         # get current view progress bar and hijack it
-        if monitor:
-            item.monitor = monitor
+        if handle:
+            item.handle = handle
         workflow = self.jobMonitor.currentWorkflow()
         workflow_item = self.workflowItems.get(workflow.id, None)
         workflow_item.updateJobs()
@@ -413,7 +413,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         interval = conf.jobCheckInterval
         if interval and not conf.jobAutorun and not progress.suspended:
             # we should keep checking the job
-            if monitor:
+            if handle:
                 # wait for module to complete
                 labelText = (("Running external job %s\n"
                                        "Started %s\n"
@@ -421,7 +421,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
                                        % (item.job.name,
                                           item.job.start))
                 progress.setLabelText(labelText)
-                while not self.jobMonitor.isDone(monitor):
+                while not self.jobMonitor.isDone(handle):
                     i = 0
                     while i < interval:
                         i += 1
@@ -444,10 +444,10 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
                             QtCore.QCoreApplication.processEvents()
                             raise ModuleSuspended(module,
                                        'Interrupted by user, job'
-                                       ' is still running', monitor=monitor)
+                                       ' is still running', handle=handle)
                 return
-        if not monitor or not self.jobMonitor.isDone(monitor):
-            raise ModuleSuspended(module, 'Job is running', monitor=monitor)
+        if not handle or not self.jobMonitor.isDone(handle):
+            raise ModuleSuspended(module, 'Job is running', handle=handle)
 
 
 class QWorkflowItem(QtGui.QTreeWidgetItem):
@@ -478,7 +478,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         self.has_queue = True
         for job in self.jobs.itervalues():
             job.updateJob()
-            if not job.job.finished and not job.monitor:
+            if not job.job.finished and not job.handle:
                 self.has_queue = False
         count = len(self.jobs)
         finished = sum([job.jobFinished for job in self.jobs.values()])
@@ -517,9 +517,9 @@ class QJobItem(QtGui.QTreeWidgetItem):
                                                       job.description()])
         self.setToolTip(1, job.description())
         self.job = job
-        # This is different from job.jobFinished after monitor finishes
+        # This is different from job.jobFinished after job finishes
         self.jobFinished = self.job.finished
-        self.monitor = None
+        self.handle = None
         self.updateJob()
 
     def updateJob(self):
@@ -530,7 +530,7 @@ class QJobItem(QtGui.QTreeWidgetItem):
         if self.jobFinished:
             self.setIcon(1, theme.get_current_theme().JOB_FINISHED)
             self.setToolTip(0, "This Job Has Finished")
-        elif self.monitor:
+        elif self.handle:
             self.setIcon(1, theme.get_current_theme().JOB_SCHEDULED)
             self.setToolTip(0, "This Job is Running and Scheduled for Checking")
         else:
@@ -539,15 +539,15 @@ class QJobItem(QtGui.QTreeWidgetItem):
         self.setToolTip(1, self.job.id)
 
     def stdout(self):
-        if self.monitor:
+        if self.handle:
             sp = LogMonitor("Standard Output for " + self.job.name,
-                            self.monitor)
+                            self.handle)
             sp.exec_()
 
     def stderr(self):
-        if self.monitor:
+        if self.handle:
             sp = ErrorMonitor("Standard Output for " + self.job.name,
-                              self.monitor)
+                              self.handle)
             sp.exec_()
 
 
@@ -563,9 +563,9 @@ class QParentItem(QtGui.QTreeWidgetItem):
 class LogMonitor(QtGui.QDialog):
     """Displays the content of a Job's standard_output().
     """
-    def __init__(self, name, monitor, parent=None):
+    def __init__(self, name, handle, parent=None):
         QtGui.QDialog.__init__(self, parent)
-        self.monitor = monitor
+        self.handle = handle
         self.resize(700, 400)
         self.setWindowTitle(name)
 
@@ -593,11 +593,11 @@ class LogMonitor(QtGui.QDialog):
         layout.addLayout(buttonLayout)
 
     def update_text(self):
-        self.text.setPlainText(self.monitor.standard_output())
+        self.text.setPlainText(self.handle.standard_output())
 
 
 class ErrorMonitor(LogMonitor):
     """Displays the content of a job's standard_error().
     """
     def update_text(self):
-        self.text.setPlainText(self.monitor.standard_error())
+        self.text.setPlainText(self.handle.standard_error())

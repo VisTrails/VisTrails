@@ -540,41 +540,41 @@ class JobMonitor(object):
     def setCache(self, id, params, name=''):
         self.addJob(id, params, name, True)
 
-    def checkJob(self, module, id, monitor):
-        """ checkJob(module: VistrailsModule, id: str, monitor: instance) -> None
+    def checkJob(self, module, id, handle):
+        """ checkJob(module: VistrailsModule, id: str, handle: object) -> None
             Starts monitoring the job for the current running workflow
             module - the module to suspend
             id - the job identifier
-            monitor - a class instance with a finished method for
-                      checking if the job has completed
+            handle - an object following the JobHandle interface, i.e. with a
+                finished method for checking if the job has completed
 
         """
         if not self.currentWorkflow():
-            if not monitor or not self.isDone(monitor):
+            if not handle or not self.isDone(handle):
                 raise ModuleSuspended(module, 'Job is running',
-                                      monitor=monitor)
+                                      handle=handle)
         job = self.getJob(id)
         if self.callback:
-            self.callback.checkJob(module, id, monitor)
+            self.callback.checkJob(module, id, handle)
             return
 
         conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
         if interval and not conf.jobAutorun:
-            if monitor:
+            if handle:
                 # wait for module to complete
                 try:
-                    while not self.isDone(monitor):
+                    while not self.isDone(handle):
                         time.sleep(interval)
                         print ("Waiting for job: %s,"
                                "press Ctrl+C to suspend") % job.name
                 except KeyboardInterrupt:
                     raise ModuleSuspended(module, 'Interrupted by user, job'
-                                          ' is still running', monitor=monitor)
+                                          ' is still running', handle=handle)
         else:
-            if not monitor or not self.isDone(monitor):
+            if not handle or not self.isDone(handle):
                 raise ModuleSuspended(module, 'Job is running',
-                                      monitor=monitor)
+                                      handle=handle)
 
     def getJob(self, id):
         """ getJob(id: str) -> Job
@@ -602,21 +602,21 @@ class JobMonitor(object):
             if workflow.vistrail == old:
                 workflow.vistrail = new
 
-    def isDone(self, monitor):
+    def isDone(self, handle):
         """ isDone(self, monitor) -> bool
 
             A job is done when it reaches finished or failed state
             val() is used by stable batchq branch
         """
-        finished = monitor.finished()
+        finished = handle.finished()
         if type(finished) == bool:
             if finished:
                 return True
         else:
             if finished.val():
                 return True
-        if hasattr(monitor, 'failed'):
-            failed = monitor.failed()
+        if hasattr(handle, 'failed'):
+            failed = handle.failed()
             if type(failed) == bool:
                 if failed:
                     return True

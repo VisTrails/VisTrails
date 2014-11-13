@@ -337,7 +337,7 @@ class PBSJob(RQModule):
                     status += ': ' + comment[10:]
             end_machine()
             # The PBS class provides the JobHandle interface, i.e. finished()
-            raise ModuleSuspended(self, '%s' % status, monitor=job)
+            raise ModuleSuspended(self, '%s' % status, handle=job)
         # copies the created files to the client
         get_result = TransferFiles("local", input_directory, working_directory,
                               dependencies = [cdir])
