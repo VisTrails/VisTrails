@@ -539,11 +539,12 @@ class TestCLTools(unittest.TestCase):
         reload_scripts()
 
     def do_the_test(self, toolname):
-        with intercept_results(self._tools['intern_cltools_1'],
+        with intercept_results(
+                self._tools[toolname],
                 'return_code', 'f_out', 'stdout') as (
                 return_code, f_out, stdout):
             self.assertFalse(execute([
-                    ('intern_cltools_1', 'org.vistrails.vistrails.cltools', [
+                    (toolname, 'org.vistrails.vistrails.cltools', [
                         ('f_in', [('File', self.testdir + '/test_1.cltest')]),
                         ('chars', [('List', '["a", "b", "c"]')]),
                         ('false', [('Boolean', 'False')]),
