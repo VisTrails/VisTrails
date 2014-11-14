@@ -200,7 +200,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             for workflow_item in vistrail.workflowItems.values():
                 workflow = workflow_item.workflow
                 # jobs without a handle can also be checked
-                if not workflow_item.has_queue:
+                if not workflow_item.has_handle:
                     # restart job and execute
                     jm.startWorkflow(workflow)
                     self.updating_now = False
@@ -458,7 +458,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
     def __init__(self, workflow, parent):
         QtGui.QTreeWidgetItem.__init__(self, parent, ['', ''])
         self.workflow = workflow
-        self.has_queue = True
+        self.has_handle = True
         self.setIcon(0, theme.get_current_theme().PIPELINE_ICON)
         self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
         self.workflowFinished = False
@@ -475,18 +475,18 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         self.setToolTip(0, 'Double-Click to View Pipeline "%s" with id %s' %
                            (name, self.workflow.version))
         self.setToolTip(1, "Log id: %s" % self.workflow.id)
-        self.has_queue = True
+        self.has_handle = True
         for job in self.jobs.itervalues():
             job.updateJob()
             if not job.job.finished and not job.handle:
-                self.has_queue = False
+                self.has_handle = False
         count = len(self.jobs)
         finished = sum([job.jobFinished for job in self.jobs.values()])
         self.setText(1, "(%s/%s)" % (finished, count))
         self.workflowFinished = (finished == count)
         if self.workflowFinished:
             self.setIcon(1, theme.get_current_theme().JOB_FINISHED)
-        elif not self.has_queue:
+        elif not self.has_handle:
             self.setIcon(1, theme.get_current_theme().JOB_SCHEDULED)
         else:
             self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
