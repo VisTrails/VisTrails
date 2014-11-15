@@ -45,9 +45,6 @@ must be built for each OS and architecture here, typically `osx-64`, `linux-32`
 and `linux-64`. Anaconda also supports Windows, but we didn't build there so
 far.
 
-TODO: Currently, Conda builds from PyPI. There should be a way to build from a
-local tarball.
-
 ## Mac
 
 Set up your machine as described in [doc/dist/setup_build_system_mac.txt](doc/dist/setup_build_system_mac.txt)
@@ -66,12 +63,11 @@ The generated `.exe` is placed in the `.\Output\` directory.
 
 The scripts can be run from the command line using `ISCC.exe`.
 
-TODO: The `.iss` scripts are hardcoded for the described system setup, so this
-is not very portable. But a script could configure that.
+Note: The `.iss` scripts are hardcoded for the described system setup, so this
+is not very portable. You will need to download the required program/libraries,
+and update this file if you are using different paths.
 
-NOTE: The master scripts have been refactored to remove a lot of the redundancy.
-
-#Building the release
+# Building the release
 
 First run the usersguide buildbot to make sure it is updated on the web. Note
 that the sync script is only run nightly.
@@ -82,36 +78,36 @@ a different buildbot for 2.1 and 2.2 releases due to changed directory structure
 
 For all releases:
 
-* http://128.238.102.101:9050/builders/build-src
+* http://vistrails.poly.edu:9050/builders/build-src
 
 For 2.1 releases:
 
-* http://128.238.102.101:9050/builders/binary-build-mac-2.1
-* http://128.238.102.101:9050/builders/binary-build-win32-2.1
-* http://128.238.102.101:9050/builders/binary-build-win64-2.1
-* http://128.238.102.101:9050/builders/binary-build-win32-gdal-2.1
-* http://128.238.102.101:9050/builders/binary-build-win64-gdal-2.1
+* http://vistrails.poly.edu:9050/builders/binary-build-mac-2.1
+* http://vistrails.poly.edu:9050/builders/binary-build-win32-2.1
+* http://vistrails.poly.edu:9050/builders/binary-build-win64-2.1
+* http://vistrails.poly.edu:9050/builders/binary-build-win32-gdal-2.1
+* http://vistrails.poly.edu:9050/builders/binary-build-win64-gdal-2.1
 
 For 2.2+ releases:
 
-* http://128.238.102.101:9050/builders/binary-build-mac-2.2
-* http://128.238.102.101:9050/builders/binary-build-win32-2.2
-* http://128.238.102.101:9050/builders/binary-build-win64-2.2
-* http://128.238.102.101:9050/builders/binary-build-win32-gdal-2.2
-* http://128.238.102.101:9050/builders/binary-build-win64-gdal-2.2
+* http://vistrails.poly.edu:9050/builders/binary-build-mac-2.2
+* http://vistrails.poly.edu:9050/builders/binary-build-win32-2.2
+* http://vistrails.poly.edu:9050/builders/binary-build-win64-2.2
+* http://vistrails.poly.edu:9050/builders/binary-build-win32-gdal-2.2
+* http://vistrails.poly.edu:9050/builders/binary-build-win64-gdal-2.2
 
-#Testing the release
+# Testing the release
 
 Windows and mac builds can be tested by running the test suite with buildbot:
 
-*  http://128.238.102.101:9050/builders/TestWinBinary
-*  http://128.238.102.101:9050/builders/TestMacBinary
+*  http://vistrails.poly.edu:9050/builders/TestWinBinary
+*  http://vistrails.poly.edu:9050/builders/TestMacBinary
 
-#Publishing the release
+# Publishing the release
 
 TODO: How to publish PyPI and Anaconda?
 
-##Upload to sourceforge
+## Upload to sourceforge
 
 TODO: make script for this
 
@@ -122,11 +118,12 @@ TODO: make script for this
 * Upload everything to `[SFUSER]@frs.sourceforge.net:/home/frs/project/vistrails/vistrails/v[VER]`
 
 ## Update wiki
+
 Update file sizes from sourceforge in `scripts/create_release_wiki_table.py`.
 Run it and use the result to update the
 [vistrails downloads page](http://www.vistrails.org/index.php/Downloads) (and archive page).
 
-##Update "Check For Updates"
+## Update "Check For Updates"
 
 If this is a new stable version, log in to `vistrails.org` and update the version number in:
 `/srv/wiki/vistrails/downloads/dist/release_version.txt`
@@ -135,7 +132,7 @@ If this is a new stable version, log in to `vistrails.org` and update the versio
 
 ## Send email to vistrails-users and vistrails-dev
 
-#Post release steps
+# Post release steps
 
 Merge changes downstream, e.g., from v2.1 -> v2.2 -> master. Before committing, update version
 in CHANGELOG and run prepare_release.py so that version, splash, and CHANGELOG is kept up-to-date.

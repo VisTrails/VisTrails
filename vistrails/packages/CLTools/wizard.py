@@ -216,6 +216,12 @@ class QCLToolsWizard(QtGui.QWidget):
         self.stdAsFiles.setCheckable(True)
         self.toolBar.addAction(self.stdAsFiles)
 
+        self.failWithCmd = QtGui.QAction('fail execution if return != 0', self)
+        self.failWithCmd.setToolTip('If selected, VisTrails will check the exitcode, and abort the execution if not 0')
+        self.failWithCmd.setCheckable(True)
+        self.failWithCmd.setChecked(True)
+        self.toolBar.addAction(self.failWithCmd)
+
         self.toolBar.addSeparator()
 
         self.previewPorts = QtGui.QAction('preview', self)
@@ -360,6 +366,7 @@ class QCLToolsWizard(QtGui.QWidget):
         self.argList = QtGui.QListWidget()
         self.layout().addWidget(self.argList)
         self.stdAsFiles.setChecked(False)
+        self.failWithCmd.setChecked(True)
         self.setTitle()
         self.generate_preview()
     
@@ -403,6 +410,8 @@ class QCLToolsWizard(QtGui.QWidget):
                                 'env_port' in conf['options'])
         self.stdAsFiles.setChecked('options' in conf and
                                    'std_using_files' in conf['options'])
+        self.failWithCmd.setChecked('options' in conf and
+                                    'fail_with_cmd' in conf['options'])
         self.envOption = conf['options']['env'] \
                  if ('options' in conf and 'env' in conf['options']) else None
         self.conf = conf
@@ -430,6 +439,8 @@ class QCLToolsWizard(QtGui.QWidget):
         options = {}
         if self.stdAsFiles.isChecked():
             options['std_using_files'] = ''
+        if self.failWithCmd.isChecked():
+            options['fail_with_cmd'] = ''
         if self.envPort.isChecked():
             options['env_port'] = ''
         if self.envOption:

@@ -105,6 +105,7 @@ def _add_tool(path):
         # add all arguments as an unordered list
         args = [self.conf['command']]
         file_std = 'options' in self.conf and 'std_using_files' in self.conf['options']
+        fail_with_cmd = 'options' in self.conf and 'fail_with_cmd' in self.conf['options']
         setOutput = [] # (name, File) - set File contents as output for name
         open_files = []
         stdin = None
@@ -243,7 +244,10 @@ def _add_tool(path):
             else:
                 kwargs['stderr'] = subprocess.PIPE
 
-        return_code = self.conf.get('return_code', None)
+        if fail_with_cmd:
+            return_code = 0
+        else:
+            return_code = self.conf.get('return_code', None)
 
         env = {}
         # 0. add defaults
