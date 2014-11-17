@@ -28,14 +28,6 @@ class SklearnClassifier(Module):
     _output_ports = [('classifier', "SklearnClassifier")]
 
 
-class SklearnMetric(Module):
-    pass
-
-
-class SklearnAccuracyScore(SklearnMetric):
-    pass
-
-
 class LinearSVC(SklearnClassifier):
     """LinearSVC learns a linear support vector machine model from training data."""
     _input_ports = [("X_train", "basic:List", {}),
