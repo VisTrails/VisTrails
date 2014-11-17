@@ -5,19 +5,21 @@ import numpy as np
 from sklearn.svm import LinearSVC as _LinearSVC
 
 
-class SklearnClassifierPrediction(Module):
-    """Apply a learned scikit-learn classifier model to test data."""
+class Predict(Module):
+    """Apply a learned scikit-learn classifier model to test data.
+    """
+    # TODO : data depth=1
     _input_ports = [("classifier", "Classifier"),
                     ("data", "basic:List")]
-    _output_ports = [("prediction", "basic:List"), ("decision_function",
-                                                    "basic:List")]
+    _output_ports = [("prediction", "basic:List"),
+                     ("decision_function", "basic:List")]
 
     def compute(self):
         clf = self.get_input("classifier")
-        X = self.get_input("data")
-        y_pred = clf.predict(X)
-        decision_function = clf.decision_function(X)
-        self.set_output("prediction", y_pred)
+        data = self.get_input("data")
+        predictions = clf.predict(data)
+        decision_function = clf.decision_function(data)
+        self.set_output("prediction", predictions)
         self.set_output("decision_function", decision_function)
 
 
@@ -43,5 +45,5 @@ class LinearSVC(Classifier):
         self.set_output("classifier", est)
 
 
-_modules = [Classifier, SklearnClassifierPrediction,
+_modules = [Classifier, Predict,
             LinearSVC]
