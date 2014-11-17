@@ -1,4 +1,5 @@
-from vistrails.core.modules.vistrails_module import Module  # , ModuleError
+from vistrails.core.modules.config import ModuleSettings
+from vistrails.core.modules.vistrails_module import Module
 
 import numpy as np
 from sklearn.svm import LinearSVC as _LinearSVC
@@ -21,7 +22,10 @@ class SklearnClassifierPrediction(Module):
 
 
 class SklearnClassifier(Module):
-    pass
+    """Base class for sklearn classifiers.
+    """
+    _settings = ModuleSettings(abstract=True)
+    _output_ports = [('classifier', "SklearnClassifier")]
 
 
 class SklearnMetric(Module):
@@ -37,8 +41,6 @@ class LinearSVC(SklearnClassifier):
     _input_ports = [("X_train", "basic:List", {}),
                     ("y_train", "basic:List", {}),
                     ("C", "basic:Float", {'defaults': [1]})]
-
-    _output_ports = [('classifier', "SklearnClassifier")]
 
     def compute(self):
         X_train = np.vstack(self.get_input("X_train"))
