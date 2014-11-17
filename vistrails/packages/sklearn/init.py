@@ -2,7 +2,37 @@ from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module
 
 import numpy as np
+from sklearn import datasets
 from sklearn.svm import LinearSVC as _LinearSVC
+
+
+###############################################################################
+# Example datasets
+
+class Digits(Module):
+    """Example dataset: digits.
+    """
+    _settings = ModuleSettings(namespace="datasets")
+    _output_ports = [("data", "basic:List"),
+                     ("target", "basic:List")]
+
+    def compute(self):
+        data = datasets.load_digits()
+        self.set_output("data", data.data)
+        self.set_output("target", data.target)
+
+
+class Iris(Module):
+    """Example dataset: iris.
+    """
+    _settings = ModuleSettings(namespace="datasets")
+    _output_ports = [("data", "basic:List"),
+                     ("target", "basic:List")]
+
+    def compute(self):
+        data = datasets.load_iris()
+        self.set_output("data", data.data)
+        self.set_output("target", data.target)
 
 
 ###############################################################################
@@ -52,5 +82,6 @@ class LinearSVC(Classifier):
         self.set_output("classifier", clf)
 
 
-_modules = [Classifier, Predict,
+_modules = [Digits, Iris,
+            Classifier, Predict,
             LinearSVC]
