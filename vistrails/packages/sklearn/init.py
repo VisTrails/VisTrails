@@ -5,6 +5,16 @@ import numpy as np
 from sklearn.svm import LinearSVC as _LinearSVC
 
 
+###############################################################################
+# Base classes for classification
+
+class Classifier(Module):
+    """Base class for sklearn classifiers.
+    """
+    _settings = ModuleSettings(abstract=True)
+    _output_ports = [("classifier", "Classifier")]
+
+
 class Predict(Module):
     """Apply a learned scikit-learn classifier model to test data.
     """
@@ -23,26 +33,23 @@ class Predict(Module):
         self.set_output("decision_function", decision_function)
 
 
-class Classifier(Module):
-    """Base class for sklearn classifiers.
-    """
-    _settings = ModuleSettings(abstract=True)
-    _output_ports = [("classifier", "Classifier")]
-
+###############################################################################
+# Classifiers
 
 class LinearSVC(Classifier):
-    """LinearSVC learns a linear support vector machine model from training data."""
-    _input_ports = [("X_train", "basic:List", {}),
-                    ("y_train", "basic:List", {}),
+    """Learns a linear support vector machine model from training data.
+    """
+    _input_ports = [("train_data", "basic:List", {}),
+                    ("train_classes", "basic:List", {}),
                     ("C", "basic:Float", {"defaults": [1]})]
 
     def compute(self):
-        X_train = np.vstack(self.get_input("X_train"))
-        y_train = self.get_input("y_train")
+        train_data = np.vstack(self.get_input("train_data"))
+        train_classes = self.get_input("train_classes")
 
         C = self.get_input("C")
-        est = _LinearSVC(C=C).fit(X_train, y_train)
-        self.set_output("classifier", est)
+        clf = _LinearSVC(C=C).fit(train_data, train_classes)
+        self.set_output("classifier", clf)
 
 
 _modules = [Classifier, Predict,
