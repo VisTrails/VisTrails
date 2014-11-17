@@ -5,11 +5,6 @@ name = 'sklearn'
 version = '0.15.2'
 
 
-def package_dependencies():
-    dependencies = []
-    return dependencies
-
-
 def package_requirements():
     require_python_module('sklearn', {
                           'pip': 'scikit-learn',
