@@ -49,9 +49,5 @@ class LinearSVC(SklearnClassifier):
         self.set_output("classifier", est)
 
 
-def initialize(*args, **keywords):
-    pass
-
-
 _modules = [SklearnClassifier, SklearnClassifierPrediction,
             LinearSVC]
