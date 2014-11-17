@@ -7,7 +7,7 @@ from sklearn.svm import LinearSVC as _LinearSVC
 
 class SklearnClassifierPrediction(Module):
     """Apply a learned scikit-learn classifier model to test data."""
-    _input_ports = [("classifier", "SklearnClassifier"),
+    _input_ports = [("classifier", "Classifier"),
                     ("data", "basic:List")]
     _output_ports = [("prediction", "basic:List"), ("decision_function",
                                                     "basic:List")]
@@ -21,18 +21,18 @@ class SklearnClassifierPrediction(Module):
         self.set_output("decision_function", decision_function)
 
 
-class SklearnClassifier(Module):
+class Classifier(Module):
     """Base class for sklearn classifiers.
     """
     _settings = ModuleSettings(abstract=True)
-    _output_ports = [('classifier', "SklearnClassifier")]
+    _output_ports = [("classifier", "Classifier")]
 
 
-class LinearSVC(SklearnClassifier):
+class LinearSVC(Classifier):
     """LinearSVC learns a linear support vector machine model from training data."""
     _input_ports = [("X_train", "basic:List", {}),
                     ("y_train", "basic:List", {}),
-                    ("C", "basic:Float", {'defaults': [1]})]
+                    ("C", "basic:Float", {"defaults": [1]})]
 
     def compute(self):
         X_train = np.vstack(self.get_input("X_train"))
@@ -43,5 +43,5 @@ class LinearSVC(SklearnClassifier):
         self.set_output("classifier", est)
 
 
-_modules = [SklearnClassifier, SklearnClassifierPrediction,
+_modules = [Classifier, SklearnClassifierPrediction,
             LinearSVC]
