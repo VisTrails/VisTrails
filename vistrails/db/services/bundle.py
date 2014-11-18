@@ -842,7 +842,7 @@ class FileManifest(Manifest):
 
 class DirectorySerializer(BundleSerializer):
     """ Serializes bundle objects to a directory
-        Only handles the objects declared in MANIFEST
+
     """
 
     def __init__(self, dir_path, bundle=None, overwrite=False, *args, **kwargs):
@@ -858,9 +858,38 @@ class DirectorySerializer(BundleSerializer):
             fname = os.path.join(dir_path, "MANIFEST")
         self._manifest = FileManifest(fname)
 
+    def compute_manifest(self, dir_path=None, fname=None):
+        """ Creates manifest from old bundle files
+        """
+
+        if dir_path is None:
+            dir_path = self._dir_path
+        self._manifest = FileManifest()
+
+        for root, dirs, files in os.walk(dir_path):
+            for fname in files:
+                if fname == 'vistrail' and root == dir_path:
+                    self._manifest.add_entry('vistrail', 'vistrail', 'vistrail')
+                elif fname == 'log' and root == dir_path:
+                    self._manifest.add_entry('log', 'log', 'log')
+                elif fname.startswith('abstraction_'):
+                    abs_id = fname[len('abstraction_'):]
+                    self._manifest.add_entry('abstraction', abs_id, fname)
+                elif root == os.path.join(dir_path,'thumbs'):
+                    self._manifest.add_entry('thumbnail', fname,
+                                             os.path.join('thumbs', fname))
+                elif root == os.path.join(dir_path,'mashups'):
+                    self._manifest.add_entry('mashup', fname,
+                                             os.path.join('mashups', fname))
+
     def load_manifest(self, dir_path=None, fname=None):
         self.create_manifest(dir_path, fname)
-        self._manifest.load()        
+        if os.path.isfile(self._manifest._fname):
+            self._manifest.load()
+        else:
+            # Assume an old bundle that does not have MANIFEST
+            debug.log('MANIFEST is missing, assuming old bundle.')
+            self.compute_manifest(dir_path, fname)
 
     def load(self, dir_path=None):
         if dir_path is None:
@@ -1242,6 +1271,9 @@ class DefaultVistrailsDBSerializer(DBSerializer):
         self.add_serializer("vistrail", VistrailDBSerializer)
 
 class NoManifestMixin(object):
+    """ Mixin for old bundles that do not have a manifest
+    """
+
     def load_manifest(self, dir_path=None, fname=None):
         if dir_path is None:
             dir_path = self._dir_path
@@ -1257,7 +1289,7 @@ class NoManifestMixin(object):
                     abs_id = fname[len('abstraction_'):]
                     self._manifest.add_entry('abstraction', abs_id, fname)
                 elif root == os.path.join(dir_path,'thumbs'):
-                    self._manifest.add_entry('thumbnail', fname, 
+                    self._manifest.add_entry('thumbnail', fname,
                                              os.path.join('thumbs', fname))
                 elif root == os.path.join(dir_path,'mashups'):
                     self._manifest.add_entry('mashup', fname,
@@ -1270,8 +1302,8 @@ class NoManifestDirSerializer(DefaultVistrailsDirSerializer, NoManifestMixin):
 class NoManifestZIPSerializer(DefaultVistrailsZIPSerializer, NoManifestMixin):
     def load_manifest(self, dir_path=None, fname=None):
         NoManifestMixin.load_manifest(self, dir_path, fname)
-    
-    
+
+
 
 import unittest
 import os
@@ -1640,8 +1672,8 @@ class TestBundles(unittest.TestCase):
         self.run_vt_db_bundle(SQLite3DatabaseTest)
 
 if __name__ == '__main__':
-    # unittest.main()
-    suite = unittest.TestSuite()
-    suite.addTest(TestBundles("test_vt_bundle_sqlite"))
-    unittest.TextTestRunner().run(suite)
+    unittest.main()
+    #suite = unittest.TestSuite()
+    #suite.addTest(TestBundles("test_vt_bundle_sqlite"))
+    #unittest.TextTestRunner().run(suite)
                   
