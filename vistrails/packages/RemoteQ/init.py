@@ -130,7 +130,7 @@ class RQModule(JobMixin, Module):
         """ Get machine info from job
         """
         jm = self.job_monitor()
-        if jm.hasJob(self.job_id({})):
+        if jm.hasJob(self.signature):
             params = jm.getJob(self.signature).parameters
             if 'server' in params:
                 return (params['server'],

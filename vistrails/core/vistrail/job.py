@@ -177,15 +177,6 @@ class JobMixin(NotCacheable):
         """
         return None
 
-    def job_id(self, params):
-        """ Implemented by modules to return a unique identifier for the job.
-
-        This returns a string that completely identifies this job.
-
-        Deprecated, don't use this in new modules
-        """
-        return self.signature
-
     def job_name(self):
         """ Readable name for the job.
 
