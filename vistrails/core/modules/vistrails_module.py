@@ -185,31 +185,9 @@ class DummyModuleLogging(object):
 _dummy_logging = DummyModuleLogging()
 
 ################################################################################
-# Serializable
-
-class Serializable(object):
-    """
-    Serializable is a mixin class used to define methods to serialize and
-    deserialize modules.
-
-    """
-
-    def serialize(self):
-        """
-        Method used to serialize a module.
-        """
-        raise NotImplementedError('The serialize method is not defined for this module.')
-
-    def deserialize(self):
-        """
-        Method used to deserialize a module.
-        """
-        raise NotImplementedError('The deserialize method is not defined for this module.')
-
-################################################################################
 # Module
 
-class Module(Serializable):
+class Module(object):
     """Module is the base module from which all module functionality
     is derived from in VisTrails. It defines a set of basic interfaces to
     deal with data input/output (through ports, as will be explained
