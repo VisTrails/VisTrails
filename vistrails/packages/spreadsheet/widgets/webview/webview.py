@@ -78,6 +78,8 @@ class WebViewCellWidget(QCellWidget):
         """
         QCellWidget.__init__(self, parent)
         self.setLayout(QtGui.QVBoxLayout(self))
+        QtWebKit.QWebSettings.globalSettings().setAttribute(
+            QtWebKit.QWebSettings.DeveloperExtrasEnabled, True)
         self.browser = QtWebKit.QWebView()
         self.layout().addWidget(self.browser)
         self.browser.setMouseTracking(True)
