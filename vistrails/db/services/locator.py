@@ -45,7 +45,7 @@ import uuid
 
 import vistrails.core.system
 from vistrails.db.services import io
-from vistrails.db.services.io import SaveBundle
+from vistrails.db.services.bundle import Bundle, VistrailBundle, BundleObj
 from vistrails.db.domain import DBVistrail, DBWorkflow
 from vistrails.db import VistrailsDBException
 from vistrails.core import debug
@@ -554,16 +554,19 @@ class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
 
     def save(self, obj, do_copy=True, version=None):
         is_bundle = False
-        if type(obj) == type(SaveBundle(None)):
+        if isinstance(obj, Bundle):
             is_bundle = True
-            save_bundle = obj
-            obj = save_bundle.get_primary_obj()
+            bundle = obj
+            bundleobj = bundle.get_primary_obj()
+            obj = bundleobj.obj
+
         obj = io.save_to_xml(obj, self._name, version)
         obj.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
         if is_bundle:
-            return SaveBundle(save_bundle.bundle_type, obj)
+            bundleobj.obj = obj
+            return bundle
         return obj
 
     def is_valid(self):
@@ -667,17 +670,18 @@ class ZIPFileLocator(XMLFileLocator):
     def load(self, type):
         fname = self.get_temporary()
         if fname:
-            from vistrails.db.domain import DBVistrail
             obj = io.open_from_xml(fname, type)
-            return SaveBundle(DBVistrail.vtType, obj)
+            bundle = VistrailBundle()
+            bundle.add_object(BundleObj(obj))
+            return bundle
         else:
-            (save_bundle, tmp_dir) = io.open_bundle_from_zip_xml(type, self._name)
+            (bundle, tmp_dir) = io.open_bundle_from_zip_xml(type, self._name)
             self.tmp_dir = tmp_dir
-            for obj in save_bundle.get_db_objs():
-                obj.locator = self
-            return save_bundle
+            for obj in bundle.get_db_objs():
+                obj.obj.locator = self
+            return bundle
 
-    def save(self, save_bundle, do_copy=True, version=None):
+    def save(self, bundle, do_copy=True, version=None):
         if do_copy:
             # make sure we create a fresh temporary directory if we're
             # duplicating the vistrail
@@ -685,13 +689,13 @@ class ZIPFileLocator(XMLFileLocator):
         else:
             # otherwise, use the existing temp directory if one is set
             tmp_dir = self.tmp_dir
-        (save_bundle, tmp_dir) = io.save_bundle_to_zip_xml(save_bundle, self._name, tmp_dir, version)
+        (bundle, tmp_dir) = io.save_bundle_to_zip_xml(bundle, self._name, tmp_dir, version)
         self.tmp_dir = tmp_dir
-        for obj in save_bundle.get_db_objs():
-            obj.locator = self
+        for obj in bundle.get_db_objs():
+            obj.obj.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
-        return save_bundle
+        return bundle
 
     def close(self):
         if self.tmp_dir is not None:
@@ -882,7 +886,7 @@ class DBLocator(BaseLocator, SaveTemporariesMixin):
         self._name = primary_obj.db_name
         #print "locator db name:", self._name
         for obj in save_bundle.get_db_objs():
-            obj.locator = self
+            obj.obj.locator = self
         
         _hash = self.hash()
         DBLocator.cache[self._hash] = save_bundle.do_copy()
@@ -892,13 +896,13 @@ class DBLocator(BaseLocator, SaveTemporariesMixin):
     def save(self, save_bundle, do_copy=False, version=None):
         connection = self.get_connection()
         for obj in save_bundle.get_db_objs():
-            obj.db_name = self._name
+            obj.obj.db_name = self._name
         save_bundle = io.save_bundle_to_db(save_bundle, connection, do_copy, version)
         primary_obj = save_bundle.get_primary_obj()
         self._obj_id = primary_obj.db_id
         self._obj_type = primary_obj.vtType
         for obj in save_bundle.get_db_objs():
-            obj.locator = self
+            obj.obj.locator = self
         #update the cache with a copy of the new bundle
         self._hash = self.hash()
         DBLocator.cache[self._hash] = save_bundle.do_copy()

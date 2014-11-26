@@ -896,7 +896,11 @@ class TestCachedInterpreter(unittest.TestCase):
             """Test if basic caching is working."""
             locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                                 '/tests/resources/dummy.xml')
-            (v, abstractions, thumbnails, mashups) = load_vistrail(locator)
+            bundle = load_vistrail(locator)
+            (v, abstractions, thumbnails, mashups)  = (bundle.vistrail.obj,
+                                        [a.obj for a in bundle.abstractions],
+                                        [t.obj for t in bundle.thumbnails],
+                                        [m.obj for m in bundle.mashups])
 
             # the controller will take care of upgrades
             controller = VistrailController(v, locator, abstractions,

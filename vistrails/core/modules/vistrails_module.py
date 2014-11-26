@@ -1855,7 +1855,9 @@ class TestImplicitLooping(unittest.TestCase):
         try:
             errs = []
             locator = FileLocator(os.path.abspath(filename))
-            (v, _, _, _) = load_vistrail(locator)
+
+            bundle = load_vistrail(locator)
+            v = bundle.vistrail.obj
             w_list = []
             for version, _ in v.get_tagMap().iteritems():
                 w_list.append((locator,version))

@@ -89,6 +89,8 @@ from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.theme import DefaultCoreTheme
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import IdScope, DBWorkflowExec
+from vistrails.db.services.bundle import VistrailBundle, BundleObj, \
+    LogXMLSerializer, WorkflowBundle, LogBundle, RegistryBundle
 from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
 from vistrails.db.services.vistrail import getSharedRoot
@@ -173,7 +175,7 @@ class VistrailController(object):
         self._delayed_mashups = []
         self._loaded_abstractions = {}
         
-        # This will just store the mashups in memory and send them to SaveBundle
+        # This will just store the mashups in memory and send them to Bundle
         # when writing the vistrail
         self._mashups = []
 
@@ -3583,12 +3585,12 @@ class VistrailController(object):
             if locator:
                 locator.save_temporary(self.vistrail)
 
-    def write_abstractions(self, locator, save_bundle, abstractions, 
-                           abs_save_dir):
+    def add_abstractions(self, bundle, abstractions, abs_save_dir):
+        # Temporary saves abstractions to a folder and adds them to bundle
         def make_abstraction_path_unique(abs_fname, namespace):
             # Constructs the abstraction name using the namespace to
             # prevent conflicts and copies the abstraction to the new
-            # path so save_bundle has a valid file
+            # path so bundle has a valid file
             path, prefix, absname, old_ns, suffix = \
                 parse_abstraction_name(abs_fname, True)
             new_abs_fname = os.path.join(abs_save_dir, 
@@ -3645,143 +3647,174 @@ class VistrailController(object):
                 namespace = get_cur_abs_namespace(abstraction.vistrail)
                 abs_unique_name = make_abstraction_path_unique(abs_fname,
                                                                namespace)
-                save_bundle.abstractions.append(abs_unique_name)
-                                
+                bundle.add_object(BundleObj(abs_fname, 'abstraction', abs_unique_name))
+
     def write_vistrail(self, locator, version=None, export=False):
         """write_vistrail(locator,version) -> Boolean
-        It will return a boolean that tells if the tree needs to be 
+        Creates a VistrailBundle and saves it to locator
+        It will return a boolean that tells if the tree needs to be
         invalidated
-        export=True means you should not update the current controller"""
-        result = False 
-        if self.vistrail and (self.changed or self.locator != locator):
-            # Save jobs as annotation
-            if self.jobMonitor.workflows:
-                self.vistrail.set_annotation('__jobs__',
-                                             self.jobMonitor.__serialize__())
-            else:
-                self.vistrail.set_annotation('__jobs__', '')
-            # FIXME create this on-demand?
-            abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
-            is_abstraction = self.vistrail.is_abstraction
-            if is_abstraction and self.changed:
-                # first update any names if necessary
-                self.check_subpipeline_port_names()
-                new_namespace = str(uuid.uuid1())
-                annotation_key = get_next_abs_annotation_key(self.vistrail)
-                self.vistrail.set_annotation(annotation_key, new_namespace)
-            save_bundle = SaveBundle(self.vistrail.vtType)
-            if export:
-                save_bundle.vistrail = self.vistrail.do_copy()
-                if isinstance(locator, vistrails.core.db.locator.DBLocator):
-                    save_bundle.vistrail.db_log_filename = None
-            else:
-                save_bundle.vistrail = self.vistrail
-            if self.log and len(self.log.workflow_execs) > 0:
-                save_bundle.log = self.log
-            abstractions = self.find_abstractions(self.vistrail, True)
-            self.write_abstractions(locator, save_bundle, abstractions, 
-                                    abs_save_dir)
-            thumb_cache = ThumbnailCache.getInstance()
-            if thumb_cache.conf.autoSave:
-                save_bundle.thumbnails = self.find_thumbnails(
-                                           tags_only=thumb_cache.conf.tagsOnly)
-            
-            #mashups
-            save_bundle.mashups = self._mashups
-            # FIXME hack to use db_currentVersion for convenience
-            # it's not an actual field
-            self.vistrail.db_currentVersion = self.current_version
-            if self.locator != locator:
-                # check for db log
-                log = Log()
-                if isinstance(self.locator, vistrails.core.db.locator.DBLocator):
-                    connection = self.locator.get_connection()
-                    db_log = open_vt_log_from_db(connection, 
-                                                 self.vistrail.db_id)
-                    Log.convert(db_log)
-                    for workflow_exec in db_log.workflow_execs:
-                        workflow_exec.db_id = \
-                            log.id_scope.getNewId(DBWorkflowExec.vtType)
-                        log.db_add_workflow_exec(workflow_exec)
-                # add recent log entries
-                if self.log and len(self.log.workflow_execs) > 0:
-                    for workflow_exec in self.log.db_workflow_execs:
-                        workflow_exec = copy.copy(workflow_exec)
-                        workflow_exec.db_id = \
-                            log.id_scope.getNewId(DBWorkflowExec.vtType)
-                        log.db_add_workflow_exec(workflow_exec)
-                if len(log.workflow_execs) > 0:
-                    save_bundle.log = log
-                old_locator = self.get_locator()
-                if not export:
-                    self.locator = locator
-                save_bundle = locator.save_as(save_bundle, version)
-                new_vistrail = save_bundle.vistrail
-                if isinstance(locator, vistrails.core.db.locator.DBLocator):
-                    new_vistrail.db_log_filename = None
-                    locator.kwargs['obj_id'] = new_vistrail.db_id
-                if not export:
-                    # DAK don't think is necessary since we have a new
-                    # namespace for an abstraction on each save
-                    # Unload abstractions from old namespace
-                    # self.unload_abstractions() 
-                    # Load all abstractions from new namespaces
-                    self.ensure_abstractions_loaded(new_vistrail, 
-                                                    save_bundle.abstractions) 
-                    self.set_file_name(locator.name)
-                    if old_locator and not export:
-                        old_locator.clean_temporaries()
-                        old_locator.close()
-                    self.flush_pipeline_cache()
-                    self.change_selected_version(new_vistrail.db_currentVersion, 
-                                                 from_root=True)
-            else:
-                save_bundle = self.locator.save(save_bundle)
-                new_vistrail = save_bundle.vistrail
-                # Load any abstractions that were given new namespaces
-                self.ensure_abstractions_loaded(new_vistrail, 
-                                                save_bundle.abstractions)
-            # FIXME abstractions only work with FileLocators right now
-            if is_abstraction:
-                new_vistrail.is_abstraction = True
-                if isinstance(self.locator, (
-                        vistrails.core.db.locator.XMLFileLocator,
-                        vistrails.core.db.locator.ZIPFileLocator)):
-                    filename = self.locator.name
-                    if filename in self._loaded_abstractions:
-                        del self._loaded_abstractions[filename]
-                    # we don't know if the subworkflow should be shown
-                    # if it doesn't currently exist, we don't want to add it
-                    # if it does, we will replace it via upgrade module
-                    # so it is not global
-                    self.load_abstraction(filename, False)
-                    
-                    # reg = core.modules.module_registry.get_module_registry()
-                    # for desc in reg.get_package_by_name('local.abstractions').descriptor_list:
-                    #     print desc.name, desc.namespace, desc.version
-            if not export:
-                if id(self.vistrail) != id(new_vistrail):
-                    new_version = new_vistrail.db_currentVersion
-                    # FIXME have to figure out what to do here !!!
-                    self.set_vistrail(new_vistrail, locator)
-                    self.change_selected_version(new_version)
-                    result = True
-                if self.log:
-                    self.log.delete_all_workflow_execs()
-                self.set_changed(False)
-                locator.clean_temporaries()
+        export=True means you should not update the current controller
 
-            # delete any temporary subworkflows
-                try:
-                    for root, _, files in os.walk(abs_save_dir, topdown=False):
-                        for name in files:
-                            os.remove(os.path.join(root, name))
-                    os.rmdir(abs_save_dir)
-                except OSError, e:
-                    raise VistrailsDBException("Can't remove %s: %s" % (
-                                               abs_save_dir,
-                                               debug.format_exception(e)))
+        """
+        result = False 
+        if not (self.vistrail and (self.changed or self.locator != locator)):
             return result
+
+        # Save jobs as annotation
+        # TODO write to separate file in bundle
+        if self.jobMonitor.workflows:
+            self.vistrail.set_annotation('__jobs__',
+                                         self.jobMonitor.__serialize__())
+        else:
+            self.vistrail.set_annotation('__jobs__', '')
+
+        # update abstractions in vistrail
+        # FIXME create this on-demand?
+        abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
+        is_abstraction = self.vistrail.is_abstraction
+        if is_abstraction and self.changed:
+            # first update any names if necessary
+            self.check_subpipeline_port_names()
+            new_namespace = str(uuid.uuid1())
+            annotation_key = get_next_abs_annotation_key(self.vistrail)
+            self.vistrail.set_annotation(annotation_key, new_namespace)
+
+        bundle = VistrailBundle()
+
+        # add vistrail
+        if export:
+            bundle.add_object(BundleObj(self.vistrail.do_copy()))
+            if isinstance(locator, vistrails.core.db.locator.DBLocator):
+                bundle.vistrail.obj.db_log_filename = None
+        else:
+            bundle.add_object(BundleObj(self.vistrail))
+
+        # add abstractions
+        abstractions = self.find_abstractions(self.vistrail, True)
+        self.add_abstractions(bundle, abstractions, abs_save_dir)
+
+        # add thumbnails
+        thumb_cache = ThumbnailCache.getInstance()
+        if thumb_cache.conf.autoSave:
+            for thumb in self.find_thumbnails(
+                                         tags_only=thumb_cache.conf.tagsOnly):
+                bundle.add_object(BundleObj(thumb, 'thumbnail', os.path.basename(thumb)))
+
+        #mashups
+        for mashup in self._mashups:
+            bundle.add_object(mashup)
+
+        # FIXME hack to use db_currentVersion for convenience
+        # it's not an actual field
+        self.vistrail.db_currentVersion = self.current_version
+
+        # add log
+        log = self.log
+        if self.locator != locator:
+            # Add entries from old locator
+            log = Log()
+            if isinstance(self.locator, vistrails.core.db.locator.DBLocator):
+                # Add entries from db
+                connection = self.locator.get_connection()
+                db_log = open_vt_log_from_db(connection,
+                                             self.vistrail.db_id)
+                Log.convert(db_log)
+                for workflow_exec in db_log.workflow_execs:
+                    workflow_exec.db_id = \
+                        log.id_scope.getNewId(DBWorkflowExec.vtType)
+                    log.db_add_workflow_exec(workflow_exec)
+            elif self.vistrail.db_log_filename:
+                # Add entries from file
+                vt_log = LogXMLSerializer.load(self.vistrail.db_log_filename)
+                for workflow_exec in vt_log.workflow_execs:
+                    workflow_exec.db_id = \
+                        log.id_scope.getNewId(DBWorkflowExec.vtType)
+                    log.db_add_workflow_exec(workflow_exec)
+            # add recent log entries
+            if self.log and len(self.log.workflow_execs) > 0:
+                for workflow_exec in self.log.db_workflow_execs:
+                    workflow_exec = copy.copy(workflow_exec)
+                    workflow_exec.db_id = \
+                        log.id_scope.getNewId(DBWorkflowExec.vtType)
+                    log.db_add_workflow_exec(workflow_exec)
+        # Always add log because it may already exist in the save folder
+        bundle.add_object(BundleObj(log, 'log'))
+
+        if self.locator != locator:
+            old_locator = self.get_locator()
+            if not export:
+                self.locator = locator
+
+            bundle = locator.save_as(bundle, version)
+            new_vistrail = bundle.vistrail.obj
+            if isinstance(locator, vistrails.core.db.locator.DBLocator):
+                new_vistrail.db_log_filename = None
+                locator.kwargs['obj_id'] = new_vistrail.db_id
+            if not export:
+                # DAK don't think is necessary since we have a new
+                # namespace for an abstraction on each save
+                # Unload abstractions from old namespace
+                # self.unload_abstractions()
+                # Load all abstractions from new namespaces
+                self.ensure_abstractions_loaded(new_vistrail,
+                                                [a.obj for a in bundle.abstractions])
+                self.set_file_name(locator.name)
+                if old_locator and not export:
+                    old_locator.clean_temporaries()
+                    old_locator.close()
+                self.flush_pipeline_cache()
+                self.change_selected_version(new_vistrail.db_currentVersion,
+                                             from_root=True)
+        else:
+            bundle = self.locator.save(bundle)
+            new_vistrail = bundle.vistrail.obj
+            # Load any abstractions that were given new namespaces
+            self.ensure_abstractions_loaded(new_vistrail,
+                                            [a.obj for a in bundle.abstractions])
+
+        # FIXME abstractions only work with FileLocators right now
+        if is_abstraction:
+            new_vistrail.is_abstraction = True
+            if isinstance(self.locator, (
+                    vistrails.core.db.locator.XMLFileLocator,
+                    vistrails.core.db.locator.ZIPFileLocator)):
+                filename = self.locator.name
+                if filename in self._loaded_abstractions:
+                    del self._loaded_abstractions[filename]
+                # we don't know if the subworkflow should be shown
+                # if it doesn't currently exist, we don't want to add it
+                # if it does, we will replace it via upgrade module
+                # so it is not global
+                self.load_abstraction(filename, False)
+
+                # reg = core.modules.module_registry.get_module_registry()
+                # for desc in reg.get_package_by_name('local.abstractions').descriptor_list:
+                #     print desc.name, desc.namespace, desc.version
+        if not export:
+            # Update controller to use new locator
+            if id(self.vistrail) != id(new_vistrail):
+                new_version = new_vistrail.db_currentVersion
+                # FIXME have to figure out what to do here !!!
+                self.set_vistrail(new_vistrail, locator)
+                self.change_selected_version(new_version)
+                result = True
+            if self.log:
+                self.log.delete_all_workflow_execs()
+            self.set_changed(False)
+            locator.clean_temporaries()
+
+        # delete any temporary subworkflows
+            try:
+                for root, _, files in os.walk(abs_save_dir, topdown=False):
+                    for name in files:
+                        os.remove(os.path.join(root, name))
+                os.rmdir(abs_save_dir)
+            except OSError, e:
+                raise VistrailsDBException("Can't remove %s: %s" % (
+                                           abs_save_dir,
+                                           debug.format_exception(e)))
+        return result
 
 
     def write_workflow(self, locator, version=None):
@@ -3796,8 +3829,9 @@ class VistrailController(object):
                 pipeline.add_module(module)
             for connection in self.current_pipeline.connections.itervalues():
                 pipeline.add_connection(connection)
-            save_bundle = SaveBundle(pipeline.vtType,workflow=pipeline)
-            locator.save_as(save_bundle, version)
+            bundle = WorkflowBundle()
+            bundle.add_object(BundleObj(pipeline))
+            locator.save_as(bundle, version)
 
     def write_log(self, locator):
         if self.log:
@@ -3807,8 +3841,9 @@ class VistrailController(object):
             else:
                 log = self.log
             #print log
-            save_bundle = SaveBundle(log.vtType,log=log)
-            locator.save_as(save_bundle)
+            bundle = LogBundle()
+            bundle.add_object(BundleObj(log))
+            locator.save_as(bundle)
 
     def read_log(self):
         """ Returns the saved log from zip or DB
@@ -3818,8 +3853,9 @@ class VistrailController(object):
  
     def write_registry(self, locator):
         registry = vistrails.core.modules.module_registry.get_module_registry()
-        save_bundle = SaveBundle(registry.vtType, registry=registry)
-        locator.save_as(save_bundle)
+        bundle = RegistryBundle()
+        bundle.add_object(BundleObj(registry))
+        locator.save_as(bundle)
 
     def update_checkout_version(self, app=''):
         self.vistrail.update_checkout_version(app)

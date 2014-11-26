@@ -34,9 +34,9 @@
 ###############################################################################
 
 import copy
+import zipfile
 
 from vistrails.core import debug
-from vistrails.core.external_connection import DBConnection
 import vistrails.core.requirements
 from vistrails.core.system import execute_cmdline, systemType, \
     get_executable_path, get_elementtree_library
@@ -47,11 +47,6 @@ from vistrails.db.domain import DBLog, DBVistrail, DBWorkflowExec,\
                                 DBAbstraction, DBAnnotation
 import vistrails.db.versions
 from vistrails.db.services.db_utils import MySQLDBConnection, SQLite3Connection
-from vistrails.db.services.io import open_db_connection, \
-                                     get_db_object_modification_time, \
-                                     open_vistrail_from_db
-from vistrails.db.services.locator import DirectoryLocator, XMLFileLocator, \
-    ZIPFileLocator
 
 ElementTree = get_elementtree_library()
 
@@ -74,10 +69,6 @@ class BundleObj(object):
             self.obj_type = obj_type
         self.id = id
         self.changed = changed
-        
-    @staticmethod
-    def allows_multiples():
-        return True
 
 class BundleObjDictionary(object):
     """ class for storing objects in a dictionary
@@ -85,15 +76,16 @@ class BundleObjDictionary(object):
     """
     def __init__(self):
         self._objs = {}
+        # Which types should have single objects
+        self.single_types = ['vistrail', 'log']
 
-    @staticmethod
-    def _translate_args(obj):
-        """ obj can be a BundleObj, tuple or object.
+    def _translate_args(self, obj):
+        """ obj can be a BundleObj, tuple or type.
             Infer and return the (type, id)
         """
         if isinstance(obj, BundleObj):
             obj_type = obj.obj_type
-            if obj.allows_multiples():
+            if obj_type not in self.single_types:
                 obj_id = obj.id
             else:
                 obj_id = None
@@ -130,7 +122,7 @@ class BundleObjDictionary(object):
         BundleObjDictionary.add_entry(self, obj, value)
         
     def get_value(self, obj):
-        """ get_value(obj: BundleObj) -> object
+        """ get_value(obj: translatable) -> BundleObj
         """
         obj_type, obj_id = self._translate_args(obj)
         if not self.has_entry(obj_type, obj_id):
@@ -138,26 +130,16 @@ class BundleObjDictionary(object):
         return self._objs[obj_type][obj_id]
 
     def get_items(self):
-        """ returns all objects in bundle as a (type, id, value) list
+        """ returns all BundleObj:s in bundle as a (type, id, value) list
         """
         return [(k1, k2, v) for k1, k2_dict in self._objs.iteritems()
                 for k2, v in k2_dict.iteritems()]
 
 class Bundle(BundleObjDictionary):
-    """Assume a bundle contains a set of objects.  If an object is a list
-    or dictionary, we serialize these to a directory."""
+    """ Assume a bundle contains a set of objects.  If an object is a list
+        or dictionary, we serialize these to a directory.
+    """
 
-    # def __init__(self, *args, **kwargs):
-    #     # Make all args into attrs using vtType as attr name
-    #     # This requires that attr names in this class match the vtTypes
-    #     # i.e. if arg's vtType is 'vistrail', self.vistrail = arg, etc...
-    #     for arg in args:
-    #         if hasattr(arg, 'vtType'):
-    #             self.add_object(arg.vtType, arg)
-    #     # Make all keyword args directly into attrs
-    #     for (k,v) in kwargs.iteritems():
-    #         self.add_object(k, v)
-       
     def add_object(self, obj):
         if not isinstance(obj, BundleObj):
             raise VistrailsDBException('Can only add BundleObj objects.')
@@ -167,15 +149,32 @@ class Bundle(BundleObjDictionary):
         self.remove_entry(obj)
 
     def change_object(self, obj):
-        if isinstance(obj, BundleObj):
+        if not isinstance(obj, BundleObj):
             raise VistrailsDBException('Can only change BundleObj objects.')
-        self.change_entry(obj)
+        self.change_entry(obj, obj)
 
     def get_object(self, obj_type, obj_id=None):
         return self.get_value((obj_type, obj_id))
 
     def get_primary_obj(self):
         raise NotImplementedError("Subclass must implement get_primary_obj")
+
+    def get_db_objs(self):
+        """ Gets a list containing only the DB* objects in the bundle
+        """
+        return [obj for t in self._objs.itervalues() for obj in t.itervalues() if hasattr(obj.obj, 'vtType')]
+
+    def __getattr__(self, item):
+        """ Returns the default bundleobj(s) of the specified type or None
+        """
+        if item.endswith('s'):
+            if item[:-1] in self._objs:
+                # return all of them
+                return self._objs[item[:-1]].values()
+            return []
+        if self.has_entry(item, None):
+            return self.get_object(item)
+        return None
 
 class BundleSerializer(object):
     def __init__(self, bundle=None):
@@ -261,6 +260,7 @@ class FileRefSerializer(FileSerializer):
     @classmethod
     def load(cls, filename, obj_type, inner_dir_name=None):
         """ Create a BundleObj containing a reference to a file
+            If inner dir name is specified, filename must contain it
         """
         if inner_dir_name:
             full_dir = os.path.dirname(filename)
@@ -396,7 +396,7 @@ class XMLFileSerializer(FileSerializer):
         pass
 
 class VistrailXMLSerializer(XMLFileSerializer):
-    """ Serializes tha vistrail as 'vistrail'
+    """ Serializes the vistrail as 'vistrail'
     """
 
     @classmethod
@@ -417,6 +417,25 @@ class VistrailXMLSerializer(XMLFileSerializer):
     @classmethod
     def get_obj_id(cls, vt_obj):
         return 'vistrail'
+
+class WorkflowXMLSerializer(XMLFileSerializer):
+    """ Serializes a workflow as an xml file
+    """
+
+    @classmethod
+    def load(cls, filename):
+        obj = super(WorkflowXMLSerializer, cls).load(filename,
+                                                     DBWorkflow.vtType,
+                                                     "translateWorkflow")
+        vistrails.db.services.workflow.update_id_scope(obj.obj)
+        return obj
+
+    @classmethod
+    def save(cls, obj, rootdir):
+        version = vistrails.db.versions.currentVersion
+        return super(WorkflowXMLSerializer, cls).save(obj, rootdir, version,
+                                    "http://www.vistrails.org/workflow.xsd",
+                                                      "translateWorkflow")
 
 
 class MashupXMLSerializer(XMLFileSerializer):
@@ -724,6 +743,9 @@ class VistrailDBSerializer(BaseDBSerializer):
         current_action = vt_obj.db_version
 
         if overwrite and vt_obj.db_last_modified is not None:
+            from vistrails.db.services.io import get_db_object_modification_time, \
+                                     open_vistrail_from_db
+
             new_time = get_db_object_modification_time(connection_obj,
                                                        vt_obj.db_id,
                                                        DBVistrail.vtType)
@@ -869,9 +891,9 @@ class DirectorySerializer(BundleSerializer):
         for root, dirs, files in os.walk(dir_path):
             for fname in files:
                 if fname == 'vistrail' and root == dir_path:
-                    self._manifest.add_entry('vistrail', 'vistrail', 'vistrail')
+                    self._manifest.add_entry('vistrail', None, 'vistrail')
                 elif fname == 'log' and root == dir_path:
-                    self._manifest.add_entry('log', 'log', 'log')
+                    self._manifest.add_entry('log', None, 'log')
                 elif fname.startswith('abstraction_'):
                     abs_id = fname[len('abstraction_'):]
                     self._manifest.add_entry('abstraction', abs_id, fname)
@@ -964,9 +986,9 @@ class ZIPSerializer(DirectorySerializer):
     """ a zipped version of a directory bundle
     """
 
-    def __init__(self, file_path, bundle=None, overwrite=False,
+    def __init__(self, file_path=None, dir_path=None, bundle=None, overwrite=False,
                  *args, **kwargs):
-        DirectorySerializer.__init__(self, None, bundle, *args, **kwargs)
+        DirectorySerializer.__init__(self, dir_path, bundle, *args, **kwargs)
         self._file_path = file_path
 
     def load(self, file_path=None):
@@ -977,17 +999,14 @@ class ZIPSerializer(DirectorySerializer):
         if file_path is None:
             file_path = self._file_path
 
-        vistrails.core.requirements.require_executable('unzip')
-
         if self._dir_path is None:
             self._dir_path = tempfile.mkdtemp(prefix='vt_save')
 
-        output = []
-        cmdline = ['unzip', '-q','-o','-d', self._dir_path, file_path]
-        result = execute_cmdline(cmdline, output)
-
-        if result != 0 and len(output) != 0:
-            raise VistrailsDBException("Unzip of '%s' failed" % file_path)
+        z = zipfile.ZipFile(file_path)
+        try:
+            z.extractall(self._dir_path)
+        finally:
+            z.close()
 
         return DirectorySerializer.load(self)
 
@@ -1006,23 +1025,14 @@ class ZIPSerializer(DirectorySerializer):
         output = []
         rel_vt_save_dir = os.path.split(self._dir_path)[1]
 
-        # on windows, we assume zip.exe is in the current directory when
-        # running from the binary install
-        zipcmd = 'zip'
-        if systemType in ['Windows', 'Microsoft']:
-            zipcmd = get_executable_path('zip.exe')
-            if not zipcmd or not os.path.exists(zipcmd):
-                zipcmd = 'zip.exe' #assume zip is in path
-        cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']
+        z = zipfile.ZipFile(tmp_zip_file, 'w')
         try:
-            #if we want that directories are also stored in the zip file
-            # we need to run from the vt directory
             with Chdir(self._dir_path):
-                result = execute_cmdline(cmdline,output)
-            if result != 0 or len(output) != 0:
-                for line in output:
-                    if line.find('deflated') == -1:
-                        raise VistrailsDBException(" ".join(output))
+                # zip current directory
+                for root, dirs, files in os.walk('.'):
+                    for f in files:
+                        z.write(os.path.join(root, f))
+            z.close()
             shutil.copyfile(tmp_zip_file, file_path)
         finally:
             os.unlink(tmp_zip_file)
@@ -1192,55 +1202,6 @@ class LogBundle(Bundle):
 class RegistryBundle(Bundle):
     def get_primary_obj(self):
         return self.get_object(DBRegistry.vtType)
-        
-
-    def __init__(self, bundle_type, *args, **kwargs):
-        self.bundle_type = bundle_type
-        self.vistrail = None
-        self.workflow = None
-        self.log = None
-        self.registry = None
-        self.opm_graph = None
-        self.abstractions = []
-        self.thumbnails = []
-        self.mashups = []
-        # Make all args into attrs using vtType as attr name
-        # This requires that attr names in this class match the vtTypes
-        # i.e. if arg's vtType is 'vistrail', self.vistrail = arg, etc...
-        for arg in args:
-            if hasattr(arg, 'vtType'):
-                setattr(self, arg.vtType, arg)
-        # Make all keyword args directly into attrs
-        for (k,v) in kwargs.iteritems():
-            setattr(self, k, v)
-
-    def get_db_objs(self):
-        """Gets a list containing only the DB* objects in the bundle"""
-        return [obj for obj in self.__dict__.itervalues() if obj is not None and type(obj) not in [type([]), type('')]]
-
-    def get_primary_obj(self):
-        """get_primary_obj() -> DB*
-           Gets the bundle's primary DB* object based on the bundle type.
-        """
-        return getattr(self, self.bundle_type)
-
-    def __copy__(self):
-        return Bundle.do_copy(self)
-    
-    def do_copy(self):
-        cp = Bundle(self.bundle_type)
-        cp.vistrail = copy.copy(self.vistrail)
-        cp.workflow = copy.copy(self.workflow)
-        cp.log = copy.copy(self.log)
-        cp.registry = copy.copy(self.registry)
-        cp.opm_graph = copy.copy(self.opm_graph)
-        for a in self.abstractions:
-            cp.abstractions.append(a)
-        
-        for t in self.thumbnails:
-            cp.thumbnails.append(t)
-        
-        return cp
 
 class DefaultVistrailsDirSerializer(DirectorySerializer):
     def __init__(self, dir_path, bundle=None, overwrite=False, *args, **kwargs):
@@ -1253,9 +1214,9 @@ class DefaultVistrailsDirSerializer(DirectorySerializer):
         self.add_serializer("abstraction", AbstractionFileSerializer)    
 
 class DefaultVistrailsZIPSerializer(ZIPSerializer):
-    def __init__(self, file_path, bundle=None, overwrite=False, 
+    def __init__(self, file_path=None, dir_path=None, bundle=None, overwrite=False,
                  *args, **kwargs):
-        ZIPSerializer.__init__(self, file_path, bundle, overwrite, 
+        ZIPSerializer.__init__(self, file_path, dir_path, bundle, overwrite,
                                *args, **kwargs)
         self.add_serializer("vistrail", VistrailXMLSerializer)
         self.add_serializer("log", LogXMLSerializer)
@@ -1548,8 +1509,8 @@ class TestBundles(unittest.TestCase):
         from vistrails.db.domain import DBLog
 
         b = Bundle()
-        b.add_object(BundleObj(DBVistrail(), 'vistrail', 'vistrail'))
-        b.add_object(BundleObj(DBLog(), 'log', 'log'))
+        b.add_object(BundleObj(DBVistrail(), None, 'vistrail'))
+        b.add_object(BundleObj(DBLog(), None, 'log'))
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
         b.add_object(BundleObj(fname1, 'thumbnail', 'info.png'))
         fname2 = os.path.join(resource_directory(), 'images', 'left.png')

@@ -70,7 +70,11 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
     params = []
     result = []
     for locator, workflow in w_list:
-        (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
+        bundle = load_vistrail(locator)
+        (v, abstractions, thumbnails, mashups) = (bundle.vistrail.obj,
+                                        [a.obj for a in bundle.abstractions],
+                                        [t.obj for t in bundle.thumbnails],
+                                        [m.obj for m in bundle.mashups])
         controller = VistrailController(v, locator, abstractions, thumbnails,
                                         mashups, auto_save=update_vistrail)
         if isinstance(workflow, basestring):
@@ -229,8 +233,12 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
              GUIVistrailController
         for locator in vt_list:
             try:
-                (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-                controller = GUIVistrailController(v, locator, abstractions, 
+                bundle = load_vistrail(locator)
+                (v, abstractions, thumbnails, mashups)  = (bundle.vistrail.obj,
+                                        [a.obj for a in bundle.abstractions],
+                                        [t.obj for t in bundle.thumbnails],
+                                        [m.obj for m in bundle.mashups])
+                controller = GUIVistrailController(v, locator, abstractions,
                                                    thumbnails, mashups)
                 if tree_info is not None:
                     from vistrails.gui.version_view import QVersionTreeView
@@ -286,8 +294,12 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
         from vistrails.gui.vistrail_controller import VistrailController as \
              GUIVistrailController
         try:
-            (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-            controller = GUIVistrailController(v, locator, abstractions, 
+            bundle = load_vistrail(locator)
+            (v, abstractions, thumbnails, mashups)  = (bundle.vistrail.obj,
+                                        [a.obj for a in bundle.abstractions],
+                                        [t.obj for t in bundle.thumbnails],
+                                        [m.obj for m in bundle.mashups])
+            controller = GUIVistrailController(v, locator, abstractions,
                                                thumbnails, mashups)
             try:
                 pe_id = int(pe_id)
