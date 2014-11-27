@@ -45,7 +45,8 @@ from vistrails.db.versions.v1_0_4.domain import DBVistrail, DBVistrailVariable, 
                                       DBConfigInt, DBConfigFloat, \
                                       DBConfiguration, DBStartupPackage, \
                                       DBLoopIteration, DBLoopExec, \
-                                      DBModuleExec, DBGroupExec
+                                      DBModuleExec, DBGroupExec, \
+                                      DBMashuptrail
 
 from vistrails.db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString
@@ -87,6 +88,13 @@ def translateWorkflow(_workflow):
     workflow = DBWorkflow.update_version(_workflow, translate_dict, workflow)
     workflow.db_version = '1.0.4'
     return workflow
+
+def translateMashup(_mashup):
+    global id_scope
+    mashup = DBMashuptrail()
+    mashup = DBMashuptrail.update_version(_mashup, {}, mashup)
+    mashup.db_version = '1.0.4'
+    return mashup
 
 def translateLog(_log):
     global id_scope

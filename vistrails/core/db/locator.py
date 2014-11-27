@@ -37,6 +37,7 @@ import getpass
 import os.path
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.mashup.mashup_trail import Mashuptrail
 from vistrails.core.system import vistrails_default_file_type, get_elementtree_library, \
                         default_connections_file, vistrails_examples_directory
 from vistrails.core.external_connection import ExtConnectionList, DBConnection
@@ -105,6 +106,7 @@ class CoreLocator(object):
                      Pipeline.vtType: Pipeline,
                      Log.vtType: Log,
                      ModuleRegistry.vtType: ModuleRegistry,
+                     Mashuptrail.vtType: Mashuptrail,
                      OpmGraph.vtType: OpmGraph}
         return klass_map[vt_type]
 

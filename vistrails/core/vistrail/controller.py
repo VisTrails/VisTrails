@@ -3703,7 +3703,7 @@ class VistrailController(object):
 
         #mashups
         for mashup in self._mashups:
-            bundle.add_object(mashup)
+            bundle.add_object(BundleObj(mashup, 'mashup'))
 
         # FIXME hack to use db_currentVersion for convenience
         # it's not an actual field

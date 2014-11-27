@@ -285,7 +285,8 @@ class FileRefSerializer(FileSerializer):
                 os.mkdir(inner_dir)
             rootdir = inner_dir
         fname = os.path.join(rootdir, obj.id)
-        shutil.copyfile(obj.obj, fname)
+        if obj.obj != fname:
+            shutil.copyfile(obj.obj, fname)
         return fname
 
 class ThumbnailFileSerializer(FileRefSerializer):
@@ -444,16 +445,24 @@ class MashupXMLSerializer(XMLFileSerializer):
 
     @classmethod
     def load(cls, filename):
-        return super(MashupXMLSerializer, cls).load(filename, 
+        obj = super(MashupXMLSerializer, cls).load(filename,
                                                   DBMashuptrail.vtType,
                                                   "translateMashup", "mashups")
-        
+        if obj:
+            # mashuptrail is called 'mashup' in the bundle
+            obj.obj_type = 'mashup'
+        return obj
+
+    @classmethod
     def save(cls, obj, rootdir):
         version = vistrails.db.versions.currentVersion
         return super(MashupXMLSerializer, cls).save(obj, rootdir, version, 
                                     "http://www.vistrails.org/mashup.xsd",
-                                                  "translateVistrail",
+                                                  "translateMashup",
                                                   "mashups")
+    @classmethod
+    def get_obj_id(cls, vt_obj):
+        return vt_obj.db_name
 
 class RegistryXMLSerializer(XMLFileSerializer):
     """ Serializes the registry to a file
