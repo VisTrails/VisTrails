@@ -1758,6 +1758,10 @@ class QVistrailsWindow(QVistrailViewWindow):
             if mashuptrail is not None and mashupVersion is not None:
                 mashup = view.get_mashup_from_mashuptrail_id(mashuptrail,
                                                              mashupVersion)
+                if mashup is None:
+                    debug.critical("Mashup not found. If workflow has been "
+                                   "upgraded, try executing it first.")
+                    return
                 if execute_workflow:
                     view.open_mashup(mashup)
                 else:
