@@ -582,7 +582,6 @@ def open_bundle_from_zip_xml(bundle_type, filename):
                                        bundle_type)
 
 def save_bundle_to_zip_xml(bundle, filename, tmp_dir=None, version=None):
-    bundle_type = bundle.bundle_type
     if isinstance(bundle, VistrailBundle):
         return save_vistrail_bundle_to_zip_xml(bundle, filename, tmp_dir, version)
     elif isinstance(bundle, LogBundle):
@@ -593,7 +592,7 @@ def save_bundle_to_zip_xml(bundle, filename, tmp_dir=None, version=None):
         return save_registry_bundle_to_xml(bundle, filename, version)
     else:
         raise VistrailsDBException("cannot save bundle of type '%s' to zip" % \
-                                       bundle_type)
+                                       type(bundle).__name__)
 
 def open_bundle_from_db(bundle_type, connection, primary_obj_id, tmp_dir=None):
     if bundle_type == DBVistrail.vtType:

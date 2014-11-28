@@ -180,10 +180,10 @@ class TestTranslate(unittest.TestCase):
         from vistrails.db.services.io import open_bundle_from_zip_xml
         from vistrails.core.system import vistrails_root_directory
         import os
-        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
+        (bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
                         os.path.join(vistrails_root_directory(),
                         'tests/resources/paramexp-1.0.3.vt'))
-        vistrail = translateVistrail(save_bundle.vistrail)
+        vistrail = translateVistrail(bundle.vistrail.obj)
         # paramexps cannot be downgraded but should produce a warning
         
     def testVistrailvars(self):
@@ -191,10 +191,10 @@ class TestTranslate(unittest.TestCase):
         from vistrails.db.services.io import open_bundle_from_zip_xml
         from vistrails.core.system import vistrails_root_directory
         import os
-        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
+        (bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
                         os.path.join(vistrails_root_directory(),
                         'tests/resources/visvar-1.0.3.vt'))
-        vistrail = translateVistrail(save_bundle.vistrail)
+        vistrail = translateVistrail(bundle.vistrail.obj)
         visvars = vistrail.db_annotations_key_index['__vistrail_vars__']
         self.assertTrue(visvars.db_value)
 

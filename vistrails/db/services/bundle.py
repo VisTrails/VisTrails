@@ -176,7 +176,24 @@ class Bundle(BundleObjDictionary):
             return self.get_object(item)
         return None
 
+class VistrailBundle(Bundle):
+    def get_primary_obj(self):
+        return self.get_object(DBVistrail.vtType)
+
+class WorkflowBundle(Bundle):
+    def get_primary_obj(self):
+        return self.get_object(DBWorkflow.vtType)
+
+class LogBundle(Bundle):
+    def get_primary_obj(self):
+        return self.get_object(DBLog.vtType)
+
+class RegistryBundle(Bundle):
+    def get_primary_obj(self):
+        return self.get_object(DBRegistry.vtType)
+
 class BundleSerializer(object):
+    BundleType = VistrailBundle
     def __init__(self, bundle=None):
         self._bundle = bundle
         # _serializers[obj_key][serializer_type] = cls
@@ -327,9 +344,18 @@ class XMLFileSerializer(FileSerializer):
                                            (filename, inner_dir_name))
         tree = ElementTree.parse(filename)
         version = cls.get_version_for_xml(tree.getroot())
+        # this is here because initially the version in the mashuptrail file was
+        # independent of VisTrails schema version. So if the version was "0.1.0" we
+        # can safely upgrade it directly to 1.0.3 as it was the first version when
+        # the mashuptrail started to use the same vistrails schema
+        old_version = version
+        if obj_type == 'mashuptrail' and version == "0.1.0":
+            version = "1.0.3"
         daoList = vistrails.db.versions.getVersionDAO(version)
         vt_obj = daoList.open_from_xml(filename, obj_type, tree)
-        vt_obj = vistrails.db.versions.translate_object(vt_obj, translator_f, 
+        if obj_type == 'mashuptrail' and old_version == "0.1.0":
+            vt_obj.db_version = version
+        vt_obj = vistrails.db.versions.translate_object(vt_obj, translator_f,
                                                         version)
         obj_id = cls.get_obj_id(vt_obj)
         obj = BundleObj(vt_obj, obj_type, obj_id)
@@ -926,7 +952,7 @@ class DirectorySerializer(BundleSerializer):
         if dir_path is None:
             dir_path = self._dir_path
         if self._bundle is None:
-            self._bundle = Bundle()
+            self._bundle = self.BundleType()
         self.load_manifest(dir_path)
         for obj_type, obj_id, fname in self._manifest.get_items():
             serializer = self.get_serializer(obj_type, 
@@ -1196,22 +1222,6 @@ class DBSerializer(BundleSerializer):
         self._manifest.save()
         connection_obj.get_connection().commit()
 
-class VistrailBundle(Bundle):
-    def get_primary_obj(self):
-        return self.get_object(DBVistrail.vtType)
-
-class WorkflowBundle(Bundle):
-    def get_primary_obj(self):
-        return self.get_object(DBWorkflow.vtType)
-
-class LogBundle(Bundle):
-    def get_primary_obj(self):
-        return self.get_object(DBLog.vtType)
-        
-class RegistryBundle(Bundle):
-    def get_primary_obj(self):
-        return self.get_object(DBRegistry.vtType)
-
 class DefaultVistrailsDirSerializer(DirectorySerializer):
     def __init__(self, dir_path, bundle=None, overwrite=False, *args, **kwargs):
         DirectorySerializer.__init__(self, dir_path, bundle, overwrite, 
@@ -1407,7 +1417,7 @@ class TestBundles(unittest.TestCase):
         s2 = None
         try:
             b1 = self.create_bundle()
-            s1 = ZIPSerializer(fname, b1)
+            s1 = ZIPSerializer(fname, bundle=b1)
             s1.add_serializer('data', FileSerializer)
             s1.save()
 
@@ -1552,7 +1562,7 @@ class TestBundles(unittest.TestCase):
         s2 = None
         try:
             b1 = self.create_vt_bundle()
-            s1 = DefaultVistrailsZIPSerializer(fname, b1)
+            s1 = DefaultVistrailsZIPSerializer(fname, bundle=b1)
             s1.save()
 
             s2 = DefaultVistrailsZIPSerializer(fname)
@@ -1591,7 +1601,7 @@ class TestBundles(unittest.TestCase):
         try:
             s1 = NoManifestZIPSerializer(in_fname)
             b1 = s1.load()
-            s2 = DefaultVistrailsZIPSerializer(out_fname, b1)
+            s2 = DefaultVistrailsZIPSerializer(out_fname, bundle=b1)
             s2.save()
         finally:
             os.unlink(out_fname)
