@@ -34,6 +34,7 @@
 ###############################################################################
 
 import copy
+import json
 import zipfile
 
 from vistrails.core import debug
@@ -77,7 +78,7 @@ class BundleObjDictionary(object):
     def __init__(self):
         self._objs = {}
         # Which types should have single objects
-        self.single_types = ['vistrail', 'log']
+        self.single_types = ['vistrail', 'log', 'job']
 
     def _translate_args(self, obj):
         """ obj can be a BundleObj, tuple or type.
@@ -245,7 +246,8 @@ class Serializer(object):
         raise NotImplementedError("Subclass must implement save.")
 
 class FileSerializer(Serializer):
-    """ Serializes the contents of a file using a root directory
+    """ Base serializer for DirectorySerializer
+        Serializes the contents of a file using a root directory
         and obj.id as file name
     """
 
@@ -255,6 +257,10 @@ class FileSerializer(Serializer):
 
     @classmethod
     def load(cls, filename):
+        """
+        :param filename: Full path to file in bundle
+        :return: BundleObj
+        """
         if not os.path.exists(filename):
             raise VistrailsDBException('Cannot open file "%s".' % filename)
         with open(filename, 'rb') as f:
@@ -264,6 +270,11 @@ class FileSerializer(Serializer):
     
     @classmethod
     def save(cls, obj, rootdir):
+        """
+        :param obj: BundleObj
+        :param rootdir: Root directory of bundle
+        :return: full path to written file
+        """
         fname = os.path.join(rootdir, obj.id)
         with open(fname, 'wb') as f:
             f.write(obj.obj)
@@ -504,7 +515,7 @@ class RegistryXMLSerializer(XMLFileSerializer):
     @classmethod
     def save(cls, obj, filename, version):
         version = vistrails.db.versions.currentVersion
-        return super(RegistryXMLSerializer, cls).save(cls, obj, filename, 
+        return super(RegistryXMLSerializer, cls).save(cls, obj, filename,
                                                       version,
                                     "http://www.vistrails.org/registry.xsd",
                                                       "translateRegistry")
@@ -614,6 +625,24 @@ class LogXMLSerializer(XMLAppendSerializer):
     @classmethod
     def get_inner_objs(cls, vt_obj):
         return vt_obj.db_workflow_execs
+
+class JobFileSerializer(FileSerializer):
+    """ Serializes jobs in a file.
+    """
+    @classmethod
+    def load(cls, filename):
+        if not os.path.exists(filename):
+            raise VistrailsDBException('Cannot open file "%s".' % filename)
+        with open(filename, 'rb') as f:
+            obj = BundleObj(f.read(), 'job')
+            return obj
+
+    @classmethod
+    def save(cls, obj, rootdir):
+        fname = os.path.join(rootdir, 'job')
+        with open(fname, 'wb') as f:
+            f.write(obj.obj)
+        return fname
 
 class DBDataSerializer(Serializer):
     SCHEMA = """
@@ -1231,6 +1260,7 @@ class DefaultVistrailsDirSerializer(DirectorySerializer):
         self.add_serializer("mashup", MashupXMLSerializer)
         self.add_serializer("thumbnail", ThumbnailFileSerializer)
         self.add_serializer("abstraction", AbstractionFileSerializer)    
+        self.add_serializer("job", JobFileSerializer)
 
 class DefaultVistrailsZIPSerializer(ZIPSerializer):
     def __init__(self, file_path=None, dir_path=None, bundle=None, overwrite=False,
@@ -1242,6 +1272,7 @@ class DefaultVistrailsZIPSerializer(ZIPSerializer):
         self.add_serializer("mashup", MashupXMLSerializer)
         self.add_serializer("thumbnail", ThumbnailFileSerializer)
         self.add_serializer("abstraction", AbstractionFileSerializer)    
+        self.add_serializer("job", JobFileSerializer)
 
 class DefaultVistrailsDBSerializer(DBSerializer):
     def __init__(self, connection_obj, bundle_id=None, name="", bundle=None,

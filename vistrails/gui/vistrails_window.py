@@ -940,10 +940,8 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.setup_recent_vistrails()
         self.init_toolbar()
 
-    def create_view(self, vistrail, locator,  abstraction_files=None, 
-                    thumbnail_files=None, mashups=None):
-        view = QVistrailView(vistrail, locator, abstraction_files,
-                             thumbnail_files, mashups)
+    def create_view(self, bundle, locator):
+        view = QVistrailView(bundle, locator)
         self.vistrail_widgets.append(view)
         index = self.stack.addWidget(view)
         self.stack.setCurrentIndex(index)

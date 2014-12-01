@@ -393,10 +393,7 @@ class VistrailsApplicationInterface(object):
             # vistrail is not already open
             try:
                 bundle = vistrails.core.db.io.load_vistrail(locator, False)
-                controller = self.add_vistrail(bundle.vistrail.obj, locator,
-                                       [a.obj for a in bundle.abstractions],
-                                       [t.obj for t in bundle.thumbnails],
-                                       [m.obj for m in bundle.mashups])
+                controller = self.add_vistrail(bundle, locator)
                 if locator.is_untitled():
                     return controller
                 controller.is_abstraction = is_abstraction

@@ -189,9 +189,11 @@ class VistrailController(object):
         # theme used to estimate module size for layout
         self.layoutTheme = DefaultCoreTheme()
         
+        # job monitor
+        self.jobMonitor = None
+
         # bundle associated with this controller
         self.bundle = None
-
 
         self.set_vistrail(vistrail, locator,
                           abstractions=abstractions, 
@@ -232,13 +234,15 @@ class VistrailController(object):
     def set_vistrail(self, vistrail, locator, abstractions=None, 
                      thumbnails=None, mashups=None, id_scope=None,
                      set_log_on_vt=True, bundle=None):
+        jobs = None
         if bundle is not None:
-            # Use bundle objects if not None
-            (vistrail, abstractions, thumbnails, mashups) = \
+            # Use bundle objects as default
+            (vistrail, abstractions, thumbnails, mashups, jobs) = \
                 (vistrail or bundle.vistrail.obj,
                  abstractions or [a.obj for a in bundle.abstractions],
                  thumbnails or [t.obj for t in bundle.thumbnails],
-                 mashups or [m.obj for m in bundle.mashups])
+                 mashups or [m.obj for m in bundle.mashups],
+                 bundle.job and bundle.job.obj)
 
         if vistrail:
             self.vistrail = vistrail
@@ -258,8 +262,11 @@ class VistrailController(object):
                 ThumbnailCache.getInstance().add_entries_from_files(thumbnails)
             if mashups is not None:
                 self._mashups = mashups
-            job_annotation = vistrail.get_annotation('__jobs__')
-            self.jobMonitor = JobMonitor(job_annotation and job_annotation.value)
+            if not jobs:
+                # <2.2 stored jobs as annotations
+                jobs = vistrail.get_annotation('__jobs__')
+                jobs = jobs and jobs.value
+            self.jobMonitor = JobMonitor(jobs)
 
         self.current_version = -1
         self.current_pipeline = Pipeline()
@@ -3664,7 +3671,7 @@ class VistrailController(object):
                 bundle.add_object(BundleObj(abs_fname, 'abstraction', abs_unique_name))
 
     def write_vistrail(self, locator, version=None, export=False):
-        """write_vistrail(locator,version) -> Boolean
+        """write_vistrail(locator, version) -> Boolean
         Creates a VistrailBundle and saves it to locator
         It will return a boolean that tells if the tree needs to be
         invalidated
@@ -3674,14 +3681,6 @@ class VistrailController(object):
         result = False 
         if not (self.vistrail and (self.changed or self.locator != locator)):
             return result
-
-        # Save jobs as annotation
-        # TODO write to separate file in bundle
-        if self.jobMonitor.workflows:
-            self.vistrail.set_annotation('__jobs__',
-                                         self.jobMonitor.__serialize__())
-        else:
-            self.vistrail.set_annotation('__jobs__', '')
 
         # update abstractions in vistrail
         # FIXME create this on-demand?
@@ -3695,6 +3694,10 @@ class VistrailController(object):
             self.vistrail.set_annotation(annotation_key, new_namespace)
 
         bundle = VistrailBundle()
+
+        # Save jobs
+        if self.jobMonitor.workflows:
+            bundle.add_object(BundleObj(self.jobMonitor.__serialize__(), 'job'))
 
         # add vistrail
         if export:
