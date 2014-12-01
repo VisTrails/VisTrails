@@ -639,13 +639,10 @@ class RequestHandler(object):
                             connection_id=None)
 
         bundle = io.load_vistrail(locator)
-        (vistrail, abstractions, thumbnails, mashups)  = (bundle.vistrail.obj,
-                                        [a.obj for a in bundle.abstractions],
-                                        [t.obj for t in bundle.thumbnails],
-                                        [m.obj for m in bundle.mashups])
+        vistrail = bundle.vistrail.obj
         from vistrails.core.vistrail.controller import VistrailController as BaseController
         c = BaseController()
-        c.set_vistrail(vistrail, locator, abstractions, thumbnails, mashups)
+        c.set_vistrail(bundle=bundle, locator=locator)
 
         from vistrails.core.vistrail.connection import Connection
         from vistrails.core.vistrail.module import Module
@@ -1245,12 +1242,7 @@ class RequestHandler(object):
                                     connection_id=None)
 
                 bundle = io.load_vistrail(locator)
-                (v, abstractions, thumbnails, mashups) = (bundle.vistrail.obj,
-                                        [a.obj for a in bundle.abstractions],
-                                        [t.obj for t in bundle.thumbnails],
-                                        [m.obj for m in bundle.mashups])
-                controller = VistrailController(v, locator, abstractions,
-                                                thumbnails, mashups)
+                controller = VistrailController(bundle=bundle, locator=locator)
                 controller.change_selected_version(version)
                 controller.updatePipelineScene()
                 controller.current_pipeline_scene.saveToPDF(filename)
@@ -1333,12 +1325,7 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
                 bundle = io.load_vistrail(locator)
-                (v, abstractions, thumbnails, mashups)  = (bundle.vistrail.obj,
-                                        [a.obj for a in bundle.abstractions],
-                                        [t.obj for t in bundle.thumbnails],
-                                        [m.obj for m in bundle.mashups])
-                controller = VistrailController(v, locator, abstractions, 
-                                                thumbnails, mashups)
+                controller = VistrailController(bundle=bundle, locator=locator)
                 controller.change_selected_version(version)
                 controller.updatePipelineScene()
                 controller.current_pipeline_scene.saveToPNG(filename)
@@ -1443,12 +1430,7 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
                 bundle = io.load_vistrail(locator)
-                (v, abstractions, thumbnails, mashups)  = (bundle.vistrail.obj,
-                                        [a.obj for a in bundle.abstractions],
-                                        [t.obj for t in bundle.thumbnails],
-                                        [m.obj for m in bundle.mashups])
-                controller = VistrailController(v, locator, abstractions, 
-                                                thumbnails, mashups)
+                controller = VistrailController(bundle=bundle, locator=locator)
                 from vistrails.gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
                 version_view.scene().setupScene(controller)
@@ -1537,12 +1519,7 @@ class RequestHandler(object):
                                     obj_type=None,
                                     connection_id=None)
                 bundle = io.load_vistrail(locator)
-                (v, abstractions, thumbnails, mashups)  = (bundle.vistrail.obj,
-                                        [a.obj for a in bundle.abstractions],
-                                        [t.obj for t in bundle.thumbnails],
-                                        [m.obj for m in bundle.mashups])
-                controller = VistrailController(v, locator, abstractions, 
-                                                thumbnails, mashups)
+                controller = VistrailController(bundle=bundle, locator=locator)
                 from vistrails.gui.version_view import QVersionTreeView
                 version_view = QVersionTreeView()
                 version_view.scene().setupScene(controller)

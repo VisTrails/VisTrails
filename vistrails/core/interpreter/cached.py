@@ -897,16 +897,12 @@ class TestCachedInterpreter(unittest.TestCase):
             locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                                 '/tests/resources/dummy.xml')
             bundle = load_vistrail(locator)
-            (v, abstractions, thumbnails, mashups)  = (bundle.vistrail.obj,
-                                        [a.obj for a in bundle.abstractions],
-                                        [t.obj for t in bundle.thumbnails],
-                                        [m.obj for m in bundle.mashups])
 
             # the controller will take care of upgrades
-            controller = VistrailController(v, locator, abstractions,
-                                            thumbnails,  mashups)
-            p1 = v.getPipeline('int chain')
-            n = v.get_version_number('int chain')
+            controller = VistrailController(bundle=bundle,
+                                            locator=locator)
+            p1 = controller.vistrail.getPipeline('int chain')
+            n = controller.vistrail.get_version_number('int chain')
             controller.change_selected_version(n)
             controller.flush_delayed_actions()
             p1 = controller.current_pipeline
@@ -914,17 +910,17 @@ class TestCachedInterpreter(unittest.TestCase):
             view = DummyView()
             interpreter = CachedInterpreter.get()
             result = interpreter.execute(p1,
-                                         locator=v,
+                                         locator=locator,
                                          current_version=n,
                                          view=view,
                                          )
             # to force fresh params
-            p2 = v.getPipeline('int chain')
+            p2 = controller.vistrail.getPipeline('int chain')
             controller.change_selected_version(n)
             controller.flush_delayed_actions()
             p2 = controller.current_pipeline
             result = interpreter.execute(p2,
-                                         locator=v,
+                                         locator=locator,
                                          current_version=n,
                                          view=view,
                                          )

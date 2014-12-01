@@ -572,10 +572,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
     def printJobs(self, locator):
         bundle = load_vistrail(locator)
-        controller = VistrailController(bundle.vistrail.obj, locator,
-                                        [a.obj for a in bundle.abstractions],
-                                        [t.obj for t in bundle.thumbnails],
-                                        [m.obj for m in bundle.mashups],
+        controller = VistrailController(bundle=bundle, locator=locator,
                                         auto_save=False)
         text = "### Workflows with jobs ###\n"
         text += "workflow | start date | status\n"
@@ -589,10 +586,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
     def printJob(self, locator, version):
         bundle = load_vistrail(locator)
-        controller = VistrailController(bundle.vistrail.obj, locator,
-                                        [a.obj for a in bundle.abstractions],
-                                        [t.obj for t in bundle.thumbnails],
-                                        [m.obj for m in bundle.mashups],
+        controller = VistrailController(bundle=bundle, locator=locator,
                                         auto_save=False)
         text = "### Jobs in workflow ###\n"
         text += "name | start date | status\n"

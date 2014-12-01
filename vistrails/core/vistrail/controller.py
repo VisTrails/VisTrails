@@ -144,7 +144,7 @@ def parse_custom_color(color):
 class VistrailController(object):
     def __init__(self, vistrail=None, locator=None, abstractions=None, 
                  thumbnails=None, mashups=None, id_scope=None, 
-                 set_log_on_vt=True, auto_save=True):
+                 set_log_on_vt=True, auto_save=True, bundle=None):
         self.vistrail = None
         self.locator = None
         self._auto_save = auto_save
@@ -189,12 +189,17 @@ class VistrailController(object):
         # theme used to estimate module size for layout
         self.layoutTheme = DefaultCoreTheme()
         
+        # bundle associated with this controller
+        self.bundle = None
+
+
         self.set_vistrail(vistrail, locator,
                           abstractions=abstractions, 
                           thumbnails=thumbnails,
                           mashups=mashups,
                           id_scope=id_scope, 
-                          set_log_on_vt=set_log_on_vt)
+                          set_log_on_vt=set_log_on_vt,
+                          bundle=bundle)
 
     # allow gui.vistrail_controller to reference individual views
     def _get_current_version(self):
@@ -226,8 +231,17 @@ class VistrailController(object):
     
     def set_vistrail(self, vistrail, locator, abstractions=None, 
                      thumbnails=None, mashups=None, id_scope=None,
-                     set_log_on_vt=True):
-        self.vistrail = vistrail
+                     set_log_on_vt=True, bundle=None):
+        if bundle is not None:
+            # Use bundle objects if not None
+            (vistrail, abstractions, thumbnails, mashups) = \
+                (vistrail or bundle.vistrail.obj,
+                 abstractions or [a.obj for a in bundle.abstractions],
+                 thumbnails or [t.obj for t in bundle.thumbnails],
+                 mashups or [m.obj for m in bundle.mashups])
+
+        if vistrail:
+            self.vistrail = vistrail
         self.id_scope = id_scope
         self.current_session = -1
         self.log = Log()
