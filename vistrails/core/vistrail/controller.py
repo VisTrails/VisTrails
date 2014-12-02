@@ -236,6 +236,7 @@ class VistrailController(object):
                      set_log_on_vt=True, bundle=None):
         jobs = None
         if bundle is not None:
+            self.bundle = bundle
             # Use bundle objects as default
             (vistrail, abstractions, thumbnails, mashups, jobs) = \
                 (vistrail or bundle.vistrail.obj,
@@ -3726,6 +3727,11 @@ class VistrailController(object):
         # it's not an actual field
         self.vistrail.db_currentVersion = self.current_version
 
+        # save data
+        if self.bundle:
+            for d in self.bundle.datas:
+                bundle.add_object(d)
+
         # add log
         log = self.log
         if self.locator != locator:
@@ -3820,6 +3826,7 @@ class VistrailController(object):
                 self.log.delete_all_workflow_execs()
             self.set_changed(False)
             locator.clean_temporaries()
+            self.bundle = bundle
 
         # delete any temporary subworkflows
             try:

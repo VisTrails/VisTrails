@@ -590,6 +590,7 @@ class XMLAppendSerializer(XMLFileSerializer):
     def get_inner_obj(cls, vt_obj):
         raise NotImplementedError("Subclass must implment get_inner_obj")
 
+
 class LogXMLSerializer(XMLAppendSerializer):
     """ Serializes log as a file containing xml fragments
     """
@@ -626,6 +627,7 @@ class LogXMLSerializer(XMLAppendSerializer):
     def get_inner_objs(cls, vt_obj):
         return vt_obj.db_workflow_execs
 
+
 class JobFileSerializer(FileSerializer):
     """ Serializes jobs in a file.
     """
@@ -642,6 +644,26 @@ class JobFileSerializer(FileSerializer):
         fname = os.path.join(rootdir, 'job')
         with open(fname, 'wb') as f:
             f.write(obj.obj)
+        return fname
+
+
+class DataFileSerializer(FileRefSerializer):
+    """ Serializes a data file to the data/ directory
+    """
+    @classmethod
+    def load(cls, filename):
+        return BundleObj(filename, 'data')
+
+    @classmethod
+    def save(cls, obj, rootdir):
+        fname = os.path.join(rootdir, os.path.join('data', obj.id))
+        if obj.obj != fname:
+            # Create intermediary directories
+            path = os.path.dirname(fname)
+            if not os.path.isdir(path):
+                os.makedirs(path)
+            if obj.obj != fname:
+                shutil.copyfile(obj.obj, fname)
         return fname
 
 class DBDataSerializer(Serializer):
@@ -1041,6 +1063,12 @@ class DirectorySerializer(BundleSerializer):
                 print 'cannot serialize obj', obj_type
                 debug.warning('Cannot serialize object(s) of type "%s"' % \
                               obj_type)
+        # remove files not in MANIFEST
+        manifest_files = [i[2] for i in self._manifest.get_items()]
+        manifest_files.append('MANIFEST')
+        for f in all_files:
+            if f[len(dir_path):] not in manifest_files:
+                os.unlink(f)
         self._manifest.save()
 
     def cleanup(self):
@@ -1261,6 +1289,7 @@ class DefaultVistrailsDirSerializer(DirectorySerializer):
         self.add_serializer("thumbnail", ThumbnailFileSerializer)
         self.add_serializer("abstraction", AbstractionFileSerializer)    
         self.add_serializer("job", JobFileSerializer)
+        self.add_serializer("data", DataFileSerializer)
 
 class DefaultVistrailsZIPSerializer(ZIPSerializer):
     def __init__(self, file_path=None, dir_path=None, bundle=None, overwrite=False,
@@ -1273,6 +1302,7 @@ class DefaultVistrailsZIPSerializer(ZIPSerializer):
         self.add_serializer("thumbnail", ThumbnailFileSerializer)
         self.add_serializer("abstraction", AbstractionFileSerializer)    
         self.add_serializer("job", JobFileSerializer)
+        self.add_serializer("data", DataFileSerializer)
 
 class DefaultVistrailsDBSerializer(DBSerializer):
     def __init__(self, connection_obj, bundle_id=None, name="", bundle=None,
