@@ -8,6 +8,17 @@ from vistrails.packages.web.common import finalizer
 from vistrails.packages.web.servers.simpleweb import WebServer
 
 
+class WebWidget(WebViewCellWidget):
+    def updateContents(self, inputPorts):
+        server, = inputPorts
+        self.server = server  # Keeps a reference so the server stays alive
+        super(WebWidget, self).updateContents((server.address,))
+
+    def deleteLater(self):
+        self.server.stop()
+        super(WebWidget, self).deleteLater()
+
+
 class TestWeb(SpreadsheetCell):
     """A test module.
     """
@@ -34,7 +45,7 @@ class TestWeb(SpreadsheetCell):
 """)
 
         # Displays on the spreadsheet
-        self.display(WebViewCellWidget, (server.address,))
+        self.display(WebWidget, (server,))
 
 
 def finalize():
