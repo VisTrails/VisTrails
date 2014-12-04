@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 # This script automatically builds a Conda package
 
 cd "$(dirname "$0")/../../.."
@@ -45,6 +47,7 @@ sedi(){
 }
 
 absolutepathname(){
+    mkdir "$(dirname "$1")"
     cd "$(dirname "$1")"
     echo "$(pwd)/$(basename "$1")"
 }
