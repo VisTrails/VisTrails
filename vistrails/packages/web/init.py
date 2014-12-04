@@ -4,16 +4,15 @@ from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.widgets.webview.webview import \
     WebViewCellWidget
 
-from vistrails.packages.web import configuration
 from vistrails.packages.web.common import finalizer
-from vistrails.packages.web.simpleweb import WebServer
+from vistrails.packages.web.servers.simpleweb import WebServer
 
 
 class TestWeb(SpreadsheetCell):
     """A test module.
     """
     def compute(self):
-        # Gets some space on the web server
+        # Gets some space on the web server, using WebServer
         server = WebServer.get_server()
 
         # Registers the image

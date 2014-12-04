@@ -11,8 +11,9 @@ from vistrails.packages.web.common import finalizer, random_strings
 class WebServer(object):
     """An HTTP server running in a background thread.
 
-    Clients can register with it to obtain a prefix through which they can
-    serve files.
+    WebServer gets you a prefix on an HTTP server, for instance
+    ``/abcdef1234/``, from which you can serve simple files, using the
+    BaseHTTPServer module from the standard library.
     """
     _server = None
 
