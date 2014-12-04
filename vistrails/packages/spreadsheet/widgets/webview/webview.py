@@ -33,16 +33,15 @@
 ##
 ###############################################################################
 
-############################################################################
-# web browser view implementation
-############################################################################
+"""web browser view implementation
+"""
+
 from PyQt4 import QtCore, QtGui, QtWebKit
+from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
-    QCellToolBar
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 import os
-import shutil
-############################################################################
+
 
 class WebViewCell(SpreadsheetCell):
     """
@@ -53,16 +52,15 @@ class WebViewCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the URL to the spreadsheet
         """
-        if self.has_input("url"):
-            urlValue = self.get_input("url")
-            fileValue = None
-        elif self.has_input("file"):
-            fileValue = self.get_input("file")
-            urlValue = None
+        if self.hasInputFromPort("url"):
+            url = self.getInputFromPort("url")
+        elif self.hasInputFromPort("file"):
+            file_obj = self.getInputFromPort("file")
+            url = QtCore.QUrl.fromLocalFile(file_obj.name)
         else:
-            fileValue = None
-            urlValue = None
-        self.displayAndWait(WebViewCellWidget, (urlValue, fileValue))
+            raise ModuleError(self, "Either 'url' or 'file' must be set")
+        self.displayAndWait(WebViewCellWidget, (url,))
+
 
 class WebViewCellWidget(QCellWidget):
     """
@@ -90,18 +88,10 @@ class WebViewCellWidget(QCellWidget):
         Updates the contents with a new changed in filename
         
         """
-        self.urlSrc = None
-        (urlValue, fileValue) = inputPorts
-        if urlValue:
-            url = QtCore.QUrl(urlValue)
-            self.browser.load(url)
-            self.urlSrc = url
-        elif fileValue:
-            url = QtCore.QUrl.fromLocalFile(fileValue.name)
-            self.browser.load(url)
-            self.urlSrc = url
-        else:
-            self.browser.setHtml("No HTML file is specified!")
+        url, = inputPorts
+        if not isinstance(url, QtCore.QUrl):
+            url = QtCore.QUrl(url)
+        self.browser.load(url)
 
     def dumpToFile(self, filename):
         if os.path.splitext(filename)[1].lower() in ('.html', '.htm'):
