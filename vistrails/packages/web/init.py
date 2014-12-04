@@ -17,8 +17,9 @@ class TestWeb(SpreadsheetCell):
 
         # Registers the image
         server.add_file('logo', os.path.join(
-                os.path.dirname(__file__),
-                '../../gui/resources/images/dockback.png'))
+                            os.path.dirname(__file__),
+                            '../../gui/resources/images/dockback.png'),
+                        'image/png')
 
         # Registers the page
         server.add_resource('', b"""\
