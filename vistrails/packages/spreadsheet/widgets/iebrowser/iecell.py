@@ -97,15 +97,16 @@ class IECellWidget(QCellWidget):
             self.urlSrc = QtCore.QUrl(urlValue)
         elif fileValue:
             self.urlSrc = QtCore.QUrl.fromLocalFile(fileValue.name)
-        if self.urlSrc!=None:
+        if self.urlSrc is not None:
             self.browser.dynamicCall('Navigate(const QString&)', self.urlSrc)
         else:
             self.browser.dynamicCall('Navigate(const QString&)', 'about:blank')
 
     def dumpToFile(self, filename):
         if os.path.splitext(filename)[1].lower() in ('.html', '.htm'):
-            if self.urlSrc is not None:
+            if self.urlSrc is not None and self.urlSrc.isLocalFile():
                 shutil.copyfile(str(self.urlSrc.toLocalFile()), filename)
+                # FIXME: save file if not local
         else:
             super(IECellWidget, self).dumpToFile(filename)
 
