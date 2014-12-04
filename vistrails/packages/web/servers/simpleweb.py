@@ -8,6 +8,59 @@ from vistrails.packages.web import configuration
 from vistrails.packages.web.common import finalizer, random_strings
 
 
+class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    def do_GET(self):
+        server = WebServer._server
+        debug.debug("HTTP request: %s" % self.path)
+        try:
+            prefix_name = self.path.split('/', 2)[1]
+            prefix = server._prefixes[prefix_name]
+        except KeyError:
+            self.send_response(404)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write("Invalid URL (prefix not found)\n")
+        else:
+            prefix.get(self.path[len(prefix_name) + 2:], self)
+
+
+class Prefix(object):
+    def __init__(self, prefix):
+        server = WebServer._server
+        self.prefix = prefix
+        self.address = server.address + prefix + '/'
+        self._resources = {}
+
+    def get(self, uri, handler):
+        debug.debug("prefix=%r, uri=%r" % (self.prefix, uri))
+        try:
+            res = self._resources[uri]
+        except KeyError:
+            type_, args = None, ()
+        else:
+            type_, args = res[0], res[1:]
+        if type_ == 'file':
+            with open(args[0], 'rb') as fp:
+                blob = fp.read()
+        elif type_ == 'blob':
+            blob = args[0]
+        else:
+            handler.send_response(404)
+            handler.send_header('Content-type', 'text/plain')
+            handler.end_headers()
+            handler.wfile.write("Invalid URL (not found in prefix)\n")
+            return
+        handler.send_response(200)
+        handler.end_headers()
+        handler.wfile.write(blob)
+
+    def add_file(self, uri, filename):
+        self._resources[uri] = ('file', filename)
+
+    def add_resource(self, uri, blob):
+        self._resources[uri] = ('blob', blob)
+
+
 class WebServer(object):
     """An HTTP server running in a background thread.
 
@@ -23,57 +76,6 @@ class WebServer(object):
             WebServer._server = cls()
         return WebServer._server.new_prefix()
 
-    class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-        def do_GET(self):
-            server = WebServer._server
-            debug.debug("HTTP request: %s" % self.path)
-            try:
-                prefix_name = self.path.split('/', 2)[1]
-                prefix = server._prefixes[prefix_name]
-            except KeyError:
-                self.send_response(404)
-                self.send_header('Content-type', 'text/plain')
-                self.end_headers()
-                self.wfile.write("Invalid URL (prefix not found)\n")
-            else:
-                prefix.get(self.path[len(prefix_name) + 2:], self)
-
-    class Prefix(object):
-        def __init__(self, prefix):
-            server = WebServer._server
-            self.prefix = prefix
-            self.address = server.address + prefix + '/'
-            self._resources = {}
-
-        def get(self, uri, handler):
-            debug.debug("prefix=%r, uri=%r" % (self.prefix, uri))
-            try:
-                res = self._resources[uri]
-            except KeyError:
-                type_, args = None, ()
-            else:
-                type_, args = res[0], res[1:]
-            if type_ == 'file':
-                with open(args[0], 'rb') as fp:
-                    blob = fp.read()
-            elif type_ == 'blob':
-                blob = args[0]
-            else:
-                handler.send_response(404)
-                handler.send_header('Content-type', 'text/plain')
-                handler.end_headers()
-                handler.wfile.write("Invalid URL (not found in prefix)\n")
-                return
-            handler.send_response(200)
-            handler.end_headers()
-            handler.wfile.write(blob)
-
-        def add_file(self, uri, filename):
-            self._resources[uri] = ('file', filename)
-
-        def add_resource(self, uri, blob):
-            self._resources[uri] = ('blob', blob)
-
     def __init__(self):
         orig_port = configuration.server_port
         debug.log("Starting web server, requested port is %d" % orig_port)
@@ -85,7 +87,7 @@ class WebServer(object):
             try:
                 self._httpd = BaseHTTPServer.HTTPServer(
                     ('127.0.0.1', port),
-                    self.RequestHandler)
+                    RequestHandler)
             except socket.error, e:
                 debug.warning("Can't grab port %d" % port, e)
                 tries -= 1
@@ -113,7 +115,7 @@ class WebServer(object):
 
     def new_prefix(self):
         name = next(random_strings)
-        prefix = self.Prefix(name)
+        prefix = Prefix(name)
         self._prefixes[name] = prefix
         debug.log("Created prefix %r" % name)
         return prefix
