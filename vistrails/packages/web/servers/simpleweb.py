@@ -36,7 +36,8 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             prefix_name = self.path.split('/', 2)[1]
             prefix = server._prefixes[prefix_name]
         except KeyError:
-            code, contents = 404, "Invalid prefix\n"
+            code, headers, contents = (404, {'Content-type': 'text/plain'},
+                                       "Invalid prefix\n")
         else:
             code, headers, contents = prefix.get(
                     self.path[len(prefix_name) + 2:])
@@ -48,8 +49,6 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if headers is None:
                 headers = {}
             header_keys = set(key.lower() for key in headers)
-            if 'content-type' not in header_keys:
-                headers['Content-type'] = 'text/plain'
             for key, value in headers.iteritems():
                 self.send_header(key, value)
             self.end_headers()
@@ -88,12 +87,19 @@ class Prefix(object):
             blob, ctype = args
         else:
             return 404, None, None
-        return 200, {'Content-type': ctype}, blob
+        headers = {}
+        if ctype is not None:
+            headers['Content-type'] = ctype
+        return 200, headers, blob
 
-    def add_file(self, uri, filename, content_type='text/html'):
+    def add_file(self, uri, filename, content_type=None):
+        if uri.startswith('/'):
+            uri = uri[1:]
         self._resources[uri] = ('file', filename, content_type)
 
-    def add_resource(self, uri, blob, content_type='text/html'):
+    def add_resource(self, uri, blob, content_type=None):
+        if uri.startswith('/'):
+            uri = uri[1:]
         self._resources[uri] = ('blob', blob, content_type)
 
     def stop(self):
