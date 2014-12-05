@@ -61,18 +61,17 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
         central_layout.setSpacing(0)
         self.setLayout(central_layout)
 
-        self._scroll_area = QtGui.QScrollArea()
+        scroll_area = QtGui.QScrollArea()
         inner_widget = QtGui.QWidget()
         self._list_layout = QtGui.QVBoxLayout()
         scroll_layout = QtGui.QVBoxLayout()
         scroll_layout.addLayout(self._list_layout)
         scroll_layout.addStretch()
         inner_widget.setLayout(scroll_layout)
-        self._scroll_area.setVerticalScrollBarPolicy(
-                QtCore.Qt.ScrollBarAlwaysOn)
-        self._scroll_area.setWidget(inner_widget)
-        self._scroll_area.setWidgetResizable(True)
-        central_layout.addWidget(self._scroll_area)
+        scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        scroll_area.setWidget(inner_widget)
+        scroll_area.setWidgetResizable(True)
+        central_layout.addWidget(scroll_area)
 
         add_buttons = QtGui.QHBoxLayout()
         central_layout.addLayout(add_buttons)
