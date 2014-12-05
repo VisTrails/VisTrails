@@ -712,24 +712,8 @@ def open_vistrail_bundle_from_zip_xml(filename):
     """
 
     vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
-    # TODO: Use extended bundle
     serializer = DefaultVistrailsZIPSerializer(dir_path=vt_save_dir)
     bundle = serializer.load(filename)
-    # FIXME: move to extended new bundle
-                    #from vistrails.core.packagemanager import get_package_manager
-                    #pm = get_package_manager()
-                    #for package in pm.enabled_package_list():
-                    #    if package.can_handle_vt_file(fname):
-                    #        handled = True
-                    #        continue
-                    #if not handled:
-                    #    unknown_files.append(os.path.join(root, fname))
-
-    # call package hooks
-    #from vistrails.core.packagemanager import get_package_manager
-    #pm = get_package_manager()
-    #for package in pm.enabled_package_list():
-    #    package.loadVistrailFileHook(vistrail, vt_save_dir)
     return (bundle, vt_save_dir)
 
 def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
@@ -834,20 +818,9 @@ def save_vistrail_bundle_to_zip_xml(bundle, filename, vt_save_dir=None, version=
     if not vt_save_dir:
         vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
 
-    # TODO: use extended serializer
     serializer = DefaultVistrailsZIPSerializer(dir_path=vt_save_dir, bundle=bundle)
     serializer.save(filename)
 
-    # TODO: add package hooks as serializers
-    # call package hooks
-    # it will fail if package manager has not been constructed yet
-    #try:
-    #    from vistrails.core.packagemanager import get_package_manager
-    #    pm = get_package_manager()
-    #    for package in pm.enabled_package_list():
-    #        package.saveVistrailFileHook(save_bundle.vistrail, vt_save_dir)
-    #except Exception, e:
-    #    debug.warning("Could not call package hooks", str(e))
     return (bundle, vt_save_dir)
 
 def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, version=None):

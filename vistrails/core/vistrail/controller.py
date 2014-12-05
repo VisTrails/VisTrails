@@ -269,6 +269,13 @@ class VistrailController(object):
                 jobs = jobs and jobs.value
             self.jobMonitor = JobMonitor(jobs)
 
+            if bundle is not None:
+                # call package hooks
+                from vistrails.core.packagemanager import get_package_manager
+                pm = get_package_manager()
+                for package in pm.enabled_package_list():
+                    package.loadVistrailFileHook(self, bundle)
+
         self.current_version = -1
         self.current_pipeline = Pipeline()
         if self.locator != locator and self.locator is not None:
@@ -3763,6 +3770,15 @@ class VistrailController(object):
                     log.db_add_workflow_exec(workflow_exec)
         # Always add log because it may already exist in the save folder
         bundle.add_object(BundleObj(log, 'log'))
+
+        # Call package hooks
+        try:
+            from vistrails.core.packagemanager import get_package_manager
+            pm = get_package_manager()
+            for package in pm.enabled_package_list():
+                package.saveVistrailFileHook(self, bundle)
+        except Exception, e:
+            debug.critical("Could not call package hooks", str(e))
 
         if self.locator != locator:
             old_locator = self.get_locator()

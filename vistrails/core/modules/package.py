@@ -569,24 +569,23 @@ class Package(DBPackage):
     def callContextMenu(self, signature):
         return self._init_module.callContextMenu(signature)
 
-    def loadVistrailFileHook(self, vistrail, tmp_dir):
+    def loadVistrailFileHook(self, controller, bundle):
         if hasattr(self._init_module, 'loadVistrailFileHook'):
             try:
-                self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
+                self._init_module.loadVistrailFileHook(controller, bundle)
             except Exception, e:
                 debug.critical("Got exception in %s's loadVistrailFileHook(): "
                                "%s: %s" % (self.name, type(e).__name__,
                                            ', '.join(e.args)))
 
-    def saveVistrailFileHook(self, vistrail, tmp_dir):
+    def saveVistrailFileHook(self, controller, bundle):
         if hasattr(self._init_module, 'saveVistrailFileHook'):
             try:
-                self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
+                self._init_module.saveVistrailFileHook(controller, bundle)
             except Exception, e:
                 debug.critical("Got exception in %s's saveVistrailFileHook(): "
                                "%s: %s" % (self.name, type(e).__name__,
                                            ', '.join(e.args)))
-
     def check_requirements(self):
         try:
             callable_ = self._module.package_requirements
