@@ -5,8 +5,8 @@ import threading
 
 from vistrails.core import debug
 
-from vistrails.packages.web import configuration
-from vistrails.packages.web.common import finalizer, random_strings
+from .. import configuration
+from ..common import finalizer, random_strings
 
 
 class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
