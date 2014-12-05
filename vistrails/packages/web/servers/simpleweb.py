@@ -1,4 +1,5 @@
 import BaseHTTPServer
+import os
 import socket
 import threading
 
@@ -16,6 +17,20 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         server = WebServer._server
         debug.debug("HTTP request: %s" % self.path)
+        if self.path == '/favicon.ico':
+            self.send_response(200)
+            self.send_header('Content-type', 'image/x-icon')
+            self.end_headers()
+            with open(os.path.join(os.path.dirname(__file__),
+                                   '../vistrails_favicon.ico'), 'rb') as fp:
+                chunk = fp.read(4096)
+                if chunk:
+                    self.wfile.write(chunk)
+                    while len(chunk) == 4096:
+                        chunk = fp.read(4096)
+                        if chunk:
+                            self.wfile.write(chunk)
+            return
         code, headers, contents = 500, None, None
         try:
             prefix_name = self.path.split('/', 2)[1]
