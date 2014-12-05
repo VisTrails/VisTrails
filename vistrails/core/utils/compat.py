@@ -36,6 +36,8 @@
 """
 
 
+from __future__ import division
+
 def ascii_s(s):
     """Makes sure `s` is the native str type, encoding as ASCII if necessary.
     """

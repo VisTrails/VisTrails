@@ -132,7 +132,7 @@ class RQModule(JobMixin, Module):
         """ Get machine info from job
         """
         jm = self.job_monitor()
-        if jm.hasJob(self.getId({})):
+        if jm.hasJob(self.signature):
             params = jm.getJob(self.signature).parameters
             if 'server' in params:
                 return (params['server'],
@@ -207,7 +207,7 @@ class RunCommand(RQModule):
                                    (exitcode, result))
         d = {'result':result}
         self.set_job_machine(d, machine)
-        jm.setCache(self.signature, d, self.getName())
+        jm.setCache(self.signature, d, self.job_name())
         self.set_output("output", result)
         self.set_output("machine", machine)
 
@@ -226,7 +226,7 @@ class RunJob(RQModule):
                     ]
 
     job = None
-    def readInputs(self):
+    def job_read_inputs(self):
         d = {}
         if not self.has_input('command'):
             raise ModuleError(self, "No command specified")
@@ -235,7 +235,7 @@ class RunJob(RQModule):
               if self.has_input('working_directory') else '.'
         return d
 
-    def startJob(self, params):
+    def job_start(self, params):
         work_dir = params['working_directory']
         self.machine = self.get_machine()
         use_machine(self.machine)
@@ -251,12 +251,12 @@ class RunJob(RQModule):
         self.set_job_machine(params, self.machine)
         return params
 
-    def getMonitor(self, params):
+    def job_get_handle(self, params):
         if not self.job:
-            self.startJob(params)
+            self.job_start(params)
         return self.job
 
-    def finishJob(self, params):
+    def job_finish(self, params):
         params['stdout'] = self.job.standard_output()
         params['stderr'] = self.job.standard_error()
         if self.job.failed():
@@ -271,7 +271,7 @@ class RunJob(RQModule):
         end_machine()
         return params
 
-    def setResults(self, params):
+    def job_set_results(self, params):
         self.set_output('stdout', params['stdout'])
         self.set_output('stderr', params['stderr'])
 
@@ -338,8 +338,8 @@ class PBSJob(RQModule):
                 if comment:
                     status += ': ' + comment[10:]
             end_machine()
-            # The PBS class provides the BaseMonitor interface, i.e. finished()
-            raise ModuleSuspended(self, '%s' % status, monitor=job)
+            # The PBS class provides the JobHandle interface, i.e. finished()
+            raise ModuleSuspended(self, '%s' % status, handle=job)
         # copies the created files to the client
         get_result = TransferFiles("local", input_directory, working_directory,
                               dependencies = [cdir])
@@ -374,7 +374,7 @@ class RunPBSScript(RQModule):
                     ]
     
     job = None
-    def readInputs(self):
+    def job_read_inputs(self):
         d = {}
         if not self.has_input('command'):
             raise ModuleError(self, "No command specified")
@@ -391,7 +391,7 @@ class RunPBSScript(RQModule):
                 d['additional_arguments'][k] = self.get_input(k)
         return d
 
-    def startJob(self, params):
+    def job_start(self, params):
         work_dir = params['working_directory']
         self.machine = self.get_machine()
         use_machine(self.machine)
@@ -411,12 +411,12 @@ class RunPBSScript(RQModule):
         self.set_job_machine(params, self.machine)
         return params
         
-    def getMonitor(self, params):
+    def job_get_handle(self, params):
         if not self.job:
-            self.startJob(params)
+            self.job_start(params)
         return self.job
 
-    def finishJob(self, params):
+    def job_finish(self, params):
         job_info = self.job.get_job_info()
         if job_info:
             self.annotate({'job_info': job_info})
@@ -430,7 +430,7 @@ class RunPBSScript(RQModule):
         params['stderr'] = self.job.standard_error()
         return params
 
-    def setResults(self, params):
+    def job_set_results(self, params):
         self.set_output('stdout', params['stdout'])
         self.set_output('stderr', params['stderr'])
 
@@ -471,7 +471,7 @@ class SyncDirectories(RQModule):
             end_machine()
             d = {}
             self.set_job_machine(d, machine)
-            cache = jm.setCache(self.signature, d, self.getName())
+            cache = jm.setCache(self.signature, d, self.job_name())
 
         self.set_output("machine", machine)
 
@@ -512,7 +512,7 @@ class CopyFile(RQModule):
             result = command(local_file, remote_file)
             d = {'result':result}
             self.set_job_machine(d, machine)
-            jm.setCache(self.signature, d, self.getName())
+            jm.setCache(self.signature, d, self.job_name())
 
         self.set_output("machine", machine)
         self.set_output("output", result)

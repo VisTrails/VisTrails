@@ -35,7 +35,7 @@
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
+from PyQt4.QtCore import pyqtSlot
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 from vistrails.gui.base_view import BaseView
@@ -143,8 +143,7 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                                         self.mshpControllerVistrailChanged)
                 except Exception, e:
                     debug.unexpected_exception(e)
-                    import traceback
-                    traceback.print_exc()
+                    debug.print_exc()
             self.controller.flush_delayed_actions()
             self.vtversion = self.controller.current_version
             self.mshpController = self.manager.createMashupController(self.controller,

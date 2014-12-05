@@ -182,10 +182,9 @@ class VistrailEntity(Entity):
             workflow = self.vistrail.getPipeline(version_id)
         except Exception, e:
             debug.unexpected_exception(e)
-            import traceback
             debug.critical("Failed to construct pipeline '%s'" % 
                                (tag if tag else version_id),
-                           traceback.format_exc())
+                           debug.format_exc())
             workflow = self.vistrail.getPipeline(0)
         if tag:
             workflow.name = tag
@@ -264,13 +263,12 @@ class VistrailEntity(Entity):
                 workflow = self.vistrail.getPipeline(version_id)
             except Exception, e:
                 debug.unexpected_exception(e)
-                import traceback
                 if self.vistrail.has_tag(version_id):
                     tag_str = self.vistrail.get_tag(version_id)
                 else:
                     tag_str = unicode(version_id)
                 debug.critical("Failed to construct pipeline '%s'" % tag_str,
-                               traceback.format_exc())
+                               debug.format_exc())
                 workflow = self.vistrail.getPipeline(0)
             wf_entity = self.create_workflow_entity(workflow, action)
             self.wf_entity_map[version_id] = wf_entity
@@ -353,8 +351,7 @@ class VistrailEntity(Entity):
                 log = vistrail.get_persisted_log()
             except Exception, e:
                 debug.unexpected_exception(e)
-                import traceback
-                debug.critical("Failed to read log", traceback.format_exc())
+                debug.critical("Failed to read log", debug.format_exc())
                 
             if log is not None:
                 for wf_exec in log.workflow_execs:

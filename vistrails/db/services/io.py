@@ -797,9 +797,8 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
             save_vistrail_to_xml(abs, fname)
             abstractions.append(fname)
     except Exception, e:
-        import traceback
-        debug.critical('Could not load abstraction from database: %s' % unicode(e),
-                                              traceback.format_exc())
+        debug.critical('Could not load abstraction from database: %s' % e,
+                       debug.format_exc())
     # open mashuptrails from db
     mashuptrails = []
     try:
@@ -807,9 +806,8 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
             mashup = open_mashuptrail_from_db(db_connection, mashup_id)
             mashuptrails.append(mashup)
     except Exception, e:
-        import traceback
-        debug.critical('Could not load mashuptrail from database: %s' % unicode(e),
-                                              traceback.format_exc())
+        debug.critical('Could not load mashuptrail from database: %s' % e,
+                       debug.format_exc())
     thumbnails = open_thumbnails_from_db(db_connection, DBVistrail.vtType,
                                          vistrail_id, tmp_dir)
     return SaveBundle(DBVistrail.vtType, vistrail, log,

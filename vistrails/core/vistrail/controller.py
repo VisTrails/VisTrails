@@ -3525,8 +3525,6 @@ class VistrailController(object):
                     self.current_version = new_version
                 except InvalidPipeline, e:
                     # display invalid pipeline?
-                    # import traceback
-                    # traceback.print_exc()
                     new_error = e
                     
                     # just do the version switch, anyway, but alert the
@@ -3575,8 +3573,7 @@ class VistrailController(object):
             elif len(e._exception_set) > 0:
                 process_err(e._exception_set.__iter__().next())
         except Exception, e:
-            import traceback
-            debug.critical("Unhandled exception", traceback.format_exc())
+            debug.critical("Unhandled exception", debug.format_exc())
 
     def write_temporary(self):
         if self.vistrail and self.changed:

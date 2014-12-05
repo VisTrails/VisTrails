@@ -37,6 +37,7 @@ from __future__ import division
 from itertools import izip
 import os
 
+from vistrails.core import debug
 from vistrails.core.system import vistrails_root_directory
 from vistrails.core.utils.compat import ascii_s
 from vistrails.db import VistrailsDBException
@@ -58,7 +59,7 @@ def getVersionDAO(version=None):
             raise VistrailsDBException(msg)
         # assume other error
         import traceback
-        raise VistrailsDBException(traceback.format_exc())
+        raise VistrailsDBException(debug.format_exc())
     return persistence.DAOList()
 
 def translate_object(obj, method_name, version=None, target_version=None):
