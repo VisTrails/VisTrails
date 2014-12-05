@@ -1,6 +1,6 @@
 from vistrails.core.configuration import ConfigurationObject
 
-from identifiers import *
+from .identifiers import *
 
 
 configuration = ConfigurationObject(server_port=13254)

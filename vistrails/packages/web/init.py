@@ -4,8 +4,8 @@ from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.widgets.webview.webview import \
     WebViewCellWidget
 
-from vistrails.packages.web.common import finalizer
-from vistrails.packages.web.servers.simpleweb import WebServer
+from .common import finalizer
+from .servers.simpleweb import WebServer
 
 
 class WebWidget(WebViewCellWidget):
