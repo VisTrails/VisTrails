@@ -37,6 +37,7 @@ pipelines."""
 from __future__ import division
 
 import vistrails.core.cache.hasher
+from vistrails.core import debug
 from vistrails.core.debug import format_exception
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, new_module, \
@@ -45,8 +46,7 @@ from vistrails.core.modules.config import ConstantWidgetConfig, \
     QueryWidgetConfig, ParamExpWidgetConfig, ModuleSettings, IPort, OPort, \
     CIPort
 import vistrails.core.system
-from vistrails.core.utils import InstanceObject
-from vistrails.core import debug
+from vistrails.core.utils import unquote, InstanceObject
 
 from abc import ABCMeta
 from ast import literal_eval
@@ -56,7 +56,6 @@ import pickle
 import re
 import shutil
 import zipfile
-import urllib
 import warnings
 
 try:
@@ -1046,7 +1045,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     _output_pors = [OPort('self', 'Module')]
 
     def compute(self):
-        s = urllib.unquote(unicode(self.get_input('source')))
+        s = unquote(unicode(self.get_input('source')))
         self.run_code(s, use_input=True, use_output=True)
 
 ##############################################################################

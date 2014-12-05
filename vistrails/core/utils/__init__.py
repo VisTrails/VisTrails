@@ -50,7 +50,7 @@ import warnings
 import weakref
 
 from vistrails.core.utils.color import ColorByName
-from vistrails.core.utils.compat import new_type, memo_method
+from vistrails.core.utils.compat import new_type, quote, unquote, memo_method
 from vistrails.core.utils.enum import enum
 from vistrails.core.utils.timemethod import time_method, time_call
 from vistrails.core.utils.tracemethod import trace_method, bump_trace, \

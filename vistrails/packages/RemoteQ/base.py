@@ -37,6 +37,7 @@
 from __future__ import division
 
 from init import configuration
+from vistrails.core.utils import unquote
 from vistrails.core.modules.basic_modules import File, String
 from vistrails.gui.modules.python_source_configure import \
                                                 PythonSourceConfigurationWidget
@@ -234,7 +235,7 @@ class PythonSourceToFile(Module):
 #            tempFile = file_pool.make_local_copy(inputFile.name)
             tempFile = inputFile
         else:
-            source = urllib.unquote(self.force_get_input('source', ''))
+            source = unquote(self.force_get_input('source', ''))
             tempFile = self.interpreter.filePool.create_file()
             f = open(tempFile.name, 'w')
             f.write(source)

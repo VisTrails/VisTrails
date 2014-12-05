@@ -39,11 +39,12 @@ from vistrails.core import system, debug
 from vistrails.core.utils import PortAlreadyExists
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.utils import quote, unquote
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
 from vistrails.gui.modules.tuple_configuration import PortTableConfigurationWidget, \
     PortTable
 from vistrails.gui.theme import CurrentTheme
-import urllib
+
 
 class SourceEditor(QtGui.QTextEdit):
 
@@ -122,7 +123,7 @@ class SourceWidget(PortTableConfigurationWidget):
                 code, = port.defaults
         if code is not None:
             if self.sourceEncode:
-                code = urllib.unquote(code)
+                code = unquote(code)
             self.codeEditor.setPlainText(code)
         if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             self.codeEditor.document().setModified(False)
@@ -369,12 +370,12 @@ class SourceConfigurationWidget(SourceWidget):
         
         if (self.codeEditor is not None and modified):
             try:
-                code = unicode(self.codeEditor.toPlainText())
+                code = self.codeEditor.toPlainText()
             except UnicodeEncodeError, e:
                 debug.critical('Source Code Editor does not support non-ascii characters', e)
                 return False
             if self.sourceEncode:
-                code = urllib.quote(code)
+                code = quote(code)
             functions.append((self.sourcePortName, [code]))
         if len(deleted_ports) + len(added_ports) + len(functions) == 0:
             # nothing changed

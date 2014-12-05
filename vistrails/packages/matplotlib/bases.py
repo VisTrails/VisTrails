@@ -38,7 +38,6 @@ import itertools
 import matplotlib
 from matplotlib.backend_bases import FigureCanvasBase
 import pylab
-import urllib
 
 from matplotlib.backend_bases import FigureCanvasBase
 
@@ -47,6 +46,7 @@ from vistrails.core.modules.config import ModuleSettings, IPort
 from vistrails.core.modules.output_modules import ImageFileMode, \
     ImageFileModeConfig, OutputModule
 from vistrails.core.modules.vistrails_module import Module, NotCacheable
+from vistrails.core.utils import unquote
 
 ################################################################################
 
@@ -85,7 +85,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
         s = ('from pylab import *\n'
              'from numpy import *\n' +
              'figure(%d)\n' % figure.number +
-             urllib.unquote(source))
+             unquote(source))
         self.run_code(s, use_input=True, use_output=True)
 
 class MplFigure(Module):

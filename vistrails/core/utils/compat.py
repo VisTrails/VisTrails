@@ -35,8 +35,10 @@
 """Contains compatibility functions between Python versions.
 """
 
-
 from __future__ import division
+
+import urllib
+
 
 def ascii_s(s):
     """Makes sure `s` is the native str type, encoding as ASCII if necessary.
@@ -45,6 +47,22 @@ def ascii_s(s):
         return s.encode('ascii')
     else:
         return s
+
+
+def quote(s):
+    """Quotes bytes or unicode to unicode (uses UTF-8).
+    """
+    if isinstance(s, unicode):
+        s = s.encode('utf-8')
+    return urllib.quote(s).decode('ascii')
+
+
+def unquote(s):
+    """Unquotes unicode to unicode (assumes UTF-8).
+    """
+    if isinstance(s, unicode):
+        s = s.encode('ascii')
+    return urllib.unquote(s).decode('utf-8')
 
 
 def new_type(name, bases, dct):
