@@ -10,9 +10,9 @@ from .servers.simpleweb import WebServer
 
 class WebWidget(WebViewCellWidget):
     def updateContents(self, inputPorts):
-        server, = inputPorts
+        url, server = inputPorts
         self.server = server  # Keeps a reference so the server stays alive
-        super(WebWidget, self).updateContents((server.address,))
+        super(WebWidget, self).updateContents((url,))
 
     def deleteLater(self):
         self.server.stop()
@@ -45,7 +45,7 @@ class TestWeb(SpreadsheetCell):
 """)
 
         # Displays on the spreadsheet
-        self.display(WebWidget, (server,))
+        self.display(WebWidget, (server.address, server))
 
 
 def finalize():
