@@ -81,9 +81,14 @@ var birthyears = svg.append("g")
 var title = svg.append("text")
     .attr("class", "title")
     .attr("dy", ".71em")
-    .text(2000);
+    .text("loading...");
 
 d3.csv("population.csv", function(error, data) {
+  // Select the most recent available year
+  var selected_year = d3.max(data, function(d) { return +d.year; });
+
+  // Set the label
+  title.text(selected_year);
 
   // Convert strings to numbers.
   data.forEach(function(d) {
@@ -96,10 +101,10 @@ d3.csv("population.csv", function(error, data) {
   var age1 = d3.max(data, function(d) { return d.age; }),
       year0 = d3.min(data, function(d) { return d.year; }),
       year1 = d3.max(data, function(d) { return d.year; }),
-      year = year1;
+      year = selected_year;
 
   // Update the scale domains.
-  x.domain([year1 - age1, year1]);
+  x.domain([year - age1, year]);
   y.domain([0, d3.max(data, function(d) { return d.people; })]);
 
   // Produce a map from year and birthyear to [male, female].
@@ -147,32 +152,6 @@ d3.csv("population.csv", function(error, data) {
       .attr("y", height + 4)
       .attr("dy", ".71em")
       .text(function(age) { return age; });
-
-  // Allow the arrow keys to change the displayed year.
-  window.focus();
-  d3.select(window).on("keydown", function() {
-    switch (d3.event.keyCode) {
-      case 37: year = Math.max(year0, year - 10); break;
-      case 39: year = Math.min(year1, year + 10); break;
-    }
-    update();
-  });
-
-  function update() {
-    if (!(year in data)) return;
-    title.text(year);
-
-    birthyears.transition()
-        .duration(750)
-        .attr("transform", "translate(" + (x(year1) - x(year)) + ",0)");
-
-    birthyear.selectAll("rect")
-        .data(function(birthyear) { return data[year][birthyear] || [0, 0]; })
-      .transition()
-        .duration(750)
-        .attr("y", y)
-        .attr("height", function(value) { return height - y(value); });
-  }
 });
 
 </script>
