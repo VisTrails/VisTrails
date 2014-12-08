@@ -1,4 +1,5 @@
 from PyQt4 import QtCore, QtGui
+import urllib
 
 from vistrails.core.modules.basic_modules import File
 from vistrails.core.system import get_vistrails_basic_pkg_id
@@ -9,6 +10,7 @@ from vistrails.gui.modules.module_configure import \
 class PortFile(QtGui.QWidget):
     remove = QtCore.pyqtSignal()
     changed = QtCore.pyqtSignal()
+    file_port_selected = QtCore.pyqtSignal(object)
 
     radio_button = False
 
@@ -25,6 +27,8 @@ class PortFile(QtGui.QWidget):
             change = QtGui.QRadioButton()
             buttongroup.addButton(change)
             layout.addWidget(change)
+            self.connect(change, QtCore.SIGNAL('clicked()'),
+                         lambda: self.file_port_selected.emit(self))
         remove_button = QtGui.QPushButton("Remove port")
         remove_button.setSizePolicy(QtGui.QSizePolicy.Fixed,
                                     QtGui.QSizePolicy.Fixed)
@@ -48,6 +52,39 @@ class PortFile(QtGui.QWidget):
 
 class DirectFile(PortFile):
     radio_button = True
+
+
+class Editor(QtGui.QTextEdit):
+    textEdited = QtCore.pyqtSignal()
+
+    def __init__(self):
+        QtGui.QTextEdit.__init__(self)
+        self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+        self.setCursorWidth(8)
+        self.setContent(None)
+        self._changing = False
+        self.connect(self, QtCore.SIGNAL('textChanged()'),
+                     self.editedCheck)
+
+    def editedCheck(self):
+        if not self._changing:
+            self.textEdited.emit()
+
+    def setContent(self, content):
+        self._changing = True
+        try:
+            if content is None:
+                self.setHtml("<p></p>"
+                             "<p><center>No inline file selected</center></p>")
+                self.setEnabled(False)
+            else:
+                self.setEnabled(True)
+                self.setPlainText(content)
+        finally:
+            self._changing = False
+
+    def content(self):
+        return self.toPlainText()
 
 
 class WebSiteWidget(StandardModuleConfigurationWidget):
@@ -87,6 +124,15 @@ class WebSiteWidget(StandardModuleConfigurationWidget):
         scroll_area.setWidgetResizable(True)
         central_layout.addWidget(scroll_area)
 
+        self._editing_item = None
+        self._editor = Editor()
+        def print_and_update():
+            print("Editor changed")
+            self.updateState()
+        self.connect(self._editor, QtCore.SIGNAL('textEdited()'),
+                     print_and_update)
+        central_layout.addWidget(self._editor)
+
         add_buttons = QtGui.QHBoxLayout()
         central_layout.addLayout(add_buttons)
         add_direct = QtGui.QPushButton("Add an inline file")
@@ -102,14 +148,14 @@ class WebSiteWidget(StandardModuleConfigurationWidget):
 
         self.createEntries()
 
-        # TODO : text editor for DirectFile
-
     def add_item(self, item):
         self._list_layout.addWidget(item)
         self.connect(item, QtCore.SIGNAL('remove()'),
                      lambda: item.deleteLater())
         self.connect(item, QtCore.SIGNAL('changed()'),
                      self.updateState)
+        self.connect(item, QtCore.SIGNAL('file_port_selected(PyQt_PyObject)'),
+                     self.edit_file)
 
     def add_direct(self):
         widget = DirectFile(self._direct_files_group, "/index.html")
@@ -120,6 +166,21 @@ class WebSiteWidget(StandardModuleConfigurationWidget):
     def add_port(self):
         self.add_item(PortFile(self._direct_files_group, "/file"))
         self.updateState()
+
+    def edit_file(self, item):
+        print("Changing file to edit")
+        if self._editing_item is not None:
+            contents = self._editor.content()
+            if self._file_contents[self._editing_item] != contents:
+                print("Old file modified; pulling")
+                self._file_contents[self._editing_item] = contents
+                self.updateState()
+        if item is not None:
+            self._editing_item = item
+            self._editor.setContent(self._file_contents[item])
+        else:
+            self._editing_item = None
+            self._editor.setContent(None)
 
     def createButtons(self):
         """ createButtons() -> None
@@ -182,6 +243,7 @@ class WebSiteWidget(StandardModuleConfigurationWidget):
         Update Vistrail to contain changes in the port table
 
         """
+        self.edit_file(self._editing_item)
         file_sig = '(%s:File)' % get_vistrails_basic_pkg_id()
         string_sig = '(%s:String)' % get_vistrails_basic_pkg_id()
         seen_new_ports = set()
@@ -189,6 +251,7 @@ class WebSiteWidget(StandardModuleConfigurationWidget):
                 (uri, (is_direct, data))
                 for uri, is_direct, data in self.getCurrentPorts())
         add_ports = []
+        functions = []
         delete_ports = []
         for i in xrange(self._list_layout.count()):
             widget = self._list_layout.itemAt(i).widget()
@@ -205,9 +268,24 @@ class WebSiteWidget(StandardModuleConfigurationWidget):
 
             if uri in current_ports:
                 old_is_direct, _ = current_ports.pop(uri)
+                if is_direct and old_is_direct:
+                    # Update value?
+                    current = self.getPortValue(uri, None)
+                    new = self._file_contents[widget]
+                    new = urllib.quote(new.encode('utf-8'))
+                    print("current=%r, new=%r" % (current, new))
+                    if current != new:
+                        print("Updating value on port %s" % uri)
+                        functions.append((uri, [new]))
+                    continue
                 if is_direct == old_is_direct:
                     continue
                 delete_ports.append(('input', uri))
+            elif is_direct:
+                new = self._file_contents[widget]
+                new = urllib.quote(new.encode('utf-8'))
+                print("creating, new=%r" % new)
+                functions.append((uri, [new]))
 
             sigstring = string_sig if is_direct else file_sig
             add_ports.append(('input', uri,
@@ -216,11 +294,19 @@ class WebSiteWidget(StandardModuleConfigurationWidget):
         delete_ports.extend(('input', unseen_port)
                             for unseen_port in current_ports.iterkeys())
 
+        print("update_ports_and_functions(\n"
+              "    delete: %r\n"
+              "    add: %r\n"
+              "    functions: %r" % (delete_ports, add_ports, functions))
         self.controller.update_ports(self.module.id, delete_ports, add_ports)
+        self.controller.update_functions(self.module, functions)
 
         return True
 
     def createEntries(self):
+        self._editing_item = None
+        self._editor.setContent(None)
+
         # If there are no ports, create a default for index.html
         current_ports = self.getCurrentPorts()
         if not current_ports:
