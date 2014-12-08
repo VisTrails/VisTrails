@@ -14,9 +14,11 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     Just finds the right prefix and forwards it the request.
     """
+    def log_message(self, format, *args):
+        debug.debug("web - %s" % (format % args))
+
     def do_GET(self):
         server = WebServer._server
-        debug.debug("HTTP request: %s" % self.path)
         if self.path == '/favicon.ico':
             self.send_response(200)
             self.send_header('Content-type', 'image/x-icon')
@@ -72,7 +74,6 @@ class Prefix(object):
         return WebServer._server
 
     def get(self, uri):
-        debug.debug("prefix=%r, uri=%r" % (self.prefix, uri))
         try:
             res = self._resources[uri]
         except KeyError:
