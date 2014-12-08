@@ -4080,4 +4080,58 @@ class VistrailController(object):
         #return module move operations
         return self.move_modules_ops(moves)
         
+    def list_bundle_data(self, name=''):
+        """ List all data in bundle starting with 'name'
+
+        """
+        return self.delete_bundle_data(name, True)
             
+    def add_bundle_data(self, path, name=None, preview=False):
+        """ Add path to bundle. If path is a directory this will add all files.
+
+        """
+        if not self.bundle:
+            raise VistrailsInternalError('Bundle does not exist')
+        to_add = []
+        if os.path.isfile(path):
+            if name is None:
+                name = os.path.basename(path)
+            to_add.append((name, path))
+        elif os.path.isdir(path):
+            # Add all files in directory, ignoring 'name'
+            for root, _, files in os.walk(path):
+                for name in files:
+                    inner_path = root[len(path):]
+                    to_add.append((os.path.join(inner_path, name),
+                                   os.path.join(root, name)))
+                    os.remove(os.path.join(root, name))
+        if not preview:
+            for name, path in to_add:
+                # replace because they may have been updated
+                obj = BundleObj(path, 'data', name)
+                if self.bundle.has_entry('data', name):
+                    self.bundle.remove_object(obj)
+                self.bundle.add_object(obj)
+            if len(to_add):
+                self.set_changed(True)
+        return to_add
+
+    def delete_bundle_data(self, path=None, preview=False):
+        """ Deletes all data files in bundle starting with 'path'
+            if preview=True, just return files that would have been deleted
+
+        """
+        if not self.bundle:
+            raise VistrailsInternalError('Bundle does not exist')
+        matches = []
+        for obj in self.bundle.datas:
+            if not path or obj.id.startswith(path):
+                # FIXME: Does this work on windows? Use rpaths?
+                matches.append(obj)
+        if not preview:
+            for obj in matches:
+                self.bundle.remove_object(obj)
+            if len(matches):
+                self.set_changed(True)
+        return [(obj.id, obj.obj) for obj in matches]
+
