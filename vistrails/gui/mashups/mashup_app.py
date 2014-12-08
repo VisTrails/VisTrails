@@ -234,9 +234,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             if res:
                 cellEvents = spreadsheetController.getEchoCellEvents()
         except Exception, e:
-            import traceback
             debug.unexpected_exception(e)
-            print "Executing pipeline failed:", debug.format_exception(e), traceback.format_exc()
+            print "Executing pipeline failed:", debug.format_exc()
         finally:
             spreadsheetController.setEchoMode(False)
 
@@ -610,6 +609,23 @@ class QCustomDockWidget(QtGui.QDockWidget):
 
 
 class TestMashupApp(TestVisTrailsGUI):
+    def setUp(self):
+        super(TestMashupApp, self).setUp()
+        try:
+            import vtk
+        except ImportError:
+            self.skipTest("VTK is not available")
+        from vistrails.core.packagemanager import get_package_manager
+        from vistrails.core.modules.module_registry import MissingPackage
+        pm = get_package_manager()
+        identifier = 'org.vistrails.vistrails.vtk'
+        try:
+            pkg = pm.get_package(identifier)
+        except MissingPackage:
+            pkg = pm.identifier_is_available(identifier)
+            if pkg:
+                pm.late_enable_package(pkg.codepath)
+                pkg = pm.get_package(identifier)
 
     def test_load_mashup(self):
         import vistrails.api

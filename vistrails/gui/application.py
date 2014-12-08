@@ -50,8 +50,10 @@ from vistrails.core.application import VistrailsApplicationInterface, \
 from vistrails.core import debug
 from vistrails.core import system
 from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
+from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import FileLocator, DBLocator
 import vistrails.core.requirements
+from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import test_db_connection
 from vistrails.gui import qt
@@ -389,8 +391,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     m(*args)
                 except Exception, e:
                     debug.unexpected_exception(e)
-                    import traceback
-                    traceback.print_exc()
+                    debug.print_exc()
         notifications = {}
 
         current_window = self.builderWindow
@@ -405,8 +406,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                         m(*args)
                     except Exception, e:
                         debug.unexpected_exception(e)
-                        import traceback
-                        traceback.print_exc()
+                        debug.print_exc()
 
         if current_window is not None:
             current_view = current_window.current_view
@@ -422,8 +422,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                         m(*args)
                     except Exception, e:
                         debug.unexpected_exception(e)
-                        import traceback
-                        traceback.print_exc()
+                        debug.print_exc()
 
     def showBuilderWindow(self):
         # in some systems (Linux and Tiger) we need to make both calls
@@ -526,7 +525,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 results = vistrails.core.console_mode.get_wf_graph(w_list, workflow_graph,
                                                                    self.temp_configuration.graphsAsPdf)
                 for r in results:
-                    if r[0] == False:
+                    if r[0] is False:
                         errs.append("Error generating workflow graph: %s" % \
                                     r[1])
                         debug.critical("*** Error in get_wf_graph: %s" % r[1])
@@ -536,7 +535,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 results = vistrails.core.console_mode.get_vt_graph(vt_list, evolution_graph,
                                                                    self.temp_configuration.graphsAsPdf)
                 for r in results:
-                    if r[0] == False:
+                    if r[0] is False:
                         errs.append("Error generating vistrail graph: %s" % \
                                     r[1])
                         debug.critical("*** Error in get_vt_graph: %s" % r[1])
@@ -708,9 +707,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout = old_stdout
             except Exception, e:
                 debug.unexpected_exception(e)
-                import traceback
                 debug.critical("Unknown error", e)
-                result = traceback.format_exc()
+                result = debug.format_exc()
             if None == result:
                 result = True
             if True == result:
@@ -820,7 +818,7 @@ def linux_update_default_application():
     output = []
     try:
         result = system.execute_cmdline(command, output)
-    except OSError, e:
+    except OSError:
         result = None
     if result != 0:
         debug.warning("Error running xdg-mime")
@@ -830,7 +828,7 @@ def linux_update_default_application():
     output = []
     try:
         result = system.execute_cmdline(command, output)
-    except OSError, e:
+    except OSError:
         result = None
     if result != 0:
         debug.warning("Error running update-mime-database")
@@ -846,7 +844,7 @@ def linux_update_default_application():
     output = []
     try:
         result = system.execute_cmdline(command, output)
-    except OSError, e:
+    except OSError:
         result = None
     if result != 0:
         debug.warning("Error running xdg-icon-resource")
@@ -874,7 +872,7 @@ MimeType=application/x-vistrails
     output = []
     try:
         result = system.execute_cmdline(command, output)
-    except OSError, e:
+    except OSError:
         result = None
     if result != 0:
         debug.warning("Error running update-desktop-database")

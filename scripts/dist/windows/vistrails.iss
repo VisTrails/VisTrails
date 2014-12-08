@@ -33,13 +33,11 @@
 ;##
 ;###############################################################################
 
-#define root "../../.."
-#define python "Python27"
-#define bits "x86"
+#define root "..\..\.."
 
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.1.4
+AppVerName=VisTrails 2.2
 OutputBaseFilename=vistrails-setup
 DefaultGroupName=VisTrails
 

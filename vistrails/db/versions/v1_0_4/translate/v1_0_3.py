@@ -97,7 +97,7 @@ def translateMashup(_mashup):
     return mashup
 
 def translateLog(_log):
-    global id_scope
+    id_scope = _log.id_scope
     def update_loop_execs(old_obj, translate_dict):
         if len(old_obj.db_loop_execs) == 0:
             return []

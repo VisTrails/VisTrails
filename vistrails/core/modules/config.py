@@ -44,8 +44,7 @@ def get_field_name(v):
     return v[0]
 
 def namedtuple(typename, fields):
-    field_names = [f[0][0] if isinstance(f[0], tuple) else f[0]
-                   for f in fields]
+    field_names = [get_field_name(f) for f in fields]
     default_values = []
     default_found = False
     field_types = []

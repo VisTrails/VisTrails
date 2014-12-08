@@ -37,7 +37,7 @@
 """
 
 from vistrails.core.configuration import get_vistrails_configuration
-from vistrails.core.system import current_dot_vistrails
+from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import NotCacheable, \
     ModuleError, ModuleSuspended
 
@@ -46,51 +46,82 @@ from uuid import uuid1
 import datetime
 import getpass
 import json
-import os
 import time
 import unittest
 import weakref
 
+
 class JobMixin(NotCacheable):
     """ Mixin for suspendable modules.
 
-    Provides a compute method implementing job handling.
-    The package developer needs to implement the sub methods readInputs(),
-    setResults(), startJob(), getMonitor() and finishJob().
+    This provides the base behavior for modules that submit jobs by handling
+    the serialization & JobMonitor interaction for you.
+
+    The module developer needs only implement the following methods:
+        job_read_inputs()
+        job_set_results()
+        job_start()
+        job_get_handle()
+        job_finish()
     """
 
     def compute(self):
-        """ Calls user-implemented methods at the right times
-            It should always call addJob or setCache so that the callback works
+        """ Base behavior for job-submitting modules.
 
+        This provides the base code and calls the methods that the module
+        developer should provide.
         """
+        debug.log("%s compute() starting\n"
+                  "signature = %r" % (self.__class__.__name__,
+                                      self.signature))
+
         jm = self.job_monitor()
 
         cache = jm.getCache(self.signature)
         if cache is not None:
+            # Result is available from cache
             jm.setCache(self.signature, cache.parameters)
-            # Result is available and cached
-            self.setResults(cache.parameters)
+            debug.log("Cached results found; calling job_set_results()")
+            self.job_set_results(cache.parameters)
             return
+        else:
+            debug.log("Cache miss")
 
         job = jm.getJob(self.signature)
         if job is None:
-            params = self.readInputs()
-            params = self.startJob(params)
+            debug.log("Job doesn't exist")
+            params = self.job_read_inputs()
+            params = self.job_start(params)
         else:
+            debug.log("Got job from JobMonitor")
             params = job.parameters
-        jm.addJob(self.signature, params, self.getName())
+        jm.addJob(self.signature, params, self.job_name())
 
         # Might raise ModuleSuspended
-        jm.checkJob(self, self.signature, self.getMonitor(params))
+        debug.log("Calling checkJob()")
+        try:
+            jm.checkJob(self, self.signature, self.job_get_handle(params))
+        except ModuleSuspended, e:
+            debug.log("checkJob() raised ModuleSuspended, job handle is %r" %
+                      e.handle)
+            raise
 
         # Didn't raise: job is finished
-        params = self.finishJob(params)
+        debug.log("Calling job_finish()")
+        params = self.job_finish(params)
+        debug.log("Filling cache")
         jm.setCache(self.signature, params)
-        self.setResults(params)
+        debug.log("Calling job_set_results()")
+        self.job_set_results(params)
 
     def update_upstream(self):
-        """ Skip upstream if job exists
+        """ Decides whether or not to run the upstream.
+
+        If a job has already been submitted and the local JobMonitor knows of
+        it, we don't need to run upstream modules to check the status.
+
+        If status check indicates that the job no longer exists, then we should
+        run upstream then submit again.
         """
         if not hasattr(self, 'signature'):
             raise ModuleError(self, "Module has no signature")
@@ -100,47 +131,58 @@ class JobMixin(NotCacheable):
             # Update upstream, compute() will need it
             super(JobMixin, self).update_upstream()
 
-    def readInputs(self):
-        """ readInputs() -> None
-            Should read inputs, and return them in a dict
+    def job_read_inputs(self):
+        """ Implemented by modules to read job parameters from input ports.
+
+        Returns the `params` dictionary used by subsequent methods.
         """
         raise NotImplementedError
 
-    def startJob(self, params):
-        """ startJob(params: dict) -> None
-            Should start the job, and return a dict with the
-            parameters needed to check the job
+    def job_start(self, params):
+        """ Implemented by modules to submit the job.
+
+        Gets the `params` dictionary and returns a new dictionary, for example
+        with additional info necessary to check the status later.
         """
         raise NotImplementedError
 
-    def finishJob(self, params):
-        """ finishJob(params: dict) -> None
-            Should finish the job and set outputs
+    def job_finish(self, params):
+        """ Implemented by modules to get info from the finished job.
+
+        This is called once the job is finished to get the results. These can
+        be added to the `params` dictionary that this method returns.
+
+        This is the right place to clean up the job from the server if they are
+        not supposed to persist.
         """
         raise NotImplementedError
 
-    def setResults(self, params):
-        """ setResults(params: dict) -> None
-            Sets outputs using the params dict
+    def job_set_results(self, params):
+        """ Implemented by modules to set the output ports.
+
+        This is called after job_finished() or after getting the cached results
+        to set the output ports on this module, from the `params` dictionary.
         """
         raise NotImplementedError
 
-    def getMonitor(self, params):
-        """ getMonitor(params: dict) -> None
-            Should return an implementation of BaseMonitor, whose methods will
-            be used to check the job state.
+    def job_get_handle(self, params):
+        """ Implemented by modules to return the JobHandle object.
+
+        This returns an object following the JobHandle interface. The
+        JobMonitor will use it to check the status of the job and call back
+        this module once the job is done.
+
+        JobHandle needs the following method:
+          * finished(): returns True if the job is finished
         """
         return None
 
-    def getId(self, params):
-        """ getId(params: dict) -> job identifier
-            Should return an string completely identifying this job
-            Class name + input values are usually unique
-            DEPRECATED
-        """
-        return self.signature
+    def job_name(self):
+        """ Readable name for the job.
 
-    def getName(self):
+        Modules needn't override this, in which case a default will be
+        provided.
+        """
         # use module description if it exists
         if 'pipeline' in self.moduleInfo and self.moduleInfo['pipeline']:
             p_modules = self.moduleInfo['pipeline'].modules
@@ -148,7 +190,7 @@ class JobMixin(NotCacheable):
             if p_module.has_annotation_with_key('__desc__'):
                 return p_module.get_annotation_by_key('__desc__').value
         return self.__class__.__name__
- 
+
 
 class Workflow(object):
     """ Represents a workflow that has jobs.
@@ -172,7 +214,7 @@ class Workflow(object):
         self.name = name
         self.id = id if id else str(uuid1())
         self.user = getpass.getuser()
-        self.start = start if start else str(datetime.datetime.now())
+        self.start = start if start else datetime.datetime.now().isoformat()
         self.jobs = jobs if jobs else {}
         # parent modules are stored as temporary exceptions
         self.parents = {}
@@ -193,13 +235,20 @@ class Workflow(object):
                         wf['user'], wf['start'], wf['jobs'])
 
     def __eq__(self, other):
-        if self.version != other.version: return False
-        if self.name != other.name: return False
-        if self.id != other.id: return False
-        if self.user != other.user: return False
-        if self.start != other.start: return False
-        if len(self.jobs) != len(other.jobs): return False
-        if set(self.jobs) != set(other.jobs): return False
+        if self.version != other.version:
+            return False
+        if self.name != other.name:
+            return False
+        if self.id != other.id:
+            return False
+        if self.user != other.user:
+            return False
+        if self.start != other.start:
+            return False
+        if len(self.jobs) != len(other.jobs):
+            return False
+        if set(self.jobs) != set(other.jobs):
+            return False
         return True
 
     def reset(self):
@@ -231,7 +280,7 @@ class Job(object):
         self.id = id
         self.parameters = parameters
         self.name = name
-        self.start = start if start else str(datetime.datetime.now())
+        self.start = start if start else datetime.datetime.now().isoformat()
         self.finished = finished
         self.updated = True
 
@@ -242,7 +291,7 @@ class Job(object):
         self.updated = True
 
     def finish(self, params=None):
-        self.params = params if params else {}
+        self.parameters = params if params else {}
         self.finished = True
 
     def description(self):
@@ -259,14 +308,23 @@ class Job(object):
 
     @staticmethod
     def from_dict(m):
-        return Job(m['id'], m['parameters'], m['name'], m['start'], m['finished'])
+        return Job(m['id'],
+                   m['parameters'],
+                   m['name'],
+                   m['start'],
+                   m['finished'])
 
     def __eq__(self, other):
-        if self.id != other.id: return False
-        if self.parameters != other.parameters: return False
-        if self.start != other.start: return False
-        if self.finished != other.finished: return False
+        if self.id != other.id:
+            return False
+        if self.parameters != other.parameters:
+            return False
+        if self.start != other.start:
+            return False
+        if self.finished != other.finished:
+            return False
         return True
+
 
 class JobMonitor(object):
     """ Keeps a list of running jobs and the current job for a vistrail.
@@ -281,7 +339,7 @@ class JobMonitor(object):
         self.jobs = {}
         self.callback = None
         if json_string is not None:
-            self.__unserialize__(json_string)
+            self.unserialize(json_string)
 
     def setCallback(self, callback=None):
         """ setCallback(callback: class) -> None
@@ -290,11 +348,11 @@ class JobMonitor(object):
         """
         self.callback = weakref.proxy(callback)
 
-##############################################################################
-# Running Workflows
+    ###########################################################################
+    # Running Workflows
 
-    def __serialize__(self):
-        """ __serialize__() -> None
+    def serialize(self):
+        """ serialize() -> None
             serializes the running jobs to json
 
         """
@@ -312,15 +370,15 @@ class JobMonitor(object):
 
         return json.dumps(_dict)
 
-    def __unserialize__(self, s):
-        """ __unserialize__(s: str) -> None
+    def unserialize(self, s):
+        """ unserialize(s: str) -> None
             unserializes the running jobs from json
 
         """
 
         _dict = json.loads(s)
-        
-        jobs = _dict.get('jobs', {})        
+
+        jobs = _dict.get('jobs', {})
         self.jobs = {}
         for id, job in jobs.iteritems():
             self.jobs[id] = Job.from_dict(job)
@@ -380,8 +438,8 @@ class JobMonitor(object):
         if self.callback:
             self.callback.deleteJob(id)
 
-##############################################################################
-# _current_workflow methods
+    ###########################################################################
+    # _current_workflow methods
 
     def currentWorkflow(self):
         """ currentWorkflow() -> Workflow
@@ -394,7 +452,7 @@ class JobMonitor(object):
 
         """
         if self._current_workflow:
-            raise Exception("A workflow is still running!: %s" %
+            raise Exception("A workflow is still running: %s!" %
                             self._current_workflow)
         workflow.reset()
         self._current_workflow = workflow
@@ -419,7 +477,7 @@ class JobMonitor(object):
             workflow.jobs[id].mark()
             return
         # this is a new old-style job that we need to add
-        self.addJob(id, {'__message__':obj.msg}, obj.name)
+        self.addJob(id, {'__message__': obj.msg}, obj.name)
 
     def finishWorkflow(self):
         """ finish_job() -> None
@@ -485,48 +543,47 @@ class JobMonitor(object):
         """
         workflow = self.currentWorkflow()
         if not workflow:
-            return # ignore non-monitored jobs
+            return  # ignore non-monitored jobs
         workflow.parents[id(error)] = error
 
     def setCache(self, id, params, name=''):
         self.addJob(id, params, name, True)
 
-    def checkJob(self, module, id, monitor):
-        """ checkJob(module: VistrailsModule, id: str, monitor: instance) -> None
+    def checkJob(self, module, id, handle):
+        """ checkJob(module: VistrailsModule, id: str, handle: object) -> None
             Starts monitoring the job for the current running workflow
             module - the module to suspend
             id - the job identifier
-            monitor - a class instance with a finished method for
-                      checking if the job has completed
+            handle - an object following the JobHandle interface, i.e. with a
+                finished method for checking if the job has completed
 
         """
         if not self.currentWorkflow():
-            if not monitor or not self.isDone(monitor):
+            if not handle or not self.isDone(handle):
                 raise ModuleSuspended(module, 'Job is running',
-                                      monitor=monitor)
+                                      handle=handle)
         job = self.getJob(id)
         if self.callback:
-            self.callback.checkJob(module, id, monitor)
+            self.callback.checkJob(module, id, handle)
             return
 
         conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
         if interval and not conf.jobAutorun:
-            if monitor:
+            if handle:
                 # wait for module to complete
                 try:
-                    while not self.isDone(monitor):
+                    while not self.isDone(handle):
                         time.sleep(interval)
                         print ("Waiting for job: %s,"
                                "press Ctrl+C to suspend") % job.name
-                except KeyboardInterrupt, e:
+                except KeyboardInterrupt:
                     raise ModuleSuspended(module, 'Interrupted by user, job'
-                                           ' is still running', monitor=monitor,
-                                           job_id=id)
+                                          ' is still running', handle=handle)
         else:
-            if not monitor or not self.isDone(monitor):
-                raise ModuleSuspended(module, 'Job is running', monitor=monitor,
-                                      job_id=id)
+            if not handle or not self.isDone(handle):
+                raise ModuleSuspended(module, 'Job is running',
+                                      handle=handle)
 
     def getJob(self, id):
         """ getJob(id: str) -> Job
@@ -554,39 +611,37 @@ class JobMonitor(object):
             if workflow.vistrail == old:
                 workflow.vistrail = new
 
-    def isDone(self, monitor):
+    def isDone(self, handle):
         """ isDone(self, monitor) -> bool
 
             A job is done when it reaches finished or failed state
             val() is used by stable batchq branch
         """
-        finished = monitor.finished()
-        if type(finished)==bool:
-            if finished:
+        finished = handle.finished()
+        if hasattr(finished, 'val'):
+            finished = finished.val()
+        if finished:
+            return True
+
+        # FIXME : deprecate this, remove from RemoteQ
+        # finished should just return True here too
+        if hasattr(handle, 'failed'):
+            failed = handle.failed()
+            if hasattr(failed, 'val'):
+                failed = failed.val()
+            if failed:
                 return True
-        else:
-            if finished.val():
-                return True
-        if hasattr(monitor, 'failed'):
-            failed = monitor.failed()
-            if type(failed)==bool:
-                if failed:
-                    return True
-            else:
-                if failed.val():
-                    return True
         return False
 
-##############################################################################
+
+###############################################################################
 # Testing
 
-
 class TestJob(unittest.TestCase):
-
     def test_job(self):
         jm = JobMonitor()
-        job1 = Job('`13/5', {'a':3, 'b':'7'})
-        job2 = Job('3', {'a':6}, 'my_name', 'a_string_date', True)
+        job1 = Job('`13/5', {'a': 3, 'b': '7'})
+        job2 = Job('3', {'a': 6}, 'my_name', 'a_string_date', True)
         # test module to/from dict
         job3 = Job.from_dict(job2.to_dict())
         self.assertEqual(job2, job3)
@@ -614,7 +669,7 @@ class TestJob(unittest.TestCase):
         # test serialization
         jm.addWorkflow(workflow1)
         jm.addWorkflow(workflow2)
-        jm.__unserialize__(jm.__serialize__())
+        jm.unserialize(jm.serialize())
         self.assertIn(workflow1.id, jm.workflows)
         self.assertIn(workflow2.id, jm.workflows)
         self.assertEqual(workflow1, jm.workflows[workflow1.id])

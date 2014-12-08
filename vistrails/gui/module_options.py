@@ -383,17 +383,16 @@ class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
                        _while and self.feedOutputEdit.text()))
         jobCache = self.jobCacheButton.isChecked()
         values.append((ModuleControlParam.JOB_CACHE_KEY,
-                       jobCache and str(jobCache)))
+                       [False, 'true'][jobCache]))
         for name, value in values:
             if value:
-                if not self.module.has_control_parameter_with_name(name) or \
-                        value != \
-                        self.module.get_control_parameter_by_name(name).value:
+                if (not self.module.has_control_parameter_with_name(name) or
+                        value != self.module.get_control_parameter_by_name(name).value):
                     if self.module.has_control_parameter_with_name(name):
                         self.controller.delete_control_parameter(name,
-                                                               self.module.id)
+                                                                 self.module.id)
                     self.controller.add_control_parameter((name, value),
-                                                   self.module.id)
+                                                          self.module.id)
             elif self.module.has_control_parameter_with_name(name):
                 self.controller.delete_control_parameter(name, self.module.id)
         return True

@@ -302,9 +302,8 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
             controller.executeParameterExploration(pe, extra_info=extra_info,
                                                    showProgress=False)
         except Exception, e:
-            import traceback
             return (locator, pe_id,
-                    debug.format_exception(e), traceback.format_exc())
+                    debug.format_exception(e), debug.format_exc())
 
 def run_parameter_explorations(w_list, extra_info = {},
                        reason="Console Mode Parameter Exploration Execution"):

@@ -2034,7 +2034,9 @@ class ModuleRegistry(DBRegistry):
     def get_configuration_widget(self, identifier, name, namespace):
         descriptor = self.get_descriptor_by_name(identifier, name, namespace)
         package = self.get_package_by_name(identifier)
-        prefix = package.prefix + package.codepath
+        prefix = None
+        if package.prefix is not None and package.codepath is not None:
+            prefix = package.prefix + package.codepath
         cls = descriptor.configuration_widget()
         return vistrails.core.modules.utils.load_cls(cls, prefix)
 

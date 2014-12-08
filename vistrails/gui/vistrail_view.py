@@ -896,9 +896,8 @@ class QVistrailView(QtGui.QWidget):
             return False
         try:
             self.controller.write_vistrail(locator, export=export)
-        except Exception, e:
-            import traceback
-            debug.critical('Failed to save vistrail', traceback.format_exc())
+        except Exception:
+            debug.critical('Failed to save vistrail', debug.format_exc())
             raise
         if export:
             return self.controller.locator
@@ -925,9 +924,8 @@ class QVistrailView(QtGui.QWidget):
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()
-        except Exception, e:
-            import traceback
-            debug.critical('Failed to index vistrail', traceback.format_exc())
+        except Exception:
+            debug.critical('Failed to index vistrail', debug.format_exc())
 
         from vistrails.gui.vistrails_window import _app
         # update recent files menu items
