@@ -124,7 +124,7 @@ class WebViewCellWidget(QCellWidget):
 class OpenInBrowserAction(QtGui.QAction):
     def __init__(self, parent):
         QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/player_eject.png"),
+                               QtGui.QIcon(":/images/new-window.png"),
                                "Open in &Browser",
                                parent)
         self._view = None
