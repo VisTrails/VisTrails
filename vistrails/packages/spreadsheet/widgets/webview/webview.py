@@ -88,8 +88,12 @@ class WebViewCellWidget(QCellWidget):
         Updates the contents with a new changed in filename
         
         """
-        url, = inputPorts
-        if not isinstance(url, QtCore.QUrl):
+        url = inputPorts[0]
+        # Backwards compatibility
+        if url is None:
+            url = QtCore.QUrl.fromLocalFile(inputPorts[1].name)
+        # -
+        elif not isinstance(url, QtCore.QUrl):
             url = QtCore.QUrl(url)
         self.browser.load(url)
 
