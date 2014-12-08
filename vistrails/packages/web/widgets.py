@@ -89,11 +89,11 @@ class WebSiteWidget(StandardModuleConfigurationWidget):
 
         add_buttons = QtGui.QHBoxLayout()
         central_layout.addLayout(add_buttons)
-        add_direct = QtGui.QPushButton("Enter a file")
+        add_direct = QtGui.QPushButton("Add an inline file")
         self.connect(add_direct, QtCore.SIGNAL('clicked()'),
                      self.add_direct)
         add_buttons.addWidget(add_direct)
-        add_port = QtGui.QPushButton("Add an input port")
+        add_port = QtGui.QPushButton("Add a File port")
         self.connect(add_port, QtCore.SIGNAL('clicked()'),
                      self.add_port)
         add_buttons.addWidget(add_port)
