@@ -43,7 +43,7 @@ class PortFile(QtGui.QWidget):
 
     @property
     def uri(self):
-        return self.uri_widget.text()
+        return str(self.uri_widget.text())
 
 
 class DirectFile(PortFile):
@@ -171,6 +171,7 @@ class WebSiteWidget(StandardModuleConfigurationWidget):
             is_direct = port_spec.signature[0][0] is not File
             if is_direct:
                 code = self.getPortValue(port_spec.name, "")
+                code = urllib.unquote(code)
                 current_ports.append((port_spec.name, is_direct, code))
             else:
                 current_ports.append((port_spec.name, is_direct, None))
