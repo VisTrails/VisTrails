@@ -1,6 +1,7 @@
 import vistrails.core.db.action
 from vistrails.core.db.locator import XMLFileLocator
 from vistrails.core.db.io import serialize, unserialize
+from vistrails.core import debug
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.log.group_exec import GroupExec
 from vistrails.core.log.machine import Machine
@@ -306,8 +307,8 @@ class Map(Module):
         try:
             rc = get_client()
         except Exception, error:
-            raise ModuleError(self, "Exception while loading IPython: "
-                              "%s" % error)
+            raise ModuleError(self, "Exception while loading IPython: %s" %
+                              debug.format_exception(error))
         if rc is None:
             raise ModuleError(self, "Couldn't get an IPython connection")
         engines = rc.ids
