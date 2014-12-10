@@ -50,7 +50,6 @@ from vistrails.core.system import strftime
 
 from .analogy_api import SpreadsheetAnalogy
 from .spreadsheet_config import configuration
-from . import spreadsheet_controller
 import cell_rc
 import celltoolbar_rc
 
@@ -1178,7 +1177,7 @@ class QCellManipulator(QtGui.QFrame):
         version to the version tree
 
         """
-        spreadsheetController = spreadsheet_controller.spreadsheetController
+        from .spreadsheet_controller import spreadsheetController
         builderWindow = spreadsheetController.getBuilderWindow()
         if builderWindow:
             info = self.cellInfo[0].getCellPipelineInfo(self.cellInfo[1],
@@ -1197,7 +1196,7 @@ class QCellManipulator(QtGui.QFrame):
         Select the version node on the version that has generated this cell
 
         """
-        spreadsheetController = spreadsheet_controller.spreadsheetController
+        from .spreadsheet_controller import spreadsheetController
         builderWindow = spreadsheetController.getBuilderWindow()
         if builderWindow:
             info = self.cellInfo[0].getCellPipelineInfo(self.cellInfo[1],
