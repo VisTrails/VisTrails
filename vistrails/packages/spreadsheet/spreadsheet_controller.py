@@ -42,7 +42,6 @@ from PyQt4 import QtCore, QtGui
 
 from .spreadsheet_window import SpreadsheetWindow
 
-################################################################################
 
 class SpreadsheetController(object):
     """
@@ -54,14 +53,14 @@ class SpreadsheetController(object):
     def __init__(self):
         """ SpreadsheetController() -> SpreadsheetController
         This class is more like an interface where there is no data inside
-        
+
         """
         pass
 
     def findSpreadsheetWindow(self, show=True):
         """ findSpreadsheetWindow() -> QWidget
         Looking for the spreadsheet window
-        
+
         """
         wList = QtGui.QApplication.topLevelWidgets()
         for w in wList:
@@ -72,7 +71,7 @@ class SpreadsheetController(object):
         if show:
             spreadsheetWindow.configShow()
         return spreadsheetWindow
-        
+
     def postEventToSpreadsheet(self, event):
         """ postEventToSpreadsheet(event: QEvent) -> None
         Post an event to the spreadsheet to make thread-safe connection
@@ -83,10 +82,10 @@ class SpreadsheetController(object):
             QtCore.QCoreApplication.postEvent(spreadsheetWindow, event)
 
     def getBuilderWindow(self):
-        """ getBuilderWindow() -> QWidget        
+        """ getBuilderWindow() -> QWidget
         Return the builder window of the application, or None if
         couldn't fine one
-        
+
         """
         spreadsheetWindow = self.findSpreadsheetWindow()
         if hasattr(spreadsheetWindow.visApp, 'builderWindow'):
@@ -118,7 +117,7 @@ class SpreadsheetController(object):
         """ getEchoCellEvents() -> [DisplayCellEvent]
         Echo back the list of all cell events that have been captured
         earlier
-        
+
         """
         spreadsheetWindow = self.findSpreadsheetWindow(show=False)
         if spreadsheetWindow:
@@ -126,6 +125,7 @@ class SpreadsheetController(object):
             spreadsheetWindow.clearEchoCellEvents()
             return events
         return None
+
 
 spreadsheetController = SpreadsheetController()
 registeredWidgets = {}
