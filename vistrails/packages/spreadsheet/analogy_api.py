@@ -32,14 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file describes the analogy structure the spreadsheet holding
-# and it should be reimplemented to integrate between the spreadsheet
-# and the analogy
-################################################################################
-import os
+
+"""This file describes the analogy structure the spreadsheet holding and it
+should be reimplemented to integrate between the spreadsheet and the analogy
+"""
+
 import vistrails.core.analogy
 import vistrails.gui
+
 
 class SpreadsheetAnalogyObject(object):
     """

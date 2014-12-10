@@ -32,25 +32,28 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains classes controlling tabs in the spreadsheets. A tab is
-# a container of a sheet:
-#   SizeSpinBox
-#   StandardTabDockWidget
-#   StandardWidgetSheetTab
-#   StandardWidgetTabBar
-#   StandardWidgetTabBarEditor
-#   StandardWidgetToolBar
-################################################################################
-from PyQt4 import QtCore, QtGui
+
+"""This file contains classes controlling tabs in the spreadsheets. A tab is
+a container of a sheet:
+  SizeSpinBox
+  StandardTabDockWidget
+  StandardWidgetSheetTab
+  StandardWidgetTabBar
+  StandardWidgetTabBarEditor
+  StandardWidgetToolBar
+"""
+
 import os.path
-from spreadsheet_registry import spreadsheetRegistry
-from spreadsheet_sheet import StandardWidgetSheet
-from spreadsheet_cell import QCellPresenter, QCellContainer, QCellToolBar
-from spreadsheet_execute import assignPipelineCellLocations, \
-     executePipelineWithProgress
-from spreadsheet_config import configuration
+from PyQt4 import QtCore, QtGui
+
 from vistrails.core.inspector import PipelineInspector
+
+from .spreadsheet_registry import spreadsheetRegistry
+from .spreadsheet_sheet import StandardWidgetSheet
+from .spreadsheet_cell import QCellPresenter, QCellContainer, QCellToolBar
+from .spreadsheet_execute import assignPipelineCellLocations, \
+     executePipelineWithProgress
+from .spreadsheet_config import configuration
 import spreadsheet_rc
 
 ################################################################################

@@ -32,26 +32,28 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file implements the Spreadsheet Tab Controller, to manages tabs
-#   StandardWidgetTabController
-################################################################################
+
+"""This file implements the Spreadsheet Tab Controller, to manages tabs:
+StandardWidgetTabController
+"""
+
 from ast import literal_eval
-import os.path
-from PyQt4 import QtCore, QtGui
-from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
-from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.db.services.io import SaveBundle
-from spreadsheet_registry import spreadsheetRegistry
-from spreadsheet_tab import (StandardWidgetTabBar,
-                             StandardWidgetSheetTab, StandardTabDockWidget)
-from spreadsheet_registry import spreadsheetRegistry
-from vistrails.core.utils import DummyView
-from vistrails.core.utils.uxml import XMLWrapper, named_elements
 import copy
 import gc
+import os.path
+from PyQt4 import QtCore, QtGui
+
+from vistrails.core.db.locator import FileLocator, _DBLocator as DBLocator
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.utils import DummyView
+from vistrails.core.utils.uxml import XMLWrapper, named_elements
+from vistrails.db.services.io import SaveBundle
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_warning
+
+from .spreadsheet_registry import spreadsheetRegistry
+from .spreadsheet_tab import StandardWidgetTabBar, StandardWidgetSheetTab, \
+    StandardTabDockWidget
 
 ################################################################################
 

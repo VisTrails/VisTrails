@@ -32,24 +32,24 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file implements the main spreadsheet window:
-#   SpreadsheetWindow
-################################################################################
-from PyQt4 import QtCore, QtGui
-from spreadsheet_base import StandardSheetReference
-from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \
-     RepaintCurrentSheetEventType
-from spreadsheet_tabcontroller import StandardWidgetTabController
-from spreadsheet_sheet import StandardWidgetSheet
-from spreadsheet_cell import QCellContainer
-from spreadsheet_config import configuration
-from vistrails.core.modules import module_utils
-from vistrails.core.utils import trace_method
+
+"""This file implements the main spreadsheet window: SpreadsheetWindow
+"""
+
 import ctypes
 import os.path
-import sys
+from PyQt4 import QtCore, QtGui
 import tempfile
+
+from vistrails.core.modules import module_utils
+
+from .spreadsheet_base import StandardSheetReference
+from .spreadsheet_cell import QCellContainer
+from .spreadsheet_config import configuration
+from .spreadsheet_event import BatchDisplayCellEventType, \
+    DisplayCellEventType, RepaintCurrentSheetEventType
+from .spreadsheet_sheet import StandardWidgetSheet
+from .spreadsheet_tabcontroller import StandardWidgetTabController
 
 ################################################################################
 class SpreadsheetWindow(QtGui.QMainWindow):

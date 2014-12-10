@@ -32,13 +32,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# Spreadsheet Package for VisTrails
-################################################################################
-import os
-import sys
 
+"""Spreadsheet Package for VisTrails
+"""
+
+import os
 from PyQt4 import QtCore, QtGui
+import sys
 
 from vistrails.core import debug
 from vistrails.core.modules import basic_modules
@@ -46,8 +46,8 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.system import vistrails_root_directory
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 
-from spreadsheet_controller import spreadsheetController
-from spreadsheet_registry import spreadsheetRegistry
+from .spreadsheet_controller import spreadsheetController
+from .spreadsheet_registry import spreadsheetRegistry
 
 # This must be here because of VisTrails protocol
 

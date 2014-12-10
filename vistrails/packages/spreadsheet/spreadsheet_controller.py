@@ -32,13 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains the spreadsheet controller to take care of
-# interactions to the spreadsheet:
-#   SpreadsheetController
-################################################################################
+
+"""This file contains the spreadsheet controller to take care of interactions
+to the spreadsheet:
+  SpreadsheetController
+"""
+
 from PyQt4 import QtCore, QtGui
-from spreadsheet_window import SpreadsheetWindow
+
+from .spreadsheet_window import SpreadsheetWindow
 
 ################################################################################
 

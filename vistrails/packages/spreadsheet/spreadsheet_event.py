@@ -32,10 +32,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains all Spreadsheet special Qt event classes
-################################################################################
-from PyQt4 import QtCore, QtGui
+
+"""This file contains all Spreadsheet special Qt event classes
+"""
+
+from PyQt4 import QtCore
 
 ################################################################################
 

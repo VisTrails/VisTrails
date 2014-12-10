@@ -32,27 +32,23 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains useful functions for executing pipelines on the spreadsheet
-# assignPipelineCellLocations
-# executePipelineWithProgress
-################################################################################
+
+"""This file contains useful functions for executing pipelines on the
+spreadsheet:
+  assignPipelineCellLocations
+  executePipelineWithProgress
+"""
+
+import copy
 from PyQt4 import QtCore, QtGui
-from vistrails.core.vistrail.controller import VistrailController
-from vistrails.core.modules.module_registry import get_module_registry
+
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.utils import DummyView
-from vistrails.core.vistrail.action import Action
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
-from vistrails.core.vistrail.port import Port
-from vistrails.core.vistrail import module
-from vistrails.core.vistrail import connection
-import vistrails.db.services.action
-import copy
 
-from identifiers import identifier as spreadsheet_pkg
+from .identifiers import identifier as spreadsheet_pkg
 
 ################################################################################
 

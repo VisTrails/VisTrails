@@ -32,13 +32,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains classes working with cell helper widgets, i.e. toolbar,
-# resizer, etc.:
-#   CellHelpers
-#   CellResizer
-#   CellResizerConfig
-################################################################################
+
+"""This file contains classes working with cell helper widgets, i.e. toolbar,
+resizer, etc.:
+  CellHelpers
+  CellResizer
+  CellResizerConfig
+"""
+
 from PyQt4 import QtCore, QtGui
 
 ################################################################################

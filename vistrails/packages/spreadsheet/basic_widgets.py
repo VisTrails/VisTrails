@@ -32,22 +32,26 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file describes basic VisTrails Modules of the Spreadsheet package:
-#   CellLocation
-#   SheetReference
-#   SingleCellSheetReference
-#   SpreadsheetCell
-################################################################################
+
+"""This file describes basic VisTrails Modules of the Spreadsheet package:
+  CellLocation
+  SheetReference
+  SingleCellSheetReference
+  SpreadsheetCell
+"""
+
+from PyQt4 import QtCore
+
 from vistrails.core.configuration import ConfigField, \
     get_vistrails_configuration
 from vistrails.core.modules.output_modules import OutputMode, OutputModeConfig
-from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
-from spreadsheet_base import (StandardSheetReference,
-                              StandardSingleCellSheetReference)
-from spreadsheet_controller import spreadsheetController
-from spreadsheet_event import DisplayCellEvent
-from PyQt4 import QtCore
+from vistrails.core.modules.vistrails_module import Module, NotCacheable, \
+    ModuleError
+
+from .spreadsheet_base import StandardSheetReference, \
+    StandardSingleCellSheetReference
+from .spreadsheet_controller import spreadsheetController
+from .spreadsheet_event import DisplayCellEvent
 
 ################################################################################
 

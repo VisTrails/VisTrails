@@ -32,24 +32,27 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains classes working with cell helper widgets, i.e. toolbar,
-# resizer, etc.:
-#   QCellWidget
-#   QCellToolBar
-################################################################################
-from PyQt4 import QtCore, QtGui
+
+"""This file contains classes working with cell helper widgets, i.e. toolbar,
+esizer, etc.:
+  QCellWidget
+  QCellToolBar
+"""
+
 import datetime
 import os
+from PyQt4 import QtCore, QtGui
 import tempfile
+
 from vistrails.core import debug
+from vistrails.core.modules.output_modules import FileMode
+from vistrails.core.system import strftime
+
+from .analogy_api import SpreadsheetAnalogy
+from .spreadsheet_config import configuration
+from . import spreadsheet_controller
 import cell_rc
 import celltoolbar_rc
-import spreadsheet_controller
-import analogy_api
-from spreadsheet_config import configuration
-from vistrails.core.system import strftime
-from vistrails.core.modules.output_modules import FileMode
 
 ################################################################################
 
@@ -1146,12 +1149,12 @@ class QCellManipulator(QtGui.QFrame):
                 p2Info = self.cellInfo[0].getPipelineInfo(self.cellInfo[1],
                                                           self.cellInfo[2])
                 if p1Info!=None and p2Info!=None:
-                    analogy = analogy_api.SpreadsheetAnalogy()
+                    analogy = SpreadsheetAnalogy()
                     analogy.createAnalogy(p1Info, p2Info)
 
             if action=='apply_analogy':
                 p1Info = cellInfo[0].getPipelineInfo(cellInfo[1], cellInfo[2])
-                analogy = analogy_api.SpreadsheetAnalogy()
+                analogy = SpreadsheetAnalogy()
                 newPipeline = analogy.applyAnalogy(p1Info)
                 if newPipeline:
                     self.cellInfo[0].executePipelineToCell(newPipeline,

@@ -32,15 +32,17 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains a set of internal Spreadsheet basic classes used
-# by others:
-#   StandardWidgetHeaderView
-#   StandardWidgetItemDelegate
-#   StandardWidgetSheet
-################################################################################
+
+"""This file contains a set of internal Spreadsheet basic classes used by
+others:
+  StandardWidgetHeaderView
+  StandardWidgetItemDelegate
+  StandardWidgetSheet
+"""
+
 from PyQt4 import QtCore, QtGui
-from spreadsheet_helpers import CellHelpers, CellResizer
+
+from .spreadsheet_helpers import CellHelpers, CellResizer
 
 ################################################################################
 

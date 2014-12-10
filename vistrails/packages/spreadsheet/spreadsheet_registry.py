@@ -32,9 +32,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains the spreadsheet registry:
-#   SpreadsheetRegistry
+
+"""This file contains the spreadsheet registry: SpreadsheetRegistry
+"""
+
 ################################################################################
 
 class SpreadsheetRegistry(object):

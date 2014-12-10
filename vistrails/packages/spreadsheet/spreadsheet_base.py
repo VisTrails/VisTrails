@@ -32,18 +32,20 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains a set of internal Spreadsheet basic classes used
-# by others:
-#   StandardSheetReference
-#   StandardSingleCellSheetReference
-#   StandardSingleCellSheetTab
-################################################################################
-from PyQt4 import QtCore, QtGui
-from spreadsheet_helpers import CellHelpers
-from spreadsheet_registry import spreadsheetRegistry
-from spreadsheet_tab import (StandardWidgetSheetTab,
-                             StandardWidgetSheetTabInterface)
+
+"""This file contains a set of internal Spreadsheet basic classes used by
+others:
+  StandardSheetReference
+  StandardSingleCellSheetReference
+  StandardSingleCellSheetTab
+"""
+
+from PyQt4 import QtGui
+
+from .spreadsheet_helpers import CellHelpers
+from .spreadsheet_registry import spreadsheetRegistry
+from .spreadsheet_tab import StandardWidgetSheetTab, \
+    StandardWidgetSheetTabInterface
 
 ################################################################################
 
