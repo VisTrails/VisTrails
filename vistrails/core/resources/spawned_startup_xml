@@ -19,9 +19,6 @@
   </packages>
   <disabledpackages/>
   <configuration>
-    <key name="nologger">
-      <bool value="True"/>
-    </key>
     <key name="nologfile">
       <bool value="True"/>
     </key>

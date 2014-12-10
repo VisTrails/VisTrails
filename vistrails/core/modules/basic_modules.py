@@ -311,8 +311,8 @@ class String(Constant):
 
     @staticmethod
     def translate_to_python(x):
-        assert isinstance(x, str)
-        return x
+        assert isinstance(x, (str, unicode))
+        return str(x)
 
     @staticmethod
     def validate(x):

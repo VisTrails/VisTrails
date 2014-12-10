@@ -1,27 +1,26 @@
 import vistrails.core.db.action
-import vistrails.db.versions
+from vistrails.core.db.locator import XMLFileLocator
+from vistrails.core.db.io import serialize, unserialize
+from vistrails.core import debug
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.log.group_exec import GroupExec
+from vistrails.core.log.machine import Machine
+from vistrails.core.log.module_exec import ModuleExec
+from vistrails.core.modules.basic_modules import Constant
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.utils
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, InvalidOutput
-from vistrails.core.modules.basic_modules import NotCacheable, Constant
-from vistrails.core.vistrail.pipeline import Pipeline
+    InvalidOutput
 from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
-from vistrails.core.db.locator import XMLFileLocator
-from vistrails.core.vistrail.controller import VistrailController
-from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.db.io import serialize, unserialize
-from vistrails.core.log.module_exec import ModuleExec
-from vistrails.core.log.group_exec import GroupExec
-from vistrails.core.log.machine import Machine
-from vistrails.core.utils import xor, long2bytes
 from vistrails.db.domain import IdScope
+import vistrails.db.versions
 
-from base64 import b16encode, b16decode
 import copy
 import inspect
 from itertools import izip
@@ -308,8 +307,8 @@ class Map(Module):
         try:
             rc = get_client()
         except Exception, error:
-            raise ModuleError(self, "Exception while loading IPython: "
-                              "%s" % error)
+            raise ModuleError(self, "Exception while loading IPython: %s" %
+                              debug.format_exception(error))
         if rc is None:
             raise ModuleError(self, "Couldn't get an IPython connection")
         engines = rc.ids
@@ -390,7 +389,6 @@ class Map(Module):
         # setting success color
         module.logging.signalSuccess(module)
 
-        import vistrails.core.modules.module_registry
         reg = vistrails.core.modules.module_registry.get_module_registry()
         self.result = []
         for map_execution in map_result:
