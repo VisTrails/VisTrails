@@ -372,7 +372,10 @@ class Path(Constant):
     _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "Path"),
-                    IPort("name", "String", optional=True)]
+                    IPort("name", "String", optional=True),
+                    IPort("relative_to", "String", optional=True,
+                          default='vtfile', entry_type='enum',
+                          values=['vtfile', 'vistrails', 'cwd'])]
     _output_ports = [OPort("value", "Path")]
 
     @staticmethod
@@ -390,10 +393,30 @@ class Path(Constant):
     def get_name(self):
         n = None
         if self.has_input("value"):
-            n = self.get_input("value").name
+            n = os.path.abspath(self.get_input("value").name)
         if n is None:
             self.check_input("name")
             n = self.get_input("name")
+
+            relative_to = self.get_input('relative_to')
+            if os.path.isabs(n):
+                pass
+            elif relative_to == 'vtfile':
+                locator = self.moduleInfo['locator']
+                if not locator.to_url().startswith('file://'):
+                    raise ModuleError(self, "Locator does not refer to a file")
+                n = os.path.join(os.path.dirname(locator.name), n)
+            elif relative_to == 'cwd':
+                pass  # Don't alter path
+            elif relative_to == 'vistrails':
+                n = os.path.join(
+                        vistrails.core.system.vistrails_root_directory(),
+                        n)
+            else:
+                raise ModuleError(
+                        self,
+                        "Invalid value for 'relative_to': %s" % relative_to)
+
         return n
 
     def set_results(self, n):
