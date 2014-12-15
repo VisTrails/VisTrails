@@ -48,14 +48,14 @@ class Estimator(Module):
     """Base class for all sklearn estimators.
     """
     _settings = ModuleSettings(abstract=True)
-    _output_ports = [("model", "Estimator")]
+    _output_ports = [("model", "Estimator", {'shape': 'diamond'})]
 
 
 class Predict(Module):
     """Apply a learned scikit-learn classifier model to test data.
     """
     # TODO : data depth=1
-    _input_ports = [("classifier", "Estimator"),
+    _input_ports = [("classifier", "Estimator", {'shape': 'diamond'}),
                     ("data", "basic:List")]
     _output_ports = [("prediction", "basic:List"),
                      ("decision_function", "basic:List")]
@@ -72,7 +72,7 @@ class Predict(Module):
 class Transform(Module):
     """Apply a learned scikit-learn transformer to test data.
     """
-    _input_ports = [("transformer", "Estimator"),
+    _input_ports = [("transformer", "Estimator", {'shape': 'diamond'}),
                     ("data", "basic:List")]
     _output_ports = [("transformed_data", "basic:List")]
 
@@ -90,13 +90,13 @@ class Transform(Module):
 class TrainTestSplit(Module):
     """Split data into training and testing randomly."""
     _settings = ModuleSettings(namespace="cross-validation")
-    _input_ports = [("data", "basic:List"),
-                    ("target", "basic:List"),
-                    ("test_size", "basic:Float", {"defaults": [.25]})]
-    _output_ports = [("training_data", "basic:List"),
-                     ("training_target", "basic:List"),
-                     ("test_data", "basic:List"),
-                     ("test_target", "basic:List")]
+    _input_ports = [("data", "basic:List", {'sort_key': 0}),
+                    ("target", "basic:List", {'sort_key': 1}),
+                    ("test_size", "basic:Float", {"defaults": [.25]}, {'sort_key': 2})]
+    _output_ports = [("training_data", "basic:List", {'sort_key': 0}),
+                     ("training_target", "basic:List", {'sort_key': 1}),
+                     ("test_data", "basic:List", {'sort_key': 2}),
+                     ("test_target", "basic:List", {'sort_key': 3})]
 
     def compute(self):
         X_train, X_test, y_train, y_test = \
@@ -110,7 +110,7 @@ class TrainTestSplit(Module):
 class CrossValScore(Module):
     """Split data into training and testing randomly."""
     _settings = ModuleSettings(namespace="cross-validation")
-    _input_ports = [("model", "Estimator"),
+    _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
                     ("data", "basic:List"),
                     ("target", "basic:List"),
                     ("metric", "basic:String", {"defaults": ["accuracy"]}),
@@ -132,13 +132,13 @@ class CrossValScore(Module):
 
 class GridSearchCV(Estimator):
     """Perform cross-validated grid-search over a parameter grid."""
-    _input_ports = [("model", "Estimator"),
-                    ("data", "basic:List"),
-                    ("target", "basic:List"),
-                    ("metric", "basic:String", {"defaults": ["accuracy"]}),
-                    ("folds", "basic:Integer", {"defaults": ["3"]}),
-                    ("parameters", "basic:Dictionary")]
-    _output_ports = [("scores", "basic:List"), ("model", "Estimator"),
+    _input_ports = [("model", "Estimator", {'sort_key': 0, 'shape': 'diamond'}),
+                    ("data", "basic:List", {'sort_key': 1}),
+                    ("target", "basic:List", {'sort_key': 2}),
+                    ("metric", "basic:String", {"defaults": ["accuracy"], 'sort_key': 3}),
+                    ("folds", "basic:Integer", {"defaults": ["3"], 'sort_key': 4}),
+                    ("parameters", "basic:Dictionary", {'sort_key': 0})]
+    _output_ports = [("scores", "basic:List"), ("model", "Estimator", {'shape': 'diamond'}),
                      ("best_parameters", "basic:Dictionary"),
                      ("best_score", "basic:Float")]
 
@@ -160,10 +160,10 @@ class GridSearchCV(Estimator):
 
 class Pipeline(Estimator):
     """Chain estimators to form a pipeline."""
-    _input_ports = [("model1", "Estimator"),
-                    ("model2", "Estimator", {'optional': True}),
-                    ("model3", "Estimator", {'optional': True}),
-                    ("model4", "Estimator", {'optional': True}),
+    _input_ports = [("model1", "Estimator", {'shape': 'diamond'}),
+                    ("model2", "Estimator", {'optional': True, 'shape': 'diamond'}),
+                    ("model3", "Estimator", {'optional': True, 'shape': 'diamond'}),
+                    ("model4", "Estimator", {'optional': True, 'shape': 'diamond'}),
                     ("train_data", "basic:List"),
                     ("train_target", "basic:List"),
                     ]
@@ -185,7 +185,7 @@ class Pipeline(Estimator):
 class Score(Module):
     """Compute a model performance metric."""
     _settings = ModuleSettings(namespace="metrics")
-    _input_ports = [("model", "Estimator"),
+    _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
                     ("data", "basic:List"),
                     ("target", "basic:List"),
                     ("metric", "basic:String", {"defaults": ["accuracy"]})]
@@ -200,7 +200,7 @@ class Score(Module):
 class ROCCurve(Module):
     """Compute a ROC curve."""
     _settings = ModuleSettings(namespace="metrics")
-    _input_ports = [("model", "Estimator"),
+    _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
                     ("data", "basic:List"),
                     ("target", "basic:List")]
     _output_ports = [("fpr", "basic:List"),
