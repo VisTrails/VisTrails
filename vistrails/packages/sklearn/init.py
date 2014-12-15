@@ -169,12 +169,12 @@ class Pipeline(Estimator):
                     ]
 
     def compute(self):
-        models = ["model%d" for d in range(1, 5)]
+        models = ["model%d" % d for d in range(1, 5)]
         steps = [self.get_input(model) for model in models if model in self.inputPorts]
-        pipeline = make_pipeline(**steps)
+        pipeline = make_pipeline(*steps)
         if "train_data" in self.inputPorts:
             train_data = np.vstack(self.get_input("train_data"))
-            train_classes = self.get_input("train_classes")
+            train_classes = self.get_input("train_target")
             pipeline.fit(train_data, train_classes)
         self.set_output("model", pipeline)
 
@@ -277,4 +277,4 @@ class StandardScaler(Estimator):
 
 _modules = [Digits, Iris, Estimator, Predict, Transform,
             LinearSVC, SVC, TrainTestSplit, Score, ROCCurve, CrossValScore,
-            GridSearchCV, StandardScaler]
+            GridSearchCV, StandardScaler, Pipeline]
