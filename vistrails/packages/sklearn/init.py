@@ -4,6 +4,8 @@ from vistrails.core.modules.vistrails_module import Module
 import numpy as np
 from sklearn import datasets
 from sklearn.svm import LinearSVC as _LinearSVC
+from sklearn.cross_validation import train_test_split
+from sklearn.metrics import SCORERS
 
 
 ###############################################################################
@@ -64,7 +66,47 @@ class Predict(Module):
 
 
 ###############################################################################
+# Cross-validation
+
+
+class TrainTestSplit(Module):
+    """Split data into training and testing randomly."""
+    _input_ports = [("data", "basic:List"),
+                    ("target", "basic:List"),
+                    ("test_size", "basic:Float", {"defaults": [.25]})]
+    _output_ports = [("training_data", "basic:List"),
+                     ("training_target", "basic:List"),
+                     ("test_data", "basic:List"),
+                     ("test_target", "basic:List")]
+
+    def compute(self):
+        X_train, X_test, y_train, y_test = \
+            train_test_split(self.get_input("data"), self.get_input("target"))
+        self.set_output("training_data", X_train)
+        self.set_output("training_target", y_train)
+        self.set_output("test_data", X_test)
+        self.set_output("test_target", y_test)
+
+###############################################################################
+# Metrics
+
+
+class Score(Module):
+    """Compute a model performance metric."""
+    _input_ports = [("model", "Classifier"),
+                    ("data", "basic:List"),
+                    ("target", "basic:List"),
+                    ("metric", "basic:String", {"defaults": ["accuracy"]})]
+    _output_ports = [("score", "basic:Float")]
+
+    def compute(self):
+        scorer = SCORERS[self.get_input("metric")]
+        score = scorer(self.get_input("model"), self.get_input("data"), self.get_input("target"))
+        self.set_output("score", score)
+
+###############################################################################<F2>
 # Classifiers
+
 
 class LinearSVC(Classifier):
     """Learns a linear support vector machine model from training data.
@@ -84,4 +126,4 @@ class LinearSVC(Classifier):
 
 _modules = [Digits, Iris,
             Classifier, Predict,
-            LinearSVC]
+            LinearSVC, TrainTestSplit, Score]
