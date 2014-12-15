@@ -8,6 +8,7 @@ from sklearn.svm import SVC as _SVC
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.metrics import SCORERS, roc_curve
 from sklearn.grid_search import GridSearchCV as _GridSearchCV
+from sklearn.preprocessing import StandardScaler as _StandardScaler
 
 
 ###############################################################################
@@ -40,13 +41,20 @@ class Iris(Module):
 
 
 ###############################################################################
-# Base classes for classification
+# Base classes
 
 class Classifier(Module):
     """Base class for sklearn classifiers.
     """
     _settings = ModuleSettings(abstract=True)
     _output_ports = [("classifier", "Classifier")]
+
+
+class Transformer(Module):
+    """Base class for sklearn transformers.
+    """
+    _settings = ModuleSettings(abstract=True)
+    _output_ports = [("transformer", "Transformer")]
 
 
 class Predict(Module):
@@ -65,6 +73,20 @@ class Predict(Module):
         decision_function = clf.decision_function(data)
         self.set_output("prediction", predictions)
         self.set_output("decision_function", decision_function)
+
+
+class Transform(Module):
+    """Apply a learned scikit-learn transformer to test data.
+    """
+    _input_ports = [("transformer", "Transformer"),
+                    ("data", "basic:List")]
+    _output_ports = [("transformed_data", "basic:List")]
+
+    def compute(self):
+        trans = self.get_input("transformer")
+        data = self.get_input("data")
+        transformed_data = trans.transform(data)
+        self.set_output("transformed_data", transformed_data)
 
 
 ###############################################################################
@@ -186,8 +208,8 @@ class LinearSVC(Classifier):
     """Learns a linear support vector machine model from training data.
     """
     _settings = ModuleSettings(namespace="classifiers")
-    _input_ports = [("train_data", "basic:List", {"optional": True}),
-                    ("train_classes", "basic:List", {"optional": True}),
+    _input_ports = [("train_data", "basic:List"),
+                    ("train_classes", "basic:List"),
                     ("C", "basic:Float", {"defaults": [1]})]
 
     def compute(self):
@@ -204,8 +226,8 @@ class SVC(Classifier):
     """Learns a linear support vector machine model from training data.
     """
     _settings = ModuleSettings(namespace="classifiers")
-    _input_ports = [("train_data", "basic:List", {"optional": True}),
-                    ("train_classes", "basic:List", {"optional": True}),
+    _input_ports = [("train_data", "basic:List"),
+                    ("train_classes", "basic:List"),
                     ("C", "basic:Float", {"defaults": [1]}),
                     ("gamma", "basic:Float", {"defaults": [0]})]
 
@@ -220,5 +242,21 @@ class SVC(Classifier):
         self.set_output("classifier", clf)
 
 
-_modules = [Digits, Iris, Classifier, Predict, LinearSVC, SVC, TrainTestSplit,
-            Score, ROCCurve, CrossValScore, GridSearchCV]
+###############################################################################<F2>
+# Preprocessing
+
+class StandardScaler(Transformer):
+    """Rescales data to have zero mean and unit variance per feature."""
+    _settings = ModuleSettings(namespace="preprocessing")
+    _input_ports = [("train_data", "basic:List")]
+
+    def compute(self):
+        trans = _StandardScaler()
+        if "train_data" in self.inputPorts:
+            train_data = np.vstack(self.get_input("train_data"))
+            trans.fit(train_data)
+        self.set_output("transformer", trans)
+
+_modules = [Digits, Iris, Classifier, Transformer, Predict, Transform,
+            LinearSVC, SVC, TrainTestSplit, Score, ROCCurve, CrossValScore,
+            GridSearchCV, StandardScaler]
