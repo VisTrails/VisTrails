@@ -9,6 +9,7 @@ from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.metrics import SCORERS, roc_curve
 from sklearn.grid_search import GridSearchCV as _GridSearchCV
 from sklearn.preprocessing import StandardScaler as _StandardScaler
+from sklearn.pipeline import make_pipeline
 
 
 ###############################################################################
@@ -43,25 +44,18 @@ class Iris(Module):
 ###############################################################################
 # Base classes
 
-class Classifier(Module):
-    """Base class for sklearn classifiers.
+class Estimator(Module):
+    """Base class for all sklearn estimators.
     """
     _settings = ModuleSettings(abstract=True)
-    _output_ports = [("classifier", "Classifier")]
-
-
-class Transformer(Module):
-    """Base class for sklearn transformers.
-    """
-    _settings = ModuleSettings(abstract=True)
-    _output_ports = [("transformer", "Transformer")]
+    _output_ports = [("model", "Estimator")]
 
 
 class Predict(Module):
     """Apply a learned scikit-learn classifier model to test data.
     """
     # TODO : data depth=1
-    _input_ports = [("classifier", "Classifier"),
+    _input_ports = [("classifier", "Estimator"),
                     ("data", "basic:List")]
     _output_ports = [("prediction", "basic:List"),
                      ("decision_function", "basic:List")]
@@ -78,7 +72,7 @@ class Predict(Module):
 class Transform(Module):
     """Apply a learned scikit-learn transformer to test data.
     """
-    _input_ports = [("transformer", "Transformer"),
+    _input_ports = [("transformer", "Estimator"),
                     ("data", "basic:List")]
     _output_ports = [("transformed_data", "basic:List")]
 
@@ -116,7 +110,7 @@ class TrainTestSplit(Module):
 class CrossValScore(Module):
     """Split data into training and testing randomly."""
     _settings = ModuleSettings(namespace="cross-validation")
-    _input_ports = [("model", "Classifier"),
+    _input_ports = [("model", "Estimator"),
                     ("data", "basic:List"),
                     ("target", "basic:List"),
                     ("metric", "basic:String", {"defaults": ["accuracy"]}),
@@ -132,16 +126,19 @@ class CrossValScore(Module):
         scores = cross_val_score(model, data, target, scoring=metric, cv=folds)
         self.set_output("scores", scores)
 
+###############################################################################
+# Meta Estimators
 
-class GridSearchCV(Module):
+
+class GridSearchCV(Estimator):
     """Perform cross-validated grid-search over a parameter grid."""
-    _input_ports = [("model", "Classifier"),
+    _input_ports = [("model", "Estimator"),
                     ("data", "basic:List"),
                     ("target", "basic:List"),
                     ("metric", "basic:String", {"defaults": ["accuracy"]}),
                     ("folds", "basic:Integer", {"defaults": ["3"]}),
                     ("parameters", "basic:Dictionary")]
-    _output_ports = [("scores", "basic:List"), ("model", "Classifier"),
+    _output_ports = [("scores", "basic:List"), ("model", "Estimator"),
                      ("best_parameters", "basic:Dictionary"),
                      ("best_score", "basic:Float")]
 
@@ -160,6 +157,27 @@ class GridSearchCV(Module):
             self.set_output("best_score", grid.best_score_)
         self.set_output("model", grid)
 
+
+class Pipeline(Estimator):
+    """Chain estimators to form a pipeline."""
+    _input_ports = [("model1", "Estimator"),
+                    ("model2", "Estimator", {'optional': True}),
+                    ("model3", "Estimator", {'optional': True}),
+                    ("model4", "Estimator", {'optional': True}),
+                    ("train_data", "basic:List"),
+                    ("train_target", "basic:List"),
+                    ]
+
+    def compute(self):
+        models = ["model%d" for d in range(1, 5)]
+        steps = [self.get_input(model) for model in models if model in self.inputPorts]
+        pipeline = make_pipeline(**steps)
+        if "train_data" in self.inputPorts:
+            train_data = np.vstack(self.get_input("train_data"))
+            train_classes = self.get_input("train_classes")
+            pipeline.fit(train_data, train_classes)
+        self.set_output("model", pipeline)
+
 ###############################################################################
 # Metrics
 
@@ -167,7 +185,7 @@ class GridSearchCV(Module):
 class Score(Module):
     """Compute a model performance metric."""
     _settings = ModuleSettings(namespace="metrics")
-    _input_ports = [("model", "Classifier"),
+    _input_ports = [("model", "Estimator"),
                     ("data", "basic:List"),
                     ("target", "basic:List"),
                     ("metric", "basic:String", {"defaults": ["accuracy"]})]
@@ -182,7 +200,7 @@ class Score(Module):
 class ROCCurve(Module):
     """Compute a ROC curve."""
     _settings = ModuleSettings(namespace="metrics")
-    _input_ports = [("model", "Classifier"),
+    _input_ports = [("model", "Estimator"),
                     ("data", "basic:List"),
                     ("target", "basic:List")]
     _output_ports = [("fpr", "basic:List"),
@@ -204,7 +222,7 @@ class ROCCurve(Module):
 # Classifiers
 
 
-class LinearSVC(Classifier):
+class LinearSVC(Estimator):
     """Learns a linear support vector machine model from training data.
     """
     _settings = ModuleSettings(namespace="classifiers")
@@ -219,10 +237,10 @@ class LinearSVC(Classifier):
             train_data = np.vstack(self.get_input("train_data"))
             train_classes = self.get_input("train_classes")
             clf.fit(train_data, train_classes)
-        self.set_output("classifier", clf)
+        self.set_output("model", clf)
 
 
-class SVC(Classifier):
+class SVC(Estimator):
     """Learns a linear support vector machine model from training data.
     """
     _settings = ModuleSettings(namespace="classifiers")
@@ -239,13 +257,13 @@ class SVC(Classifier):
             train_data = np.vstack(self.get_input("train_data"))
             train_classes = self.get_input("train_classes")
             clf.fit(train_data, train_classes)
-        self.set_output("classifier", clf)
+        self.set_output("model", clf)
 
 
 ###############################################################################<F2>
 # Preprocessing
 
-class StandardScaler(Transformer):
+class StandardScaler(Estimator):
     """Rescales data to have zero mean and unit variance per feature."""
     _settings = ModuleSettings(namespace="preprocessing")
     _input_ports = [("train_data", "basic:List")]
@@ -255,8 +273,8 @@ class StandardScaler(Transformer):
         if "train_data" in self.inputPorts:
             train_data = np.vstack(self.get_input("train_data"))
             trans.fit(train_data)
-        self.set_output("transformer", trans)
+        self.set_output("model", trans)
 
-_modules = [Digits, Iris, Classifier, Transformer, Predict, Transform,
+_modules = [Digits, Iris, Estimator, Predict, Transform,
             LinearSVC, SVC, TrainTestSplit, Score, ROCCurve, CrossValScore,
             GridSearchCV, StandardScaler]
