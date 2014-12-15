@@ -4,7 +4,7 @@ from vistrails.core.modules.vistrails_module import Module
 import numpy as np
 from sklearn import datasets
 from sklearn.svm import LinearSVC as _LinearSVC
-from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.metrics import SCORERS, roc_curve
 
 
@@ -87,6 +87,26 @@ class TrainTestSplit(Module):
         self.set_output("test_data", X_test)
         self.set_output("test_target", y_test)
 
+
+class CrossValScore(Module):
+    """Split data into training and testing randomly."""
+    _input_ports = [("model", "Classifier"),
+                    ("data", "basic:List"),
+                    ("target", "basic:List"),
+                    ("metric", "basic:String", {"defaults": ["accuracy"]}),
+                    ("folds", "basic:Integer", {"defaults": ["3"]})]
+    _output_ports = [("scores", "basic:List")]
+
+    def compute(self):
+        model = self.get_input("model")
+        data = self.get_input("data")
+        target = self.get_input("target")
+        metric = self.get_input("metric")
+        folds = self.get_input("folds")
+        scores = cross_val_score(model, data, target, scoring=metric, cv=folds)
+        self.set_output("scores", scores)
+
+
 ###############################################################################
 # Metrics
 
@@ -114,12 +134,12 @@ class ROCCurve(Module):
                      ("tpr", "basic:List")]
 
     def compute(self):
-        classifier = self.get_input("model")
+        model = self.get_input("model")
         data = self.get_input("data")
-        if hasattr(classifier, "decision_function"):
-            dec = classifier.decision_function(data)
+        if hasattr(model, "decision_function"):
+            dec = model.decision_function(data)
         else:
-            dec = classifier.predict_proba(data)[:, 1]
+            dec = model.predict_proba(data)[:, 1]
         fpr, tpr, _ = roc_curve(self.get_input("target"), dec)
         self.set_output("fpr", fpr)
         self.set_output("tpr", tpr)
@@ -132,19 +152,19 @@ class ROCCurve(Module):
 class LinearSVC(Classifier):
     """Learns a linear support vector machine model from training data.
     """
-    _input_ports = [("train_data", "basic:List", {}),
-                    ("train_classes", "basic:List", {}),
+    _input_ports = [("train_data", "basic:List", {"optional": True}),
+                    ("train_classes", "basic:List", {"optional": True}),
                     ("C", "basic:Float", {"defaults": [1]})]
 
     def compute(self):
-        train_data = np.vstack(self.get_input("train_data"))
-        train_classes = self.get_input("train_classes")
-
         C = self.get_input("C")
-        clf = _LinearSVC(C=C).fit(train_data, train_classes)
+        clf = _LinearSVC(C=C)
+        if "train_data" in self.inputPorts:
+            train_data = np.vstack(self.get_input("train_data"))
+            train_classes = self.get_input("train_classes")
+            clf.fit(train_data, train_classes)
         self.set_output("classifier", clf)
 
 
-_modules = [Digits, Iris,
-            Classifier, Predict,
-            LinearSVC, TrainTestSplit, Score, ROCCurve]
+_modules = [Digits, Iris, Classifier, Predict, LinearSVC, TrainTestSplit,
+            Score, ROCCurve, CrossValScore]
