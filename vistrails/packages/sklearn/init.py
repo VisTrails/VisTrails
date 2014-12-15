@@ -4,8 +4,10 @@ from vistrails.core.modules.vistrails_module import Module
 import numpy as np
 from sklearn import datasets
 from sklearn.svm import LinearSVC as _LinearSVC
+from sklearn.svm import SVC as _SVC
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.metrics import SCORERS, roc_curve
+from sklearn.grid_search import GridSearchCV as _GridSearchCV
 
 
 ###############################################################################
@@ -71,6 +73,7 @@ class Predict(Module):
 
 class TrainTestSplit(Module):
     """Split data into training and testing randomly."""
+    _settings = ModuleSettings(namespace="cross-validation")
     _input_ports = [("data", "basic:List"),
                     ("target", "basic:List"),
                     ("test_size", "basic:Float", {"defaults": [.25]})]
@@ -90,6 +93,7 @@ class TrainTestSplit(Module):
 
 class CrossValScore(Module):
     """Split data into training and testing randomly."""
+    _settings = ModuleSettings(namespace="cross-validation")
     _input_ports = [("model", "Classifier"),
                     ("data", "basic:List"),
                     ("target", "basic:List"),
@@ -107,12 +111,40 @@ class CrossValScore(Module):
         self.set_output("scores", scores)
 
 
+class GridSearchCV(Module):
+    """Perform cross-validated grid-search over a parameter grid."""
+    _input_ports = [("model", "Classifier"),
+                    ("data", "basic:List"),
+                    ("target", "basic:List"),
+                    ("metric", "basic:String", {"defaults": ["accuracy"]}),
+                    ("folds", "basic:Integer", {"defaults": ["3"]}),
+                    ("parameters", "basic:Dictionary")]
+    _output_ports = [("scores", "basic:List"), ("model", "Classifier"),
+                     ("best_parameters", "basic:Dictionary"),
+                     ("best_score", "basic:Float")]
+
+    def compute(self):
+        base_model = self.get_input("model")
+        grid = _GridSearchCV(base_model,
+                             param_grid=self.get_input("parameters"),
+                             cv=self.get_input("folds"),
+                             scoring=self.get_input("metric"))
+        if "data" in self.inputPorts:
+            data = np.vstack(self.get_input("data"))
+            target = self.get_input("target")
+            grid.fit(data, target)
+            self.set_output("scores", grid.grid_scores_)
+            self.set_output("best_parameters", grid.best_params_)
+            self.set_output("best_score", grid.best_score_)
+        self.set_output("model", grid)
+
 ###############################################################################
 # Metrics
 
 
 class Score(Module):
     """Compute a model performance metric."""
+    _settings = ModuleSettings(namespace="metrics")
     _input_ports = [("model", "Classifier"),
                     ("data", "basic:List"),
                     ("target", "basic:List"),
@@ -127,6 +159,7 @@ class Score(Module):
 
 class ROCCurve(Module):
     """Compute a ROC curve."""
+    _settings = ModuleSettings(namespace="metrics")
     _input_ports = [("model", "Classifier"),
                     ("data", "basic:List"),
                     ("target", "basic:List")]
@@ -152,6 +185,7 @@ class ROCCurve(Module):
 class LinearSVC(Classifier):
     """Learns a linear support vector machine model from training data.
     """
+    _settings = ModuleSettings(namespace="classifiers")
     _input_ports = [("train_data", "basic:List", {"optional": True}),
                     ("train_classes", "basic:List", {"optional": True}),
                     ("C", "basic:Float", {"defaults": [1]})]
@@ -166,5 +200,25 @@ class LinearSVC(Classifier):
         self.set_output("classifier", clf)
 
 
-_modules = [Digits, Iris, Classifier, Predict, LinearSVC, TrainTestSplit,
-            Score, ROCCurve, CrossValScore]
+class SVC(Classifier):
+    """Learns a linear support vector machine model from training data.
+    """
+    _settings = ModuleSettings(namespace="classifiers")
+    _input_ports = [("train_data", "basic:List", {"optional": True}),
+                    ("train_classes", "basic:List", {"optional": True}),
+                    ("C", "basic:Float", {"defaults": [1]}),
+                    ("gamma", "basic:Float", {"defaults": [0]})]
+
+    def compute(self):
+        C = self.get_input("C")
+        gamma = self.get_input("gamma")
+        clf = _SVC(C=C, gamma=gamma)
+        if "train_data" in self.inputPorts:
+            train_data = np.vstack(self.get_input("train_data"))
+            train_classes = self.get_input("train_classes")
+            clf.fit(train_data, train_classes)
+        self.set_output("classifier", clf)
+
+
+_modules = [Digits, Iris, Classifier, Predict, LinearSVC, SVC, TrainTestSplit,
+            Score, ROCCurve, CrossValScore, GridSearchCV]
