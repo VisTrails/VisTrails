@@ -5,7 +5,7 @@ import numpy as np
 from sklearn import datasets
 from sklearn.svm import LinearSVC as _LinearSVC
 from sklearn.cross_validation import train_test_split
-from sklearn.metrics import SCORERS
+from sklearn.metrics import SCORERS, roc_curve
 
 
 ###############################################################################
@@ -104,6 +104,27 @@ class Score(Module):
         score = scorer(self.get_input("model"), self.get_input("data"), self.get_input("target"))
         self.set_output("score", score)
 
+
+class ROCCurve(Module):
+    """Compute a ROC curve."""
+    _input_ports = [("model", "Classifier"),
+                    ("data", "basic:List"),
+                    ("target", "basic:List")]
+    _output_ports = [("fpr", "basic:List"),
+                     ("tpr", "basic:List")]
+
+    def compute(self):
+        classifier = self.get_input("model")
+        data = self.get_input("data")
+        if hasattr(classifier, "decision_function"):
+            dec = classifier.decision_function(data)
+        else:
+            dec = classifier.predict_proba(data)[:, 1]
+        fpr, tpr, _ = roc_curve(self.get_input("target"), dec)
+        self.set_output("fpr", fpr)
+        self.set_output("tpr", tpr)
+
+
 ###############################################################################<F2>
 # Classifiers
 
@@ -126,4 +147,4 @@ class LinearSVC(Classifier):
 
 _modules = [Digits, Iris,
             Classifier, Predict,
-            LinearSVC, TrainTestSplit, Score]
+            LinearSVC, TrainTestSplit, Score, ROCCurve]
