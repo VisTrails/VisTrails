@@ -7,7 +7,6 @@ from sklearn import datasets
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.metrics import SCORERS, roc_curve
 from sklearn.grid_search import GridSearchCV as _GridSearchCV
-from sklearn.preprocessing import StandardScaler as _StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.utils.testing import all_estimators
 
@@ -301,23 +300,26 @@ def discover_clustering():
 
 
 ###############################################################################<F2>
-# Preprocessing
+# Transformers
 
-class StandardScaler(Estimator):
-    """Rescales data to have zero mean and unit variance per feature."""
-    _settings = ModuleSettings(namespace="preprocessing")
-    _input_ports = [("train_data", "basic:List", {'shape': 'circle'})]
-
-    def compute(self):
-        trans = _StandardScaler()
-        if "train_data" in self.inputPorts:
-            train_data = np.vstack(self.get_input("train_data"))
-            trans.fit(train_data)
-        self.set_output("model", trans)
+def discover_unsupervised_transformers():
+    # FIXME what to do with feature selection!!
+    # also: random tree embedding
+    transformers = all_estimators(type_filter="transformer")
+    classes = []
+    for name, Est in transformers:
+        module = Est.__module__.split(".")[1]
+        if module not in ['decomposition', 'kernel_approximation', 'manifold',
+                          'neural_network', 'preprocessing', 'random_projection']:
+            continue
+        namespace = module
+        classes.append(make_module(name, Est, namespace))
+    return classes
 
 
 _modules = [Digits, Iris, Estimator, SupervisedEstimator,
             UnsupervisedEstimator, Predict, Transform, TrainTestSplit, Score,
-            ROCCurve, CrossValScore, GridSearchCV, StandardScaler, Pipeline]
+            ROCCurve, CrossValScore, GridSearchCV, Pipeline]
 _modules.extend(discover_supervised())
 _modules.extend(discover_clustering())
+_modules.extend(discover_unsupervised_transformers())
