@@ -20,8 +20,8 @@ class Digits(Module):
     """Example dataset: digits.
     """
     _settings = ModuleSettings(namespace="datasets")
-    _output_ports = [("data", "basic:List"),
-                     ("target", "basic:List")]
+    _output_ports = [("data", "basic:List", {'sort_key': 1, 'shape': 'circle'}),
+                     ("target", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
 
     def compute(self):
         data = datasets.load_digits()
@@ -33,8 +33,8 @@ class Iris(Module):
     """Example dataset: iris.
     """
     _settings = ModuleSettings(namespace="datasets")
-    _output_ports = [("data", "basic:List"),
-                     ("target", "basic:List")]
+    _output_ports = [("data", "basic:List", {'sort_key': 1, 'shape': 'circle'}),
+                     ("target", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
 
     def compute(self):
         data = datasets.load_iris()
@@ -74,8 +74,8 @@ class Predict(Module):
     """
     # TODO : data depth=1
     _input_ports = [("classifier", "Estimator", {'shape': 'diamond'}),
-                    ("data", "basic:List")]
-    _output_ports = [("prediction", "basic:List"),
+                    ("data", "basic:List", {'shape': 'circle'})]
+    _output_ports = [("prediction", "basic:List", {'shape': 'circle'}),
                      ("decision_function", "basic:List")]
 
     def compute(self):
@@ -91,8 +91,8 @@ class Transform(Module):
     """Apply a learned scikit-learn transformer to test data.
     """
     _input_ports = [("transformer", "Estimator", {'shape': 'diamond'}),
-                    ("data", "basic:List")]
-    _output_ports = [("transformed_data", "basic:List")]
+                    ("data", "basic:List", {'shape': 'circle'})]
+    _output_ports = [("transformed_data", "basic:List", {'shape': 'circle'})]
 
     def compute(self):
         trans = self.get_input("transformer")
@@ -108,13 +108,13 @@ class Transform(Module):
 class TrainTestSplit(Module):
     """Split data into training and testing randomly."""
     _settings = ModuleSettings(namespace="cross-validation")
-    _input_ports = [("data", "basic:List", {'sort_key': 0}),
-                    ("target", "basic:List", {'sort_key': 1}),
-                    ("test_size", "basic:Float", {"defaults": [.25]}, {'sort_key': 2})]
-    _output_ports = [("training_data", "basic:List", {'sort_key': 0}),
-                     ("training_target", "basic:List", {'sort_key': 1}),
-                     ("test_data", "basic:List", {'sort_key': 2}),
-                     ("test_target", "basic:List", {'sort_key': 3})]
+    _input_ports = [("data", "basic:List", {'sort_key': 0, 'shape': 'circle'}),
+                    ("target", "basic:List", {'sort_key': 1, 'shape': 'circle'}),
+                    ("test_size", "basic:Float", {"defaults": [.25], 'sort_key': 2})]
+    _output_ports = [("training_data", "basic:List", {'sort_key': 3, 'shape': 'circle'}),
+                     ("training_target", "basic:List", {'sort_key': 2, 'shape': 'circle'}),
+                     ("test_data", "basic:List", {'sort_key': 1, 'shape': 'circle'}),
+                     ("test_target", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
 
     def compute(self):
         X_train, X_test, y_train, y_test = \
@@ -129,8 +129,8 @@ class CrossValScore(Module):
     """Split data into training and testing randomly."""
     _settings = ModuleSettings(namespace="cross-validation")
     _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
-                    ("data", "basic:List"),
-                    ("target", "basic:List"),
+                    ("data", "basic:List", {'shape': 'circle'}),
+                    ("target", "basic:List", {'shape': 'circle'}),
                     ("metric", "basic:String", {"defaults": ["accuracy"]}),
                     ("folds", "basic:Integer", {"defaults": ["3"]})]
     _output_ports = [("scores", "basic:List")]
@@ -151,11 +151,11 @@ class CrossValScore(Module):
 class GridSearchCV(Estimator):
     """Perform cross-validated grid-search over a parameter grid."""
     _input_ports = [("model", "Estimator", {'sort_key': 0, 'shape': 'diamond'}),
-                    ("data", "basic:List", {'sort_key': 1}),
-                    ("target", "basic:List", {'sort_key': 2}),
-                    ("metric", "basic:String", {"defaults": ["accuracy"], 'sort_key': 3}),
-                    ("folds", "basic:Integer", {"defaults": ["3"], 'sort_key': 4}),
-                    ("parameters", "basic:Dictionary", {'sort_key': 0})]
+                    ("parameters", "basic:Dictionary", {'sort_key': 1}),
+                    ("data", "basic:List", {'sort_key': 2, 'shape': 'circle'}),
+                    ("target", "basic:List", {'sort_key': 3, 'shape': 'circle'}),
+                    ("metric", "basic:String", {"defaults": ["accuracy"], 'sort_key': 4}),
+                    ("folds", "basic:Integer", {"defaults": ["3"], 'sort_key': 5})]
     _output_ports = [("scores", "basic:List"), ("model", "Estimator", {'shape': 'diamond'}),
                      ("best_parameters", "basic:Dictionary"),
                      ("best_score", "basic:Float")]
@@ -182,8 +182,8 @@ class Pipeline(Estimator):
                     ("model2", "Estimator", {'optional': True, 'shape': 'diamond'}),
                     ("model3", "Estimator", {'optional': True, 'shape': 'diamond'}),
                     ("model4", "Estimator", {'optional': True, 'shape': 'diamond'}),
-                    ("train_data", "basic:List"),
-                    ("train_target", "basic:List"),
+                    ("train_data", "basic:List", {'shape': 'circle'}),
+                    ("train_target", "basic:List", {'shape': 'circle'}),
                     ]
 
     def compute(self):
@@ -204,8 +204,8 @@ class Score(Module):
     """Compute a model performance metric."""
     _settings = ModuleSettings(namespace="metrics")
     _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
-                    ("data", "basic:List"),
-                    ("target", "basic:List"),
+                    ("data", "basic:List", {'shape': 'circle'}),
+                    ("target", "basic:List", {'shape': 'circle'}),
                     ("metric", "basic:String", {"defaults": ["accuracy"]})]
     _output_ports = [("score", "basic:Float")]
 
@@ -219,8 +219,8 @@ class ROCCurve(Module):
     """Compute a ROC curve."""
     _settings = ModuleSettings(namespace="metrics")
     _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
-                    ("data", "basic:List"),
-                    ("target", "basic:List")]
+                    ("data", "basic:List", {'shape': 'circle'}),
+                    ("target", "basic:List", {'shape': 'circle'})]
     _output_ports = [("fpr", "basic:List"),
                      ("tpr", "basic:List")]
 
@@ -244,8 +244,8 @@ class LinearSVC(Classifier):
     """Learns a linear support vector machine model from training data.
     """
     _settings = ModuleSettings(namespace="classifiers")
-    _input_ports = [("train_data", "basic:List"),
-                    ("train_classes", "basic:List"),
+    _input_ports = [("train_data", "basic:List", {'shape': 'circle'}),
+                    ("train_classes", "basic:List", {'shape': 'circle'}),
                     ("C", "basic:Float", {"defaults": [1]})]
     _estimator_class = _LinearSVC
 
@@ -254,8 +254,8 @@ class SVC(Classifier):
     """Learns a linear support vector machine model from training data.
     """
     _settings = ModuleSettings(namespace="classifiers")
-    _input_ports = [("train_data", "basic:List"),
-                    ("train_classes", "basic:List"),
+    _input_ports = [("train_data", "basic:List", {'shape': 'circle'}),
+                    ("train_classes", "basic:List", {'shape': 'circle'}),
                     ("C", "basic:Float", {"defaults": [1]}),
                     ("gamma", "basic:Float", {"defaults": [0]})]
     _estimator_class = _SVC
@@ -267,7 +267,7 @@ class SVC(Classifier):
 class StandardScaler(Estimator):
     """Rescales data to have zero mean and unit variance per feature."""
     _settings = ModuleSettings(namespace="preprocessing")
-    _input_ports = [("train_data", "basic:List")]
+    _input_ports = [("train_data", "basic:List", {'shape': 'circle'})]
 
     def compute(self):
         trans = _StandardScaler()
@@ -281,18 +281,15 @@ def discover_classifiers():
     classifiers = all_estimators(type_filter="classifier")
     classes = []
     for name, Est in classifiers:
-        print(name)
-        _input_ports = [("train_data", "basic:List"),
-                        ("train_classes", "basic:List")]
+        _input_ports = [("train_data", "basic:List", {'sort_key': 0, 'shape': 'circle'}),
+                        ("train_classes", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
         est = Est()
         _input_ports.extend([(param, "basic:String") for param in
                              est.get_params()])
         _settings = ModuleSettings(namespace="GeneratedClassifiers")
-        print(_input_ports)
         new_class = type(name, (Classifier,), {'_input_ports': _input_ports,
                                                '_settings': _settings,
                                                '_estimator_class': Est})
-        print(new_class)
         classes.append(new_class)
     return classes
 
