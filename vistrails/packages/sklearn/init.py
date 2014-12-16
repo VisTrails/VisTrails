@@ -3,14 +3,21 @@ from vistrails.core.modules.vistrails_module import Module
 
 import numpy as np
 from sklearn import datasets
-from sklearn.svm import LinearSVC as _LinearSVC
-from sklearn.svm import SVC as _SVC
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.metrics import SCORERS, roc_curve
 from sklearn.grid_search import GridSearchCV as _GridSearchCV
 from sklearn.preprocessing import StandardScaler as _StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.utils.testing import all_estimators
+
+
+def try_convert(input_string):
+    if input_string.isdigit():
+        return int(input_string)
+    try:
+        return float(input_string)
+    except ValueError:
+        return input_string
 
 
 ###############################################################################
@@ -57,7 +64,8 @@ class Classifier(Estimator):
     _settings = ModuleSettings(abstract=True)
 
     def compute(self):
-        params = dict([(p, self.get_input(p)) for p in self.inputPorts
+        # get parameters, try to convert strings to float / int
+        params = dict([(p, try_convert(self.get_input(p))) for p in self.inputPorts
                        if p not in ["train_data", "train_classes"]])
         print("setting parameters")
         print(params)
@@ -239,26 +247,22 @@ class ROCCurve(Module):
 ###############################################################################<F2>
 # Classifiers
 
-
-class LinearSVC(Classifier):
-    """Learns a linear support vector machine model from training data.
-    """
-    _settings = ModuleSettings(namespace="classifiers")
-    _input_ports = [("train_data", "basic:List", {'shape': 'circle'}),
-                    ("train_classes", "basic:List", {'shape': 'circle'}),
-                    ("C", "basic:Float", {"defaults": [1]})]
-    _estimator_class = _LinearSVC
-
-
-class SVC(Classifier):
-    """Learns a linear support vector machine model from training data.
-    """
-    _settings = ModuleSettings(namespace="classifiers")
-    _input_ports = [("train_data", "basic:List", {'shape': 'circle'}),
-                    ("train_classes", "basic:List", {'shape': 'circle'}),
-                    ("C", "basic:Float", {"defaults": [1]}),
-                    ("gamma", "basic:Float", {"defaults": [0]})]
-    _estimator_class = _SVC
+def discover_classifiers():
+    classifiers = all_estimators(type_filter="classifier")
+    classes = []
+    for name, Est in classifiers:
+        _input_ports = [("train_data", "basic:List", {'sort_key': 0, 'shape': 'circle'}),
+                        ("train_classes", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
+        est = Est()
+        _input_ports.extend([(param, "basic:String", {'optional': True}) for param in
+                             est.get_params()])
+        _settings = ModuleSettings(namespace="classifiers")
+        new_class = type(name, (Classifier,), {'_input_ports': _input_ports,
+                                               '_settings': _settings,
+                                               '_estimator_class': Est,
+                                               '__doc__': Est.__doc__})
+        classes.append(new_class)
+    return classes
 
 
 ###############################################################################<F2>
@@ -277,24 +281,7 @@ class StandardScaler(Estimator):
         self.set_output("model", trans)
 
 
-def discover_classifiers():
-    classifiers = all_estimators(type_filter="classifier")
-    classes = []
-    for name, Est in classifiers:
-        _input_ports = [("train_data", "basic:List", {'sort_key': 0, 'shape': 'circle'}),
-                        ("train_classes", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
-        est = Est()
-        _input_ports.extend([(param, "basic:String") for param in
-                             est.get_params()])
-        _settings = ModuleSettings(namespace="GeneratedClassifiers")
-        new_class = type(name, (Classifier,), {'_input_ports': _input_ports,
-                                               '_settings': _settings,
-                                               '_estimator_class': Est})
-        classes.append(new_class)
-    return classes
-
-
 _modules = [Digits, Iris, Estimator, Classifier, Predict, Transform,
-            LinearSVC, SVC, TrainTestSplit, Score, ROCCurve, CrossValScore,
+            TrainTestSplit, Score, ROCCurve, CrossValScore,
             GridSearchCV, StandardScaler, Pipeline]
 _modules.extend(discover_classifiers())
