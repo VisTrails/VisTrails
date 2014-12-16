@@ -1763,7 +1763,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                            CurrentTheme.MODULE_PORT_SPACE))
                     return item
 
-        debug.log("PORT SIG:" + port.signature)
         if not port.signature or port.signature == '()':
             # or len(port_descs) == 0:
             sigstring = default_sig
