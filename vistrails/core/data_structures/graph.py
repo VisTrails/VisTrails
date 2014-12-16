@@ -311,7 +311,7 @@ class Graph(object):
         new_id    -- 'immutable' edge id (default None)
         """
         
-        if old_id == None:
+        if old_id is None:
             efroom = self.adjacency_list[old_froom]
             forward_idx = None
             for i, edge in enumerate(efroom):
@@ -983,7 +983,7 @@ class TestGraph(unittest.TestCase):
         g = Graph()
         g.add_vertex(0)
         g.add_vertex(1)
-        assert g.get_edge(0, 1) == None
+        assert g.get_edge(0, 1) is None
 
     def test_dfs_before(self):
         g = self.make_linear(10)

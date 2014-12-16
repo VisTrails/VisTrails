@@ -330,7 +330,7 @@ def prune_signatures(module, name, signatures, output=False):
                 c = curr.replace('[', '')
                 c = c.replace(']', '')
                 result.append(c)
-            elif (curr == None):
+            elif (curr is None):
                 result.append(curr)
             elif (isinstance(curr, list)):
                 curr.reverse()

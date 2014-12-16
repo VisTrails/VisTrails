@@ -88,7 +88,7 @@ class TreeLW(object):
         self.maxLevel = max(self.maxLevel, maxLevel)
 
     def __dfsUpdateLevel(self, node):
-        if node.parent == None:
+        if node.parent is None:
             node.level = 0
         else:
             node.level = node.parent.level + 1
@@ -140,13 +140,13 @@ class KeepBoundingBox(object):
         self.size = 0
 
     def addPoint(self,x,y):
-        if self.minx == None or self.minx > x:
+        if self.minx is None or self.minx > x:
             self.minx = x
-        if self.miny == None or self.miny > y:
+        if self.miny is None or self.miny > y:
             self.miny = y
-        if self.maxx == None or self.maxx < x:
+        if self.maxx is None or self.maxx < x:
             self.maxx = x
-        if self.maxy == None or self.maxy < y:
+        if self.maxy is None or self.maxy < y:
             self.maxy = y
         self.size = self.size + 1
 
@@ -379,11 +379,11 @@ class TreeLayoutLW(object):
                 som += vom.mod
                 sop += vop.mod
 
-            if self.nextRight(vim) is not None and self.nextRight(vop) == None:
+            if self.nextRight(vim) is not None and self.nextRight(vop) is None:
                 vop.thread = self.nextRight(vim)
                 vop.mod += sim - sop
 
-            if self.nextLeft(vip) is not None and self.nextLeft(vom) == None:
+            if self.nextLeft(vip) is not None and self.nextLeft(vom) is None:
                 vom.thread = self.nextLeft(vip)
                 vom.mod += sip - som
                 defaultAncestor = v

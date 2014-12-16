@@ -48,13 +48,13 @@ class Mashup(DBMashup):
     def __init__(self, id, name, vtid=None, version=None, alias_list=None, 
                  t='vistrail', has_seq=None, layout='', geometry='', 
                  id_scope=IdScope()):
-        if has_seq == None:
+        if has_seq is None:
             has_seq = 0
             
         DBMashup.__init__(self, id, name, version, alias_list, t, vtid, layout, 
                           geometry, has_seq)
         self.id_scope = id_scope
-        if has_seq == None:
+        if has_seq is None:
             self.has_seq = False
             if isinstance(self.alias_list, list):
                 for v in self.alias_list:

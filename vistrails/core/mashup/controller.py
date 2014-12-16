@@ -108,7 +108,7 @@ class MashupController(object):
         name = ''
         locator = self.currentMashup.vtid
         if locator is not None:
-            if locator.name == None:
+            if locator.name is None:
                 name = ''
             else:
                 name = os.path.split(locator.name)[1]

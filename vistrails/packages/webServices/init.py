@@ -330,7 +330,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
         if isinstance(resp, list):
             ptype = resp[0].typecode.type[1]
         else:
-            if resp.typecode.type[1] == None:
+            if resp.typecode.type[1] is None:
                 ptype = resp.typecode.pname
             else:    
                 ptype = resp.typecode.type[1]
@@ -550,12 +550,12 @@ def processType(complexschema,w):
 
     if complexschema.isElement():
         try:
-            if complexschema.content.content == None:
+            if complexschema.content.content is None:
                 contentschema = []
             else:    
                 contentschema = complexschema.content.content.content
             objModule.typeobj = 'ComplexType'
-            if (complexschema.content.content == None or
+            if (complexschema.content.content is None or
                 complexschema.content.content.content == ()):
                 objModule.isEmptySequence = True
         except AttributeError:
@@ -1345,7 +1345,7 @@ def verify_wsdl(wsdlList):
             except OSError:
                 print "File doesn't exist"
                 isoutdated = True
-        if isoutdated or remoteHeader == None:
+        if isoutdated or remoteHeader is None:
             outdated_list.append(w)
         else:
             updated_list.append(w)

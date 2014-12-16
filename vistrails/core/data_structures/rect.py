@@ -48,12 +48,12 @@ class Rect(object):
         a copy of the given points. Return a Rect
 
         """        
-        if lower_left == None:
+        if lower_left is None:
             self.lower_left = Point()
         else:
             self.lower_left = copy.copy(lower_left)
 
-        if upper_right == None:
+        if upper_right is None:
             self.upper_right = Point()
         else:
             self.upper_right = copy.copy(upper_right)
