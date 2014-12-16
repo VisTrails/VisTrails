@@ -455,7 +455,7 @@ class QCellToolBarSelectedCell(QtGui.QAction):
 
         """
         (sheet, row, col, cellWidget) = info
-        self.setVisible(cellWidget != None)
+        self.setVisible(cellWidget is not None)
 
 class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
     """

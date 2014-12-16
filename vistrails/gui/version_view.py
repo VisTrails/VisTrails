@@ -131,8 +131,8 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
 
         # check if it is the same geometry 
         # improves performance on updates
-        if self.c1 != None and self.c2 != None and \
-                self.expand != None and self.collapse !=None:
+        if self.c1 is not None and self.c2 is not None and \
+                self.expand is not None and self.collapse !=None:
             isTheSame = self.c1 == c1 and \
                 self.c2 == c2 and \
                 self.expand == expand and \
@@ -1256,7 +1256,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     def set_controller(self, controller):
         oldController = self.controller
         if oldController != controller:
-            if oldController != None:
+            if oldController is not None:
                 self.disconnect(oldController,
                                 QtCore.SIGNAL('vistrailChanged()'),
                                 self.vistrailChanged)

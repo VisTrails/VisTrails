@@ -3684,7 +3684,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def set_controller(self, controller):
         oldController = self.controller
         if oldController != controller:
-            #if oldController != None:
+            #if oldController is not None:
                 # self.disconnect(oldController,
                 #                 QtCore.SIGNAL('versionWasChanged'),
                 #                 self.version_changed)

@@ -107,7 +107,7 @@ class MashupController(object):
     def getVistrailName(self):
         name = ''
         locator = self.currentMashup.vtid
-        if locator != None:
+        if locator is not None:
             if locator.name == None:
                 name = ''
             else:

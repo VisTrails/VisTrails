@@ -125,7 +125,7 @@ def webServiceTypesDict(WBobj):
             nameattrib = nameattrib[0].upper() + nameattrib[1:]
             sentence = "visobj" + "." + nameattrib
             visdata = eval(sentence)
-            if visdata != None:
+            if visdata is not None:
                 try:
                     Type = wsdlTypesDict[str(typechild)]
                     setattr(libobj,nameattrib,visdata)
@@ -148,7 +148,7 @@ def webServiceTypesDict(WBobj):
                 nameattribute = nameattrib[0].upper() + nameattrib[1:]
                 sentence = "visobj" + "." + nameattribute
                 visdata = eval(sentence)
-                if visdata != None:
+                if visdata is not None:
                     nameattrib = "attribute_typecode_dict[" + nameattrib + "].pname"
                     setattr(libobj,nameattrib,visdata)
 
@@ -574,7 +574,7 @@ def processType(complexschema,w):
             contentschema = complexschema.content.content
     try:       
         #Get all the attributes of the complex type
-        if complexschema.attr_content != None:
+        if complexschema.attr_content is not None:
             for attribute in complexschema.attr_content:
                 nametype = attribute.getAttributeName()
                 Type = 'string'
@@ -1335,7 +1335,7 @@ def verify_wsdl(wsdlList):
         response = conn.getresponse()
         remoteHeader = response.msg.getheader('last-modified')
         isoutdated = False
-        if remoteHeader != None:
+        if remoteHeader is not None:
             localFile = client_file
             reg = vistrails.core.modules.module_registry.get_module_registry()
             httpfile = reg.get_descriptor_by_name(
