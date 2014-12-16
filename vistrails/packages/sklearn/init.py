@@ -2,6 +2,7 @@ from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module
 
 import numpy as np
+from sklearn.base import ClassifierMixin
 from sklearn import datasets
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.metrics import SCORERS, roc_curve
@@ -59,22 +60,34 @@ class Estimator(Module):
     _output_ports = [("model", "Estimator", {'shape': 'diamond'})]
 
 
-class Classifier(Estimator):
-    """Base class for all sklearn classifiers."""
+class SupervisedEstimator(Estimator):
+    """Base class for all sklearn classifier modules."""
     _settings = ModuleSettings(abstract=True)
 
     def compute(self):
         # get parameters, try to convert strings to float / int
         params = dict([(p, try_convert(self.get_input(p))) for p in self.inputPorts
                        if p not in ["train_data", "train_classes"]])
-        print("setting parameters")
-        print(params)
         clf = self._estimator_class(**params)
         if "train_data" in self.inputPorts:
             train_data = np.vstack(self.get_input("train_data"))
             train_classes = self.get_input("train_classes")
             clf.fit(train_data, train_classes)
         self.set_output("model", clf)
+
+
+class UnsupervisedEstimator(Estimator):
+    """Base class for all sklearn transformer modules."""
+    _settings = ModuleSettings(abstract=True)
+
+    def compute(self):
+        params = dict([(p, try_convert(self.get_input(p))) for p in self.inputPorts
+                       if p not in ["train_data", "train_classes"]])
+        trans = self._estimator_class(**params)
+        if "train_data" in self.inputPorts:
+            train_data = np.vstack(self.get_input("train_data"))
+            trans.fit(train_data)
+        self.set_output("model", trans)
 
 
 class Predict(Module):
@@ -245,24 +258,46 @@ class ROCCurve(Module):
 
 
 ###############################################################################<F2>
-# Classifiers
+# Classifiers and Regressors
 
-def discover_classifiers():
+def make_module(name, Estimator, namespace, supervised=False):
+    input_ports = [("train_data", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
+    if supervised:
+        input_ports.append(("train_classes", "basic:List", {'sort_key': 1, 'shape': 'circle'}))
+    est = Estimator()
+    input_ports.extend([(param, "basic:String", {'optional': True}) for param
+                        in est.get_params()])
+    _settings = ModuleSettings(namespace=namespace)
+    if supervised:
+        Base = SupervisedEstimator
+    else:
+        Base = UnsupervisedEstimator
+    new_class = type(name, (Base,),
+                     {'_input_ports': input_ports, '_settings': _settings,
+                      '_estimator_class': Estimator, '__doc__':
+                      Estimator.__doc__})
+    return new_class
+
+
+def discover_supervised():
     classifiers = all_estimators(type_filter="classifier")
+    regressors = all_estimators(type_filter="regressor")
     classes = []
-    for name, Est in classifiers:
-        _input_ports = [("train_data", "basic:List", {'sort_key': 0, 'shape': 'circle'}),
-                        ("train_classes", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
-        est = Est()
-        _input_ports.extend([(param, "basic:String", {'optional': True}) for param in
-                             est.get_params()])
-        _settings = ModuleSettings(namespace="classifiers")
-        new_class = type(name, (Classifier,), {'_input_ports': _input_ports,
-                                               '_settings': _settings,
-                                               '_estimator_class': Est,
-                                               '__doc__': Est.__doc__})
-        classes.append(new_class)
+    for name, Est in classifiers + regressors:
+        if issubclass(Est, ClassifierMixin):
+            namespace = "classifiers"
+        else:
+            namespace = "regressors"
+        classes.append(make_module(name, Est, namespace, supervised=True))
     return classes
+
+
+###############################################################################<F2>
+# Clustering
+
+def discover_clustering():
+    return [make_module(name, Est, "clustering") for (name, Est) in
+            all_estimators(type_filter="cluster")]
 
 
 ###############################################################################<F2>
@@ -281,7 +316,8 @@ class StandardScaler(Estimator):
         self.set_output("model", trans)
 
 
-_modules = [Digits, Iris, Estimator, Classifier, Predict, Transform,
-            TrainTestSplit, Score, ROCCurve, CrossValScore,
-            GridSearchCV, StandardScaler, Pipeline]
-_modules.extend(discover_classifiers())
+_modules = [Digits, Iris, Estimator, SupervisedEstimator,
+            UnsupervisedEstimator, Predict, Transform, TrainTestSplit, Score,
+            ROCCurve, CrossValScore, GridSearchCV, StandardScaler, Pipeline]
+_modules.extend(discover_supervised())
+_modules.extend(discover_clustering())
