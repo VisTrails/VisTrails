@@ -116,13 +116,12 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.name_edit.setMinimumSize(50, 22)
         type_label = QtGui.QLabel("Type:")
         self.type_edit = QtGui.QLabel("")
-        # self.type_edit.setReadOnly(True)
         package_label = QtGui.QLabel("Package:")
         self.package_edit = QtGui.QLabel("")
-        # self.package_edit.setReadOnly(True)
+        namespace_label = QtGui.QLabel("Namespace:")
+        self.namespace_edit = QtGui.QLabel("")
         id = QtGui.QLabel("Id:")
         self.module_id = QtGui.QLabel("")
-        # self.module_id.setReadOnly(True)
         self.configure_button = QDockPushButton("Configure")
         self.connect(self.configure_button, QtCore.SIGNAL('clicked()'),
                      self.configure)
@@ -148,6 +147,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         add_line(name_label, self.name_edit)
         add_line(type_label, self.type_edit)
         add_line(package_label, self.package_edit)
+        add_line(namespace_label, self.namespace_edit)
         add_line(id, self.module_id)
         h_layout = QtGui.QHBoxLayout()
         h_layout.setMargin(2)
@@ -227,6 +227,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.type_edit.setText("")
             # self.type_edit.setEnabled(False)
             self.package_edit.setText("")
+            self.namespace_edit.setText("")
             self.module_id.setText("")
         else:
             # We show self  if both are tabified and
@@ -244,13 +245,11 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                                                      '4.7.0'):
                 self.name_edit.setPlaceholderText(self.module.name)
 
-            # self.name_edit.setEnabled(True)
             self.type_edit.setText(self.module.name)
-            # self.type_edit.setEnabled(True)
             self.package_edit.setText(self.module.package)
-            # self.package_edit.setEnabled(True)
+            self.namespace_edit.setText(self.module.namespace.replace('|',
+                                                                      '/'))
             self.module_id.setText('%d' % self.module.id)
-            # self.module_id.setEnabled(True)
 
     def name_editing_finished(self):
         # updating module may trigger a second call so we check for that
