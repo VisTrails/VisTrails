@@ -1015,7 +1015,7 @@ class CodeRunnerMixin(object):
         exec code_str + '\n' in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
-                if locals_.get(k) != None:
+                if k in locals_:
                     self.set_output(k, locals_[k])
 
 ##############################################################################
