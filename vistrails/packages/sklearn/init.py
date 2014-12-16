@@ -10,6 +10,7 @@ from sklearn.metrics import SCORERS, roc_curve
 from sklearn.grid_search import GridSearchCV as _GridSearchCV
 from sklearn.preprocessing import StandardScaler as _StandardScaler
 from sklearn.pipeline import make_pipeline
+from sklearn.utils.testing import all_estimators
 
 
 ###############################################################################
@@ -49,6 +50,23 @@ class Estimator(Module):
     """
     _settings = ModuleSettings(abstract=True)
     _output_ports = [("model", "Estimator", {'shape': 'diamond'})]
+
+
+class Classifier(Estimator):
+    """Base class for all sklearn classifiers."""
+    _settings = ModuleSettings(abstract=True)
+
+    def compute(self):
+        params = dict([(p, self.get_input(p)) for p in self.inputPorts
+                       if p not in ["train_data", "train_classes"]])
+        print("setting parameters")
+        print(params)
+        clf = self._estimator_class(**params)
+        if "train_data" in self.inputPorts:
+            train_data = np.vstack(self.get_input("train_data"))
+            train_classes = self.get_input("train_classes")
+            clf.fit(train_data, train_classes)
+        self.set_output("model", clf)
 
 
 class Predict(Module):
@@ -222,25 +240,17 @@ class ROCCurve(Module):
 # Classifiers
 
 
-class LinearSVC(Estimator):
+class LinearSVC(Classifier):
     """Learns a linear support vector machine model from training data.
     """
     _settings = ModuleSettings(namespace="classifiers")
     _input_ports = [("train_data", "basic:List"),
                     ("train_classes", "basic:List"),
                     ("C", "basic:Float", {"defaults": [1]})]
-
-    def compute(self):
-        C = self.get_input("C")
-        clf = _LinearSVC(C=C)
-        if "train_data" in self.inputPorts:
-            train_data = np.vstack(self.get_input("train_data"))
-            train_classes = self.get_input("train_classes")
-            clf.fit(train_data, train_classes)
-        self.set_output("model", clf)
+    _estimator_class = _LinearSVC
 
 
-class SVC(Estimator):
+class SVC(Classifier):
     """Learns a linear support vector machine model from training data.
     """
     _settings = ModuleSettings(namespace="classifiers")
@@ -248,16 +258,7 @@ class SVC(Estimator):
                     ("train_classes", "basic:List"),
                     ("C", "basic:Float", {"defaults": [1]}),
                     ("gamma", "basic:Float", {"defaults": [0]})]
-
-    def compute(self):
-        C = self.get_input("C")
-        gamma = self.get_input("gamma")
-        clf = _SVC(C=C, gamma=gamma)
-        if "train_data" in self.inputPorts:
-            train_data = np.vstack(self.get_input("train_data"))
-            train_classes = self.get_input("train_classes")
-            clf.fit(train_data, train_classes)
-        self.set_output("model", clf)
+    _estimator_class = _SVC
 
 
 ###############################################################################<F2>
@@ -275,6 +276,28 @@ class StandardScaler(Estimator):
             trans.fit(train_data)
         self.set_output("model", trans)
 
-_modules = [Digits, Iris, Estimator, Predict, Transform,
+
+def discover_classifiers():
+    classifiers = all_estimators(type_filter="classifier")
+    classes = []
+    for name, Est in classifiers:
+        print(name)
+        _input_ports = [("train_data", "basic:List"),
+                        ("train_classes", "basic:List")]
+        est = Est()
+        _input_ports.extend([(param, "basic:String") for param in
+                             est.get_params()])
+        _settings = ModuleSettings(namespace="GeneratedClassifiers")
+        print(_input_ports)
+        new_class = type(name, (Classifier,), {'_input_ports': _input_ports,
+                                               '_settings': _settings,
+                                               '_estimator_class': Est})
+        print(new_class)
+        classes.append(new_class)
+    return classes
+
+
+_modules = [Digits, Iris, Estimator, Classifier, Predict, Transform,
             LinearSVC, SVC, TrainTestSplit, Score, ROCCurve, CrossValScore,
             GridSearchCV, StandardScaler, Pipeline]
+_modules.extend(discover_classifiers())
