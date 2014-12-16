@@ -178,12 +178,12 @@ class GridSearchCV(Estimator):
 
 class Pipeline(Estimator):
     """Chain estimators to form a pipeline."""
-    _input_ports = [("model1", "Estimator", {'shape': 'diamond'}),
-                    ("model2", "Estimator", {'optional': True, 'shape': 'diamond'}),
-                    ("model3", "Estimator", {'optional': True, 'shape': 'diamond'}),
-                    ("model4", "Estimator", {'optional': True, 'shape': 'diamond'}),
-                    ("train_data", "basic:List", {'shape': 'circle'}),
-                    ("train_target", "basic:List", {'shape': 'circle'}),
+    _input_ports = [("model1", "Estimator", {'shape': 'diamond', 'sort_key': 2}),
+                    ("model2", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 3}),
+                    ("model3", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 4}),
+                    ("model4", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 5}),
+                    ("train_data", "basic:List", {'shape': 'circle', 'sort_key': 0}),
+                    ("train_target", "basic:List", {'shape': 'circle', 'sort_key': 1}),
                     ]
 
     def compute(self):
