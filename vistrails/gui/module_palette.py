@@ -50,7 +50,6 @@ from vistrails.gui.common_widgets import (QSearchTreeWindow,
 from vistrails.gui.module_documentation import QModuleDocumentation
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-import weakref
 
 ################################################################################
                 
@@ -175,7 +174,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         """ deletedPackage(package):
         A package has been deleted from VisTrails
         """
-        item = self.packages[package.identifier]()        
+        item = self.packages[package.identifier]
         index = self.treeWidget.indexOfTopLevelItem(item)
         self.treeWidget.takeTopLevelItem(index)
         del self.packages[package.identifier]
@@ -188,9 +187,8 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
             return self.packages[package_identifier]
         registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
-        package_item = \
-            QPackageTreeWidgetItem(None, [package_name])
-        self.packages[package_identifier] = weakref.ref(package_item)
+        package_item = QPackageTreeWidgetItem(None, [package_name])
+        self.packages[package_identifier] = package_item
         if prepend:
             self.treeWidget.insertTopLevelItem(0, package_item)
         else:
@@ -210,7 +208,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
             if package_identifier not in self.packages:
                 package_item = self.newPackage(package_identifier, True)
             else:
-                package_item = self.packages[package_identifier]()
+                package_item = self.packages[package_identifier]
 
             if descriptor.ghost_namespace is not None:
                 namespace = descriptor.ghost_namespace
@@ -288,20 +286,20 @@ class QModuleTreeWidget(QSearchTreeWidget):
                 p = p.parent()
             # get package identifier
             identifiers = [i for i, j in self.parent().packages.iteritems()
-                           if j == weakref.ref(p)]
+                           if j == p]
             if identifiers:
                 identifier = identifiers[0]
                 registry = get_module_registry()
                 package = registry.packages[identifier]
                 try:
                     if package.has_contextMenuName():
-                        name = package.contextMenuName(str(item.text(0)))
+                        name = package.contextMenuName(item.text(0))
                         if name:
                             act = QtGui.QAction(name, self)
                             act.setStatusTip(name)
                             def callMenu():
                                 if package.has_callContextMenu():
-                                    name = package.callContextMenu(str(item.text(0)))
+                                    name = package.callContextMenu(item.text(0))
 
                             QtCore.QObject.connect(act,
                                                    QtCore.SIGNAL("triggered()"),
@@ -524,18 +522,17 @@ class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
         if len(namespace_items) <= 0:
             return self
         namespace_item = namespace_items.pop(0)
-        if namespace_item in self.namespaces and self.namespaces[namespace_item]():
-            item = self.namespaces[namespace_item]()
+        if namespace_item in self.namespaces and self.namespaces[namespace_item]:
+            item = self.namespaces[namespace_item]
         else:
             item = QNamespaceTreeWidgetItem(self, [namespace_item])
-            self.namespaces[namespace_item] = weakref.ref(item)
+            self.namespaces[namespace_item] = item
         return item.get_namespace(namespace_items)
 
     def takeChild(self, index):
         child = self.child(index)
-        if hasattr(self, "namespaces"):
-            if str(child.text(0)) in self.namespaces:
-                del self.namespaces[str(child.text(0))]
+        if child.text(0) in self.namespaces:
+            del self.namespaces[child.text(0)]
         QModuleTreeWidgetItem.takeChild(self, index)
         if self.childCount() < 1 and self.parent():
             self.parent().takeChild(self.parent().indexOfChild(self))
