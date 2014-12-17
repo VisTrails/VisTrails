@@ -174,10 +174,14 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         """ deletedPackage(package):
         A package has been deleted from VisTrails
         """
-        item = self.packages[package.identifier]
-        index = self.treeWidget.indexOfTopLevelItem(item)
-        self.treeWidget.takeTopLevelItem(index)
-        del self.packages[package.identifier]
+        try:
+            item = self.packages[package.identifier]
+        except KeyError:
+            pass
+        else:
+            index = self.treeWidget.indexOfTopLevelItem(item)
+            self.treeWidget.takeTopLevelItem(index)
+            del self.packages[package.identifier]
 
     def newPackage(self, package_identifier, prepend=False):
         # prepend places at the front of the list of packages,
