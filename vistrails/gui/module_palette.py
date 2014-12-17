@@ -99,22 +99,6 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         app.register_notification("reg_show_module", self.showModule)
         app.register_notification("reg_hide_module", self.hideModule)
         app.register_notification("reg_module_updated", self.switchDescriptors)
-
-        # registry = get_module_registry()
-        # self.connect(registry.signals, registry.signals.new_package_signal,
-        #              self.newPackage)
-        # self.connect(registry.signals, registry.signals.new_module_signal,
-        #              self.newModule)
-        # self.connect(registry.signals, registry.signals.deleted_module_signal,
-        #              self.deletedModule)
-        # self.connect(registry.signals, registry.signals.deleted_package_signal,
-        #              self.deletedPackage)        
-        # self.connect(registry.signals, registry.signals.show_module_signal,
-        #              self.showModule)
-        # self.connect(registry.signals, registry.signals.hide_module_signal,
-        #              self.hideModule)
-        # self.connect(registry.signals, registry.signals.module_updated_signal,
-        #              self.switchDescriptors)
     
     def createTreeWidget(self):
         """ createTreeWidget() -> QModuleTreeWidget
@@ -247,7 +231,6 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         self.newModule(registry.root_descriptor, True)
         self.treeWidget.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.treeWidget.setSortingEnabled(True)
-#        self.treeWidget.expandAll()
 
     def sizeHint(self):
         return QtCore.QSize(256, 760)
