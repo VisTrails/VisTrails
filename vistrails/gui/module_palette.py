@@ -175,7 +175,8 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
             return self.packages[package_identifier]
         registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
-        package_item = QPackageTreeWidgetItem(None, package_name)
+        package_item = QPackageTreeWidgetItem(None,
+                                              package_name, package_identifier)
         self.packages[package_identifier] = package_item
         if prepend:
             self.treeWidget.insertTopLevelItem(0, package_item)
@@ -271,36 +272,33 @@ class QModuleTreeWidget(QSearchTreeWidget):
             p = item
             while p.parent():
                 p = p.parent()
-            # FIXME: inefficient
             # get package identifier
-            identifiers = [i for i, j in self.parent().packages.iteritems()
-                           if j == p]
-            if identifiers:
-                identifier = identifiers[0]
-                registry = get_module_registry()
-                package = registry.packages[identifier]
-                try:
-                    if package.has_contextMenuName():
-                        name = package.contextMenuName(item.text(0))
-                        if name:
-                            act = QtGui.QAction(name, self)
-                            act.setStatusTip(name)
-                            def callMenu():
-                                if package.has_callContextMenu():
-                                    name = package.callContextMenu(item.text(0))
+            assert isinstance(p, QPackageTreeWidgetItem)
+            identifier = p.identifier
+            registry = get_module_registry()
+            package = registry.packages[identifier]
+            try:
+                if package.has_contextMenuName():
+                    name = package.contextMenuName(item.text(0))
+                    if name:
+                        act = QtGui.QAction(name, self)
+                        act.setStatusTip(name)
+                        def callMenu():
+                            if package.has_callContextMenu():
+                                name = package.callContextMenu(item.text(0))
 
-                            QtCore.QObject.connect(act,
-                                                   QtCore.SIGNAL("triggered()"),
-                                                   callMenu)
-                            menu = QtGui.QMenu(self)
-                            menu.addAction(act)
-                            menu.exec_(event.globalPos())
-                        return
-                except Exception, e:
-                    debug.warning("Got exception trying to display %s's "
-                                  "context menu in the palette: %s: %s" % (
-                                  package.name,
-                                  type(e).__name__, ', '.join(e.args)))
+                        QtCore.QObject.connect(act,
+                                               QtCore.SIGNAL("triggered()"),
+                                               callMenu)
+                        menu = QtGui.QMenu(self)
+                        menu.addAction(act)
+                        menu.exec_(event.globalPos())
+                    return
+            except Exception, e:
+                debug.warning("Got exception trying to display %s's "
+                              "context menu in the palette: %s: %s" % (
+                              package.name,
+                              type(e).__name__, ', '.join(e.args)))
 
             item.contextMenuEvent(event, self)
 
@@ -526,4 +524,6 @@ class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
             self.parent().takeChild(self.parent().indexOfChild(self))
 
 class QPackageTreeWidgetItem(QNamespaceTreeWidgetItem):
-    pass
+    def __init__(self, parent, name, identifier):
+        QNamespaceTreeWidgetItem.__init__(self, parent, name)
+        self.identifier = identifier
