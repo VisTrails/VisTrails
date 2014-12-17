@@ -303,7 +303,6 @@ def discover_clustering():
 # Transformers
 
 def discover_unsupervised_transformers():
-    # FIXME what to do with feature selection!!
     # also: random tree embedding
     transformers = all_estimators(type_filter="transformer")
     classes = []
@@ -312,8 +311,19 @@ def discover_unsupervised_transformers():
         if module not in ['decomposition', 'kernel_approximation', 'manifold',
                           'neural_network', 'preprocessing', 'random_projection']:
             continue
-        namespace = module
-        classes.append(make_module(name, Est, namespace))
+        classes.append(make_module(name, Est, namespace=module))
+    return classes
+
+
+def discover_feature_selection():
+    # also: random tree embedding
+    transformers = all_estimators(type_filter="transformer")
+    classes = []
+    for name, Est in transformers:
+        module = Est.__module__.split(".")[1]
+        if module != "feature_selection" or name == "GenericUnivariateSelect":
+            continue
+        classes.append(make_module(name, Est, namespace=module, supervised=True))
     return classes
 
 
@@ -323,3 +333,4 @@ _modules = [Digits, Iris, Estimator, SupervisedEstimator,
 _modules.extend(discover_supervised())
 _modules.extend(discover_clustering())
 _modules.extend(discover_unsupervised_transformers())
+_modules.extend(discover_feature_selection())
