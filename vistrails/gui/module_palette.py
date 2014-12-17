@@ -185,7 +185,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         # by default adds to the end of the list of packages
         # Right now the list is sorted so prepend has no effect
         if package_identifier in self.packages:
-            return self.packages[package_identifier]
+            return self.packages[package_identifier]()
         registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
         package_item = \
