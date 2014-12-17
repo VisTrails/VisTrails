@@ -52,7 +52,7 @@ from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
 ################################################################################
-                
+
 class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
     """
     QModulePalette just inherits from QSearchTreeWindow to have its
@@ -65,12 +65,12 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         self.packages = {}
         self.namespaces = {}
         self.addButtonsToToolBar()
-        
+
     def addButtonsToToolBar(self):
         self.expandAction = QtGui.QAction(CurrentTheme.EXPAND_ALL_ICON,
                                            "Expand All", self.toolWindow().toolbar,
                                            triggered=self.expandAll)
-        
+
         self.collapseAction = QtGui.QAction(CurrentTheme.COLLAPSE_ALL_ICON,
                                            "Collapse All", self.toolWindow().toolbar,
                                            triggered=self.collapseAll)
@@ -78,17 +78,17 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
                                                self.collapseAction)
         self.toolWindow().toolbar.insertAction(self.toolWindow().pinAction,
                                                self.expandAction)
-        
+
     def expandAll(self):
         self.treeWidget.expandAll()
-    
+
     def collapseAll(self):
         self.treeWidget.collapseAll()
 
     def link_registry(self):
         self.updateFromModuleRegistry()
         self.connect_registry_signals()
-        
+
 
     def connect_registry_signals(self):
         app = get_vistrails_application()
@@ -99,29 +99,29 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         app.register_notification("reg_show_module", self.showModule)
         app.register_notification("reg_hide_module", self.hideModule)
         app.register_notification("reg_module_updated", self.switchDescriptors)
-    
+
     def createTreeWidget(self):
         """ createTreeWidget() -> QModuleTreeWidget
         Return the search tree widget for this window
-        
+
         """
         self.setWindowTitle('Modules')
         return QModuleTreeWidget(self)
 
     def findModule(self, descriptor):
         moduleName = descriptor.name
-        
+
         items = [x for x in
                  self.treeWidget.findItems(moduleName,
-                                           QtCore.Qt.MatchExactly | 
-                                           QtCore.Qt.MatchWrap | 
+                                           QtCore.Qt.MatchExactly |
+                                           QtCore.Qt.MatchWrap |
                                            QtCore.Qt.MatchRecursive)
                  if not x.is_top_level() and x.descriptor == descriptor]
         if len(items) <> 1:
-            raise VistrailsInternalError("Expected one item (%s), got %d: %s" % 
+            raise VistrailsInternalError("Expected one item (%s), got %d: %s" %
                                          (moduleName,
                                           len(items),
-                                          ";".join(x.descriptor.name 
+                                          ";".join(x.descriptor.name
                                                    for x in items)))
         item = items[0]
         return item
@@ -182,11 +182,11 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         else:
             self.treeWidget.addTopLevelItem(package_item)
         return package_item
-            
+
     def newModule(self, descriptor, recurse=False):
         """ newModule(descriptor: core.modules.module_registry.ModuleDescriptor)
         A new module has been added to VisTrails
-        
+
         """
         if not descriptor.module_abstract(): # and not descriptor.is_hidden:
             # skip abstract modules, they're no longer in the tree
@@ -221,7 +221,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
         """ updateFromModuleRegistry(packageName: str) -> None
         Setup this tree widget to show modules currently inside
         module_registry.registry
-        
+
         """
 
         self.treeWidget.setSortingEnabled(False)
@@ -239,7 +239,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
     """
     QModuleTreeWidget is a subclass of QSearchTreeWidget to display all
     Vistrails Module
-    
+
     """
     def __init__(self, parent=None):
         """ QModuleTreeWidget(parent: QWidget) -> QModuleTreeWidget
@@ -258,7 +258,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
     def onItemPressed(self, item, column):
         """ onItemPressed(item: QTreeWidgetItem, column: int) -> None
         Expand/Collapse top-level item when the mouse is pressed
-        
+
         """
         if item and item.parent() == None:
             self.setItemExpanded(item, not self.isItemExpanded(item))
@@ -310,7 +310,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
             drag = QtGui.QDrag(self)
             drag.setMimeData(mime_data)
             item = mime_data.items[0]
-            
+
             app = get_vistrails_application()
             pipeline_view = app.builderWindow.get_current_controller().current_pipeline_view
             if hasattr(pipeline_view.scene(), 'add_tmp_module'):
@@ -319,27 +319,27 @@ class QModuleTreeWidget(QSearchTreeWidget):
                 pixmap = pipeline_view.paintModuleToPixmap(module_item)
 
                 drag.setPixmap(pixmap)
-                drag.setHotSpot(QtCore.QPoint(pixmap.width()/2, 
+                drag.setHotSpot(QtCore.QPoint(pixmap.width()/2,
                                               pixmap.height()/2))
                 drag.exec_(actions)
                 pipeline_view.scene().delete_tmp_module()
 
 
 class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
-    """    
+    """
     QModuleTreeWidgetItemDelegate will override the original
     QTreeWidget paint function to draw buttons for top-level item
     similar to QtDesigner. This mimics
     Qt/tools/designer/src/lib/shared/sheet_delegate, which is only a
     private class from QtDesigned.
-    
+
     """
     def __init__(self, view, parent):
         """ QModuleTreeWidgetItemDelegate(view: QTreeView,
                                           parent: QWidget)
                                           -> QModuleTreeWidgetItemDelegate
         Create the item delegate given the tree view
-        
+
         """
         QtGui.QItemDelegate.__init__(self, parent)
         self.treeView = view
@@ -349,11 +349,11 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
         """ painter(painter: QPainter, option QStyleOptionViewItem,
                     index: QModelIndex) -> None
         Repaint the top-level item to have a button-look style
-        
+
         """
         model = index.model()
         if not model.parent(index).isValid():
-            buttonOption = QtGui.QStyleOptionButton()            
+            buttonOption = QtGui.QStyleOptionButton()
             buttonOption.state = option.state
             if self.isMac:
                 buttonOption.state |= QtGui.QStyle.State_Raised
@@ -364,7 +364,7 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
             buttonOption.features = QtGui.QStyleOptionButton.None
 
             style = self.treeView.style()
-            
+
             style.drawControl(QtGui.QStyle.CE_PushButton,
                               buttonOption,
                               painter,
@@ -381,7 +381,7 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
 
             if self.treeView.isExpanded(index):
                 branchOption.state |= QtGui.QStyle.State_Open
-                
+
             style.drawPrimitive(QtGui.QStyle.PE_IndicatorBranch,
                                 branchOption,
                                 painter, self.treeView)
@@ -407,9 +407,9 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
     def sizeHint(self, option, index):
         """ sizeHint(option: QStyleOptionViewItem, index: QModelIndex) -> None
         Take into account the size of the top-level button
-        
+
         """
-        return (QtGui.QItemDelegate.sizeHint(self, option, index) + 
+        return (QtGui.QItemDelegate.sizeHint(self, option, index) +
                 QtCore.QSize(2, 2))
 
 
@@ -417,15 +417,15 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
 class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
     """
     QModuleTreeWidgetItem represents module on QModuleTreeWidget
-    
+
     """
-    
+
     def __init__(self, descriptor, parent, labelList, is_hidden):
         """ QModuleTreeWidgetItem(descriptor: ModuleDescriptor
                                     (or None for top-level),
                                   parent: QTreeWidgetItem
                                   labelList: string)
-                                  -> QModuleTreeWidget                                  
+                                  -> QModuleTreeWidget
         Create a new tree widget item with a specific parent and
         labels
 
@@ -457,10 +457,10 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         elif d.module_abstract():
             # moduletree widgets for abstract modules are never
             # draggable or enabled
-            flags = flags & ~(QtCore.Qt.ItemIsDragEnabled | 
+            flags = flags & ~(QtCore.Qt.ItemIsDragEnabled |
                               QtCore.Qt.ItemIsSelectable)
         QtGui.QTreeWidgetItem.setFlags(self, flags)
-            
+
     def is_top_level(self):
         return self.descriptor is None
 
@@ -493,7 +493,7 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         from vistrails_window import _app
         filename = self.descriptor.module.vt_fname
         _app.openAbstraction(filename)
-        
+
     def set_descriptor(self, descriptor):
         self.descriptor = descriptor
         if descriptor:
