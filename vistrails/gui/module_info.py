@@ -247,8 +247,11 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
 
             self.type_edit.setText(self.module.name)
             self.package_edit.setText(self.module.package)
-            self.namespace_edit.setText(self.module.namespace.replace('|',
-                                                                      '/'))
+            if self.module.namespace is not None:
+                self.namespace_edit.setText(self.module.namespace.replace('|',
+                                                                          '/'))
+            else:
+                self.namespace_edit.setText('')
             self.module_id.setText('%d' % self.module.id)
 
     def name_editing_finished(self):
