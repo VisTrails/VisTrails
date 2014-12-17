@@ -175,7 +175,7 @@ class QModulePalette(QSearchTreeWindow, QVistrailsPaletteInterface):
             return self.packages[package_identifier]
         registry = get_module_registry()
         package_name = registry.packages[package_identifier].name
-        package_item = QPackageTreeWidgetItem(None, [package_name])
+        package_item = QPackageTreeWidgetItem(None, package_name)
         self.packages[package_identifier] = package_item
         if prepend:
             self.treeWidget.insertTopLevelItem(0, package_item)
@@ -271,6 +271,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
             p = item
             while p.parent():
                 p = p.parent()
+            # FIXME: inefficient
             # get package identifier
             identifiers = [i for i, j in self.parent().packages.iteritems()
                            if j == p]
@@ -343,7 +344,7 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
         """
         QtGui.QItemDelegate.__init__(self, parent)
         self.treeView = view
-        self.isMac = systemType in ['Darwin']
+        self.isMac = systemType == 'Darwin'
 
     def paint(self, painter, option, index):
         """ painter(painter: QPainter, option QStyleOptionViewItem,
@@ -500,8 +501,8 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
             descriptor.set_widget(self)
 
 class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
-    def __init__(self, parent, labelList):
-        QModuleTreeWidgetItem.__init__(self, None, parent, labelList, False)
+    def __init__(self, parent, name):
+        QModuleTreeWidgetItem.__init__(self, None, parent, [name], False)
         self.setFlags(self.flags() & ~QtCore.Qt.ItemIsDragEnabled)
         self.namespaces = {}
 
@@ -512,7 +513,7 @@ class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
         if namespace_item in self.namespaces and self.namespaces[namespace_item]:
             item = self.namespaces[namespace_item]
         else:
-            item = QNamespaceTreeWidgetItem(self, [namespace_item])
+            item = QNamespaceTreeWidgetItem(self, namespace_item)
             self.namespaces[namespace_item] = item
         return item.get_namespace(namespace_items)
 
