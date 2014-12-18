@@ -19,6 +19,13 @@ def try_convert(input_string):
     except ValueError:
         return input_string
 
+# backport of odd estimators that we don't want to include
+dont_test = ['SparseCoder', 'EllipticEnvelope', 'DictVectorizer',
+             'LabelBinarizer', 'LabelEncoder', 'MultiLabelBinarizer',
+             'TfidfTransformer', 'IsotonicRegression', 'OneHotEncoder',
+             'RandomTreesEmbedding', 'FeatureHasher', 'DummyClassifier',
+             'DummyRegressor', 'TruncatedSVD', 'PolynomialFeatures']
+
 
 ###############################################################################
 # Example datasets
@@ -307,6 +314,8 @@ def discover_unsupervised_transformers():
     transformers = all_estimators(type_filter="transformer")
     classes = []
     for name, Est in transformers:
+        if name in dont_test:
+            continue
         module = Est.__module__.split(".")[1]
         if module not in ['decomposition', 'kernel_approximation', 'manifold',
                           'neural_network', 'preprocessing', 'random_projection']:
@@ -320,6 +329,8 @@ def discover_feature_selection():
     transformers = all_estimators(type_filter="transformer")
     classes = []
     for name, Est in transformers:
+        if name in dont_test:
+            continue
         module = Est.__module__.split(".")[1]
         if module != "feature_selection" or name == "GenericUnivariateSelect":
             continue
