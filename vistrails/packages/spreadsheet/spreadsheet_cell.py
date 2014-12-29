@@ -311,6 +311,7 @@ class QCellToolBar(QtGui.QToolBar):
         self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
         self.addSaveCellAction()
+        self.addExecuteCellAction()
         self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
         self.appendAction(QCellToolBarMergeCells(QtGui.QIcon(':celltoolbar/mergecells.png'), self))
         self.createToolBar()
@@ -352,7 +353,7 @@ class QCellToolBar(QtGui.QToolBar):
             (filename, save_format) = \
                     QtGui.QFileDialog.getSaveFileNameAndFilter(
                         self, "Select a File to Export the Cell",
-                        ".", ';;'.join(['(*.%s)' % f for f in formats]), 
+                        ".", ';;'.join(['(*.%s)' % f for f in formats]),
                         selected_filter)
             if filename:
                 save_mode = format_map[save_format[3:-1]]
@@ -368,6 +369,37 @@ class QCellToolBar(QtGui.QToolBar):
                 ".", ';;'.join(cell.save_formats))
             if filename:
                 cell.dumpToFile(filename)
+
+    def addExecuteCellAction(self):
+        if not hasattr(self, 'executeActionVar'):
+            self.executeActionVar = QCellToolBarSelectedCell(
+                    QtGui.QIcon(":/images/view-refresh.png"),
+                    "Re-execute cell",
+                    self)
+            self.executeActionVar.setStatusTip("Re-execute this cell")
+
+            self.connect(self.executeActionVar, QtCore.SIGNAL('triggered(bool)'),
+                         self.executeCell)
+        self.appendAction(self.executeActionVar)
+
+    def executeCell(self, checked=False):
+        from spreadsheet_execute import executePipelineWithProgress
+        #cell = self.sheet.getCell(self.row, self.col)
+        info = self.sheet.getCellPipelineInfo(self.row, self.col)
+        if info:
+            info = info[0]
+            mId = info['moduleId']
+            pipeline = self.sheet.setPipelineToLocateAt(self.row, self.col,
+                                                      info['pipeline'], [mId])
+            executePipelineWithProgress(pipeline, 'Re-execute Cell',
+                                        current_version=info['version'],
+                                        actions=info['actions'],
+                                        reason=info['reason'],
+                                        locator=info['locator'],
+                                        controller=info['controller'],
+                                        sinks=[mId])
+
+
 
     def createToolBar(self):
         """ createToolBar() -> None
