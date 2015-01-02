@@ -204,6 +204,17 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         else:
             self.update_module()
 
+    def set_visible(self, enabled):
+        if enabled and \
+           self.module is None and \
+           not self.toolWindow().isFloating() and \
+           not QVersionProp.instance().toolWindow().isFloating() and \
+           not self.toolWindow().visibleRegion().isEmpty():
+            QVersionProp.instance().set_visible(True)
+        else:
+            super(QModuleInfo, self).set_visible(enabled)
+
+
     def update_module(self, module=None):
         for plist in self.ports_lists:
             plist.types_visible = self.types_visible
