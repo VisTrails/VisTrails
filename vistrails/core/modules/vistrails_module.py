@@ -1798,10 +1798,11 @@ class ModuleConnector(object):
                                     "type %s" % (i, self.port, desc.name))
         return result
 
-def new_module(base_module, name, dict={}, docstring=None):
+
+def new_module(base_module, name, class_dict={}, docstring=None):
     """new_module(base_module or [base_module list],
                   name,
-                  dict={},
+                  class_dict={},
                   docstring=None
 
     Creates a new VisTrails module dynamically. Exactly one of the
@@ -1816,7 +1817,7 @@ def new_module(base_module, name, dict={}, docstring=None):
         superclasses = tuple(base_module)
     else:
         raise TypeError
-    d = copy.copy(dict)
+    d = copy.copy(class_dict)
     if docstring:
         d['__doc__'] = docstring
     return type(name, superclasses, d)
