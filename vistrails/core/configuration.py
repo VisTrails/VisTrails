@@ -1324,6 +1324,8 @@ class ConfigurationObject(DBConfiguration):
             return False
         seen_keys = set()
         for name in self.keys():
+            if self.is_unset(name):
+                continue
             seen_keys.add(name)
             if name not in other.keys():
                 return False
@@ -1334,6 +1336,8 @@ class ConfigurationObject(DBConfiguration):
             if val1 != val2:
                 return False
         for name in other.keys():
+            if other.is_unset(name):
+                continue
             if name not in seen_keys:
                 return False
         return True
