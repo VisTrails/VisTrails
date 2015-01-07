@@ -108,8 +108,9 @@ class QPackageConfigurationDialog(QtGui.QDialog):
 
     def reset_configuration(self):
         self._package.reset_configuration()
-        conf = self._package.configuration
-        self._configuration_widget.configuration_changed(conf)
+        self._configuration_widget.configuration_changed(
+                self._package.persistent_configuration,
+                self._package.configuration)
 
     def close_dialog(self):
         self.done(0)
