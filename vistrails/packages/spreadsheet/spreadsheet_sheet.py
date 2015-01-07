@@ -32,17 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains a set of internal Spreadsheet basic classes used
-# by others:
-#   StandardWidgetHeaderView
-#   StandardWidgetItemDelegate
-#   StandardWidgetSheet
-################################################################################
-from PyQt4 import QtCore, QtGui
-from spreadsheet_helpers import CellHelpers, CellResizer
 
-################################################################################
+"""This file contains a set of internal Spreadsheet basic classes used by
+others:
+  StandardWidgetHeaderView
+  StandardWidgetItemDelegate
+  StandardWidgetSheet
+"""
+
+from PyQt4 import QtCore, QtGui
+
+from .spreadsheet_helpers import CellHelpers, CellResizer
+
 
 class StandardWidgetHeaderView(QtGui.QHeaderView):
     """
@@ -50,7 +51,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
     column/row labels) inheriting from QHeaderView. The main
     difference between this class and the original one is that it
     allows resizing and stretching at the same time
-    
+
     """
     THICKNESS = 30
     MINIMUM_SIZE = 50
@@ -62,7 +63,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
                                      parent: QWidget)
                                      -> StandardWidgetHeaderView
         Initialize the header view to be like the one in the spreadsheet table
-        
+
         """
         QtGui.QHeaderView.__init__(self, orientation, parent)
         self.setMovable(True)
@@ -173,7 +174,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
     def sizeHint(self):
         """ sizeHint() -> QSize
         Set a default thickness of the bar to 30
-        
+
         """
         size = QtGui.QHeaderView.sizeHint(self)
         if self.orientation()==QtCore.Qt.Vertical:
@@ -193,7 +194,7 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
         """ StandardWidgetItemDelegate(table: QTableWidget)
                                        -> StandardWidgetItemDelegate
         Initialize to store a table and padding
-        
+
         """
         self.table = table
         self.padding = 4
@@ -202,7 +203,7 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
     def setPadding(self, padding):
         """ setPadding(padding: int) -> None
         Re-set padding to a different value
-        
+
         """
         if self.padding!=padding:
             self.padding = padding
@@ -212,7 +213,7 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
                                  option: QStyleOptionViewItem,
                                  index: QModelIndex) -> None
         Make sure the widget only occupied inside the padded area
-    
+
         """
         rect = self.table.visualRect(index)
         rect.adjust(self.padding,self.padding,-self.padding,-self.padding)
@@ -221,9 +222,9 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
 
     def paint(self, painter, option, index):
         """ paint(painter: QPainter, option: QStyleOptionViewItem,
-                  index: QModelIndex) -> None                  
+                  index: QModelIndex) -> None
         Paint the current cell with a ring outside
-        
+
         """
         QtGui.QItemDelegate.paint(self, painter, option, index)
         if ((index.row(), index.column())==self.table.activeCell):
@@ -250,7 +251,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """ StandardWidgetSheet(rows: int, cols: int, parent: QWidget)
                                 -> StandardWidgetSheet
         Construct a sheet with rows x cols cells
-        
+
         """
         QtGui.QTableWidget.__init__(self, 0, 0, parent)
         self.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
@@ -267,7 +268,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                      self.columnMoved)
         self.connect(self.horizontalHeader(),
                      QtCore.SIGNAL('sectionPressed(int)'),
-                     self.forceColumnMultiSelect) 
+                     self.forceColumnMultiSelect)
         self.setVerticalHeader(StandardWidgetHeaderView(QtCore.Qt.Vertical,
                                                         self))
         self.verticalHeader().setSelectionModel(self.selectionModel())
@@ -287,7 +288,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             self.connect(cornerButton,
                          QtCore.SIGNAL('clicked()'),
                          self.forceSheetSelect)
-        
+
         self.delegate = StandardWidgetItemDelegate(self)
         self.setItemDelegate(self.delegate)
         self.helpers = CellHelpers(parent, CellResizer(self))
@@ -300,11 +301,11 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.activeCell = (-1,-1)
 
     def forceColumnMultiSelect(self, logicalIndex):
-        """ forceColumnMultiSelect(logicalIndex: int) -> None        
-        Make sure we always toggle the headerview in the right way        
+        """ forceColumnMultiSelect(logicalIndex: int) -> None
+        Make sure we always toggle the headerview in the right way
         NOTE: the MultiSelection type of SelectionMode does not work
         correctly for overlapping columns and rows selection
-        
+
         """
         if (self.selectionModel().isColumnSelected(logicalIndex, QtCore.QModelIndex())):
             self.selectionModel().select(self.model().index(0, logicalIndex),
@@ -316,11 +317,11 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                                          QtGui.QItemSelectionModel.Columns)
 
     def forceRowMultiSelect(self, logicalIndex):
-        """ forceRowMultiSelect(logicalIndex: int) -> None        
-        Make sure we always toggle the headerview in the right way        
+        """ forceRowMultiSelect(logicalIndex: int) -> None
+        Make sure we always toggle the headerview in the right way
         NOTE: the MultiSelection type of SelectionMode does not work
         correctly for overlapping columns and rows selection
-        
+
         """
         if (self.selectionModel().isRowSelected(logicalIndex, QtCore.QModelIndex())):
             self.selectionModel().select(self.model().index(logicalIndex, 0),
@@ -332,16 +333,16 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                                          QtGui.QItemSelectionModel.Rows)
 
     def forceSheetSelect(self):
-        """ forceSheetSelect() -> None        
+        """ forceSheetSelect() -> None
         Make sure we can toggle the whole sheet selection
-        
+
         """
         totalCells = self.rowCount()*self.columnCount()
         if (len(self.selectionModel().selectedIndexes())<totalCells):
             self.selectionModel().select(
                 QtGui.QItemSelection(self.model().index(0,0),
                                      self.model().index(self.rowCount()-1,
-                                                        self.columnCount()-1)),                
+                                                        self.columnCount()-1)),
                 QtGui.QItemSelectionModel.Select)
         else:
             self.selectionModel().clearSelection()
@@ -349,7 +350,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
     def updateHeaderStatus(self):
         """ updateHeaderStatus() -> None
         Update the visibility of the row and column header
-        
+
         """
         return
         self.horizontalHeader().setVisible(self.columnCount() > 1 or
@@ -360,7 +361,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
     def updateRowLabels(self, oldCount, newCount):
         """ updateRowLabels(oldCount: int, newCount: int) -> None
         Update vertical labels when the number of row changed
-        
+
         """
         vLabels = []
         vIdx = self.verticalHeader().visualIndex
@@ -372,14 +373,14 @@ class StandardWidgetSheet(QtGui.QTableWidget):
     def rowMoved(self, row, old, new):
         """ rowMove(row: int, old: int, new: int) -> None
         Renumber the vertical header labels when rows moved
-        
+
         """
         self.updateRowLabels(self.rowCount(), self.rowCount())
-        
+
     def updateColumnLabels(self, oldCount, newCount):
         """ updateColumnLabels(oldCount: int, newCount: int) -> None
         Update horizontal labels when the number of column changed
-        
+
         """
         hLabels = []
         vIdx = self.horizontalHeader().visualIndex
@@ -387,20 +388,20 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             hLabels.append(chr(vIdx(i)+ord('A')))
         self.setHorizontalHeaderLabels(hLabels)
         self.updateHeaderStatus()
-        
+
     def columnMoved(self, row, old, new):
         """ columnMoved(row: int, old: int, new: int) -> None
         Renumber the horizontal header labels when columns moved
-        
+
         """
         self.updateColumnLabels(self.columnCount(), self.columnCount())
-        
+
     def setFitToWindow(self, fit=True):
         """ setFitToWindow(fit: boolean) -> None
         Force to fit all cells into the visible area. Set fit=False
         for the scroll mode where hidden cell can be viewed by scrolling
         the scrollbars.
-        
+
         """
         if fit!=self.fitToWindow:
             self.fitToWindow = fit
@@ -423,24 +424,24 @@ class StandardWidgetSheet(QtGui.QTableWidget):
     def showEvent(self, event):
         """ showEvent(event: QShowEvent) -> None
         Make sure to stretch the sheet on the first appearance
-        
+
         """
         self.stretchCells()
 
     def stretchCells(self):
         """ stretchCells() -> None
         Stretch all the cells with equally spaces to fit in the viewport
-        
+
         """
         if self.fitToWindow:
             self.horizontalHeader().resizeSections(QtGui.QHeaderView.Stretch)
             self.verticalHeader().resizeSections(QtGui.QHeaderView.Stretch)
 
     def showHelpers(self, show, row, col):
-        """ showHelpers(show: boolean, row: int, col: int) -> None        
+        """ showHelpers(show: boolean, row: int, col: int) -> None
         Show/hide the helpers (resizer, toolbar) on the current cell
         depending on the value of show
-        
+
         """
         if self.helpers.isInteracting():
             return
@@ -467,7 +468,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
     def getRealLocation(self, vRow, vCol, visual=False):
         """ getRealLocation(vRow: int, vCol: int, visual: bool) -> (int, int)
         Return the actual location even if there is spanning at (vRow, vCol)
-        
+
         """
         # Qt doesn't provide a mechanism to map from a cell to its
         # span region, so we have to scan the whole spreadsheet N^2
@@ -494,12 +495,12 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                             return (r, c)
                         if (r+rs, c+cs) in cellSet:
                             cellSet.remove((r+rs, c+cs))
-        return (-1, -1)        
+        return (-1, -1)
 
     def getCell(self, row, col):
         """ getCell(row: int, col: int) -> QWidget
         Get cell at a specific row and column
-        
+
         """
         return self.cellWidget(*self.getRealLocation(row, col))
 
@@ -507,7 +508,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """ getCellRect(row: int, col: int) -> QRect
         Return the rectangle surrounding the cell at location (row, col)
         in parent coordinates
-        
+
         """
         idx = self.model().index(*self.getRealLocation(row, col))
         return self.visualRect(idx)
@@ -516,7 +517,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """ getCellGlobalRect(row: int, col: int) -> QRect
         Return the rectangle surrounding the cell at location (row, col)
         in global coordinates
-        
+
         """
         rect = self.getCellRect(row, col)
         rect.moveTo(self.viewport().mapToGlobal(rect.topLeft()))
@@ -524,10 +525,10 @@ class StandardWidgetSheet(QtGui.QTableWidget):
 
     def setCellByWidget(self, row, col, cellWidget):
         """ setCellByWidget(row: int,
-                            col: int,                            
+                            col: int,
                             cellWidget: QWidget) -> None
         Replace the current location (row, col) with a cell widget
-        
+
         """
         if cellWidget:
             # Relax the size constraint of the widget
@@ -543,7 +544,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
     def selectCell(self, row, col, toggling):
         """ selectCell(row: int, col: int, toggling: bool) -> None
         Select a cell based on its current selection
-        
+
         """
         (row, col) = self.getRealLocation(row, col, visual=True)
         if toggling:
@@ -574,7 +575,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.parent().toolBar.setCellToolBar(toolBar)
 
     def adjustWidgetGeometry(self, row, col):
-        """ setActiveCell(row: int, col: int) -> None        
+        """ setActiveCell(row: int, col: int) -> None
         Adjust the widget at cell (row, col) to fit inside the cell
 
         """

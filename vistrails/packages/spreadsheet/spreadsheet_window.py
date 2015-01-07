@@ -32,38 +32,38 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file implements the main spreadsheet window:
-#   SpreadsheetWindow
-################################################################################
-from PyQt4 import QtCore, QtGui
-from spreadsheet_base import StandardSheetReference
-from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \
-     RepaintCurrentSheetEventType
-from spreadsheet_tabcontroller import StandardWidgetTabController
-from spreadsheet_sheet import StandardWidgetSheet
-from spreadsheet_cell import QCellContainer
-from spreadsheet_config import configuration
-from vistrails.core.modules import module_utils
-from vistrails.core.utils import trace_method
+
+"""This file implements the main spreadsheet window: SpreadsheetWindow
+"""
+
 import ctypes
 import os.path
-import sys
+from PyQt4 import QtCore, QtGui
 import tempfile
 
-################################################################################
+from vistrails.core.modules import module_utils
+
+from .spreadsheet_base import StandardSheetReference
+from .spreadsheet_cell import QCellContainer
+from .spreadsheet_config import configuration
+from .spreadsheet_event import BatchDisplayCellEventType, \
+    DisplayCellEventType, RepaintCurrentSheetEventType
+from .spreadsheet_sheet import StandardWidgetSheet
+from .spreadsheet_tabcontroller import StandardWidgetTabController
+
+
 class SpreadsheetWindow(QtGui.QMainWindow):
     """
     SpreadsheetWindow is the top-level main window containing a
     stacked widget of QTabWidget and its stacked widget for slideshow
     mode
-    
+
     """
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         """ SpreadsheetWindow(parent: QWidget, f: WindowFlags)
                               -> SpreadsheetWindow
         Layout menu, status bar and tab widget
-        
+
         """
         QtGui.QMainWindow.__init__(self, parent, f)
         self.createEventMap()
@@ -79,12 +79,12 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.stackedCentralWidget)
         self.setStatusBar(QtGui.QStatusBar(self))
         self.modeActionGroup = QtGui.QActionGroup(self)
-        
+
         self.visApp = QtCore.QCoreApplication.instance()
         self.visApp.installEventFilter(self)
-        
+
         self.setupMenu()
-        
+
         self.connect(self.tabController,
                      QtCore.SIGNAL('needChangeTitle'),
                      self.setWindowTitle)
@@ -110,7 +110,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
            self.visApp.builderWindow.isVisible():
             self.visApp.builderWindow.quit()
 
-    
+
     def cleanup(self):
         if self.visApp!=None:
             self.visApp.removeEventFilter(self)
@@ -153,7 +153,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     def fitToWindowAction(self):
         """ fitToWindowAction() -> QAction
         Return the fit to window action
-        
+
         """
         if not hasattr(self, 'fitAction'):
             self.fitAction = QtGui.QAction('Fit to window', self)
@@ -170,14 +170,14 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     def fitActionToggled(self, checked):
         """ fitActionToggled(checked: boolean) -> None
         Handle fitToWindow Action toggled
-        
+
         """
         self.tabController.currentWidget().sheet.setFitToWindow(checked)
-        
+
     def fullScreenAction(self):
         """ fullScreenAction() -> QAction
         Return the fullscreen action
-        
+
         """
         if not hasattr(self, 'fullScreenActionVar'):
             self.fullScreenActionVar = QtGui.QAction('&Full Screen', self)
@@ -202,7 +202,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     def fullScreenActivated(self, full=None):
         """ fullScreenActivated(full: bool) -> None
         if fullScreen has been requested has pressed, then go to fullscreen now
-        
+
         """
         if full==None:
             fs = self.isFullScreen()
@@ -219,12 +219,12 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.tabController.setupFullScreenWidget(fs,
                                                  self.fullScreenStackedWidget)
         self.stackedCentralWidget.setCurrentIndex(int(fs))
-        
+
     def interactiveModeAction(self):
         """ interactiveModeAction() -> QAction
         Return the interactive mode action, this is the mode where users can
         interact with the content of the cells
-        
+
         """
         if not hasattr(self, 'interactiveModeActionVar'):
             self.interactiveModeActionVar = QtGui.QAction('&Interactive Mode',
@@ -241,7 +241,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         """ editingModeAction() -> QAction
         Return the editing mode action, this is the mode where users can
         interact with the content of the cells
-        
+
         """
         if not hasattr(self, 'editingModeActionVar'):
             self.editingModeActionVar = QtGui.QAction('&Editing Mode',
@@ -258,7 +258,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         """ showBuilderWindowAction() -> QAction
         Return the show builder action, this is used to show the builder window
         when only the spreadsheet window is visible.
-        
+
         """
         if not hasattr(self, 'showBuilderWindowActionVar'):
             self.showBuilderWindowActionVar = \
@@ -271,26 +271,26 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 self.showBuilderWindowActionVar.setEnabled(True)
             else:
                 self.showBuilderWindowActionVar.setEnabled(False)
-                
+
             self.connect(self.showBuilderWindowActionVar,
                          QtCore.SIGNAL('triggered()'),
                          self.showBuilderWindowActionTriggered)
-            
+
         return self.showBuilderWindowActionVar
-    
+
     def modeChanged(self, action):
-        """ modeChanged(action: QAction) -> None        
+        """ modeChanged(action: QAction) -> None
         Handle the new mode (interactive or editing) based on the
         triggered action
-        
+
         """
         editing = self.editingModeAction().isChecked()
         self.tabController.setEditingMode(editing)
-    
+
     def configShow(self, show=False):
         """ configShow() -> None
         Read VisTrails setting and show the spreadsheet window accordingly
-        
+
         """
         if hasattr(self.visApp, 'configuration'):
             if self.shownConfig:
@@ -331,16 +331,16 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 ### When the builder is hidden, the spreadsheet window does
                 ### not have focus. We have to force it to have the focus
                 if not self.visApp.temp_configuration.showWindow:
-                    self.raise_()                
+                    self.raise_()
         else:
             self.show()
-            
+
         self.shownConfig = True
 
     def showEvent(self, e):
         """ showEvent(e: QShowEvent) -> None
         Make sure we show ourself for show event
-        
+
         """
         self.show()
         # Without this Ubuntu Unity will not show the menu bar
@@ -349,7 +349,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     def closeEvent(self, e):
         """ closeEvent(e: QCloseEvent) -> None
         When close, just hide instead
-        
+
         """
         if hasattr(self.visApp, 'builderWindow'):
             if self.visApp.builderWindow.isVisible():
@@ -364,14 +364,14 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     def sizeHint(self):
         """ sizeHint() -> QSize
         Return a default size of the window
-        
+
         """
         return QtCore.QSize(1024, 768)
 
     def eventFilter(self,q,e):
         """ eventFilter(q: QObject, e: QEvent) -> depends on event type
         An application-wide eventfilter to capture mouse/keyboard events
-        
+
         """
         eType = e.type()
         # Handle Show/Hide cell resizer on MouseMove
@@ -386,7 +386,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             e.buttons()&QtCore.Qt.RightButton):
             self.tabController.showPopupMenu()
             return True
-                
+
         # Handle slideshow shortcuts
         if (eType==QtCore.QEvent.KeyPress and
             self.isFullScreen()):
@@ -421,7 +421,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     def event(self, e):
         """ event(e: QEvent) -> depends on event type
         Handle all special events from spreadsheet controller
-        
+
         """
         if self.eventMap.has_key(e.type()):
             self.eventMap[e.type()](e)
@@ -429,10 +429,10 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         return QtGui.QMainWindow.event(self, e)
 
     def createEventMap(self):
-        """ createEventMap() -> None        
+        """ createEventMap() -> None
         Create the event map to call inside the event(). This must be
         called before anything else
-        
+
         """
         self.eventMap = {
             DisplayCellEventType : self.displayCellEvent,
@@ -443,11 +443,11 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     def displayCellEvent(self, e):
         """ displayCellEvent(e: DisplayCellEvent) -> None
         Display a cell when receive this event
-        
+
         """
         if self.echoMode:
             self.echoCellEvents.append(e)
-            return None 
+            return None
         self.tabController.addPipeline(e.vistrail)
         cid = self.tabController.increasePipelineCellId(e.vistrail)
         pid = self.tabController.getCurrentPipelineId(e.vistrail)
@@ -478,7 +478,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             else:
                 sheet.setCellByWidget(row, col, e.cellType)
             QtCore.QCoreApplication.processEvents()
-            cell = sheet.getCell(row, col) 
+            cell = sheet.getCell(row, col)
             if self.editingModeAction().isChecked():
                 sheet.setCellEditingMode(row, col, True)
             #If a cell has to dump its contents to a file, it will be in the
@@ -508,15 +508,15 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         dump_as_pdf = False
                     elif configuration.dumpfileType == 'PDF':
                         dump_as_pdf = True
-                        
-                    #extra_info configuration overwrites global configuration    
+
+                    #extra_info configuration overwrites global configuration
                     if extra_info.has_key('pdf'):
                         dump_as_pdf = extra_info['pdf']
-                    
+
                     file_extension = '.png'
                     if dump_as_pdf == True:
                         file_extension = '.pdf'
-                            
+
                     # add cell location by default
                     if not extra_info.has_key('nameDumpCells'):
                         base_fname = base_fname + "_%d_%d" % (row, col)
@@ -531,17 +531,17 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         cell.dumpToFile(filename)
                     else:
                         cell.saveToPDF(filename)
-            #if the cell was already selected, then we need to update 
+            #if the cell was already selected, then we need to update
             #the toolbar with this new cell
             if hasattr(sheet, 'sheet'):
                 if sheet.sheet.activeCell == (row,col):
                     sheet.sheet.setActiveCell(row,col)
-            return cell 
+            return cell
 
     def batchDisplayCellEvent(self, batchEvent):
         """ batchDisplayCellEvent(batchEvent: BatchDisplayCellEvent) -> None
         Handle event where a series of cells are arrived
-        
+
         """
         self.tabController.addPipeline(batchEvent.vistrail)
         for e in batchEvent.displayEvents:
@@ -551,7 +551,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     def repaintCurrentSheetEvent(self, e):
         """ repaintCurrentSheetEvent(e: RepaintCurrentSheetEvent) -> None
         Repaint the current sheet
-        
+
         """
         currentTab = self.tabController.currentWidget()
         if currentTab:
@@ -561,7 +561,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                     widget = currentTab.getCell(r, c)
                     if widget:
                         widget.repaint()
-    
+
     def showBuilderWindowActionTriggered(self):
         """showBuilderWindowActionTriggered() -> None
         This will show the builder window """
@@ -581,7 +581,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
     def startReviewingMode(self):
         """ startReviewingMode()
         Reorganize the spreadsheet to contain only cells executed from locator:version
-        
+
         """
         currentTab = self.tabController.currentWidget()
         if currentTab:
@@ -654,15 +654,13 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         """ getEchoCellEvents() -> [DisplayCellEvent]
         Echo back the list of all cell events that have been captured
         earlier
-        
+
         """
         return self.echoCellEvents
 
     def clearEchoCellEvents(self):
         """ clearEchoCellEvents()
-        Erase the list of echoed events 
+        Erase the list of echoed events
 
         """
         self.echoCellEvents = []
-
-    

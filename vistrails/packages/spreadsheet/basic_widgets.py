@@ -32,37 +32,41 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file describes basic VisTrails Modules of the Spreadsheet package:
-#   CellLocation
-#   SheetReference
-#   SingleCellSheetReference
-#   SpreadsheetCell
-################################################################################
+
+"""This file describes basic VisTrails Modules of the Spreadsheet package:
+  CellLocation
+  SheetReference
+  SingleCellSheetReference
+  SpreadsheetCell
+"""
+
+from PyQt4 import QtCore
+
 from vistrails.core.configuration import ConfigField, \
     get_vistrails_configuration
 from vistrails.core.modules.output_modules import OutputMode, OutputModeConfig
-from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
-from spreadsheet_base import (StandardSheetReference,
-                              StandardSingleCellSheetReference)
-from spreadsheet_controller import spreadsheetController
-from spreadsheet_event import DisplayCellEvent
-from PyQt4 import QtCore
+from vistrails.core.modules.vistrails_module import Module, NotCacheable, \
+    ModuleError
 
-################################################################################
+from .spreadsheet_base import StandardSheetReference, \
+    StandardSingleCellSheetReference
+from .spreadsheet_controller import spreadsheetController
+from .spreadsheet_event import DisplayCellEvent
+
 
 def widgetName():
     """ widgetName() -> str
     Identify the name of the package
-    
+
     """
     return 'Basic Widgets'
+
 
 def registerWidget(reg, basicModules, basicWidgets):
     """ registerWidget(reg: module_registry, basicModules: package,
                        basicWidgets:package) -> None
     Register widgets with VisTrails registry
-    
+
     """
     reg.add_module(SheetReference)
     reg.add_input_port(SheetReference, "MinRowCount", basicModules.Integer, True)
@@ -90,19 +94,20 @@ def registerWidget(reg, basicModules, basicWidgets):
                        basicModules.String, True)
     reg.add_output_port(SingleCellSheetReference, "value",
                         SingleCellSheetReference)
-     
+
+
 class SheetReference(Module):
     """
     SheetReference is a VisTrail Module that allows users to specify
     which sheet (page) to put the visualiation on. This is as
     well a wrapper to simply contain real sheet reference classes
-    
+
     """
     def compute(self):
         """ compute() -> None
         Store information on input ports and ready to be passed on to whoever
         needs it
-        
+
         """
         ref = StandardSheetReference()
         ref.minimumRowCount = self.force_get_input("MinRowCount", 1)
@@ -111,12 +116,13 @@ class SheetReference(Module):
 
         self.set_output('value', ref)
 
+
 class CellLocation(Module):
     """
     CellLocation is a Vistrail Module that allow users to specify
     where to put a visualization on a sheet, i.e. row, column
     location
-    
+
     """
     class Location(object):
         def __init__(self):
@@ -129,7 +135,7 @@ class CellLocation(Module):
     def compute(self):
         """ compute() -> None
         Translate input ports into (row, column) location
-        
+
         """
         loc = CellLocation.Location()
 
@@ -160,35 +166,36 @@ class CellLocation(Module):
 
         self.set_output('value', loc)
 
+
 class SpreadsheetCell(NotCacheable, Module):
     """
     SpreadsheetCell is a base class to other widget types. It provides
     a simple protocol to dispatch information to the spreadsheet
     cells. But it doesn't know how to display the information
     itself. That should be done by the specific widget type.
-    
+
     """
     def __init__(self):
         """ SpreadsheetCell() -> SpreadsheetCell
         Initialize attributes
-        
+
         """
         Module.__init__(self)
         self.location = None
-    
+
     def overrideLocation(self, location):
-        """ overrideLocation(location: CellLocation) -> None        
+        """ overrideLocation(location: CellLocation) -> None
         Make the cell always use this location instead of reading from
         the port
-        
+
         """
         self.location = location
 
     def createDisplayEvent(self, cellType, inputPorts):
-        """ display(cellType: python type, iputPorts: tuple) -> None        
+        """ display(cellType: python type, iputPorts: tuple) -> None
         Create a DisplayEvent with all the parameters from the cell
         locations and inputs
-        
+
         """
         e = DisplayCellEvent()
         e.vistrail = self.moduleInfo
@@ -214,7 +221,7 @@ class SpreadsheetCell(NotCacheable, Module):
         Keyword arguments:
         cellType   --- widget type, this is truely a python type
         inputPorts --- a tuple of input data that cellType() will understand
-        
+
         """
         e = self.createDisplayEvent(cellType, inputPorts)
         QtCore.QCoreApplication.processEvents()
@@ -227,6 +234,7 @@ class SpreadsheetCell(NotCacheable, Module):
 
     display = displayAndWait
 
+
 class SpreadsheetModeConfig(OutputModeConfig):
     mode_type = "spreadsheet"
     _fields = [ConfigField('row', None, int),
@@ -236,6 +244,7 @@ class SpreadsheetModeConfig(OutputModeConfig):
                ConfigField('sheetColCount', None, int),
                ConfigField('rowSpan', None, int),
                ConfigField('colSpan', None, int)]
+
 
 class SpreadsheetMode(OutputMode):
     mode_type = "spreadsheet"
@@ -321,12 +330,12 @@ class SingleCellSheetReference(SheetReference):
     SingleCellSheetReference is a wrapper of StandardSingleCellSheetReference
     that will allow users to dedicate a whole sheet to view a single
     visualization by pass all other sheet control widgets.
-    
+
     """
     def compute(self):
         """ compute() -> None
         Store information from input ports into internal structure
-        
+
         """
         ref = StandardSingleCellSheetReference()
         ref.sheetName = self.force_get_input("SheetName")

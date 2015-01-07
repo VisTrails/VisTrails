@@ -36,4 +36,4 @@
 from identifiers import *
 
 # This must be here because of VisTrails protocol
-from spreadsheet_config import configuration
+from .spreadsheet_config import configuration
