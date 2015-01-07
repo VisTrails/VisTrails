@@ -125,7 +125,7 @@ def webServiceTypesDict(WBobj):
             nameattrib = nameattrib[0].upper() + nameattrib[1:]
             sentence = "visobj" + "." + nameattrib
             visdata = eval(sentence)
-            if visdata != None:
+            if visdata is not None:
                 try:
                     Type = wsdlTypesDict[str(typechild)]
                     setattr(libobj,nameattrib,visdata)
@@ -148,7 +148,7 @@ def webServiceTypesDict(WBobj):
                 nameattribute = nameattrib[0].upper() + nameattrib[1:]
                 sentence = "visobj" + "." + nameattribute
                 visdata = eval(sentence)
-                if visdata != None:
+                if visdata is not None:
                     nameattrib = "attribute_typecode_dict[" + nameattrib + "].pname"
                     setattr(libobj,nameattrib,visdata)
 
@@ -330,7 +330,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
         if isinstance(resp, list):
             ptype = resp[0].typecode.type[1]
         else:
-            if resp.typecode.type[1] == None:
+            if resp.typecode.type[1] is None:
                 ptype = resp.typecode.pname
             else:    
                 ptype = resp.typecode.type[1]
@@ -550,12 +550,12 @@ def processType(complexschema,w):
 
     if complexschema.isElement():
         try:
-            if complexschema.content.content == None:
+            if complexschema.content.content is None:
                 contentschema = []
             else:    
                 contentschema = complexschema.content.content.content
             objModule.typeobj = 'ComplexType'
-            if (complexschema.content.content == None or
+            if (complexschema.content.content is None or
                 complexschema.content.content.content == ()):
                 objModule.isEmptySequence = True
         except AttributeError:
@@ -574,7 +574,7 @@ def processType(complexschema,w):
             contentschema = complexschema.content.content
     try:       
         #Get all the attributes of the complex type
-        if complexschema.attr_content != None:
+        if complexschema.attr_content is not None:
             for attribute in complexschema.attr_content:
                 nametype = attribute.getAttributeName()
                 Type = 'string'
@@ -1335,7 +1335,7 @@ def verify_wsdl(wsdlList):
         response = conn.getresponse()
         remoteHeader = response.msg.getheader('last-modified')
         isoutdated = False
-        if remoteHeader != None:
+        if remoteHeader is not None:
             localFile = client_file
             reg = vistrails.core.modules.module_registry.get_module_registry()
             httpfile = reg.get_descriptor_by_name(
@@ -1345,7 +1345,7 @@ def verify_wsdl(wsdlList):
             except OSError:
                 print "File doesn't exist"
                 isoutdated = True
-        if isoutdated or remoteHeader == None:
+        if isoutdated or remoteHeader is None:
             outdated_list.append(w)
         else:
             updated_list.append(w)

@@ -379,7 +379,7 @@ class QDBConnectionList(QtGui.QListWidget):
         item = None
         if len(self.selectedItems()) > 0:
             item  = self.selectedItems()[0]
-        if item != None:
+        if item is not None:
             return int(item.id)
         else:
             return -1
@@ -404,7 +404,7 @@ class QDBConnectionList(QtGui.QListWidget):
         """
         conn_id = self.getCurrentItemId()
         config = self.getConnectionInfo(conn_id)
-        if config != None:
+        if config is not None:
             config["create"] = False
             self.parent().showConnConfig(**config)
             
@@ -436,7 +436,7 @@ class QDBConnectionList(QtGui.QListWidget):
         conn = self.__list.get_connection(id)
         key = str(conn.id) + "." + conn.name + "." + conn.host
         passwd = DBLocator.keyChain.get_key(key)
-        if conn != None:
+        if conn is not None:
             config = {'id': conn.id,
                       'name': conn.name,
                       'host': conn.host,
@@ -602,7 +602,7 @@ class QDBObjectList(QtGui.QListWidget):
                     debug.critical('An error has occurred', e)
                     raise e
                 config = parent.connectionList.getConnectionInfo(int(conn_id))
-                if config != None:
+                if config is not None:
                     config["create"] = False
                     if not parent.showConnConfig(**config):
                         raise e

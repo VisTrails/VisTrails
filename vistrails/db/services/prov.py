@@ -427,7 +427,7 @@ def create_prov(workflow, version, log):
                     prov_usage = create_prov_usage(prov_activity, prov_input_data)
                     usages.append(prov_usage)
                 
-            if (prov_activity._db_vt_error == None) or (prov_activity._db_vt_error == ''):
+            if (prov_activity._db_vt_error is None) or (prov_activity._db_vt_error == ''):
                 if source_conn.has_key(exec_._db_module_id):
                     connections = source_conn[exec_._db_module_id]
                     for connection in connections:

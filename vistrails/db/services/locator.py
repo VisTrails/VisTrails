@@ -364,7 +364,7 @@ class SaveTemporariesMixin(object):
         latest one.
 
         """
-        if temporary == None:
+        if temporary is None:
             return self.encode_name(self.get_temp_basename()) + '0'
         else:
             split = temporary.rfind('_')+1

@@ -70,7 +70,7 @@ class TreeLW(object):
         self.nodes.append(newNode)
 
         # add
-        if parentNode != None:
+        if parentNode is not None:
             parentNode.addChild(newNode)
 
         # update max level
@@ -78,7 +78,7 @@ class TreeLW(object):
         return newNode
 
     def changeParentOfNodeWithNoParent(self, parentNode, childNode):
-        if childNode.parent != None:
+        if childNode.parent is not None:
             raise ValueError("Node already has a parent")
 
         parentNode.addChild(childNode)
@@ -88,7 +88,7 @@ class TreeLW(object):
         self.maxLevel = max(self.maxLevel, maxLevel)
 
     def __dfsUpdateLevel(self, node):
-        if node.parent == None:
+        if node.parent is None:
             node.level = 0
         else:
             node.level = node.parent.level + 1
@@ -140,13 +140,13 @@ class KeepBoundingBox(object):
         self.size = 0
 
     def addPoint(self,x,y):
-        if self.minx == None or self.minx > x:
+        if self.minx is None or self.minx > x:
             self.minx = x
-        if self.miny == None or self.miny > y:
+        if self.miny is None or self.miny > y:
             self.miny = y
-        if self.maxx == None or self.maxx < x:
+        if self.maxx is None or self.maxx < x:
             self.maxx = x
-        if self.maxy == None or self.maxy < y:
+        if self.maxy is None or self.maxy < y:
             self.maxy = y
         self.size = self.size + 1
 
@@ -217,13 +217,13 @@ class NodeLW(object):
             return None
 
     def leftMostSibling(self):
-        if self.parent != None:
+        if self.parent is not None:
             return self.parent.childs[0]
         else:
             return self
 
     def isSiblingOf(self, v):
-        return self.parent == v.parent and self.parent != None
+        return self.parent == v.parent and self.parent is not None
 
 class TreeLayoutLW(object):
 
@@ -304,7 +304,7 @@ class TreeLayoutLW(object):
         if v.isLeaf():
             v.prelim = 0
             w = v.leftSibling()
-            if w != None:
+            if w is not None:
                 v.prelim = w.prelim + self.gap(w,v)
 
         else:
@@ -318,7 +318,7 @@ class TreeLayoutLW(object):
             midpoint = (v.leftChild().prelim + v.rightChild().prelim) / 2.0
 
             w = v.leftSibling()
-            if w != None:
+            if w is not None:
                 v.prelim = w.prelim + self.gap(w,v)
                 v.mod = v.prelim - midpoint
             else:
@@ -344,7 +344,7 @@ class TreeLayoutLW(object):
 
         """
         w = v.leftSibling()
-        if w != None:
+        if w is not None:
             # p stands for + or plus (right subtree)
             # m stands for - or minus (left subtree)
             # i stands for inside
@@ -358,7 +358,7 @@ class TreeLayoutLW(object):
             sop = vop.mod
             sim = vim.mod
             som = vom.mod
-            while self.nextRight(vim) != None and self.nextLeft(vip) != None:
+            while self.nextRight(vim) is not None and self.nextLeft(vip) is not None:
                 
                 vim = self.nextRight(vim)
                 vip = self.nextLeft(vip)
@@ -379,11 +379,11 @@ class TreeLayoutLW(object):
                 som += vom.mod
                 sop += vop.mod
 
-            if self.nextRight(vim) != None and self.nextRight(vop) == None:            
+            if self.nextRight(vim) is not None and self.nextRight(vop) is None:
                 vop.thread = self.nextRight(vim)
                 vop.mod += sim - sop
 
-            if self.nextLeft(vip) != None and self.nextLeft(vom) == None:            
+            if self.nextLeft(vip) is not None and self.nextLeft(vom) is None:
                 vom.thread = self.nextLeft(vip)
                 vom.mod += sip - som
                 defaultAncestor = v

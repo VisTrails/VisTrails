@@ -187,7 +187,7 @@ class EmitWarnings(logging.Handler):
     def emit(self, record):
         # Here we basically do the contrary of warnings:formatwarning()
         m = _warningformat.match(record.args[0])
-        if m == None:
+        if m is None:
             self.logger.warning("(File info not available)\n" +
                            record.args[0])
         else:

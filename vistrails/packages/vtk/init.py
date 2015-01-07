@@ -330,7 +330,7 @@ def prune_signatures(module, name, signatures, output=False):
                 c = curr.replace('[', '')
                 c = c.replace(']', '')
                 result.append(c)
-            elif (curr == None):
+            elif (curr is None):
                 result.append(curr)
             elif (isinstance(curr, list)):
                 curr.reverse()
@@ -872,56 +872,56 @@ def class_dict(base_module, node):
         return compute
 
     def compute_SetDiffuseColorWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetDiffuseColorWidget(self, color):
             self.vtkInstance.SetDiffuseColor(color.tuple)
         return call_SetDiffuseColorWidget
 
     def compute_SetAmbientColorWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetAmbientColorWidget(self, color):
             self.vtkInstance.SetAmbientColor(color.tuple)
         return call_SetAmbientColorWidget
 
     def compute_SetSpecularColorWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetSpecularColorWidget(self, color):
             self.vtkInstance.SetSpecularColor(color.tuple)
         return call_SetSpecularColorWidget
 
     def compute_SetColorWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetColorWidget(self, color):
             self.vtkInstance.SetColor(color.tuple)
         return call_SetColorWidget
 
     def compute_SetEdgeColorWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetEdgeColorWidget(self, color):
             self.vtkInstance.SetEdgeColor(color.tuple)
         return call_SetEdgeColorWidget
     
     def compute_SetBackgroundWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetBackgroundWidget(self, color):
             self.vtkInstance.SetBackground(color.tuple)
         return call_SetBackgroundWidget
     
     def compute_SetBackground2Widget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetBackground2Widget(self, color):
             self.vtkInstance.SetBackground2(color.tuple)
         return call_SetBackground2Widget
     
     def compute_SetVTKCell(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetRenderWindow(self, cellObj):
             if cellObj.cellWidget:
@@ -930,28 +930,28 @@ def class_dict(base_module, node):
     
     def compute_SetTransferFunction(old_compute):
         # This sets the transfer function
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetTransferFunction(self, tf):
             tf.set_on_vtk_volume_property(self.vtkInstance)
         return call_SetTransferFunction
 
     def compute_SetPointData(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetPointData(self, pd):
             self.vtkInstance.GetPointData().ShallowCopy(pd)
         return call_SetPointData
 
     def compute_SetCellData(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetCellData(self, cd):
             self.vtkInstance.GetCellData().ShallowCopy(cd)
         return call_SetCellData            
 
     def compute_SetPointIds(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetPointIds(self, point_ids):
             self.vtkInstance.GetPointIds().SetNumberOfIds(point_ids.GetNumberOfIds())
@@ -960,7 +960,7 @@ def class_dict(base_module, node):
         return call_SetPointIds
 
     def compute_CopyImportString(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_CopyImportVoidPointer(self, pointer):
             self.vtkInstance.CopyImportVoidPointer(pointer, len(pointer))
@@ -987,7 +987,7 @@ def class_dict(base_module, node):
         if set_file_name_pattern.match(var):
             def get_compute_SetFile(method_name):
                 def compute_SetFile(old_compute):
-                    if old_compute != None:
+                    if old_compute is not None:
                         return old_compute
                     def call_SetFile(self, file_obj):
                         getattr(self.vtkInstance, method_name)(file_obj.name)

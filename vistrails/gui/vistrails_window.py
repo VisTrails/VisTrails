@@ -2255,7 +2255,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             action.setCheckable(True)
             
             base_view_windows = {}
-            if current_view == None or \
+            if current_view is None or \
                QtGui.QApplication.activeWindow() == self:
                 action.setChecked(True)
             actions.append(action)

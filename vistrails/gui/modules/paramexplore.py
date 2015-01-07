@@ -674,7 +674,7 @@ class QUserFunctionEditor(QtGui.QFrame):
             def evaluate(i):
                 try:
                     v = d['value'](i)
-                    if v == None:
+                    if v is None:
                         return module.default_value
                     return v
                 except Exception, e:
