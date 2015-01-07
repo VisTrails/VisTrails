@@ -390,7 +390,8 @@ class QCellToolBar(QtGui.QToolBar):
             info = info[0]
             mId = info['moduleId']
             pipeline = self.sheet.setPipelineToLocateAt(self.row, self.col,
-                                                      info['pipeline'], [mId])
+                                                        info['pipeline'],
+                                                        [mId])
             executePipelineWithProgress(pipeline, 'Re-execute Cell',
                                         current_version=info['version'],
                                         actions=info['actions'],
