@@ -214,7 +214,7 @@ class Pipeline(Estimator):
                     ("model3", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 4}),
                     ("model4", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 5}),
                     ("training_data", "basic:List", {'shape': 'circle', 'sort_key': 0}),
-                    ("train_target", "basic:List", {'shape': 'circle', 'sort_key': 1}),
+                    ("training_target", "basic:List", {'shape': 'circle', 'sort_key': 1}),
                     ]
 
     def compute(self):
@@ -223,7 +223,7 @@ class Pipeline(Estimator):
         pipeline = make_pipeline(*steps)
         if "training_data" in self.inputPorts:
             training_data = np.vstack(self.get_input("training_data"))
-            training_target = self.get_input("train_target")
+            training_target = self.get_input("training_target")
             pipeline.fit(training_data, training_target)
         self.set_output("model", pipeline)
 

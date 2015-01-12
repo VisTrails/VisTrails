@@ -3,7 +3,9 @@ import unittest
 from vistrails.tests.utils import execute, intercept_results
 
 from vistrails.packages.sklearn.init import (Digits, Iris, TrainTestSplit,
-                                             Predict, Score, Transform, _modules)
+                                             Predict, Score, Transform,
+                                             CrossValScore, _modules,
+                                             GridSearchCV)
 from vistrails.packages.sklearn import identifier
 
 from sklearn.metrics import f1_score
@@ -112,7 +114,7 @@ class TestSklearn(unittest.TestCase):
         self.assertTrue(np.all(np.unique(y_pred) == np.array([0, 1, 2])))
         self.assertEqual(decision_function.shape, (50, 3))
         # some accuracy
-        self.assertTrue(np.mean(y_test == y_pred) > .5)
+        self.assertTrue(np.mean(y_test == y_pred) > .9)
         # score is actually the accuracy
         self.assertEqual(np.mean(y_test == y_pred), score_acc)
         # f1 score is actually f1 score
@@ -173,10 +175,90 @@ class TestSklearn(unittest.TestCase):
         self.assertEqual(transformed_data.shape, (150, 2))
 
     def test_cross_val_score(self):
-        pass
+        # chech that cross_val score of LinearSVC has the right length
+        with intercept_results(CrossValScore, 'scores') as (scores,):
+            self.assertFalse(execute(
+                [
+                    ('datasets|Iris', identifier, []),
+                    ('classifiers|LinearSVC', identifier, []),
+                    ('cross-validation|CrossValScore', identifier, []),
+                ],
+                [
+                    (0, 'data', 2, 'data'),
+                    (0, 'target', 2, 'target'),
+                    (1, 'model', 2, 'model')
+                ]
+            ))
+        scores = np.hstack(scores)
+        self.assertEqual(scores.shape, (3,))
+        self.assertTrue(np.mean(scores) > .9)
 
     def test_gridsearchcv(self):
-        pass
+        # check that gridsearch on DecisionTreeClassifier does the right number of runs
+        # and gives the correct result.
+        with intercept_results(GridSearchCV, 'scores', GridSearchCV,
+                               'best_parameters') as (scores, parameters):
+            self.assertFalse(execute(
+                [
+                    ('datasets|Iris', identifier, []),
+                    ('classifiers|DecisionTreeClassifier', identifier, []),
+                    ('GridSearchCV', identifier,
+                     [('parameters', [('Dictionary', "{'max_depth': [1, 2, 3, 4]}")])]),
+                ],
+                [
+                    (0, 'data', 2, 'data'),
+                    (0, 'target', 2, 'target'),
+                    (1, 'model', 2, 'model')
+                ]
+            ))
+        self.assertEqual(len(scores[0]), 4)
+        self.assertTrue(parameters[0]['max_depth'], 2)
 
     def test_pipeline(self):
-        pass
+        with intercept_results(Iris, 'target', Predict, 'prediction') as (y_true, y_pred):
+            self.assertFalse(execute(
+                [
+                    ('datasets|Iris', identifier, []),
+                    ('preprocessing|StandardScaler', identifier, []),
+                    ('feature_selection|SelectKBest', identifier,
+                        [('k', [('Integer', '2')])]),
+                    ('classifiers|LinearSVC', identifier, []),
+                    ('Pipeline', identifier, []),
+                    ('Predict', identifier, [])
+                ],
+                [
+                    # feed data to pipeline
+                    (0, 'data', 4, 'training_data'),
+                    (0, 'target', 4, 'training_target'),
+                    # put models in pipeline
+                    (1, 'model', 4, 'model1'),
+                    (2, 'model', 4, 'model2'),
+                    (3, 'model', 4, 'model3'),
+                    # predict using pipeline
+                    (4, 'model', 5, 'model'),
+                    (0, 'data', 5, 'data')
+                ]
+            ))
+            y_true, y_pred = np.array(y_true[0]), np.array(y_pred[0])
+            self.assertEqual(y_true.shape, y_pred.shape)
+            self.assertTrue(np.mean(y_true == y_pred) > .8)
+
+    def test_nested_cross_validation(self):
+        with intercept_results(CrossValScore, 'scores') as (scores, ):
+            self.assertFalse(execute(
+                [
+                    ('datasets|Iris', identifier, []),
+                    ('classifiers|DecisionTreeClassifier', identifier, []),
+                    ('GridSearchCV', identifier,
+                     [('parameters', [('Dictionary', "{'max_depth': [1, 2, 3, 4]}")])]),
+                    ('cross-validation|CrossValScore', identifier, [])
+                ],
+                [
+                    (0, 'data', 3, 'data'),
+                    (0, 'target', 3, 'target'),
+                    (1, 'model', 2, 'model'),
+                    (2, 'model', 3, 'model')
+                ]
+            ))
+        self.assertEqual(len(scores[0]), 3)
+        self.assertTrue(np.mean(scores[0]) > .9)
