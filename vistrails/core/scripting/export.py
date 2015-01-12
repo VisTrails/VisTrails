@@ -62,6 +62,7 @@ def write_workflow_to_python(pipeline, filename):
             if isinstance(code, tuple):
                 code, code_preludes = code
             print("Got code:\n%r" % (code,))
+            assert isinstance(code, Script)
 
         modules[module_id] = code
         preludes.update(code_preludes)
@@ -108,10 +109,7 @@ def write_workflow_to_python(pipeline, filename):
         # Changes symbol names in this piece of code to prevent collisions
         # with already-encountered code
         old_all_vars = set(all_vars)
-        if isinstance(code, basestring):
-            code = Script(utf8(code), inputs={}, outputs={})
-        else:
-            code.normalize(input_port_names, output_port_names, all_vars)
+        code.normalize(input_port_names, output_port_names, all_vars)
         # Now, code knows what its inputs and outputs are
         print("Normalized code:\n%r" % (code,))
         print("New vars in all_vars: %r" % (all_vars - old_all_vars,))
