@@ -175,7 +175,70 @@ def write_workflow_to_python(pipeline, filename):
         print("Total new vars: %r" % (all_vars - old_all_vars,))
 
     print("Writing to file")
-    f = io.open(filename, 'w', encoding='utf-8')
+    f = io.open(filename, 'w', encoding='utf-8', newline='\n')
     f.write('\n'.join(text))
     f.write('\n')
     f.close()
+
+
+###############################################################################
+
+import unittest
+
+
+class TestExport(unittest.TestCase):
+    def do_export(self, filename, expected_source):
+        import os
+        import tempfile
+        from vistrails.core.db.locator import FileLocator
+        from vistrails.core.system import vistrails_root_directory
+        from vistrails.core.vistrail.pipeline import Pipeline
+
+        locator = FileLocator(os.path.join(vistrails_root_directory(),
+                                           'tests', 'resources',
+                                           filename))
+        pipeline = locator.load(Pipeline)
+
+        fd, temp = tempfile.mkstemp(prefix='vt_py_', suffix='.py')
+        os.close(fd)
+        try:
+            write_workflow_to_python(pipeline, temp)
+            with open(temp, 'rb') as fp:
+                self.assertEqual(fp.read(),
+                                 utf8(expected_source).encode('ascii'))
+        finally:
+            os.remove(temp)
+
+    def test_sources(self):
+        self.do_export('script_sources.xml', """\
+# MODULE name='Integer', id=2
+value = '8'
+# MODULE name='PythonSource', id=0
+# FUNCTION i i
+i = 42
+o = 1
+o = i # comment
+internal_var = 4
+# MODULE name='PythonSource', id=1
+# CONNECTION a o
+# CONNECTION someint value
+try:
+    print(o) # note that this will be allowed to collide
+except NameError:
+    pass
+print(o) # Yeah
+internal_var_2 = value
+""")
+
+    def test_list(self):
+        self.do_export('script_list.xml', """\
+# MODULE name='Integer', id=1
+value = '3'
+# MODULE name='List', id=0
+# FUNCTION value value_3
+value_3 = [1, 2]
+# FUNCTION tail tail
+tail = [4, 5]
+# CONNECTION item0 value
+value_2 = value_3 + [value] + tail
+""")
