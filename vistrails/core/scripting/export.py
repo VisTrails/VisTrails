@@ -10,8 +10,20 @@ import io
 
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.scripting.scripts import make_unique, Script
+from vistrails.core.scripting.scripts import get_method_code, make_unique, \
+    Script
 from vistrails.core.scripting.utils import utf8
+
+
+def extract_python_script(module_class, module):
+    """Default for to_python_script().
+
+    This is called for modules which don't have a to_python_script() static
+    method. It gets the compute() method's code directly. Unreliable.
+    """
+    code = get_method_code(module_class.compute)
+    # FIXME : this is missing globals
+    return Script(code, inputs='calls', outputs='calls')
 
 
 def write_workflow_to_python(pipeline, filename):
@@ -49,20 +61,23 @@ def write_workflow_to_python(pipeline, filename):
 
         # Gets the code
         code_preludes = []
-        if (not hasattr(module_class, 'to_python_script') or
-                module_class.to_python_script is None):
-            debug.critical("Module %s cannot be converted to Python")
-            code = ("# <Missing code>\n"
-                    "# %s doesn't define a function to_python_script()\n"
-                    "# VisTrails cannot currently export such modules\n" %
-                    module.name)
-        else:
+        if (hasattr(module_class, 'to_python_script') and
+                module_class.to_python_script is not None):
             # Call the module to get the base code
             code = module_class.to_python_script(module)
             if isinstance(code, tuple):
                 code, code_preludes = code
             print("Got code:\n%r" % (code,))
             assert isinstance(code, Script)
+        else:
+            # Use default method
+            code = extract_python_script(module_class, module)
+            if code is None:
+                debug.critical("Module %s cannot be converted to Python")
+                code = ("# <Missing code>\n"
+                        "# %s doesn't define a function to_python_script()\n"
+                        "# VisTrails cannot currently export such modules\n" %
+                        module.name)
 
         modules[module_id] = code
         preludes.update(code_preludes)
@@ -190,6 +205,18 @@ def write_workflow_to_python(pipeline, filename):
 ###############################################################################
 
 import unittest
+
+
+class TestExtract(unittest.TestCase):
+    def test_export_simple(self):
+        from vistrails.core.modules.basic_modules import Not
+
+        code = extract_python_script(Not, None)
+        self.assertEqual((code.source.dumps(), code.inputs, code.outputs),
+                         ("value = self.get_input('input')\n"
+                          "self.set_output('value', not value)\n",
+                          'calls',
+                          'calls'))
 
 
 class TestExport(unittest.TestCase):
