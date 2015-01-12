@@ -3,9 +3,11 @@
 
 from __future__ import division, unicode_literals
 
-import redbaron
-
+from vistrails.core.bundles import py_import
 from vistrails.core.scripting.utils import utf8
+
+
+redbaron = py_import('redbaron', {'pip': 'redbaron'})
 
 
 def make_unique(name, all_vars, more_vars=set()):
