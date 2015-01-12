@@ -6,6 +6,8 @@ from vistrails.packages.sklearn.init import (Digits, Iris, TrainTestSplit,
                                              Predict, Score)
 from vistrails.packages.sklearn import identifier
 
+from sklearn.metrics import f1_score
+
 
 class TestSklearn(unittest.TestCase):
     def test_digits(self):
@@ -69,6 +71,9 @@ class TestSklearn(unittest.TestCase):
                     ('classifiers|LinearSVC', identifier, []),
                     ('Predict', identifier, []),
                     ('Score', identifier, []),
+                    # use custom metric
+                    ('Score', identifier,
+                     [('metric', [('String', 'f1')])]),
 
                 ],
                 [
@@ -84,18 +89,27 @@ class TestSklearn(unittest.TestCase):
                     # score test data
                     (2, 'model', 4, 'model'),
                     (1, 'test_data', 4, 'data'),
-                    (1, 'test_target', 4, 'target')
+                    (1, 'test_target', 4, 'target'),
+                    # f1 scorer
+                    (2, 'model', 5, 'model'),
+                    (1, 'test_data', 5, 'data'),
+                    (1, 'test_target', 5, 'target')
                 ]
             ))
         y_pred = np.hstack(y_pred)
         decision_function = np.vstack(decision_function)
         y_test = np.hstack(y_test)
+        # unpack the results from the two scorers
+        score_acc, score_f1 = score
         self.assertEqual(y_pred.shape, (50,))
         self.assertTrue(np.all(np.unique(y_pred) == np.array([0, 1, 2])))
         self.assertEqual(decision_function.shape, (50, 3))
         # some accuracy
         self.assertTrue(np.mean(y_test == y_pred) > .5)
-        self.assertEqual(np.mean(y_test == y_pred), score)
+        # score is actually the accuracy
+        self.assertEqual(np.mean(y_test == y_pred), score_acc)
+        # f1 score is actually f1 score
+        self.assertEqual(f1_score(y_test, y_pred), score_f1)
 
     def test_transformer_unsupervised_transform(self):
         pass
