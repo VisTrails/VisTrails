@@ -95,8 +95,8 @@ from vistrails.db.domain import IdScope, DBWorkflowExec
 from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
 from vistrails.db.services.vistrail import getSharedRoot
-from vistrails.core.utils import any
 from vistrails.core.scripting import write_workflow_to_python
+from vistrails.core.utils import any
 
 
 def vt_action(description_or_f=None):
