@@ -21,3 +21,4 @@ unittest2
 VTK
 xlrd
 xlwt
+scikit-learn
