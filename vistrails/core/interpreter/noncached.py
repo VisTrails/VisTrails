@@ -34,6 +34,7 @@
 ###############################################################################
 import vistrails.core.interpreter.base
 import vistrails.core.interpreter.utils
+import vistrails.core.interpreter.cached
 import vistrails.core.vistrail.pipeline
 import atexit
 
