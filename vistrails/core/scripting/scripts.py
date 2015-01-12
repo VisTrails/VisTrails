@@ -21,6 +21,8 @@ def make_unique(name, all_vars, more_vars=set()):
 
 
 class BaseScript(object):
+    """A piece of Python code.
+    """
     def __init__(self, source):
         if isinstance(source, redbaron.RedBaron):
             self.source = source
@@ -128,8 +130,8 @@ class Prelude(BaseScript):
 class Script(BaseScript):
     """Wrapper for a piece of Python script.
 
-    This holds a piece of code plus information on how the inputs/outputs
-    and variables are represented.
+    This holds a piece of code (BaseScript) plus information on how the
+    inputs/outputs and variables are represented.
 
     `inputs` and `outputs` can be:
       * 'variables': they are variables of the same name in the source
