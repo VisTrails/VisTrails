@@ -7,7 +7,7 @@ scripts.
 from __future__ import division
 
 from vistrails.core.scripting.export import write_workflow_to_python
-from vistrails.core.scripting.scripts import Script
+from vistrails.core.scripting.scripts import get_method_code, Script
 
 
-__all__ = ['Script', 'write_workflow_to_python']
+__all__ = ['get_method_code', 'Script', 'write_workflow_to_python']

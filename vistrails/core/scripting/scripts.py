@@ -3,6 +3,9 @@
 
 from __future__ import division, unicode_literals
 
+import itertools
+import linecache
+
 from vistrails.core.bundles import py_import
 from vistrails.core.scripting.utils import utf8
 
@@ -25,6 +28,77 @@ def make_unique(name, all_vars, more_vars=set()):
         n = '%s_%d' % (name, i)
     all_vars.add(n)
     return n
+
+
+def indentation(line):
+    """Gets the indentation level of a line of code.
+
+    See Python Language Reference, 2.1.8. Indentation:
+    https://docs.python.org/2/reference/lexical_analysis.html#indentation
+    """
+    indent = 0
+    for c in line:
+        if c == ' ':
+            indent += 1
+        elif c == '\t':
+            indent += 8 - (indent % 8)
+        else:
+            break
+    return indent
+
+
+def dedent(line, level):
+    """De-indent a line by the given level.
+
+    If we end up inside of a tab, too bad.
+    """
+    pos = 0
+    l = len(line)
+    while level > 0 and pos < l:
+        if line[pos] == ' ':
+            level -= 1
+        elif line[pos] == '\t':
+            level -= 8 - (pos % 8)
+        pos += 1
+    return line[pos:]
+
+
+def get_method_code(func):
+    """Gets the code for a method.
+    """
+    # Unwrap the unbound method if needed
+    if hasattr(func, 'im_func'):
+        func = func.im_func
+
+    # Get the code from the source file
+    filename = func.func_code.co_filename
+    linecache.checkcache(filename)
+    lineno = func.func_code.co_firstlineno
+
+    line = linecache.getline(filename, lineno, func.func_globals)
+    function_indent = indentation(line)
+    function_code = ''
+    lineno += 1  # skip first line
+    line = linecache.getline(filename, lineno, func.func_globals)
+    min_indent = indentation(line)
+    while line:
+        function_code += dedent(line, min_indent)
+        lineno += 1
+        line = linecache.getline(filename, lineno, func.func_globals)
+        if indentation(line) <= function_indent:
+            break
+
+    # Get the upvalues' values
+    if func.func_closure:
+        upvalues_init = []
+        for n, v in itertools.izip(func.func_code.co_freevars,
+                                   func.func_closure):
+            # FIXME : repr() here will only work for simple constants
+            upvalues_init.append('%s = %r\n' % (n, v.cell_contents))
+
+        function_code = ''.join(upvalues_init) + '\n' + function_code
+
+    return function_code
 
 
 class BaseScript(object):
@@ -249,3 +323,47 @@ class Script(BaseScript):
         return "Script('''\n%s\n''',\ninputs: %r,\noutputs: %r\n)" % (
                 self.source.dumps(),
                 self.inputs, self.outputs)
+
+
+###############################################################################
+
+import unittest
+
+
+class TestScripts(unittest.TestCase):
+    def test_get_code(self):
+        class ModStatic(object):
+            def compute(self):
+                c = 16 + 26
+                self.set_output(c)
+
+        self.assertEqual(get_method_code(ModStatic.compute),
+                         "c = 16 + 26\n"
+                         "self.set_output(c)\n")
+
+        def compute_func(s):
+            s.set_output(42)
+
+        ModDyn = type(str('ModDyn'), (object,), {'compute': compute_func})
+
+        self.assertEqual(get_method_code(ModDyn.compute),
+                         "s.set_output(42)\n")
+
+        ModDynUpval = None
+
+        def make_compute(b):
+            a = 42 - b
+            def compute_dyn(self):
+                c = a + b
+                self.set_output(c)
+            return compute_dyn
+
+        ModDynUpval = type(str('ModDynUpval'), (object,),
+                           {'compute': make_compute(30)})
+
+        self.assertEqual(get_method_code(ModDynUpval.compute),
+                         "a = 12\n"
+                         "b = 30\n"
+                         "\n"
+                         "c = a + b\n"
+                         "self.set_output(c)\n")
