@@ -802,7 +802,6 @@ class Untuple(Module):
 
 ##############################################################################
 
-# TODO: Create a better Module for ConcatenateString.
 class ConcatenateString(Module):
     """ConcatenateString takes many strings as input and produces the
     concatenation as output. Useful for constructing filenames, for
@@ -812,19 +811,14 @@ class ConcatenateString(Module):
     future."""
 
     fieldCount = 4
-    _input_ports = [IPort("str%d" % (i+1), "String") 
-                    for i in xrange(fieldCount)]
+    _input_ports = [IPort("str%d" % i, "String")
+                    for i in xrange(1, 1 + fieldCount)]
     _output_ports = [OPort("value", "String")]
 
     def compute(self):
-        result = ""
-        for i in xrange(self.fieldCount):
-            v = i+1
-            port = "str%s" % v
-            if self.has_input(port):
-                inp = self.get_input(port)
-                result += inp
-        self.set_output("value", result)
+        result = "".join(self.force_get_input('str%d' % i, '')
+                         for i in xrange(1, 1 + self.fieldCount))
+        self.set_output('value', result)
 
 ##############################################################################
 
