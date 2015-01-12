@@ -33,10 +33,8 @@ class TestSklearn(unittest.TestCase):
         # check that we can split the iris dataset
         with intercept_results(TrainTestSplit, 'training_data', TrainTestSplit,
                                'training_target', TrainTestSplit, 'test_data',
-                               TrainTestSplit, 'test_data') as (X_train,
-                                                                y_train,
-                                                                X_test,
-                                                                y_test):
+                               TrainTestSplit, 'test_target') as (
+                                   X_train, y_train, X_test, y_test):
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
@@ -50,8 +48,8 @@ class TestSklearn(unittest.TestCase):
             ))
         X_train = np.vstack(X_train)
         X_test = np.vstack(X_test)
-        y_train = np.vstack(y_train)
-        y_test = np.vstack(y_test)
+        y_train = np.hstack(y_train)
+        y_test = np.hstack(y_test)
         self.assertEqual(X_train.shape, (100, 4))
         self.assertEqual(X_test.shape, (50, 4))
         self.assertEqual(y_train.shape, (100,))

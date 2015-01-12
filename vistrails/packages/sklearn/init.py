@@ -12,6 +12,9 @@ from sklearn.utils.testing import all_estimators
 
 
 def try_convert(input_string):
+    if not isinstance(input_string, basestring):
+        # already converted
+        return input_string
     if input_string.isdigit():
         return int(input_string)
     try:
@@ -145,7 +148,8 @@ class TrainTestSplit(Module):
 
     def compute(self):
         X_train, X_test, y_train, y_test = \
-            train_test_split(self.get_input("data"), self.get_input("target"))
+            train_test_split(self.get_input("data"), self.get_input("target"),
+                             test_size=try_convert(self.get_input("test_size")))
         self.set_output("training_data", X_train)
         self.set_output("training_target", y_train)
         self.set_output("test_data", X_test)
