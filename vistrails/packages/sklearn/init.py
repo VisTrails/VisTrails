@@ -76,12 +76,12 @@ class SupervisedEstimator(Estimator):
     def compute(self):
         # get parameters, try to convert strings to float / int
         params = dict([(p, try_convert(self.get_input(p))) for p in self.inputPorts
-                       if p not in ["train_data", "train_classes"]])
+                       if p not in ["training_data", "training_target"]])
         clf = self._estimator_class(**params)
-        if "train_data" in self.inputPorts:
-            train_data = np.vstack(self.get_input("train_data"))
-            train_classes = self.get_input("train_classes")
-            clf.fit(train_data, train_classes)
+        if "training_data" in self.inputPorts:
+            training_data = np.vstack(self.get_input("training_data"))
+            training_target = self.get_input("training_target")
+            clf.fit(training_data, training_target)
         self.set_output("model", clf)
 
 
@@ -91,11 +91,11 @@ class UnsupervisedEstimator(Estimator):
 
     def compute(self):
         params = dict([(p, try_convert(self.get_input(p))) for p in self.inputPorts
-                       if p not in ["train_data", "train_classes"]])
+                       if p not in ["training_data", "training_target"]])
         trans = self._estimator_class(**params)
-        if "train_data" in self.inputPorts:
-            train_data = np.vstack(self.get_input("train_data"))
-            trans.fit(train_data)
+        if "training_data" in self.inputPorts:
+            training_data = np.vstack(self.get_input("training_data"))
+            trans.fit(training_data)
         self.set_output("model", trans)
 
 
@@ -103,13 +103,13 @@ class Predict(Module):
     """Apply a learned scikit-learn classifier model to test data.
     """
     # TODO : data depth=1
-    _input_ports = [("classifier", "Estimator", {'shape': 'diamond'}),
+    _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
                     ("data", "basic:List", {'shape': 'circle'})]
     _output_ports = [("prediction", "basic:List", {'shape': 'circle'}),
                      ("decision_function", "basic:List")]
 
     def compute(self):
-        clf = self.get_input("classifier")
+        clf = self.get_input("model")
         data = self.get_input("data")
         predictions = clf.predict(data)
         decision_function = clf.decision_function(data)
@@ -120,12 +120,12 @@ class Predict(Module):
 class Transform(Module):
     """Apply a learned scikit-learn transformer to test data.
     """
-    _input_ports = [("transformer", "Estimator", {'shape': 'diamond'}),
+    _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
                     ("data", "basic:List", {'shape': 'circle'})]
     _output_ports = [("transformed_data", "basic:List", {'shape': 'circle'})]
 
     def compute(self):
-        trans = self.get_input("transformer")
+        trans = self.get_input("model")
         data = self.get_input("data")
         transformed_data = trans.transform(data)
         self.set_output("transformed_data", transformed_data)
@@ -213,7 +213,7 @@ class Pipeline(Estimator):
                     ("model2", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 3}),
                     ("model3", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 4}),
                     ("model4", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 5}),
-                    ("train_data", "basic:List", {'shape': 'circle', 'sort_key': 0}),
+                    ("training_data", "basic:List", {'shape': 'circle', 'sort_key': 0}),
                     ("train_target", "basic:List", {'shape': 'circle', 'sort_key': 1}),
                     ]
 
@@ -221,10 +221,10 @@ class Pipeline(Estimator):
         models = ["model%d" % d for d in range(1, 5)]
         steps = [self.get_input(model) for model in models if model in self.inputPorts]
         pipeline = make_pipeline(*steps)
-        if "train_data" in self.inputPorts:
-            train_data = np.vstack(self.get_input("train_data"))
-            train_classes = self.get_input("train_target")
-            pipeline.fit(train_data, train_classes)
+        if "training_data" in self.inputPorts:
+            training_data = np.vstack(self.get_input("training_data"))
+            training_target = self.get_input("train_target")
+            pipeline.fit(training_data, training_target)
         self.set_output("model", pipeline)
 
 ###############################################################################
@@ -233,7 +233,7 @@ class Pipeline(Estimator):
 
 class Score(Module):
     """Compute a model performance metric."""
-    _settings = ModuleSettings(namespace="metrics")
+    _settings = ModuleSettings()
     _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
                     ("data", "basic:List", {'shape': 'circle'}),
                     ("target", "basic:List", {'shape': 'circle'}),
@@ -271,9 +271,9 @@ class ROCCurve(Module):
 # Classifiers and Regressors
 
 def make_module(name, Estimator, namespace, supervised=False, Base=None):
-    input_ports = [("train_data", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
+    input_ports = [("training_data", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
     if supervised:
-        input_ports.append(("train_classes", "basic:List", {'sort_key': 1, 'shape': 'circle'}))
+        input_ports.append(("training_target", "basic:List", {'sort_key': 1, 'shape': 'circle'}))
     est = Estimator()
     input_ports.extend([(param, "basic:String", {'optional': True}) for param
                         in est.get_params()])
@@ -357,10 +357,10 @@ class ManifoldLearner(Module):
 
     def compute(self):
         params = dict([(p, try_convert(self.get_input(p))) for p in self.inputPorts
-                       if p not in ["train_data"]])
+                       if p not in ["training_data"]])
         trans = self._estimator_class(**params)
-        train_data = np.vstack(self.get_input("train_data"))
-        transformed_data = trans.fit_transform(train_data)
+        training_data = np.vstack(self.get_input("training_data"))
+        transformed_data = trans.fit_transform(training_data)
         self.set_output("transformed_data", transformed_data)
 
 

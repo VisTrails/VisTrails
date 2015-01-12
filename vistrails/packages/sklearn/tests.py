@@ -2,7 +2,8 @@ import numpy as np
 import unittest
 from vistrails.tests.utils import execute, intercept_results
 
-from vistrails.packages.sklearn.init import Digits, Iris, TrainTestSplit
+from vistrails.packages.sklearn.init import (Digits, Iris, TrainTestSplit,
+                                             Predict, Score)
 from vistrails.packages.sklearn import identifier
 
 
@@ -33,8 +34,8 @@ class TestSklearn(unittest.TestCase):
         # check that we can split the iris dataset
         with intercept_results(TrainTestSplit, 'training_data', TrainTestSplit,
                                'training_target', TrainTestSplit, 'test_data',
-                               TrainTestSplit, 'test_target') as (
-                                   X_train, y_train, X_test, y_test):
+                               TrainTestSplit, 'test_target') as results:
+            X_train, y_train, X_test, y_test = results
             self.assertFalse(execute(
                 [
                     ('datasets|Iris', identifier, []),
@@ -56,10 +57,45 @@ class TestSklearn(unittest.TestCase):
         self.assertEqual(y_test.shape, (50,))
 
     def test_classifier_training_predict(self):
-        pass
+        with intercept_results(Predict, 'prediction', Predict,
+                               'decision_function', TrainTestSplit, 'test_target',
+                               Score, 'score') as results:
+            y_pred, decision_function, y_test, score = results
+            self.assertFalse(execute(
+                [
+                    ('datasets|Iris', identifier, []),
+                    ('cross-validation|TrainTestSplit', identifier,
+                     [('test_size', [('Integer', '50')])]),
+                    ('classifiers|LinearSVC', identifier, []),
+                    ('Predict', identifier, []),
+                    ('Score', identifier, []),
 
-    def test_regressor_training_predict(self):
-        pass
+                ],
+                [
+                    # train test split
+                    (0, 'data', 1, 'data'),
+                    (0, 'target', 1, 'target'),
+                    # fit LinearSVC on training data
+                    (1, 'training_data', 2, 'training_data'),
+                    (1, 'training_target', 2, 'training_target'),
+                    # predict on test data
+                    (2, 'model', 3, 'model'),
+                    (1, 'test_data', 3, 'data'),
+                    # score test data
+                    (2, 'model', 4, 'model'),
+                    (1, 'test_data', 4, 'data'),
+                    (1, 'test_target', 4, 'target')
+                ]
+            ))
+        y_pred = np.hstack(y_pred)
+        decision_function = np.vstack(decision_function)
+        y_test = np.hstack(y_test)
+        self.assertEqual(y_pred.shape, (50,))
+        self.assertTrue(np.all(np.unique(y_pred) == np.array([0, 1, 2])))
+        self.assertEqual(decision_function.shape, (50, 3))
+        # some accuracy
+        self.assertTrue(np.mean(y_test == y_pred) > .5)
+        self.assertEqual(np.mean(y_test == y_pred), score)
 
     def test_transformer_unsupervised_transform(self):
         pass
