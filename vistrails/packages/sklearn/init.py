@@ -266,7 +266,7 @@ class ROCCurve(Module):
 ###############################################################################<F2>
 # Classifiers and Regressors
 
-def make_module(name, Estimator, namespace, supervised=False):
+def make_module(name, Estimator, namespace, supervised=False, Base=None):
     input_ports = [("train_data", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
     if supervised:
         input_ports.append(("train_classes", "basic:List", {'sort_key': 1, 'shape': 'circle'}))
@@ -274,10 +274,11 @@ def make_module(name, Estimator, namespace, supervised=False):
     input_ports.extend([(param, "basic:String", {'optional': True}) for param
                         in est.get_params()])
     _settings = ModuleSettings(namespace=namespace)
-    if supervised:
-        Base = SupervisedEstimator
-    else:
-        Base = UnsupervisedEstimator
+    if Base is None:
+        if supervised:
+            Base = SupervisedEstimator
+        else:
+            Base = UnsupervisedEstimator
     new_class = type(name, (Base,),
                      {'_input_ports': input_ports, '_settings': _settings,
                       '_estimator_class': Estimator, '__doc__':
@@ -306,7 +307,7 @@ def discover_clustering():
             all_estimators(type_filter="cluster")]
 
 
-###############################################################################<F2>
+###############################################################################
 # Transformers
 
 def discover_unsupervised_transformers():
@@ -317,8 +318,10 @@ def discover_unsupervised_transformers():
         if name in dont_test:
             continue
         module = Est.__module__.split(".")[1]
-        if module not in ['decomposition', 'kernel_approximation', 'manifold',
+        if module not in ['decomposition', 'kernel_approximation',
                           'neural_network', 'preprocessing', 'random_projection']:
+            # the manifold module does not really provide transformers and is
+            # handled elsewhere (there is usually no transform method).
             continue
         classes.append(make_module(name, Est, namespace=module))
     return classes
@@ -338,10 +341,45 @@ def discover_feature_selection():
     return classes
 
 
+###############################################################################
+# Manifold learning
+# unfortunately this has a sightly different interface due to the fact that
+# most manifold algorithms can't generalize to new data.
+class ManifoldLearner(Module):
+    """Base class for all sklearn manifold modules.
+    """
+    _settings = ModuleSettings(abstract=True)
+    _output_ports = [("transformed_data", "basic:List", {'shape': 'circle'})]
+
+    def compute(self):
+        params = dict([(p, try_convert(self.get_input(p))) for p in self.inputPorts
+                       if p not in ["train_data"]])
+        trans = self._estimator_class(**params)
+        train_data = np.vstack(self.get_input("train_data"))
+        transformed_data = trans.fit_transform(train_data)
+        self.set_output("transformed_data", transformed_data)
+
+
+def discover_manifold_learning():
+    # also: random tree embedding
+    transformers = all_estimators()
+    classes = []
+    for name, Est in transformers:
+        if name in dont_test:
+            continue
+        module = Est.__module__.split(".")[1]
+        if module != "manifold":
+            continue
+        classes.append(make_module(name, Est, namespace=module, Base=ManifoldLearner))
+    return classes
+
+
 _modules = [Digits, Iris, Estimator, SupervisedEstimator,
-            UnsupervisedEstimator, Predict, Transform, TrainTestSplit, Score,
-            ROCCurve, CrossValScore, GridSearchCV, Pipeline]
+            UnsupervisedEstimator, ManifoldLearner, Predict, Transform,
+            TrainTestSplit, Score, ROCCurve, CrossValScore, GridSearchCV,
+            Pipeline]
 _modules.extend(discover_supervised())
 _modules.extend(discover_clustering())
 _modules.extend(discover_unsupervised_transformers())
 _modules.extend(discover_feature_selection())
+_modules.extend(discover_manifold_learning())
