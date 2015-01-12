@@ -573,10 +573,9 @@ class VistrailController(QtCore.QObject, BaseController):
 #                 else:
 #                     process_err(exception_set.__iter__().next())
 
-        except Exception, e:
-            import traceback
+        except Exception:
             debug.critical('Unexpected Exception',
-                           traceback.format_exc())
+                           debug.format_exc())
         
         # FIXME: this code breaks undo/redo, and seems to be ok with normal
         # pipeline manipulations so I am leaving it commented out for now
@@ -1022,7 +1021,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.invalidate_version_tree(False)
 
     def get_pipeline_name(self, version=None):
-        if version == None:
+        if version is None:
             version = self.current_version
         return self.vistrail.get_pipeline_name(version)
 

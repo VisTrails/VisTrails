@@ -698,5 +698,5 @@ class Package(DBPackage):
         """
         self.configuration = copy.copy(self._default_configuration)
         if self.load_configuration:
-            self.persisted_configuration = copy.copy(self.configuration)
+            self.persistent_configuration = copy.copy(self.configuration)
             self.persist_configuration(True)

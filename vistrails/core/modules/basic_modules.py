@@ -313,8 +313,8 @@ class String(Constant):
 
     @staticmethod
     def translate_to_python(x):
-        assert isinstance(x, str)
-        return x
+        assert isinstance(x, (str, unicode))
+        return str(x)
 
     @staticmethod
     def validate(x):
@@ -1017,7 +1017,7 @@ class CodeRunnerMixin(object):
         exec code_str + '\n' in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
-                if locals_.get(k) != None:
+                if locals_.get(k) is not None:
                     self.set_output(k, locals_[k])
 
 ##############################################################################

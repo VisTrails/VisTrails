@@ -375,7 +375,7 @@ class DBLocator(_DBLocator, CoreLocator):
         """get_connection_info(id: int) -> dict
         Returns info of ExtConnection """
         conn = self.__list.get_connection(id)
-        if conn != None:
+        if conn is not None:
             succeeded = False
             key = str(conn.id) + "." + conn.name + "." + conn.host
             passwd = DBLocator.keyChain.get_key(key)

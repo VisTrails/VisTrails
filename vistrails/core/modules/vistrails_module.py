@@ -1,34 +1,34 @@
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the University of Utah nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -140,21 +140,22 @@ class ModuleSuspended(ModuleError):
     modules
     """
 
-    def __init__(self, module, errormsg, monitor=None, children=None, queue=None):
-        self.monitor = monitor
-        if monitor is None and queue is not None:
+    def __init__(self, module, errormsg, handle=None, children=None,
+                 queue=None):
+        ModuleError.__init__(self, module, errormsg)
+        self.handle = handle
+        if handle is None and queue is not None:
             warnings.warn("Use of deprecated argument 'queue' replaced by "
-                          "'monitor'",
+                          "'handle'",
                           category=VistrailsDeprecation,
                           stacklevel=2)
-            self.monitor = queue
+            self.handle = queue
         self.children = children
         self.name = None
-        ModuleError.__init__(self, module, errormsg)
 
     @property
     def queue(self):
-        return self.monitor
+        return self.handle
 
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.
@@ -441,7 +442,7 @@ class Module(Serializable):
             self.upToDate = True
             return True
         return False
-    
+
     def addJobCache(self):
         """ addJobCache() -> None
             Add outputs from job cache
@@ -1799,10 +1800,11 @@ class ModuleConnector(object):
                                     "type %s" % (i, self.port, desc.name))
         return result
 
-def new_module(base_module, name, dict={}, docstring=None):
+
+def new_module(base_module, name, class_dict={}, docstring=None):
     """new_module(base_module or [base_module list],
                   name,
-                  dict={},
+                  class_dict={},
                   docstring=None
 
     Creates a new VisTrails module dynamically. Exactly one of the
@@ -1817,7 +1819,7 @@ def new_module(base_module, name, dict={}, docstring=None):
         superclasses = tuple(base_module)
     else:
         raise TypeError
-    d = copy.copy(dict)
+    d = copy.copy(class_dict)
     if docstring:
         d['__doc__'] = docstring
     return type(name, superclasses, d)

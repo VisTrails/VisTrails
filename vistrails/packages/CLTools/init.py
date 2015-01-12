@@ -107,6 +107,7 @@ def _add_tool(path):
         # add all arguments as an unordered list
         args = [self.conf['command']]
         file_std = 'options' in self.conf and 'std_using_files' in self.conf['options']
+        fail_with_cmd = 'options' in self.conf and 'fail_with_cmd' in self.conf['options']
         setOutput = [] # (name, File) - set File contents as output for name
         open_files = []
         stdin = None
@@ -245,7 +246,10 @@ def _add_tool(path):
             else:
                 kwargs['stderr'] = subprocess.PIPE
 
-        return_code = self.conf.get('return_code', None)
+        if fail_with_cmd:
+            return_code = 0
+        else:
+            return_code = self.conf.get('return_code', None)
 
         env = {}
         # 0. add defaults
@@ -552,11 +556,12 @@ class TestCLTools(unittest.TestCase):
         reload_scripts()
 
     def do_the_test(self, toolname):
-        with intercept_results(self._tools['intern_cltools_1'],
+        with intercept_results(
+                self._tools[toolname],
                 'return_code', 'f_out', 'stdout') as (
                 return_code, f_out, stdout):
             self.assertFalse(execute([
-                    ('intern_cltools_1', 'org.vistrails.vistrails.cltools', [
+                    (toolname, 'org.vistrails.vistrails.cltools', [
                         ('f_in', [('File', self.testdir + '/test_1.cltest')]),
                         ('chars', [('List', '["a", "b", "c"]')]),
                         ('false', [('Boolean', 'False')]),

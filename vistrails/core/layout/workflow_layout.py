@@ -472,7 +472,7 @@ class WorkflowLayout(object):
         permutation = []
         while True:
             mod = iterator.next()
-            if mod == None:
+            if mod is None:
                 break
             permutation.append(mod)
         permutation.reverse()

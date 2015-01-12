@@ -44,7 +44,8 @@ import sys
 import time
 import traceback
 
-################################################################################
+###############################################################################
+
 
 def format_exception(e):
     """Formats an exception as a single-line (no traceback).
@@ -92,9 +93,7 @@ def unexpected_exception(e, tb=None, frame=None):
     # Prints the exception and traceback
     print >>sys.stderr, "!!!!!!!!!!"
     print >>sys.stderr, "Got unexpected exception, starting debugger"
-    traceback.print_tb(tb, file=sys.stderr)
-    if e is not None:
-        print >>sys.stderr, format_exception(e)
+    print_exception(None, e, tb, 3, file=sys.stderr)
 
     # Starts the debugger
     print >>sys.stderr, "!!!!!!!!!!"
@@ -103,7 +102,72 @@ def unexpected_exception(e, tb=None, frame=None):
     p.reset()
     p.interaction(frame, tb)
 
-################################################################################
+###############################################################################
+
+def _format_exception(etype, value, etb, rtb):
+    yield "Traceback (most recent call last):\n"
+    if isinstance(rtb, (int, long)):
+        try:
+            raise ZeroDivisionError
+        except ZeroDivisionError:
+            f = sys.exc_info()[2].tb_frame
+            while rtb > 0:
+                f = f.f_back
+                rtb -= 1
+            rtb = f
+    for line in traceback.format_stack(rtb):
+        yield line
+    yield "--- Exception caught here ---\n"
+    if etb:
+        for line in traceback.format_tb(etb):
+            yield line
+    if value is not None:
+        if etype is None:
+            etype = type(value)
+        lines = traceback.format_exception_only(etype, value)
+        for line in lines:
+            yield line
+
+def print_exception(etype, value, etb, rtb=2, file=None):
+    """Like :func:`traceback.print_exception` but prints the full stack.
+
+    In addition to the stack frames between the exception and the point it is
+    caught, this prints the stack frames above the catching location.
+
+    `etb` is the traceback object from the exception, which will be printed
+    below the ``Exception caught here`` line. `rtb` is either a frame object at
+    which to start, or an integer specifying the depth.
+    """
+    if file is None:
+        file = sys.stderr
+    for line in _format_exception(etype, value, etb, rtb + 1):
+        file.write(line)
+
+def format_exc():
+    """Like :func:`traceback.format_exc` but uses the full stack.
+
+    In addition to the stack frames between the exception and the point it is
+    caught, this prints the stack frames above the catching location.
+    """
+    try:
+        etype, value, tb = sys.exc_info()
+        return ''.join(_format_exception(etype, value, tb, 3))
+    finally:
+        etype = value = tb = None
+
+def print_exc(file=None):
+    """Like :func:`traceback.print_exc` but prints the full stack.
+
+    In addition to the stack frames between the exception and the point it is
+    caught, this prints the stack frames above the catching location.
+    """
+    try:
+        etype, value, tb = sys.exc_info()
+        print_exception(etype, value, tb, 3, file)
+    finally:
+        etype = value = tb = None
+
+###############################################################################
 
 _warningformat = re.compile(
         '^(.+):'
@@ -125,7 +189,7 @@ class EmitWarnings(logging.Handler):
     def emit(self, record):
         # Here we basically do the contrary of warnings:formatwarning()
         m = _warningformat.match(record.args[0])
-        if m == None:
+        if m is None:
             self.logger.warning("(File info not available)\n" +
                            record.args[0])
         else:
@@ -134,7 +198,7 @@ class EmitWarnings(logging.Handler):
             self.logger.warning('%s, line %s\n%s: %s' % (filename, lineno,
                                                     category, message))
 
-################################################################################
+###############################################################################
 
 class LoggerHandler(logging.Handler):
     """A logging Handler Handler re-logs on a specified Logger.
@@ -147,7 +211,7 @@ class LoggerHandler(logging.Handler):
         if self.logger.isEnabledFor(record.levelno):
             self.logger.handle(record)
 
-################################################################################
+###############################################################################
 
 class DebugPrint(object):
     """ Class to be used for debugging information.
@@ -363,7 +427,7 @@ debug    = DebugPrint.getInstance().debug
 #   log : shown if -V 1
 #   debug : shown if -V 2
 
-################################################################################
+###############################################################################
 
 def timecall(method):
     """timecall is a method decorator that wraps any call in timing calls
@@ -376,7 +440,7 @@ def timecall(method):
     call.__doc__ = method.__doc__
     return call
 
-################################################################################
+###############################################################################
 
 def object_at(desc):
     """object_at(id) -> object
@@ -396,3 +460,61 @@ def object_at(desc):
         if id(obj) == target_id:
             return obj
     raise KeyError("Couldn't find object")
+
+###############################################################################
+
+import unittest
+
+class TestStack(unittest.TestCase):
+    @staticmethod
+    def do_in_stack(catch_, raise_):
+        def a():
+            b()
+        def b():
+            c()
+        def c():
+            catch_(d)
+        def d():
+            e()
+        def e():
+            raise_()
+        a()
+
+    def test_print_exc(self):
+        import itertools
+        from StringIO import StringIO
+
+        sio = StringIO()
+
+        def catch_(d):
+            try:
+                d()
+            except RuntimeError:
+                return print_exc(file=sio)
+
+        def raise_():
+            raise RuntimeError("message here")
+
+        self.do_in_stack(catch_, raise_)
+        result = sio.getvalue().splitlines()
+        expected = (
+r'^ +a\(\)',
+r'^  File .+, line \d+, in a',
+r'^    b\(\)',
+r'^  File .+, line \d+, in b',
+r'^    c\(\)',
+r'^  File .+, line \d+, in c',
+r'^    catch_\(d\)',
+r'^--- Exception caught here ---',
+r'^  File .+, line \d+, in catch_',
+r'^    d\(\)',
+r'^  File .+, line \d+, in d',
+r'^    e\(\)',
+r'^  File .+, line \d+, in e',
+r'^    raise_\(\)',
+r'^  File .+, line \d+, in raise_',
+r'^    raise RuntimeError\("message here"\)',
+r'^RuntimeError: message here')
+        for a, e in itertools.izip(result[-len(expected):], expected):
+            self.assertIsNotNone(re.search(e, a),
+                                 "%r doesn't match %r" % (a, e))

@@ -110,9 +110,9 @@ class vtkBaseModule(Module):
 
         pp = []
         for j in xrange(len(setterSig)):
-            setter = list(setterSig[j][1]) if setterSig[j][1] != None else None
+            setter = list(setterSig[j][1]) if setterSig[j][1] is not None else None
             aux = []
-            if setter != None and len(setter) == len(params) and pp == []:
+            if setter is not None and len(setter) == len(params) and pp == []:
                 for i in xrange(len(setter)):
                     if setter[i].find('[') != -1:
                         del aux[:]

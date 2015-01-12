@@ -799,7 +799,7 @@ class QVistrailList(QtGui.QTreeWidget):
         Expand/Collapse top-level item when the mouse is pressed
         
         """
-        if item and item.parent() == None:
+        if item and item.parent() is None:
             self.setItemExpanded(item, not self.isItemExpanded(item))
             
     def search_result_selected(self, view, version):

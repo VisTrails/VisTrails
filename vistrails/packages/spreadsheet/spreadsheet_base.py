@@ -32,22 +32,23 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains a set of internal Spreadsheet basic classes used
-# by others:
-#   StandardSheetReference
-#   StandardSingleCellSheetReference
-#   StandardSingleCellSheetTab
-################################################################################
+
+"""This file contains a set of internal Spreadsheet basic classes used by
+others:
+  StandardSheetReference
+  StandardSingleCellSheetReference
+  StandardSingleCellSheetTab
+"""
+
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
-from spreadsheet_helpers import CellHelpers
-from spreadsheet_registry import spreadsheetRegistry
-from spreadsheet_tab import (StandardWidgetSheetTab,
-                             StandardWidgetSheetTabInterface)
+from PyQt4 import QtGui
 
-################################################################################
+from .spreadsheet_helpers import CellHelpers
+from .spreadsheet_registry import spreadsheetRegistry
+from .spreadsheet_tab import StandardWidgetSheetTab, \
+    StandardWidgetSheetTabInterface
+
 
 class StandardSheetReference(object):
     """
@@ -59,7 +60,7 @@ class StandardSheetReference(object):
     def __init__(self):
         """ StandardSheetReference() -> StandardSheetReference
         Initialize to the current sheet with no minimum size
-        
+
         """
         self.sheetName = None
         self.minimumRowCount = 1
@@ -69,17 +70,17 @@ class StandardSheetReference(object):
     def isTabValid(self, tabWidget):
         """ isTabValid(tabWidget: QWidget) -> boolean
         Check to see if the tab is an acceptable type
-        
+
         """
         return issubclass(tabWidget.__class__, StandardWidgetSheetTab)
 
     def clearCandidate(self):
-        """ clearCandidate() -> None        
-        Begin the candidate searching process by clearing the previous        
+        """ clearCandidate() -> None
+        Begin the candidate searching process by clearing the previous
         candidate sheet. The searching process is done by looping
         through all available sheets and let the SheetReference decides
         and keep track of which one is the best appropriate
-        
+
         """
         self.candidate = None
 
@@ -87,7 +88,7 @@ class StandardSheetReference(object):
         """ checkCandidate(tabWidget: QWidget,
                            tabLabel: str,
                            tabIndex: int,
-                           curIndex: int) -> None                           
+                           curIndex: int) -> None
         Check to see if this new candidate is better than the one we
         have right now. If it is then use this one instead. The
         condition is very simple, sheet type comes first, then name
@@ -98,7 +99,7 @@ class StandardSheetReference(object):
         tabLabel  --- the display label of the sheet
         tabIndex  --- its index inside the tab controller
         curIndex  --- the current active index of the tab controller
-        
+
         """
         if self.isTabValid(tabWidget):
             if (self.sheetName!=None and
@@ -123,13 +124,13 @@ class StandardSheetReference(object):
                         if tabIndex!=curIndex:
                             return
             self.candidate = (tabWidget, tabLabel, tabIndex, curIndex)
-                
+
     def setupCandidate(self, tabController):
         """ setupCandidate(tabController: SpreadsheetTabController) -> None
         Setup the candidate we have to completely satisfy the reference,
         making ready to be displayed on, e.g. extend the number of row and
         column
-        
+
         """
         if self.candidate==None:
             candidate = StandardWidgetSheetTab(tabController,
@@ -147,19 +148,20 @@ class StandardSheetReference(object):
             tabController.setCurrentWidget(self.candidate[0])
             return self.candidate[0]
 
+
 class StandardSingleCellSheetTab(QtGui.QWidget,
                                  StandardWidgetSheetTabInterface):
     """
     StandardSingleCellSheetTab is a container of StandardWidgetSheet
     with only a single cell. This will be added directly to a
     QTabWidget on the spreadsheet as a sheet for displaying
-    
+
     """
     def __init__(self, tabWidget, row=1, col=1):
         """ StandardSingleCellSheetTab(row: int,
                                        col: int) -> StandardSingleCellSheetTab
         Initialize with the vertical layout containing only a single widget
-        
+
         """
         QtGui.QWidget.__init__(self, None)
         StandardWidgetSheetTabInterface.__init__(self)
@@ -177,25 +179,25 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
         self.pipelineInfo = {}
 
     ### Belows are API Wrappers to connect to self.sheet
-            
+
     def getDimension(self):
         """ getDimension() -> tuple
         Get the sheet dimensions
-        
+
         """
         return (1,1)
-            
+
     def getCell(self, row, col):
         """ getCell(row: int, col: int) -> QWidget
         Get cell at a specific row and column.
-        
+
         """
         return self.cell
 
     def getCellToolBar(self, row, col):
         """ getCellToolBar(row: int, col: int) -> QWidget
         Return the toolbar widget at cell location (row, col)
-        
+
         """
         cell = self.getCell(row, col)
         if cell and hasattr(cell, 'toolBarType'):
@@ -209,7 +211,7 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
         """ getCellRect(row: int, col: int) -> QRect
         Return the rectangle surrounding the cell at location (row, col)
         in parent coordinates
-        
+
         """
         return self.contentsRect()
 
@@ -217,7 +219,7 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
         """ getCellGlobalRect(row: int, col: int) -> QRect
         Return the rectangle surrounding the cell at location (row, col)
         in global coordinates
-        
+
         """
         rect = self.getCellRect(row, col)
         rect.moveTo(self.mapToGlobal(rect.topLeft()))
@@ -227,11 +229,11 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
         """ setCellByType(row: int,
                           col: int,
                           cellType: a type inherits from QWidget,
-                          inpurPorts: tuple) -> None                          
+                          inpurPorts: tuple) -> None
         Replace the current location (row, col) with a cell of
         cellType. If the current type of that cell is the same as
         cellType, only the contents is updated with inputPorts.
-        
+
         """
         oldCell = self.getCell(row, col)
         if type(oldCell)!=cellType:
@@ -252,7 +254,7 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
     def showHelpers(self, show, globalPos):
         """ showHelpers(show: boolean, globalPos: QPoint) -> None
         Show the helpers (toolbar, resizer) when show==True
-        
+
         """
         if show:
             self.helpers.snapTo(0,0)
@@ -264,20 +266,21 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
     def getSelectedLocations(self):
         """ getSelectedLocations() -> tuple
         Return the selected locations (row, col) of the current sheet
-        
+
         """
         return [(0,0)]
+
 
 class StandardSingleCellSheetReference(StandardSheetReference):
     """
     StandardSingleCellSheetReference is a sheet reference that only
     accepts a single cell. This overrides the StandardSheetReference
-    
+
     """
     def isTabValid(self, tabWidget):
         """ isTabValid(tabWidget: QWidget) -> boolean
         Only accepts StandardSingleCellSheetTab
-        
+
         """
         return issubclass(tabWidget.__class__, StandardSingleCellSheetTab)
 
@@ -287,7 +290,7 @@ class StandardSingleCellSheetReference(StandardSheetReference):
                            tabIndex: int,
                            curIndex: int) -> None
         Better candidate is decided merely if it is the current index
-        
+
         """
         if self.isTabValid(tabWidget):
             better = False
@@ -298,11 +301,11 @@ class StandardSingleCellSheetReference(StandardSheetReference):
                 if self.candidate[2]==curIndex or tabIndex!=curIndex:
                     return
             self.candidate = (tabWidget, tabLabel, tabIndex, curIndex)
-                
+
     def setupCandidate(self, tabController):
         """ setupCandidate(tabController: SpreadsheetTabController) -> None
         Set up the sheet to be single-cell sheet
-        
+
         """
         if self.candidate==None:
             candidate = StandardSingleCellSheetTab(tabController)
@@ -312,6 +315,6 @@ class StandardSingleCellSheetReference(StandardSheetReference):
         else:
             return self.candidate[0]
 
+
 spreadsheetRegistry.registerSheet('StandardSingleCellSheetTab',
                                   StandardSingleCellSheetTab)
-

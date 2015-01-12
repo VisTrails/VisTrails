@@ -192,7 +192,7 @@ class TestPoint(unittest.TestCase):
         a = Point(0, 1)
         b = Point(0, 1)
         assert a == b
-        assert a != None
+        assert a is not None
         b = Point(0, 0.1)
         assert a != b
 

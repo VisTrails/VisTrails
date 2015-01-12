@@ -9,10 +9,10 @@
 *.swp
 
 # install
-build/
-dist/
+/build/
+/dist/
 vistrails.egg-info/
-vistrails/build/
+/vistrails/build/
 
 # pycharm
 .idea/

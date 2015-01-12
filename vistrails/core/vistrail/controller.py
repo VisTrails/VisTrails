@@ -287,7 +287,7 @@ class VistrailController(object):
         Change the controller file name
         
         """
-        if file_name == None:
+        if file_name is None:
             file_name = ''
         if self.file_name!=file_name:
             self.file_name = file_name
@@ -2374,7 +2374,7 @@ class VistrailController(object):
                                           descriptor_tuple[1],
                                           descriptor_tuple[4],
                                           [v for k, v in lookup.iteritems()
-                                           if k[1] != None])
+                                           if k[1] is not None])
                 descriptor_tuple = (new_desc.package, new_desc.name, 
                                     new_desc.namespace, new_desc.package_version,
                                     str(new_desc.version))
@@ -3526,8 +3526,6 @@ class VistrailController(object):
                     self.current_version = new_version
                 except InvalidPipeline, e:
                     # display invalid pipeline?
-                    # import traceback
-                    # traceback.print_exc()
                     new_error = e
                     
                     # just do the version switch, anyway, but alert the
@@ -3576,8 +3574,7 @@ class VistrailController(object):
             elif len(e._exception_set) > 0:
                 process_err(e._exception_set.__iter__().next())
         except Exception, e:
-            import traceback
-            debug.critical("Unhandled exception", traceback.format_exc())
+            debug.critical("Unhandled exception", debug.format_exc())
 
     def write_temporary(self):
         if self.vistrail and self.changed:

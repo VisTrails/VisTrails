@@ -32,33 +32,28 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains useful functions for executing pipelines on the spreadsheet
-# assignPipelineCellLocations
-# executePipelineWithProgress
-################################################################################
+
+"""This file contains useful functions for executing pipelines on the
+spreadsheet:
+  assignPipelineCellLocations
+  executePipelineWithProgress
+"""
+
 from __future__ import division
 
+import copy
 from PyQt4 import QtCore, QtGui
-from vistrails.core.vistrail.controller import VistrailController
-from vistrails.core.modules.module_registry import get_module_registry
+
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.utils import DummyView
-from vistrails.core.vistrail.action import Action
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
-from vistrails.core.vistrail.port import Port
-from vistrails.core.vistrail import module
-from vistrails.core.vistrail import connection
-import vistrails.db.services.action
-import copy
 
-from identifiers import identifier as spreadsheet_pkg
+from .identifiers import identifier as spreadsheet_pkg
 
-################################################################################
 
-def assignPipelineCellLocations(pipeline, sheetName, 
+def assignPipelineCellLocations(pipeline, sheetName,
                                 row, col, cellIds=None,
                                 minRowCount=None, minColCount=None):
 
@@ -80,7 +75,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
 
     for id_list in cellIds:
         # find at which depth we need to be working
-        try:                
+        try:
             id_iter = iter(id_list)
             m = pipeline.modules[id_iter.next()]
             for mId in id_iter:
@@ -90,7 +85,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
             mId = id_list
 
         m = pipeline.modules[mId]
-        if not reg.is_descriptor_subclass(m.module_descriptor, 
+        if not reg.is_descriptor_subclass(m.module_descriptor,
                                           spreadsheet_cell_desc):
             continue
 
@@ -98,7 +93,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
         # modules connected to this spreadsheet cell
         conns_to_delete = []
         for (cId,c) in pipeline.connections.iteritems():
-            if (c.destinationId==mId and 
+            if (c.destinationId==mId and
                 pipeline.modules[c.sourceId].name=="CellLocation"):
                 conns_to_delete.append(c.id)
         for c_id in conns_to_delete:
@@ -116,20 +111,20 @@ def assignPipelineCellLocations(pipeline, sheetName,
         # Add a sheet reference with a specific name
         sheetReference = create_module(id_scope, spreadsheet_pkg,
                                        "SheetReference")
-        sheetNameFunction = create_function(id_scope, sheetReference, 
+        sheetNameFunction = create_function(id_scope, sheetReference,
                                             "SheetName", [str(sheetName)])
             # ["%s %d" % (sheetPrefix, sheet)])
 
         sheetReference.add_function(sheetNameFunction)
 
         if minRowCount is not None:
-            minRowFunction = create_function(id_scope, sheetReference, 
+            minRowFunction = create_function(id_scope, sheetReference,
                                              "MinRowCount", [str(minRowCount)])
                                                    # [str(rowCount*vRCount)])
             sheetReference.add_function(minRowFunction)
         if minColCount is not None:
-            minColFunction = create_function(id_scope, sheetReference, 
-                                             "MinColumnCount", 
+            minColFunction = create_function(id_scope, sheetReference,
+                                             "MinColumnCount",
                                              [str(minColCount)])
                                                    # [str(colCount*vCCount)])
             sheetReference.add_function(minColFunction)
@@ -139,7 +134,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
                                      "CellLocation")
         rowFunction = create_function(id_scope, cellLocation, "Row", [str(row)])
                                                  # [str(row*vRCount+vRow+1)])
-        colFunction = create_function(id_scope, cellLocation, "Column", 
+        colFunction = create_function(id_scope, cellLocation, "Column",
                                       [str(col)])
                                                  # [str(col*vCCount+vCol+1)])
 
@@ -164,12 +159,13 @@ def assignPipelineCellLocations(pipeline, sheetName,
 
     return root_pipeline
 
+
 def executePipelineWithProgress(pipeline,
                                 pTitle='Pipeline Execution',
                                 pCaption='Executing...',
                                 pCancel='&Cancel',
                                 **kwargs):
-    """ executePipelineWithProgress(pipeline: Pipeline,                                    
+    """ executePipelineWithProgress(pipeline: Pipeline,
                                     pTitle: str, pCaption: str, pCancel: str,
                                     kwargs: keyword arguments) -> bool
     Execute the pipeline while showing a progress dialog with title
@@ -177,7 +173,7 @@ def executePipelineWithProgress(pipeline,
     pCancel. kwargs is the keyword arguments that will be passed to
     the interpreter. A bool will be returned indicating if the
     execution was performed without cancel or not.
-    
+
     """
     withoutCancel = True
     totalProgress = len(pipeline.modules)
