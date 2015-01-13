@@ -7,7 +7,7 @@ import itertools
 import linecache
 
 from vistrails.core.bundles import py_import
-from vistrails.core.scripting.utils import utf8
+from vistrails.core.scripting.utils import dedent, indentation, utf8
 
 
 redbaron = py_import('redbaron', {'pip': 'redbaron'})
@@ -30,41 +30,12 @@ def make_unique(name, all_vars, more_vars=set()):
     return n
 
 
-def indentation(line):
-    """Gets the indentation level of a line of code.
-
-    See Python Language Reference, 2.1.8. Indentation:
-    https://docs.python.org/2/reference/lexical_analysis.html#indentation
-    """
-    indent = 0
-    for c in line:
-        if c == ' ':
-            indent += 1
-        elif c == '\t':
-            indent += 8 - (indent % 8)
-        else:
-            break
-    return indent
-
-
-def dedent(line, level):
-    """De-indent a line by the given level.
-
-    If we end up inside of a tab, too bad.
-    """
-    pos = 0
-    l = len(line)
-    while level > 0 and pos < l:
-        if line[pos] == ' ':
-            level -= 1
-        elif line[pos] == '\t':
-            level -= 8 - (pos % 8)
-        pos += 1
-    return line[pos:]
-
-
 def get_method_code(func):
     """Gets the code for a method.
+
+    :param func: An unbound method or function object.
+    :returns: The method's code
+    :rtype: unicode
     """
     # Unwrap the unbound method if needed
     if hasattr(func, 'im_func'):
