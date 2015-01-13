@@ -3,6 +3,7 @@
 
 from __future__ import division, unicode_literals
 
+import ast
 import itertools
 import linecache
 
@@ -211,7 +212,8 @@ class Script(BaseScript):
         # Sets self.inputs -- what inputs currently are in self.source
         if self.inputs == 'variables':
             self.inputs = dict((n, utf8(n)) for n in input_vars)
-        #elif self.inputs == 'calls': # TODO
+        elif self.inputs == 'calls':
+            pass
         elif isinstance(self.inputs, dict):
             pass
         else:
@@ -221,7 +223,8 @@ class Script(BaseScript):
         # Sets self.outputs -- what outputs currently are in self.source
         if self.outputs == 'variables':
             self.outputs = dict((n, utf8(n)) for n in output_vars)
-        #elif self.outputs == 'calls': # TODO
+        elif self.outputs == 'calls':
+            pass
         elif isinstance(self.outputs, dict):
             pass
         else:
@@ -271,6 +274,76 @@ class Script(BaseScript):
 
         # No need to find collisions in input port names: these variables are
         # temporary and will all get set via set_input() before generation
+
+        # Now, rewrite method calls which are really input/output operations
+        for node in self.source.find_all('AtomtrailersNode'):
+            if (node.value[0].name.value == 'self' and
+                    isinstance(node.value[1], redbaron.NameNode) and
+                    isinstance(node.value[2], redbaron.CallNode)):
+                method_name = node.value[1].value
+                call = node.value[2]
+                if len(call.value) >= 1:
+                    port = ast.literal_eval(call.value[0].string.value)
+                else:
+                    port = None
+                if method_name in ('get_input', 'getInputFromPort'):
+                    allow_default = True
+                    if (len(call.value) >= 2 and
+                            call.value[1].target in (None, 'allow_default') and
+                            call.value[1].value.name == 'False'):
+                        allow_default = False
+                        print("Can't deal with get_input(..., "
+                              "allow_default=False) right now")
+                    node.replace(self.inputs.get(port, 'None'))
+                elif method_name in ('get_input_list', 'getInputListFromPort'):
+                    print("Can't deal with get_input_list() right now")
+                    node.replace('[%s]' % self.inputs.get(port, ''))
+                elif method_name in ('check_input', 'checkInputPort'):
+                    print("Can't deal with check_input() right now")
+                    node.replace('pass  # check_input() call removed')
+                elif method_name in ('has_input', 'hasInputFromPort'):
+                    print("Can't deal with has_input() right now")
+                    node.replace('True')
+                elif method_name in ('force_get_input',
+                                     'forceGetInputFromPort'):
+                    print("Can't deal with force_get_input() right now")
+                    default = None
+                    if (len(call.value) >= 2 and
+                            call.value[1].target in (None, 'default_value')):
+                        default = call.value[1].value
+                    if port in self.inputs:
+                        node.replace('%s or %s' % (self.inputs[port],
+                                                   'None' if default is None
+                                                   else default.dumps()))
+                    else:
+                        node.replace('None')
+                elif method_name in ('force_get_input_list',
+                                     'forceGetInputListFromPort'):
+                    print("Can't deal with force_get_input_list() right now")
+                    if port in self.inputs:
+                        node.replace('[%s]' % self.inputs[port])
+                    else:
+                        node.replace('[]')
+                elif method_name in ('get_default_value', 'getDefaultValue'):
+                    print("Can't deal with get_default_value() right now")
+                    node.replace('None')
+                elif method_name in ('set_output', 'setResult'):
+                    if len(call.value) == 2:
+                        node.replace('%s = %s' % (port, call.value[1].dumps()))
+                    else:
+                        node.replace('pass  # Invalid set_output() call '
+                                     'removed')
+                elif method_name == 'get_output':
+                    if port in self.outputs:
+                        node.replace(self.outputs[port])
+                    else:
+                        node.replace('None')
+                elif method_name == 'annotate':
+                    print("Suppressing annotate() call")
+                    if len(call.value) == 1:
+                        node.replace(call.value[0])
+                    else:
+                        node.replace('pass  # Invalid annotate() call removed')
 
         # Fills in used_inputs
         self.used_inputs = set()
