@@ -11,6 +11,13 @@ redbaron = py_import('redbaron', {'pip': 'redbaron'})
 
 
 def make_unique(name, all_vars, more_vars=set()):
+    """Makes a variable name unique.
+
+    :param all_vars: Variables in the scope, to which the one will be added
+    once renamed
+    :type all_vars: set
+    :param more_vars: Additional identifier names to avoid
+    """
     i = 1
     n = name
     while n in all_vars or n in more_vars:
@@ -58,7 +65,7 @@ class Prelude(BaseScript):
     # Defined variables are the symbols that are created by this prelude code
     # The scripts that use this prelude will want to use these
     # We rename them if they clash with other preludes; in that case we rename
-    # in the same way in each script that use the prelude
+    # in the same way in each script that uses the prelude
     defined_vars = None
     # Imported packages are symbols that are created by importing a package of
     # the same name (top-level only)
