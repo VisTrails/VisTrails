@@ -59,3 +59,4 @@ Intermediate Concepts and VisTrails Packages
    persistence
    vistrails_server
    latex
+   example_scikit_learn

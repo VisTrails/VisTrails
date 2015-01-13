@@ -1,6 +1,6 @@
-***********************
-Example : scikit-learn
-***********************
+*********************
+Example: scikit-learn
+*********************
 
 Introduction to scikit-Learn
 ============================
@@ -22,6 +22,25 @@ It this also fails, consult the `installation instructions <http://scikit-learn.
 
 Using scikit-learn via vistrails
 =================================
+
+Datasets
+^^^^^^^^
+For testing purposes and the examples, there are two multi-class classification datasets made available as vistrails modules,
+the Digits and the Iris datasets. These have as output ports training data and classification targets, to quickly test a pipeline.
+Both datasets are very simple toy datasets and should not be used as benchmarks.
+
+The Digits dataset consists of 1797 handwritten digits as represented as 8x8
+grey scale images, resulting in 64 features. The digits belong to the classes 0
+to 9.
+The `Iris <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_ dataset
+consists of 150 data points with four features, belonging to one of three
+classes.
+
+Splitting data into training and test set
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+As machine learning is inherently about generalization from training to test data,
+it is essential to separate a data set into training and test parts.
+The TrainTestSplit module is a convenient way to do this:
 
 Basic usage
 ^^^^^^^^^^^
@@ -85,22 +104,3 @@ Currently the Vistrail scikit-learn package only supports up to four steps in a 
 As any other model, a pipeline can either be fit on data and then evaluated using ``Predict``, ``Transform`` or ``Score`` modules,
 or can serve as the input model to ``CrossValScore`` or ``GridSearchCV``.
 
-Splitting data into training and test set
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-As machine learning is inherently about generalization from training to test data,
-it is essential to separate a data set into training and test parts.
-The TrainTestSplit module is a convenient way to do this:
-
-
-Datasets
-^^^^^^^^
-For testing purposes and the examples, there are two multi-class classification datasets made available as vistrails modules,
-the Digits and the Iris datasets. These have as output ports training data and classification targets, to quickly test a pipeline.
-Both datasets are very simple toy datasets and should not be used as benchmarks.
-
-The Digits dataset consists of 1797 handwritten digits as represented as 8x8
-grey scale images, resulting in 64 features. The digits belong to the classes 0
-to 9.
-The `Iris <https://en.wikipedia.org/wiki/Iris_flower_data_set>` dataset
-consists of 150 data points with four features, belonging to one of three
-classes.
