@@ -50,7 +50,7 @@ training it on one part of the data, the training set, and then applying it
 to another part, the test set.
 
 Each algorithm in scikit-learn has a corresponding vistrails module, which has
-input ports for training data, and outputs the model that was learned (with the exception of the manifold module).
+input ports for training data, and outputs the model that was learned (with the exception of the :ref:`manifold_module` module).
 To apply the model to new data, connect it to a Predict module (for classification and regression) or a Transform module
 (for data transformations like feature selection and dimensionality reduction).
 
@@ -71,6 +71,8 @@ To make connecting the ports easier, ports that represent models are diamond sha
 while ports that represent data or label arrays are round. The remaining square ports
 are either parameters of the models or additional information provided as output.
 
+.. _manifold_module:
+
 Manifold learning
 ^^^^^^^^^^^^^^^^^
 Manifold learning algorithms are algorithms that embed high-dimensional data
@@ -82,6 +84,10 @@ directly output the transformed data.
 .. figure:: figures/example_scikit_learn/manifold.png
    :align: center
    :height: 400px
+
+   The left hand side of the pipeline uses PCA, which can use Transform to be applied to new data.
+   The right hand side uses the manifold learning method TSNE, which can not be applied to new data,
+   and therefore directly produces the transformed input data (in contrast to PCA, which produces a model).
 
 Cross Validation and Grid Search
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
