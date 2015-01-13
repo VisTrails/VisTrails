@@ -54,12 +54,18 @@ input ports for training data, and outputs the model that was learned (with the 
 To apply the model to new data, connect it to a Predict module (for classification and regression) or a Transform module
 (for data transformations like feature selection and dimensionality reduction).
 
-Image
+.. figure:: figures/example_scikit_learn/transform.png
+   :align: center
+   :height: 400px
 
 It is also possible to directly compute performance metrics like the accuracy or mean squared error using the
 Score module.
 
-Image
+.. figure:: figures/example_scikit_learn/score.png
+   :align: center
+   :height: 400px
+
+The resulting Scores can be output with a ``GenericOutput``, or more advanced string formating.
 
 To make connecting the ports easier, ports that represent models are diamond shaped,
 while ports that represent data or label arrays are round. The remaining square ports
@@ -73,7 +79,9 @@ Most manifold learning algorithms in scikit-learn embed data, but can not transf
 using a previously learned model. Therefore, manifold learning modules will
 directly output the transformed data.
 
-Image
+.. figure:: figures/example_scikit_learn/manifold.png
+   :align: center
+   :height: 400px
 
 Cross Validation and Grid Search
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -81,16 +89,22 @@ To perform a cross validation or grid search with a model,
 simply create a module for the model, without providing any training data.
 The output will be an unfitted model, that can be used as input for grid_search or cross-validation:
 
-Image
+.. figure:: figures/example_scikit_learn/cross_val_score.png
+   :align: center
+   :height: 400px
 
 GridSearch needs as additional input a dictionary of parameter values, that is best specified using a PythonSource module:
 
-Image
+.. figure:: figures/example_scikit_learn/grid_search.png
+   :align: center
+   :height: 400px
 
 GridSearch itself has a model output port, so that the grid search can be used, for example, in CrossValScore
 to perform a nested cross-validation.
 
-Image
+.. figure:: figures/example_scikit_learn/nested_cross_validation.png
+   :align: center
+   :height: 400px
 
 
 Pipelines of scikit-learn models
@@ -101,6 +115,14 @@ Each step of a pipeline is defined by an input port specifying a model.
 All but the last model in the pipeline must be transformers, the last can be arbitrary.
 Currently the Vistrail scikit-learn package only supports up to four steps in a pipeline.
 
+
+.. figure:: figures/example_scikit_learn/pipeline.png
+   :align: center
+   :height: 400px
+
 As any other model, a pipeline can either be fit on data and then evaluated using ``Predict``, ``Transform`` or ``Score`` modules,
 or can serve as the input model to ``CrossValScore`` or ``GridSearchCV``.
 
+.. figure:: figures/example_scikit_learn/pipeline_gridsearch.png
+   :align: center
+   :height: 400px
