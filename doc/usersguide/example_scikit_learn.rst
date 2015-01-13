@@ -42,6 +42,16 @@ As machine learning is inherently about generalization from training to test dat
 it is essential to separate a data set into training and test parts.
 The TrainTestSplit module is a convenient way to do this:
 
+.. figure:: figures/example_scikit_learn/train_test_split.png
+   :align: center
+   :height: 400px
+
+   The round output ports of the Iris dataset correspond to training data and training targets,
+   which are fed into ``TrainTestSplit``. The output of ``TrainTestSplit`` are data and labels
+   for two subsets of the data, corresponding to the four round output ports.
+   First are training data and training labels, then test data and test
+   labels. The split is done randomly with 25% test data by default.
+
 Basic usage
 ^^^^^^^^^^^
 The vistrails sklearn package contains most algorithms provided in scikit-learn.
