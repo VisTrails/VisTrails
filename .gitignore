@@ -16,3 +16,6 @@ vistrails.egg-info/
 
 # pycharm
 .idea/
+
+# sphinx build
+doc/usersguide/_build/
