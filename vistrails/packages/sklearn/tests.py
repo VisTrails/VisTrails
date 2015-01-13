@@ -114,7 +114,7 @@ class TestSklearn(unittest.TestCase):
         self.assertTrue(np.all(np.unique(y_pred) == np.array([0, 1, 2])))
         self.assertEqual(decision_function.shape, (50, 3))
         # some accuracy
-        self.assertTrue(np.mean(y_test == y_pred) > .9)
+        self.assertTrue(np.mean(y_test == y_pred) > .8)
         # score is actually the accuracy
         self.assertEqual(np.mean(y_test == y_pred), score_acc)
         # f1 score is actually f1 score
@@ -191,7 +191,7 @@ class TestSklearn(unittest.TestCase):
             ))
         scores = np.hstack(scores)
         self.assertEqual(scores.shape, (3,))
-        self.assertTrue(np.mean(scores) > .9)
+        self.assertTrue(np.mean(scores) > .8)
 
     def test_gridsearchcv(self):
         # check that gridsearch on DecisionTreeClassifier does the right number of runs
@@ -261,4 +261,4 @@ class TestSklearn(unittest.TestCase):
                 ]
             ))
         self.assertEqual(len(scores[0]), 3)
-        self.assertTrue(np.mean(scores[0]) > .9)
+        self.assertTrue(np.mean(scores[0]) > .8)
