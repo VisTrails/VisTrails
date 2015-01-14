@@ -158,12 +158,6 @@ class Constant(Module):
     def setValue(self, v):
         self.set_output("value", self.translate_to_python(v))
         self.upToDate = True
-        
-    def serialize(self):
-        return self.outputPorts['value_as_string']
-    
-    def deserialize(self, v):
-        return self.translate_to_python(v)
 
     @staticmethod
     def translate_to_string(v):
