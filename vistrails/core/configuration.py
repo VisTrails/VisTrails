@@ -37,6 +37,7 @@
 import argparse
 import ast
 import copy
+import itertools
 import re
 import shlex
 import sys
@@ -1323,6 +1324,8 @@ class ConfigurationObject(DBConfiguration):
             return False
         seen_keys = set()
         for name in self.keys():
+            if self.is_unset(name):
+                continue
             seen_keys.add(name)
             if name not in other.keys():
                 return False
@@ -1333,6 +1336,8 @@ class ConfigurationObject(DBConfiguration):
             if val1 != val2:
                 return False
         for name in other.keys():
+            if other.is_unset(name):
+                continue
             if name not in seen_keys:
                 return False
         return True
@@ -1438,14 +1443,15 @@ class ConfigurationObject(DBConfiguration):
         Returns all options stored in this object.
         """
 
-        return self.db_config_keys_name_index.keys()
+        return self.db_config_keys_name_index.keys() + self._unset_keys.keys()
 
     def keys(self):
         """keys(self) -> list of strings
         Returns all public options stored in this object.
         Public options are keys that do not start with a _
         """
-        return [k for k in self.db_config_keys_name_index
+        return [k for k in itertools.chain(self.db_config_keys_name_index,
+                                           self._unset_keys)
                 if not k.startswith('_')]
 
 # def default():
@@ -1664,6 +1670,11 @@ class TestConfiguration(unittest.TestCase):
 
         conf2.showWindow = False
         self.assertTrue(conf1.showWindow)
+
+    def test_unset_params(self):
+        conf = ConfigurationObject(test_field=(None, str))
+        self.assertTrue(conf.is_unset("test_field"))
+        self.assertIn("test_field", conf.keys())
 
     def test_type_mismatch(self):
         conf = default()
