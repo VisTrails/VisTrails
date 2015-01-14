@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2011-2015, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -36,10 +36,10 @@
 # and updates 2007 year with 2008 in the file header. 
 import re
 import os
-new_copyright = ["## Copyright (C) 2011-2014, NYU-Poly.\n"]
+new_copyright = ["## Copyright (C) 2011-2015, NYU-Poly.\n"]
 
-re_copyright = re.compile(r"\s+## Copyright \(C\) 2011-2014, NYU-Poly\.\s+")
-line_copyright = re.compile(r"## Copyright \(C\) 2011-2014, NYU-Poly\.")
+re_copyright = re.compile(r"\s+## Copyright \(C\) 2011-201\d, NYU-Poly\.\s+")
+line_copyright = re.compile(r"## Copyright \(C\) 2011-201\d, NYU-Poly\.")
 IGNORE_LIST = ["update_copyright_year.py"]
 files = []
 for (path, dnames, fnames) in os.walk('.'):
