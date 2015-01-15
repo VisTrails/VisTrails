@@ -37,6 +37,8 @@
 # File for displaying a vtkRenderWindow in a Qt's QWidget ported from
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
 ################################################################################
+from __future__ import division
+
 import vtk
 import os
 from PyQt4 import QtCore, QtGui

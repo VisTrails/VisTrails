@@ -37,6 +37,8 @@ its subclasses.
 
 """
 
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.configuration import ConfigPath, ConfigField

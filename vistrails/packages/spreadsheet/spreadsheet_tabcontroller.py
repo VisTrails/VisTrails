@@ -37,6 +37,8 @@
 StandardWidgetTabController
 """
 
+from __future__ import division
+
 from ast import literal_eval
 import copy
 import gc

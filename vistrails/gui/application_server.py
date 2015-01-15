@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 """ This is the application for vistrails when running as a server. """
+from __future__ import division
+
 import Queue
 import base64
 import hashlib

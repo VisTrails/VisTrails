@@ -39,6 +39,8 @@ spreadsheet:
   executePipelineWithProgress
 """
 
+from __future__ import division
+
 import copy
 from PyQt4 import QtCore, QtGui
 

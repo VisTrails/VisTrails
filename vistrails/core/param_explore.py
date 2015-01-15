@@ -35,6 +35,8 @@
 """
 This module handles Parameter Exploration in VisTrails
 """
+from __future__ import division
+
 from vistrails.core import debug
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
@@ -254,8 +256,8 @@ def _pipelinePositions(sheetCount, rowCount, colCount,
     pipelinePositions = []
     for pId in xrange(len(pipelines)):
         col = pId % colCount
-        row = (pId / colCount) % rowCount
-        sheet = (pId / (colCount*rowCount)) % sheetCount
+        row = (pId // colCount) % rowCount
+        sheet = (pId // (colCount*rowCount)) % sheetCount
         pipelinePositions.append((row, col, sheet))
     return pipelinePositions
 

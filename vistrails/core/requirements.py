@@ -35,6 +35,8 @@
 
 """module that allows online inspection of environment to test presence of
 runtime components such as binaries, libraries, other python modules, etc."""
+from __future__ import division
+
 import sys
 
 import vistrails.core.bundles.installbundle

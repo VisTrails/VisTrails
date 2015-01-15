@@ -36,6 +36,8 @@
 This module describes a theme structure for VisTrails GUI. It
 specifies colors, background images and other measurements
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.utils.color import ColorByName
@@ -309,7 +311,7 @@ class DefaultTheme(DefaultCoreTheme):
         # Font for module text
         # Use fixed dpi to get same font size on all platforms
         def fixDPI(i):
-            return i*72/QtGui.QApplication.desktop().logicalDpiY()
+            return i*72//QtGui.QApplication.desktop().logicalDpiY()
         GRAPHICS_FONT = "Arial"
         self.MODULE_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(14), QtGui.QFont.Bold)
         self.MODULE_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_FONT)

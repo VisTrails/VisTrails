@@ -37,6 +37,8 @@ exploration. This allows user-defined constants to be used as dimensions
 in parameter exploration, provided the user implements the appropriate
 API in the classes.
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.basic_modules import Color
 from vistrails.core import debug

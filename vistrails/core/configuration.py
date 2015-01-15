@@ -34,6 +34,8 @@
 ###############################################################################
 
 """Configuration variables for controlling specific things in VisTrails."""
+from __future__ import division
+
 import argparse
 import ast
 import copy

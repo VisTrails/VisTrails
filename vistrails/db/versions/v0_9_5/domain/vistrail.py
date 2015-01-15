@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import copy
 from auto_gen import DBVistrail as _DBVistrail
 from auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \

@@ -35,6 +35,8 @@
 """dialogs provides modules for user-based interaction on execution.
 Users can then enter file names, numbers, strings, etc."""
 
+from __future__ import division
+
 from vistrails.core.packagemanager import get_package_manager
 
 

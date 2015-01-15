@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 import copy
 
 def translateVistrail(_vistrail):

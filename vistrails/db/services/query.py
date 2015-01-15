@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import open_db_connection, close_db_connection, get_db_lib
 

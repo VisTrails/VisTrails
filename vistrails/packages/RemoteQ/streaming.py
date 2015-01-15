@@ -35,6 +35,8 @@
 """ Wrapper for Hadoop Streaming to use with Python mapper/reducer,
 cache files, etc...  """
 
+from __future__ import division
+
 import os.path
 
 from vistrails.core.modules.basic_modules import File, String

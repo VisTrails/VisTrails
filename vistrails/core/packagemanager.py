@@ -36,6 +36,8 @@
 """The package manager takes care of everything that has got to do
 with handling packages, from setting paths to adding new packages
 to checking dependencies to initializing them."""
+from __future__ import division
+
 import copy
 import inspect
 import itertools

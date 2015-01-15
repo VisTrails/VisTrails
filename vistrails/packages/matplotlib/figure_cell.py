@@ -35,6 +35,8 @@
 Matplotlib viewer into our spreadsheet
 
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 import os
 

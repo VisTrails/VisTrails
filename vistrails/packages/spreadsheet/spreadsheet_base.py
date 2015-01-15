@@ -40,6 +40,8 @@ others:
   StandardSingleCellSheetTab
 """
 
+from __future__ import division
+
 from PyQt4 import QtGui
 
 from .spreadsheet_helpers import CellHelpers

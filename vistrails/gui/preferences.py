@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtGui, QtCore
 from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager

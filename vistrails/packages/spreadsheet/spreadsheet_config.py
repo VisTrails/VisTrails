@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from vistrails.core.configuration import ConfigurationObject
 
 

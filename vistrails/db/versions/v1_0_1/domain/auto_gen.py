@@ -35,6 +35,8 @@
 
 """generated automatically by auto_dao.py"""
 
+from __future__ import division
+
 import copy
 
 class DBOpmProcessIdEffect(object):

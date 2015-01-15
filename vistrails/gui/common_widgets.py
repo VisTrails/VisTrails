@@ -35,6 +35,8 @@
 """ This common widgets using on the interface of VisTrails. These are
 only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
+from __future__ import division
+
 import os
 
 from PyQt4 import QtCore, QtGui

@@ -35,6 +35,8 @@
 
 ##############################################################################
 # Enumeration Widget for Web Services
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.modules.basic_modules import Constant

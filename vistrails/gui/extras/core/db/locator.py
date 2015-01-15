@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration
 from vistrails.gui.open_db_window import QOpenDBWindow, QConnectionDBSetupWindow

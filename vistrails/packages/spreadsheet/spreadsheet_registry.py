@@ -36,6 +36,7 @@
 """This file contains the spreadsheet registry: SpreadsheetRegistry
 """
 
+from __future__ import division
 
 class SpreadsheetRegistry(object):
     """

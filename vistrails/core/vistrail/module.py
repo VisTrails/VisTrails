@@ -35,6 +35,8 @@
 # Check for testing
 """ This module defines the class Module 
 """
+from __future__ import division
+
 import copy
 from itertools import izip
 import weakref

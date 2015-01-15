@@ -36,6 +36,8 @@
 
 """
 
+from __future__ import division
+
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import NotCacheable, \

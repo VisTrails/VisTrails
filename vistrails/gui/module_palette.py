@@ -39,6 +39,8 @@ QModulePalette
 QModuleTreeWidget
 QModuleTreeWidgetItem
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core import get_vistrails_application
 from vistrails.core import debug

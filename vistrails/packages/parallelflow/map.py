@@ -1,3 +1,5 @@
+from __future__ import division
+
 import vistrails.core.db.action
 from vistrails.core.db.locator import XMLFileLocator
 from vistrails.core.db.io import serialize, unserialize

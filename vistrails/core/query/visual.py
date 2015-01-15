@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core import query
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.utils import append_to_dict_of_lists

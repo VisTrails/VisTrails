@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.exc import SQLAlchemyError

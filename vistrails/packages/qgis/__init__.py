@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import vistrails.core
 identifier = 'org.vistrails.vistrails.qgis'
 version = '0.0.2'

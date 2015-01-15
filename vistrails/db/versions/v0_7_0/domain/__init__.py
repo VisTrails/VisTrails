@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from auto_gen import *
 from workflow import DBWorkflow
 from vistrail import DBVistrail

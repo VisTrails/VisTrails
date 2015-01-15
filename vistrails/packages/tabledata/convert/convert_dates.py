@@ -1,3 +1,5 @@
+from __future__ import division
+
 import datetime
 from distutils.version import LooseVersion
 import re

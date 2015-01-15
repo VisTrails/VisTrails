@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 import time
 
 from PyQt4 import QtCore, QtGui

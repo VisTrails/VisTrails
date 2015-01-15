@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 identifier="org.vistrails.vistrails.control_flow"
 name="Control Flow"
 version="0.2.4"

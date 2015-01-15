@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import with_statement
+from __future__ import division, with_statement
 
 import datetime
 import functools

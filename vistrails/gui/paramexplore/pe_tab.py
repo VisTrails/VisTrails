@@ -36,6 +36,8 @@
 
 QParameterExplorationTab
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from ast import literal_eval
 from xml.dom.minidom import parseString

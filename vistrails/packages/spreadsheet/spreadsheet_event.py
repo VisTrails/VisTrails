@@ -36,6 +36,8 @@
 """This file contains all Spreadsheet special Qt event classes
 """
 
+from __future__ import division
+
 from PyQt4 import QtCore
 
 

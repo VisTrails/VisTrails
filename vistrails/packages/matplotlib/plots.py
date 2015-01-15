@@ -1,3 +1,5 @@
+from __future__ import division
+
 import matplotlib.pyplot
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from bases import MplPlot

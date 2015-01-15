@@ -36,6 +36,8 @@
 # VTK Package for VisTrails
 ################################################################################
 
+from __future__ import division
+
 from vistrails.core.debug import debug, warning, unexpected_exception
 from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
      Color, PathObject, identifier as basic_pkg

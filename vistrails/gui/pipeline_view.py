@@ -45,6 +45,8 @@ QGraphicsModuleItem
 QPipelineScene
 QPipelineView
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
@@ -1222,7 +1224,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # set pos to distance to top middle corner, to be adjusted when
         # paddedRect is known
         labelRect = self.labelFontMetric.boundingRect(self.label)
-        labelRect.moveTo(-labelRect.width()/2, height)
+        labelRect.moveTo(-labelRect.width()//2, height)
         height += labelRect.height()
         padding = labelRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0], 0,
                                       CurrentTheme.MODULE_LABEL_MARGIN[2], 0)
@@ -1231,7 +1233,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         if self.description:
             self.description = '(' + self.description + ')'
             descRect = self.descFontMetric.boundingRect(self.description)
-            descRect.moveTo(-descRect.width()/2, height)
+            descRect.moveTo(-descRect.width()//2, height)
             height += descRect.height()
             padding = descRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0], 0,
                                          CurrentTheme.MODULE_LABEL_MARGIN[2], 0)
@@ -1240,7 +1242,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         if self.edit_rect.height():
             height += CurrentTheme.MODULE_EDIT_MARGIN[1] # top margin
             editRect = self.edit_rect
-            editRect.moveTo(-editRect.width()/2, height)
+            editRect.moveTo(-editRect.width()//2, height)
             height += editRect.height()
             padding = editRect.adjusted(-CurrentTheme.MODULE_EDIT_MARGIN[0], 0,
                                          CurrentTheme.MODULE_EDIT_MARGIN[2], 0)
@@ -1252,13 +1254,13 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # move to final position
 
         self.paddedRect = QtCore.QRectF(-width/2, -height/2, width, height)
-        labelRect.translate(0, -height/2)
+        labelRect.translate(0, -height//2)
         self.labelRect = labelRect
         if self.description:
-            descRect.translate(0, -height/2)
+            descRect.translate(0, -height//2)
             self.descRect = descRect
         if self.edit_rect.height():
-            editRect.translate(0, -height/2)
+            editRect.translate(0, -height//2)
             self.editRect = editRect
         self.abstRect = QtCore.QRectF(
             self.paddedRect.left(),

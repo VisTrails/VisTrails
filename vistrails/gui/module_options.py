@@ -38,6 +38,8 @@
 
 QModuleOptions
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.gui.theme import CurrentTheme

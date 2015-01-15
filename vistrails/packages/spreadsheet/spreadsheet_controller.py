@@ -38,6 +38,8 @@ to the spreadsheet:
   SpreadsheetController
 """
 
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from .spreadsheet_window import SpreadsheetWindow

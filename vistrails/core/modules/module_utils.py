@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 # Utilities for user-defined Modules
+from __future__ import division
+
 import os
 import tempfile
 from vistrails.core.modules import basic_modules

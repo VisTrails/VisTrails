@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import os
 import shutil
 import subprocess
@@ -86,7 +88,7 @@ def parse_meminfo():
         kernel32.GlobalMemoryStatusEx(byref(result))
     except Exception:
         return -1
-    return long(result.dwTotalPhys / 1024)
+    return result.dwTotalPhys // 1024
 
 def guess_total_memory():
     """ guess_total_memory() -> int

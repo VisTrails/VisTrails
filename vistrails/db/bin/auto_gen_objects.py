@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 def capitalizeOne(str):
     result = ''
     strs = str.split('_')

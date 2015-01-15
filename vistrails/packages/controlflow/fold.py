@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import create_constant, get_module
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \

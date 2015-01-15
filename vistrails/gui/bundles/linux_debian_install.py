@@ -36,6 +36,8 @@
 ###############################################################################
 
 # Installs a package through APT, showing progress.
+from __future__ import division
+
 import apt
 import apt_pkg
 import locale
@@ -167,8 +169,8 @@ class Window(QtGui.QWidget):
         geometry = desktop.screenGeometry(self)
         h = 200
         w = 300
-        self.setGeometry(geometry.left() + (geometry.width() - w)/2,
-                         geometry.top() + (geometry.height() - h)/2,
+        self.setGeometry(geometry.left() + (geometry.width() - w)//2,
+                         geometry.top() + (geometry.height() - h)//2,
                          w, h)
         self.setWindowTitle('VisTrails APT interface')
         lbl = QtGui.QLabel(self)

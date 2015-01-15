@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 """Modules for handling vtkRenderWindowInteractor events"""
+from __future__ import division
+
 from vistrails.core.modules.basic_modules import String, Variant
 from vistrails.core.modules.vistrails_module import Module, NotCacheable
 from vistrails.core.modules.module_registry import get_module_registry

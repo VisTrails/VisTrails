@@ -40,6 +40,8 @@ resizer, etc.:
   CellResizerConfig
 """
 
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 
@@ -196,7 +198,7 @@ class CellResizer(QtGui.QLabel):
             # All sections should have the same size (Right-Click)
             if self.resizeAll:
                 # Resize the columns first
-                dS = int(hd / (self.col+1))
+                dS = int(hd // (self.col+1))
                 mS = hd % (self.col+1)
                 for i in xrange(self.sheet.columnCount()):
                     if i>self.col:
@@ -205,7 +207,7 @@ class CellResizer(QtGui.QLabel):
                         newValue = self.sheet.columnWidth(i)+dS+(i<mS)
                     self.sheet.setColumnWidth(i, newValue)
                 # Then resize the rows
-                dS = int(vd / (self.row+1))
+                dS = int(vd // (self.row+1))
                 mS = vd % (self.row+1)
                 for i in xrange(self.sheet.rowCount()):
                     if i>self.row:

@@ -37,6 +37,8 @@
 should be reimplemented to integrate between the spreadsheet and the analogy
 """
 
+from __future__ import division
+
 import vistrails.core.analogy
 import vistrails.gui
 

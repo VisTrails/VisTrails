@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from auto_gen import DBVistrail as _DBVistrail
 from auto_gen import DBAdd, DBChange, DBDelete
 from id_scope import IdScope

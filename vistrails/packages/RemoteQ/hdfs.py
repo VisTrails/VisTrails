@@ -34,6 +34,8 @@
 ###############################################################################
 """ Wrapper for Hadoop DFS operations """
 
+from __future__ import division
+
 import os
 import shutil
 

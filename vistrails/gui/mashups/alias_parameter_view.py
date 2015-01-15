@@ -38,6 +38,8 @@ of parameters
 
 QAliasParameterView
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 from vistrails.core.inspector import PipelineInspector

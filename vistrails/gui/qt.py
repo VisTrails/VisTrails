@@ -44,6 +44,8 @@ from setting okToCreateQObjects directly.
 
 As the python saying goes, 'we are all consenting adults here'."""
 
+from __future__ import division
+
 import inspect
 from PyQt4 import QtGui, QtCore
 import types

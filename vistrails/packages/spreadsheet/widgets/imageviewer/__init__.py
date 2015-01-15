@@ -35,6 +35,8 @@
 ################################################################################
 # ImageViewer plugin for VisTrails Spreadsheet
 ################################################################################
+from __future__ import division
+
 from imageviewer import ImageViewerCell, ImageFileToSpreadsheet
 
 ################################################################################

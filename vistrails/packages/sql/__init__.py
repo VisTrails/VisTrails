@@ -38,6 +38,8 @@ SQL Scripting package.
 Uses SQLAlchemy to access a variety of database software.
 """
 
+from __future__ import division
+
 identifier = 'org.vistrails.vistrails.sql'
 name = 'SQL'
 version = '0.1.0'

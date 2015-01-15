@@ -36,6 +36,8 @@
 initializations to the theme, packages and the builder...
 
 """
+from __future__ import division
+
 from ast import literal_eval
 import os.path
 import getpass

@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import Color
 from vistrails.core.utils.color import rgb2hsv, hsv2rgb

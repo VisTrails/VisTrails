@@ -21,6 +21,8 @@ extraction and conversion routines.
 # 2013-05-16 -- 0.1.0
 #   * Package created (for DAT project)
 
+from __future__ import division
+
 from vistrails.core.packagemanager import get_package_manager
 
 from .identifiers import *

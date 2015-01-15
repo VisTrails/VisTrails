@@ -35,6 +35,8 @@
 
 """This file contains code to handle InvalidPipeline exceptions that contain
 upgrade requests."""
+from __future__ import division
+
 from vistrails.core import debug
 import vistrails.core.db.action
 from vistrails.core.modules.module_registry import get_module_registry, \

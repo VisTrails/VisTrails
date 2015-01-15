@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from ast import literal_eval
 import os
 import sys
@@ -250,7 +252,7 @@ class NestedListFromRMatrix(Module):
         rmatrix = self.get_input('rmatrix')
         mlist = list(rmatrix)
         nrows = rmatrix.nrow
-        ncols = len(mlist) / nrows
+        ncols = len(mlist) // nrows
         olist = [] 
         for row in xrange(nrows):
             olist.append(mlist[row*ncols:(row+1)*ncols])

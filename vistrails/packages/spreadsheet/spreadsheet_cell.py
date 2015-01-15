@@ -39,6 +39,8 @@ esizer, etc.:
   QCellToolBar
 """
 
+from __future__ import division
+
 import datetime
 import os
 from PyQt4 import QtCore, QtGui
