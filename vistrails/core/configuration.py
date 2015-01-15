@@ -108,7 +108,6 @@ showDebugPopups: Always bring debug messages to the front
 showInlineParameterWidgets: Show editable parameters inside modules
 showScrollbars: Show scrollbars on the version tree and workflow canvases
 showSplash: Show VisTrails splash screen during startup
-showSpreadsheetOnly: Hides the VisTrails main window
 showVariantErrors: Show error when variant input value doesn't match type during execution
 showWindow: Show the main window
 singleInstance: Do not allow more than one instance of VisTrails to run at once
@@ -399,10 +398,6 @@ showScrollbars: Boolean
 showSplash: Boolean
 
     Whether the VisTrails splash screen should be shown on startup.
-
-showSpreadsheetOnly: Boolean
-
-    Whether the VisTrails main window should be hidden.
 
 showVariantErrors: Boolean
 
