@@ -83,7 +83,7 @@ class HadoopStreaming(HadoopBaseModule):
         if p['workdir']==None:
             p['workdir'] = ".vistrails-hadoop"
         p['job_identifier'] = self.force_get_input('Identifier')
-        if p['job_identifier'] == None:
+        if p['job_identifier'] is None:
             raise ModuleError(self, 'Job Identifier is required')
         p['input'] = self.force_get_input('Input')
         p['output'] = self.force_get_input('Output')

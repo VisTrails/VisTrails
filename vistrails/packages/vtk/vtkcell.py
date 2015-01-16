@@ -249,7 +249,7 @@ class QVTKWidget(QCellWidget):
             renderers = [renderView.vtkInstance.GetRenderer()]
         self.renderer_maps = {}
         self.usecameras = False
-        if cameralist != None and len(cameralist) == len(renderers):
+        if cameralist is not None and len(cameralist) == len(renderers):
             self.usecameras = True
         j = 0
         for renderer in renderers:

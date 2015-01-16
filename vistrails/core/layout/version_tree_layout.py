@@ -150,7 +150,7 @@ class VistrailsTreeLayoutLW(object):
             # print "add arc into tree %d -> %d" % (parentId, childId)
             parent = mapTreeNodes[parentId]
             child = mapTreeNodes[childId]
-#             if child.parent != None:
+#             if child.parent is not None:
 #                 print "child already has a parent!!! %d -> %d" % (parentId, childId)
 #                 raise ValueError("Node already has a parent")
             tree.changeParentOfNodeWithNoParent(parent, child)

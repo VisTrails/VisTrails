@@ -423,8 +423,9 @@ class VistrailsApplicationInterface(object):
                 if not controller.is_abstraction:
                     collection.add_to_workspace(entity)
                 collection.commit()
-            except VistrailsDBException:
-                debug.critical("Exception from the database",
+            except VistrailsDBException as e:
+                debug.unexpected_exception(e)
+                debug.critical("Exception from the database: %s" % e,
                                debug.format_exc())
                 return None
 
@@ -455,8 +456,9 @@ class VistrailsApplicationInterface(object):
             controller.perform_action(action)
             controller.vistrail.set_tag(action.id, "Imported workflow")
             controller.change_selected_version(action.id)
-        except VistrailsDBException:
-            debug.critical("Exception from the database",
+        except VistrailsDBException as e:
+            debug.unexpected_exception(e)
+            debug.critical("Exception from the database: %s" % e,
                            debug.format_exc())
             return None
 

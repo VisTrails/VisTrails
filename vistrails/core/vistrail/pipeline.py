@@ -991,7 +991,7 @@ class Pipeline(DBWorkflow):
         def find_descriptors(pipeline, module_ids=None):
             registry = get_module_registry()
             conf = get_vistrails_configuration()
-            if module_ids == None:
+            if module_ids is None:
                 module_ids = pipeline.modules.iterkeys()
             exceptions = set()
             for mid in module_ids:

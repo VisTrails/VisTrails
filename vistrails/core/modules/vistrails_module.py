@@ -1,34 +1,34 @@
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the University of Utah nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -188,31 +188,9 @@ class DummyModuleLogging(object):
 _dummy_logging = DummyModuleLogging()
 
 ################################################################################
-# Serializable
-
-class Serializable(object):
-    """
-    Serializable is a mixin class used to define methods to serialize and
-    deserialize modules.
-
-    """
-
-    def serialize(self):
-        """
-        Method used to serialize a module.
-        """
-        raise NotImplementedError('The serialize method is not defined for this module.')
-
-    def deserialize(self):
-        """
-        Method used to deserialize a module.
-        """
-        raise NotImplementedError('The deserialize method is not defined for this module.')
-
-################################################################################
 # Module
 
-class Module(Serializable):
+class Module(object):
     """Module is the base module from which all module functionality
     is derived from in VisTrails. It defines a set of basic interfaces to
     deal with data input/output (through ports, as will be explained
@@ -443,7 +421,7 @@ class Module(Serializable):
             self.upToDate = True
             return True
         return False
-    
+
     def addJobCache(self):
         """ addJobCache() -> None
             Add outputs from job cache
@@ -1801,10 +1779,11 @@ class ModuleConnector(object):
                                     "type %s" % (i, self.port, desc.name))
         return result
 
-def new_module(base_module, name, dict={}, docstring=None):
+
+def new_module(base_module, name, class_dict={}, docstring=None):
     """new_module(base_module or [base_module list],
                   name,
-                  dict={},
+                  class_dict={},
                   docstring=None
 
     Creates a new VisTrails module dynamically. Exactly one of the
@@ -1819,7 +1798,7 @@ def new_module(base_module, name, dict={}, docstring=None):
         superclasses = tuple(base_module)
     else:
         raise TypeError
-    d = copy.copy(dict)
+    d = copy.copy(class_dict)
     if docstring:
         d['__doc__'] = docstring
     return new_type(name, superclasses, d)

@@ -32,9 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 from __future__ import division
 
 from vistrails.core.configuration import ConfigurationObject
+
+
 configuration = ConfigurationObject(rowCount=2,
                                     columnCount=3,
                                     dumpfileType='PNG',

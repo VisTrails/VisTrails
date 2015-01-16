@@ -194,7 +194,7 @@ class ThumbnailCache(object):
         if len(thumbnail_fnames) > 0:
             image = self._merge_thumbnails(thumbnail_fnames)
         fname = None
-        if image != None and image.width() > 0 and image.height() > 0:
+        if image is not None and image.width() > 0 and image.height() > 0:
             fname = "%s.png" % unicode(uuid.uuid1())
             abs_fname = self._save_thumbnail(image, fname) 
             statinfo = os.stat(abs_fname)

@@ -161,7 +161,7 @@ def getConnectionInfo(connectionList, id):
     conn = connectionList.get_connection(id)
     key = unicode(conn.id) + "." + conn.name + "." + conn.host
     passwd = DBLocator.keyChain.get_key(key)
-    if conn != None:
+    if conn is not None:
         config = {'id': conn.id,
                   'name': conn.name,
                   'host': conn.host,
@@ -182,7 +182,7 @@ def checkConnection(connectionList):
     if conn_id != -1:
         conn = connectionList.get_connection(conn_id)
         config = getConnectionInfo(connectionList, conn_id)
-        if config != None:
+        if config is not None:
             config_name = config['name']
             config_id = config['id']
             try:

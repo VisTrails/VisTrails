@@ -6,5 +6,6 @@
     <file>images/noatunloopsong.png</file>
     <file>images/camera_mount.png</file>
     <file>images/camera.png</file>
+    <file>images/view-refresh.png</file>
 </qresource>
 </RCC>

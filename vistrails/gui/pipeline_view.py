@@ -528,7 +528,6 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
             else:
                 y = rect.y() + p[1]
 
-            print "adding point", x, y
             if x < rect.x():
                 x = rect.x()
             # can't do +1 (2+ is fine)
@@ -538,7 +537,6 @@ class QGraphicsPortPolygonItem(QAbstractGraphicsPortItem):
                 y = rect.y()
             elif y > (rect.y() + rect.height()):
                 y = rect.y() + rect.height()
-            print "Adding point", x, y
             new_points.append(QtCore.QPointF(x,y))
         self._polygon = QtGui.QPolygonF(new_points)
     
@@ -1765,7 +1763,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                            CurrentTheme.MODULE_PORT_SPACE))
                     return item
 
-        debug.log("PORT SIG:" + port.signature)
         if not port.signature or port.signature == '()':
             # or len(port_descs) == 0:
             sigstring = default_sig
@@ -3687,7 +3684,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def set_controller(self, controller):
         oldController = self.controller
         if oldController != controller:
-            #if oldController != None:
+            #if oldController is not None:
                 # self.disconnect(oldController,
                 #                 QtCore.SIGNAL('versionWasChanged'),
                 #                 self.version_changed)

@@ -262,7 +262,7 @@ class EigenBase(object):
         (c,) = v.shape
         print "[ ",
         for j in xrange(c):
-            if left_digits != None:
+            if left_digits is not None:
                 d = left_digits[0,j]
             else:
                 d = 0

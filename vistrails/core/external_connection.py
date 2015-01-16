@@ -145,7 +145,7 @@ class DBConnection(ExtConnection):
         operator. 
         
         """
-        if other == None:
+        if other is None:
             return False
         if self.type != other.type:
             return False

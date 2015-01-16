@@ -154,7 +154,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             return
 
         # check if controller has been added
-        if controller not in self.widgets:
+        if controller not in self.widgets and controller in controllers:
             item = QVistrailItem(controller)
             self.jobView.addTopLevelItem(item)
             self.jobView.expandAll()
