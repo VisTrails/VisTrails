@@ -1635,11 +1635,11 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         locator = locator_class.load_from_gui(self, Vistrail.vtType)
         if locator:
+            version = None
             if not self.getViewFromLocator(locator):
                 if locator.has_temporaries():
                     if not locator_class.prompt_autosave(self):
                         locator.clean_temporaries()
-                version = None
             if hasattr(locator,'_vtag'):
                 # if a tag is set, it should be used instead of the
                 # version number
@@ -1656,7 +1656,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 mashupversion = locator._mshpversion
                 if mashupversion:
                     execute = True
-            self.open_vistrail_without_prompt(locator, version, 
+            self.open_vistrail_without_prompt(locator, version,
                                               mashuptrail=mashuptrail,
                                               mashupVersion=mashupversion,
                                               execute_workflow=execute)
