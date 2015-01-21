@@ -38,42 +38,32 @@ from __future__ import division
 
 from PyQt4 import QtCore, QtGui
 import copy
-from itertools import izip
-import operator
 
-from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import (get_vistrails_configuration,
                                 get_vistrails_persistent_configuration)
 from vistrails.core.db.locator import FileLocator, XMLFileLocator, DBLocator, \
     UntitledLocator
-from vistrails.core.db.io import load_vistrail
 from vistrails.core.interpreter.cached import CachedInterpreter
-from vistrails.core.modules.module_registry import ModuleRegistry, \
-                                         ModuleRegistryException
 from vistrails.core.recent_vistrails import RecentVistrailList
 import vistrails.core.system
 import vistrails.core.db.action
-from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.system import vistrails_default_file_type
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.collection import Collection
 from vistrails.core import debug
 
 from vistrails.gui.application import get_vistrails_application
 from vistrails.gui.preferences import QPreferencesDialog
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.common_widgets import QToolWindow
-from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.repository import QRepositoryDialog
-from vistrails.gui.theme import initializeCurrentTheme, CurrentTheme
+from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import build_custom_window
 from vistrails.gui.vistrail_view import QVistrailView
 from vistrails.gui import merge_gui
 from vistrails.gui.vistrail_variables import QVistrailVariables
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-from vistrails.gui.mashups.mashup_app import QMashupAppMainWindow
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.gui.paramexplore.pe_view import QParamExploreView
 from vistrails.gui.mashups.alias_inspector import QAliasInspector
@@ -1031,10 +1021,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         from vistrails.gui.collection.vis_log import QLogDetails
         from vistrails.gui.mashups.mashups_inspector import QMashupsInspector
         from vistrails.gui.mashups.alias_parameter_view import QAliasParameterView
-        from vistrails.gui.publishing import QLatexAssistant, QVersionEmbed
+        from vistrails.gui.publishing import QVersionEmbed
         self.palettes = []
         self.palette_window = None
-        
+
         self.palette_layout = \
             [(self.UPPER_LEFT_DOCK_AREA,
               [((QWorkspaceWindow,True),
