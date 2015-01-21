@@ -56,6 +56,7 @@ Intermediate Concepts and VisTrails Packages
    parallelflow
    database
    example_webservices
+   example_itk
    persistence
    vistrails_server
    latex
