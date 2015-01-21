@@ -5,7 +5,7 @@ Example: scikit-learn
 Introduction to scikit-Learn
 ============================
 `scikit-learn <http://scikit-learn.org>`_ is a python based open-source machine learning library.
-It provides implementation of popular machine learning algorithms together with
+It provides implementations of popular machine learning algorithms together with
 evaluation and preprocessing utilities.
 For more information, refer to the `extensive documentation <http://scikit-learn.org/stable/documentation.html>`_.
 
@@ -40,14 +40,14 @@ Splitting data into training and test set
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 As machine learning is inherently about generalization from training to test data,
 it is essential to separate a data set into training and test parts.
-The TrainTestSplit module is a convenient way to do this:
+The ``TrainTestSplit`` module is a convenient way to do this:
 
 .. figure:: figures/example_scikit_learn/train_test_split.png
    :align: center
    :height: 400px
 
    The round output ports of the Iris dataset correspond to training data and training targets,
-   which are fed into ``TrainTestSplit``. The output of ``TrainTestSplit`` are data and labels
+   which are fed into ``TrainTestSplit``. The outputs of ``TrainTestSplit`` are data and labels
    for two subsets of the data, corresponding to the four round output ports.
    First are training data and training labels, then test data and test
    labels. The split is done randomly with 25% test data by default.
@@ -55,13 +55,13 @@ The TrainTestSplit module is a convenient way to do this:
 Basic usage
 ^^^^^^^^^^^
 The |vistrails| sklearn package contains most algorithms provided in scikit-learn.
-In machine learning, the applying an algorithm to a dataset usually means
+In machine learning, applying an algorithm to a dataset usually means
 training it on one part of the data, the training set, and then applying it
 to another part, the test set.
 
 Each algorithm in scikit-learn has a corresponding |vistrails| module, which has
 input ports for training data, and outputs the model that was learned (with the exception of the :ref:`manifold_module` module).
-To apply the model to new data, connect it to a Predict module (for classification and regression) or a Transform module
+To apply the model to new data, connect it to a ``Predict`` module (for classification and regression) or to a ``Transform`` module
 (for data transformations like feature selection and dimensionality reduction).
 
 .. figure:: figures/example_scikit_learn/transform.png
@@ -69,13 +69,13 @@ To apply the model to new data, connect it to a Predict module (for classificati
    :height: 400px
 
 It is also possible to directly compute performance metrics like the accuracy or mean squared error using the
-Score module.
+``Score`` module.
 
 .. figure:: figures/example_scikit_learn/score.png
    :align: center
    :height: 400px
 
-The resulting Scores can be output with a ``GenericOutput``, or more advanced string formating.
+The resulting Scores can be output with a ``GenericOutput``, or more advanced string formatting.
 
 To make connecting the ports easier, ports that represent models are diamond shaped,
 while ports that represent data or label arrays are round. The remaining square ports
@@ -87,7 +87,7 @@ Manifold learning
 ^^^^^^^^^^^^^^^^^
 Manifold learning algorithms are algorithms that embed high-dimensional data
 into a lower-dimensional space, often for visualization purposes.
-Most manifold learning algorithms in scikit-learn embed data, but can not transform new data
+Most manifold learning algorithms in scikit-learn embed data, but cannot transform new data
 using a previously learned model. Therefore, manifold learning modules will
 directly output the transformed data.
 
@@ -95,27 +95,27 @@ directly output the transformed data.
    :align: center
    :height: 400px
 
-   The left hand side of the pipeline uses PCA, which can use Transform to be applied to new data.
-   The right hand side uses the manifold learning method TSNE, which can not be applied to new data,
-   and therefore directly produces the transformed input data (in contrast to PCA, which produces a model).
+   The left hand side of the pipeline uses ``PCA``, which can use ``Transform`` to be applied to new data.
+   The right hand side uses the manifold learning method ``TSNE``, which cannot be applied to new data,
+   and therefore directly produces the transformed input data (in contrast to ``PCA``, which produces a model).
 
 Cross Validation and Grid Search
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To perform a cross validation or grid search with a model,
 simply create a module for the model, without providing any training data.
-The output will be an unfitted model, that can be used as input for grid_search or cross-validation:
+The output will be an unfitted model that can be used as input for grid search or cross validation:
 
 .. figure:: figures/example_scikit_learn/cross_val_score.png
    :align: center
    :height: 400px
 
-GridSearch needs as additional input a dictionary of parameter values, that is best specified using a PythonSource module:
+``GridSearch`` needs as additional input a dictionary of parameter values, that is best specified using a ``PythonSource`` module:
 
 .. figure:: figures/example_scikit_learn/grid_search.png
    :align: center
    :height: 400px
 
-GridSearch itself has a model output port, so that the grid search can be used, for example, in CrossValScore
+``GridSearch`` itself has a model output port, so that the grid search can be used, for example, in ``CrossValScore``
 to perform a nested cross-validation.
 
 .. figure:: figures/example_scikit_learn/nested_cross_validation.png
@@ -126,7 +126,7 @@ to perform a nested cross-validation.
 Pipelines of scikit-learn models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To perform cross validation or grid search over a chain of estimators, such
-as preprocessing followed by classification, scikit-learn provides a Pipeline module.
+as preprocessing followed by classification, scikit-learn provides a ``Pipeline`` module.
 Each step of a pipeline is defined by an input port specifying a model.
 All but the last model in the pipeline must be transformers, the last can be arbitrary.
 Currently the |vistrails| scikit-learn package only supports up to four steps in a pipeline.
