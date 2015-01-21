@@ -12,7 +12,7 @@ For more information, refer to the `extensive documentation <http://scikit-learn
 
 Installing scikit-learn
 =======================
-Vistrails should be able to automatically install scikit-learn via pip.
+|vistrails| should be able to automatically install scikit-learn via pip.
 If this fails, try to install it manually::
 
     pip install --user scikit-learn
@@ -20,12 +20,12 @@ If this fails, try to install it manually::
 It this also fails, consult the `installation instructions <http://scikit-learn.org/stable/install.html>`_.
 
 
-Using scikit-learn via vistrails
-=================================
+Using scikit-learn via |vistrails|
+==================================
 
 Datasets
 ^^^^^^^^
-For testing purposes and the examples, there are two multi-class classification datasets made available as vistrails modules,
+For testing purposes and the examples, there are two multi-class classification datasets made available as |vistrails| modules,
 the Digits and the Iris datasets. These have as output ports training data and classification targets, to quickly test a pipeline.
 Both datasets are very simple toy datasets and should not be used as benchmarks.
 
@@ -54,12 +54,12 @@ The TrainTestSplit module is a convenient way to do this:
 
 Basic usage
 ^^^^^^^^^^^
-The vistrails sklearn package contains most algorithms provided in scikit-learn.
+The |vistrails| sklearn package contains most algorithms provided in scikit-learn.
 In machine learning, the applying an algorithm to a dataset usually means
 training it on one part of the data, the training set, and then applying it
 to another part, the test set.
 
-Each algorithm in scikit-learn has a corresponding vistrails module, which has
+Each algorithm in scikit-learn has a corresponding |vistrails| module, which has
 input ports for training data, and outputs the model that was learned (with the exception of the :ref:`manifold_module` module).
 To apply the model to new data, connect it to a Predict module (for classification and regression) or a Transform module
 (for data transformations like feature selection and dimensionality reduction).
@@ -129,7 +129,7 @@ To perform cross validation or grid search over a chain of estimators, such
 as preprocessing followed by classification, scikit-learn provides a Pipeline module.
 Each step of a pipeline is defined by an input port specifying a model.
 All but the last model in the pipeline must be transformers, the last can be arbitrary.
-Currently the Vistrail scikit-learn package only supports up to four steps in a pipeline.
+Currently the |vistrails| scikit-learn package only supports up to four steps in a pipeline.
 
 
 .. figure:: figures/example_scikit_learn/pipeline.png
