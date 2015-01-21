@@ -213,7 +213,7 @@ class Script(BaseScript):
         if self.inputs == 'variables':
             self.inputs = dict((n, utf8(n)) for n in input_vars)
         elif self.inputs == 'calls':
-            pass
+            self.inputs = {}
         elif isinstance(self.inputs, dict):
             pass
         else:
@@ -224,7 +224,7 @@ class Script(BaseScript):
         if self.outputs == 'variables':
             self.outputs = dict((n, utf8(n)) for n in output_vars)
         elif self.outputs == 'calls':
-            pass
+            self.outputs = {}
         elif isinstance(self.outputs, dict):
             pass
         else:
