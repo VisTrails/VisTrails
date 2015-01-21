@@ -88,10 +88,16 @@ def write_workflow_to_python(pipeline, filename):
     # ########################################
     # Walk through the pipeline a second time to generate the full script
     #
+    first = True
     for module_id in pipeline.graph.vertices_topological_sort():
         module = pipeline.modules[module_id]
         desc = module.module_descriptor
         print("Writing module %s %d" % (module.name, module_id))
+
+        if not first:
+            text.append("")
+        else:
+            first = False
 
         # Annotation, used to rebuild the pipeline
         text.append("# MODULE name=%r, id=%s" % (module.name, module_id))
@@ -213,12 +219,14 @@ class TestExport(unittest.TestCase):
         self.do_export('script_sources.xml', """\
 # MODULE name='Integer', id=2
 value = '8'
+
 # MODULE name='PythonSource', id=0
 # FUNCTION i i
 i = 42
 o = 1
 o = i # comment
 internal_var = 4
+
 # MODULE name='PythonSource', id=1
 # CONNECTION a o
 # CONNECTION someint value
@@ -234,6 +242,7 @@ internal_var_2 = value
         self.do_export('script_list.xml', """\
 # MODULE name='Integer', id=1
 value = '3'
+
 # MODULE name='List', id=0
 # FUNCTION value value_3
 value_3 = [1, 2]
