@@ -44,13 +44,12 @@ import re
 
 
 # The new copyright: the found copyright line will be replaced by this
-NEW_COPYRIGHT = ["## Copyright (C) 2014-2015, New York University.\n",
-                 "## Copyright (C) 2011-2014, NYU-Poly.\n"]
+NEW_COPYRIGHT = ["## Copyright (C) 2014-2015, New York University.\n"]
 
 # The old copyright line: the first matching line in a file will be replaced
 # by NEW_COPYRIGHT
 RE_COPYRIGHT = re.compile(r"\s*## Copyright \(C\) 20\d\d-20\d\d, "
-                          r"NYU-Poly\.\s*")
+                          r"New York University\.\s*")
 
 # Number of lines in which to search for the old copyright
 NB_SEARCHED_LINES = 5
