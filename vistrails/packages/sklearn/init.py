@@ -1,3 +1,5 @@
+from __future__ import division
+
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module
 
