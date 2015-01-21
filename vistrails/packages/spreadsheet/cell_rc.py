@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
 ##
-## Copyright (C) 2011-2015, NYU-Poly.
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
