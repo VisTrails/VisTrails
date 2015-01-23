@@ -376,7 +376,8 @@ def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
     return """VisTrails version %s (%s) -- contact@vistrails.org
 
-Copyright (C) 2011-2014 NYU-Poly. Copyright (C) 2006-2011 University of Utah.
+Copyright (C) 2014-2015 New York University. Copyright (C) 2011-2014 NYU-Poly.
+Copyright (C) 2006-2011 University of Utah.
 All rights reserved.
 http://www.vistrails.org
 
@@ -387,7 +388,7 @@ modification, are permitted provided that the following conditions are met:
     * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-    * Neither the name of the University of Utah nor the
+    * Neither the name of the New York University nor the
       names of its contributors may be used to endorse or promote products
       derived from this software without specific prior written permission.
 
