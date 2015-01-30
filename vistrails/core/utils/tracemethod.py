@@ -37,6 +37,8 @@ thread-safe. It won't crash, but the bump() printouts might not be correct.
 
 Also defines report_stack, a decorator that dumps the traceback whenever
 a method gets called."""
+from __future__ import division
+
 import sys
 import traceback
 from vistrails.core.data_structures.stack import Stack
@@ -103,11 +105,11 @@ def report_stack(method):
         print "-" * 78
         try:
             print "Method: " + method.im_class.__name__ + '.' + method.__name__
-        except:
+        except AttributeError:
             pass
         try:
             print "Function: " + method.func_name
-        except:
+        except AttributeError:
             pass
         traceback.print_stack()
         print "-" * 78

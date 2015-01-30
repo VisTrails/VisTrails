@@ -33,4 +33,6 @@
 ##
 ###############################################################################
 # Nothing here on purpose
+from __future__ import division
+
 pass

@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 """Hasher class for vistrail items."""
+from __future__ import division
+
 from vistrails.core.cache.utils import hash_list
 
 try:
@@ -75,6 +77,14 @@ class Hasher(object):
         return hasher.digest()
 
     @staticmethod
+    def control_param_signature(control_param, constant_hasher_map={}):
+        hasher = sha_hash()
+        u = hasher.update
+        u(control_param.name)
+        u(control_param.value)
+        return hasher.digest()
+
+    @staticmethod
     def connection_signature(c):
         hasher = sha_hash()
         u = hasher.update
@@ -104,7 +114,10 @@ class Hasher(object):
         u(obj.module_descriptor.namespace or '')
         u(obj.module_descriptor.package_version or '')
         u(obj.module_descriptor.version or '')
-        u(hash_list(obj.functions, Hasher.function_signature, constant_hasher_map))
+        u(hash_list(obj.functions, Hasher.function_signature,
+                    constant_hasher_map))
+        u(hash_list(obj.control_parameters, Hasher.control_param_signature,
+                    constant_hasher_map))
         return hasher.digest()
 
     @staticmethod

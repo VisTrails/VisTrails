@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core.bundles.pyimport import py_import
 import vistrails.core.requirements
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
@@ -114,8 +116,7 @@ def NewTextEditor(parent):
             
             """
             text = self.text()
-            return text.replace('\r', '\n')
-    
+            return text.replace('\r\n', '\n').replace('\r', '\n')
 #        def focusOutEvent(self, event):
 #            if self.parent():
 #                QtCore.QCoreApplication.sendEvent(self.parent(), event)

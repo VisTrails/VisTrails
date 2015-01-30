@@ -39,8 +39,9 @@ QKeyValueDelegate
 QModuleAnnotation
 QModuleAnnotationTable
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
-from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.core import debug
 
 ################################################################################

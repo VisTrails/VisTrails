@@ -35,6 +35,8 @@
 
 """ Utilities for creating simple dialogs, notifications in Vistrails
 without exposing Qt codes """
+from __future__ import division
+
 from PyQt4 import QtGui, QtCore
 from vistrails.gui.theme import CurrentTheme
 import vistrails.gui.theme
@@ -203,7 +205,7 @@ def getBuilderWindow():
     """
     try:
         return QtCore.QCoreApplication.instance().builderWindow
-    except:
+    except AttributeError:
         return None
 
 def getCurrentVersion():

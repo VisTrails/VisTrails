@@ -35,6 +35,8 @@
 """ This containing a subclassed QGraphicsView that allows View the
 pipeline in a specific way in the parameter exploration window
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.inspector import PipelineInspector
 from vistrails.gui.common_widgets import QToolWindowInterface
@@ -92,7 +94,8 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         """
         if pipeline and self.scene():
             self.inspector.inspect_ambiguous_modules(pipeline)
-            self.scene().fitToView(self)
+            self.scene().fitToAllViews(True)
+
 
     @staticmethod
     def drawId(painter, rect, id, align=QtCore.Qt.AlignCenter):
@@ -115,12 +118,12 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         
         x = rect.left()
         if align & QtCore.Qt.AlignHCenter:
-            x = rect.left() + rect.width()/2-size/2
+            x = rect.left() + rect.width()//2-size//2
         if align & QtCore.Qt.AlignRight:
             x = rect.left() + rect.width()-size
         y = rect.top()
         if align & QtCore.Qt.AlignVCenter:
-            y = rect.top() + rect.height()/2-size/2
+            y = rect.top() + rect.height()//2-size//2
         if align & QtCore.Qt.AlignBottom:
             y = rect.top() + rect.height()-size
             

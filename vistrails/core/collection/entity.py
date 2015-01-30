@@ -32,9 +32,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core.db.locator import BaseLocator
+from vistrails.core.system import strftime
+from datetime import datetime
 
 class Entity(object):
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
+
     def __init__(self):
         self.parent = None
         self.children = []
@@ -45,21 +51,24 @@ class Entity(object):
     def load(self, *args):
         (self.id, 
          _, 
-         self.name, 
+         self.name,
          self.user,
-         self.mod_time, 
+         self.mod_time,
          self.create_time,
          self.size,
          self.description,
          self.url) = args
+        self.mod_time = self.timeval(self.mod_time)
+        self.create_time = self.timeval(self.create_time)
+
 
     def save(self):
         return (self.id,
                 self.type_id,
                 self.name,
                 self.user,
-                self.mod_time,
-                self.create_time,
+                strftime(self.mod_time, self.DATE_FORMAT),
+                strftime(self.create_time, self.DATE_FORMAT),
                 self.size,
                 self.description,
                 self.url)
@@ -71,6 +80,20 @@ class Entity(object):
     def _get_end_date(self):
         return self.mod_time
     end_date = property(_get_end_date)
+
+    def now(self):
+        return datetime.now()
+
+    def timeval(self, time):
+        try:
+            return datetime.strptime(time, self.DATE_FORMAT)
+        except ValueError:
+            # try old format
+            try:
+                return datetime.strptime(time, '%d %b %Y %H:%M:%S')
+            except ValueError:
+                # locale or other error
+                return self.now()
 
 #     # returns string
 #     def get_name(self):

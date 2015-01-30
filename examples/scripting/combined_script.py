@@ -1,5 +1,13 @@
+import os
 import sys
-sys.path.append('/Users/benbu/src/vistrails/vistrails/')
+
+try:
+    import vistrails
+except:
+    #try to append vistrails source dir relative to examples/scripting
+    this_dir = os.path.split(__file__)[0]
+    sys.path.append(os.path.join(this_dir, '../..'))
+    import vistrails
 
 import vistrails.core.application
 import vistrails.core.db.action
@@ -9,6 +17,7 @@ import vistrails.core.modules.module_registry
 
 #init vistrails
 vt_app = vistrails.core.application.init()
+vt_app.new_vistrail()
 controller = vt_app.get_controller()
 registry = vistrails.core.modules.module_registry.get_module_registry()
 
@@ -42,27 +51,27 @@ def layoutAndAdd(module, connections):
     addToPipeline([module] + connections, ops)
 
 #========================== package prefixes ===================================
-httppkg = 'edu.utah.sci.vistrails.http'
+urlpkg = 'org.vistrails.vistrails.url'
 vtkpkg = 'edu.utah.sci.vistrails.vtk'
 
 #============================ start script =====================================
 
-#start with http file module
-httpFA = newModule(httppkg, 'HTTPFile')
+#start with download file module
+dlFA = newModule(urlpkg, 'DownloadFile')
 url = 'http://www.vistrails.org/download/download.php?type=DATA&id=gktbhFA.vtk'
-setPortValue(httpFA, 'url', url)
+setPortValue(dlFA, 'url', url)
 
 #add to pipeline
-addToPipeline([httpFA])
+addToPipeline([dlFA])
 
 #create data set reader module for the gktbhFA.vtk file
 dataFA = newModule(vtkpkg, 'vtkDataSetReader')
 
 #connect modules
-http_dataFA = newConnection(httpFA, 'file', dataFA, 'SetFile')
+dl_dataFA = newConnection(dlFA, 'file', dataFA, 'SetFile')
 
 #layout new modules before adding
-layoutAndAdd(dataFA, http_dataFA)
+layoutAndAdd(dataFA, dl_dataFA)
 
 #add contour filter
 contour = newModule(vtkpkg, 'vtkContourFilter')
@@ -99,7 +108,7 @@ lookup = newModule(vtkpkg, 'vtkLookupTable')
 setPortValue(lookup, 'SetHueRange', (0.0,0.8))
 setPortValue(lookup, 'SetSaturationRange', (0.3,0.7))
 setPortValue(lookup, 'SetValueRange', (1.0,1.0))
-lookup_colors = newConnection(lookup, 'self',
+lookup_colors = newConnection(lookup, 'Instance',
                               colors, 'SetLookupTable')
 layoutAndAdd(lookup, lookup_colors)
 
@@ -108,12 +117,12 @@ dataL123_colors = newConnection(dataL123, 'GetOutputPort0',
                                 colors, 'SetInputConnection0')
 layoutAndAdd(dataL123, dataL123_colors)
 
-httpL123 = newModule(httppkg, 'HTTPFile')
+dlL123 = newModule(urlpkg, 'DownloadFile')
 url = 'http://www.vistrails.org/download/download.php?type=DATA&id=gktbhL123.vtk'
-setPortValue(httpL123, 'url', url)
-httpL123_dataL123 = newConnection(httpL123, 'file',
+setPortValue(dlL123, 'url', url)
+dlL123_dataL123 = newConnection(dlL123, 'file',
                                   dataL123, 'SetFile')
-layoutAndAdd(httpL123, httpL123_dataL123)
+layoutAndAdd(dlL123, dlL123_dataL123)
 
 #finish bottom section
 mapper = newModule(vtkpkg, 'vtkPolyDataMapper')
@@ -123,7 +132,7 @@ probe_mapper = newConnection(probe, 'GetOutputPort0',
 layoutAndAdd(mapper, probe_mapper)
 
 actor = newModule(vtkpkg, 'vtkActor')
-mapper_actor = newConnection(mapper, 'self',
+mapper_actor = newConnection(mapper, 'Instance',
                              actor, 'SetMapper')
 layoutAndAdd(actor, mapper_actor)
 
@@ -132,13 +141,13 @@ setPortValue(prop, 'SetDiffuseColor', (1.0,0.49,0.25))
 setPortValue(prop, 'SetOpacity', 0.7)
 setPortValue(prop, 'SetSpecular', 0.3)
 setPortValue(prop, 'SetSpecularPower', 2.0)
-prop_actor = newConnection(prop, 'self',
+prop_actor = newConnection(prop, 'Instance',
                            actor, 'SetProperty')
 layoutAndAdd(prop, prop_actor)
 
 renderer = newModule(vtkpkg, 'vtkRenderer')
 setPortValue(renderer, 'SetBackgroundWidget', 'white')
-actor_renderer = newConnection(actor, 'self',
+actor_renderer = newConnection(actor, 'Instance',
                                renderer, 'AddActor')
 layoutAndAdd(renderer, actor_renderer)
 
@@ -146,26 +155,26 @@ camera = newModule(vtkpkg, 'vtkCamera')
 setPortValue(camera, 'SetFocalPoint', (15.666,40.421,39.991))
 setPortValue(camera, 'SetPosition', (207.961,34.197,129.680))
 setPortValue(camera, 'SetViewUp', (0.029, 1.0, 0.008))
-camera_renderer = newConnection(camera, 'self',
+camera_renderer = newConnection(camera, 'Instance',
                                 renderer, 'SetActiveCamera')
 layoutAndAdd(camera, camera_renderer)
 
 #this is missing when running from script??
 # cell = newModule(vtkpkg, 'VTKCell')
 # cell = newModule(vtkpkg, 'vtkCell')
-# renderer_cell = newConnection(renderer, 'self',
+# renderer_cell = newConnection(renderer, 'Instance',
 #                               cell, 'AddRenderer')
 # layoutAndAdd(cell, renderer_cell)
 
 #add book 3rd p189 example
 
 qcActor = newModule(vtkpkg, 'vtkActor')
-qcActor_renderer = newConnection(qcActor, 'self',
+qcActor_renderer = newConnection(qcActor, 'Instance',
                                  renderer, 'AddActor')
 layoutAndAdd(qcActor, qcActor_renderer)
 
 qcMapper = newModule(vtkpkg, 'vtkPolyDataMapper')
-qcMapper_actor = newConnection(qcMapper, 'self',
+qcMapper_actor = newConnection(qcMapper, 'Instance',
                                qcActor, 'SetMapper')
 layoutAndAdd(qcMapper, qcMapper_actor)
 
@@ -183,23 +192,23 @@ layoutAndAdd(sample, sample_qContour)
 
 quad = newModule(vtkpkg, 'vtkQuadric')
 setPortValue(quad, 'SetCoefficients', (0.5,1,0.2,0,0.1,0,0,0.2,0,0))
-quad_sample = newConnection(quad, 'self',
+quad_sample = newConnection(quad, 'Instance',
                             sample, 'SetImplicitFunction')
 layoutAndAdd(quad, quad_sample)
 
 oActor = newModule(vtkpkg, 'vtkActor')
-oActor_renderer = newConnection(oActor, 'self',
+oActor_renderer = newConnection(oActor, 'Instance',
                                 renderer, 'AddActor')
 layoutAndAdd(oActor, oActor_renderer)
 
 oProp = newModule(vtkpkg, 'vtkProperty')
 setPortValue(oProp, 'SetColor', (0,0,0))
-oProp_actor = newConnection(oProp, 'self',
+oProp_actor = newConnection(oProp, 'Instance',
                             oActor, 'SetProperty')
 layoutAndAdd(oProp, oProp_actor)
 
 oMapper = newModule(vtkpkg, 'vtkPolyDataMapper')
-oMapper_actor = newConnection(oMapper, 'self',
+oMapper_actor = newConnection(oMapper, 'Instance',
                               oActor, 'SetMapper')
 layoutAndAdd(oMapper, oMapper_actor)
 

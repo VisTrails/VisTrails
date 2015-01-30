@@ -37,6 +37,8 @@ This module describes a core theme structure for VisTrails GUI. It
 specifies measurements
 """
 
+from __future__ import division
+
 from vistrails.core.utils.color import ColorByName
 import vistrails.core.system
 ################################################################################
@@ -62,6 +64,9 @@ class DefaultCoreTheme(object):
 
         # Padded space of Module shape into its label
         self.MODULE_LABEL_MARGIN = (20, 20, 20, 15)
+
+        # Padded space of Module shape into its edit widget
+        self.MODULE_EDIT_MARGIN = (8, 4, 8, 4)
 
         # Margin of Module shape into its ports
         self.MODULE_PORT_MARGIN = (4, 4, 4, 4)

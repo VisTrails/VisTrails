@@ -99,6 +99,7 @@
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="actionId" type="xs:int"/>
       <xs:attribute name="name" type="xs:string"/>
+      <xs:attribute name="date" type="xs:dateTime"/>
       <xs:attribute name="user" type="xs:string"/>
       <xs:attribute name="dims" type="xs:string"/>
       <xs:attribute name="layout" type="xs:string"/>

@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 import sys
 import os.path
 import httplib
@@ -125,7 +127,7 @@ def webServiceTypesDict(WBobj):
             nameattrib = nameattrib[0].upper() + nameattrib[1:]
             sentence = "visobj" + "." + nameattrib
             visdata = eval(sentence)
-            if visdata != None:
+            if visdata is not None:
                 try:
                     Type = wsdlTypesDict[str(typechild)]
                     setattr(libobj,nameattrib,visdata)
@@ -148,7 +150,7 @@ def webServiceTypesDict(WBobj):
                 nameattribute = nameattrib[0].upper() + nameattrib[1:]
                 sentence = "visobj" + "." + nameattribute
                 visdata = eval(sentence)
-                if visdata != None:
+                if visdata is not None:
                     nameattrib = "attribute_typecode_dict[" + nameattrib + "].pname"
                     setattr(libobj,nameattrib,visdata)
 
@@ -330,7 +332,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
         if isinstance(resp, list):
             ptype = resp[0].typecode.type[1]
         else:
-            if resp.typecode.type[1] == None:
+            if resp.typecode.type[1] is None:
                 ptype = resp.typecode.pname
             else:    
                 ptype = resp.typecode.type[1]
@@ -434,10 +436,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                 if str(element.name) == str(name):
                     #get the request method name
                     reqname = element.input.getMessage().name
-            try:
-                req = getattr(self.modclient,reqname)()
-            except:
-                print "sys.exc_value: ", sys.exc_value
+            req = getattr(self.modclient,reqname)()
             for inparam in inparams:
                 #Now set all attributes for the request object
                 if self.has_input(inparam.name):
@@ -553,12 +552,12 @@ def processType(complexschema,w):
 
     if complexschema.isElement():
         try:
-            if complexschema.content.content == None:
+            if complexschema.content.content is None:
                 contentschema = []
             else:    
                 contentschema = complexschema.content.content.content
             objModule.typeobj = 'ComplexType'
-            if (complexschema.content.content == None or
+            if (complexschema.content.content is None or
                 complexschema.content.content.content == ()):
                 objModule.isEmptySequence = True
         except AttributeError:
@@ -577,7 +576,7 @@ def processType(complexschema,w):
             contentschema = complexschema.content.content
     try:       
         #Get all the attributes of the complex type
-        if complexschema.attr_content != None:
+        if complexschema.attr_content is not None:
             for attribute in complexschema.attr_content:
                 nametype = attribute.getAttributeName()
                 Type = 'string'
@@ -985,10 +984,8 @@ be loaded again." % w
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
-        package_subdirectory = os.path.join(package_directory, directoryname)
         wsm = WriteServiceModule(wsdl)
         client_mod = wsm.getClientModuleName()
-        types_mod = wsm.getTypesModuleName()
 
         #import the stub generated files
         try:
@@ -1340,17 +1337,17 @@ def verify_wsdl(wsdlList):
         response = conn.getresponse()
         remoteHeader = response.msg.getheader('last-modified')
         isoutdated = False
-        if remoteHeader != None:
+        if remoteHeader is not None:
             localFile = client_file
             reg = vistrails.core.modules.module_registry.get_module_registry()
             httpfile = reg.get_descriptor_by_name(
-                'org.vistrails.vistrails.http', 'HTTPFile').module()
+                'org.vistrails.vistrails.url', 'DownloadFile').module()
             try:
                 isoutdated = httpfile._is_outdated(remoteHeader, localFile)
             except OSError:
                 print "File doesn't exist"
                 isoutdated = True
-        if isoutdated or remoteHeader == None:
+        if isoutdated or remoteHeader is None:
             outdated_list.append(w)
         else:
             updated_list.append(w)
@@ -1362,18 +1359,11 @@ def initialize(*args, **keywords):
     global webServicesmodulesDict
     global complexsdict
     wsdlList = []
-    if configuration.showWarning == True:
-        msg = "The Web Services package is deprecated and will be removed from \
-next VisTrails release. Please consider using the new SUDS Web Services package. \
-This message will not be shown again."
-        pm.show_error_message(pm.get_package(identifier),msg)
-        try:
-            from vistrails.gui.application import get_vistrails_application
-            if get_vistrails_application() is not None:
-                configuration.showWarning = False
-                VisTrailsApplication.save_configuration()
-        except:
-            pass
+    if configuration.showWarning:
+        msg = ("The Web Services package is deprecated and will be removed "
+               "from the next VisTrails release. Please consider using the "
+               "new SUDS Web Services package.")
+        pm.show_error_message(pm.get_package(identifier), msg)
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
 

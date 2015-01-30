@@ -32,10 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.db.domain import DBAdd, DBChange, DBDelete
 from vistrails.db.domain import DBAnnotation, DBAbstraction, DBConnection, DBGroup, \
     DBLocation, DBModule, DBFunction, DBPluginData, DBParameter, DBPort, \
-    DBPortSpec
+    DBPortSpec, DBControlParameter
 
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.abstraction import Abstraction
@@ -43,6 +45,7 @@ from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.plugin_data import PluginData
@@ -67,6 +70,7 @@ def convert_data(_data):
         DBPluginData.vtType: PluginData,
         DBPort.vtType: Port,
         DBPortSpec.vtType: PortSpec,
+        DBControlParameter.vtType: ModuleControlParam,
         }
     try:
         map[_data.vtType].convert(_data)
@@ -387,6 +391,13 @@ class TestOperation(unittest.TestCase):
                                what=Annotation.vtType,
                                objectId=m.id,
                                data=annotation)
+        cparam = ModuleControlParam(id=id_scope.getNewId(ModuleControlParam.vtType),
+                                name='foo',
+                                value='bar')
+        add_cparam = AddOp(id=id_scope.getNewId(AddOp.vtType),
+                               what=ModuleControlParam.vtType,
+                               objectId=m.id,
+                               data=cparam)
         
         return [add_op, change_op, delete_op, add_annotation]
 

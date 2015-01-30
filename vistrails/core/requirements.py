@@ -35,6 +35,8 @@
 
 """module that allows online inspection of environment to test presence of
 runtime components such as binaries, libraries, other python modules, etc."""
+from __future__ import division
+
 import sys
 
 import vistrails.core.bundles.installbundle
@@ -48,11 +50,8 @@ def python_module_exists(module_name):
     Returns if python module of given name can be safely imported.
 
     """
-    try:
-        sys.modules[module_name]
+    if module_name in sys.modules:
         return True
-    except KeyError:
-        pass
     try:
         __import__(module_name)
         return True

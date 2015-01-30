@@ -36,6 +36,8 @@
 
     * ModuleFunction
 """
+from __future__ import division
+
 from vistrails.db.domain import DBFunction
 from vistrails.core.modules.utils import create_port_spec_string
 from vistrails.core.utils import enum, VistrailsInternalError, all, eprint
@@ -49,11 +51,6 @@ import copy
 from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.db.domain import IdScope
 import vistrails.core
-
-################################################################################
-
-PipelineElementType = enum('PipelineElementType',
-                           ['Module', 'Connection', 'Function', 'Parameter'])
 
 ################################################################################
 
@@ -145,7 +142,7 @@ class ModuleFunction(DBFunction):
         child.setAttribute('name',self.name)
         child.setAttribute('returnType',self.type)
         for p in self.params:
-                p.serialize(doc,child)
+            p.serialize(doc,child)
         element.appendChild(child)
 
     def get_spec(self, port_type):

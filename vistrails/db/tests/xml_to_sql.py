@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 # MACOSX binary install stuff
+from __future__ import division
+
 import os
 
 from vistrails.db.services import io

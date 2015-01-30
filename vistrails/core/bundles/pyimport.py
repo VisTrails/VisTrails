@@ -36,6 +36,8 @@
 """module responsible for smartly importing python modules, checking
 for necessary installs."""
 
+from __future__ import division
+
 import vistrails.core.bundles.installbundle
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug

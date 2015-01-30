@@ -32,6 +32,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from vistrails.gui.modules.python_source_configure import PythonEditor
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 

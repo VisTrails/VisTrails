@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import cgi
 import logging
 from PyQt4 import QtCore, QtGui
@@ -287,7 +289,7 @@ class DebugView(QtGui.QWidget, QVistrailsPaletteInterface):
         item.setForeground(CurrentTheme.DEBUG_COLORS[msgs[0]])
         self.list.setItemHidden(item, not self.levels[msgs[0]].isChecked())
         alwaysShowDebugPopup = getattr(get_vistrails_configuration(),
-                                       'alwaysShowDebugPopup',
+                                       'showDebugPopups',
                                        False)
         if msgs[0] == 'CRITICAL':
             if self.isVisible() and not alwaysShowDebugPopup:

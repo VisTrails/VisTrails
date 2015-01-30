@@ -32,20 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
+from ast import literal_eval
 import os
 import sys
-import tempfile
 import urllib
 import rpy2.robjects as robjects
 
-from vistrails.core.modules.basic_modules import File, Constant, \
-    new_constant
+from vistrails.core.modules.basic_modules import PathObject, new_constant
+from vistrails.core.modules.vistrails_module import Module, ModuleError
+from .widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
-from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, NotCacheable
-from vistrails.core.modules.basic_modules import new_constant
-import vistrails.core.modules.module_registry
-from widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
 # FIXME when rpy2 is installed on the path, we won't need this
 old_sys_path = sys.path
@@ -96,7 +94,7 @@ def create_vector(v_list, desired_type=None):
     return robjects.RVector(v_list)
 
 def vector_conv(v, desired_type=None):
-    v_list = eval(v)
+    v_list = literal_eval(v)
     return create_vector(v_list, desired_type)
 
 RVector = new_constant('RVector', staticmethod(vector_conv),
@@ -159,7 +157,7 @@ def create_matrix(v_list):
     
 def matrix_conv(v):
     # should be a double list
-    v_list = eval(v)
+    v_list = literal_eval(v)
     create_matrix(v_list)
 
 def matrix_compute(self):
@@ -190,7 +188,7 @@ def create_list(v_dict):
     return robjects.r['list'](**data_dict)
 
 def list_conv(v):
-    v_dict = eval(v)
+    v_dict = literal_eval(v)
     return create_list(v_dict)
 
 RList = new_constant('RList', staticmethod(list_conv),
@@ -211,7 +209,7 @@ def create_data_frame(v_dict):
     return robjects.r['data.frame'](**data_dict)
 
 def data_frame_conv(v):
-    v_dict = eval(v)
+    v_dict = literal_eval(v)
     return create_data_frame(v_dict)
 
 RDataFrame = new_constant('RDataFrame', staticmethod(data_frame_conv),
@@ -254,7 +252,7 @@ class NestedListFromRMatrix(Module):
         rmatrix = self.get_input('rmatrix')
         mlist = list(rmatrix)
         nrows = rmatrix.nrow
-        ncols = len(mlist) / nrows
+        ncols = len(mlist) // nrows
         olist = [] 
         for row in xrange(nrows):
             olist.append(mlist[row*ncols:(row+1)*ncols])
@@ -409,9 +407,7 @@ class RFigure(RSource):
         self.run_code(code_str, use_input=True, 
                       excluded_inputs=excluded_inputs)
         robjects.r['dev.off']()
-        image_file = File()
-        image_file.name = fname
-        image_file.upToDate = True
+        image_file = PathObject(fname)
         self.set_output('imageFile', image_file)
 
     def run_figure_file(self, fname, graphics_dev, width, height, 

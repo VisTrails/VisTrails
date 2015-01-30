@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pragma: no testimport
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -186,12 +187,10 @@
 # window.show()
 # print app.exec_()
 # sys.exit(0)
+from __future__ import division
+
 import os
 import sys
-
-if __name__ != '__main__':
-    from vistrails.tests import NotModule
-    raise NotModule('This should not be imported as a module')
 
 sys.exit(os.system('yum -y install ' + ' '.join(sys.argv[1:])))
 

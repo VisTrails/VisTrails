@@ -34,6 +34,8 @@
 ###############################################################################
 
 """Utility functions for core.bundles"""
+from __future__ import division
+
 from vistrails.core import debug
 import vistrails.core.system
 import os
@@ -116,7 +118,7 @@ def _guess_suse():
     try:
         tokens = open('/etc/SuSE-release').readline()[-1].split()
         return tokens[0] == 'SUSE'
-    except:
+    except (IOError, IndexError):
         return False
 _system_guesser.add_test(_guess_suse, 'linux-suse')
 

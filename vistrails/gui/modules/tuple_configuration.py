@@ -39,6 +39,8 @@ vistrails.gui.modules.module_configure.StandardModuleConfigurationWidget,
 which is also a QWidget.
 
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core import debug
 from vistrails.core.utils import VistrailsInternalError
@@ -53,10 +55,12 @@ from vistrails.gui.utils import show_question, SAVE_BUTTON, DISCARD_BUTTON
 
 class PortTable(QtGui.QTableWidget):
     def __init__(self, parent=None):
-        QtGui.QTableWidget.__init__(self,1,2,parent)
-        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
-        self.horizontalHeader().setMovable(False)
-        self.horizontalHeader().setStretchLastSection(True)
+        QtGui.QTableWidget.__init__(self,1,3,parent)
+        horiz = self.horizontalHeader()
+        horiz.setResizeMode(QtGui.QHeaderView.Interactive)
+        horiz.setMovable(False)
+        #horiz.setStretchLastSection(True)
+        horiz.setResizeMode(1, horiz.Stretch)
         self.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.delegate = PortTableItemDelegate(self)
@@ -107,6 +111,9 @@ class PortTable(QtGui.QTableWidget):
             sigstring = p.sigstring[1:-1]
             siglist = sigstring.split(':')
             short_name = "%s (%s)" % (siglist[1], siglist[0])
+            model.setData(model.index(self.rowCount()-1, 2),
+                          p.depth,
+                          QtCore.Qt.DisplayRole)
             model.setData(model.index(self.rowCount()-1, 1),
                           sigstring,
                           QtCore.Qt.UserRole)
@@ -125,12 +132,11 @@ class PortTable(QtGui.QTableWidget):
         ports = []
         model = self.model()
         for i in xrange(self.rowCount()):
-            name = model.data(model.index(i, 0),
-                              QtCore.Qt.DisplayRole)
-            sigstring = model.data(model.index(i, 1),
-                                   QtCore.Qt.UserRole)
+            name = model.data(model.index(i, 0), QtCore.Qt.DisplayRole)
+            sigstring = model.data(model.index(i, 1), QtCore.Qt.UserRole)
+            depth = model.data(model.index(i, 2), QtCore.Qt.DisplayRole) or 0
             if name is not None and sigstring is not None:
-                ports.append((name, '(%s)' % sigstring, i))
+                ports.append((name, '(%s)' % sigstring, i, depth))
         return ports
 
 #    def focusOutEvent(self, event):
@@ -172,7 +178,11 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         registry = get_module_registry()
-        if index.column()==1: #Port type
+        if index.column()==2: #Depth type
+            spinbox = QtGui.QSpinBox(parent)
+            spinbox.setValue(0)
+            return spinbox
+        elif index.column()==1: #Port type
             combo = CompletingComboBox(parent)
             # FIXME just use descriptors here!!
             variant_desc = registry.get_descriptor_by_name(
@@ -199,14 +209,19 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
             return QtGui.QItemDelegate.createEditor(self, parent, option, index)
 
     def setEditorData(self, editor, index):
-        if index.column()==1:
+        if index.column()==2:
+            data = index.model().data(index, QtCore.Qt.DisplayRole)
+            editor.setValue(data or 0)
+        elif index.column()==1:
             data = index.model().data(index, QtCore.Qt.UserRole)
             editor.setCurrentIndex(editor.findData(data))
         else:
             QtGui.QItemDelegate.setEditorData(self, editor, index)
 
     def setModelData(self, editor, model, index):
-        if index.column()==1:
+        if index.column()==2:
+            model.setData(index, editor.value() or 0, QtCore.Qt.DisplayRole)
+        elif index.column()==1:
             editor.validate_input()
             model.setData(index, editor.itemData(editor.currentIndex()), 
                           QtCore.Qt.UserRole)
@@ -343,10 +358,10 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
     
     def getPortDiff(self, p_type, port_table):
         if p_type == 'input':
-            old_ports = [(p.name, p.sigstring, p.sort_key)
+            old_ports = [(p.name, p.sigstring, p.sort_key, p.depth)
                          for p in self.module.input_port_specs]
         elif p_type == 'output':
-            old_ports = [(p.name, p.sigstring, p.sort_key) 
+            old_ports = [(p.name, p.sigstring, p.sort_key, p.depth) 
                          for p in self.module.output_port_specs]
         else:
             old_ports = []
@@ -389,7 +404,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         # Then add a PortTable to our configuration widget
         self.portTable = PortTable(self)
         self.portTable.setHorizontalHeaderLabels(
-            ['Input Port Name', 'Type'])
+            ['Input Port Name', 'Type', 'List Depth'])
         
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports

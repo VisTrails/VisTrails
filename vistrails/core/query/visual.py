@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core import query
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.utils import append_to_dict_of_lists
@@ -51,8 +53,8 @@ class VisualQuery(query.Query):
                                 target_ids, template_ids):
         resultIds = set()
         while 1:
-            templateNames = set([(i, template.modules[i].name)
-                                 for i in template_ids])
+            templateNames = set((i, template.modules[i].name)
+                                for i in template_ids)
             targetNames = {}
             for i in target_ids:
                 append_to_dict_of_lists(targetNames, target.modules[i].name, i)

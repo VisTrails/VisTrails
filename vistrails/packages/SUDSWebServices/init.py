@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import sys
 import os.path
 import shutil
@@ -136,10 +138,10 @@ def initialize(*args, **keywords):
         try:
             debug.log("Creating SUDS cache directory...")
             os.mkdir(location)
-        except:
+        except OSError, e:
             debug.critical(
 """Could not create SUDS cache directory. Make sure
-'%s' does not exist and parent directory is writable""" % location)
+'%s' does not exist and parent directory is writable""" % location, e)
             sys.exit(1)
     # the number of days to cache wsdl files
     days = 1
@@ -175,7 +177,7 @@ def finalize():
         if s.package:
             reg.remove_package(s.package)
 
-class WSMethod:
+class WSMethod(object):
     """ A WSDL method
     """
     def __init__(self, qname=('','')):
@@ -184,7 +186,7 @@ class WSMethod:
         self.inputs = {}
         self.outputs = {}
 
-class WSElement:
+class WSElement(object):
     """ A part of a WSDL type
     """
     def __init__(self, name='', type=('',''), optional=False, min=0,
@@ -196,7 +198,7 @@ class WSElement:
         self.max = max
         self.enum = enum
 
-class WSType:
+class WSType(object):
     """ A WSDL type definition
     """
     def __init__(self, qname=('',''), enum=False):
@@ -205,7 +207,7 @@ class WSType:
         "name: WSElement"
         self.parts = {}
  
-class Service:
+class Service(object):
     def __init__(self, address):
         """ Process WSDL and add all Types and Methods
         """
@@ -605,8 +607,9 @@ It is a WSDL type with signature:
                     #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
                 except Exception, e:
+                    debug.unexpected_exception(e)
                     raise ModuleError(self, "Error invoking method %s: %s" % (
-                            name, debug.format_exception(e)))
+                            mname, debug.format_exception(e)))
                 for name, qtype in self.wsmethod.outputs.iteritems():
                     if isinstance(result, list):
                         # if result is a list just set the output
@@ -627,7 +630,7 @@ It is a WSDL type with signature:
                         self.set_output(name, getattr(result, name))
                     else:
                         # nothing matches - assume it is an attribute of the correct class
-                        class UberClass:
+                        class UberClass(object):
                             def __init__(self, value):
                                 self.value = value
                         self.set_output(name, UberClass(result))
@@ -684,7 +687,8 @@ def load_from_signature(signature):
     if not wsdl in wsdlList:
         try:
             service = Service(wsdl)
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return False
         if not service.service:
             return False
@@ -742,7 +746,8 @@ def handle_missing_module(controller, module_id, pipeline):
         try:
             wsdl = m_namespace.split("|")
             return wsdl[0]
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return None
     
     m = pipeline.modules[module_id]

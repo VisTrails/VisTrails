@@ -33,4 +33,6 @@
 ##
 ###############################################################################
 
-from vistrails.db.versions.v1_0_3.persistence import *
+from __future__ import division
+
+from vistrails.db.versions.v1_0_4.persistence import *

@@ -43,6 +43,9 @@
 type information, and organizes them.
 
 """
+from __future__ import division
+
+from ast import literal_eval
 import re
 import vtk
 import class_tree
@@ -308,9 +311,9 @@ class VTKMethodParser(object):
 
             # Now quote the args and eval them.  Easy!
             if ret:
-                ret = eval(pat.sub('\"', ret))
+                ret = literal_eval(pat.sub('\"', ret))
             if arg:
-                arg = eval(pat.sub('\"', arg))
+                arg = literal_eval(pat.sub('\"', arg))
                 if isinstance(arg, basestring):
                     arg = [arg]
 
@@ -442,7 +445,7 @@ class VTKMethodParser(object):
                     for x in values[:]:
                         try:
                             getattr(obj, 'Set%sTo%s'%(key, x[0]))()
-                        except:
+                        except Exception:
                             continue
                         val = getattr(obj, 'Get%s'%key)()
                         x[1] = val

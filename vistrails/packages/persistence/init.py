@@ -32,6 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
+from ast import literal_eval
 import copy
 import os
 import shutil
@@ -41,7 +44,7 @@ import uuid
 import vistrails.core.debug
 from vistrails.core.configuration import ConfigurationObject
 from vistrails.core.cache.hasher import Hasher
-from vistrails.core.modules.basic_modules import Path, File, Directory, Boolean, \
+from vistrails.core.modules.basic_modules import Path, PathObject, Directory, Boolean, \
     String, Constant
 from vistrails.core.modules.module_registry import get_module_registry, MissingModule, \
     MissingPackageVersion, MissingModuleVersion
@@ -111,10 +114,10 @@ class PersistentRef(Constant):
     def translate_to_python(x):
         try:
             res = PersistentRef()
-            s_tuple = eval(x)
+            s_tuple = literal_eval(x)
             (res.type, res.id, res.version, res.local_path, res.local_read,
              res.local_writeback, res.versioned, res.name, res.tags) = s_tuple
-        except:
+        except Exception:
             return None
 #         result.settings = dict(zip(sorted(default_settings.iterkeys()),
 #                                    s_tuple))
@@ -436,10 +439,7 @@ class PersistentFile(PersistentPath):
         PersistentPath.compute(self, is_input, 'blob')
 
     def set_result(self, path):
-        persistent_path = File()
-        persistent_path.name = path
-        persistent_path.set_output('value', self)
-        persistent_path.upToDate = True
+        persistent_path = PathObject(path)
         self.set_output("value", persistent_path)
 
 class PersistentDir(PersistentPath):
@@ -454,10 +454,7 @@ class PersistentDir(PersistentPath):
         PersistentPath.compute(self, is_input, 'tree')
 
     def set_result(self, path):
-        persistent_path = Directory()
-        persistent_path.name = path
-        persistent_path.set_output('value', self)
-        persistent_path.upToDate = True
+        persistent_path = PathObject(path)
         self.set_output("value", persistent_path)
 
 class PersistentInputDir(PersistentDir):
@@ -586,7 +583,7 @@ def initialize():
         if not os.path.exists(local_db):
             try:
                 os.mkdir(local_db)
-            except:
+            except OSError:
                 raise RuntimeError('local_db "%s" does not exist' % local_db)
 
     local_repo = repo.get_repo(local_db)
@@ -600,14 +597,15 @@ def initialize():
     search_dbs = [local_db,]
     if configuration.check('search_dbs'):
         try:
-            check_paths = eval(configuration.search_dbs)
-        except:
+            check_paths = literal_eval(configuration.search_dbs)
+        except Exception:
             print "*** persistence error: cannot parse search_dbs ***"
-        for path in check_paths:
-            if os.path.exists(path):
-                search_dbs.append(path)
-            else:
-                print '*** persistence warning: cannot find path "%s"' % path
+        else:
+            for path in check_paths:
+                if os.path.exists(path):
+                    search_dbs.append(path)
+                else:
+                    print '*** persistence warning: cannot find path "%s"' % path
 
 _configuration_widget = None
 

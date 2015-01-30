@@ -44,16 +44,54 @@ QVersionThumbs
 QVersionMashups
 
 """
+from __future__ import division
+
 import re
-import os.path
 from PyQt4 import QtCore, QtGui
-from vistrails.core.query.version import SearchCompiler, SearchParseError, TrueSearch
-from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.gui.theme import CurrentTheme
-from vistrails.gui.common_widgets import QSearchBox
-from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-from vistrails.core.utils import all
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
+from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.utils import all
+from vistrails.core.vistrail.controller import custom_color_key, \
+    parse_custom_color
+from vistrails.gui.theme import CurrentTheme
+from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
+
+################################################################################
+
+class ColorChooserButton(QtGui.QPushButton):
+    color_selected = QtCore.pyqtSignal(object)
+
+    def __init__(self, parent=None):
+        QtGui.QToolButton.__init__(self, parent)
+        self.setColor(None)
+
+        self.connect(self, QtCore.SIGNAL('clicked()'), self.changeColor)
+
+    def setColor(self, color, silent=True):
+        self.color = color
+        if color is not None:
+            self.setStyleSheet('ColorChooserButton {'
+                               'border: 1px solid black; '
+                               'background-color: rgb(%d, %d, %d); }' % (
+                               color.red(), color.green(), color.blue()))
+        else:
+            self.setStyleSheet('ColorChooserButton {'
+                               'border: 1px dashed black; }')
+        self.update()
+        if not silent:
+            self.color_selected.emit(self.color)
+
+    def sizeHint(self):
+        return QtCore.QSize(20, 20)
+
+    def changeColor(self):
+        if self.color is not None:
+            self.setColor(None, silent=False)
+        else:
+            color = QtGui.QColorDialog.getColor(QtCore.Qt.white, self)
+            if color.isValid():
+                self.setColor(color, silent=False)
 
 ################################################################################
 
@@ -69,7 +107,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         
         """
         QtGui.QWidget.__init__(self, parent)
-        self.setWindowTitle('Properties')
+        self.setWindowTitle('Workflow Info')
 
         vLayout = QtGui.QVBoxLayout()
         vLayout.setMargin(2)
@@ -83,7 +121,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         gLayout.setRowMinimumHeight(0,20)
         gLayout.setRowMinimumHeight(1,20)
         gLayout.setRowMinimumHeight(2,20)
-        gLayout.setRowMinimumHeight(3,20)        
+        gLayout.setRowMinimumHeight(3,20)
         vLayout.addLayout(gLayout)
         
         tagLabel = QtGui.QLabel('Tag:', self)
@@ -97,7 +135,7 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         editLayout.addWidget(self.tagEdit)
         self.tagEdit.setEnabled(False)
         self.tagEdit.setMinimumHeight(22)
-        
+
         self.tagReset = QtGui.QToolButton(self)
         self.tagReset.setIcon(QtGui.QIcon(
                 self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)))
@@ -105,6 +143,14 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.tagReset.setAutoRaise(True)
         self.tagReset.setEnabled(False)
         editLayout.addWidget(self.tagReset)
+
+        configuration = get_vistrails_configuration()
+        self.use_custom_colors = configuration.check('enableCustomVersionColors')
+
+        if self.use_custom_colors:
+            self.customColor = ColorChooserButton(self)
+            editLayout.addWidget(self.customColor)
+            self.customColor.color_selected.connect(self.custom_color_selected)
 
         gLayout.addLayout(editLayout, 0, 2, 1, 1)
 
@@ -154,11 +200,16 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         Assign the controller to the property page
         
         """
+        if self.controller == controller:
+            return
         self.controller = controller
         self.versionNotes.controller = controller
         self.versionThumbs.controller = controller
         self.versionMashups.controller = controller
-        self.updateVersion(controller.current_version)
+        if controller is not None:
+            self.updateVersion(controller.current_version)
+        else:
+            self.updateVersion(-1)
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
@@ -170,6 +221,19 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.versionThumbs.updateVersion(versionNumber)
         self.versionMashups.updateVersion(versionNumber)
         if self.controller:
+            if self.use_custom_colors:
+                custom_color = self.controller.vistrail.get_action_annotation(
+                        versionNumber, custom_color_key)
+                if custom_color is not None:
+                    try:
+                        custom_color = parse_custom_color(custom_color.value)
+                        custom_color = QtGui.QColor(*custom_color)
+                    except ValueError, e:
+                        debug.warning("Version %r has invalid color "
+                                      "annotation (%s)" % (versionNumber, e))
+                        custom_color = None
+                self.customColor.setColor(custom_color)
+
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 action = self.controller.vistrail.actionMap[versionNumber]
                 name = self.controller.vistrail.getVersionName(versionNumber)
@@ -182,12 +246,11 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
             else:
                 self.tagEdit.setEnabled(False)
                 self.tagReset.setEnabled(False)
-                
+
         self.tagEdit.setText('')
         self.userEdit.setText('')
         self.dateEdit.setText('')
         self.idEdit.setText('')
-        
 
     def tagFinished(self):
         """ tagFinished() -> None
@@ -214,6 +277,18 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         """ 
         self.tagEdit.setText('')
         self.tagFinished()
+
+    def custom_color_selected(self, color):
+        if color is not None:
+            self.controller.vistrail.set_action_annotation(
+                    self.controller.current_version, custom_color_key,
+                    '%d,%d,%d' % (color.red(), color.green(), color.blue()))
+        else:
+            self.controller.vistrail.set_action_annotation(
+                    self.controller.current_version, custom_color_key, None)
+        self.controller.set_changed(True)
+        self.controller.recompute_terse_graph()
+        self.controller.invalidate_version_tree()
 
 class QVersionNotes(QtGui.QTextEdit):
     """
@@ -413,6 +488,8 @@ class QVersionPropOverlay(QtGui.QFrame):
         Assign the controller to the properties
         
         """
+        if self.controller == controller:
+            return
         self.controller = controller
         self.notes_dialog.updateController(controller)
 

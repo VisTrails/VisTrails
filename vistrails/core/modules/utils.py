@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import vistrails.core
 from vistrails.core.system import get_vistrails_default_pkg_prefix, \
     get_vistrails_basic_pkg_id, get_module_registry
@@ -39,7 +41,7 @@ from vistrails.core.system import get_vistrails_default_pkg_prefix, \
 def load_cls(cls_item, prefix=None):
     path = None
     if isinstance(cls_item, basestring):
-        [path, cls_name] = cls_item.split(':')[:2]
+        (path, cls_name) = cls_item.split(':')[:2]
     elif isinstance(cls_item, tuple):
         (path, cls_name) = cls_item
     if path is not None:
@@ -144,9 +146,19 @@ def parse_port_spec_string(p_string, cur_package=None):
 
 
 def create_port_spec_string(specs_list, old_style=False):
-    return '(' + ','.join(create_port_spec_item_string(
-            *(specs + ((None, old_style) if len(specs) < 3 else (old_style,))))
-                          for specs in specs_list) + ')'
+    spec_items = []
+    for specs in specs_list:
+        if len(specs) == 3:
+            pkg, name, ns = specs
+        elif len(specs) == 2:
+            pkg, name = specs
+            ns = None
+        else:
+            raise TypeError("create_port_spec_string() got spec tuple "
+                            "with %d elements" % len(specs))
+        spec_items.append(create_port_spec_item_string(pkg, name, ns,
+                                                       old_style))
+    return '(%s)' % ','.join(spec_items)
 
 def expand_port_spec_string(p_string, cur_package=None, 
                             old_style=False):

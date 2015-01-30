@@ -34,6 +34,8 @@
 ###############################################################################
 
 """ Define facilities for setting up SubModule Module in VisTrails """
+from __future__ import division
+
 from itertools import izip
 import random
 import uuid
@@ -41,14 +43,12 @@ import uuid
 from vistrails.core.cache.hasher import Hasher
 from vistrails.core.cache.utils import hash_list
 from vistrails.core.modules import module_registry
-from vistrails.core.modules.basic_modules import String, Boolean, Variant, \
-    NotCacheable, identifier as basic_pkg
+from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
     ModuleError, ModuleSuspended
-from vistrails.core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
+from vistrails.core.utils import VistrailsInternalError
 import os.path
-import vistrails.db
 
 try:
     import hashlib
@@ -230,15 +230,24 @@ class Group(Module):
     def is_cacheable(self):
         return all(m.is_cacheable() for m in self.persistent_modules)
 
+    def transfer_attrs(self, module):
+        self.pipeline = module.pipeline
+        if module._port_specs is None:
+            module.make_port_specs()
+        self.input_remap = module._input_remap
+        self.output_remap = module._output_remap
+        Module.transfer_attrs(self, module)
+
 ###############################################################################
 
 def coalesce_port_specs(neighbors, type):
-    from vistrails.core.modules.basic_modules import identifier as basic_pkg
     reg = module_registry.get_module_registry()
     cur_descs = None
+    cur_depth = 0
+    Variant_desc = reg.get_descriptor_by_name(basic_pkg, 'Variant')
     if type == 'input':
         find_common = reg.find_descriptor_subclass
-        common_desc = reg.get_descriptor_by_name(basic_pkg, 'Variant')
+        common_desc = Variant_desc
     elif type == 'output':
         find_common = reg.find_descriptor_superclass
         common_desc = reg.get_descriptor_by_name(basic_pkg, 'Module')
@@ -249,37 +258,49 @@ def coalesce_port_specs(neighbors, type):
         if cur_descs is None:
             port_spec = module.get_port_spec(port_name, type)
             cur_descs = port_spec.descriptors()
+            cur_depth = port_spec.depth
         else:
             next_port_spec = module.get_port_spec(port_name, type)
             next_descs = next_port_spec.descriptors()
+            next_depth = next_port_spec.depth
             if len(cur_descs) != len(next_descs):
                 raise VistrailsInternalError("Cannot have single port "
                                              "connect to incompatible "
                                              "types")
+            if cur_depth != next_depth:
+                raise VistrailsInternalError("Cannot have single port "
+                                             "connect to types with "
+                                             "different list depth")
             descs = []
             for cur_desc, next_desc in izip(cur_descs, next_descs):
-                new_desc = find_common(cur_desc, next_desc)
+                if cur_desc is Variant_desc:
+                    new_desc = next_desc
+                elif next_desc is Variant_desc:
+                    new_desc = cur_desc
+                else:
+                    new_desc = find_common(cur_desc, next_desc)
                 if new_desc is None:
                     new_desc = common_desc
                 descs.append(new_desc)
             cur_descs = descs
+            
     if cur_descs:
         sigstring = '(' + ','.join(d.sigstring for d in cur_descs) + ')'
     else:
         sigstring = None
-    return sigstring
+    return (sigstring, cur_depth)
 
 def get_port_spec_info(pipeline, module):
     type_map = {'OutputPort': 'output', 'InputPort': 'input'}
     try:
         type = type_map[module.name]
     except KeyError:
-        raise VistrailsInternalError("cannot translate type '%s'" % type)
+        raise VistrailsInternalError("cannot translate type '%s'" % module.name)
     if type == 'input':
         get_edges = pipeline.graph.edges_from
         get_port_name = \
             lambda x: pipeline.connections[x].destination.name
-    elif type == 'output':
+    else:  # type == 'output'
         get_edges = pipeline.graph.edges_to
         get_port_name = \
             lambda x: pipeline.connections[x].source.name
@@ -292,8 +313,7 @@ def get_port_spec_info(pipeline, module):
     neighbors = [(pipeline.modules[m_id], get_port_name(c_id))
                  for (m_id, c_id) in get_edges(module.id)]
     port_name = neighbors[0][1]
-    sigstring = coalesce_port_specs(neighbors, type)
-    old_name = port_name
+    sigstring, depth = coalesce_port_specs(neighbors, type)
     # sigstring = neighbor.get_port_spec(port_name, type).sigstring
 
     # FIXME check old registry here?
@@ -304,7 +324,7 @@ def get_port_spec_info(pipeline, module):
         if function.name == 'optional':
             port_optional = function.params[0].strValue == 'True'
 #     print 'psi:', port_name, old_name, sigstring
-    return (port_name, sigstring, port_optional, neighbors)
+    return (port_name, sigstring, port_optional, depth, neighbors)
 
 ###############################################################################
 
@@ -425,19 +445,19 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     input_remap = {}
     output_remap = {}
     for module in input_modules:
-        (port_name, sigstring, optional, _) = \
+        (port_name, sigstring, optional, depth, _) = \
             get_port_spec_info(pipeline, module)
-        input_ports.append((port_name, sigstring, optional))
+        input_ports.append((port_name, sigstring, optional, depth))
         input_remap[port_name] = module
     for module in output_modules:
-        (port_name, sigstring, optional, _) = \
+        (port_name, sigstring, optional, depth, _) = \
             get_port_spec_info(pipeline, module)
-        output_ports.append((port_name, sigstring, optional))
+        output_ports.append((port_name, sigstring, optional, depth))
         output_remap[port_name] = module
 
     # necessary for group
-    d['_input_ports'] = input_ports
-    d['_output_ports'] = output_ports
+    d['_input_ports'] = [IPort(*p[:3], depth=p[3]) for p in input_ports] 
+    d['_output_ports'] = [OPort(*p[:3], depth=p[3]) for p in output_ports] 
     d['input_remap'] = input_remap
     d['output_remap'] = output_remap
     d['pipeline'] = pipeline

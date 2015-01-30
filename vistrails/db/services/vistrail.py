@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.db.domain import DBWorkflow, DBAdd, DBDelete, DBAction, DBAbstraction, \
     DBModule, DBConnection, DBPort, DBFunction, DBParameter, DBGroup
 from vistrails.db.services.action_chain import getActionChain, getCurrentOperationDict, \
@@ -44,6 +46,7 @@ import getpass
 
 import unittest
 import vistrails.core.system
+from itertools import chain
 
 def update_id_scope(vistrail):
     if hasattr(vistrail, 'update_id_scope'):
@@ -207,6 +210,10 @@ def merge(sb, next_sb, app='', interactive = False, tmp_dir = '', next_tmp_dir =
     merge_gui = interactive
     MergeGUI = merge_gui.MergeGUI if merge_gui else False
     skip = 0
+
+    # right now we just replace mashups and subworkflows
+    sb.mashups = list(next_sb.mashups)
+    sb.abstractions = list(next_sb.abstractions)
 
     id_remap = {}
 
@@ -849,7 +856,44 @@ def heuristicModuleMatch(m1, m2):
                 m2_functions.remove(f2)
             else:
                 return 0
-        if len(m1_functions) == len(m2_functions) == 0:
+        
+        m1_cparams = copy.copy(m1.db_get_controlParameters())
+        m2_cparams = copy.copy(m2.db_get_controlParameters())
+        if len(m1_cparams) != len(m2_cparams):
+            return 0
+        for cp1 in m1_cparams[:]:
+            match = None
+            for cp2 in m2_cparams:
+                isMatch = heuristicControlParameterMatch(cp1, cp2)
+                if isMatch == 1:
+                    match = cp2
+                    break
+            if match is not None:
+                m1_cparams.remove(cp1)
+                m2_cparams.remove(cp2)
+            else:
+                return 0
+        
+        m1_annots = copy.copy(m1.db_get_annotations())
+        m2_annots = copy.copy(m2.db_get_annotations())
+        if len(m1_annots) != len(m2_annots):
+            return 0
+        for a1 in m1_annots[:]:
+            match = None
+            for a2 in m2_annots:
+                isMatch = heuristicAnnotationMatch(a1, a2)
+                if isMatch == 1:
+                    match = a2
+                    break
+            if match is not None:
+                m1_annots.remove(a1)
+                m2_annots.remove(a2)
+            else:
+                return 0
+
+        if len(m1_functions) == len(m2_functions) == \
+           len(m1_cparams  ) == len(m2_cparams  ) == \
+           len(m1_annots   ) == len(m2_annots   ) == 0:
             return 1
         else:
             return 0
@@ -890,6 +934,30 @@ def heuristicParameterMatch(p1, p2):
     """
     if p1.db_type == p2.db_type and p1.db_pos == p2.db_pos:
         if p1.db_val == p2.db_val:
+            return 1
+        else:
+            return 0
+    return -1
+
+def heuristicControlParameterMatch(cp1, cp2):
+    """takes two control parameters and returns 1 if exact match,
+    0 if partial match (types match), -1 if no match
+
+    """
+    if cp1.db_name == cp2.db_name:
+        if cp1.db_value == cp2.db_value:
+            return 1
+        else:
+            return 0
+    return -1
+
+def heuristicAnnotationMatch(a1, a2):
+    """takes two annotations and returns 1 if exact match,
+    0 if partial match (types match), -1 if no match
+
+    """
+    if a1.db_key == a2.db_key:
+        if a1.db_value == a2.db_value:
             return 1
         else:
             return 0
@@ -1012,6 +1080,155 @@ def getParamChanges(m1, m2, same_vt=True, heuristic_match=True):
         
     return paramChanges
 
+def getCParamChanges(m1, m2, same_vt=True, heuristic_match=True):
+    cparamChanges = []
+    # need to check to see if any children of m1 and m2 are affected
+    m1_cparams = m1.db_get_controlParameters()
+    m2_cparams = m2.db_get_controlParameters()
+    m1_unmatched = []
+    m2_unmatched = []
+    if same_vt:
+        for cp1 in m1_cparams:
+            # see if m2 has f1, too
+            cp2 = m2.db_get_controlParameter(cp1.db_id)
+            if cp2 is None:            
+                m1_unmatched.append(cp1)
+            else:
+                # cparam is same, check if it has changed
+                if heuristic_match:
+                    matchValue = heuristicControlParameterMatch(cp1, cp2)
+                    if matchValue != 1:
+                        cparamChanges.append(((cp1.db_name,cp1.db_value), 
+                                              (cp2.db_name,cp2.db_value)))
+                else:
+                    cparamChanges.append(((cp1.db_name,cp1.db_value), 
+                                          (cp2.db_name,cp2.db_value)))
+        for cp2 in m2_cparams:
+            # see if m1 has f2, too
+            if m1.db_get_controlParameter(cp2.db_id) is None:
+                m2_unmatched.append(cp2)
+    else:
+        m1_unmatched.extend(m1_cparams)
+        m2_unmatched.extend(m2_cparams)
+
+#             functionMatch = True
+#             f1_params = f1.db_get_parameters()
+#             f2_params = f2.db_get_parameters()
+#             for p1 in f1_params:
+#                 if f2.db_get_parameter(p1.db_id) is None:
+#                     functionMatch = False
+#                     m1_unmatched.append(f1)
+#                     break
+#             for p2 in f2_params:
+#                 if f1.db_get_parameter(p2.db_id) is None:
+#                     functionMatch = False
+#                     m2_unmatched.append(f2)
+#                     break
+#             if functionMatch:
+
+    if len(m1_unmatched) + len(m2_unmatched) > 0:
+        if heuristic_match and len(m1_unmatched) > 0 and len(m2_unmatched) > 0:
+            # do heuristic matches
+            for cp1 in m1_unmatched[:]:
+                matched = False
+                matchValue = 0
+                for cp2 in m2_unmatched:
+                    matchValue = heuristicControlParameterMatch(cp1, cp2)
+                    if matchValue == 1:
+                        # best match so quit
+                        matched = cp1
+                        break
+                    elif matchValue == 0:
+                        # match, but not exact so continue to look
+                        matched = cp1
+                if matched:
+                    if matchValue != 1:
+                        cparamChanges.append(((cp1.db_name,cp1.db_value), 
+                                              (cp2.db_name,cp2.db_value)))
+                    m1_unmatched.remove(cp1)
+                    m2_unmatched.remove(cp2)
+
+        for cp in m1_unmatched:
+            cparamChanges.append(((cp.db_name,cp.db_value), (None, None)))
+        for cp in m2_unmatched:
+            cparamChanges.append(((None, None), (cp.db_name,cp.db_value)))
+    return cparamChanges
+
+def getAnnotationChanges(m1, m2, same_vt=True, heuristic_match=True):
+    annotChanges = []
+    # need to check to see if any children of m1 and m2 are affected
+    m1_annots = m1.db_get_annotations()
+    m2_annots = m2.db_get_annotations()
+    m1_unmatched = []
+    m2_unmatched = []
+    if same_vt:
+        for a1 in m1_annots:
+            # see if m2 has f1, too
+            a2 = m2.db_get_annotation(a1.db_id)
+            if a2 is None:            
+                m1_unmatched.append(a1)
+            else:
+                # cparam is same, check if it has changed
+                if heuristic_match:
+                    matchValue = heuristicAnnotationMatch(a1, a2)
+                    if matchValue != 1:
+                        annotChanges.append(((a1.db_key,a1.db_value), 
+                                             (a2.db_key,a2.db_value)))
+                else:
+                    annotChanges.append(((a1.db_key,a1.db_value), 
+                                         (a2.db_key,a2.db_value)))
+        for a2 in m2_annots:
+            # see if m1 has f2, too
+            if m1.db_get_annotation(a2.db_id) is None:
+                m2_unmatched.append(a2)
+    else:
+        m1_unmatched.extend(m1_annots)
+        m2_unmatched.extend(m2_annots)
+
+#             functionMatch = True
+#             f1_params = f1.db_get_parameters()
+#             f2_params = f2.db_get_parameters()
+#             for p1 in f1_params:
+#                 if f2.db_get_parameter(p1.db_id) is None:
+#                     functionMatch = False
+#                     m1_unmatched.append(f1)
+#                     break
+#             for p2 in f2_params:
+#                 if f1.db_get_parameter(p2.db_id) is None:
+#                     functionMatch = False
+#                     m2_unmatched.append(f2)
+#                     break
+#             if functionMatch:
+
+    if len(m1_unmatched) + len(m2_unmatched) > 0:
+        if heuristic_match and len(m1_unmatched) > 0 and len(m2_unmatched) > 0:
+            # do heuristic matches
+            for a1 in m1_unmatched[:]:
+                matched = False
+                matchValue = 0
+                for a2 in m2_unmatched:
+                    matchValue = heuristicAnnotationMatch(a1, a2)
+                    if matchValue == 1:
+                        # best match so quit
+                        matched = a1
+                        break
+                    elif matchValue == 0:
+                        # match, but not exact so continue to look
+                        matched = a1
+                if matched:
+                    if matchValue != 1:
+                        annotChanges.append(((a1.db_key,a1.db_value), 
+                                             (a2.db_key,a2.db_value)))
+                    m1_unmatched.remove(a1)
+                    m2_unmatched.remove(a2)
+
+        for cp in m1_unmatched:
+            annotChanges.append(((cp.db_key,cp.db_value), (None, None)))
+        for cp in m2_unmatched:
+            annotChanges.append(((None, None), (cp.db_key,cp.db_value)))
+        
+    return annotChanges
+
 def getOldObjId(operation):
     if operation.vtType == 'change':
         return operation.db_oldObjId
@@ -1054,6 +1271,8 @@ def getWorkflowDiffCommon(vistrail, v1, v2, heuristic_match=True):
     sharedModuleIds = []
     sharedConnectionIds = []
     sharedFunctionIds = {}
+    sharedCParameterIds = {}
+    sharedAnnotationIds = {}
     for op in sharedOps:
         if op.what == 'module' or op.what == 'abstraction' or \
                 op.what == 'group':
@@ -1062,10 +1281,16 @@ def getWorkflowDiffCommon(vistrail, v1, v2, heuristic_match=True):
             sharedConnectionIds.append(getNewObjId(op))
         elif op.what == 'function':
             sharedFunctionIds[getNewObjId(op)] = op.db_parentObjId
+        elif op.what == 'controlParameter':
+            sharedCParameterIds[getNewObjId(op)] = op.db_parentObjId
+        elif op.what == 'annotation':
+            sharedAnnotationIds[getNewObjId(op)] = op.db_parentObjId
     
     vOnlyModules = []
     vOnlyConnections = []
     paramChgModules = {}
+    cparamChgModules = {}
+    annotChgModules = {}
     for (vAdds, vDeletes, _) in vOnlyOps:
         moduleDeleteIds = []
         connectionDeleteIds = []
@@ -1092,6 +1317,24 @@ def getWorkflowDiffCommon(vistrail, v1, v2, heuristic_match=True):
                 if moduleId in sharedModuleIds:
                     paramChgModules[moduleId] = None
                     sharedModuleIds.remove(moduleId)
+            elif op.what == 'controlParameter' and \
+                    (op.db_parentObjType == 'module' or 
+                     op.db_parentObjType == 'abstraction' or 
+                     op.db_parentObjType == 'group') and \
+                    op.db_parentObjId in sharedCParameterIds and \
+                    op.db_parentObjId in sharedModuleIds:
+                # have a control parameter change
+                cparamChgModules[op.db_parentObjId] = None
+                sharedModuleIds.remove(op.db_parentObjId)
+            elif op.what == 'annotation' and \
+                    (op.db_parentObjType == 'module' or 
+                     op.db_parentObjType == 'abstraction' or 
+                     op.db_parentObjType == 'group') and \
+                    op.db_parentObjId in sharedAnnotationIds and \
+                    op.db_parentObjId in sharedModuleIds:
+                # have an annotation change
+                annotChgModules[op.db_parentObjId] = None
+                sharedModuleIds.remove(op.db_parentObjId)
             elif op.what == 'connection':
                 connectionDeleteIds.append(getOldObjId(op))
                 if getOldObjId(op) in sharedConnectionIds:
@@ -1118,6 +1361,24 @@ def getWorkflowDiffCommon(vistrail, v1, v2, heuristic_match=True):
                 if moduleId in sharedModuleIds:
                     paramChgModules[moduleId] = None
                     sharedModuleIds.remove(moduleId)
+            elif (op.what == 'controlParameter' and
+                  (op.db_parentObjType == 'module' or
+                   op.db_parentObjType == 'abstraction' or
+                   op.db_parentObjType == 'group') and
+                  op.db_parentObjId in sharedCParameterIds and
+                  op.db_parentObjId in sharedModuleIds):
+                # have a control parameter change
+                cparamChgModules[op.db_parentObjId] = None
+                sharedModuleIds.remove(op.db_parentObjId)
+            elif (op.what == 'annotation' and
+                  (op.db_parentObjType == 'module' or
+                   op.db_parentObjType == 'abstraction' or
+                   op.db_parentObjType == 'group') and
+                  op.db_parentObjId in sharedAnnotationIds and
+                  op.db_parentObjId in sharedModuleIds):
+                # have an annotation change
+                annotChgModules[op.db_parentObjId] = None
+                sharedModuleIds.remove(op.db_parentObjId)
             elif op.what == 'connection':
                 connectionAddIds.append(getOldObjId(op))
 
@@ -1145,22 +1406,31 @@ def getWorkflowDiffCommon(vistrail, v1, v2, heuristic_match=True):
             c2Only.append(id)
 
     paramChgModulePairs = [(id, id) for id in paramChgModules.keys()]
-
+    cparamChgModulePairs = [(id, id) for id in cparamChgModules.keys()]
+    annotChgModulePairs = [(id, id) for id in annotChgModules.keys()]
     # print "^^^^ SHARED MODULE PAIRS:", sharedModulePairs
+    c1Only, c2Only, heuristicConnectionPairs = [], [], []
+    
     if heuristic_match:
         (heuristicModulePairs, heuristicConnectionPairs, v1Only, v2Only, \
              c1Only, c2Only) = do_heuristic_diff(v1Workflow, v2Workflow, \
                                                      v1Only, v2Only, \
                                                      c1Only, c2Only)
         paramChgModulePairs.extend(heuristicModulePairs)
+        cparamChgModulePairs.extend(heuristicModulePairs)
+        annotChgModulePairs.extend(heuristicModulePairs)
+    allChgModulePairs = list(set(chain(paramChgModulePairs,
+                                       cparamChgModulePairs,
+                                       annotChgModulePairs)))
 
-    (heuristicModulePairs, paramChanges) = \
-        check_params_diff(v1Workflow, v2Workflow, paramChgModulePairs, 
+    (heuristicModulePairs, paramChanges, cparam_changes, annot_changes) = \
+        check_params_diff(v1Workflow, v2Workflow, allChgModulePairs, 
                           True, heuristic_match)
 
     return (v1Workflow, v2Workflow, 
             sharedModulePairs, heuristicModulePairs, v1Only, v2Only, 
-            paramChanges, sharedConnectionPairs, heuristicConnectionPairs, 
+            paramChanges, cparam_changes, annot_changes,
+            sharedConnectionPairs, heuristicConnectionPairs, 
             c1Only, c2Only)
 
 def do_heuristic_diff(v1Workflow, v2Workflow, v1_modules, v2_modules, 
@@ -1168,7 +1438,6 @@ def do_heuristic_diff(v1Workflow, v2Workflow, v1_modules, v2_modules,
     # add heuristic matches
     heuristicModulePairs = []
     heuristicConnectionPairs = []
-    paramChgModulePairs = []
     
     v1Only = copy.copy(v1_modules)
     v2Only = copy.copy(v2_modules)
@@ -1201,7 +1470,6 @@ def do_heuristic_diff(v1Workflow, v2Workflow, v1_modules, v2_modules,
             v2Only.remove(match[1])
             # we now check all heuristic pairs for parameter changes
             heuristicModulePairs.append(match)
-            # paramChgModulePairs.append(match)
 
     # match connections
     for c1_id in c1Only[:]:
@@ -1228,6 +1496,8 @@ def check_params_diff(v1Workflow, v2Workflow, paramChgModulePairs,
                       same_vt=True, heuristic_match=True):
     matched = []
     paramChanges = []
+    cparamChanges = []
+    annotChanges = []
     # print "^^^^ PARAM CHG PAIRS:", paramChgModulePairs
     for (m1_id, m2_id) in paramChgModulePairs:
         m1 = v1Workflow.db_get_module(m1_id)
@@ -1235,11 +1505,19 @@ def check_params_diff(v1Workflow, v2Workflow, paramChgModulePairs,
         moduleParamChanges = getParamChanges(m1, m2, same_vt, heuristic_match)
         if len(moduleParamChanges) > 0:
             paramChanges.append(((m1_id, m2_id), moduleParamChanges))
-        else:
+        moduleCParamChanges = getCParamChanges(m1, m2, same_vt,
+                                                              heuristic_match)
+        if len(moduleCParamChanges) > 0:
+            cparamChanges.append(((m1_id, m2_id), moduleCParamChanges))
+        moduleAnnotChanges = getAnnotationChanges(m1, m2, same_vt,
+                                                              heuristic_match)
+        if len(moduleAnnotChanges) > 0:
+            annotChanges.append(((m1_id, m2_id), moduleAnnotChanges))
+        if len(moduleParamChanges) == len(moduleCParamChanges) == \
+           len(moduleAnnotChanges) == 0:
             # heuristicModulePairs.append((m1_id, m2_id))
             matched.append((m1_id, m2_id))
-
-    return (matched, paramChanges)    
+    return (matched, paramChanges, cparamChanges, annotChanges)
 
 def getWorkflowDiff(vt_pair_1, vt_pair_2, heuristic_match=True):
     (vistrail_1, v_1) = vt_pair_1
@@ -1259,13 +1537,14 @@ def getWorkflowDiff(vt_pair_1, vt_pair_2, heuristic_match=True):
         (m_matches, c_matches, modules_1, modules_2, conns_1, conns_2) = \
             do_heuristic_diff(workflow_1, workflow_2, modules_1, modules_2, \
                                   conns_1, conns_2)
-        (m_matches, param_changes) = check_params_diff(workflow_1, workflow_2, 
+        (m_matches, param_changes, cparam_changes, annot_changes) = \
+                                     check_params_diff(workflow_1, workflow_2,
                                                        m_matches, False,
                                                        heuristic_match)
         return (workflow_1, workflow_2, [], m_matches, modules_1, modules_2,
-                param_changes, [], c_matches, conns_1, conns_2)
+                param_changes, cparam_changes, annot_changes, [], c_matches, conns_1, conns_2)
 
-    return (workflow_1, workflow_2, [], [], modules_1, modules_2, [], [], [], 
+    return (workflow_1, workflow_2, [], [], modules_1, modules_2, [], [], [], [], [], 
             conns_1, conns_2)
 
 ################################################################################

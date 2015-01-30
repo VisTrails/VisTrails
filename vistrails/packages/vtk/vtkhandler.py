@@ -33,11 +33,11 @@
 ##
 ###############################################################################
 """Modules for handling vtkRenderWindowInteractor events"""
-from PyQt4 import QtCore, QtGui
-from vistrails.core.modules.basic_modules import String
+from __future__ import division
+
+from vistrails.core.modules.basic_modules import String, Variant
 from vistrails.core.modules.vistrails_module import Module, NotCacheable
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.vistrail.module_function import ModuleFunction, ModuleParam
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 from vistrails.gui.modules.python_source_configure import PythonEditor
 import urllib
@@ -215,6 +215,6 @@ def registerSelf():
     registry.add_module(vtkInteractionHandler, configureWidgetType=HandlerConfigurationWidget)
     registry.add_input_port(vtkInteractionHandler, 'Observer', vIO)
     registry.add_input_port(vtkInteractionHandler, 'Handler', String, True)
-    registry.add_input_port(vtkInteractionHandler, 'SharedData', Module)
+    registry.add_input_port(vtkInteractionHandler, 'SharedData', Variant)
     registry.add_output_port(vtkInteractionHandler, 'self',
                              vtkInteractionHandler)

@@ -34,6 +34,8 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
+from __future__ import division
+
 from xml_dao import XMLDAO
 from vistrails.db.versions.v0_6_0.domain import *
 

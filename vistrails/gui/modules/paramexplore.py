@@ -37,6 +37,8 @@ exploration. This allows user-defined constants to be used as dimensions
 in parameter exploration, provided the user implements the appropriate
 API in the classes.
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.modules.basic_modules import Color
 from vistrails.core import debug
@@ -665,7 +667,6 @@ class QUserFunctionEditor(QtGui.QFrame):
         param_info = self._param_info
         module = param_info.spec.descriptor.module
         def get():
-            import code
             values = []
             d = {}
             try:
@@ -675,10 +676,11 @@ class QUserFunctionEditor(QtGui.QFrame):
             def evaluate(i):
                 try:
                     v = d['value'](i)
-                    if v == None:
+                    if v is None:
                         return module.default_value
                     return v
                 except Exception, e:
+                    debug.unexpected_exception(e)
                     return debug.format_exception(e)
             return [evaluate(i) for i in xrange(self.size)]
         result = get()

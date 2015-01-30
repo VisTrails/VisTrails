@@ -42,6 +42,8 @@ QDBObjectListItem
 QConnectionDBSetupWindow
 
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.db import VistrailsDBException
 import vistrails.db.services.io
@@ -379,7 +381,7 @@ class QDBConnectionList(QtGui.QListWidget):
         item = None
         if len(self.selectedItems()) > 0:
             item  = self.selectedItems()[0]
-        if item != None:
+        if item is not None:
             return int(item.id)
         else:
             return -1
@@ -404,7 +406,7 @@ class QDBConnectionList(QtGui.QListWidget):
         """
         conn_id = self.getCurrentItemId()
         config = self.getConnectionInfo(conn_id)
-        if config != None:
+        if config is not None:
             config["create"] = False
             self.parent().showConnConfig(**config)
             
@@ -436,7 +438,7 @@ class QDBConnectionList(QtGui.QListWidget):
         conn = self.__list.get_connection(id)
         key = str(conn.id) + "." + conn.name + "." + conn.host
         passwd = DBLocator.keyChain.get_key(key)
-        if conn != None:
+        if conn is not None:
             config = {'id': conn.id,
                       'name': conn.name,
                       'host': conn.host,
@@ -481,20 +483,13 @@ class QDBConnectionList(QtGui.QListWidget):
         If the connection exists it will update it, else it will add it
 
         """
-        if kwargs.has_key("id"):
-            id = kwargs["id"]
-        if kwargs.has_key("name"):
-            name = kwargs["name"]
-        if kwargs.has_key("host"):
-            host = kwargs["host"]
-        if kwargs.has_key("port"):
-            port = kwargs["port"]
-        if kwargs.has_key("user"):
-            user = kwargs["user"]
-        if kwargs.has_key("passwd"):
-            passwd = kwargs["passwd"]
-        if kwargs.has_key("db"):
-            db = kwargs["db"]
+        id = kwargs["id"]
+        name = kwargs["name"]
+        host = kwargs["host"]
+        port = kwargs["port"]
+        user = kwargs["user"]
+        passwd = kwargs["passwd"]
+        db = kwargs["db"]
 
         conn = DBConnection(id=id,
                             name=name,
@@ -552,10 +547,8 @@ class QDBConnectionList(QtGui.QListWidget):
         config = self.getConnectionInfo(conn_id)
         if conn.dbtype == 'MySQL':
             #removing extra keyword arguments for MySQldb
-            config_name = config['name']
-            del config['name']
-            config_id = config['id']
-            del config['id']
+            config_name = config.pop('name')
+            config_id = config.pop('id')
         vt_list = vistrails.db.services.io.get_db_object_list(config, obj_type)
         if conn.dbtype == 'MySQL':
             config['name'] = config_name
@@ -611,7 +604,7 @@ class QDBObjectList(QtGui.QListWidget):
                     debug.critical('An error has occurred', e)
                     raise e
                 config = parent.connectionList.getConnectionInfo(int(conn_id))
-                if config != None:
+                if config is not None:
                     config["create"] = False
                     if not parent.showConnConfig(**config):
                         raise e

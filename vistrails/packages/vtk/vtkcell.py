@@ -37,15 +37,17 @@
 # File for displaying a vtkRenderWindow in a Qt's QWidget ported from
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
 ################################################################################
+from __future__ import division
+
 import vtk
+import os
 from PyQt4 import QtCore, QtGui
 import sip
 from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-import vtkcell_rc
 import gc
 from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
@@ -62,6 +64,20 @@ import copy
 from identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
+
+class vtkRendererToSpreadsheet(SpreadsheetMode):
+    @classmethod
+    def can_compute(cls):
+        return SpreadsheetMode.can_compute()
+
+    def compute_output(self, output_module, configuration=None):
+        renderers = output_module.force_get_input_list('value')
+        handlers = output_module.force_get_input_list('interactionHandler')
+        style = output_module.force_get_input('interactorStyle')
+        picker = output_module.force_get_input('picker')
+        input_ports = (renderers, None, handlers, style, picker)
+        self.cellWidget = self.display_and_wait(output_module, configuration,
+                                                QVTKWidget, input_ports)
 
 class VTKCell(SpreadsheetCell):
     """
@@ -98,7 +114,9 @@ class VTKCell(SpreadsheetCell):
         iStyle = self.force_get_input('InteractorStyle')
         picker = self.force_get_input('AddPicker')
         # self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
-        self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, None, [], iStyle, picker))
+        #self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, None, [], iStyle, picker))
+        #self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
+        self.displayAndWait(QVTKWidget, (renderers, None, [], iStyle, picker))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -147,6 +165,8 @@ class QVTKWidget(QCellWidget):
     vtkRenderer inside a Qt QWidget
     
     """
+    save_formats = ["PNG image (*.png)", "PDF files (*.pdf)"]
+
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         """ QVTKWidget(parent: QWidget, f: WindowFlags) -> QVTKWidget
         Initialize QVTKWidget with a toolbar with its own device
@@ -240,7 +260,7 @@ class QVTKWidget(QCellWidget):
             renderers = [renderView.vtkInstance.GetRenderer()]
         self.renderer_maps = {}
         self.usecameras = False
-        if cameralist != None and len(cameralist) == len(renderers):
+        if cameralist is not None and len(cameralist) == len(renderers):
             self.usecameras = True
         j = 0
         for renderer in renderers:
@@ -248,7 +268,7 @@ class QVTKWidget(QCellWidget):
                 vtkInstance = renderer #.vtkInstance
                 renWin.AddRenderer(vtkInstance)
                 # FIXME need to figure out what to do here (not wrapping)
-                # self.renderer_maps[vtkInstance] = renderer.moduleInfo['moduleId']
+                # self.renderer_maps[vtkInstance] = renderer.vt_module_id
             else:
                 vtkInstance = renderer
             if hasattr(vtkInstance, 'IsActiveCameraCreated'):
@@ -318,6 +338,7 @@ class QVTKWidget(QCellWidget):
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
             if system.systemType=='Linux':
+                vp = None
                 try:
                     vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
                 except TypeError:
@@ -325,13 +346,14 @@ class QVTKWidget(QCellWidget):
                     if isinstance(QtGui.QX11Info.display(),QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
                         vp = '_%s_void_p' % (hex(display)[2:])
-                v = vtk.vtkVersion()
-                version = [v.GetVTKMajorVersion(),
-                           v.GetVTKMinorVersion(),
-                           v.GetVTKBuildVersion()]
-                if version < [5, 7, 0]:
-                    vp = vp + '\0x00'                
-                self.mRenWin.SetDisplayId(vp)
+                if vp is not None:
+                    v = vtk.vtkVersion()
+                    version = [v.GetVTKMajorVersion(),
+                               v.GetVTKMinorVersion(),
+                               v.GetVTKBuildVersion()]
+                    if version < [5, 7, 0]:
+                        vp = vp + '\0x00'
+                    self.mRenWin.SetDisplayId(vp)
                 self.resizeWindow(1,1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
             if self.isVisible():
@@ -942,7 +964,7 @@ class QVTKWidget(QCellWidget):
         """ saveToPNG(filename: str) -> filename or vtkUnsignedCharArray
         
         Save the current widget contents to an image file. If
-        str==None, then it returns the vtkUnsignedCharArray containing
+        filename is None, then it returns the vtkUnsignedCharArray containing
         the PNG image. Otherwise, the filename is returned.
         
         """
@@ -964,25 +986,10 @@ class QVTKWidget(QCellWidget):
         else:
             writer.WriteToMemoryOn()
         writer.Write()
-        if filename:
+        if filename is not None:
             return filename
         else:
             return writer.GetResult()
-
-    def captureWindow(self):
-        """ captureWindow() -> None        
-        Capture the window contents to file
-        
-        """
-        fn = QtGui.QFileDialog.getSaveFileName(None,
-                                               "Save file as...",
-                                               "screenshot.png",
-                                               "Images (*.png);;PDF files (*.pdf)")
-        if fn:
-            if fn.lower().endswith("png"):
-                self.saveToPNG(fn)
-            elif fn.lower().endswith("pdf"):
-                self.saveToPDF(fn)
         
     def grabWindowPixmap(self):
         """ grabWindowImage() -> QPixmap
@@ -1007,32 +1014,11 @@ class QVTKWidget(QCellWidget):
         """dumpToFile() -> None
         Dumps itself as an image to a file, calling saveToPNG
         """
-        self.saveToPNG(filename)
-
-class QVTKWidgetCapture(QtGui.QAction):
-    """
-    QVTKWidgetCapture is the action to capture the vtk rendering
-    window to an image
-    
-    """
-    def __init__(self, parent=None):
-        """ QVTKWidgetCapture(parent: QWidget) -> QVTKWidgetCapture
-        Setup the image, status tip, etc. of the action
-        
-        """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/camera.png"),
-                               "&Capture image to file",
-                               parent)
-        self.setStatusTip("Capture the rendered image to a file")
-
-    def triggeredSlot(self, checked=False):
-        """ toggledSlot(checked: boolean) -> None
-        Execute the action when the button is clicked
-        
-        """
-        cellWidget = self.toolBar.getSnappedWidget()
-        cellWidget.captureWindow()
+        ext = os.path.splitext(filename)[1].lower()
+        if ext == '.pdf':
+            self.saveToPDF(filename)
+        else:
+            self.saveToPNG(filename)
 
 class QVTKWidgetSaveCamera(QtGui.QAction):
     """
@@ -1078,9 +1064,9 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                 ops.append(('add', camera))
 
                 # Connect camera to renderer
-                camera_conn = controller.create_connection(camera, 'self',
-                                                           renderer, 
-                                                           'SetActiveCamera')
+                camera_conn = controller.create_connection(
+                        camera, 'Instance',
+                        renderer, 'SetActiveCamera')
                 ops.append(('add', camera_conn))
             # update functions
             def convert_to_str(arglist):
@@ -1116,8 +1102,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                         controller = view.controller
                         controller.change_selected_version(info['version'])
                         self.setCamera(controller)
-                        
-                
+
 class QVTKWidgetToolBar(QCellToolBar):
     """
     QVTKWidgetToolBar derives from QCellToolBar to give the VTKCell
@@ -1129,8 +1114,31 @@ class QVTKWidgetToolBar(QCellToolBar):
         This will get call initiallly to add customizable widgets
         
         """
-        self.appendAction(QVTKWidgetCapture(self))
         self.addAnimationButtons()
         self.appendAction(QVTKWidgetSaveCamera(self))
 
 _modules = [VTKCell,]
+
+# TODO: How to do this for new-style modules
+def registerSelf():
+    """ registerSelf() -> None
+    Registry module with the registry
+    """
+    from base_module import vtkRendererOutput
+    vtkRendererOutput.register_output_mode(vtkRendererToSpreadsheet)
+
+    registry = get_module_registry()
+    registry.add_module(VTKCell)
+    registry.add_input_port(VTKCell, "Location", CellLocation)
+    from vistrails.core import debug
+    for (port,module) in [("AddRenderer",'vtkRenderer'),
+                          ("SetRenderView",'vtkRenderView'),
+                          ("InteractionHandler",'vtkInteractionHandler'),
+                          ("InteractorStyle", 'vtkInteractorStyle'),
+                          ("AddPicker",'vtkAbstractPicker')]:
+        try:
+            registry.add_input_port(VTKCell, port,
+                                    '(%s:%s)' % (vtk_pkg_identifier, module))
+        except Exception, e:
+            debug.warning("Got an exception adding VTKCell's %s input "
+                          "port" % port, e)

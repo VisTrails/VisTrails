@@ -36,6 +36,8 @@
 Dialog for web repository options
 Includes login and upload tabs
 """
+from __future__ import division
+
 from PyQt4 import QtGui, QtCore
 from vistrails.core.configuration import get_vistrails_configuration, get_vistrails_persistent_configuration
 from vistrails.core.repository.poster.encode import multipart_encode
@@ -305,7 +307,7 @@ class QRepositoryPushWidget(QtGui.QWidget):
                     if module.name[-6:] == 'Reader' or \
                        module.name in self.local_data_modules:
                         for edge in pipeline.graph.edges_to(module.id):
-                            if pipeline.modules[edge[0]].name in ['HTTPFile',
+                            if pipeline.modules[edge[0]].name in ['DownloadFile',
                                                                   'RepoSync']:
                                 on_repo = True
 
@@ -424,13 +426,10 @@ class QRepositoryPushWidget(QtGui.QWidget):
             (fd, filename) = tempfile.mkstemp(suffix='.vt', prefix='vt_tmp')
             os.close(fd)
 
-            # writing tmp vt and switching back to orginal vt
+            # writing tmp vt and switching back to original vt
             locator = ZIPFileLocator(filename)
             controller = vistrails.api.get_current_controller()
-            tmp_controller = VistrailController(controller.vistrail.do_copy(), 
-                                                locator)
-            tmp_controller.changed = True
-            tmp_controller.write_vistrail(locator)
+            controller.write_vistrail(locator, export=True)
 
             # check if this vt is from the repository
             if controller.vistrail.get_annotation('repository_vt_id'):
@@ -515,10 +514,11 @@ class QRepositoryPushWidget(QtGui.QWidget):
                             load_vistrail(updated_locator)
 
                     # FIXME need to figure out what to do with this !!!
+                    current_version = controller.current_version
                     controller.set_vistrail(up_vistrail,
                                             controller.vistrail.locator,
                                             abstractions, thumbnails, mashups)
-
+                    controller.change_selected_version(current_version)
                     # update version tree drawing
                     controller.recompute_terse_graph()
                     controller.invalidate_version_tree()
@@ -560,8 +560,8 @@ class QRepositoryLoginPopup(QtGui.QDialog):
         l2 = QtGui.QLabel("Username:", self)
         grid_layout.addWidget(l2, 1, 0)
 
-        if self.config.check('webRepositoryLogin'):
-            self.loginUser = QtGui.QLineEdit(self.config.webRepositoryLogin, self)
+        if self.config.check('webRepositoryUser'):
+            self.loginUser = QtGui.QLineEdit(self.config.webRepositoryUser, self)
         else:
             self.loginUser = QtGui.QLineEdit("", self)
 
@@ -581,7 +581,7 @@ class QRepositoryLoginPopup(QtGui.QDialog):
         grid_layout.addWidget(self.loginPassword, 2, 1)
 
         self.saveLogin = QtGui.QCheckBox("Save username", self)
-        if self.config.check('webRepositoryLogin'):
+        if self.config.check('webRepositoryUser'):
             self.saveLogin.setChecked(True)
         grid_layout.addWidget(self.saveLogin, 3, 0)
 
@@ -670,18 +670,18 @@ class QRepositoryLoginPopup(QtGui.QDialog):
 
             # add association between VisTrails user and web repository user
             if self.saveLogin.checkState():
-                if not (self.config.check('webRepositoryLogin') and self.config.webRepositoryLogin == self.loginUser.text()):
-                    self.config.webRepositoryLogin = str(self.loginUser.text())
+                if not (self.config.check('webRepositoryUser') and self.config.webRepositoryUser == self.loginUser.text()):
+                    self.config.webRepositoryUser = str(self.loginUser.text())
                     pers_config = get_vistrails_persistent_configuration()
-                    pers_config.webRepositoryLogin = self.config.webRepositoryLogin
+                    pers_config.webRepositoryUser = self.config.webRepositoryUser
                     get_vistrails_application().save_configuration()
 
             # remove association between VisTrails user and web repository user
             else:
-                if self.config.check('webRepositoryLogin') and self.config.webRepositoryLogin:
-                    self.config.webRepositoryLogin = ""
+                if self.config.check('webRepositoryUser') and self.config.webRepositoryUser:
+                    self.config.webRepositoryUser = ""
                     pers_config = get_vistrails_persistent_configuration()
-                    pers_config.webRepositoryLogin = ""
+                    pers_config.webRepositoryUser = ""
                     get_vistrails_application().save_configuration()
             self.close_dialog(0)
 

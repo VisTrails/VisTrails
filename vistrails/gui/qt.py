@@ -44,6 +44,8 @@ from setting okToCreateQObjects directly.
 
 As the python saying goes, 'we are all consenting adults here'."""
 
+from __future__ import division
+
 import inspect
 from PyQt4 import QtGui, QtCore
 import types
@@ -114,11 +116,9 @@ def askForQObjectCreation():
     create QObjects.
 
     """
-    global okToCreateQObjects
     if not okToCreateQObjects:
         raise QApplicationNotYetCreated()
 
-global _appHolder
 _appHolder = None
 
 def createBogusQtGuiApp(argv=["bogus"]):    
@@ -139,7 +139,7 @@ def createBogusQtGuiApp(argv=["bogus"]):
 
 def destroyBogusQtApp():
     global _appHolder
-    del _appHolder
+    _appHolder = None
 
 def qt_version():
     return [int(i)

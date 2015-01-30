@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.db.versions.v1_0_2.domain import DBVistrail, DBAnnotation, \
                                       DBWorkflow, DBLog, DBRegistry, \
                                       DBPortSpec, DBAdd, DBChange, DBDelete
@@ -200,7 +202,7 @@ class TestTranslate(unittest.TestCase):
 
 if __name__ == '__main__':
     from vistrails.gui.application import start_application
-    v = start_application({'interactiveMode': False,
+    v = start_application({'batch': True,
                            'nologger': True,
                            'singleInstance': False,
                            'fixedSpreadsheetCells': True})

@@ -33,7 +33,9 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 identifier = 'org.vistrails.vistrails.spreadsheet'
 name = 'VisTrails Spreadsheet'
-version = '0.9.2'
+version = '0.9.3'
 old_identifiers = ['edu.utah.sci.vistrails.spreadsheet']

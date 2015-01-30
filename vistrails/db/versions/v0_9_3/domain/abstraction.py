@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 import copy
 from auto_gen import DBAbstraction as _DBAbstraction
 from auto_gen import DBAbstractionRef, DBModule

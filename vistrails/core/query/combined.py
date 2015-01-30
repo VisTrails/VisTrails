@@ -32,17 +32,22 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from version import SearchCompiler
 from visual import VisualQuery
 
 class CombinedSearch(VisualQuery):
-    def __init__(self, search_str=None, pipeline=None, versions_to_check=None):
+    def __init__(self, search_str=None, pipeline=None, versions_to_check=None,
+                 use_regex=False):
         VisualQuery.__init__(self, pipeline, versions_to_check)
         self.search_str = search_str
+        self.use_regex = use_regex
 
     def run(self, vistrail, name):
         VisualQuery.run(self, vistrail, name)
-        self.search_stmt = SearchCompiler(self.search_str).searchStmt
+        compiler = SearchCompiler(self.search_str, self.use_regex)
+        self.search_stmt = compiler.searchStmt
 
     def match(self, vistrail, action):
         if self.queryPipeline is not None and \

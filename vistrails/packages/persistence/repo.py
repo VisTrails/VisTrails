@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from vistrails.core.bundles import py_import
 py_import('dulwich', {
         'pip': 'dulwich',
@@ -159,7 +161,6 @@ class GitRepo(object):
                 return f.read(chunk_size)
             my_iter = chain([head], iter(read_chunk,''))
             return iter_sha1(my_iter)
-        return None
 
     @staticmethod
     def compute_tree_hash(dirname):

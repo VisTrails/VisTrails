@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from entity import Entity
 
 class WorkflowEntity(Entity):
@@ -43,9 +45,9 @@ class WorkflowEntity(Entity):
         self.update(workflow)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = WorkflowEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
 
     def update(self, workflow):
@@ -54,8 +56,8 @@ class WorkflowEntity(Entity):
             self.name = workflow.name \
             if workflow.name else "Version #" + str(workflow.id)
             self.user = 'testing'
-            self.mod_time = 'test'
-            self.create_time = 'test'
+            self.mod_time = self.now()
+            self.create_time = self.now()
             self.size = len(self.workflow.modules)
             self.description = ""
             self.url = 'test'

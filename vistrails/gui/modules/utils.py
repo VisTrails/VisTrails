@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.utils import load_cls
 from constant_configuration import StandardConstantWidget, \

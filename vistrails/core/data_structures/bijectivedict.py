@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 import copy
 
 class Bidict(dict):
@@ -70,10 +72,10 @@ class Bidict(dict):
         return r
 
     def update(self, other):
-        try:
+        if hasattr(other, 'iterkeys'):
             for i in other.iterkeys():
                 self[i] = other[i]
-        except:
+        else:
             for (k,v) in other:
                 self[k] = v
 

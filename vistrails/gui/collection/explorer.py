@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
@@ -159,7 +161,7 @@ def getConnectionInfo(connectionList, id):
     conn = connectionList.get_connection(id)
     key = str(conn.id) + "." + conn.name + "." + conn.host
     passwd = DBLocator.keyChain.get_key(key)
-    if conn != None:
+    if conn is not None:
         config = {'id': conn.id,
                   'name': conn.name,
                   'host': conn.host,
@@ -180,19 +182,18 @@ def checkConnection(connectionList):
     if conn_id != -1:
         conn = connectionList.get_connection(conn_id)
         config = getConnectionInfo(connectionList, conn_id)
-        if config != None:
+        if config is not None:
+            config_name = config['name']
+            config_id = config['id']
             try:
-                config_name = config['name']
-                del config['name']
-                config_id = config['id']
-                del config['id']
                 test_db_connection(config)
             except VistrailsDBException:
                 # assume connection is wrong
-                config['name'] = config_name
-                config['id'] = config_id
                 config["create"] = False
                 showConnConfig(connectionList, **config)
+            else:
+                del config['name']
+                del config['id']
 
 class QDBWidget(QtGui.QWidget):
     """ Custom widget for handling the showConnConfig """
@@ -369,10 +370,8 @@ class ExecutionSearchWidget(QtGui.QSplitter):
         config = self.config
         if conn.dbtype == 'MySQL':
             #removing extra keyword arguments for MySQldb
-            config_name = config['name']
-            del config['name']
-            config_id = config['id']
-            del config['id']
+            config_name = config.pop('name')
+            config_id = config.pop('id')
             
         wf_exec_list = runLogQuery(config,
                                 vistrail=self.vistrail, version=self.version,
@@ -646,10 +645,8 @@ class WorkflowSearchWidget(QtGui.QSplitter):
         config = self.config
         if conn.dbtype == 'MySQL':
             #removing extra keyword arguments for MySQldb
-            config_name = config['name']
-            del config['name']
-            config_id = config['id']
-            del config['id']
+            config_name = config.pop('name')
+            config_id = config.pop('id')
             
         workflow_list = runWorkflowQuery(config,
                                 vistrail=self.vistrail, version=self.version,

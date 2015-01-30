@@ -36,13 +36,15 @@
 
 ############################################################################
 # Utility functions for debugging on eigen.py
+from __future__ import division
+
 from vistrails.core.data_structures.point import Point
 
 def smart_sum(v):
     try:
         fst = v.next()
         return sum(v, fst)
-    except:
+    except Exception:
         pass
     fst = v[0]
     return sum(v[1:], fst)

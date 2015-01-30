@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from vistrails.core import debug
 from vistrails.core.modules.basic_modules import Color
 from vistrails.core.utils.color import rgb2hsv, hsv2rgb
@@ -168,7 +170,7 @@ class UserDefinedFunctionInterpolator(object):
             def evaluate(i):
                 try:
                     v = d['value'](i)
-                    if v == None:
+                    if v is None:
                         return self._ptype.default_value
                     return v
                 except Exception, e:
@@ -202,9 +204,12 @@ class TestLinearInterpolator(unittest.TestCase):
         # test the property that differences in value must be linearly
         # proportional to differences in index for a linear interpolation
         import random
-        s = random.randint(4, 10000)
+        s = random.randint(40, 1000)
         v1 = random.random()
         v2 = random.random()
+        # avoid very small differences
+        while abs(v2 - v1) < 0.01:
+            v2 = random.random()
         mn = min(v1, v2)
         mx = max(v1, v2)
         x = BaseLinearInterpolator(float, mn, mx, s).get_values()
@@ -218,8 +223,8 @@ class TestLinearInterpolator(unittest.TestCase):
             v4 = random.randint(0, s-1)
         r1 = (v2 - v1) / (x[v2] - x[v1])
         r2 = (v4 - v3) / (x[v4] - x[v3])
-        assert abs(r1 - r2) < 1e-6
 
+        self.assertTrue(abs(r1 - r2) < 1e-6, "r1=%.20f\nr2=%.20f"%(r1,r2))
 
 class TestColorInterpolation(unittest.TestCase):
     def test_rgb_interpolation(self):

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -59,12 +60,23 @@ def fix_paths():
 
 if __name__ == '__main__':
     fix_paths()
+
+    # Set locale to English
+    import locale
+    locale.setlocale(locale.LC_ALL, 'C')
+
     import vistrails.gui.requirements
     vistrails.gui.requirements.require_pyqt4_api2()
 
     import vistrails.gui.application_server
     try:
-        v = vistrails.gui.application_server.start_server()
+        optionsDict = {
+            'interactiveMode': False,
+            'enablePackagesSilently': False,
+            'handlerDontAsk': True,
+        }
+        v = vistrails.gui.application_server.start_server(optionsDict,
+                                                          args=sys.argv[1:])
         app = vistrails.gui.application_server.VistrailsServer()
     except SystemExit, e:
         print str(e)

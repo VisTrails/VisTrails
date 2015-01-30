@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -32,14 +33,15 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-# -*- coding: utf-8 -*-
 
 # Resource object code
 #
-# Created: Fri Nov 30 16:53:17 2007
-#      by: The Resource Compiler for PyQt (Qt v4.2.2)
+# Created: Thu Mar 20 11:39:03 2014
+#      by: The Resource Compiler for PyQt (Qt v4.8.5)
 #
 # WARNING! All changes made in this file will be lost!
+
+from __future__ import division
 
 from PyQt4 import QtCore
 

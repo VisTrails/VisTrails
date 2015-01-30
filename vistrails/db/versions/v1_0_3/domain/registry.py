@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from auto_gen import DBRegistry as _DBRegistry, DBPackage, DBModuleDescriptor, \
     DBPortSpec
 from id_scope import IdScope

@@ -39,6 +39,8 @@ Originally written by Lauro D. Lins.
 
 ####################################################
 
+from __future__ import division
+
 def uniquify(seq, idfun=None): 
     # order preserving
     if idfun is None:
@@ -348,7 +350,7 @@ class Layers(object):
         # print "layers",self.layers
         
         if layer_number >= num_layers:
-           self.layers.extend([Layer(i) for i in xrange(num_layers,layer_number+1)])
+            self.layers.extend([Layer(i) for i in xrange(num_layers,layer_number+1)])
         
         layer = self.layers[layer_number]
         layer.addModule(module)
@@ -470,7 +472,7 @@ class WorkflowLayout(object):
         permutation = []
         while True:
             mod = iterator.next()
-            if mod == None:
+            if mod is None:
                 break
             permutation.append(mod)
         permutation.reverse()

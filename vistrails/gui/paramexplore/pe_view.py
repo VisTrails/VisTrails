@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.modules.module_registry import get_module_registry
@@ -93,7 +95,7 @@ class QParamExploreView(QParameterExplorationWidget, BaseView):
     def set_execute_action(self):
         if self.controller and self.controller.vistrail:
             versionId = self.controller.current_version
-            return self.controller.vistrail.get_paramexp(versionId) != None
+            return self.controller.vistrail.get_paramexp(versionId) is not None
         return False
     
     def explore_non_empty(self, on):

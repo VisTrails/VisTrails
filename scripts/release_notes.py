@@ -49,13 +49,14 @@ import subprocess
 import shutil
 
 #### configuration ####
-commit_start = "90975fc00211" # hash of version used on last release notes
+commit_start = "269e4808eca3" # hash of version used on last release notes
 commit_end = "HEAD" # current hash
 branch = "v2.1" # git branch to be used
-release_name = "2.1.1"
-clonepath = None # set this to the complete path of a vistrails clone to be used
-                 # if None, the remote repository will be cloned to a temporary
-                 # folder and removed at the end of the script
+release_name = "2.1.4"
+clonepath = None    # set this to the complete path of a vistrails clone to be
+                    # used
+                    # if None, the remote repository will be cloned to a
+                    # temporary folder and removed at the end of the script
 #clonepath = '/Users/tommy/git/vistrails'
 cloneremote = 'git://www.vistrails.org/vistrails.git'
 #### end configuration #####
@@ -90,8 +91,7 @@ def clone_vistrails_git_repository(path_to):
     process = subprocess.Popen(cmdlist, shell=False,
                                stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               close_fds=True)
+                               stderr=subprocess.STDOUT)
     process.wait()
     if process.returncode == 0:
         print "repository is cloned."
@@ -142,8 +142,7 @@ def init_branch(path_to, branch):
     process = subprocess.Popen(cmdlist, shell=False,
                                stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               close_fds=True)
+                               stderr=subprocess.STDOUT)
     process.wait()
     lines = process.stdout.readlines()
     for line in lines:
@@ -163,8 +162,7 @@ def pull_changes(path_to):
     process = subprocess.Popen(cmdlist, shell=False,
                                stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               close_fds=True)
+                               stderr=subprocess.STDOUT)
     process.wait()
     lines = process.stdout.readlines()
     for line in lines:
@@ -197,6 +195,7 @@ def build_release_notes(repo, branch):
     
     re_ticket_old = re.compile(r'<ticket>(.*?)</ticket>', re.M | re.S)
     re_ticket = re.compile(r'^Ticket: (.*?)$', re.M | re.S)
+    re_ticket2 = re.compile(r'^Fixes: (.*?)$', re.M | re.S)
     re_bugfix_old = re.compile(r'<bugfix>(.*?)</bugfix>', re.M | re.S)
     re_bugfix = re.compile(r'^Bugfix: (.*?)$', re.M | re.S)
     re_feature_old = re.compile(r'<feature>(.*?)</feature>', re.M | re.S)
@@ -223,9 +222,10 @@ def build_release_notes(repo, branch):
         lf = re_feature.findall(log.message)
         lf.extend(re_feature_old.findall(log.message))
         lt = re_ticket.findall(log.message)
+        lt.extend(re_ticket2.findall(log.message))
         lt.extend(re_ticket_old.findall(log.message))
         lb = re_bugfix.findall(log.message)
-        lb.extend(re_ticket_old.findall(log.message))
+        lb.extend(re_bugfix_old.findall(log.message))
         for s in ls:
             changes[s.strip()] = log.hexsha
         for f in lf:
@@ -257,13 +257,13 @@ def build_release_notes(repo, branch):
                                                                password)
     server = xmlrpclib.ServerProxy(url)
     print "downloading tickets.",
-    for (tid,r) in tickets.iteritems():
+    for (tid,r) in tickets.items():
         print ".",
         sys.stdout.flush()
         try:
             ticket_info[tid] = server.ticket.get(tid)
         except Exception, e:
-            tickets.remove(tid)
+            del tickets[tid]
             print "commit %s: Could not get info for ticket %s"%(r,tid)
     print "done."
 

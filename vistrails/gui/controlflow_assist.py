@@ -36,6 +36,8 @@
 
 QControlFlowAssistDialog
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
@@ -159,13 +161,14 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         
         # Create and connect InputPort for each of the inputs to force it to exist on group
         offset = {}
-        [offset.__setitem__(module, halfwidth+65) for module, portspec, connections, halfwidth in input_ports_info]
+        for module, portspec, connections, halfwidth in input_ports_info:
+            offset.__setitem__(module, halfwidth+65)
         for input_module, input_portspec, input_connections, halfwidth in input_ports_info:
             # Remove function calls to selected input ports
             try:
                 function_pos = [f.name for f in input_module.functions].index(input_portspec.name)
                 self.controller.delete_method(function_pos, input_module.id)
-            except:
+            except Exception:
                 pass
             # Disconnect connections to selected input ports
             for connection in input_connections:

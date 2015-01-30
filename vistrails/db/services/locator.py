@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import cgi
 from datetime import datetime, date
 import hashlib
@@ -364,7 +366,7 @@ class SaveTemporariesMixin(object):
         latest one.
 
         """
-        if temporary == None:
+        if temporary is None:
             return self.encode_name(self.get_temp_basename()) + '0'
         else:
             split = temporary.rfind('_')+1
@@ -477,7 +479,7 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
                 locators[my_uuid] = cls(my_uuid)
         return locators.values()
 
-class XMLFileLocator(BaseLocator, SaveTemporariesMixin):
+class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
     def __init__(self, filename, **kwargs):
         self._name = filename
         self._vnode = kwargs.get('version_node', None)
@@ -804,7 +806,7 @@ class DBLocator(BaseLocator):
             return True
         try:
             self.get_connection()
-        except:
+        except Exception:
             return False
         return True
         
@@ -938,7 +940,7 @@ class DBLocator(BaseLocator):
                     name = str(n.firstChild.nodeValue).strip(" \n\t")
                     #print host, port, database, name, vt_id
                     return DBLocator(host, port, database,
-                                     user, passwd, name, vt_id, None)
+                                     user, passwd, name, obj_id=vt_id)
             return None
         else:
             return None

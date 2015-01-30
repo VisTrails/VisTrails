@@ -63,9 +63,9 @@ Examples
 
    **Base Workflow**
 
-   1) Drag the following modules to the canvas and connect them in the order in which they are named:  ``HTTPFile``, ``vtkUnstructuredGridReader``, ``vtkDataSetMapper``, ``vtkActor``, ``vtkRenderer``, ``VTKRenderOffscreen``.  Refer to Figure :ref:`Example 1.1 <fig-pers-example-base>` to ensure connections are correct.
+   1) Drag the following modules to the canvas and connect them in the order in which they are named:  ``DownloadFile``, ``vtkUnstructuredGridReader``, ``vtkDataSetMapper``, ``vtkActor``, ``vtkRenderer``, ``VTKRenderOffscreen``.  Refer to Figure :ref:`Example 1.1 <fig-pers-example-base>` to ensure connections are correct.
 
-   2) Select the ``HTTPFile`` module and set the url to: 
+   2) Select the ``DownloadFile`` module and set the url to: 
       
       http://www.vistrails.org/download/download.php?type=DATA&id=spx.vtk
 

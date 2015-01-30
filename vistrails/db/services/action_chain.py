@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 def getActionChain(obj, version, start=0):
     result = []
     currentId = version

@@ -20,7 +20,7 @@ plain binary files) and extract or convert columns.
 
   Start by dragging the following modules to the canvas:
 
-   * ``HTTPFile`` (from the HTTP package)
+   * ``DownloadFile`` (from the URL package)
    * ``CSVFile`` (under ``read/csv``)
    * ``TableCell``
    * Two ``ExtractColumn`` modules
@@ -41,7 +41,7 @@ plain binary files) and extract or convert columns.
 
 .. topic:: Next Step!
 
-  Set the 'url' input of HTTPFile to ``http://www.vistrails.org/download/download.php?type=DATA&id=citibike_from_launch.csv``.
+  Set the 'url' input of DownloadFile to ``http://www.vistrails.org/download/download.php?type=DATA&id=citibike_from_launch.csv``.
   Make sure 'header_present' is checked on CSVFile.
 
   Set the 'column_name' parameters on both ExtractColumn modules to ``Date`` (for the one on the left) and ``Miles traveled today (midnight to 11:59 pm)`` (for the one on the right). Alternatively, you can set column_index to 0 and 3.

@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core.vistrail.action import Action
 from vistrails.core.log.log import Log
 from vistrails.core.vistrail.operation import AddOp, ChangeOp, DeleteOp
@@ -125,12 +127,14 @@ def get_workflow_diff(vt_pair_1, vt_pair_2):
     """
 
     from vistrails.core.vistrail.pipeline import Pipeline
-    (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes, \
-         _, _, _, _) = \
-         vistrails.db.services.vistrail.getWorkflowDiff(vt_pair_1, vt_pair_2, True)
+    (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes,
+     cparam_changes, annot_changes, _, _, _, _) = \
+         vistrails.db.services.vistrail.getWorkflowDiff(vt_pair_1, vt_pair_2,
+                                                        True)
     Pipeline.convert(v1)
     Pipeline.convert(v2)
-    return (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes)
+    return (v1, v2, pairs, heuristic_pairs, v1_only, v2_only, param_changes,
+            cparam_changes, annot_changes)
 
 def get_workflow_diff_with_connections(vt_pair_1, vt_pair_2):
     """get_workflow_diff_with_connections
@@ -139,13 +143,15 @@ def get_workflow_diff_with_connections(vt_pair_1, vt_pair_2):
     """
 
     from vistrails.core.vistrail.pipeline import Pipeline
-    (v1, v2, m_pairs, m_heuristic, v1_only, v2_only, param_changes, \
-         c_pairs, c_heuristic, c1_only, c2_only) = \
-         vistrails.db.services.vistrail.getWorkflowDiff(vt_pair_1, vt_pair_2, False)
+    (v1, v2, m_pairs, m_heuristic, v1_only, v2_only, param_changes,
+     cparam_changes, annot_changes, c_pairs, c_heuristic, c1_only, c2_only) =\
+         vistrails.db.services.vistrail.getWorkflowDiff(vt_pair_1, vt_pair_2,
+                                                        False)
     Pipeline.convert(v1)
     Pipeline.convert(v2)
-    return (v1, v2, m_pairs, m_heustric, v1_only, v2_only, param_changes,
-            c_pairs, c_heuristic, c1_only, c2_only)
+    return (v1, v2, m_pairs, m_heuristic, v1_only, v2_only, param_changes,
+            cparam_changes, annot_changes, c_pairs, c_heuristic, c1_only,
+            c2_only)
 
 def getPathAsAction(vt, v1, v2, do_copy=False):
     a = vistrails.db.services.vistrail.getPathAsAction(vt, v1, v2, do_copy)
@@ -224,3 +230,14 @@ def create_temp_folder(prefix='vt_save'):
 
 def remove_temp_folder(temp_dir):
     vistrails.db.services.io.remove_temp_folder(temp_dir)
+
+def load_startup(startup_fname):
+    from vistrails.core.startup import VistrailsStartup
+    startup = vistrails.db.services.io.open_startup_from_xml(startup_fname)
+    VistrailsStartup.convert(startup)
+    return startup
+
+def save_startup(startup, fname):
+    startup = vistrails.db.services.io.save_startup_to_xml(startup, fname)
+    return startup
+    

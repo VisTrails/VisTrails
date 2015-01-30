@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from vistrails.db.domain import IdScope
 from vistrails.db.domain import DBMashuptrail
 from vistrails.core.mashup.action import Action
@@ -103,12 +105,11 @@ class Mashuptrail(DBMashuptrail):
         return cp
     
     def getLatestVersion(self):
-        try:
-            max_ver = max(a.id for a in self.actions)
-            return max_ver
-        except:
+        if not self.actions:
             return 0
-        
+        max_ver = max(a.id for a in self.actions)
+        return max_ver
+
     def getMashup(self, version):
         if version in self.actionMap.keys():
             return self.actionMap[version].mashup

@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 name = "R"
 identifier = "org.vistrails.vistrails.rpy"
 version = "0.1.2"

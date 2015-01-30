@@ -33,11 +33,13 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 import os
 from xml.dom import minidom, Node
 from auto_gen_objects import Object, Property, Choice
 
-class AutoGenParser:
+class AutoGenParser(object):
     def __init__(self):
         pass
 

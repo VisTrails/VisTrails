@@ -32,13 +32,16 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from itertools import izip
 import os
 
+from vistrails.core import debug
 from vistrails.core.system import vistrails_root_directory
 from vistrails.db import VistrailsDBException
 
-currentVersion = '1.0.3'
+currentVersion = '1.0.4'
 
 def getVersionDAO(version=None):
     if version is None:
@@ -54,7 +57,7 @@ def getVersionDAO(version=None):
             raise VistrailsDBException(msg)
         # assume other error
         import traceback
-        raise VistrailsDBException(traceback.format_exc())
+        raise VistrailsDBException(debug.format_exc())
     return persistence.DAOList()
 
 def translate_object(obj, method_name, version=None, target_version=None):
@@ -80,9 +83,11 @@ def translate_object(obj, method_name, version=None, target_version=None):
         '1.0.0': '1.0.1',
         '1.0.1': '1.0.2',
         '1.0.2': '1.0.3',
+        '1.0.3': '1.0.4',
         }
 
     rev_version_map = {
+        '1.0.4': '1.0.3',
         '1.0.3': '1.0.2',
         '1.0.2': '1.0.1',
         '1.0.1': '1.0.0',
@@ -151,6 +156,10 @@ def translate_log(log, version=None, target_version=None):
 
 def translate_registry(registry, version=None, target_version=None):
     return translate_object(registry, 'translateRegistry', version, 
+                            target_version)
+
+def translate_startup(startup, version=None, target_version=None):
+    return translate_object(startup, 'translateStartup', version,
                             target_version)
 
 def get_version_name(version_no):

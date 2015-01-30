@@ -138,6 +138,8 @@
 #             result = result.union(query.run(pipeline, module_ids))
 
 ################################################################################
+from __future__ import division
+
 import xml.sax.saxutils
 
 from vistrails.core.utils import memo_method
@@ -265,7 +267,7 @@ class Query1c(Query):
            vistrails.vistrails_name = %s and
            vistrails.vistrails_id = wf_exec.vistrails_id""", name)
         lst = list(c.fetchall())
-        versions = set([x[1] for x in lst])
+        versions = set(x[1] for x in lst)
         executions = set(lst)
         result = []
         for version in versions:
@@ -292,55 +294,6 @@ class Query1c(Query):
         return result
     
 
-class Query2(Query):
-
-    def run(self, vistrail, name):
-        import vistrails.gui.vis_application
-        c = vistrails.gui.vis_application.logger.db.cursor()
-        c.execute("""
-        select distinct module_id, wf_version from
-        wf_exec, exec, vistrails
-        where
-           wf_exec.wf_exec_id = exec.wf_exec_id and
-           vistrails.vistrails_name = %s and
-           vistrails.vistrails_id = wf_exec.vistrails_id""", name)
-        lst = list(c.fetchall())
-        versions = set([x[1] for x in lst])
-        executions = set(lst)
-        result = []
-        for version in versions:
-            p = vistrail.getPipeline(int(version))
-            inv_graph = p.graph.inverse()
-
-            # s = upstream(x) union x where x.name = filesink blablabla
-            s = set()
-            for module_id, module in p.modules.iteritems():
-                if (module_id, version) not in executions:
-                    continue
-                if module.name == 'FileSink':
-                    for f in module.functions:
-                        if (f.name == 'outputName' and
-                            len(f.params) == 1 and
-                            f.params[0].value() == 'atlas-x.gif'):
-                            s = s.union(set(self.upstream(inv_graph, module_id) + [module_id]))
-                            break
-
-            # s2 = upstream(y) where y.name = softmean
-            s2 = set()
-            for module_id, module in p.modules.iteritems():
-                if module.name == 'SoftMean':
-                    s2 = s2.union(set(self.upstream(inv_graph, module_id) + [module_id]))
-
-            qresult = s - s2
-            
-            for m in qresult:
-                result.append((int(version), m))
-        self.queryResult = result
-        self.tupleLength = 2
-        self.computeIndices()
-        return result
-
-
 class Query3(Query):
 
     def run(self, vistrail, name):
@@ -354,7 +307,7 @@ class Query3(Query):
            vistrails.vistrails_name = %s and
            vistrails.vistrails_id = wf_exec.vistrails_id""", name)
         lst = list(c.fetchall())
-        versions = set([x[1] for x in lst])
+        versions = set(x[1] for x in lst)
         executions = set(lst)
         result = []
         for version in versions:

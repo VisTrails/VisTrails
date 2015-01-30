@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from collections import namedtuple as _namedtuple, Mapping
 from itertools import izip
 
@@ -44,8 +46,7 @@ def get_field_name(v):
     return v[0]
 
 def namedtuple(typename, fields):
-    field_names = [f[0][0] if isinstance(f[0], tuple) else f[0]
-                   for f in fields]
+    field_names = [get_field_name(f) for f in fields]
     default_values = []
     default_found = False
     field_types = []
@@ -336,6 +337,10 @@ _documentation = \
 
       The maximum number of values allowed for the port
 
+   Port.depth: Integer
+
+      The list depth of the port. Default is 0 (no list)
+      
    InputPort.label: String
 
       A label to be shown with a port
@@ -423,15 +428,12 @@ _documentation = \
 """
 
 def parse_documentation():
-    global _docs
-
     line_iter = iter(_documentation.splitlines())
     line_iter.next()
     for line in line_iter:
         field, field_type = line.strip().split(':', 1)
         (cls_name, field_name) = field.split('.')
         doc_lines = []
-        done_with_doc = False
         line = line_iter.next()
         while True:
             line = line_iter.next()
@@ -485,6 +487,7 @@ Port = namedtuple('Port',
                       (("shape", None),),
                       (("min_conns", 0),),
                       (("max_conns", -1),),
+                      (("depth", 0),),
                       ])
 
 InputPort = subnamedtuple('InputPort', Port,

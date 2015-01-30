@@ -117,21 +117,18 @@ class ${spec.name}(${spec.superklass}):
         ]
 
     _output_ports = [
-        ("self", "(${spec.name})"),
-        % for ps in spec.output_port_specs:
-        % if not ps.is_property():
-              ("${ps.name}", "${ps.get_port_type()}",
-                ${ps.get_port_attrs()}),
+        ("value", "(${spec.name})"),
+        % if any(not ps.is_property() for ps in spec.output_port_specs):
+            # (this plot has additional output which are not exposed as ports
+            # right now)
         % endif
-        % endfor
         ]
-    
+
     % if spec.get_init():
     ${spec.get_init()}
     % endif
 
     def compute(self):
-        super(${spec.name}, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -150,17 +147,21 @@ ${get_port_val(spec, ps)}\
         % endif
         % endfor
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         % if spec.get_compute_before():
         ${spec.get_compute_before()}
         % endif
         % if spec.get_compute_inner():
         ${spec.get_compute_inner()}
         % elif spec.output_type is None:
-        ${spec.code_ref}(*args, **kwargs)        
+        ${spec.code_ref}(*args, **kwargs)
         % elif spec.output_type == "object":
         ${spec.get_returned_output_port_specs()[0].compute_name} = ${spec.code_ref}(*args, **kwargs)
         % else:
-        output = ${spec.code_ref}(*args, **kwargs)        
+        output = ${spec.code_ref}(*args, **kwargs)
         % endif
         % if spec.get_compute_after():
         ${spec.get_compute_after()}
@@ -187,12 +188,6 @@ ${get_port_val(spec, ps)}\
             if ${spec.get_output_port_spec(ps.compute_parent).compute_name}.${ps.compute_name} is not None:
                 properties.update(${spec.get_output_port_spec(ps.compute_parent).compute_name}.${ps.compute_name})
             % endif
-            ## % if ps.plural:
-            ## for obj in ${ps.compute_name}:
-            ##     properties.update(obj)
-            ## % else:
-            ## properties.update(${ps.compute_name})
-            ## % endif
             % else:
             if ${ps.compute_name} is not None:
                 properties.update_props(${ps.compute_name})
@@ -202,8 +197,8 @@ ${get_port_val(spec, ps)}\
         % endif
         % endfor
 
-% endfor        
-          
+% endfor
+
 _modules = [
 % for spec in specs.module_specs:
             ${spec.name},

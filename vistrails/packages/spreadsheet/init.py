@@ -32,35 +32,36 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# Spreadsheet Package for VisTrails
-################################################################################
+
+"""Spreadsheet Package for VisTrails
+"""
+
+from __future__ import division
+
+import os
 from PyQt4 import QtCore, QtGui
+import sys
+
 from vistrails.core import debug
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.system import vistrails_root_directory
-from spreadsheet_controller import spreadsheetController
-from spreadsheet_registry import spreadsheetRegistry
-from spreadsheet_window import SpreadsheetWindow
-import os
-import string
-import sys
-from spreadsheet_config import configuration
-import vistrails.core
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+
+from .spreadsheet_controller import spreadsheetController
+from .spreadsheet_registry import spreadsheetRegistry
+
 
 # This must be here because of VisTrails protocol
 
-################################################################################
-
 basicWidgets = None
+
 
 def importReturnLast(name):
     """ importReturnLast(name: str) -> package
     Import a package whose name is specified in name and return right-most
     package on the package name
-    
+
     """
     mod = __import__(name)
     components = name.split('.')
@@ -68,11 +69,12 @@ def importReturnLast(name):
         mod = getattr(mod, comp)
     return mod
 
+
 def addWidget(packagePath):
     """ addWidget(packagePath: str) -> package
     Add a new widget type to the spreadsheet registry supplying a
     basic set of spreadsheet widgets
-    
+
     """
     try:
         registry = get_module_registry()
@@ -84,20 +86,21 @@ def addWidget(packagePath):
         widget.registerWidget(registry, basic_modules, basicWidgets)
         spreadsheetRegistry.registerPackage(widget, packagePath)
         debug.log('  ==> Successfully import <%s>' % widgetName)
-    except:
-        debug.log('  ==> Ignored package <%s>' % packagePath)
+    except Exception, e:
+        debug.log('  ==> Ignored package <%s>' % packagePath, e)
         widget = None
     return widget
+
 
 def importWidgetModules(basicWidgets):
     """ importWidgetModules(basicWidgets: widget) -> None
     Find all widget package under ./widgets/* to add to the spreadsheet registry
-    
+
     """
     packageName = __name__.lower().endswith('.init') and \
         __name__[:-5] or __name__
     widgetDir = os.path.join(
-        os.path.join(os.path.dirname(vistrails_root_directory()), 
+        os.path.join(os.path.dirname(vistrails_root_directory()),
                      *packageName.split('.')),
         'widgets')
     candidates = os.listdir(widgetDir)
@@ -105,15 +108,16 @@ def importWidgetModules(basicWidgets):
         if os.path.isdir(os.path.join(widgetDir, folder)) and folder != '.svn':
             addWidget('.'.join([packageName, 'widgets', folder]))
 
+
 def initialize(*args, **keywords):
     """ initialize() -> None
     Package-entry to initialize the package
-    
+
     """
     import vistrails.core.application
     if not vistrails.core.application.is_running_gui():
         raise RuntimeError, "GUI is not running. The Spreadsheet package requires the GUI"
-    
+
     # initialize widgets
     debug.log('Loading Spreadsheet widgets...')
     global basicWidgets
@@ -127,14 +131,15 @@ def initialize(*args, **keywords):
     if app==None:
         app = QtGui.QApplication(sys.argv)
     if hasattr(app, 'builderWindow'):
-        global spreadsheetWindow        
+        global spreadsheetWindow
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(show=False)
+
 
 def menu_items():
     """menu_items() -> tuple of (str,function)
     It returns a list of pairs containing text for the menu and a
     callback function that will be executed when that menu item is selected.
-    
+
     """
     def show_spreadsheet():
         spreadsheetWindow.show()
@@ -144,10 +149,39 @@ def menu_items():
     lst.append(("Show Spreadsheet", show_spreadsheet))
     return tuple(lst)
 
+
 def finalize():
     spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
     ### DO NOT ADD BACK spreadsheetWindow.destroy()
-    ### That will crash VisTrails on Mac. 
+    ### That will crash VisTrails on Mac.
     ### It is not supposed to be called directly
     spreadsheetWindow.cleanup()
     spreadsheetWindow.deleteLater()
+
+
+def handle_module_upgrade_request(controller, module_id, pipeline):
+    module_remap = {
+            'CellLocation': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+            'SheetReference': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+            'SingleCellSheetReference': [
+                (None, '0.9.3', None, {
+                    'src_port_remap': {
+                        'self': 'value'},
+                }),
+            ],
+        }
+
+    return UpgradeWorkflowHandler.remap_module(controller,
+                                               module_id,
+                                               pipeline,
+                                               module_remap)

@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import base64
 import getpass
 import os.path
@@ -304,7 +306,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 f.write("\nConnect to db with username [%s]: "%self._user)
                 f.close()
                 user = raw_input()
-            except:
+            except IOError:
                 debug.warning("Couldn't write to terminal. Will try stdout")
                 user = raw_input("Connecting to db with username[%s]: "%self._user)
             try:
@@ -373,7 +375,7 @@ class DBLocator(_DBLocator, CoreLocator):
         """get_connection_info(id: int) -> dict
         Returns info of ExtConnection """
         conn = self.__list.get_connection(id)
-        if conn != None:
+        if conn is not None:
             succeeded = False
             key = str(conn.id) + "." + conn.name + "." + conn.host
             passwd = DBLocator.keyChain.get_key(key)
@@ -401,20 +403,13 @@ class DBLocator(_DBLocator, CoreLocator):
         If the connection exists it will update it, else it will add it
 
         """
-        if kwargs.has_key("id"):
-            id = kwargs["id"]
-        if kwargs.has_key("name"):
-            name = kwargs["name"]
-        if kwargs.has_key("host"):
-            host = kwargs["host"]
-        if kwargs.has_key("port"):
-            port = kwargs["port"]
-        if kwargs.has_key("user"):
-            user = kwargs["user"]
-        if kwargs.has_key("passwd"):
-            passwd = kwargs["passwd"]
-        if kwargs.has_key("db"):
-            db = kwargs["db"]
+        id = kwargs["id"]
+        name = kwargs["name"]
+        host = kwargs["host"]
+        port = kwargs["port"]
+        user = kwargs["user"]
+        passwd = kwargs["passwd"]
+        db = kwargs["db"]
 
         conn = DBConnection(id=id,
                             name=name,
@@ -677,17 +672,17 @@ class FileLocator(CoreLocator):
             showSpreadsheetOnly = False
         try:
             version = int(version)
-        except:
+        except (ValueError, TypeError):
             pass
 
         if tag is None:
-            tag = '';
+            tag = ''
             
         ## execute and showSpreadsheetOnly should be written to the current
         ## configuration
         config = get_vistrails_configuration()
-        config.executeWorkflows = execute
-        config.showSpreadsheetOnly = showSpreadsheetOnly
+        config.execute = execute
+        config.showWindow = not showSpreadsheetOnly
         if not forceDB:
             if vtcontent is not None:
                 if url is not None:
@@ -753,9 +748,3 @@ class FileLocator(CoreLocator):
                                mashuptrail=mashuptrail,
                                mashupVersion=mashupVersion,
                                parameterExploration=parameterExploration)
-        
-        
-    ##########################################################################
-
-def untitled_locator():
-    return UntitledLocator()

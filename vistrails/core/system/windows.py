@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import os
 import shutil
 import subprocess
@@ -66,6 +68,7 @@ __all__ = ['guess_total_memory', 'home_directory',
            'graph_viz_dot_command_line', 'remove_graph_viz_temporaries',
            'link_or_copy', 'executable_is_in_path', 'execute_cmdline',
            'get_executable_path', 'execute_piped_cmdlines', 'execute_cmdline2',
+           'shell_font_face', 'shell_font_size',
            'TestWindows']
 
 
@@ -83,9 +86,9 @@ def parse_meminfo():
         result = WIN32MEMORYSTATUSEX()
         result.dwLength = sizeof(WIN32MEMORYSTATUSEX)
         kernel32.GlobalMemoryStatusEx(byref(result))
-    except:
+    except Exception:
         return -1
-    return long(result.dwTotalPhys / 1024)
+    return result.dwTotalPhys // 1024
 
 def guess_total_memory():
     """ guess_total_memory() -> int
@@ -202,6 +205,12 @@ def execute_piped_cmdlines(cmd_list_list):
 
 def execute_cmdline2(cmd_list):
     return execute_piped_cmdlines([cmd_list])
+
+def shell_font_face():
+    return 'Courier New'
+
+def shell_font_size():
+    return 8
 
 ################################################################################
 

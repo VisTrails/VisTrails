@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 import os
 
@@ -453,13 +455,13 @@ class QVersionEmbed(QtGui.QWidget, QVistrailsPaletteInterface):
         label1 = QtGui.QLabel("Embed:")
         self.cbcontent = QtGui.QComboBox()
         self.cbcontent.setEditable(False)
-        items = ["Workflow Results", "Workflow Graph", "History Tree Graph"];
+        items = ["Workflow Results", "Workflow Graph", "History Tree Graph"]
         self.cbcontent.addItems(items)
         label2 = QtGui.QLabel("In:")
         
         self.cbtype = QtGui.QComboBox()
         self.cbtype.setEditable(False)
-        items = ["Wiki", "Latex", "Shared Memory"];
+        items = ["Wiki", "Latex", "Shared Memory"]
         self.cbtype.addItems(items)
         
         self.controller = None

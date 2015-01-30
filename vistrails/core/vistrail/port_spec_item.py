@@ -32,13 +32,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from __future__ import division
+
+from ast import literal_eval
 import copy
+import unittest
+
 from vistrails.core.modules.utils import parse_port_spec_item_string, \
     create_port_spec_item_string
 from vistrails.core.system import get_module_registry
-from vistrails.db.domain import DBPortSpecItem, IdScope
+from vistrails.db.domain import DBPortSpecItem
 
-import unittest
 
 _MissingPackage = None
 def get_MissingPackage():
@@ -182,8 +187,7 @@ class PortSpecItem(DBPortSpecItem):
 
     def _get_values(self):
         if self._values is None:
-            # don't use eval here...
-            self._values = eval(self.db_values)
+            self._values = literal_eval(self.db_values)
         return self._values
     def _set_values(self, values):
         if not isinstance(values, basestring):
@@ -191,8 +195,7 @@ class PortSpecItem(DBPortSpecItem):
             self.db_values = str(values)
         else:
             self.db_values = values
-            # don't use eval here...
-            self._values = eval(values)
+            self._values = literal_eval(values)
     values = property(_get_values, _set_values)
 
     def _get_spec_tuple(self):

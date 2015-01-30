@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import os
 import re
 import shutil
@@ -51,6 +53,7 @@ __all__ = ['executable_is_in_path', 'list2cmdline', 'execute_cmdline',
            'home_directory', 'remote_copy_program', 'remote_shell_program',
            'graph_viz_dot_command_line', 'remove_graph_viz_temporaries',
            'link_or_copy', 'XDestroyWindow',
+           'shell_font_face', 'shell_font_size',
            'TestLinux']
 
 ################################################################################
@@ -164,6 +167,12 @@ def XDestroyWindow(displayId, windowId):
     libx = get_libX11()
     libx.XDestroyWindow(displayPtr, windowPtr)
 
+def shell_font_face():
+    return 'Fixed'
+
+def shell_font_size():
+    return 12
+
 ################################################################################
 
 import unittest
@@ -194,7 +203,7 @@ class TestLinux(unittest.TestCase):
         link_or_copy(name1, name2)
         try:
             os.unlink(name1)
-        except:
+        except OSError:
             self.fail("Should not throw")
         os.unlink(name2)
 

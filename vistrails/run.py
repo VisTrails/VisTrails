@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# pragma: no testimport
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -107,7 +109,7 @@ def fix_paths():
     if vistrails_dir not in sys.path:
         sys.path.insert(0, vistrails_dir)
 
-if __name__ == '__main__':
+def main():
     fix_paths()
     disable_lion_restore()
     fix_site()
@@ -116,14 +118,17 @@ if __name__ == '__main__':
     import locale
     locale.setlocale(locale.LC_ALL, '')
 
+    # Log to the console
+    from vistrails.core import debug
+    debug.DebugPrint.getInstance().log_to_console()
+
     from vistrails.gui.requirements import require_pyqt4_api2
     require_pyqt4_api2()
 
-    from PyQt4 import QtGui
     import vistrails.gui.application
     from vistrails.core.application import APP_SUCCESS, APP_FAIL, APP_DONE
     try:
-        v = vistrails.gui.application.start_application()
+        v = vistrails.gui.application.start_application(args=sys.argv[1:])
         if v != APP_SUCCESS:
             app = vistrails.gui.application.get_vistrails_application()
             if app:
@@ -141,12 +146,15 @@ if __name__ == '__main__':
             app.finishSession()
         import traceback
         print >>sys.stderr, "Uncaught exception on initialization: %s" % (
-                traceback._format_final_exc_line(type(e).__name__, e))
-        traceback.print_exc(sys.stderr)
+                traceback._format_final_exc_line(type(e).__name__, e).strip())
+        traceback.print_exc(None, sys.stderr)
         sys.exit(255)
-    if (app.temp_configuration.interactiveMode and
-        not app.temp_configuration.check('spreadsheetDumpCells')): 
+    if (not app.temp_configuration.batch and
+        not app.temp_configuration.check('outputDirectory')):
         v = app.exec_()
-        
+
     vistrails.gui.application.stop_application()
     sys.exit(v)
+
+if __name__ == '__main__':
+    main()

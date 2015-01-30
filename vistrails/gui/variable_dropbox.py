@@ -42,6 +42,8 @@ QVariableInputForm
 QDragVariableLabel
 QHoverVariableLabel
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core import debug
 from vistrails.core.vistrail.module_function import ModuleFunction
@@ -51,8 +53,7 @@ from vistrails.core.modules.basic_modules import Constant
 from vistrails.core.vistrail.vistrailvariable import VistrailVariable
 from vistrails.gui.common_widgets import QPromptWidget
 from vistrails.gui.modules.utils import get_widget_class
-from vistrails.gui.modules.constant_configuration import StandardConstantWidget, \
-    FileChooserToolButton
+from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 from vistrails.gui.module_palette import QModuleTreeWidget
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import show_question, YES_BUTTON, NO_BUTTON
@@ -338,7 +339,7 @@ class QVariableInputForm(QtGui.QGroupBox):
         p = ModuleParam(type=descriptor.name, identifier=descriptor.identifier,
                         namespace=descriptor.namespace)
         p.strValue = var_strValue
-        widget_type = get_widget_class(descriptor.module)
+        widget_type = get_widget_class(descriptor)
         self.widget = widget_type(p, self)
         self.label = QDragVariableLabel(p.type)
         self.layout().addWidget(self.label, 0, 0)

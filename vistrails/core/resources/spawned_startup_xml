@@ -19,24 +19,11 @@
   </packages>
   <disabledpackages/>
   <configuration>
-    <key name="nologger">
-      <bool value="True"/>
-    </key>
     <key name="nologfile">
       <bool value="True"/>
     </key>
     <key name="spawned">
       <bool value="True"/>
-    </key>
-    <key name="shell">
-      <configuration>
-        <key name="font_face">
-          <str value="Bitstream Vera mono"/>
-        </key>
-        <key name="font_size">
-          <int value="9"/>
-        </key>
-      </configuration>
     </key>
   </configuration>
 </startup>

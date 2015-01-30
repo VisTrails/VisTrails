@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import copy
 import locale
 import sys
@@ -65,9 +67,9 @@ class VistrailEntity(Entity):
         self.reload(vistrail)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = VistrailEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
     
     def create_workflow_entity(self, workflow, action):
@@ -80,8 +82,8 @@ class VistrailEntity(Entity):
         else:
             entity.description = ''
         entity.user = action.user
-        entity.mod_time = action.date
-        entity.create_time = action.date
+        entity.mod_time = action.db_date
+        entity.create_time = action.db_date
         locator = BaseLocator.from_url(self.url)
         locator.kwargs['version_node'] = action.id
         entity.url = locator.to_url()
@@ -98,8 +100,8 @@ class VistrailEntity(Entity):
         else:
             entity.description = ''
         entity.user = action.user
-        entity.mod_time = action.date
-        entity.create_time = action.date
+        entity.mod_time = action.db_date
+        entity.create_time = action.db_date
         locator = BaseLocator.from_url(self.url)
         locator.kwargs['mashuptrail'] = trail_id
         locator.kwargs['mashup'] = action.id
@@ -153,11 +155,11 @@ class VistrailEntity(Entity):
             latestVersionId = vistrail.get_latest_version()
             latestVersion = vistrail.actionMap[latestVersionId]
             user = latestVersion.user
-            mod_time = latestVersion.date
+            mod_time = latestVersion.db_date
             # FIXME: relies on 1 being the first version...
             firstVersion = vistrail.actionMap[1] \
                 if 1 in vistrail.actionMap else latestVersion
-            create_time = firstVersion.date
+            create_time = firstVersion.db_date
         url = vistrail.locator.to_url() if vistrail.locator else "untitled:"
         return (name, size, user, mod_time, create_time, url)
 
@@ -178,11 +180,11 @@ class VistrailEntity(Entity):
             tag = self.vistrail.get_tag(version_id)
         try:
             workflow = self.vistrail.getPipeline(version_id)
-        except:
-            import traceback
+        except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Failed to construct pipeline '%s'" % 
                                (tag if tag else version_id),
-                           traceback.format_exc())
+                           debug.format_exc())
             workflow = self.vistrail.getPipeline(0)
         if tag:
             workflow.name = tag
@@ -259,14 +261,14 @@ class VistrailEntity(Entity):
             action = self.vistrail.actionMap[version_id]
             try:
                 workflow = self.vistrail.getPipeline(version_id)
-            except:
-                import traceback
+            except Exception, e:
+                debug.unexpected_exception(e)
                 if self.vistrail.has_tag(version_id):
                     tag_str = self.vistrail.get_tag(version_id)
                 else:
                     tag_str = str(version_id)
                 debug.critical("Failed to construct pipeline '%s'" % tag_str,
-                               traceback.format_exc())
+                               debug.format_exc())
                 workflow = self.vistrail.getPipeline(0)
             wf_entity = self.create_workflow_entity(workflow, action)
             self.wf_entity_map[version_id] = wf_entity
@@ -344,11 +346,12 @@ class VistrailEntity(Entity):
                 #             self.add_parameter_exploration_entity(pe)
                 
             # read persisted log entries
+            log = None
             try:
                 log = vistrail.get_persisted_log()
-            except:
-                import traceback
-                debug.critical("Failed to read log", traceback.format_exc())
+            except Exception, e:
+                debug.unexpected_exception(e)
+                debug.critical("Failed to read log", debug.format_exc())
                 
             if log is not None:
                 for wf_exec in log.workflow_execs:

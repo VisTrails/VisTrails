@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core.data_structures.point import Point
 from vistrails.db.domain import DBLocation
 
@@ -194,6 +196,6 @@ class TestLocation(unittest.TestCase):
         a = Location(x=0, y=1)
         b = Location(x=0, y=1)
         assert a == b
-        assert a != None
+        assert a is not None
         b = Location(x=0, y=0.1)
         assert a != b

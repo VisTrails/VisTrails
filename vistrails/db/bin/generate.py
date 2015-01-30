@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# pragma: no testimport
 ###############################################################################
 ##
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -37,6 +39,8 @@
 # requires mako python package (easy_install Mako) and 
 # uses emacs via subprocess call for python indentation
 # the emacs call is slow because it checks all of the indentation
+
+from __future__ import division
 
 from mako.template import Template
 

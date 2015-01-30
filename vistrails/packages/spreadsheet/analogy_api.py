@@ -32,41 +32,43 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file describes the analogy structure the spreadsheet holding
-# and it should be reimplemented to integrate between the spreadsheet
-# and the analogy
-################################################################################
-import os
+
+"""This file describes the analogy structure the spreadsheet holding and it
+should be reimplemented to integrate between the spreadsheet and the analogy
+"""
+
+from __future__ import division
+
 import vistrails.core.analogy
 import vistrails.gui
+
 
 class SpreadsheetAnalogyObject(object):
     """
     SpreadsheetAnalogyObject provides a API functions to integrate
     between the spreadsheet and the analogy. There will be only one
     instance of the analogy object
-    
+
     """
     def __init__(self):
         """ SpreadsheetAnalogyObject() -> SpreadsheetAnalogyObject
         Initialize object properties
-        
+
         """
         pass
 
     def isValid(self):
-        """ isValid() -> bool        
+        """ isValid() -> bool
         Is the current analogy object is valid and can be applied to
         other pipeline
-        
+
         """
         return True
-        
+
     def createAnalogy(self, p1Info, p2Info):
-        """ createAnalogy(p1Info: tuple, p2Info) -> bool        
+        """ createAnalogy(p1Info: tuple, p2Info) -> bool
         p1Info, p2Info: (vistrailName, versionNumber, actions, pipeline)
-        
+
         Setup an analogy object from p1 to p2 given their info in
         p1Info and p2Info. CAUTION: sometimes the actual 'pipeline' on
         the spreadsheet is different than the one created from the
@@ -77,7 +79,7 @@ class SpreadsheetAnalogyObject(object):
 
         This function should return a boolean saying if the analogy
         has been successfully created or not.
-        
+
         """
 #         (p1_vistrail, p1_number, p1_actions, p1_pipeline) = p1Info
 #         (p2_vistrail, p2_number, p2_actions, p2_pipeline) = p2Info
@@ -94,7 +96,7 @@ class SpreadsheetAnalogyObject(object):
         the list of actions that has been applied. If no actions
         given (i.e. []), this can not be put back to the builder. If
         analogy is not applicable, this should return None
-        
+
         """
 
         (p1_locator, p1_number, p1_actions, p1_pipeline, p1_controller) = self._p1Info
@@ -115,10 +117,10 @@ class SpreadsheetAnalogyObject(object):
         if controller.current_version != p3_number:
             controller.change_selected_version(p3_number)
         action = perform( vt, p1_number, p2_number, p3_number)
-        
+
         controller.add_new_action(action)
         controller.perform_action(action)
-        
+
         new_version = controller.current_version
         new_pipeline = vt.getPipeline(new_version)
         return (controller.locator, new_version, [], new_pipeline, controller)
@@ -126,7 +128,7 @@ class SpreadsheetAnalogyObject(object):
     def __call__(self):
         """ __call__() -> SpreadsheetAnalogy
         Return self for calling method
-        
+
         """
         return self
 

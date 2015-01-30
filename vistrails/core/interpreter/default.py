@@ -32,6 +32,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.noncached
 
@@ -44,14 +46,14 @@ __default_interpreter = cached_interpreter
 ##############################################################################
 
 def set_cache_configuration(field, value):
-    assert field == 'useCache'
+    assert field == 'cache'
     if value:
         set_default_interpreter(cached_interpreter)
     else:
         set_default_interpreter(noncached_interpreter)
 
 def connect_to_configuration(configuration):
-    configuration.subscribe('useCache', set_cache_configuration)
+    configuration.subscribe('cache', set_cache_configuration)
 
 def get_default_interpreter():
     """Returns an instance of the default interpreter class."""

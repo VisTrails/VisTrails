@@ -32,9 +32,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
+from PyQt4.QtCore import pyqtSlot
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.mashups.mashups_manager import MashupsManager
 from vistrails.gui.mashups.alias_list import QAliasListPanel
@@ -138,9 +141,9 @@ class QMashupView(QtGui.QMainWindow, BaseView):
                         self.disconnect(self.mshpController.vtController,
                                         QtCore.SIGNAL('vistrailChanged()'),
                                         self.mshpControllerVistrailChanged)
-                except Exception:
-                    import traceback
-                    traceback.print_exc()
+                except Exception, e:
+                    debug.unexpected_exception(e)
+                    debug.print_exc()
             self.controller.flush_delayed_actions()
             self.vtversion = self.controller.current_version
             self.mshpController = self.manager.createMashupController(self.controller,

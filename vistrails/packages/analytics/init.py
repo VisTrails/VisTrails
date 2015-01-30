@@ -32,8 +32,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.modules.basic_modules import new_constant
-from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleConnector
+from __future__ import division
+
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 import vistrails.core.vistrail.vistrail
 import vistrails.core.log.log 
 import vistrails.db.services.io
@@ -114,7 +115,7 @@ class CountActions(Module):
                         Tally[action.what] = {action.vtType : 1}
 
                 # if is there, if subdictionary does not have vtType key, create entry
-                elif Tally.has_key(action.what) == none:
+                elif Tally.has_key(action.what) is None:
                     Tally[action.what] = {action.vtType : 1}
         return Tally
 

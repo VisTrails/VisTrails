@@ -33,6 +33,8 @@
 ##
 ###############################################################################
 
+from __future__ import division
+
 from entity import Entity
 
 class ParameterExplorationEntity(Entity):
@@ -44,9 +46,9 @@ class ParameterExplorationEntity(Entity):
         self.update(pe)
 
     @staticmethod
-    def load(*args):
+    def create(*args):
         entity = ParameterExplorationEntity()
-        Entity.load(entity, *args)
+        entity.load(*args)
         return entity
 
     def update(self, pe):
@@ -54,8 +56,8 @@ class ParameterExplorationEntity(Entity):
         if self.pe is not None:
             self.name = pe.name
             self.user = pe.user
-            self.mod_time = pe.date
-            self.create_time = pe.date
+            self.mod_time = pe.date if pe.date else self.now()
+            self.create_time = pe.date if pe.date else self.now()
             self.size = len(pe.functions)
             self.description = ""
             self.url = 'test'

@@ -35,6 +35,8 @@
 """
 This module handles Parameter Exploration in VisTrails
 """
+from __future__ import division
+
 from vistrails.core import debug
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
@@ -238,6 +240,27 @@ class ActionBasedParameterExploration(object):
         
         exploreDimension(currentPipeline, pre_actions, len(actions)-1)
         return (results, resultActions)
+
+def _pipelinePositions(sheetCount, rowCount, colCount,
+                       pipelines):
+    """ _pipelinePositions(sheetCount: int, rowCount: int,
+                           colCount: int, pipelines: list of Pipeline,
+                           controller: VistrailCintroller
+                           -> list of Positions
+    Apply the pipeline locations to a list of pipeline positions in a
+    parameter exploration given that pipelines has multiple chunk
+    of sheetCount x rowCount x colCount cells
+
+    """
+
+    pipelinePositions = []
+    for pId in xrange(len(pipelines)):
+        col = pId % colCount
+        row = (pId // colCount) % rowCount
+        sheet = (pId // (colCount*rowCount)) % sheetCount
+        pipelinePositions.append((row, col, sheet))
+    return pipelinePositions
+
 
 ################################################################################
         

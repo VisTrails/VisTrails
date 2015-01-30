@@ -60,6 +60,8 @@ as multipart/form-data suitable for a HTTP POST or PUT request.
 
 multipart/form-data is the standard way to upload files over HTTP"""
 
+from __future__ import division
+
 __all__ = ['gen_boundary', 'encode_and_quote', 'MultipartParam',
         'encode_string', 'encode_file_header', 'get_body_size', 'get_headers',
         'multipart_encode']
@@ -161,7 +163,7 @@ class MultipartParam(object):
                     fileobj.seek(0, 2)
                     self.filesize = fileobj.tell()
                     fileobj.seek(0)
-                except:
+                except IOError:
                     raise ValueError("Could not determine filesize")
 
     def __cmp__(self, other):
@@ -366,7 +368,7 @@ def get_headers(params, boundary):
     headers['Content-Length'] = str(get_body_size(params, boundary))
     return headers
 
-class multipart_yielder:
+class multipart_yielder(object):
     def __init__(self, params, boundary, cb):
         self.params = params
         self.boundary = boundary

@@ -35,6 +35,8 @@
 Matplotlib viewer into our spreadsheet
 
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 import os
 
@@ -43,12 +45,22 @@ import pylab
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.backend_bases import NavigationToolbar2, FigureManagerBase
 
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 
 FigureCanvasQTAgg.DEBUG = True
 
 ################################################################################
+
+class MplFigureToSpreadsheet(SpreadsheetMode):
+    @classmethod
+    def can_compute(cls):
+        return SpreadsheetMode.can_compute()
+
+    def compute_output(self, output_module, configuration=None):
+        fig = output_module.get_input('value')
+        self.display_and_wait(output_module, configuration,
+                              MplFigureCellWidget, (fig,))
 
 class MplFigureCell(SpreadsheetCell):
     """
@@ -71,8 +83,14 @@ class MplFigureCellWidget(QCellWidget):
     """
     MplFigureCellWidget is the actual QWidget taking the FigureManager
     as a child for displaying figures
-    
+
     """
+    save_formats = ["Portable Document Format (*.pdf)",
+                    "Portable Network Graphic (*.png)",
+                    "PostScript (*.ps *.eps)",
+                    "Raw images (*.raw *.rgba)",
+                    "Scalable Vector Graphics (*.svg *.svgz)"]
+
     def __init__(self, parent=None):
         """ MplFigureCellWidget(parent: QWidget) -> MplFigureCellWidget
         Initialize the widget with its central layout
@@ -83,26 +101,12 @@ class MplFigureCellWidget(QCellWidget):
         centralLayout = QtGui.QVBoxLayout()
         self.setLayout(centralLayout)
         centralLayout.setMargin(0)
-        centralLayout.setSpacing(0)        
-        # self.figManager = pylab.get_current_fig_manager()
-        # self.figManager = None
-        # self.figNumber = None
+        centralLayout.setSpacing(0)
         self.canvas = None
         self.figure = None
         self.figManager = None
         self.toolBarType = MplFigureCellToolBar
         self.mplToolbar = None
-
-    # def getFigManager(self):
-    #     if self.figNumber is not None:
-    #         pylab.figure(self.figNumber)
-    #         return pylab.get_current_fig_manager()
-    #     return None
-
-    # def getFigure(self):
-    #     if self.figNumber is not None:
-    #         return pylab.figure(self.figNumber)
-    #     return None
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
@@ -115,50 +119,12 @@ class MplFigureCellWidget(QCellWidget):
                 self.layout().removeWidget(self.canvas)
 
             self.figure = fig.figInstance
-                
-            # self.figure.set_size_inches(8.0,6.0)
+
             self.canvas = FigureCanvasQTAgg(self.figure)
             self.mplToolbar = MplNavigationToolbar(self.canvas, None)
             self.canvas.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                       QtGui.QSizePolicy.Expanding)
-            # self.figManager = FigureManagerBase(self.canvas, self.figure.number)
             self.layout().addWidget(self.canvas)
-
-            # Update the new figure canvas
-            # self.canvas.draw()
-            # self.layout().addWidget(self.getFigManager().window)
-
-        # Update the new figure canvas
-        # self.getFigManager().canvas.draw()            
-
-        # # Replace the old one with the new one
-        # if newFigManager!=self.figManager:
-            
-        #     # Remove the old figure manager
-        #     if self.figManager:
-        #         self.figManager.window.hide()
-        #         self.layout().removeWidget(self.figManager.window)
-
-        #     # Add the new one in
-        #     self.layout().addWidget(newFigManager.window)
-
-        #     # Destroy the old one if possible
-        #     if self.figManager:
-                
-        #         try:                    
-        #             pylab.close(self.figManager.canvas.figure)
-        #         # There is a bug in Matplotlib backend_qt4. It is a
-        #         # wrong command for Qt4. Just ignore it and continue
-        #         # to destroy the widget
-        #         except:
-        #             pass
-                
-        #         self.figManager.window.deleteLater()
-        #         del self.figManager
-
-        #     # Save back the manager
-        #     self.figManager = newFigManager
-        #     self.update()
 
     def keyPressEvent(self, event):
         print "KEY PRESS:",  event.key()
@@ -175,22 +141,10 @@ class MplFigureCellWidget(QCellWidget):
         """
         # Destroy the old one if possible
         if self.figure is not None:
-            # self.getFigManager().window.deleteLater()
             print "pylab:", pylab
             print "self.figure:", self.figure
             pylab.close(self.figure)
-            
-        # if self.figManager:
-            
-        #     try:                    
-        #         pylab.close(self.figManager.canvas.figure)
-        #     # There is a bug in Matplotlib backend_qt4. It is a
-        #     # wrong command for Qt4. Just ignore it and continue
-        #     # to destroy the widget
-        #     except:
-        #         pass
-            
-        #     self.figManager.window.deleteLater()
+
         QCellWidget.deleteLater(self)
 
     def grabWindowPixmap(self):
@@ -198,8 +152,6 @@ class MplFigureCellWidget(QCellWidget):
         Widget special grabbing function
         
         """
-        # pylab.figure(self.figNumber)
-        # figManager = pylab.get_current_fig_manager()
         return QtGui.QPixmap.grabWidget(self.canvas)
 
     def dumpToFile(self, filename):
@@ -251,13 +203,9 @@ class MplFigureCellToolBar(QCellToolBar):
             ('Back', 'Back to  previous view','back.ppm', 'back', False),
             ('Forward', 'Forward to next view','forward.ppm', 'forward', 
              False),
-            # (None, None, None, None),
             ('Pan', 'Pan axes with left mouse, zoom with right', 'move.ppm', 
              'pan', True),
             ('Zoom', 'Zoom to rectangle','zoom_to_rect.ppm', 'zoom', True),
-            # (None, None, None, None),
-            # ('Subplots', 'Configure subplots','subplots.png', 'configure_subplots'),
-            # ('Save', 'Save the figure','filesave.ppm', 'save_figure'),
             )
         icondir = os.path.join(matplotlib.rcParams[ 'datapath' ],'images')
         exclusive_actions = {}
@@ -266,10 +214,7 @@ class MplFigureCellToolBar(QCellToolBar):
             icon = QtGui.QIcon(os.path.join(icondir, image_file))
             action = QtGui.QAction(icon, text, self)
             action.setStatusTip(tooltip_text)
-            # action.setToolTip(tooltip_text)
             action.setCheckable(checkable)
-            # self.connect(action, QtCore.SIGNAL("triggered"), 
-            #              get_callback(callback))
             actions[text] = action
             if text == 'Pan' or text == 'Zoom':
                 exclusive_actions[text] = action

@@ -34,6 +34,8 @@
 ###############################################################################
 """Helper functions for cache package."""
 
+from __future__ import division
+
 try:
     import hashlib
     sha_hash = hashlib.sha1
