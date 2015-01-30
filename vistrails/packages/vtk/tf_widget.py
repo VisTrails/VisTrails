@@ -664,17 +664,29 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
 
 class vtkScaledTransferFunction(Module):
 
+    # FIXME Add documentation
+    _input_ports = [
+        ['Input', vtk_pkg_identifier + ':vtkAlgorithmOutput'],
+        ['Dataset', vtk_pkg_identifier + ':vtkDataObject'],
+        ['Range', '(basic:Float, basic:Float)'],
+        ['TransferFunction', vtk_pkg_identifier + ':TransferFunction']]
+
+    _output_ports = [
+        ['TransferFunction', vtk_pkg_identifier + ':TransferFunction'],
+        ['vtkPiecewiseFunction', vtk_pkg_identifier + ':vtkPiecewiseFunction'],
+        ['vtkColorTransferFunction', vtk_pkg_identifier + ':vtkColorTransferFunction']]
+
     def compute(self):
         reg = get_module_registry()
         tf = self.get_input('TransferFunction')
         new_tf = copy.copy(tf)
         if self.has_input('Input'):
             port = self.get_input('Input')
-            algo = port.vtkInstance.GetProducer()
-            output = algo.GetOutput(port.vtkInstance.GetIndex())
+            algo = port.GetProducer()
+            output = algo.GetOutput(port.GetIndex())
             (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
         elif self.has_input('Dataset'):
-            algo = self.get_input('Dataset').vtkInstance
+            algo = self.get_input('Dataset')
             output = algo
             (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
         else:
@@ -683,16 +695,8 @@ class vtkScaledTransferFunction(Module):
         self.set_output('TransferFunction', new_tf)
         (of,cf) = new_tf.get_vtk_transfer_functions()
         
-        of_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
-                                               'vtkPiecewiseFunction').module()
-        of_module.vtkInstance  = of
-        
-        cf_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
-                                               'vtkColorTransferFunction').module()
-        cf_module.vtkInstance  = cf
-        
-        self.set_output('vtkPicewiseFunction', of_module)
-        self.set_output('vtkColorTransferFunction', cf_module)
+        self.set_output('vtkPicewiseFunction', of)
+        self.set_output('vtkColorTransferFunction', cf)
 
 string_conversion = staticmethod(lambda x: x.serialize())
 conversion = staticmethod(lambda x: TransferFunction.parse(x))
@@ -704,11 +708,6 @@ TransferFunctionConstant = new_constant('TransferFunction',
                                         TransferFunctionWidget)
 TransferFunctionConstant.translate_to_string = string_conversion
 
-##############################################################################
-
-def initialize():
-    init_constant(TransferFunctionConstant)
-    
 ##############################################################################
 class TestTransferFunction(unittest.TestCase):
     def test_serialization(self):
@@ -731,6 +730,8 @@ class TestTransferFunction(unittest.TestCase):
         assert tf == tf1
         assert tf == tf2
         assert tf1 == tf2
-        
+
+_modules = [TransferFunctionConstant, vtkScaledTransferFunction]
+
 if __name__ == "__main__":
     unittest.main()
