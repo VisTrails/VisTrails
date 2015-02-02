@@ -1,6 +1,8 @@
 from itertools import izip
 
-from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.interpreter.base import AbortExecution
+from vistrails.core import debug
 
 class vtkObjectBase(Module):
     @staticmethod
