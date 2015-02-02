@@ -28,6 +28,12 @@ class vtkObjectBase(Module):
             params = [params]
         if translator is not None:
             params = [translator(p) for p in params]
+        # handle enums
+        spec = self.input_specs[port_name]
+        if len(spec.items) == 1 and spec.items[0].entry_type == 'enum':
+            # Append enum name to function name and delete params
+            method_name += params[0]
+            params = []
         method = getattr(vtk_obj, method_name)
         if shape is not None:
             def reshape_params(p, s):
