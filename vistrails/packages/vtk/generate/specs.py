@@ -191,8 +191,7 @@ class PortSpec(object):
              "required": (False, False, True),
              "show_port": (False, False, True),
              "hide": (False, False, True),
-             "other_params": (None, True, True),
-             "property_type": "",}
+             "other_params": (None, True, True)}
 
     def __init__(self, arg, **kwargs):
         self.arg = arg
@@ -211,10 +210,7 @@ class PortSpec(object):
                 setattr(self, attr, default_val)
 
         if not self.name:
-            if self.port_type == "__property__":
-                self.name = self.arg + "Properties"
-            else:
-                self.name = self.arg
+            self.name = self.arg
 
         if not self.method_name:
             self.method_name = self.name
@@ -344,13 +340,6 @@ class PortSpec(object):
     #     obj.show_port = eval(elt.get("show_port", "False"))
     #     return obj
 
-    def is_property(self):
-        return self.port_type == "__property__"
-
-    def get_property_type(self):
-        return "Mpl%sProperties" % \
-            capfirst(self.property_type.rsplit('.', 1)[1])
-
     def get_port_type(self):
         if self.port_type is None:
             return "basic:Null"
@@ -468,8 +457,6 @@ class InputPortSpec(PortSpec):
     def has_alternate_versions(self):
         return len(self.alternate_specs) > 0
 
-    # def is_property_input(self):
-    #     return self.get_port_type().lower() == "__property__"
 
 class AlternatePortSpec(InputPortSpec):
     # attrs = ["name", "port_type", "docstring", "required", "hide", 
@@ -526,10 +513,7 @@ class OutputPortSpec(PortSpec):
     def set_defaults(self, **kwargs):
         PortSpec.set_defaults(self, **kwargs)
         if self.compute_name == "":
-            if self.plural and self.is_property():
-                self.compute_name = self.arg + 's'
-            else:
-                self.compute_name = self.arg
+            self.compute_name = self.arg
 
     @classmethod
     def from_xml(cls, elt, obj=None):
