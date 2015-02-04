@@ -18,6 +18,11 @@ def get_mixin_classes():
     return _mixin_classes
 
 class SpecList(object):
+    """ A class with module specifications and custom code
+        This describes how the wrapped methods/classes will
+        maps to modules in vistrails
+    """
+
     def __init__(self, module_specs=[], custom_code=""):
         self.module_specs = module_specs
         self.custom_code = custom_code
@@ -69,19 +74,23 @@ class SpecList(object):
         return retval
 
 class ModuleSpec(object):
-    attrs = ["name", "superklass", "docstring", "output_type", "cacheable"]
-    def __init__(self, name, superklass, code_ref, docstring="", port_specs=[],
-                 output_port_specs=[], output_type=None, cacheable=True,
-                 is_algorithm=False):
+    """ Represents specification of a module
+        This mirrors how the module will look in the vistrails registry
+    """
+
+    attrs = ["name", "superklass", "docstring", "cacheable"]
+    def __init__(self, name, superklass, docstring="", port_specs=None,
+                 output_port_specs=None, cacheable=True):
+        if port_specs is None:
+            port_specs = []
+        if output_port_specs is None:
+            output_port_specs = []
         self.name = name
-        self.superklass = superklass
-        self.code_ref = code_ref
+        self.superklass = superklass # parent module to subclass from
         self.docstring = docstring
         self.port_specs = port_specs
         self.output_port_specs = output_port_specs
-        self.output_type = output_type
         self.cacheable = cacheable
-        self.is_algorithm = is_algorithm
         self._mixin_class = None
         self._mixin_functions = None
 
@@ -90,13 +99,8 @@ class ModuleSpec(object):
             elt = ET.Element("moduleSpec")
         elt.set("name", self.name)
         elt.set("superclass", self.superklass)
-        elt.set("code_ref", self.code_ref)
-        if self.output_type is not None:
-            elt.set("output_type", self.output_type)
         if self.cacheable is False:
             elt.set("cacheable", unicode(self.cacheable))
-        if self.is_algorithm is True:
-            elt.set("is_algorithm", unicode(self.is_algorithm))
         subelt = ET.Element("docstring")
         subelt.text = unicode(self.docstring)
         elt.append(subelt)
@@ -112,10 +116,7 @@ class ModuleSpec(object):
     def from_xml(cls, elt):
         name = elt.get("name", "")
         superklass = elt.get("superclass", "")
-        code_ref = elt.get("code_ref", "")
-        output_type = elt.get("output_type", None)
         cacheable = ast.literal_eval(elt.get("cacheable", "True"))
-        is_algorithm = ast.literal_eval(elt.get("is_algorithm", "False"))
         docstring = ""
         port_specs = []
         output_port_specs = []
@@ -127,19 +128,8 @@ class ModuleSpec(object):
             elif child.tag == "docstring":
                 if child.text:
                     docstring = child.text
-        return cls(name, superklass, code_ref, docstring, port_specs,
-                   output_port_specs, output_type, cacheable, is_algorithm)
-
-    def get_returned_output_port_specs(self):
-        return [ps for ps in self.output_port_specs 
-                if ps.property_key is not None]
-
-    def get_input_args(self):
-        args = [ps for ps in self.port_specs if ps.in_args]
-        args.sort(key=lambda ps: ps.arg_pos)
-        if len(args) > 1 and len(args) != (args[-1].arg_pos + 1):
-            raise ValueError("Argument positions are numbered incorrectly")
-        return args
+        return cls(name, superklass, docstring, port_specs,
+                   output_port_specs, cacheable)
 
     def get_output_port_spec(self, compute_name):
         for ps in self.output_port_specs:
@@ -149,7 +139,7 @@ class ModuleSpec(object):
 
     def get_mixin_name(self):
         return self.name + "Mixin"
-        
+
     def has_mixin(self):
         if self._mixin_class is None:
             mixin_classes = get_mixin_classes()
@@ -169,29 +159,63 @@ class ModuleSpec(object):
             s = inspect.getsource(self._mixin_functions[f_name])
             return s[s.find(':')+1:].strip()
         return None
-            
+
     def get_compute_before(self):
         return self.get_mixin_function("compute_before")
-    
+
     def get_compute_inner(self):
         return self.get_mixin_function("compute_inner")
 
     def get_compute_after(self):
         return self.get_mixin_function("compute_after")
-    
+
     def get_init(self):
         return self.get_mixin_function("__init__")
 
+class VTKModuleSpec(ModuleSpec):
+    """ Represents specification of a vtk module
+
+        Adds attribute is_algorithm
+    """
+
+    attrs = ["superklass"]
+    attrs.update(ModuleSpec.attrs)
+
+    def __init__(self, name, superklass, code_ref, docstring="", port_specs=None,
+                 output_port_specs=None, cacheable=True,
+                 is_algorithm=False):
+        ModuleSpec.__init__(self, name, superklass, code_ref, docstring,
+                            port_specs, output_port_specs,
+                            cacheable)
+        self.is_algorithm = is_algorithm
+
+    def to_xml(self, elt=None):
+        elt = ModuleSpec.to_xml(self, elt)
+        if self.is_algorithm is True:
+            elt.set("is_algorithm", unicode(self.is_algorithm))
+        return elt
+
+    @classmethod
+    def from_xml(cls, elt):
+        inst = ModuleSpec.from_xml(cls, elt)
+        inst.is_algorithm = ast.literal_eval(elt.get("is_algorithm", "False"))
+        return inst
+
+
 class PortSpec(object):
+    """ Represents specification of a port
+    """
     xml_name = "portSpec"
-    attrs = {"name": "",
-             "method_name": "",
-             "port_type": None,
-             "docstring": ("", True),
-             "required": (False, False, True),
-             "show_port": (False, False, True),
-             "hide": (False, False, True),
-             "other_params": (None, True, True)}
+    # attrs tuple means (default value, [is subelement, [run eval]])
+    # FIXME: subelement/eval not needed if using json
+    attrs = {"name": "",                         # port name
+             "method_name": "",                  # method/attribute name
+             "port_type": None,                  # type class in vistrails
+             "docstring": ("", True),            # documentation
+             "required": (False, False, True),   # Set not optional TODO: set min_conn = 1
+             "show_port": (False, False, True),  # Set not optional (use connection)
+             "hide": (False, False, True),       # hides/disables port (is this needed?)
+             "other_params": (None, True, True)} # prepended params used with indexed methods
 
     def __init__(self, arg, **kwargs):
         self.arg = arg
@@ -237,20 +261,6 @@ class PortSpec(object):
                 else:
                     elt.set(attr, unicode(attr_val))
         return elt
-
-        # if self.name != "":
-        #     elt.set("name", self.name)
-        # if self.port_type is not None:
-        #     elt.set("port_type", self.port_type)
-        # else:
-        #     elt.set("port_type", "__unknown__")
-        # if self.port_type == "__property__":
-        #     elt.set("property_type", self.property_type)
-        # if self.required != False:
-        #     elt.set("required", str(self.required))
-        # if self.
-        # elt.set("hide", str(self.hide))
-        # elt.set("show_port", str(self.show_port))
 
     @classmethod
     def internal_from_xml(cls, elt, obj=None):
@@ -318,28 +328,6 @@ class PortSpec(object):
         raise TypeError('Cannot create spec from element of type "%s"' %
                         elt.tag)
 
-
-    # @staticmethod
-    # def from_xml(elt, obj=None):
-    #     arg = elt.get("arg", "")
-    #     if obj is None:
-    #         obj = PortSpec(arg)
-    #     else:
-    #         obj.arg = arg
-    #     obj.port_type = elt.get("port_type", "")
-    #     if obj.port_type == "__unknown__":
-    #         obj.port_type = None
-
-    #     if obj.port_type is not None and \
-    #             obj.port_type.lower() == "__property__":
-    #         obj.name = elt.get("name", obj.arg + "Properties")
-    #     else:
-    #         obj.name = elt.get("name", obj.arg)
-    #     obj.required = eval(elt.get("required", "False"))
-    #     obj.hide = eval(elt.get("hide", "False"))
-    #     obj.show_port = eval(elt.get("show_port", "False"))
-    #     return obj
-
     def get_port_type(self):
         if self.port_type is None:
             return "basic:Null"
@@ -361,6 +349,9 @@ class PortSpec(object):
         return self.port_type
         
     def get_port_shape(self):
+        """ TODO: Describe this?
+        """
+
         if self.port_type is not None:
             try:
                 port_types = ast.literal_eval(self.port_type)
@@ -384,11 +375,6 @@ class PortSpec(object):
                 pass
         return None
 
-    # def get_port_type(self):
-    #     if self.port_type is None:
-    #         return "basic:String"
-    #     return self.port_type
-
     def get_other_params(self):
         if self.other_params is None:
             return []
@@ -396,15 +382,10 @@ class PortSpec(object):
 
 class InputPortSpec(PortSpec):
     xml_name = "inputPortSpec"
-    attrs = {"entry_types": (None, True, True),
-             "values": (None, True, True),
-             "defaults": (None, True, True),
-             "translations": (None, True, True),
-             "in_kwargs": (True, False, True),
-             "in_args": (False, False, True),
-             "constructor_arg": (False, False, True),
-             "not_setp": (False, False, True),
-             "arg_pos": (-1, False, True),
+    attrs = {"entry_types": (None, True, True),# custom entry type (like enum)
+             "values": (None, True, True),     # values for enums
+             "defaults": (None, True, True),   # default value list
+             "translations": (None, True, True), # value translating method specified in the mako
              }
     attrs.update(PortSpec.attrs)
 
@@ -459,10 +440,9 @@ class InputPortSpec(PortSpec):
 
 
 class AlternatePortSpec(InputPortSpec):
-    # attrs = ["name", "port_type", "docstring", "required", "hide", 
-    #          "entry_types", "values", "defaults", "translations", 
-    #          "property_type"]
+    """ TODO: Describe this
 
+    """
     xml_name = "alternateSpec"
     def __init__(self, *args, **kwargs):
         if len(args) < 1:
@@ -485,11 +465,6 @@ class AlternatePortSpec(InputPortSpec):
                 self.name = base_name + "Scalar"
         self.arg = self._parent.arg
             
-    # def to_xml(self, elt=None):
-    #     if elt is None:
-    #         elt = ET.Element("alternateSpec")
-    #     return PortSpec.to_xml(self, elt)
-
     def get_port_attr_dict(self):
         my_attrs = InputPortSpec.get_port_attr_dict(self)
         par_attrs = self._parent.get_port_attr_dict()
@@ -504,8 +479,6 @@ class AlternatePortSpec(InputPortSpec):
 class OutputPortSpec(PortSpec):
     xml_name = "outputPortSpec"
     attrs = {"compute_name": "",
-             "property_key": None,
-             "plural": (False, False, True),
              "compute_parent": "",
              }
     attrs.update(PortSpec.attrs)
@@ -518,10 +491,6 @@ class OutputPortSpec(PortSpec):
     @classmethod
     def from_xml(cls, elt, obj=None):
         obj, child_elts = cls.internal_from_xml(elt, obj)
-
-        output_type = elt.get("output_type")
-        if output_type is not None:
-            obj.port_type = output_type
         return obj
 
     def get_port_attrs(self):
@@ -531,266 +500,6 @@ class OutputPortSpec(PortSpec):
         if not self.required and not self.show_port:
             attrs["optional"] = True
         return unicode(attrs)
-             
-
-# class OutputPortSpec(object):
-#     attrs = ["name", "compute_name", "output_type", "docstring",
-#              "property_type", "property_key", "plural", "compute_parent"]
-#     def __init__(self, arg, name, compute_name, output_type, docstring="",
-#                  property_type="", property_key=None, plural=False, 
-#                  compute_parent=""):
-#         self.arg = arg
-#         self.name = name
-#         self.compute_name = compute_name
-#         self.output_type = output_type
-#         self.docstring = docstring
-#         self.property_type = property_type
-#         self.property_key = property_key
-#         self.plural = plural
-#         self.compute_parent = compute_parent
-
-#         self._property_name = None
-
-#     def to_xml(self, elt=None):
-#         if elt is None:
-#             elt = ET.Element("outputPortSpec")
-#         elt.set("arg", self.arg)
-#         elt.set("name", self.name)
-#         elt.set("compute_name", self.compute_name)
-#         if self.output_type is not None:
-#             elt.set("output_type", self.output_type)
-#         else:
-#             elt.set("output_type", "__unknown__")
-#         elt.set("property_type", self.property_type)
-#         if self.property_key is None:
-#             elt.set("property_key", "__none__")
-#         else:
-#             elt.set("property_key", str(self.property_key))
-#         elt.set("plural", str(self.plural))
-#         elt.set("compute_parent", self.compute_parent)
-                
-#         subelt = ET.Element("docstring")
-#         subelt.text = str(self.docstring)
-#         elt.append(subelt)
-#         return elt
-
-#     @classmethod
-#     def from_xml(cls, elt):
-#         arg = elt.get("arg", "")
-#         output_type = elt.get("output_type", "")
-#         if output_type == "__unknown__":
-#             output_type = None
-#         plural = eval(elt.get("plural", "False"))
-        
-#         if output_type.lower() == "__property__":
-#             name = elt.get("name", arg + "Properties")
-#             compute_name = elt.get("compute_name", arg + 
-#                                    ("s" if plural else ""))
-#         else:
-#             name = elt.get("name", arg)
-#             compute_name = elt.get("name", arg)
-#         property_type = elt.get("property_type", "")
-#         property_key = elt.get("property_key", None)
-#         if property_key is not None:
-#             if property_key == "__none__":
-#                 property_key = None
-#             else:
-#                 try:
-#                     property_key = int(property_key)
-#                 except ValueError:
-#                     pass
-#         compute_parent = elt.get("compute_parent", "")
-#         docstring = ""
-#         for child in elt.getchildren():
-#             if child.tag == "docstring" and child.text:
-#                 docstring = child.text
-#         return cls(arg, name, compute_name, output_type, docstring,
-#                    property_type, property_key, plural, compute_parent)
-
-#     def is_property_output(self):
-#         return self.output_type.lower() == "__property__"
-
-#     def get_property_type(self):
-#         return "Mpl%sProperties" % \
-#             capfirst(self.property_type.rsplit('.', 1)[1])
-
-#     def get_port_type(self):
-#         if self.output_type is None:
-#             return "basic:String"
-#         return self.output_type
-
-# class InputPortSpec(PortSpec):
-#     def __init__(self, arg="", name="", port_type=None, docstring="", 
-#                  required=False, show_port=False, hide=False, property_type="",
-#                  entry_types=None, values=None, defaults=None,
-#                  translations=None, alternate_specs=None, in_kwargs=True,
-#                  in_args=False, constructor_arg=False):
-#         PortSpec.__init__(self, arg, name, port_type, docstring, required,
-#                           show_port, hide, property_type)
-#         self.entry_types = entry_types
-#         self.values = values
-#         self.defaults = defaults
-#         self.translations = translations
-#         self.in_kwargs = in_kwargs
-#         self.in_args = in_args
-#         self.constructor_arg = constructor_arg
-#         if alternate_specs is None:
-#             self.alternate_specs = []
-#         else:
-#             self.alternate_specs = alternate_specs
-#         for spec in self.alternate_specs:
-#             spec.set_parent(self)
-
-#     def to_xml(self, elt=None):
-#         if elt is None:
-#             elt = ET.Element("inputPortSpec")
-#         PortSpec.to_xml(self, elt)
-#         elt.set("in_kwargs", str(self.in_kwargs))
-#         elt.set("in_args", str(self.in_args))
-#         elt.set("constructor_arg", str(self.constructor_arg))
-#         if self.entry_types is not None:
-#             subelt = ET.Element("entry_types")
-#             subelt.text = str(self.entry_types)
-#             elt.append(subelt)
-#         if self.values is not None:
-#             subelt = ET.Element("values")
-#             subelt.text = str(self.values)
-#             elt.append(subelt)
-#         if self.translations is not None:
-#             subelt = ET.Element("translations")
-#             subelt.text = str(self.translations)
-#             elt.append(subelt)
-#         if self.defaults is not None:
-#             subelt = ET.Element("defaults")
-#             subelt.text = str(self.defaults)
-#             elt.append(subelt)
-#         for spec in self.alternate_specs:
-#             # print "FOUND ALT:", spec.name, spec.alternate_specs, spec
-#             subelt = ET.Element("alternateSpec")
-#             spec.to_xml(subelt)
-#             elt.append(subelt)
-#         # if self.entry_types is not None and self.values is not None and \
-#         #         self.defaults is not None and self.translations is not None:
-#         #     for entry_type, value, default, translation in \
-#         #             izip(self.entry_types, self.values, self.defaults,
-#         #                  self.translations):
-#         #         subelt = ET.Element("entry")
-#         #         subelt.set("type", str(entry_type))
-#         #         valueselt = ET.Element("values")
-#         #         valueselt.text = str(value)
-#         #         subelt.append(valueselt)
-#         #         transelt = ET.Element("translation")
-#         #         transelt.text = str(translation)
-#         #         subelt.append(transelt)
-#         #         defaultelt = ET.Element("default")
-#         #         if isinstance(default, basestring):
-#         #             defaultelt.text = "'%s'" % default
-#         #         else:
-#         #             defaultelt.text = str(default)
-#         #         subelt.append(defaultelt)
-#         #         elt.append(subelt)
-#         docelt = ET.Element("docstring")
-#         docelt.text = self.docstring
-#         elt.append(docelt)
-#         return elt
-
-#     @classmethod
-#     def from_xml(cls, elt):
-#         arg = elt.get("arg", "")
-#         port_type = elt.get("port_type", "")
-#         if port_type == "__unknown__":
-#             port_type = None
-#         required = eval(elt.get("required", "False"))
-#         hide = eval(elt.get("hide", "False"))
-#         in_kwargs = eval(elt.get("in_kwargs", "True"))
-#         property_type = elt.get("property_type", "")
-#         constructor_arg = eval(elt.get("constructor_arg", "False"))
-#         if port_type is not None and port_type.lower() == "__property__":
-#             name = elt.get("name", arg + "Properties")
-#         else:
-#             name = elt.get("name", arg)
-#         entry_types = None
-#         values = None
-#         defaults = None
-#         translations = None
-#         docstring = ""
-#         alternate_specs = []
-#         for child in elt.getchildren():
-#             if child.tag == "entry_types":
-#                 entry_types = eval(child.text)
-#             elif child.tag == "values":
-#                 try:
-#                     values = eval(child.text)
-#                 except SyntaxError:
-#                     values = [[child.text[2:-2]]]
-#             elif child.tag == "translations":
-#                 try:
-#                     translations = eval(child.text)
-#                 except NameError:
-#                     translations = child.text
-#             elif child.tag == "defaults":
-#                 if child.text:
-#                     defaults = eval(child.text)
-#             elif child.tag == "docstring":
-#                 if child.text:
-#                     docstring = child.text
-#             elif child.tag == "alternateSpec":
-#                 alternate_specs.append(AlternatePortSpec.from_xml(child))
-
-#             # if child.tag == "entry":
-#             #     if entry_types is None:
-#             #         entry_types = []
-#             #         values = []
-#             #         defaults = []
-#             #         translations = []
-#             #     entry_types.append(child.get("type", None))
-#             #     for subchild in child.getchildren():
-#             #         if subchild.tag == "values":
-#             #             values.append(eval(subchild.text))
-#             #         elif subchild.tag == "translation":
-#             #             try:
-#             #                 translation = eval(subchild.text)
-#             #             except NameError:
-#             #                 translation = subchild.text
-#             #             translations.append(translation)
-#             #         elif subchild.tag == "default":
-#             #             defaults.append(eval(subchild.text))
-#             # elif child.tag == "docstring":
-#             #     docstring = child.text
-
-#         return cls(arg, name, port_type, docstring, required, hide, 
-#                    entry_types, values, defaults, translations, 
-#                    alternate_specs, in_kwargs, property_type, constructor_arg)
-
-
-#     # def has_scalar_version(self):
-#     #     return self.scalar_type and self.scalar_type != self.port_type
-
-#     # def get_scalar_name(self):
-#     #     return self.name + "Scalar"
-
-#     # def has_sequence_version(self):
-#     #     return self.sequence_type and self.sequence_type != self.port_type
-
-#     # def get_sequence_name(self):
-#     #     return self.name + "Sequence"
-
-#     # def has_other_version(self):
-#     #     return self.has_scalar_version() or self.has_sequence_version()
-
-#     # def get_other_name(self):
-#     #     if self.has_scalar_version():
-#     #         return self.get_scalar_name()
-#     #     elif self.has_sequence_version():
-#     #         return self.get_sequence_name()
-#     #     return None
-
-#     # def get_other_type(self):
-#     #     if self.has_scalar_version():
-#     #         return self.scalar_type
-#     #     elif self.has_sequence_version():
-#     #         return self.sequence_type
-#     #     return None
 
 def run():
     specs = SpecList.read_from_xml("mpl_plots_raw.xml")
