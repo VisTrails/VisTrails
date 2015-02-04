@@ -72,8 +72,9 @@ Who we are: http://www.vistrails.org/index.php/People
 """
 setup(name='vistrails',
       version='2.2',
-      packages=packages,
+      packages=packages + ['vistrailspkg'],
       package_data=package_data,
+      namespace_packages=['vistrailspkg'],
       entry_points={
         'console_scripts': [
           'vistrails = vistrails.run:main']},
