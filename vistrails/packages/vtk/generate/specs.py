@@ -69,8 +69,6 @@ class SpecList(object):
         #     print "==", spec.name, "=="
         #     for ps in spec.port_specs:
         #         print " ", ps.arg, ps.name
-        #         for alt_ps in ps.alternate_specs:
-        #             print "  !!!", ps.arg, ps.name, alt_ps.name
         return retval
 
 class ModuleSpec(object):
@@ -212,7 +210,8 @@ class PortSpec(object):
              "method_name": "",                  # method/attribute name
              "port_type": None,                  # type class in vistrails
              "docstring": ("", True),            # documentation
-             "required": (False, False, True),   # Set not optional TODO: set min_conn = 1
+             "min_conn": (0, False, True),       # set min_conn (1=required)
+             "max_conn": (-1, False, True),      # Set max_conn (default -1)
              "show_port": (False, False, True),  # Set not optional (use connection)
              "hide": (False, False, True),       # hides/disables port (is this needed?)
              "other_params": (None, True, True)} # prepended params used with indexed methods
@@ -323,8 +322,6 @@ class PortSpec(object):
             return InputPortSpec.from_xml(elt)
         elif elt.tag == "outputPortSpec":
             return OutputPortSpec.from_xml(elt)
-        elif elt.tag == "alternateSpec":
-            return AlternatePortSpec.from_xml(elt)
         raise TypeError('Cannot create spec from element of type "%s"' %
                         elt.tag)
 
@@ -349,7 +346,7 @@ class PortSpec(object):
         return self.port_type
         
     def get_port_shape(self):
-        """ TODO: Describe this?
+        """ TODO: Is this needed for vtk?
         """
 
         if self.port_type is not None:
@@ -390,33 +387,7 @@ class InputPortSpec(PortSpec):
     attrs.update(PortSpec.attrs)
 
     def __init__(self, arg, **kwargs):
-        if "alternate_specs" in kwargs and kwargs["alternate_specs"]:
-            self.alternate_specs = kwargs.pop("alternate_specs")
-        else:
-            self.alternate_specs = []
         PortSpec.__init__(self, arg, **kwargs)
-        for spec in self.alternate_specs:
-            spec.set_parent(self)
-
-    def to_xml(self, elt=None):
-        elt = PortSpec.to_xml(self, elt)
-        for spec in self.alternate_specs:
-            # write the spec
-            subelt = spec.to_xml()
-            elt.append(subelt)
-        return elt
-
-    @classmethod
-    def from_xml(cls, elt, obj=None):
-        obj, child_elts = cls.internal_from_xml(elt, obj)
-
-        if "alternateSpec" in child_elts:
-            for child_elt in child_elts["alternateSpec"]:
-                spec = AlternatePortSpec.from_xml(child_elt)
-                spec.set_parent(obj)
-                obj.alternate_specs.append(spec)
-                
-        return obj
 
     def get_port_attr_dict(self):
         attrs = {}
@@ -428,53 +399,16 @@ class InputPortSpec(PortSpec):
             attrs["defaults"] = unicode(self.defaults)
         if self.docstring:
             attrs["docstring"] = self.docstring
-        if not self.required and not self.show_port:
+        if self.min_conn:
+            attrs["min_conn"] = self.min_conn
+        if self.max_conn:
+            attrs["max_conn"] = self.max_conn
+        if not self.show_port:
             attrs["optional"] = True
         return attrs
 
     def get_port_attrs(self):
         return unicode(self.get_port_attr_dict())
-
-    def has_alternate_versions(self):
-        return len(self.alternate_specs) > 0
-
-
-class AlternatePortSpec(InputPortSpec):
-    """ TODO: Describe this
-
-    """
-    xml_name = "alternateSpec"
-    def __init__(self, *args, **kwargs):
-        if len(args) < 1:
-            args = [""]
-        InputPortSpec.__init__(self, *args, **kwargs)
-        self._parent = None
-
-    def set_parent(self, parent):
-        self._parent = parent
-        if not self.name:
-            if self._parent.name.endswith("Sequence"):
-                base_name = self._parent.name[:-8]
-            elif self._parent.name.endswith("Scalar"):
-                base_name = self._parent.name[:-6]
-            else:
-                base_name = self._parent.name
-            if self.port_type == "basic:List":
-                self.name = base_name + "Sequence"
-            else:
-                self.name = base_name + "Scalar"
-        self.arg = self._parent.arg
-            
-    def get_port_attr_dict(self):
-        my_attrs = InputPortSpec.get_port_attr_dict(self)
-        par_attrs = self._parent.get_port_attr_dict()
-        for k, v in par_attrs.iteritems():
-            if k == 'defaults' or k == "values" or k == "entry_types" or \
-                    k == "translations":
-                continue
-            if k not in my_attrs or my_attrs[k] is None:
-                my_attrs[k] = v
-        return my_attrs
 
 class OutputPortSpec(PortSpec):
     xml_name = "outputPortSpec"
@@ -497,13 +431,17 @@ class OutputPortSpec(PortSpec):
         attrs = {}
         if self.docstring:
             attrs["docstring"] = self.docstring
-        if not self.required and not self.show_port:
+        if self.min_conn:
+            attrs["min_conn"] = self.min_conn
+        if self.max_conn:
+            attrs["max_conn"] = self.max_conn
+        if not self.show_port:
             attrs["optional"] = True
         return unicode(attrs)
 
-def run():
-    specs = SpecList.read_from_xml("mpl_plots_raw.xml")
-    specs.write_to_xml("mpl_plots_raw_out.xml")
+#def run():
+#    specs = SpecList.read_from_xml("mpl_plots_raw.xml")
+#    specs.write_to_xml("mpl_plots_raw_out.xml")
 
-if __name__ == '__main__':
-    run()
+#if __name__ == '__main__':
+#    run()
