@@ -767,6 +767,8 @@ class TestTransferFunction(unittest.TestCase):
         assert tf == tf2
         assert tf1 == tf2
 
+TransferFunctionConstant.__name__ = "TransferFunction"
+
 _modules = [TransferFunctionConstant, vtkScaledTransferFunction]
 
 if __name__ == "__main__":
