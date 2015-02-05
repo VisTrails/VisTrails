@@ -79,14 +79,15 @@ class ModuleSpec(object):
     """
 
     attrs = ["name", "superklass", "docstring", "cacheable"]
-    def __init__(self, name, superklass, docstring="", port_specs=None,
-                 output_port_specs=None, cacheable=True):
+    def __init__(self, name, superklass, code_ref=None, docstring="",
+                 port_specs=None, output_port_specs=None, cacheable=True):
         if port_specs is None:
             port_specs = []
         if output_port_specs is None:
             output_port_specs = []
         self.name = name
         self.superklass = superklass # parent module to subclass from
+        self.code_ref = code_ref # reference to wrapped method/class
         self.docstring = docstring
         self.port_specs = port_specs
         self.output_port_specs = output_port_specs
@@ -99,6 +100,7 @@ class ModuleSpec(object):
             elt = ET.Element("moduleSpec")
         elt.set("name", self.name)
         elt.set("superclass", self.superklass)
+        elt.set("code_ref", self.code_ref)
         if self.cacheable is False:
             elt.set("cacheable", unicode(self.cacheable))
         subelt = ET.Element("docstring")
@@ -116,6 +118,7 @@ class ModuleSpec(object):
     def from_xml(cls, elt):
         name = elt.get("name", "")
         superklass = elt.get("superclass", "")
+        code_ref = elt.get("code_ref", "")
         cacheable = ast.literal_eval(elt.get("cacheable", "True"))
         docstring = ""
         port_specs = []
@@ -128,7 +131,7 @@ class ModuleSpec(object):
             elif child.tag == "docstring":
                 if child.text:
                     docstring = child.text
-        return cls(name, superklass, docstring, port_specs,
+        return cls(name, superklass, code_ref, docstring, port_specs,
                    output_port_specs, cacheable)
 
     def get_output_port_spec(self, compute_name):
@@ -179,7 +182,7 @@ class VTKModuleSpec(ModuleSpec):
     """
 
     attrs = ["superklass"]
-    attrs.update(ModuleSpec.attrs)
+    attrs.extend(ModuleSpec.attrs)
 
     def __init__(self, name, superklass, code_ref, docstring="", port_specs=None,
                  output_port_specs=None, cacheable=True,
@@ -197,7 +200,7 @@ class VTKModuleSpec(ModuleSpec):
 
     @classmethod
     def from_xml(cls, elt):
-        inst = ModuleSpec.from_xml(cls, elt)
+        inst = ModuleSpec.from_xml(elt)
         inst.is_algorithm = ast.literal_eval(elt.get("is_algorithm", "False"))
         return inst
 
