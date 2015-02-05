@@ -4,7 +4,8 @@ import re
 import vtk
 
 from class_tree import ClassTree
-from specs import ModuleSpec, SpecList, InputPortSpec, OutputPortSpec
+from specs import VTKModuleSpec as ModuleSpec, SpecList, \
+                  InputPortSpec, OutputPortSpec
 from vtk_parser import VTKMethodParser
 
 parser = VTKMethodParser()
