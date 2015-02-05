@@ -41,10 +41,6 @@ class ${spec.name}(${spec.superklass}):
         % if not ps.hide:
               ("${ps.name}", "${ps.get_port_type()}",
                ${ps.get_port_attrs()}),
-        % for alt_ps in ps.alternate_specs:
-              ("${alt_ps.name}", "${alt_ps.get_port_type()}",
-               ${alt_ps.get_port_attrs()}),
-        % endfor
         % endif
         % endfor
          ]
