@@ -55,13 +55,15 @@ class SpecList(object):
         tree.write(fname)
 
     @staticmethod
-    def read_from_xml(fname):
+    def read_from_xml(fname, klass=None):
+        if klass is None:
+            klass = ModuleSpec
         module_specs = []
         custom_code = ""
         tree = ET.parse(fname)
         for elt in tree.getroot():
             if elt.tag == "moduleSpec":
-                module_specs.append(ModuleSpec.from_xml(elt))
+                module_specs.append(klass.from_xml(elt))
             elif elt.tag == "customCode":
                 custom_code = elt.text
         retval = SpecList(module_specs, custom_code)
@@ -389,7 +391,10 @@ class InputPortSpec(PortSpec):
     def __init__(self, arg, **kwargs):
         PortSpec.__init__(self, arg, **kwargs)
 
-    def get_port_attr_dict(self):
+    def get_port_attrs(self):
+        """ Port attribute dict that will be used to create the port
+
+        """
         attrs = {}
         if self.values:
             attrs["values"] = unicode(self.values)
