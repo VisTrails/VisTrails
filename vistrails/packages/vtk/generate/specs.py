@@ -212,8 +212,8 @@ class PortSpec(object):
              "method_name": "",                  # method/attribute name
              "port_type": None,                  # type class in vistrails
              "docstring": ("", True),            # documentation
-             "min_conn": (0, False, True),       # set min_conn (1=required)
-             "max_conn": (-1, False, True),      # Set max_conn (default -1)
+             "min_conns": (0, False, True),       # set min_conns (1=required)
+             "max_conns": (-1, False, True),      # Set max_conns (default -1)
              "show_port": (False, False, True),  # Set not optional (use connection)
              "hide": (False, False, True),       # hides/disables port (is this needed?)
              "other_params": (None, True, True)} # prepended params used with indexed methods
@@ -404,16 +404,13 @@ class InputPortSpec(PortSpec):
             attrs["defaults"] = unicode(self.defaults)
         if self.docstring:
             attrs["docstring"] = self.docstring
-        if self.min_conn:
-            attrs["min_conn"] = self.min_conn
-        if self.max_conn:
-            attrs["max_conn"] = self.max_conn
+        if self.min_conns:
+            attrs["min_conns"] = self.min_conns
+        if self.max_conns:
+            attrs["max_conns"] = self.max_conns
         if not self.show_port:
             attrs["optional"] = True
-        return attrs
-
-    def get_port_attrs(self):
-        return unicode(self.get_port_attr_dict())
+        return unicode(attrs)
 
 class OutputPortSpec(PortSpec):
     xml_name = "outputPortSpec"
@@ -433,13 +430,16 @@ class OutputPortSpec(PortSpec):
         return obj
 
     def get_port_attrs(self):
+        """ Port attribute dict that will be used to create the port
+
+        """
         attrs = {}
         if self.docstring:
             attrs["docstring"] = self.docstring
-        if self.min_conn:
-            attrs["min_conn"] = self.min_conn
-        if self.max_conn:
-            attrs["max_conn"] = self.max_conn
+        if self.min_conns:
+            attrs["min_conns"] = self.min_conns
+        if self.max_conns:
+            attrs["max_conns"] = self.max_conns
         if not self.show_port:
             attrs["optional"] = True
         return unicode(attrs)
