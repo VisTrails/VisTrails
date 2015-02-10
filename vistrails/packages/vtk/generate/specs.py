@@ -78,36 +78,70 @@ class ModuleSpec(object):
         This mirrors how the module will look in the vistrails registry
     """
 
-    attrs = ["name", "superklass", "docstring", "cacheable"]
-    def __init__(self, name, superklass, code_ref=None, docstring="",
-                 port_specs=None, output_port_specs=None, cacheable=True):
-        if port_specs is None:
-            port_specs = []
+    # From Modulesettings. See core.modules.config._documentation
+    ms_attrs = ['name',
+                'configure_widget',
+                'constant_widget',
+                'constant_widgets',
+                'signature',
+                'constant_signature',
+                'color',
+                'fringe',
+                'left_fringe',
+                'right_fringe',
+                'abstract',
+                'namespace',
+                'package_version',
+                'hide_descriptor']
+    attrs = ['module_name', # Name of module (can be overridden by modulesettings)
+             'superklass', # class to inherit from
+             'code_ref',   # reference to wrapped class/method
+             'docstring',  # module __doc__
+             'cacheable']  # should this module be cached
+    attrs.extend(ms_attrs)
+
+    def __init__(self, module_name, superklass=None, code_ref=None, docstring="",
+                 cacheable=True, input_port_specs=None, output_port_specs=None,
+                 **kwargs):
+        if input_port_specs is None:
+            input_port_specs = []
         if output_port_specs is None:
             output_port_specs = []
-        self.name = name
-        self.superklass = superklass # parent module to subclass from
-        self.code_ref = code_ref # reference to wrapped method/class
+
+        self.module_name = module_name
+        self.superklass = superklass
+        self.code_ref = code_ref
         self.docstring = docstring
-        self.port_specs = port_specs
-        self.output_port_specs = output_port_specs
         self.cacheable = cacheable
+
+        self.input_port_specs = input_port_specs
+        self.output_port_specs = output_port_specs
+
+        for attr in self.ms_attrs:
+            setattr(self, attr, kwargs.get(attr, None))
+
         self._mixin_class = None
         self._mixin_functions = None
 
     def to_xml(self, elt=None):
         if elt is None:
             elt = ET.Element("moduleSpec")
-        elt.set("name", self.name)
+        elt.set("module_name", self.module_name)
         elt.set("superclass", self.superklass)
         elt.set("code_ref", self.code_ref)
-        if self.cacheable is False:
-            elt.set("cacheable", unicode(self.cacheable))
         subelt = ET.Element("docstring")
         subelt.text = unicode(self.docstring)
         elt.append(subelt)
-        for port_spec in self.port_specs:
-            subelt = port_spec.to_xml()
+        if self.cacheable is False:
+            elt.set("cacheable", unicode(self.cacheable))
+
+        for attr in self.ms_attrs:
+            value = getattr(self, attr)
+            if value is not None:
+                elt.set(attr, repr(value))
+
+        for input_port_spec in self.input_port_specs:
+            subelt = input_port_spec.to_xml()
             elt.append(subelt)
         for port_spec in self.output_port_specs:
             subelt = port_spec.to_xml()
@@ -116,23 +150,30 @@ class ModuleSpec(object):
 
     @classmethod
     def from_xml(cls, elt):
-        name = elt.get("name", "")
+        module_name = elt.get("module_name", "")
         superklass = elt.get("superclass", "")
         code_ref = elt.get("code_ref", "")
         cacheable = ast.literal_eval(elt.get("cacheable", "True"))
+
+        kwargs = {}
+        for attr in cls.ms_attrs:
+            value = elt.get(attr, None)
+            if value is not None:
+                kwargs[attr] = ast.literal_eval(value)
+
         docstring = ""
-        port_specs = []
+        input_port_specs = []
         output_port_specs = []
         for child in elt.getchildren():
             if child.tag == "inputPortSpec":
-                port_specs.append(InputPortSpec.from_xml(child))
+                input_port_specs.append(InputPortSpec.from_xml(child))
             elif child.tag == "outputPortSpec":
                 output_port_specs.append(OutputPortSpec.from_xml(child))
             elif child.tag == "docstring":
                 if child.text:
                     docstring = child.text
-        return cls(name, superklass, code_ref, docstring, port_specs,
-                   output_port_specs, cacheable)
+        return cls(module_name, superklass, code_ref, docstring, cacheable,
+                   input_port_specs, output_port_specs, **kwargs)
 
     def get_output_port_spec(self, compute_name):
         for ps in self.output_port_specs:
@@ -141,7 +182,7 @@ class ModuleSpec(object):
         return None
 
     def get_mixin_name(self):
-        return self.name + "Mixin"
+        return self.module_name + "Mixin"
 
     def has_mixin(self):
         if self._mixin_class is None:
@@ -175,21 +216,29 @@ class ModuleSpec(object):
     def get_init(self):
         return self.get_mixin_function("__init__")
 
+    def get_module_settings(self):
+        """ Returns modulesettings dict
+
+        """
+        attrs = {}
+        for attr in self.ms_attrs:
+            value = getattr(self, attr)
+            if value is not None:
+                attrs[attr] = value
+        return attrs
+
 class VTKModuleSpec(ModuleSpec):
     """ Represents specification of a vtk module
 
         Adds attribute is_algorithm
     """
 
-    attrs = ["superklass"]
-    attrs.extend(ModuleSpec.attrs)
-
-    def __init__(self, name, superklass, code_ref, docstring="", port_specs=None,
-                 output_port_specs=None, cacheable=True,
-                 is_algorithm=False):
-        ModuleSpec.__init__(self, name, superklass, code_ref, docstring,
-                            port_specs, output_port_specs,
-                            cacheable)
+    def __init__(self, module_name, superklass=None, code_ref=None, docstring="",
+                 cacheable=True, input_port_specs=None, output_port_specs=None,
+                 is_algorithm=False, **kwargs):
+        ModuleSpec.__init__(self, module_name, superklass, code_ref, docstring,
+                            cacheable, input_port_specs, output_port_specs,
+                            **kwargs)
         self.is_algorithm = is_algorithm
 
     def to_xml(self, elt=None):
@@ -210,15 +259,20 @@ class PortSpec(object):
     """
     xml_name = "portSpec"
     # attrs tuple means (default value, [is subelement, [run eval]])
+    # Subelement: ?
+    # eval: serialize as string and use eval to get value back
     # FIXME: subelement/eval not needed if using json
     attrs = {"name": "",                         # port name
              "method_name": "",                  # method/attribute name
-             "port_type": None,                  # type class in vistrails
+             "port_type": None,                  # type signature in vistrails
              "docstring": ("", True),            # documentation
-             "min_conns": (0, False, True),       # set min_conns (1=required)
-             "max_conns": (-1, False, True),      # Set max_conns (default -1)
+             "min_conns": (0, False, True),      # set min_conns (1=required)
+             "max_conns": (-1, False, True),     # Set max_conns (default -1)
              "show_port": (False, False, True),  # Set not optional (use connection)
              "hide": (False, False, True),       # hides/disables port (is this needed?)
+             "sort_key": (-1, False, True),      # sort_key
+             "shape": (None, False, True),       # physical shape
+             "depth": (0, False, True),          # expected list depth
              "other_params": (None, True, True)} # prepended params used with indexed methods
 
     def __init__(self, arg, **kwargs):
@@ -386,8 +440,9 @@ class InputPortSpec(PortSpec):
     xml_name = "inputPortSpec"
     attrs = {"entry_types": (None, True, True),# custom entry type (like enum)
              "values": (None, True, True),     # values for enums
+             "labels": (None, True, True),   # custom labels on enum values
              "defaults": (None, True, True),   # default value list
-             "translations": (None, True, True), # value translating method specified in the mako
+             "translations": (None, True, True), # value translating method
              }
     attrs.update(PortSpec.attrs)
 
@@ -399,8 +454,20 @@ class InputPortSpec(PortSpec):
 
         """
         attrs = {}
+        if self.name:
+            attrs["name"] = self.name
+        if self.port_type:
+            attrs["signature"] = self.port_type
+        if self.sort_key != -1:
+            attrs["sort_key"] = self.sort_key
+        if self.shape:
+            attrs["shape"] = self.shape
+        if self.depth:
+            attrs["depth"] = self.depth
         if self.values:
             attrs["values"] = unicode(self.values)
+        if self.labels:
+            attrs["labels"] = unicode(self.labels)
         if self.entry_types:
             attrs["entry_types"] = unicode(self.entry_types)
         if self.defaults:
@@ -409,11 +476,11 @@ class InputPortSpec(PortSpec):
             attrs["docstring"] = self.docstring
         if self.min_conns:
             attrs["min_conns"] = self.min_conns
-        if self.max_conns:
+        if self.max_conns != -1:
             attrs["max_conns"] = self.max_conns
         if not self.show_port:
             attrs["optional"] = True
-        return unicode(attrs)
+        return attrs
 
 class OutputPortSpec(PortSpec):
     xml_name = "outputPortSpec"
@@ -437,15 +504,24 @@ class OutputPortSpec(PortSpec):
 
         """
         attrs = {}
+        attrs["name"] = self.name
+        if self.port_type:
+            attrs["signature"] = self.port_type
+        if self.sort_key != -1:
+            attrs["sort_key"] = self.sort_key
+        if self.shape:
+            attrs["shape"] = self.shape
+        if self.depth:
+            attrs["depth"] = self.depth
         if self.docstring:
             attrs["docstring"] = self.docstring
         if self.min_conns:
             attrs["min_conns"] = self.min_conns
-        if self.max_conns:
+        if self.max_conns != -1:
             attrs["max_conns"] = self.max_conns
         if not self.show_port:
             attrs["optional"] = True
-        return unicode(attrs)
+        return attrs
 
 #def run():
 #    specs = SpecList.read_from_xml("mpl_plots_raw.xml")

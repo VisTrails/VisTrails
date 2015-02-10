@@ -4,6 +4,7 @@ import vtk
 
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 
 from bases import vtkObjectBase
 <%def name="get_translate(t_spec, t_ps)">\
@@ -23,9 +24,9 @@ def translate_file(f):
     return f.name
 
 % for spec in specs.module_specs:
-% for ps in spec.port_specs:
+% for ps in spec.input_port_specs:
 % if ps.translations and type(ps.translations) == dict:
-def translate_${spec.name}_${ps.name}(val):
+def translate_${spec.module_name}_${ps.name}(val):
     translate_dict = ${ps.translations}
     return translate_dict[val]
 % endif
@@ -33,28 +34,31 @@ def translate_${spec.name}_${ps.name}(val):
 % endfor
 
 % for spec in specs.module_specs:
-class ${spec.name}(${spec.superklass}):
+class ${spec.module_name}(${spec.superklass}):
     """${spec.docstring}
     """
+
+    % if len(spec.get_module_settings()):
+    _module_settings = ModuleSettings(**${unicode(spec.get_module_settings())})
+    %endif
+
     _input_ports = [
-        % for ps in spec.port_specs:
+        % for ps in spec.input_port_specs:
         % if not ps.hide:
-              ("${ps.name}", "${ps.get_port_type()}",
-               ${ps.get_port_attrs()}),
+        CIPort(**${unicode(ps.get_port_attrs())}),
         % endif
         % endfor
          ]
 
     _output_ports = [
-        ("self", "(${spec.name})"),
+        ("self", "(${spec.module_name})"),
         % for ps in spec.output_port_specs:
-              ("${ps.name}", "${ps.get_port_type()}",
-                ${ps.get_port_attrs()}),
+        COPort(**${unicode(ps.get_port_attrs())}),
         % endfor
         ]
     
     set_method_table = {
-        % for ps in spec.port_specs:
+        % for ps in spec.input_port_specs:
         "${ps.name}": ("${ps.method_name}", ${ps.get_port_shape()}, ${ps.get_other_params()}, ${get_translate(spec, ps)}),
         % endfor
         }
@@ -71,14 +75,14 @@ class ${spec.name}(${spec.superklass}):
 
     @staticmethod
     def get_set_method_info(port_name):
-        if port_name in ${spec.name}.set_method_table:
-            return ${spec.name}.set_method_table[port_name]
+        if port_name in ${spec.module_name}.set_method_table:
+            return ${spec.module_name}.set_method_table[port_name]
         return ${spec.superklass}.get_set_method_info(port_name)
 
     @staticmethod
     def get_get_method_info(port_name):
-        if port_name in ${spec.name}.get_method_table:
-            return ${spec.name}.get_method_table[port_name]
+        if port_name in ${spec.module_name}.get_method_table:
+            return ${spec.module_name}.get_method_table[port_name]
         return ${spec.superklass}.get_get_method_info(port_name)
 
     def compute(self):
@@ -143,6 +147,6 @@ class ${spec.name}(${spec.superklass}):
 
 _modules = [
 % for spec in specs.module_specs:
-            ${spec.name},
+            ${spec.module_name},
 % endfor
 ]

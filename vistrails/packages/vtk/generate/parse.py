@@ -127,9 +127,8 @@ def create_module(base_cls_name, node):
     is_algorithm = issubclass(node.klass, vtk.vtkAlgorithm)
     module_spec = ModuleSpec(node.name, base_cls_name, "vtk.%s" % node.name,
                              node.klass.__doc__.decode('latin-1'),
-                             input_ports, output_ports, 
-                             cacheable=cacheable,
-                             is_algorithm=is_algorithm)
+                             cacheable, input_ports, output_ports,
+                             is_algorithm)
 
     # FIXME deal with fix_classes, signatureCallable
 
