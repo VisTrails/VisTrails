@@ -2,7 +2,7 @@
 import ast
 import inspect
 import mixins
-from xml.etree import ElementTree as ET
+from xml.etree import cElementTree as ET
 
 def capfirst(s):
     return s[0].upper() + s[1:]
@@ -454,10 +454,6 @@ class InputPortSpec(PortSpec):
 
         """
         attrs = {}
-        if self.name:
-            attrs["name"] = self.name
-        if self.port_type:
-            attrs["signature"] = self.port_type
         if self.sort_key != -1:
             attrs["sort_key"] = self.sort_key
         if self.shape:
@@ -504,9 +500,6 @@ class OutputPortSpec(PortSpec):
 
         """
         attrs = {}
-        attrs["name"] = self.name
-        if self.port_type:
-            attrs["signature"] = self.port_type
         if self.sort_key != -1:
             attrs["sort_key"] = self.sort_key
         if self.shape:

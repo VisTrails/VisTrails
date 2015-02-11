@@ -5,13 +5,26 @@ from vistrails.core.interpreter.base import AbortExecution
 from vistrails.core import debug
 
 class vtkObjectBase(Module):
-    @staticmethod
-    def get_set_method_info(port_name):
-        return None
+    #@staticmethod
+    #def get_set_method_info(port_name):
+    #    return None
 
-    @staticmethod
-    def get_get_method_info(port_name):
-        return None
+    #@staticmethod
+    #def get_get_method_info(port_name):
+    #    return None
+
+    @classmethod
+    def get_set_method_info(cls, port_name):
+        if port_name in cls.set_method_table:
+            return cls.set_method_table[port_name]
+        return cls.__bases__[0].get_set_method_info(port_name)
+
+    @classmethod
+    def get_get_method_info(cls, port_name):
+        if port_name in cls.get_method_table:
+            return cls.get_method_table[port_name]
+        return cls.__bases__[0].get_get_method_info(port_name)
+
 
     def call_set_method(self, vtk_obj, port_name, params):
         print "CALLING SET", port_name, params

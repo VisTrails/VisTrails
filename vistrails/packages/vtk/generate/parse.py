@@ -114,7 +114,6 @@ def create_module(base_cls_name, node):
             return True
         return False
 
-    code_ref = node.klass.__module__ + '.' + node.klass.__name__
     try:
         node.klass.__doc__.decode('latin-1')
     except UnicodeDecodeError:
@@ -124,8 +123,8 @@ def create_module(base_cls_name, node):
     input_ports, output_ports = get_ports(node.klass)
     cacheable = (issubclass(node.klass, vtk.vtkAlgorithm) and
                  (not issubclass(node.klass, vtk.vtkAbstractMapper)))
-    is_algorithm = issubclass(node.klass, vtk.vtkAlgorithm)
-    module_spec = ModuleSpec(node.name, base_cls_name, "vtk.%s" % node.name,
+    is_algorithm = issubclass(node.klass, vtk.vtkAlqgorithm)
+    module_spec = ModuleSpec(node.name, base_cls_name, node.name,
                              node.klass.__doc__.decode('latin-1'),
                              cacheable, input_ports, output_ports,
                              is_algorithm)
