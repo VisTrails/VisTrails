@@ -98,7 +98,7 @@ class ModuleSpec(object):
              'code_ref',    # reference to wrapped class/method
              'docstring',   # module __doc__
              'output_type', # None(=single), list(ordered), or dict(attr=value)
-             'progress',    # name of attribute for progress callback
+             'callback',    # name of attribute for progress callback
              'cacheable']   # should this module be cached
     attrs.extend(ms_attrs)
 

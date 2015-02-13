@@ -71,13 +71,18 @@ def gen_module(spec, lib):
         inputs = dict([(s.name, self.force_get_input(s.name))
                        for s in self.input_specs.itervalues() if self.force_get_input(s.name) is not None])
 
+        # Optional callback used for progress reporting
+        if spec.callback:
+            def callback(c):
+                self.logging.update_progress(self, c)
+            inputs[spec.callback] = callback
+
         function = getattr(lib, spec.code_ref)
         try:
             result = function(**inputs)
         except Exception, e:
             raise ModuleError(self, e.message)
 
-        print "FINAL OUT ORDER", self.output_specs_order
         if spec.output_type is None:
             for name in self.output_specs_order:
                 self.set_output(name, result)
