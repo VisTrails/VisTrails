@@ -94,14 +94,17 @@ class ModuleSpec(object):
                 'package_version',
                 'hide_descriptor']
     attrs = ['module_name', # Name of module (can be overridden by modulesettings)
-             'superklass', # class to inherit from
-             'code_ref',   # reference to wrapped class/method
-             'docstring',  # module __doc__
-             'cacheable']  # should this module be cached
+             'superklass',  # class to inherit from
+             'code_ref',    # reference to wrapped class/method
+             'docstring',   # module __doc__
+             'output_type', # None(=single), list(ordered), or dict(attr=value)
+             'progress',    # name of attribute for progress callback
+             'cacheable']   # should this module be cached
     attrs.extend(ms_attrs)
 
     def __init__(self, module_name, superklass=None, code_ref=None, docstring="",
-                 cacheable=True, input_port_specs=None, output_port_specs=None,
+                 output_type=None, callback=None, cacheable=True,
+                 input_port_specs=None, output_port_specs=None,
                  **kwargs):
         if input_port_specs is None:
             input_port_specs = []
@@ -112,6 +115,8 @@ class ModuleSpec(object):
         self.superklass = superklass
         self.code_ref = code_ref
         self.docstring = docstring
+        self.output_type = output_type
+        self.callback = callback
         self.cacheable = cacheable
 
         self.input_port_specs = input_port_specs
@@ -132,6 +137,9 @@ class ModuleSpec(object):
         subelt = ET.Element("docstring")
         subelt.text = unicode(self.docstring)
         elt.append(subelt)
+        if self.output_type is not None:
+            elt.set("output_type", self.output_type)
+        elt.set("callback", self.callback)
         if self.cacheable is False:
             elt.set("cacheable", unicode(self.cacheable))
 
@@ -140,8 +148,8 @@ class ModuleSpec(object):
             if value is not None:
                 elt.set(attr, repr(value))
 
-        for input_port_spec in self.input_port_specs:
-            subelt = input_port_spec.to_xml()
+        for port_spec in self.input_port_specs:
+            subelt = port_spec.to_xml()
             elt.append(subelt)
         for port_spec in self.output_port_specs:
             subelt = port_spec.to_xml()
@@ -153,6 +161,8 @@ class ModuleSpec(object):
         module_name = elt.get("module_name", "")
         superklass = elt.get("superclass", "")
         code_ref = elt.get("code_ref", "")
+        output_type = elt.get("output_type", None)
+        callback = elt.get("callback", "")
         cacheable = ast.literal_eval(elt.get("cacheable", "True"))
 
         kwargs = {}
@@ -172,8 +182,9 @@ class ModuleSpec(object):
             elif child.tag == "docstring":
                 if child.text:
                     docstring = child.text
-        return cls(module_name, superklass, code_ref, docstring, cacheable,
-                   input_port_specs, output_port_specs, **kwargs)
+        return cls(module_name, superklass, code_ref, docstring, output_type,
+                   callback, cacheable, input_port_specs, output_port_specs,
+                   **kwargs)
 
     def get_output_port_spec(self, compute_name):
         for ps in self.output_port_specs:
@@ -233,12 +244,13 @@ class VTKModuleSpec(ModuleSpec):
         Adds attribute is_algorithm
     """
 
-    def __init__(self, module_name, superklass=None, code_ref=None, docstring="",
-                 cacheable=True, input_port_specs=None, output_port_specs=None,
-                 is_algorithm=False, **kwargs):
-        ModuleSpec.__init__(self, module_name, superklass, code_ref, docstring,
-                            cacheable, input_port_specs, output_port_specs,
-                            **kwargs)
+    def __init__(self, module_name, superklass=None, code_ref=None,
+                 docstring="", output_type=None, callback=None,
+                 cacheable=True, input_port_specs=None,
+                 output_port_specs=None, is_algorithm=False, **kwargs):
+        ModuleSpec.__init__(self, module_name, superklass, code_ref,
+                            docstring, output_type, callback, cacheable,
+                            input_port_specs, output_port_specs, **kwargs)
         self.is_algorithm = is_algorithm
 
     def to_xml(self, elt=None):

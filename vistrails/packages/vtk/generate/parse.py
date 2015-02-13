@@ -37,7 +37,7 @@ disallowed_classes = set(
         'vtkTesting',
         'vtkWindow',
         'vtkContext2D',       #Not working for VTK 5.7.0
-        'vtkPLYWriter',       #Not working for VTK 5.7.0. 
+        'vtkPLYWriter',       #Not working for VTK 5.7.0.
         'vtkBooleanTexture',  #Not working for VTK 5.7.0
         'vtkImageMaskBits',   #Not working for VTK 5.7.0
         'vtkHardwareSelector',#Not working for VTK 5.7.0
@@ -101,11 +101,11 @@ def create_module(base_cls_name, node):
         return lst
 
     obsolete_list = obsolete_class_list()
-    
+
     def is_abstract():
         """is_abstract tries to instantiate the class. If it's
         abstract, this will raise."""
-        # Consider obsolete classes abstract        
+        # Consider obsolete classes abstract
         if node.klass in obsolete_list:
             return True
         try:
@@ -121,13 +121,26 @@ def create_module(base_cls_name, node):
         raise
 
     input_ports, output_ports = get_ports(node.klass)
+    output_ports = list(output_ports) # drop generator
+
+    # Re-add 'self' port to base classes so that it is recognized as a function output
+    if base_cls_name == 'vtkObjectBase':
+        self_port = OutputPortSpec('self',
+                                    name='self',
+                                    method_name="self",
+                                    port_type="basic:Module",
+                                    docstring='The wrapped VTK class instance',
+                                    show_port=False)
+        output_ports.insert(0, self_port)
+
+    output_type = 'list' if len(output_ports)>0 else None
     cacheable = (issubclass(node.klass, vtk.vtkAlgorithm) and
                  (not issubclass(node.klass, vtk.vtkAbstractMapper)))
-    is_algorithm = issubclass(node.klass, vtk.vtkAlqgorithm)
+    is_algorithm = issubclass(node.klass, vtk.vtkAlgorithm)
     module_spec = ModuleSpec(node.name, base_cls_name, node.name,
                              node.klass.__doc__.decode('latin-1'),
-                             cacheable, input_ports, output_ports,
-                             is_algorithm)
+                             output_type, 'callback', cacheable,
+                             input_ports, output_ports, is_algorithm)
 
     # FIXME deal with fix_classes, signatureCallable
 
@@ -137,7 +150,7 @@ def create_module(base_cls_name, node):
     # else:
     #     module.vtkClass = node.klass
     # registry = get_module_registry()
-    # registry.add_module(module, abstract=is_abstract(), 
+    # registry.add_module(module, abstract=is_abstract(),
     #                     signatureCallable=vtk_hasher)
 
     module_specs = [module_spec]
@@ -194,7 +207,7 @@ def prune_signatures(cls, name, signatures, output=False):
                 lastList = True
                 for e in entry:
                     if (isinstance(e, list)):
-                        if lastList == False: result[len(result)] = result[len(result)] + ']'  
+                        if lastList == False: result[len(result)] = result[len(result)] + ']'
                         aux = e
                         aux.reverse()
                         aux[0] = '[' + aux[0]
@@ -252,16 +265,16 @@ def prune_signatures(cls, name, signatures, output=False):
         if hit_count > 1 and len(original[1]) == len(flattened):
             return True
         return False
-    
+
     signatures[:] = [original for (flattened, hit_count, original)
                      in izip(flattened_entries,
                              hits,
                              signatures)
                      if passes(flattened, hit_count, original)]
-    
+
     #then we remove the duplicates, if necessary
     unique_signatures = []
-    
+
     #Remove the arrays and tuples inside the signature
     #  in order to transform it in a single array
     #Also remove the '[]' from the Strings
@@ -290,7 +303,7 @@ def prune_signatures(cls, name, signatures, output=False):
     unique2 = []
     for s in signatures:
         aux = removeBracts(s)
-        if not unique2.count(aux): 
+        if not unique2.count(aux):
             unique_signatures.append(s)
             unique2.append(aux)
     signatures[:] = unique_signatures
@@ -323,13 +336,13 @@ type_map_dict = {'int': "basic:Integer",
                  'bool': "basic:Boolean",
                  'unicode': 'basic:String'}
 
-type_map_values = set(type_map_dict.itervalues()) 
+type_map_values = set(type_map_dict.itervalues())
 # ["basic:Integer", "basic:Float", "basic:String", "basic:Boolean"]
 
 def get_port_types(name):
     """ get_port_types(name: str) -> str
     Convert from C/C++ types into VisTrails port type
-    
+
     """
     if isinstance(name, tuple) or isinstance(name, list):
         return [get_port_types(x) for x in name]
@@ -390,7 +403,7 @@ def get_algorithm_ports(cls):
                                            name=port_name,
                                            method_name="GetOutputPort",
                                            port_type="vtkAlgorithmOutput",
-                                           docstring=get_doc(cls, 
+                                           docstring=get_doc(cls,
                                                              "GetOutputPort"),
                                            show_port=True)
                 output_ports.append(port_spec)
@@ -427,8 +440,8 @@ def get_get_ports(cls, get_list):
             port_type = get_port_types(getter[0][0])
             if is_type_allowed(port_type):
                 n = resolve_overloaded_name(name[3:], ix, signatures)
-                port_spec = OutputPortSpec(n, 
-                                           name=n, 
+                port_spec = OutputPortSpec(n,
+                                           name=n,
                                            method_name=name,
                                            port_type=port_type,
                                            show_port=False,
@@ -462,7 +475,7 @@ def get_get_set_ports(cls, get_set_dict):
     input_ports = []
     output_ports = []
     for name in get_set_dict:
-        if name in disallowed_get_set_ports: 
+        if name in disallowed_get_set_ports:
             continue
         getter_name = 'Get%s' % name
         setter_name = 'Set%s' % name
@@ -494,7 +507,7 @@ def get_get_set_ports(cls, get_set_dict):
         if len(setter_sig) > 1:
             prune_signatures(cls, setter_name, setter_sig)
         for ix, setter in enumerate(setter_sig):
-            if setter[1] is None: 
+            if setter[1] is None:
                 continue
 
             # Wrap SetFileNames for VisTrails file access
@@ -523,7 +536,7 @@ def get_get_set_ports(cls, get_set_dict):
                                    name="SetVTKCell",
                                    port_type="VTKCell",
                                    show_port=True)
-                input_ports.append(ps)           
+                input_ports.append(ps)
             else:
                 n = resolve_overloaded_name(name, ix, setter_sig)
                 port_types = get_port_types(setter[1])
@@ -539,7 +552,7 @@ def get_get_set_ports(cls, get_set_dict):
                         show_port = False
                     # BEWARE we will get port_types that look like
                     # ["basic:Integer", ["basic:Float", "basic:Float"]]
-                    ps = InputPortSpec(n, 
+                    ps = InputPortSpec(n,
                                        name=n,
                                        method_name=setter_name,
                                        port_type=port_types,
@@ -727,9 +740,9 @@ def get_other_ports(cls, other_list):
             for (ix, sig) in enumerate(signatures):
                 ([result], params) = sig
                 port_types = get_port_types(params)
-                if not (name[:3] in ['Add','Set'] or 
-                        name[:6]=='Insert' or 
-                        (port_types is not None and len(port_types) == 0) or 
+                if not (name[:3] in ['Add','Set'] or
+                        name[:6]=='Insert' or
+                        (port_types is not None and len(port_types) == 0) or
                         result is None):
                     continue
                 if is_type_allowed(port_types):
@@ -744,7 +757,7 @@ def get_other_ports(cls, other_list):
                             except TypeError:
                                 pass
                         port_types = port_types[0]
-                        
+
                     ps = InputPortSpec(n,
                                        name=n,
                                        port_type=port_types,
@@ -755,7 +768,7 @@ def get_other_ports(cls, other_list):
 
 def get_ports(cls):
     """get_ports(cls: vtk class) -> None
-    
+
     Search all metamethods of module and add appropriate ports
 
     """
@@ -777,10 +790,10 @@ def get_ports(cls):
 
     # addAlgorithmPorts(module)
     # addGetPorts(module, parser.get_get_methods())
-    # addSetGetPorts(module, parser.get_get_set_methods(), delayed) 
+    # addSetGetPorts(module, parser.get_get_set_methods(), delayed)
     # addTogglePorts(module, parser.get_toggle_methods())
     # addStatePorts(module, parser.get_state_methods())
-    # addOtherPorts(module, parser.get_other_methods())             
+    # addOtherPorts(module, parser.get_other_methods())
     # # CVS version of VTK doesn't support AddInputConnect(vtkAlgorithmOutput)
     # # FIXME Add documentation
     # basic_pkg = '%s.basic' % get_vistrails_default_pkg_prefix()

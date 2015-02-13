@@ -1,5 +1,5 @@
-from vistrails.core.system import get_vistrails_default_pkg_prefix
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
+from vistrails.core.modules.vistrails_module import ModuleError, Module
 
 from .bases import _modules as base_modules, vtkObjectBase
 #from .vtk_classes import _modules as vtk_modules
@@ -10,6 +10,7 @@ from . import inspectors, offscreen
 from .generate.specs import SpecList, VTKModuleSpec
 import vtk
 import os
+import vtk_classes
 
 _modules = base_modules + tf_modules + cell_modules
 
@@ -46,16 +47,18 @@ def get_translate(t_spec, t_ps):
     return locals().get(t) or globals().get(t)
 
 # keep track of created modules for use as subclasses
-klasses = {'vtkObjectBase': vtkObjectBase}
+klasses = {'vtkObjectBase': Module}
 
-def gen_module(spec):
-    """Create a module from a module specification
+def gen_module(spec, lib):
+    """Create a module from a python function specification
 
     Parameters
     ----------
-    spec : VTKModuleSpec
-        A vtk module specification
+    spec : ModuleSpec
+        A module specification
     """
+
+    _settings = ModuleSettings(**spec.get_module_settings())
 
     # convert input/output specs into VT port objects
     input_ports = [CIPort(ispec.name, ispec.get_port_type(), **ispec.get_port_attrs())
@@ -63,35 +66,40 @@ def gen_module(spec):
     output_ports = [COPort(ospec.name, ospec.get_port_type(), **ospec.get_port_attrs())
                     for ospec in spec.output_port_specs if not ospec.hide]
 
-    set_method_table = {}
-    for ps in spec.input_port_specs:
-        set_method_table[ps.name] = (ps.method_name, ps.get_port_shape(),
-                                     ps.get_other_params(), get_translate(spec, ps))
-
-    get_method_table = {}
-    for ps in spec.output_port_specs:
-        get_method_table[ps.name] = (ps.method_name, ps.get_other_params())
-
     def compute(self):
-        vtk_obj = getattr(vtk, spec.code_ref)()
-        self.do_compute(vtk_obj, spec.is_algorithm)
 
-    _settings = ModuleSettings(**spec.get_module_settings())
-    new_klass = type(str(spec.module_name), (klasses[spec.superklass],),
+        inputs = dict([(s.name, self.force_get_input(s.name))
+                       for s in self.input_specs.itervalues() if self.force_get_input(s.name) is not None])
+
+        function = getattr(lib, spec.code_ref)
+        try:
+            result = function(**inputs)
+        except Exception, e:
+            raise ModuleError(self, e.message)
+
+        print "FINAL OUT ORDER", self.output_specs_order
+        if spec.output_type is None:
+            for name in self.output_specs_order:
+                self.set_output(name, result)
+        elif spec.output_type == 'list':
+            for name, value in zip(self.output_specs_order, result):
+                self.set_output(name, value)
+        elif spec.output_type == 'dict':
+            for name in self.output_specs_order:
+                self.set_output(name, result[name])
+
+    new_klass = type(str(spec.module_name), (klasses.get(spec.superklass, Module),),
                                 {'compute': compute,
                                  '__module__': __name__,
                                  '_settings': _settings,
                                  '__doc__': spec.docstring,
                                  '__name__': spec.name or spec.module_name,
                                  '_input_ports': input_ports,
-                                 '_output_ports': output_ports,
-                                 'set_method_table': set_method_table,
-                                 'get_method_table': get_method_table})
+                                 '_output_ports': output_ports})
     klasses[spec.module_name] = new_klass
     return new_klass
 
 
 def initialize():
-    fname = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vtk.xml')
-    specs = SpecList.read_from_xml(fname, VTKModuleSpec)
-    _modules.extend([gen_module(spec) for spec in specs.module_specs])
+    _modules.extend([gen_module(spec, vtk_classes)
+                     for spec in vtk_classes.specs.module_specs])
