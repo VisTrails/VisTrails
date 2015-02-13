@@ -143,8 +143,9 @@ class Vistrail(object):
         elif (isinstance(version, basestring)):
             if not vistrail.has_tag_str(version):
                 raise NoSuchVersion("Vistrail doesn't have a tag %r" % version)
+            version = vistrail.get_tag_str(version).action_id
         else:
-            raise TypeError("set_current_pipeline() argument must be a string "
+            raise TypeError("select_version() argument must be a string "
                             "or integer, not %r" % type(version).__name__)
         self.controller.change_selected_version(version)
         self._current_pipeline = None
