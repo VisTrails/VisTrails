@@ -2798,7 +2798,13 @@ class VistrailController(object):
         configuration = get_vistrails_configuration()
         use_custom_colors = configuration.check('enableCustomVersionColors')
 
-        with open(filename, 'wb') as fp:
+        if isinstance(filename, basestring):
+            fp = open(filename, 'wb')
+            cleanup = lambda: fp.close()
+        else:
+            fp = filename
+            cleanup = lambda: None
+        try:
             fp.write('digraph G {\n')
             for v in vs:
                 descr = tm.get(v, None) or self.vistrail.get_description(v)
@@ -2822,6 +2828,8 @@ class VistrailController(object):
                 vfrom, vto, vdata = s
                 fp.write('    %s -> %s;\n' % (vfrom, vto))
             fp.write('}\n')
+        finally:
+            cleanup()
 
     def get_latest_version_in_graph(self):
         if not self._current_terse_graph:

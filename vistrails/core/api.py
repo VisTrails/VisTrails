@@ -1,5 +1,6 @@
 import contextlib
 from itertools import izip
+import subprocess
 
 import vistrails.core.application
 import vistrails.core.db.action
@@ -74,6 +75,7 @@ class Vistrail(object):
     versions by performing actions.
     """
     _current_pipeline = None
+    _html = None
 
     def __init__(self, arg=None):
         initialize()
@@ -149,12 +151,14 @@ class Vistrail(object):
                             "or integer, not %r" % type(version).__name__)
         self.controller.change_selected_version(version)
         self._current_pipeline = None
+        self._html = None
 
     def select_latest_version(self):
         """Sets the most recent version in the vistrail as current.
         """
         self.controller.select_latest_version()
         self._current_pipeline = None
+        self._html = None
 
     @property
     def current_pipeline(self):
@@ -219,6 +223,32 @@ class Vistrail(object):
                 self.controller.name,
                 version,
                 ('not changed', 'changed')[self.controller.changed])
+
+    def _repr_html_(self):
+        import cgi
+        try:
+            from cStringIO import StringIO
+        except ImportError:
+            from StringIO import StringIO
+
+        if self._html is None:
+            self._html = ''
+            stream = StringIO()
+            self.controller.save_version_graph(stream)
+            stream.seek(0)
+            dot = stream.read()
+
+            try:
+                proc = subprocess.Popen(['dot', '-Tsvg'],
+                                        stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE)
+                svg, _ = proc.communicate(dot)
+                if proc.wait() == 0:
+                    self._html += svg
+            except OSError:
+                pass
+            self._html += '<pre>' + cgi.escape(repr(self)) + '</pre>'
+        return self._html
 
 
 def get_inputoutput_name(module):
