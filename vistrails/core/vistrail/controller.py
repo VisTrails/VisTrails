@@ -2782,7 +2782,7 @@ class VistrailController(object):
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
 
-    def save_version_graph(self, filename, tersed=True):
+    def save_version_graph(self, filename, tersed=True, highlight=None):
         if tersed:
             graph = copy.copy(self._current_terse_graph)
         else:
@@ -2798,7 +2798,13 @@ class VistrailController(object):
         configuration = get_vistrails_configuration()
         use_custom_colors = configuration.check('enableCustomVersionColors')
 
-        with open(filename, 'wb') as fp:
+        if isinstance(filename, basestring):
+            fp = open(filename, 'wb')
+            cleanup = lambda: fp.close()
+        else:
+            fp = filename
+            cleanup = lambda: None
+        try:
             fp.write('digraph G {\n')
             for v in vs:
                 descr = tm.get(v, None) or self.vistrail.get_description(v)
@@ -2813,15 +2819,20 @@ class VistrailController(object):
                             '%02x' % c
                             for c in parse_custom_color(color.value))
                     fp.write('    %s [label=%s, '
-                             'style=filled, fillcolor="%s"];\n' % (
-                             v, dot_escape(descr), color))
+                             'style=filled, fillcolor="%s", color="%s"];\n' % (
+                             v, dot_escape(descr), color,
+                             'red' if v == highlight else 'black'))
                 else:
-                    fp.write('    %s [label=%s];\n' % (v, dot_escape(descr)))
+                    fp.write('    %s [label=%s, color="%s"];\n' % (
+                             v, dot_escape(descr),
+                             'red' if v == highlight else 'black'))
             fp.write('\n')
             for s in al:
                 vfrom, vto, vdata = s
                 fp.write('    %s -> %s;\n' % (vfrom, vto))
             fp.write('}\n')
+        finally:
+            cleanup()
 
     def get_latest_version_in_graph(self):
         if not self._current_terse_graph:
