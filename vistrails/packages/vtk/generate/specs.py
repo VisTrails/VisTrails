@@ -1,21 +1,10 @@
 
 import ast
 import inspect
-import mixins
 from xml.etree import cElementTree as ET
 
 def capfirst(s):
     return s[0].upper() + s[1:]
-
-_mixin_classes = None
-def load_mixin_classes():
-    return dict(inspect.getmembers(mixins, inspect.isclass))
-
-def get_mixin_classes():
-    global _mixin_classes
-    if _mixin_classes is None:
-        _mixin_classes = load_mixin_classes()
-    return _mixin_classes
 
 class SpecList(object):
     """ A class with module specifications and custom code
@@ -99,12 +88,14 @@ class ModuleSpec(object):
              'docstring',   # module __doc__
              'output_type', # None(=single), list(ordered), or dict(attr=value)
              'callback',    # name of attribute for progress callback
+             'tempfile',    # attribute name for temporary file creation method
+             'outputs',     # attribute name for list of connected output port names
              'cacheable']   # should this module be cached
     attrs.extend(ms_attrs)
 
     def __init__(self, module_name, superklass=None, code_ref=None, docstring="",
-                 output_type=None, callback=None, cacheable=True,
-                 input_port_specs=None, output_port_specs=None,
+                 output_type=None, callback=None, tempfile=None, outputs=None,
+                 cacheable=True, input_port_specs=None, output_port_specs=None,
                  **kwargs):
         if input_port_specs is None:
             input_port_specs = []
@@ -117,6 +108,8 @@ class ModuleSpec(object):
         self.docstring = docstring
         self.output_type = output_type
         self.callback = callback
+        self.tempfile = tempfile
+        self.outputs = outputs
         self.cacheable = cacheable
 
         self.input_port_specs = input_port_specs
@@ -124,9 +117,6 @@ class ModuleSpec(object):
 
         for attr in self.ms_attrs:
             setattr(self, attr, kwargs.get(attr, None))
-
-        self._mixin_class = None
-        self._mixin_functions = None
 
     def to_xml(self, elt=None):
         if elt is None:
@@ -139,7 +129,12 @@ class ModuleSpec(object):
         elt.append(subelt)
         if self.output_type is not None:
             elt.set("output_type", self.output_type)
-        elt.set("callback", self.callback)
+        if self.callback is not None:
+            elt.set("callback", self.callback)
+        if self.tempfile is not None:
+            elt.set("tempfile", self.tempfile)
+        if self.outputs is not None:
+            elt.set("outputs", self.outputs)
         if self.cacheable is False:
             elt.set("cacheable", unicode(self.cacheable))
 
@@ -163,6 +158,8 @@ class ModuleSpec(object):
         code_ref = elt.get("code_ref", "")
         output_type = elt.get("output_type", None)
         callback = elt.get("callback", "")
+        tempfile = elt.get("tempfile", "")
+        outputs = elt.get("outputs", "")
         cacheable = ast.literal_eval(elt.get("cacheable", "True"))
 
         kwargs = {}
@@ -183,49 +180,14 @@ class ModuleSpec(object):
                 if child.text:
                     docstring = child.text
         return cls(module_name, superklass, code_ref, docstring, output_type,
-                   callback, cacheable, input_port_specs, output_port_specs,
-                   **kwargs)
+                   callback, tempfile, outputs, cacheable,
+                   input_port_specs, output_port_specs, **kwargs)
 
     def get_output_port_spec(self, compute_name):
         for ps in self.output_port_specs:
             if ps.compute_name == compute_name:
                 return ps
         return None
-
-    def get_mixin_name(self):
-        return self.module_name + "Mixin"
-
-    def has_mixin(self):
-        if self._mixin_class is None:
-            mixin_classes = get_mixin_classes()
-            if self.get_mixin_name() in mixin_classes:
-                self._mixin_class = mixin_classes[self.get_mixin_name()]
-            else:
-                self._mixin_class = False
-        return (self._mixin_class is not False)
-
-    def get_mixin_function(self, f_name):
-        if not self.has_mixin():
-            return None
-        if self._mixin_functions is None:
-            self._mixin_functions = \
-                dict(inspect.getmembers(self._mixin_class, inspect.ismethod))
-        if f_name in self._mixin_functions:
-            s = inspect.getsource(self._mixin_functions[f_name])
-            return s[s.find(':')+1:].strip()
-        return None
-
-    def get_compute_before(self):
-        return self.get_mixin_function("compute_before")
-
-    def get_compute_inner(self):
-        return self.get_mixin_function("compute_inner")
-
-    def get_compute_after(self):
-        return self.get_mixin_function("compute_after")
-
-    def get_init(self):
-        return self.get_mixin_function("__init__")
 
     def get_module_settings(self):
         """ Returns modulesettings dict
@@ -246,10 +208,12 @@ class VTKModuleSpec(ModuleSpec):
 
     def __init__(self, module_name, superklass=None, code_ref=None,
                  docstring="", output_type=None, callback=None,
-                 cacheable=True, input_port_specs=None,
-                 output_port_specs=None, is_algorithm=False, **kwargs):
+                 tempfile=None, outputs=None, cacheable=True,
+                 input_port_specs=None, output_port_specs=None,
+                 is_algorithm=False, **kwargs):
         ModuleSpec.__init__(self, module_name, superklass, code_ref,
-                            docstring, output_type, callback, cacheable,
+                            docstring, output_type, callback, tempfile,
+                            outputs, cacheable,
                             input_port_specs, output_port_specs, **kwargs)
         self.is_algorithm = is_algorithm
 
@@ -288,7 +252,7 @@ class PortSpec(object):
              "other_params": (None, True, True)} # prepended params used with indexed methods
 
     def __init__(self, arg, **kwargs):
-        self.arg = arg
+        self.arg = arg # argument name
         self.set_defaults(**kwargs)
         self.port_types = []
 
@@ -454,7 +418,6 @@ class InputPortSpec(PortSpec):
              "values": (None, True, True),     # values for enums
              "labels": (None, True, True),   # custom labels on enum values
              "defaults": (None, True, True),   # default value list
-             "translations": (None, True, True), # value translating method
              }
     attrs.update(PortSpec.attrs)
 
