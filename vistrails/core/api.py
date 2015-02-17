@@ -234,7 +234,10 @@ class Vistrail(object):
 
             self._html = ''
             stream = StringIO()
-            self.controller.save_version_graph(stream)
+            self.controller.recompute_terse_graph()
+            self.controller.save_version_graph(
+                    stream,
+                    highlight=self.controller.current_version)
             stream.seek(0)
             dot = stream.read()
 
