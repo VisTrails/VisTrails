@@ -518,7 +518,7 @@ class Pipeline(object):
             self._html = ''
 
             # http://www.graphviz.org/doc/info/shapes.html
-            dot = ['digraph {\n    node [shape=record];']
+            dot = ['digraph {\n    node [shape=plaintext];']
 
             # {moduleId: (input_ports, output_ports)}
             modules = dict((mod.id, (set(), set()))
@@ -540,22 +540,24 @@ class Pipeline(object):
             for mod, port_lists in modules.iteritems():
                 labels = []
                 for port_type, ports in izip(('in', 'out'), port_lists):
-                    label = ('<%s%d> %s' % (port_type, port_num, port_name)
+                    label = ('<td port="%s%s">%s</td>' % (port_type, port_num, cgi.escape(port_name))
                              for port_name, port_num in ports.iteritems())
-                    labels.append('|'.join(label))
+                    labels.append(''.join(label))
 
-                label = ''
+                label = ['<table border="0" cellborder="0" cellspacing="0">']
                 if labels[0]:
-                    label += '{%s}|' % labels[0]
+                    label += ['<tr><td><table border="0" cellborder="1" cellspacing="0"><tr>', labels[0], '</tr></table></td></tr>']
                 mod_obj = self.pipeline.modules[mod]
                 if '__desc__' in mod_obj.db_annotations_key_index:
-                    label += (mod_obj.get_annotation_by_key('__desc__')
-                              .value.strip())
+                    name = (mod_obj.get_annotation_by_key('__desc__')
+                                 .value.strip())
                 else:
-                    label += mod_obj.label
+                    name = mod_obj.label
+                label += ['<tr><td border="1" bgcolor="grey"><b>', cgi.escape(name), '</b></td></tr>']
                 if labels[1]:
-                    label += '|{%s}' % labels[1]
-                dot.append('    module%d [label="{%s}"];' % (mod, label))
+                    label += ['<tr><td><table border="0" cellborder="1" cellspacing="0"><tr>', labels[1], '</tr></table></td></tr>']
+                label += ['</table>']
+                dot.append('    module%d [label=<%s>];' % (mod, '\n'.join(label)))
             dot.append('')
 
             # Write out the connections
