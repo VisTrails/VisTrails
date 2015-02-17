@@ -225,13 +225,13 @@ class Vistrail(object):
                 ('not changed', 'changed')[self.controller.changed])
 
     def _repr_html_(self):
-        import cgi
-        try:
-            from cStringIO import StringIO
-        except ImportError:
-            from StringIO import StringIO
-
         if self._html is None:
+            import cgi
+            try:
+                from cStringIO import StringIO
+            except ImportError:
+                from StringIO import StringIO
+
             self._html = ''
             stream = StringIO()
             self.controller.save_version_graph(stream)
@@ -268,6 +268,7 @@ class Pipeline(object):
     version = None
     _inputs = None
     _outputs = None
+    _html = None
 
     def __init__(self, pipeline=None, vistrail=None):
         initialize()
@@ -505,6 +506,79 @@ class Pipeline(object):
         if outputs:
             desc += "; outputs: %s" % ", ".join(outputs)
         return desc + ">"
+
+    def _repr_html_(self):
+        if self._html is None:
+            import cgi
+            try:
+                from cStringIO import StringIO
+            except ImportError:
+                from StringIO import StringIO
+
+            self._html = ''
+
+            # http://www.graphviz.org/doc/info/shapes.html
+            dot = ['digraph {\n    node [shape=record];']
+
+            # {moduleId: (input_ports, output_ports)}
+            modules = dict((mod.id, (set(), set()))
+                           for mod in self.pipeline.module_list)
+            for conn in self.pipeline.connection_list:
+                src, dst = conn.source, conn.destination
+                modules[src.moduleId][1].add(src.name)
+                modules[dst.moduleId][0].add(dst.name)
+
+            # {moduleId: ({input_port_name: input_num},
+            #             {output_port_name: output_num})
+            # where input_num and output_num are just some sequences of numbers
+            modules = dict((mod_id,
+                            (dict((n, i) for i, n in enumerate(mod_ports[0])),
+                             dict((n, i) for i, n in enumerate(mod_ports[1]))))
+                           for mod_id, mod_ports in modules.iteritems())
+
+            # Write out the modules
+            for mod, port_lists in modules.iteritems():
+                labels = []
+                for port_type, ports in izip(('in', 'out'), port_lists):
+                    label = ('<%s%d> %s' % (port_type, port_num, port_name)
+                             for port_name, port_num in ports.iteritems())
+                    labels.append('|'.join(label))
+
+                label = ''
+                if labels[0]:
+                    label += '{%s}|' % labels[0]
+                mod_obj = self.pipeline.modules[mod]
+                if '__desc__' in mod_obj.db_annotations_key_index:
+                    label += (mod_obj.get_annotation_by_key('__desc__')
+                              .value.strip())
+                else:
+                    label += mod_obj.label
+                if labels[1]:
+                    label += '|{%s}' % labels[1]
+                dot.append('    module%d [label="{%s}"];' % (mod, label))
+            dot.append('')
+
+            # Write out the connections
+            for conn in self.pipeline.connection_list:
+                src, dst = conn.source, conn.destination
+                dot.append('    module%d:out%d -> module%d:in%d;' % (
+                           src.moduleId,
+                           modules[src.moduleId][1][src.name],
+                           dst.moduleId,
+                           modules[dst.moduleId][0][dst.name]))
+
+            dot.append('}')
+            try:
+                proc = subprocess.Popen(['dot', '-Tsvg'],
+                                        stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE)
+                svg, _ = proc.communicate('\n'.join(dot))
+                if proc.wait() == 0:
+                    self._html += svg
+            except OSError:
+                pass
+            self._html += '<pre>' + cgi.escape(repr(self)) + '</pre>'
+        return self._html
 
 
 class ModuleClass(type):
