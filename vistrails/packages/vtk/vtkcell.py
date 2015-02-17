@@ -48,18 +48,9 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-import gc
 from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
-from vistrails.core.vistrail.action import Action
-from vistrails.core.vistrail.port import Port
-from vistrails.core.vistrail import module
-from vistrails.core.vistrail import connection
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
-from vistrails.core.vistrail.location import Location
 from vistrails.core.modules.vistrails_module import ModuleError
-import copy
 
 from identifiers import identifier as vtk_pkg_identifier
 
@@ -85,9 +76,9 @@ class VTKCell(SpreadsheetCell):
     
     """
     _input_ports = [("Location", "spreadsheet:CellLocation"),
-                    ("AddRenderer", "vtkRenderer"),
-                    # ("SetRenderView", "vtkRenderView"),
-                    # ("InteractionHandler", "vtkInteractionHandler"),
+                    ("AddRenderer", "vtkRenderer", {'depth':1}),
+                    # ("SetRenderView", "vtkRenderView", {'depth':1}),
+                    # ("InteractionHandler", "vtkInteractionHandler", {'depth':1}),
                     ("InteractorStyle", "vtkInteractorStyle"),
                     ("AddPicker", "vtkAbstractPicker")]
     _output_ports = [("self", "VTKCell")]
@@ -100,23 +91,25 @@ class VTKCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the vtkRenderer to the actual rendering widget
         """
-        renderers = self.force_get_input_list('AddRenderer')
+        renderers = self.force_get_input('AddRenderer')
         # FIXME fix these
-        # renderViews = self.force_get_input_list('SetRenderView')
+        # renderViews = self.force_get_input('SetRenderView')
         # if len(renderViews)>1:
         #     raise ModuleError(self, 'There can only be one vtkRenderView '
         #                       'per cell')
         # if len(renderViews)==1 and len(renderers)>0:
         #     raise ModuleError(self, 'Cannot set both vtkRenderView '
         #                       'and vtkRenderer to a cell')
-        # renderView = self.force_get_input('SetRenderView')
-        # iHandlers = self.force_get_input_list('InteractionHandler')
+        # renderView = self.force_get_input('SetRenderView')[0]
+        # iHandlers = self.force_get_input('InteractionHandler')
         iStyle = self.force_get_input('InteractorStyle')
         picker = self.force_get_input('AddPicker')
         # self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
         #self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, None, [], iStyle, picker))
         #self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
         self.displayAndWait(QVTKWidget, (renderers, None, [], iStyle, picker))
+        # hack for setCamera
+        self.cellWidget.vt_module = self
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -186,8 +179,7 @@ class QVTKWidget(QCellWidget):
         self.toolBarType = QVTKWidgetToolBar
         self.iHandlers = []
         self.setAnimationEnabled(True)
-        self.renderer_maps = {}
-        
+
     def removeObserversFromInteractorStyle(self):
         """ removeObserversFromInteractorStyle() -> None        
         Remove all python binding from interactor style observers for
@@ -224,7 +216,6 @@ class QVTKWidget(QCellWidget):
         resources
         
         """
-        self.renderer_maps = {}
         for ren in self.getRendererList():
             self.mRenWin.RemoveRenderer(ren)
             
@@ -258,7 +249,6 @@ class QVTKWidget(QCellWidget):
         if renderView:
             renderView.vtkInstance.SetupRenderWindow(renWin)
             renderers = [renderView.vtkInstance.GetRenderer()]
-        self.renderer_maps = {}
         self.usecameras = False
         if cameralist is not None and len(cameralist) == len(renderers):
             self.usecameras = True
@@ -268,7 +258,6 @@ class QVTKWidget(QCellWidget):
                 vtkInstance = renderer #.vtkInstance
                 renWin.AddRenderer(vtkInstance)
                 # FIXME need to figure out what to do here (not wrapping)
-                # self.renderer_maps[vtkInstance] = renderer.vt_module_id
             else:
                 vtkInstance = renderer
             if hasattr(vtkInstance, 'IsActiveCameraCreated'):
@@ -1046,13 +1035,16 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
             cpos = cam.GetPosition()
             cfol = cam.GetFocalPoint()
             cup = cam.GetViewUp()
-            rendererId = cellWidget.renderer_maps[ren]
+            # find the renderer module by searching upstream
+            cell = self.toolBar.sheet.getCell(self.toolBar.row, self.toolBar.col)
+            d = dict([(c(), c.obj) for c in cell.vt_module.inputPorts['AddRenderer']])
+            rendererId = d[ren].moduleInfo['moduleId']
             # Looking for SetActiveCamera()
             camera = None
             renderer = pipeline.modules[rendererId]
             for c in pipeline.connections.values():
                 if c.destination.moduleId==rendererId:
-                    if c.destination.name=='SetActiveCamera':
+                    if c.destination.name=='ActiveCamera':
                         camera = pipeline.modules[c.source.moduleId]
                         break
             
@@ -1065,8 +1057,8 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
 
                 # Connect camera to renderer
                 camera_conn = controller.create_connection(
-                        camera, 'Instance',
-                        renderer, 'SetActiveCamera')
+                        camera, 'self',
+                        renderer, 'ActiveCamera')
                 ops.append(('add', camera_conn))
             # update functions
             def convert_to_str(arglist):
@@ -1074,9 +1066,9 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                 for arg in arglist:
                     new_arglist.append(str(arg))
                 return new_arglist
-            functions = [('SetPosition', convert_to_str(cpos)),
-                         ('SetFocalPoint', convert_to_str(cfol)),
-                         ('SetViewUp', convert_to_str(cup))]
+            functions = [('Position', convert_to_str(cpos)),
+                         ('FocalPoint', convert_to_str(cfol)),
+                         ('ViewUp', convert_to_str(cup))]
             ops.extend(controller.update_functions_ops(camera, functions))
 
         action = vistrails.core.db.action.create_action(ops)
