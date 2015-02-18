@@ -138,6 +138,9 @@ def gen_module(spec, lib, **module_settings):
 
         # convert outputs to dict
         outputs = {}
+        outputs_list = self.output_specs_order
+        outputs_list.remove('self') # self is automatically set by base Module
+
         if spec.output_type is None:
             for name in self.output_specs_order:
                 outputs[name] = result

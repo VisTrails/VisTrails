@@ -310,7 +310,7 @@ class vtkObjectInfo(object):
         output_names = [out_spec.arg for out_spec in self.get_output_port_specs()]
         for out_name in output_names:
             result = None
-            if out_name == 'self':
+            if out_name == 'Instance':
                 result = vtk_obj
             elif not self.spec.outputs or out_name in inputs['_outputs']:
                     # port is connected

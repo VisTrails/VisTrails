@@ -123,11 +123,11 @@ def create_module(base_cls_name, node):
     input_ports, output_ports = get_ports(node.klass)
     output_ports = list(output_ports) # drop generator
 
-    self_port = OutputPortSpec('self',
+    instance_port = OutputPortSpec('Instance',
                                port_type=node.name,
                                docstring='The wrapped VTK class instance',
-                               show_port=False)
-    output_ports.insert(0, self_port)
+                               show_port=True)
+    output_ports.insert(0, instance_port)
 
     output_type = 'list' if len(output_ports)>0 else None
     cacheable = (issubclass(node.klass, vtk.vtkAlgorithm) and
