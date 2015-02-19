@@ -128,24 +128,34 @@ class vtkObjectInfo(object):
         # patch vtk methods
         patch_methods(self, self.vtkClass)
 
+    # cache input specs lookups
+    cached_input_port_specs = None
     def get_input_port_specs(self):
         """ Get inputs from parents as well, but skip duplicates
         """
+        if self.cached_input_port_specs is not None:
+            return self.cached_input_port_specs
         specs = self.spec.input_port_specs
         ports = [spec.arg for spec in specs]
         if self.parent:
             for spec in reversed(self.parent.get_input_port_specs()):
                 if spec.arg not in ports:
                     specs.insert(0, spec)
+        self.cached_input_port_specs = specs
         return specs
 
+    # cache output specs lookups
+    cached_output_port_specs = None
     def get_output_port_specs(self):
+        if self.cached_output_port_specs is not None:
+            return self.cached_output_port_specs
         specs = self.spec.output_port_specs
         ports = [spec.arg for spec in specs]
         if self.parent:
             for spec in reversed(self.parent.get_output_port_specs()):
                 if spec.arg not in ports:
                     specs.insert(0, spec)
+        self.cached_output_port_specs = specs
         return specs
 
     def get_set_method_info(self, port_name):
@@ -169,15 +179,12 @@ class vtkObjectInfo(object):
             params = list(params)
         elif not isinstance(params, list):
             params = [params]
-        # handle enums
         spec = [spec for spec in self.get_input_port_specs()
                 if spec.arg == port_name][0]
         if spec.port_type == 'basic:Boolean':
             # handle bool
-            if params[0]: # True, Call *On()
-                params = []
-            else:
-                return # False (assumes default is false)
+            method_name += ['Off', 'On'][params[0]]
+            params = []
         elif spec.entry_types and 'enum' in spec.entry_types:
             # handle enums
             # Append enum name to function name and delete params
@@ -292,7 +299,7 @@ class vtkObjectInfo(object):
 
     #### END COMPUTE PATCHING CODE ####
 
-    # compute should not mutate class instance!
+    # compute does not mutate class instance.
     # compute is treated as a function, having no state.
     def compute(self, **inputs):
         vtk_obj = self.vtkClass()

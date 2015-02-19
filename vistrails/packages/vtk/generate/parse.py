@@ -549,7 +549,7 @@ disallowed_toggle_ports = set(['GlobalWarningDisplay',
                                ])
 def get_toggle_ports(cls, toggle_dict):
     """ get_toggle_ports(cls: class, toggle_dict: dict) -> None
-    Convert all xxxOn/Off methods of module into input ports
+    Convert all xxxOn/Off methods of module into boolean input ports
 
     Keyword arguments:
     module      --- Module
@@ -561,15 +561,11 @@ def get_toggle_ports(cls, toggle_dict):
     for name, default_val in toggle_dict.iteritems():
         if name in disallowed_toggle_ports:
             continue
-
-        # we are not adding separate On/Off ports now!
-        method_name = name + "On"
         ps = InputPortSpec(name,
-                           method_name=method_name,
                            port_type="basic:Boolean",
                            show_port=False,
                            defaults=[bool(default_val)],
-                           docstring=get_doc(cls, method_name))
+                           docstring=get_doc(cls, name + "On"))
         input_ports.append(ps)
     return input_ports, []
 
