@@ -255,9 +255,11 @@ class QVTKWidget(QCellWidget):
         j = 0
         for renderer in renderers:
             if renderView==None:
-                vtkInstance = renderer #.vtkInstance
+                vtkInstance = renderer
+                # Check deprecated vtkInstance
+                if hasattr(renderer, 'vtkInstance'):
+                    vtkInstance = vtkInstance.vtkInstance
                 renWin.AddRenderer(vtkInstance)
-                # FIXME need to figure out what to do here (not wrapping)
             else:
                 vtkInstance = renderer
             if hasattr(vtkInstance, 'IsActiveCameraCreated'):
@@ -279,7 +281,10 @@ class QVTKWidget(QCellWidget):
             if iStyle==None:
                 iStyleInstance = vtk.vtkInteractorStyleTrackballCamera()
             else:
-                iStyleInstance = iStyle #.vtkInstance
+                iStyleInstance = iStyle
+                # Check deprecated vtkInstance
+                if hasattr(iStyleInstance, 'vtkInstance'):
+                    iStyleInstance = iStyleInstance.vtkInstance
             iren.SetInteractorStyle(iStyleInstance)
         self.addObserversToInteractorStyle()
         

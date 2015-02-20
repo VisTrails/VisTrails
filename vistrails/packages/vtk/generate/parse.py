@@ -512,6 +512,7 @@ def get_get_set_ports(cls, get_set_dict):
                                    method_name=setter_name,
                                    port_type="basic:Color",
                                    show_port=False)
+                input_ports.append(ps)
             # Wrap SetRenderWindow for exporters
             # FIXME Add documentation
             elif name == 'RenderWindow':
@@ -562,6 +563,7 @@ def get_toggle_ports(cls, toggle_dict):
         if name in disallowed_toggle_ports:
             continue
         ps = InputPortSpec(name,
+                           method_name=name + 'On',
                            port_type="basic:Boolean",
                            show_port=False,
                            defaults=[bool(default_val)],
@@ -685,7 +687,6 @@ def get_other_ports(cls, other_list):
             signatures = ""
             if not isinstance(method, int):
                 signatures = parser.get_method_signature(method)
-
             if len(signatures) > 1:
                 prune_signatures(cls, name, signatures)
             for (ix, sig) in enumerate(signatures):
@@ -715,6 +716,13 @@ def get_other_ports(cls, other_list):
                                        show_port=show_port,
                                        docstring=get_doc(cls, n))
                     input_ports.append(ps)
+                elif result == None or port_types == []:
+                    ps = InputPortSpec(name,
+                                       port_type='basic:Boolean',
+                                       # Methods like Build() should be called last
+                                       sort_key=100,
+                                       docstring=get_doc(cls, name))
+                    input_ports.append(ps)
     return input_ports, []
 
 def get_custom_ports(cls):
@@ -739,9 +747,10 @@ def get_custom_ports(cls):
         ps = OutputPortSpec('file',
                             port_type='basic:File',
                             docstring='The written file')
-        input_ports.append(ps)
+        output_ports.append(ps)
     elif cls == vtk.vtkVolumeProperty:
         ps = InputPortSpec('TransferFunction',
+                           method_name='SetTransferFunction',
                            port_type='TransferFunction',
                            docstring='Sets the transfer function to use')
         input_ports.append(ps)

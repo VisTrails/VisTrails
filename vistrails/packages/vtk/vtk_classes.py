@@ -5,9 +5,10 @@ import warnings
 
 import vtk
 
-import fix_classes
+from . import fix_classes
+from .wrapper import VTKInstanceWrapper
 
-from generate.specs import SpecList, VTKModuleSpec
+from .generate.specs import SpecList, VTKModuleSpec
 
 ################################################################################
 
@@ -86,7 +87,7 @@ def patch_methods(base_module, cls):
         update_dict('_special_input_function_SetVTKCell',
                     compute_SetVTKCell)
     if issubclass(cls, vtk.vtkVolumeProperty):
-        update_dict('_special_input_function_TransferFunction',
+        update_dict('_special_input_function_SetTransferFunction',
                     compute_TransferFunction)
     if issubclass(cls, vtk.vtkDataSet):
         update_dict('_special_input_function_PointData',
@@ -182,8 +183,13 @@ class vtkObjectInfo(object):
         spec = [spec for spec in self.get_input_port_specs()
                 if spec.arg == port_name][0]
         if spec.port_type == 'basic:Boolean':
-            # handle bool
-            method_name += ['Off', 'On'][params[0]]
+            if not params[0]:
+                if method_name.endswith('On'):
+                    # This is a toggle method
+                    method_name = method_name[:-2] + 'Off'
+                else:
+                    # Skip False 0-parameter method
+                    return
             params = []
         elif spec.entry_types and 'enum' in spec.entry_types:
             # handle enums
@@ -201,6 +207,10 @@ class vtkObjectInfo(object):
                             out.append(p.pop(0))
                 return out
             params = reshape_params(params, shape)
+        # Unwraps VTK objects
+        for i in xrange(len(params)):
+            if hasattr(params[i], 'vtkInstance'):
+                params[i] = params[i].vtkInstance
         try:
             if hasattr(self, '_special_input_function_' + method_name):
                 method = getattr(self, '_special_input_function_' + method_name)
@@ -318,7 +328,7 @@ class vtkObjectInfo(object):
         for out_name in output_names:
             result = None
             if out_name == 'Instance':
-                result = vtk_obj
+                result = VTKInstanceWrapper(vtk_obj) # For old PythonSources using .vtkInstance
             elif not self.spec.outputs or out_name in inputs['_outputs']:
                     # port is connected
                     result = self.call_get_method(vtk_obj, out_name)
