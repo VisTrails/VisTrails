@@ -3,24 +3,25 @@ from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError, Module
 from vistrails.core.modules.module_registry import get_module_registry
 
-from .tf_widget import _modules as tf_modules
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from vistrails.core.utils import InstanceObject
 from vistrails.core.vistrail.connection import Connection
 
+from .tf_widget import _modules as tf_modules
 from .vtkcell import _modules as cell_modules
-from . import inspectors, offscreen
+from .inspectors import _modules as inspector_modules
+#offscreen
 
 import re
-from . import vtk_classes,hasher
 
 from identifiers import identifier
 
-_modules = tf_modules + cell_modules
+from . import vtk_classes, hasher
+
+_modules = tf_modules + cell_modules + inspector_modules
 
 # TODO only new-style module loading will work
 
-#inspectors.initialize()
 #offscreen.register_self()
 
 #registry = get_module_registry()

@@ -38,74 +38,53 @@
 from __future__ import division
 
 from vistrails.core.modules.vistrails_module import ModuleError
-from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.modules.basic_modules import Module, Float, Integer
-from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.config import ModuleSettings
 import vtk
-from base_module import vtkBaseModule
-from hasher import vtk_hasher
-from .identifiers import identifier as vtk_pkg_identifier
+from .hasher import vtk_hasher
 from .wrapper import VTKInstanceWrapper
 
 class vtkBaseInspector(Module):
 
-    @classmethod
-    def register_self(cls, **kwargs):
-        registry = get_module_registry()
-        def resolve_type(t):
-            if isinstance(t, tuple):
-                return registry.get_descriptor_by_name(*t).module
-            elif isinstance(t, type):
-                return t
-            else:
-                assert False, ("Unknown type " + str(type(t)))
-
-        registry.add_module(cls, **kwargs)
-        try:
-            ips = cls.input_ports
-        except AttributeError:
-            pass
-        else:
-            for (port_name, types) in ips:
-                registry.add_input_port(cls,
-                                        port_name,
-                                        list(resolve_type(t) for t in types))
-
-        try:
-            ops = cls.output_ports
-        except AttributeError:
-            pass
-        else:
-            for (port_name, types) in ops:
-                registry.add_output_port(cls,
-                                         port_name,
-                                         list(resolve_type(t) for t in types))
+    _settings = ModuleSettings(abstract=True)
 
     def auto_set_results(self, vtk_object):
-        mid = self.moduleInfo['moduleId']
         for function in self.outputPorts.keys():
             if hasattr(vtk_object, function):
                 retValues = getattr(vtk_object, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
-                    output  = VTKInstanceWrapper(retValues, mid)
+                    output  = VTKInstanceWrapper(retValues)
                     self.set_output(function, output)
                 elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
                     for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
-                            result[i] = VTKInstanceWrapper(result[i], mid)
+                            result[i] = VTKInstanceWrapper(result[i])
                     self.set_output(function, type(retValues)(result))
                 else:
                     self.set_output(function, retValues)
 
 class vtkDataSetInspector(vtkBaseInspector):
 
+    _settings = ModuleSettings(abstract=False, signature=vtk_hasher)
+    _input_ports = [('SetInputConnection0', 'vtkAlgorithmOutput'),
+                    ('SetInput', 'vtkDataSet'),
+                    ]
+    _output_ports = [('GetBounds', [Float] * 6),
+                     ('GetScalarRange', [Float] * 2),
+                     ('GetLength', [Float]),
+                     ('GetCenter', [Float] * 3),
+                     ('GetNumberOfPoints', [Integer]),
+                     ('GetNumberOfCells', [Integer]),
+                     ('GetPointData', 'vtkPointData'),
+                     ('GetCellData', 'vtkCellData'),
+                     ]
+
     def compute(self):
         vtk_object = None
         if self.has_input("SetInputConnection0"):
             ic = self.get_input("SetInputConnection0")
             port_object = ic.vtkInstance
-            ix = port_object.GetIndex()
             producer = port_object.GetProducer()
             try:
                 vtk_object = producer.GetOutput()
@@ -121,25 +100,20 @@ class vtkDataSetInspector(vtkBaseInspector):
         if vtk_object:
             self.auto_set_results(vtk_object)
 
-    input_ports = [('SetInputConnection0',
-                    [(vtk_pkg_identifier, 'vtkAlgorithmOutput')]),
-                   ('SetInput',
-                    [(vtk_pkg_identifier, 'vtkDataSet')]),
-                   ]
-    output_ports = [('GetBounds', [Float] * 6),
-                    ('GetScalarRange', [Float] * 2),
-                    ('GetLength', [Float]),
-                    ('GetCenter', [Float] * 3),
-                    ('GetNumberOfPoints', [Integer]),
-                    ('GetNumberOfCells', [Integer]),
-                    ('GetPointData', 
-                     [(vtk_pkg_identifier, 'vtkPointData')]),
-                    ('GetCellData',
-                     [(vtk_pkg_identifier, 'vtkCellData')]),
-                    ]
 
 class vtkDataSetAttributesInspector(vtkBaseInspector):
     
+    _settings = ModuleSettings(abstract=False, signature=vtk_hasher)
+    _input_ports = [('SetInput', 'vtkDataSetAttributes')]
+    _output_ports = [('GetScalars', 'vtkDataArray'),
+                     ('GetVectors', 'vtkDataArray'),
+                     ('GetNormals', 'vtkDataArray'),
+                     ('GetTCoords', 'vtkDataArray'),
+                     ('GetTensors', 'vtkDataArray'),
+                     ('GetGlobalIds', 'vtkDataArray'),
+                     ('GetPedigreeIds', 'vtkAbstractArray'),
+                     ]
+
     def compute(self):
         vtk_object = None
         if self.has_input("SetInput"):
@@ -151,27 +125,14 @@ class vtkDataSetAttributesInspector(vtkBaseInspector):
         if vtk_object:
             self.auto_set_results(vtk_object)
 
-    input_ports = [('SetInput',
-                    [(vtk_pkg_identifier, 'vtkDataSetAttributes')]),
-                   ]
-    output_ports = [('GetScalars', 
-                     [(vtk_pkg_identifier, 'vtkDataArray')]),
-                    ('GetVectors', 
-                     [(vtk_pkg_identifier, 'vtkDataArray')]),
-                    ('GetNormals', 
-                     [(vtk_pkg_identifier, 'vtkDataArray')]),
-                    ('GetTCoords', 
-                     [(vtk_pkg_identifier, 'vtkDataArray')]),
-                    ('GetTensors', 
-                     [(vtk_pkg_identifier, 'vtkDataArray')]),
-                    ('GetGlobalIds', 
-                     [(vtk_pkg_identifier, 'vtkDataArray')]),
-                    ('GetPedigreeIds', 
-                     [(vtk_pkg_identifier, 'vtkAbstractArray')]),
-                    ]
 
 class vtkDataArrayInspector(vtkBaseInspector):
 
+    _settings = ModuleSettings(abstract=False, signature=vtk_hasher)
+    _input_ports = [('SetInput', 'vtkDataArray')]
+    _output_ports = [('GetMaxNorm', [Float]),
+                    ('GetRange', [Float] * 2)]
+
     def compute(self):
         vtk_object = None
         if self.has_input("SetInput"):
@@ -183,19 +144,29 @@ class vtkDataArrayInspector(vtkBaseInspector):
         if vtk_object:
             self.auto_set_results(vtk_object)
 
-    input_ports = [('SetInput',
-                    [(vtk_pkg_identifier, 'vtkDataArray')])]
-    output_ports = [('GetMaxNorm', [Float]),
-                    ('GetRange', [Float] * 2)]
-                   
+
 class vtkPolyDataInspector(vtkDataSetInspector):
+
+    _settings = ModuleSettings(abstract=False, signature=vtk_hasher)
+    _input_ports = [('SetInputConnection0', 'vtkAlgorithmOutput'),
+                    ('SetInput', 'vtkDataSet'),
+                    ]
+    _output_ports = [('GetVerts', 'vtkCellArray'),
+                     ('GetLines', 'vtkCellArray'),
+                     ('GetPolys', 'vtkCellArray'),
+                     ('GetStrips', 'vtkCellArray'),
+                     ('GetPoints', 'vtkPoints'),
+                     ('GetNumberOfVerts', [Integer]),
+                     ('GetNumberOfLines', [Integer]),
+                     ('GetNumberOfPolys', [Integer]),
+                     ('GetNumberOfStrips', [Integer]),
+                     ]
 
     def compute(self):
         vtk_object = None
         if self.has_input("SetInputConnection0"):
             ic = self.get_input("SetInputConnection0")
             port_object = ic.vtkInstance
-            ix = port_object.GetIndex()
             producer = port_object.GetProducer()
             try:
                 vtk_object = producer.GetOutput()
@@ -211,35 +182,9 @@ class vtkPolyDataInspector(vtkDataSetInspector):
         if vtk_object:
             self.auto_set_results(vtk_object)
 
-    input_ports = [('SetInputConnection0',
-                    [(vtk_pkg_identifier, 'vtkAlgorithmOutput')]),
-                   ('SetInput',
-                    [(vtk_pkg_identifier, 'vtkDataSet')]),
-                   ]
-    output_ports = [('GetVerts',
-                     [(vtk_pkg_identifier, 'vtkCellArray')]),
-                    ('GetLines',
-                     [(vtk_pkg_identifier, 'vtkCellArray')]),
-                    ('GetPolys',
-                     [(vtk_pkg_identifier, 'vtkCellArray')]),
-                    ('GetStrips',
-                     [(vtk_pkg_identifier, 'vtkCellArray')]),
-                    ('GetPoints',
-                     [(vtk_pkg_identifier, 'vtkPoints')]),
-                    ('GetNumberOfVerts', [Integer]),
-                    ('GetNumberOfLines', [Integer]),
-                    ('GetNumberOfPolys', [Integer]),
-                    ('GetNumberOfStrips', [Integer]),
-                    ]
 
-def initialize():
-    vtkBaseInspector.register_self(abstract=True, signatureCallable=vtk_hasher)
-    vtkDataSetInspector.register_self(abstract=False, 
-                                      signatureCallable=vtk_hasher)
-    vtkDataSetAttributesInspector.register_self(abstract=False, 
-                                                signatureCallable=vtk_hasher)
-    vtkDataArrayInspector.register_self(abstract=False, 
-                                        signatureCallable=vtk_hasher)
-    vtkPolyDataInspector.register_self(abstract=False,
-                                       signatureCallable=vtk_hasher)
-    
+_modules = [vtkBaseInspector,
+            vtkDataSetInspector,
+            vtkDataSetAttributesInspector,
+            vtkDataArrayInspector,
+            vtkPolyDataInspector]
