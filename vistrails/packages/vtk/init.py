@@ -163,6 +163,9 @@ def get_method_signature(method, docum='', name=''):
 
     """
     doc = docum or method.__doc__
+    if not doc:
+        debug("Ignoring method %r, no __doc__" % method)
+        return []
     doc = doc.split('\n')
     tmp = []
     for l in doc:
