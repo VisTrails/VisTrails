@@ -2,13 +2,14 @@ from vistrails.core.modules.basic_modules import Color, Path, PathObject, identi
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError, Module
 from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.system import get_vistrails_default_pkg_prefix
 
-from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
+                                       UpgradeModuleRemap, UpgradePackageRemap
 from vistrails.core.utils import InstanceObject
 from vistrails.core.vistrail.connection import Connection
 
 from .tf_widget import _modules as tf_modules
-from .vtkcell import _modules as cell_modules
 from .inspectors import _modules as inspector_modules
 #offscreen
 
@@ -18,19 +19,18 @@ from identifiers import identifier
 
 from . import vtk_classes, hasher
 
-_modules = tf_modules + cell_modules + inspector_modules
-
-# TODO only new-style module loading will work
+_modules = tf_modules + inspector_modules
 
 #offscreen.register_self()
 
-#registry = get_module_registry()
-#if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
-#                       'SpreadsheetCell'):
-#    from . import vtkhandler, vtkviewcell
-#    from .vtkcell import _modules as cell_modules
-#    _modules += cell_modules
-#    vtkhandler.registerSelf()
+registry = get_module_registry()
+if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
+                       'SpreadsheetCell'):
+    # load these only if spreadsheet is enabled
+    from . import vtkviewcell
+    from .vtkhandler import _modules as handler_modules
+    from .vtkcell import _modules as cell_modules
+    _modules += cell_modules + handler_modules
 #    vtkviewcell.registerSelf()
 
 
@@ -301,7 +301,7 @@ def build_remap(module_name=None):
 
         return remap
 
-    def process_ports(desc, port_type):
+    def process_ports(desc, remap, port_type):
         if port_type == 'input':
             remap_dict_key = 'dst_port_remap'
         else:
@@ -319,31 +319,28 @@ def build_remap(module_name=None):
                     port_nums[port_prefix] = port_num
                 elif port_num > port_nums[port_prefix]:
                     port_nums[port_prefix] = port_num
-        if desc.name not in _remap:
-            _remap[desc.name] = [(None, '0.9.3', None, dict())]
-        my_remap_dict = _remap[desc.name][0][3]
         for port_prefix, port_num in port_nums.iteritems():
-            remap = build_remap_method(desc, port_prefix, port_num, port_type)
-            my_remap_dict.setdefault(remap_dict_key, {})[port_prefix] = remap
+            m = build_remap_method(desc, port_prefix, port_num, port_type)
+            remap.add_remap(remap_dict_key, port_prefix, m)
             if port_type == 'input':
-                remap = build_function_remap_method(desc, port_prefix, port_num)
-                if 'function_remap' not in my_remap_dict:
-                    my_remap_dict['function_remap'] = {}
-                my_remap_dict['function_remap'][port_prefix] = remap
+                m = build_function_remap_method(desc, port_prefix, port_num)
+                remap.add_remap('function_remap', port_prefix, m)
         if port_type == 'output' and desc.name in klasses:
-            my_remap_dict.setdefault('src_port_remap', {})['self'] = 'Instance'
+            remap.add_remap('src_port_remap', 'self', 'Instance')
 
     def process_module(desc):
         # 0.9.3 upgrades
-        process_ports(desc, 'input')
-        process_ports(desc, 'output')
+        remap = UpgradeModuleRemap(None, '0.9.3', '0.9.3',
+                                   module_name=desc.name)
+        process_ports(desc, remap, 'input')
+        process_ports(desc, remap, 'output')
+        _remap.add_module_remap(remap)
         # 0.9.5 upgrades
         if desc.name in klasses:
-            _remap.setdefault(desc.name, []).append(('0.9.3', '0.9.5', None, {
-                    'src_port_remap': {
-                        'self': 'Instance',
-                    }
-                }))
+            remap = UpgradeModuleRemap('0.9.3', '0.9.5', '0.9.5',
+                                       module_name=desc.name)
+            remap.add_remap('src_port_remap', 'self', 'Instance')
+            _remap.add_module_remap(remap)
         # 1.0.0 upgrades
         if desc.name in klasses:
             input_mappings = {}
@@ -351,16 +348,14 @@ def build_remap(module_name=None):
             for spec in [desc.module._get_input_spec(s)
                          for s in get_port_specs(desc, 'input')]:
                 def change_func(name, value):
-                    def on_remap(old_func, new_module):
+                    def remap(old_func, new_module):
                         controller = _get_controller()
                         new_function = controller.create_function(new_module,
                                                                   name,
                                                                   [value])
-                        op = ('change', old_func, new_function,
-                              new_module.vtType, new_module.id)
                         new_module.add_function(new_function)
-                        return [] #[op]
-                    return on_remap
+                        return []
+                    return remap
                 if spec is None:
                     continue
                 elif spec.port_type == 'basic:Boolean':
@@ -400,12 +395,15 @@ def build_remap(module_name=None):
                     # Remove 'Get' prefixes
                     output_mappings[spec.method_name] = spec.name
 
-            if input_mappings or output_mappings or function_mappings:
-                _remap.setdefault(desc.name, []).append(('0.9.5', '1.0.0', None, {
-                        'dst_port_remap': input_mappings,
-                        'src_port_remap': output_mappings,
-                        'function_remap': function_mappings
-                    }))
+            remap = UpgradeModuleRemap('0.9.5', '1.0.0', '1.0.0',
+                                       module_name=desc.name)
+            for k, v in input_mappings.iteritems():
+                remap.add_remap('dst_port_remap', k, v)
+            for k, v in output_mappings.iteritems():
+                remap.add_remap('src_port_remap', k, v)
+            for k, v in function_mappings.iteritems():
+                remap.add_remap('function_remap', k, v)
+            _remap.add_module_remap(remap)
 
     pkg = reg.get_package_by_name(identifier)
     if module_name is not None:
@@ -421,12 +419,16 @@ def build_remap(module_name=None):
 def handle_module_upgrade_request(controller, module_id, pipeline):
     global _remap, _controller, _pipeline
     if _remap is None:
-        _remap = {'vtkInteractionHandler': [(None, '1.0.0', None, {})]}
+        _remap = UpgradePackageRemap()
+        remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
+                                   module_name='vtkInteractionHandler')
+        remap.add_remap('src_port_remap', 'self', 'Instance')
+        _remap.add_module_remap(remap)
 
     _controller = controller
     _pipeline = pipeline
     module_name = pipeline.modules[module_id].name
-    if module_name not in _remap:
+    if not _remap.has_module_remaps(module_name):
         build_remap(module_name)
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                               _remap)
