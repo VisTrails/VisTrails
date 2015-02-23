@@ -1,44 +1,48 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import vistrails.core
-from vistrails.core.system import get_vistrails_default_pkg_prefix
+from vistrails.core.system import get_vistrails_default_pkg_prefix, \
+    get_vistrails_basic_pkg_id, get_module_registry
 
 def load_cls(cls_item, prefix=None):
     path = None
     if isinstance(cls_item, basestring):
-        [path, cls_name] = cls_item.split(':')[:2]
+        (path, cls_name) = cls_item.split(':')[:2]
     elif isinstance(cls_item, tuple):
         (path, cls_name) = cls_item
     if path is not None:
@@ -94,14 +98,11 @@ def parse_descriptor_string(d_string, cur_package=None):
     else:
         qual_name = d_string
         if cur_package is None:
-            from vistrails.core.modules.module_registry import get_module_registry
             reg = get_module_registry()
             if reg._current_package is not None:
                 package = reg._current_package.identifier
             else:
-                import vistrails.core.modules.basic_modules
-                basic_pkg = vistrails.core.modules.basic_modules.identifier
-                package = basic_pkg
+                package = get_vistrails_basic_pkg_id()
         else:
             package = cur_package
     qual_parts = qual_name.rsplit('|', 1)
@@ -146,9 +147,19 @@ def parse_port_spec_string(p_string, cur_package=None):
 
 
 def create_port_spec_string(specs_list, old_style=False):
-    return '(' + ','.join(create_port_spec_item_string(
-            *(specs + ((None, old_style) if len(specs) < 3 else (old_style,))))
-                          for specs in specs_list) + ')'
+    spec_items = []
+    for specs in specs_list:
+        if len(specs) == 3:
+            pkg, name, ns = specs
+        elif len(specs) == 2:
+            pkg, name = specs
+            ns = None
+        else:
+            raise TypeError("create_port_spec_string() got spec tuple "
+                            "with %d elements" % len(specs))
+        spec_items.append(create_port_spec_item_string(pkg, name, ns,
+                                                       old_style))
+    return '(%s)' % ','.join(spec_items)
 
 def expand_port_spec_string(p_string, cur_package=None, 
                             old_style=False):

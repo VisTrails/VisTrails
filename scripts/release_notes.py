@@ -1,35 +1,36 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -49,13 +50,14 @@ import subprocess
 import shutil
 
 #### configuration ####
-commit_start = "90975fc00211" # hash of version used on last release notes
+commit_start = "269e4808eca3" # hash of version used on last release notes
 commit_end = "HEAD" # current hash
 branch = "v2.1" # git branch to be used
-release_name = "2.1.1"
-clonepath = None # set this to the complete path of a vistrails clone to be used
-                 # if None, the remote repository will be cloned to a temporary
-                 # folder and removed at the end of the script
+release_name = "2.1.4"
+clonepath = None    # set this to the complete path of a vistrails clone to be
+                    # used
+                    # if None, the remote repository will be cloned to a
+                    # temporary folder and removed at the end of the script
 #clonepath = '/Users/tommy/git/vistrails'
 cloneremote = 'git://www.vistrails.org/vistrails.git'
 #### end configuration #####
@@ -90,8 +92,7 @@ def clone_vistrails_git_repository(path_to):
     process = subprocess.Popen(cmdlist, shell=False,
                                stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               close_fds=True)
+                               stderr=subprocess.STDOUT)
     process.wait()
     if process.returncode == 0:
         print "repository is cloned."
@@ -142,8 +143,7 @@ def init_branch(path_to, branch):
     process = subprocess.Popen(cmdlist, shell=False,
                                stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               close_fds=True)
+                               stderr=subprocess.STDOUT)
     process.wait()
     lines = process.stdout.readlines()
     for line in lines:
@@ -163,8 +163,7 @@ def pull_changes(path_to):
     process = subprocess.Popen(cmdlist, shell=False,
                                stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               close_fds=True)
+                               stderr=subprocess.STDOUT)
     process.wait()
     lines = process.stdout.readlines()
     for line in lines:
@@ -197,6 +196,7 @@ def build_release_notes(repo, branch):
     
     re_ticket_old = re.compile(r'<ticket>(.*?)</ticket>', re.M | re.S)
     re_ticket = re.compile(r'^Ticket: (.*?)$', re.M | re.S)
+    re_ticket2 = re.compile(r'^Fixes: (.*?)$', re.M | re.S)
     re_bugfix_old = re.compile(r'<bugfix>(.*?)</bugfix>', re.M | re.S)
     re_bugfix = re.compile(r'^Bugfix: (.*?)$', re.M | re.S)
     re_feature_old = re.compile(r'<feature>(.*?)</feature>', re.M | re.S)
@@ -223,9 +223,10 @@ def build_release_notes(repo, branch):
         lf = re_feature.findall(log.message)
         lf.extend(re_feature_old.findall(log.message))
         lt = re_ticket.findall(log.message)
+        lt.extend(re_ticket2.findall(log.message))
         lt.extend(re_ticket_old.findall(log.message))
         lb = re_bugfix.findall(log.message)
-        lb.extend(re_ticket_old.findall(log.message))
+        lb.extend(re_bugfix_old.findall(log.message))
         for s in ls:
             changes[s.strip()] = log.hexsha
         for f in lf:
@@ -257,13 +258,13 @@ def build_release_notes(repo, branch):
                                                                password)
     server = xmlrpclib.ServerProxy(url)
     print "downloading tickets.",
-    for (tid,r) in tickets.iteritems():
+    for (tid,r) in tickets.items():
         print ".",
         sys.stdout.flush()
         try:
             ticket_info[tid] = server.ticket.get(tid)
         except Exception, e:
-            tickets.remove(tid)
+            del tickets[tid]
             print "commit %s: Could not get info for ticket %s"%(r,tid)
     print "done."
 

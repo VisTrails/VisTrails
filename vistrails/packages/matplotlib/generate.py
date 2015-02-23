@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+
+from __future__ import division
+
 from mako.template import Template
 import sys
 from specs import SpecList

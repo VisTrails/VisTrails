@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import os
 import re
 from itertools import chain
@@ -42,7 +45,7 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.sub_module import read_vistrail, new_abstraction, \
     get_abstraction_dependencies, save_abstraction
 import vistrails.core.modules.module_registry
-from vistrails.core.system import vistrails_version
+from vistrails.core.system import vistrails_version, get_vistrails_directory
 from vistrails.core.utils import InvalidPipeline
 
 name = 'My SubWorkflows'
@@ -56,17 +59,6 @@ def initialize(*args, **kwargs):
     manager = vistrails.core.packagemanager.get_package_manager()
 
     reg = vistrails.core.modules.module_registry.get_module_registry()
-#     conf = get_vistrails_configuration()
-#     if conf.check("userPackageDirectory"):
-#         if conf.check('userPackageDirectory'):
-#             abstraction_dir = os.path.join(conf.userPackageDirectory,
-#                                            'abstractions')
-
-#     abs_fnames = []
-#     p = re.compile(r".*\.vt")
-#     for abstraction in os.listdir(abstraction_dir):
-#         if p.match(abstraction):
-#             abs_fnames.append(os.path.join(abstraction_dir, abstraction))
     abs_vistrails = my_vistrails
     last_count = len(my_vistrails) + 1
 
@@ -82,7 +74,7 @@ def initialize(*args, **kwargs):
                 if package != identifier:
                     if not manager.has_package(package):
                         add_abstraction = False
-                        cannot_load[abs_name] = abs_vistrail
+                        cannot_load[abs_name] = (abs_vistrail, "Missing package dependency: %s" % package)
                         break
                 else:
                     for descriptor_info in inter_depends:
@@ -146,15 +138,18 @@ def package_dependencies():
 
     reg = vistrails.core.modules.module_registry.get_module_registry()
     conf = get_vistrails_configuration()
-    if conf.check("abstractionsDirectory"):
-        abstraction_dir = conf.abstractionsDirectory
+
+    abstraction_dir = get_vistrails_directory("subworkflowsDir")
+    if abstraction_dir is None:
+        debug.log("Subworkflows directory unset, cannot add any abstractions")
+        return []
     p = re.compile(r".*\.xml")
     all_packages = set()
     for abstraction in os.listdir(abstraction_dir):
         if p.match(abstraction):
             abs_fname = os.path.join(abstraction_dir, abstraction)
+            vistrail = read_vistrail(abs_fname)
             try:
-                vistrail = read_vistrail(abs_fname)
                 dependencies = get_abstraction_dependencies(vistrail)
             except vistrails.core.modules.module_registry.MissingPackage, e:
                 dependencies = {e._identifier: set()}

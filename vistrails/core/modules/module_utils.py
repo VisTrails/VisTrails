@@ -1,38 +1,41 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 # Utilities for user-defined Modules
+from __future__ import division
+
 import os
 import tempfile
 from vistrails.core.modules import basic_modules
@@ -54,8 +57,8 @@ class FilePool(object):
     
     def __init__(self):
         d = {'prefix':'vt_tmp'}
-        if get_vistrails_configuration().check('temporaryDirectory'):
-            dir = get_vistrails_configuration().temporaryDirectory
+        if get_vistrails_configuration().check('temporaryDir'):
+            dir = get_vistrails_configuration().temporaryDir
             if os.path.exists(dir):
                 d['dir'] = dir
             else:
@@ -83,12 +86,13 @@ class FilePool(object):
                     os.rmdir(os.path.join(root, name))
             os.rmdir(self.directory)
         except OSError, e:
+            debug.unexpected_exception(e)
             raise VistrailsInternalError("Can't remove %s: %s" %
                                          (self.directory,
                                           debug.format_exception(e)))
 
     def create_file(self, suffix = '', prefix = 'vt_tmp'):
-        """create_file(suffix='', prefix='vt_tmp') -> File.
+        """create_file(suffix='', prefix='vt_tmp') -> PathObject.
 
         Returns a File module representing a writable file for use in
         modules. To avoid race conditions, this file will already
@@ -99,26 +103,21 @@ class FilePool(object):
                                       prefix=prefix,
                                       dir=self.directory)
         os.close(fd)
-        result = basic_modules.File()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
 
     def create_directory(self, suffix = '', prefix = 'vt_tmp'):
-        """create_directory(suffix='', prefix='vt_tmp') -> Directory.
+        """create_directory(suffix='', prefix='vt_tmp') -> PathObject.
 
-        Returns a Directory module representing a writable directory
-        for use in modules. To avoid race conditions, this directory
-        will already exist in the file system.
+        Returns a writable directory for use in modules. To avoid race
+        conditions, this directory will already exist in the file system.
 
         """
         name = tempfile.mkdtemp(suffix=suffix,
                                       prefix=prefix,
                                       dir=self.directory)
-        result = basic_modules.Directory()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
 
@@ -130,7 +129,7 @@ class FilePool(object):
         return os.path.splitext(file_name)[1]
 
     def make_local_copy(self, src):
-        """make_local_copy(src) -> File
+        """make_local_copy(src) -> PathObject
 
         Returns a file in the filePool that's either a link or a copy
         of the given file path. This ensures the file's longevity when
@@ -145,9 +144,7 @@ class FilePool(object):
         # FIXME: Watch out for race conditions
         os.unlink(name)
         link_or_copy(src, name)
-        result = basic_modules.File()
-        result.name = name
-        result.upToDate = True
+        result = basic_modules.PathObject(name)
         self.files[name] = result
         return result
         

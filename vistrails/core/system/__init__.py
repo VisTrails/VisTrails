@@ -1,38 +1,39 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import with_statement
+from __future__ import division, with_statement
 
 import datetime
 import functools
@@ -144,6 +145,18 @@ def get_vistrails_default_pkg_prefix():
 
 def get_vistrails_basic_pkg_id():
     return "%s.basic" % get_vistrails_default_pkg_prefix()
+
+def get_vistrails_directory(config_key, conf=None):
+    if conf is None:
+        from vistrails.core.configuration import get_vistrails_configuration
+        conf = get_vistrails_configuration()
+    if conf.has_deep_value(config_key):
+        d = conf.get_deep_value(config_key)
+        if os.path.isabs(d):
+            return d
+        else:
+            return os.path.join(current_dot_vistrails(conf), d)
+    return None
 
 def set_vistrails_data_directory(d):
     """ set_vistrails_data_directory(d:str) -> None
@@ -263,13 +276,15 @@ def default_dot_vistrails():
     """
     return os.path.join(home_directory(), '.vistrails')
 
-def current_dot_vistrails():
+def current_dot_vistrails(conf=None):
     """ current_dot_vistrails() -> str
     Returns the VisTrails per-user directory.
 
     """
-    from vistrails.core.configuration import get_vistrails_configuration
-    return get_vistrails_configuration().dotVistrails
+    if conf is None:
+        from vistrails.core.configuration import get_vistrails_configuration
+        conf = get_vistrails_configuration()
+    return conf.dotVistrails
 
 def default_connections_file():
     """ default_connections_file() -> str
@@ -278,6 +293,7 @@ def default_connections_file():
     """
     return os.path.join(current_dot_vistrails(), 'connections.xml')
 
+VERSION = '2.2'
 def vistrails_version():
     """vistrails_version() -> string - Returns the current VisTrails version."""
     # 0.1 was the Vis2005 version
@@ -285,7 +301,7 @@ def vistrails_version():
     # 0.3 was the plugin/vtk version
     # 0.4 is cleaned up version with new GUI
     # 1.0 is version with new schema
-    return '2.1.1'
+    return VERSION
 
 def get_latest_vistrails_version():
     """get_latest_vistrails_version() -> string - Returns latest vistrails
@@ -331,27 +347,37 @@ def vistrails_revision():
     """
     git_dir = os.path.join(vistrails_root_directory(), '..')
     with Chdir(git_dir):
-        release = "90975fc00211"
+        release = vistrails_version()
         import vistrails.core.requirements
         if vistrails.core.requirements.executable_file_exists('git'):
             lines = []
             result = execute_cmdline(
-                ['git', 'describe', '--always', '--abbrev=12'],
+                ['git', 'describe', '--always'],
                 lines)
             if len(lines) == 1:
                 if result == 0:
                     release = lines[0].strip(" \n")
     return release
 
+
+_registry = None
+def get_module_registry():
+    global _registry
+    if _registry is None:
+        from vistrails.core.modules.module_registry import get_module_registry
+        _registry = get_module_registry()
+    return _registry
+
 def short_about_string():
-    return """VisTrails version %s.%s -- contact@vistrails.org""" % \
+    return """VisTrails version %s (%s) -- contact@vistrails.org""" % \
             (vistrails_version(), vistrails_revision())
 
 def about_string():
     """about_string() -> string - Returns the about string for VisTrails."""
-    return """VisTrails version %s.%s -- contact@vistrails.org
+    return """VisTrails version %s (%s) -- contact@vistrails.org
 
-Copyright (C) 2011-2014 NYU-Poly. Copyright (C) 2006-2011 University of Utah. 
+Copyright (C) 2014-2015 New York University. Copyright (C) 2011-2014 NYU-Poly.
+Copyright (C) 2006-2011 University of Utah.
 All rights reserved.
 http://www.vistrails.org
 
@@ -362,19 +388,19 @@ modification, are permitted provided that the following conditions are met:
     * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-    * Neither the name of the University of Utah nor the
+    * Neither the name of the New York University nor the
       names of its contributors may be used to endorse or promote products
       derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" \
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE \
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE \
-ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, \
-INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, \
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, \
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY \
-OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING \
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, \
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.""" % (vistrails_version(),
                                                          vistrails_revision())
 
@@ -396,12 +422,12 @@ class TestSystem(unittest.TestCase):
                     self.assertEquals(v1, vistrails_revision())
             except AssertionError:
                 raise
-            except:
+            except Exception:
                 pass
             try:
                 with Chdir(os.path.join(r, '..', '..')):
                     self.assertEquals(v1, vistrails_revision())
             except AssertionError:
                 raise
-            except:
+            except Exception:
                 pass

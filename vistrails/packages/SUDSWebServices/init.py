@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import sys
 import os.path
 import shutil
@@ -136,10 +139,10 @@ def initialize(*args, **keywords):
         try:
             debug.log("Creating SUDS cache directory...")
             os.mkdir(location)
-        except:
+        except OSError, e:
             debug.critical(
 """Could not create SUDS cache directory. Make sure
-'%s' does not exist and parent directory is writable""" % location)
+'%s' does not exist and parent directory is writable""" % location, e)
             sys.exit(1)
     # the number of days to cache wsdl files
     days = 1
@@ -175,7 +178,7 @@ def finalize():
         if s.package:
             reg.remove_package(s.package)
 
-class WSMethod:
+class WSMethod(object):
     """ A WSDL method
     """
     def __init__(self, qname=('','')):
@@ -184,7 +187,7 @@ class WSMethod:
         self.inputs = {}
         self.outputs = {}
 
-class WSElement:
+class WSElement(object):
     """ A part of a WSDL type
     """
     def __init__(self, name='', type=('',''), optional=False, min=0,
@@ -196,7 +199,7 @@ class WSElement:
         self.max = max
         self.enum = enum
 
-class WSType:
+class WSType(object):
     """ A WSDL type definition
     """
     def __init__(self, qname=('',''), enum=False):
@@ -205,7 +208,7 @@ class WSType:
         "name: WSElement"
         self.parts = {}
  
-class Service:
+class Service(object):
     def __init__(self, address):
         """ Process WSDL and add all Types and Methods
         """
@@ -605,8 +608,9 @@ It is a WSDL type with signature:
                     #self.service.service.set_options(retxml = False)
                     result = getattr(self.service.service.service, mname)(**params)
                 except Exception, e:
+                    debug.unexpected_exception(e)
                     raise ModuleError(self, "Error invoking method %s: %s" % (
-                            name, debug.format_exception(e)))
+                            mname, debug.format_exception(e)))
                 for name, qtype in self.wsmethod.outputs.iteritems():
                     if isinstance(result, list):
                         # if result is a list just set the output
@@ -627,7 +631,7 @@ It is a WSDL type with signature:
                         self.set_output(name, getattr(result, name))
                     else:
                         # nothing matches - assume it is an attribute of the correct class
-                        class UberClass:
+                        class UberClass(object):
                             def __init__(self, value):
                                 self.value = value
                         self.set_output(name, UberClass(result))
@@ -684,7 +688,8 @@ def load_from_signature(signature):
     if not wsdl in wsdlList:
         try:
             service = Service(wsdl)
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return False
         if not service.service:
             return False
@@ -742,7 +747,8 @@ def handle_missing_module(controller, module_id, pipeline):
         try:
             wsdl = m_namespace.split("|")
             return wsdl[0]
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return None
     
     m = pipeline.modules[module_id]

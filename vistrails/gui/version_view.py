@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -44,21 +45,24 @@ QGraphicsVersionItem
 QVersionTreeScene
 QVersionTreeView
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
+from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core import debug
 from vistrails.core.system import systemType
 from vistrails.core.thumbnails import ThumbnailCache
+from vistrails.core.vistrail.controller import custom_color_key, \
+    parse_custom_color
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
-                               QGraphicsItemInterface,
-                               QGraphicsRubberBandItem)
+                               QGraphicsItemInterface)
 from vistrails.gui.qt import qt_super
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.version_prop import QVersionPropOverlay
-from vistrails.gui.vis_diff import QVisualDiff
 from vistrails.gui.collection.workspace import QParamExplorationEntityItem
 import vistrails.gui.utils
-import math
 
 
 ################################################################################
@@ -130,8 +134,8 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
 
         # check if it is the same geometry 
         # improves performance on updates
-        if self.c1 != None and self.c2 != None and \
-                self.expand != None and self.collapse !=None:
+        if self.c1 is not None and self.c2 is not None and \
+                self.expand is not None and self.collapse !=None:
             isTheSame = self.c1 == c1 and \
                 self.c2 == c2 and \
                 self.expand == expand and \
@@ -477,7 +481,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                 self._versionPen = self._versionPenNormal
             self.updatePainterState()
 
-    def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted):
+    def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted,
+                     new_customcolor):
         """ update_color(isThisUs: bool,
                          new_rank, new_max_rank: int) -> None
 
@@ -487,22 +492,35 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         NOTE: if username changes during execution, this might break.
         """
         if (new_rank == self.rank and new_max_rank == self.max_rank and
-            new_ghosted == self.ghosted):
+            new_ghosted == self.ghosted and
+            new_customcolor == self.custom_color):
             # nothing changed
             return
         self.setGhosted(new_ghosted)
+        self.custom_color = new_customcolor
         self.rank = new_rank
         self.max_rank = new_max_rank
         if not self.ghosted:
-            if isThisUs:
-                brush = CurrentTheme.VERSION_USER_BRUSH
+            if self.custom_color is not None:
+                configuration = get_vistrails_configuration()
+                sat_from_rank = not configuration.check(
+                        'fixedCustomVersionColorSaturation')
+                brush = QtGui.QBrush(QtGui.QColor.fromRgb(*self.custom_color))
             else:
-                brush = CurrentTheme.VERSION_OTHER_BRUSH
-            sat = float(new_rank+1) / new_max_rank
-            (h, s, v, a) = brush.color().getHsvF()
-            newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
-            self.versionBrush = QtGui.QBrush(QtGui.QColor.fromHsvF(*newHsv))
-                
+                if isThisUs:
+                    brush = CurrentTheme.VERSION_USER_BRUSH
+                else:
+                    brush = CurrentTheme.VERSION_OTHER_BRUSH
+                sat_from_rank = True
+            if sat_from_rank:
+                sat = float(new_rank+1) / new_max_rank
+                (h, s, v, a) = brush.color().getHsvF()
+                newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
+                brush = QtGui.QBrush(brush)
+                brush.setColor(QtGui.QColor.fromHsvF(*newHsv))
+            self.versionBrush = brush
+        self.update()
+
     def setSaturation(self, isThisUser, sat):
         """ setSaturation(isThisUser: bool, sat: float) -> None        
         Set the color of this version depending on whose is the user
@@ -573,7 +591,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             textToDraw=self.label
         else:
             textToDraw=self.descriptionLabel
-        
+
         if (ThumbnailCache.getInstance().conf.mouseHover and
             action and action.thumbnail is not None):
             fname = ThumbnailCache.getInstance().get_abs_name_entry(action.thumbnail)
@@ -775,12 +793,13 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.select_by_click = True
         self.connect(self, QtCore.SIGNAL("selectionChanged()"),
                      self.selectionChanged)
-   
+
     def addVersion(self, node, action, tag, description):
-        """ addModule(node, action: DBAction, tag: str, description: str) 
+        """ addModule(node, action: DBAction, tag: str, description: str,
+                custom_color: (int, int, int))
                 -> None
         Add a module to the scene.
-        
+
         """
         versionShape = QGraphicsVersionItem(None)
         versionShape.setupVersion(node, action, tag, description)
@@ -860,9 +879,24 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             else:
                 max_rank = otherMaxRank
 #             max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
+            configuration = get_vistrails_configuration()
+            if configuration.check('enableCustomVersionColors'):
+                custom_color = controller.vistrail.get_action_annotation(
+                    nodeId,
+                    custom_color_key)
+                if custom_color is not None:
+                    try:
+                        custom_color = parse_custom_color(custom_color.value)
+                    except ValueError, e:
+                        debug.warning("Version %r has invalid color annotation "
+                                      "(%s)" % (nodeId, e))
+                        custom_color = None
+            else:
+                custom_color = None
+            ####
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],
-                              max_rank, ghosted)
+                              max_rank, ghosted, custom_color)
         for (version_from, version_to), link in self.edges.iteritems():
             if self.versions[version_from].ghosted and \
                     self.versions[version_to].ghosted:
@@ -1225,7 +1259,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
     def set_controller(self, controller):
         oldController = self.controller
         if oldController != controller:
-            if oldController != None:
+            if oldController is not None:
                 self.disconnect(oldController,
                                 QtCore.SIGNAL('vistrailChanged()'),
                                 self.vistrailChanged)

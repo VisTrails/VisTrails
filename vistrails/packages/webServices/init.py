@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from __future__ import division
 
 import sys
 import os.path
@@ -125,7 +128,7 @@ def webServiceTypesDict(WBobj):
             nameattrib = nameattrib[0].upper() + nameattrib[1:]
             sentence = "visobj" + "." + nameattrib
             visdata = eval(sentence)
-            if visdata != None:
+            if visdata is not None:
                 try:
                     Type = wsdlTypesDict[str(typechild)]
                     setattr(libobj,nameattrib,visdata)
@@ -148,7 +151,7 @@ def webServiceTypesDict(WBobj):
                 nameattribute = nameattrib[0].upper() + nameattrib[1:]
                 sentence = "visobj" + "." + nameattribute
                 visdata = eval(sentence)
-                if visdata != None:
+                if visdata is not None:
                     nameattrib = "attribute_typecode_dict[" + nameattrib + "].pname"
                     setattr(libobj,nameattrib,visdata)
 
@@ -330,7 +333,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
         if isinstance(resp, list):
             ptype = resp[0].typecode.type[1]
         else:
-            if resp.typecode.type[1] == None:
+            if resp.typecode.type[1] is None:
                 ptype = resp.typecode.pname
             else:    
                 ptype = resp.typecode.type[1]
@@ -434,10 +437,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                 if str(element.name) == str(name):
                     #get the request method name
                     reqname = element.input.getMessage().name
-            try:
-                req = getattr(self.modclient,reqname)()
-            except:
-                print "sys.exc_value: ", sys.exc_value
+            req = getattr(self.modclient,reqname)()
             for inparam in inparams:
                 #Now set all attributes for the request object
                 if self.has_input(inparam.name):
@@ -553,12 +553,12 @@ def processType(complexschema,w):
 
     if complexschema.isElement():
         try:
-            if complexschema.content.content == None:
+            if complexschema.content.content is None:
                 contentschema = []
             else:    
                 contentschema = complexschema.content.content.content
             objModule.typeobj = 'ComplexType'
-            if (complexschema.content.content == None or
+            if (complexschema.content.content is None or
                 complexschema.content.content.content == ()):
                 objModule.isEmptySequence = True
         except AttributeError:
@@ -577,7 +577,7 @@ def processType(complexschema,w):
             contentschema = complexschema.content.content
     try:       
         #Get all the attributes of the complex type
-        if complexschema.attr_content != None:
+        if complexschema.attr_content is not None:
             for attribute in complexschema.attr_content:
                 nametype = attribute.getAttributeName()
                 Type = 'string'
@@ -985,10 +985,8 @@ be loaded again." % w
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
-        package_subdirectory = os.path.join(package_directory, directoryname)
         wsm = WriteServiceModule(wsdl)
         client_mod = wsm.getClientModuleName()
-        types_mod = wsm.getTypesModuleName()
 
         #import the stub generated files
         try:
@@ -1340,17 +1338,17 @@ def verify_wsdl(wsdlList):
         response = conn.getresponse()
         remoteHeader = response.msg.getheader('last-modified')
         isoutdated = False
-        if remoteHeader != None:
+        if remoteHeader is not None:
             localFile = client_file
             reg = vistrails.core.modules.module_registry.get_module_registry()
             httpfile = reg.get_descriptor_by_name(
-                'org.vistrails.vistrails.http', 'HTTPFile').module()
+                'org.vistrails.vistrails.url', 'DownloadFile').module()
             try:
                 isoutdated = httpfile._is_outdated(remoteHeader, localFile)
             except OSError:
                 print "File doesn't exist"
                 isoutdated = True
-        if isoutdated or remoteHeader == None:
+        if isoutdated or remoteHeader is None:
             outdated_list.append(w)
         else:
             updated_list.append(w)
@@ -1362,18 +1360,11 @@ def initialize(*args, **keywords):
     global webServicesmodulesDict
     global complexsdict
     wsdlList = []
-    if configuration.showWarning == True:
-        msg = "The Web Services package is deprecated and will be removed from \
-next VisTrails release. Please consider using the new SUDS Web Services package. \
-This message will not be shown again."
-        pm.show_error_message(pm.get_package(identifier),msg)
-        try:
-            from vistrails.gui.application import get_vistrails_application
-            if get_vistrails_application() is not None:
-                configuration.showWarning = False
-                VisTrailsApplication.save_configuration()
-        except:
-            pass
+    if configuration.showWarning:
+        msg = ("The Web Services package is deprecated and will be removed "
+               "from the next VisTrails release. Please consider using the "
+               "new SUDS Web Services package.")
+        pm.show_error_message(pm.get_package(identifier), msg)
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
 

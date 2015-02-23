@@ -1,4 +1,5 @@
 import contextlib
+import logging
 import sys
 
 try:
@@ -104,15 +105,19 @@ def execute(modules, connections=[], add_port_specs=[],
         except MissingPackage:
             if not enable_pkg:
                 raise
-            pkg = pm.identifier_is_available(identifier)
-            if pkg:
+            dep_graph = pm.build_dependency_graph([identifier])
+            for pkg_id in pm.get_ordered_dependencies(dep_graph):
+                pkg = pm.identifier_is_available(pkg_id)
+                if pkg is None:
+                    raise
                 pm.late_enable_package(pkg.codepath)
-                pkg = pm.get_package(identifier)
+            pkg = pm.get_package(identifier)
 
         for func_name, params in functions:
             param_list = []
-            for param_type, param_val in params:
-                param_list.append(ModuleParam(type=param_type,
+            for j, (param_type, param_val) in enumerate(params):
+                param_list.append(ModuleParam(pos=j,
+                                              type=param_type,
                                               val=param_val))
             function_list.append(ModuleFunction(name=func_name,
                                                 parameters=param_list))
@@ -224,13 +229,68 @@ def intercept_results(*args):
 
 
 @contextlib.contextmanager
-def capture_stdout():
+def capture_stream(stream):
     lines = []
-    old_stdout = sys.stdout
+    old = getattr(sys, stream)
     sio = StringIO.StringIO()
-    sys.stdout = sio
-    yield lines
-    sys.stdout = old_stdout
-    lines.extend(sio.getvalue().split('\n'))
-    if lines and not lines[-1]:
-        del lines[-1]
+    setattr(sys, stream, sio)
+    try:
+        yield lines
+    finally:
+        setattr(sys, stream,  old)
+        lines.extend(sio.getvalue().split('\n'))
+        if lines and not lines[-1]:
+            del lines[-1]
+
+
+@contextlib.contextmanager
+def capture_stdout():
+    with capture_stream('stdout') as lines:
+        yield lines
+
+
+@contextlib.contextmanager
+def capture_stderr():
+    with capture_stream('stderr') as lines:
+        yield lines
+
+
+class MockLogHandler(logging.Handler):
+    """Mock logging handler to check for expected logs.
+    """
+    def __init__(self, mock_logger, *args, **kwargs):
+        self._mock_logger = mock_logger
+        self.reset()
+        logging.Handler.__init__(self, *args, **kwargs)
+
+    def emit(self, record):
+        self.messages[record.levelname.lower()].append(record.getMessage())
+
+    def reset(self):
+        self.messages = {
+            'debug': [],
+            'info': [],
+            'warning': [],
+            'error': [],
+            'critical': [],
+        }
+
+    def __enter__(self):
+        if hasattr(logging, '_acquireLock'):
+            logging._acquireLock()
+        try:
+            self._orig_handlers = self._mock_logger.handlers
+            self._mock_logger.handlers = [self]
+        finally:
+            if hasattr(logging, '_acquireLock'):
+                logging._releaseLock()
+        return self
+
+    def __exit__(self, etype, evalue, etraceback):
+        if hasattr(logging, '_acquireLock'):
+            logging._acquireLock()
+        try:
+            self._mock_logger.handlers = self._orig_handlers
+        finally:
+            if hasattr(logging, '_acquireLock'):
+                logging._releaseLock()

@@ -1312,14 +1312,18 @@ For efficiency, if the path happens to be an axis-aligned rectangle, this method
     <inputPortSpec arg="pad" name="pad" port_type="basic:Float">
       <docstring>Set the tick label pad in points</docstring>
     </inputPortSpec>
-    <inputPortSpec arg="gridOn" arg_pos="11" not_setp="True" name="gridOn" />
+    <inputPortSpec arg="gridOn" arg_pos="11" not_setp="True" name="gridOn" port_type="basic:Boolean">
+      <docstring>a boolean which determines whether to draw the tickline</docstring>
+    </inputPortSpec>
     <inputPortSpec arg="zorder" arg_pos="10" constructor_arg="True" name="zorder" />
     <inputPortSpec arg="tick2On" arg_pos="13" not_setp="True" name="tick2On" port_type="basic:Boolean">
       <defaults>['True']</defaults>
+      <docstring>a boolean which determines whether to draw the 2nd tickline</docstring>
     </inputPortSpec>
     <inputPortSpec arg="labelsize" arg_pos="8" constructor_arg="True" name="labelsize" />
     <inputPortSpec arg="width" arg_pos="4" constructor_arg="True" name="width" />
     <inputPortSpec arg="tick1On" arg_pos="12" not_setp="True" name="tick1On" port_type="basic:Boolean">
+      <docstring>a boolean which determines whether to draw the 1st tickline</docstring>
       <defaults>['True']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="size" arg_pos="3" constructor_arg="True" name="size" />

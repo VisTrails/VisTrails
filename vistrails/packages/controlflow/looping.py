@@ -1,11 +1,22 @@
+from __future__ import division
+
+from base64 import b16encode, b16decode
 import copy
 from itertools import izip
 import time
 
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleError, ModuleConnector, ModuleSuspended, ModuleWasSuspended
+from vistrails.core.utils import xor, long2bytes
 
 from fold import create_constant
+
+try:
+    import hashlib
+    sha1_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha1_hash = sha.new
 
 
 class While(Module):
@@ -96,22 +107,25 @@ class While(Module):
 
                 # Set state on input ports
                 if i > 0 and name_state_input:
-                    for value, port in izip(state, name_state_input):
-                        if port in module.inputPorts:
-                            del module.inputPorts[port]
+                    for value, input_port, output_port \
+                    in izip(state, name_state_input, name_state_output):
+                        if input_port in module.inputPorts:
+                            del module.inputPorts[input_port]
                         new_connector = ModuleConnector(
-                                create_constant(value),
-                                'value')
-                        module.set_input_port(port, new_connector)
+                                           create_constant(value), 'value',
+                                           module.output_specs.get(output_port, None))
+                        module.set_input_port(input_port, new_connector)
+                        # Affix a fake signature on the module
+                        inputPort_hash = sha1_hash()
+                        inputPort_hash.update(input_port)
+                        module.signature = b16encode(xor(
+                                b16decode(self.signature.upper()),
+                                inputPort_hash.digest()))
 
             loop.begin_iteration(module, i)
 
-            try:
-                module.update() # might raise ModuleError, ModuleSuspended,
-                                # ModuleHadError, ModuleWasSuspended
-            except ModuleSuspended, e:
-                e.loop_iteration = i
-                raise
+            module.update() # might raise ModuleError, ModuleSuspended,
+                            # ModuleHadError, ModuleWasSuspended
 
             loop.end_iteration(module)
 
@@ -211,17 +225,22 @@ class For(Module):
                 if name_input is not None:
                     if name_input in module.inputPorts:
                         del module.inputPorts[name_input]
-                    new_connector = ModuleConnector(
-                            create_constant(i),
-                            'value')
+                    new_connector = ModuleConnector(create_constant(i),
+                                                    'value')
                     module.set_input_port(name_input, new_connector)
+                    # Affix a fake signature on the module
+                    inputPort_hash = sha1_hash()
+                    inputPort_hash.update(name_input)
+                    module.signature = b16encode(xor(
+                            b16decode(self.signature.upper()),
+                            long2bytes(i, 20),
+                            inputPort_hash.digest()))
 
             loop.begin_iteration(module, i)
 
             try:
                 module.update()
             except ModuleSuspended, e:
-                e.loop_iteration = i
                 suspended.append(e)
                 loop.end_iteration(module)
                 continue

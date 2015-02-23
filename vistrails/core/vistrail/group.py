@@ -1,43 +1,47 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import copy
 from itertools import izip
 
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.location import Location
 from vistrails.core.vistrail.module import Module
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.port_spec import PortSpec, PortEndPoint
 from vistrails.db.domain import DBGroup
@@ -108,6 +112,8 @@ class Group(DBGroup, Module):
             ModuleFunction.convert(_function)
         for _annotation in _group.db_get_annotations():
             Annotation.convert(_annotation)
+        for _control_parameter in _group.db_get_controlParameters():
+            ModuleControlParam.convert(_control_parameter)
         _group.set_defaults()
 
     ##########################################################################
@@ -117,6 +123,7 @@ class Group(DBGroup, Module):
     id = DBGroup.db_id
     cache = DBGroup.db_cache
     annotations = DBGroup.db_annotations
+    control_parameters = DBGroup.db_controlParameters
     location = DBGroup.db_location
     center = DBGroup.db_location
     # version = DBGroup.db_version
@@ -131,22 +138,6 @@ class Group(DBGroup, Module):
     namespace = None
     version = basic_pkg_version
     internal_version = ''
-
-    def summon(self):
-        result = self.module_descriptor.module()
-        result.pipeline = self.pipeline
-        if self._port_specs is None:
-            self.make_port_specs()
-        result.input_remap = self._input_remap
-        result.output_remap = self._output_remap
-        if self.cache != 1:
-            result.is_cacheable = lambda *args: False
-        if hasattr(result, 'input_ports_order'):
-            result.input_ports_order = [p.name for p in self.destinationPorts()]
-        if hasattr(result, 'output_ports_order'):
-            result.output_ports_order = [p.name for p in self.sourcePorts()]
-        result.registry = get_module_registry()
-        return result
 
     def is_group(self):
         return True
@@ -235,20 +226,20 @@ class Group(DBGroup, Module):
         registry = get_module_registry()
         for module in self.pipeline.module_list:
             if module.name == 'OutputPort' and module.package == basic_pkg:
-                (port_name, sigstring, optional, _) = \
+                (port_name, sigstring, optional, depth, _) = \
                     self.get_port_spec_info(module)
                 port_spec = registry.create_port_spec(port_name, 'output',
                                                       None, sigstring,
-                                                      optional)
+                                                      optional, depth=depth)
                 self._port_specs[(port_name, 'output')] = port_spec
                 self._output_port_specs.append(port_spec)
                 self._output_remap[port_name] = module
             elif module.name == 'InputPort' and module.package == basic_pkg:
-                (port_name, sigstring, optional, _) = \
+                (port_name, sigstring, optional, depth, _) = \
                     self.get_port_spec_info(module)
                 port_spec = registry.create_port_spec(port_name, 'input',
                                                       None, sigstring,
-                                                      optional)
+                                                      optional, depth=depth)
                 self._port_specs[(port_name, 'input')] = port_spec
                 self._input_port_specs.append(port_spec)
                 self._input_remap[port_name] = module

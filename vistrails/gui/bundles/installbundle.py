@@ -1,39 +1,42 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 
 """Module with utilities to try and install a bundle if possible."""
+from __future__ import division
+
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration, \
     get_vistrails_persistent_configuration
@@ -42,21 +45,19 @@ from vistrails.core.system import executable_is_in_path, get_executable_path
 from vistrails.core.system import vistrails_root_directory, systemType
 from vistrails.gui.bundles.utils import guess_system, guess_graphical_sudo
 import vistrails.gui.bundles.installbundle # this is on purpose
+from vistrails.gui.requirements import qt_available
+import imp
+import os
 import subprocess
 import sys
 
 ##############################################################################
 
-def has_qt():
-    try:
-        import PyQt4.QtGui
-        return True
-    except ImportError:
-        return False
-
 pip_installed = True
 try:
-    import pip
+    imp.find_module('pip')
+    # Here we do not actually import pip, to avoid pip issue #1314
+    # https://github.com/pypa/pip/issues/1314
 except ImportError:
     pip_installed = False
 
@@ -72,7 +73,7 @@ def shell_escape(arg):
     return '"%s"' % arg.replace('\\', '\\\\').replace('"', '\\"')
 
 
-def run_install_command_as_root(graphical, cmd, args):
+def run_install_command(graphical, cmd, args, as_root=True):
     if isinstance(args, str):
         cmd += ' %s' % shell_escape(args)
     elif isinstance(args, list):
@@ -83,27 +84,29 @@ def run_install_command_as_root(graphical, cmd, args):
     else:
         raise TypeError("Expected string or list of strings")
 
-    if graphical:
-        sucmd, escape = guess_graphical_sudo()
-    else:
-        debug.warning("VisTrails wants to install package(s) %r" %
-                      args)
-        if get_executable_path('sudo'):
-            sucmd, escape = "sudo %s", False
-        elif systemType not in ['Darwin', 'Windows']:
-            sucmd, escape = "su -c %s", True
+    debug.warning("VisTrails wants to install package(s) %r" %
+                  args)
+
+    if as_root and systemType != 'Windows':
+        if graphical:
+            sucmd, escape = guess_graphical_sudo()
         else:
-            sucmd, escape = '%s', False
+            if get_executable_path('sudo'):
+                sucmd, escape = "sudo %s", False
+            elif systemType != 'Darwin':
+                sucmd, escape = "su -c %s", True
+            else:
+                sucmd, escape = '%s', False
 
-    if escape:
-        sucmd = sucmd % shell_escape(cmd)
-    else:
-        sucmd = sucmd % cmd
+        if escape:
+            cmd = sucmd % shell_escape(cmd)
+        else:
+            cmd = sucmd % cmd
 
-    print "about to run: %s" % sucmd
-    p = subprocess.Popen(sucmd, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT,
-                                shell=True)
+    print "about to run: %s" % cmd
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT,
+                              shell=True)
     lines = []
     try:
         for line in iter(p.stdout.readline, ''):
@@ -120,7 +123,7 @@ def run_install_command_as_root(graphical, cmd, args):
 
 
 def linux_debian_install(package_name):
-    qt = has_qt()
+    qt = qt_available()
     try:
         import apt
         import apt_pkg
@@ -136,13 +139,13 @@ def linux_debian_install(package_name):
                                  if executable_is_in_path('aptitude')
                                  else 'apt-get')
 
-    return run_install_command_as_root(qt, cmd, package_name)
+    return run_install_command(qt, cmd, package_name)
 
 linux_ubuntu_install = linux_debian_install
 
 
 def linux_fedora_install(package_name):
-    qt = has_qt()
+    qt = qt_available()
     hide_splash_if_necessary()
 
     if qt:
@@ -151,7 +154,7 @@ def linux_fedora_install(package_name):
     else:
         cmd = 'yum -y install'
 
-    return run_install_command_as_root(qt, cmd, package_name)
+    return run_install_command(qt, cmd, package_name)
 
 
 def pip_install(package_name):
@@ -161,13 +164,25 @@ def pip_install(package_name):
         cmd = '%s install' % shell_escape(get_executable_path('pip'))
     else:
         cmd = shell_escape(sys.executable) + ' -m pip install'
-    return run_install_command_as_root(has_qt(), cmd, package_name)
+
+    if systemType != 'Windows':
+        use_root = True
+        try:
+            from distutils.sysconfig import get_python_lib
+            f = get_python_lib()
+        except Exception:
+            f = sys.executable
+        use_root = os.stat(f).st_uid == 0
+    else:
+        use_root = False
+
+    return run_install_command(qt_available(), cmd, package_name, use_root)
 
 def show_question(which_files, has_distro_pkg, has_pip):
-    if has_qt():
+    if isinstance(which_files, str):
+        which_files = [which_files]
+    if qt_available():
         from PyQt4 import QtCore, QtGui
-        if isinstance(which_files, str):
-            which_files = [which_files]
         dialog = QtGui.QDialog()
         dialog.setWindowTitle("Required packages missing")
         layout = QtGui.QVBoxLayout()
@@ -223,11 +238,11 @@ def show_question(which_files, has_distro_pkg, has_pip):
                     return 'pip'
             return 'distro'
     else:
-        print "\nRequired package missing"
-        print ("A required package is missing, but VisTrails can " +
-               "automatically install it. " +
-               "If you say Yes, VisTrails will need "+
-               "administrator privileges, and you" +
+        print "\nRequired package(s) missing: %s" % (" ".join(which_files))
+        print ("A required package is missing, but VisTrails can "
+               "automatically install it. "
+               "If you say Yes, VisTrails will need "
+               "administrator privileges, and you "
                "might be asked for the administrator password.")
         if has_distro_pkg:
             print "(VisTrails will use your distribution's package manager)"

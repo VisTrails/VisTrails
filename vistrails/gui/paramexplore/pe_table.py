@@ -1,42 +1,47 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from getpass import getuser
 
 from PyQt4 import QtCore, QtGui
+from ast import literal_eval
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape, unescape
+from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.common_widgets import QPromptWidget
 from vistrails.gui.modules.paramexplore import QParameterEditor
@@ -211,7 +216,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                 functions.append(function)
         pe = ParameterExploration(dims=str(self.table.label.getCounts()),
                       layout=repr(palette.virtual_cell.getConfiguration()[2]),
-                      date=strftime(current_time(), '%Y-%m-%d %H:%M:%S'),
+                      date=current_time(),
                       user=getuser(),
                       functions=functions)
         return pe
@@ -264,19 +269,21 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                                   'HSV Interpolation']:
                                 try:
                                     # Set min/max
-                                    i_range = eval('%s' % unescape(p.value,
-                                                               unescape_dict))
+                                    i_range = literal_eval('%s' % unescape(
+                                                           p.value,
+                                                           unescape_dict))
                                     p_min = str(i_range[0])
                                     p_max =str(i_range[1])
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
-                                except:
+                                except Exception:
                                     pass
                             elif p.interpolator == 'List':
                                 p_values = '%s' % unescape(p.value,
                                                         unescape_dict)
                                 # Set internal list structure
-                                interpolator._str_values = eval(p_values)
+                                interpolator._str_values = \
+                                        literal_eval(p_values)
                                 # Update UI list
                                 if interpolator.type == 'String':
                                     interpolator.listValues.setText(p_values)
@@ -299,17 +306,18 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         # Parse/validate the xml
         try:
             xmlDoc = parseString(xmlString).documentElement
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Parameter Exploration load failed because of "
                            "invalid XML:\n\n%s" % xmlString)
             return
         palette = self.get_palette()
         paramView = self.get_param_view()
         # Set the exploration dimensions
-        dims = eval(str(xmlDoc.attributes['dims'].value))
+        dims = literal_eval(xmlDoc.attributes['dims'].value)
         self.table.label.setCounts(dims)
         # Set the virtual cell layout
-        layout = eval(str(xmlDoc.attributes['layout'].value))
+        layout = literal_eval(xmlDoc.attributes['layout'].value)
         palette.virtual_cell.setConfiguration(layout)
         # Populate parameter exploration window with stored functions and aliases
         for f in xmlDoc.getElementsByTagName('function'):
@@ -349,12 +357,12 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                     p_max = str(p.attributes['max'].value)
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
-                                except:
+                                except Exception:
                                     pass
                             elif p_intType == 'List':
                                 p_values = str(p.attributes['values'].value)
                                 # Set internal list structure
-                                interpolator._str_values = eval(p_values)
+                                interpolator._str_values = literal_eval(p_values)
                                 # Update UI list
                                 if interpolator.type == 'String':
                                     interpolator.listValues.setText(p_values)

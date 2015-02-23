@@ -1,52 +1,174 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import inspect
 import logging
 import logging.handlers
 import os
-import os.path
+import pdb
 import re
+import sys
 import time
 import traceback
 
-################################################################################
+###############################################################################
+
 
 def format_exception(e):
+    """Formats an exception as a single-line (no traceback).
+
+    Use this instead of str() which might drop the exception type.
+    """
     return traceback._format_final_exc_line(type(e).__name__, e)
 
-################################################################################
+
+def unexpected_exception(e, tb=None, frame=None):
+    """Marks an exception that we might want to debug.
+
+    Before logging an exception or showing a message (potentially with
+    format_exception()), you might want to call this. It's a no-op unless
+    debugging is enabled in the configuration, in which case it will start a
+    debugger.
+    """
+    if tb is None:
+        tb = sys.exc_info()[2]
+    if frame is None:
+        tb_it = tb
+        while tb_it.tb_next is not None:
+            tb_it = tb_it.tb_next
+        frame = tb_it.tb_frame
+
+    # Whether to use the debugger
+    try:
+        from vistrails.core.configuration import get_vistrails_configuration
+        debugger = getattr(get_vistrails_configuration(),
+                           'developerDebugger',
+                           False)
+    except Exception:
+        debugger = False
+    if not debugger:
+        return
+
+    # Removes PyQt's input hook
+    try:
+        from PyQt4 import QtCore
+    except ImportError:
+        pass
+    else:
+        QtCore.pyqtRemoveInputHook()
+
+    # Prints the exception and traceback
+    print >>sys.stderr, "!!!!!!!!!!"
+    print >>sys.stderr, "Got unexpected exception, starting debugger"
+    print_exception(None, e, tb, 3, file=sys.stderr)
+
+    # Starts the debugger
+    print >>sys.stderr, "!!!!!!!!!!"
+    # pdb.post_mortem()
+    p = pdb.Pdb()
+    p.reset()
+    p.interaction(frame, tb)
+
+###############################################################################
+
+def _format_exception(etype, value, etb, rtb):
+    yield "Traceback (most recent call last):\n"
+    if isinstance(rtb, (int, long)):
+        try:
+            raise ZeroDivisionError
+        except ZeroDivisionError:
+            f = sys.exc_info()[2].tb_frame
+            while rtb > 0:
+                f = f.f_back
+                rtb -= 1
+            rtb = f
+    for line in traceback.format_stack(rtb):
+        yield line
+    yield "--- Exception caught here ---\n"
+    if etb:
+        for line in traceback.format_tb(etb):
+            yield line
+    if value is not None:
+        if etype is None:
+            etype = type(value)
+        lines = traceback.format_exception_only(etype, value)
+        for line in lines:
+            yield line
+
+def print_exception(etype, value, etb, rtb=2, file=None):
+    """Like :func:`traceback.print_exception` but prints the full stack.
+
+    In addition to the stack frames between the exception and the point it is
+    caught, this prints the stack frames above the catching location.
+
+    `etb` is the traceback object from the exception, which will be printed
+    below the ``Exception caught here`` line. `rtb` is either a frame object at
+    which to start, or an integer specifying the depth.
+    """
+    if file is None:
+        file = sys.stderr
+    for line in _format_exception(etype, value, etb, rtb + 1):
+        file.write(line)
+
+def format_exc():
+    """Like :func:`traceback.format_exc` but uses the full stack.
+
+    In addition to the stack frames between the exception and the point it is
+    caught, this prints the stack frames above the catching location.
+    """
+    try:
+        etype, value, tb = sys.exc_info()
+        return ''.join(_format_exception(etype, value, tb, 3))
+    finally:
+        etype = value = tb = None
+
+def print_exc(file=None):
+    """Like :func:`traceback.print_exc` but prints the full stack.
+
+    In addition to the stack frames between the exception and the point it is
+    caught, this prints the stack frames above the catching location.
+    """
+    try:
+        etype, value, tb = sys.exc_info()
+        print_exception(etype, value, tb, 3, file)
+    finally:
+        etype = value = tb = None
+
+###############################################################################
 
 _warningformat = re.compile(
         '^(.+):'
@@ -68,7 +190,7 @@ class EmitWarnings(logging.Handler):
     def emit(self, record):
         # Here we basically do the contrary of warnings:formatwarning()
         m = _warningformat.match(record.args[0])
-        if m == None:
+        if m is None:
             self.logger.warning("(File info not available)\n" +
                            record.args[0])
         else:
@@ -77,40 +199,22 @@ class EmitWarnings(logging.Handler):
             self.logger.warning('%s, line %s\n%s: %s' % (filename, lineno,
                                                     category, message))
 
-################################################################################
+###############################################################################
 
-_warningformat = re.compile(
-        '^(.+):'
-        '([0-9]+): '
-        '([A-Za-z_][A-Za-z0-9_]*): '
-        '((?:.|\n)+)$')
-
-class EmitWarnings(logging.Handler):
-    """A logging Handler that re-logs warning messages in our log format.
-
-    This parses the warnings logged by the standard `warnings` module and
-    writes them to the given logger at level WARNING in the format we use
-    (see DebugPrint#message()).
+class LoggerHandler(logging.Handler):
+    """A logging Handler Handler re-logs on a specified Logger.
     """
     def __init__(self, logger):
         logging.Handler.__init__(self)
         self.logger = logger
 
     def emit(self, record):
-        # Here we basically do the contrary of warnings:formatwarning()
-        m = _warningformat.match(record.args[0])
-        if m == None:
-            self.logger.warning("(File info not available)\n" +
-                           record.args[0])
-        else:
-            filename, lineno, category, message = m.groups()
-            # And here we do self.message()
-            self.logger.warning('%s, line %s\n%s: %s' % (filename, lineno,
-                                                    category, message))
+        if self.logger.isEnabledFor(record.levelno):
+            self.logger.handle(record)
 
-################################################################################
+###############################################################################
 
-class DebugPrint:
+class DebugPrint(object):
     """ Class to be used for debugging information.
 
     Verboseness can be set in the following way:
@@ -129,7 +233,7 @@ class DebugPrint:
     so it will only get information of who called the DebugPrint functions.
 
     Example of usage:
-        >>> from core import debug
+        >>> from vistrails.core import debug
         >>> debug.DebugPrint.getInstance().set_message_level(
                     debug.DebugPrint.WARNING)
         # the following messages will be shown
@@ -159,8 +263,9 @@ class DebugPrint:
         We will configure log so it outputs to both stderr and a file.
 
         """
-        # Setup root logger
-        self.logger = logging.getLogger('VisLog')
+        # Internal logger, the one we log on
+        self.logger = logging.getLogger('vistrails.logger')
+
         self.logger.setLevel(logging.DEBUG)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
 
@@ -175,14 +280,16 @@ class DebugPrint:
         if f:
             self.set_logfile(f)
 
-        #then we define a handler to log to the console
+        # Then we define a handler to log to the console
         self.console = logging.StreamHandler()
         self.console.setFormatter(self.format)
-        self.console.setLevel(logging.WARNING)
-        self.logger.addHandler(self.console)
+        self.console.setLevel(logging.DEBUG)
 
-#    if system.python_version() <= (2,4,0,'',0):
-#        raise VersionTooLow('Python', '2.4.0')
+        # We also propagate to a second logger, that API users might want to
+        # configure
+        self.visible_logger = logging.getLogger('vistrails')
+        self.logger.propagate = False
+        self.logger.addHandler(LoggerHandler(self.visible_logger))
 
     def __init__(self):
         self.make_logger()
@@ -241,13 +348,19 @@ class DebugPrint:
             self.logger.addHandler(handler)
 
         except Exception, e:
-            self.critical("Could not set log file %s: %s" % f, e)
+            self.critical("Could not set log file %s:" % f, e)
+
+    def log_to_console(self, enable=True):
+        if enable:
+            logging.getLogger().addHandler(self.console)
+        else:
+            logging.getLogger().removeHandler(self.console)
 
     def set_message_level(self,level):
         """self.set_message_level(level) -> None. Sets the logging
         verboseness.  level must be one of (DebugPrint.CRITICAL,
         DebugPrint.WARNING, DebugPrint.INFO, DebugPrint.DEBUG)."""
-        self.console.setLevel(level)
+        self.visible_logger.setLevel(level)
 
     def register_splash(self, app):
         """ register_splash(self, classname)
@@ -315,7 +428,7 @@ debug    = DebugPrint.getInstance().debug
 #   log : shown if -V 1
 #   debug : shown if -V 2
 
-################################################################################
+###############################################################################
 
 def timecall(method):
     """timecall is a method decorator that wraps any call in timing calls
@@ -328,7 +441,7 @@ def timecall(method):
     call.__doc__ = method.__doc__
     return call
 
-################################################################################
+###############################################################################
 
 def object_at(desc):
     """object_at(id) -> object
@@ -341,8 +454,68 @@ def object_at(desc):
         target_id = desc
     elif isinstance(desc, basestring):
         target_id = int(desc, 16) # Reads desc as the hex address
+    else:
+        raise TypeError
     import gc
     for obj in gc.get_objects():
         if id(obj) == target_id:
             return obj
     raise KeyError("Couldn't find object")
+
+###############################################################################
+
+import unittest
+
+class TestStack(unittest.TestCase):
+    @staticmethod
+    def do_in_stack(catch_, raise_):
+        def a():
+            b()
+        def b():
+            c()
+        def c():
+            catch_(d)
+        def d():
+            e()
+        def e():
+            raise_()
+        a()
+
+    def test_print_exc(self):
+        import itertools
+        from StringIO import StringIO
+
+        sio = StringIO()
+
+        def catch_(d):
+            try:
+                d()
+            except RuntimeError:
+                return print_exc(file=sio)
+
+        def raise_():
+            raise RuntimeError("message here")
+
+        self.do_in_stack(catch_, raise_)
+        result = sio.getvalue().splitlines()
+        expected = (
+r'^ +a\(\)',
+r'^  File .+, line \d+, in a',
+r'^    b\(\)',
+r'^  File .+, line \d+, in b',
+r'^    c\(\)',
+r'^  File .+, line \d+, in c',
+r'^    catch_\(d\)',
+r'^--- Exception caught here ---',
+r'^  File .+, line \d+, in catch_',
+r'^    d\(\)',
+r'^  File .+, line \d+, in d',
+r'^    e\(\)',
+r'^  File .+, line \d+, in e',
+r'^    raise_\(\)',
+r'^  File .+, line \d+, in raise_',
+r'^    raise RuntimeError\("message here"\)',
+r'^RuntimeError: message here')
+        for a, e in itertools.izip(result[-len(expected):], expected):
+            self.assertIsNotNone(re.search(e, a),
+                                 "%r doesn't match %r" % (a, e))

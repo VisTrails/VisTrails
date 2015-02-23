@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -37,14 +38,16 @@
 # File for displaying a vtkRenderWindow in a Qt's QWidget ported from
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKViewWidget
 ################################################################################
+from __future__ import division
+
 import vtk
+import os
 from PyQt4 import QtCore, QtGui
 import sip
 from vistrails.core import system
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
-import vtkcell_rc
 import gc
 from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
@@ -79,7 +82,7 @@ class VTKViewCell(SpreadsheetCell):
         renderView = self.force_get_input('SetRenderView')
         if renderView==None:
             raise ModuleError(self, 'A vtkRenderView input is required.')
-        self.cellWidget = self.displayAndWait(QVTKViewWidget, (renderView,))
+        self.displayAndWait(QVTKViewWidget, (renderView,))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -128,6 +131,8 @@ class QVTKViewWidget(QCellWidget):
     vtkRenderer inside a Qt QWidget
     
     """
+    save_formats = ["PNG image (*.png)", "PDF files (*.pdf)"]
+
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         """ QVTKViewWidget(parent: QWidget, f: WindowFlags) -> QVTKViewWidget
         Initialize QVTKViewWidget with a toolbar with its own device
@@ -249,6 +254,7 @@ class QVTKViewWidget(QCellWidget):
         if self.mRenWin:
             self.mRenWin.Register(None)
             if system.systemType=='Linux':
+                vp = None
                 try:
                     vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
                 except TypeError:
@@ -256,7 +262,8 @@ class QVTKViewWidget(QCellWidget):
                     if isinstance(QtGui.QX11Info.display(),QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
                         vp = '_%s_void_p' % (hex(display)[2:])
-                self.mRenWin.SetDisplayId(vp)
+                if vp is not None:
+                    self.mRenWin.SetDisplayId(vp)
                 if not self.mRenWin.GetMapped():
                     self.mRenWin.GetInteractor().Initialize()
                     system.XDestroyWindow(self.mRenWin.GetGenericDisplayId(),
@@ -865,18 +872,6 @@ class QVTKViewWidget(QCellWidget):
         else:
             return writer.GetResult()
 
-    def captureWindow(self):
-        """ captureWindow() -> None        
-        Capture the window contents to file
-        
-        """
-        fn = QtGui.QFileDialog.getSaveFileName(None,
-                                               "Save file as...",
-                                               "screenshot.png",
-                                               "Images (*.png)")
-        if fn:
-            self.saveToPNG(fn)
-        
     def grabWindowPixmap(self):
         """ grabWindowImage() -> QPixmap
         Widget special grabbing function
@@ -900,32 +895,11 @@ class QVTKViewWidget(QCellWidget):
         """dumpToFile() -> None
         Dumps itself as an image to a file, calling saveToPNG
         """
-        self.saveToPNG(filename)
-
-class QVTKViewWidgetCapture(QtGui.QAction):
-    """
-    QVTKViewWidgetCapture is the action to capture the vtk rendering
-    window to an image
-    
-    """
-    def __init__(self, parent=None):
-        """ QVTKViewWidgetCapture(parent: QWidget) -> QVTKViewWidgetCapture
-        Setup the image, status tip, etc. of the action
-        
-        """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/camera.png"),
-                               "&Capture image to file",
-                               parent)
-        self.setStatusTip("Capture the rendered image to a file")
-
-    def triggeredSlot(self, checked=False):
-        """ toggledSlot(checked: boolean) -> None
-        Execute the action when the button is clicked
-        
-        """
-        cellWidget = self.toolBar.getSnappedWidget()
-        cellWidget.captureWindow()
+        ext = os.path.splitext(filename)[1].lower()
+        if ext == '.pdf':
+            self.saveToPDF(filename)
+        else:
+            self.saveToPNG(filename)
 
 class QVTKViewWidgetSaveCamera(QtGui.QAction):
     """
@@ -971,9 +945,9 @@ class QVTKViewWidgetSaveCamera(QtGui.QAction):
                 ops.append(('add', camera))
 
                 # Connect camera to renderer
-                camera_conn = controller.create_connection(camera, 'self',
-                                                           renderer, 
-                                                           'SetActiveCamera')
+                camera_conn = controller.create_connection(
+                        camera, 'Instance',
+                        renderer, 'SetActiveCamera')
                 ops.append(('add', camera_conn))
             # update functions
             def convert_to_str(arglist):
@@ -1022,7 +996,6 @@ class QVTKViewWidgetToolBar(QCellToolBar):
         This will get call initiallly to add customizable widgets
         
         """
-        self.appendAction(QVTKViewWidgetCapture(self))
         self.addAnimationButtons()
         self.appendAction(QVTKViewWidgetSaveCamera(self))
 
@@ -1041,5 +1014,3 @@ def registerSelf():
         except Exception, e:
             debug.warning("Got an exception adding VTKViewCell's %s input "
                           "port" % port, e)
-
-    registry.add_output_port(VTKViewCell, "self", VTKViewCell)
