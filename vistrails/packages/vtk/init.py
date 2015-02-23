@@ -346,21 +346,41 @@ def build_remap(module_name=None):
         # 1.0.0 upgrades
         if desc.name in klasses:
             input_mappings = {}
+            function_mappings = {}
             for spec in [desc.module._get_input_spec(s)
                          for s in get_port_specs(desc, 'input')]:
+                def change_func(name, value):
+                    def on_remap(old_func, new_module):
+                        controller = _get_controller()
+                        new_function = controller.create_function(new_module,
+                                                                  name,
+                                                                  [value])
+                        op = ('change', old_func, new_function,
+                              new_module.vtType, new_module.id)
+                        new_module.add_function(new_function)
+                        return [] #[op]
+                    return on_remap
                 if spec is None:
                     continue
                 elif spec.port_type == 'basic:Boolean':
                     if spec.method_name.endswith('On'):
                         # Convert On/Off to single port
-                        # TODO: add function with the boolean value
                         input_mappings[spec.name + 'On'] = spec.name
                         input_mappings[spec.name + 'Off'] = spec.name
+                        function_mappings[spec.name + 'On'] = \
+                                                  change_func(spec.name, True)
+                        function_mappings[spec.name + 'Off'] = \
+                                                 change_func(spec.name, False)
+                    else:
+                        # Add True to execute empty functions
+                        function_mappings[spec.name] = change_func(spec.name, True)
                 elif spec.entry_types and 'enum' in spec.entry_types:
                     # Add one mapping for each default
-                    # TODO: add enum as function
                     for enum in spec.values[0]:
                         input_mappings[spec.method_name + enum] = spec.name
+                        # Add enum value to function
+                        function_mappings[spec.method_name + enum] = \
+                                                  change_func(spec.name, enum)
                 elif spec.port_type == 'basic:Color':
                     # Remove 'Widget' suffix on Color
                     input_mappings[spec.method_name + 'Widget'] = spec.name
@@ -379,10 +399,11 @@ def build_remap(module_name=None):
                     # Remove 'Get' prefixes
                     output_mappings[spec.method_name] = spec.name
 
-            if input_mappings or output_mappings:
+            if input_mappings or output_mappings or function_mappings:
                 _remap.setdefault(desc.name, []).append(('0.9.5', '1.0.0', None, {
                         'dst_port_remap': input_mappings,
-                        'src_port_remap': output_mappings
+                        'src_port_remap': output_mappings,
+                        'function_remap': function_mappings
                     }))
 
     pkg = reg.get_package_by_name(identifier)
