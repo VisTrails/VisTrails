@@ -52,7 +52,7 @@ class QueryCondition(Constant):
         return self.__str__()
 
 QueryCondition._output_ports = [
-        OPort('self', QueryCondition)]
+        OPort('value', QueryCondition)]
 
 
 class Metadata(QueryCondition):
@@ -85,12 +85,13 @@ class Metadata(QueryCondition):
     def set_results(self):
         self.condition = (self.key, {'type': self._type, 'equal': self.value})
         self.metadata = (self.key, self.value)
+        self.set_output('value', self)
 
     def __str__(self):
         return '%s(%r, %r)' % (self.__class__.__name__, self.key, self.value)
 
 Metadata._output_ports = [
-        OPort('self', Metadata)]
+        OPort('value', Metadata)]
 
 
 class EqualString(Metadata):
@@ -143,6 +144,7 @@ class IntInRange(QueryCondition):
         dct['type'] = 'int'
 
         self.condition = (self.key, dct)
+        self.set_output('value', self)
 
     def __str__(self):
         return '%s(%r, %r, %r)' % ('IntInRange', self.key, self.low, self.high)
