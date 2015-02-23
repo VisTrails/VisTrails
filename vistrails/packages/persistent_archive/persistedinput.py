@@ -3,12 +3,13 @@ from file_archive import hash_file, hash_directory
 import os
 
 import vistrails.core.debug as debug
-from vistrails.core.modules.basic_modules import Directory, File, Path
+from vistrails.core.modules.basic_modules import Directory, File, Path, \
+    PathObject
 from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TYPE, TYPE_INPUT, KEY_TIME, \
-    get_default_store, wrap_path, PersistentHash
+    get_default_store, PersistentHash
 from .queries import Metadata
 
 
@@ -96,7 +97,7 @@ class PersistedInputPath(Module):
         pass
 
     def _set_result(self, entry):
-        self.set_output('path', wrap_path(entry.filename))
+        self.set_output('path', PathObject(entry.filename))
         # TODO : output metadata
 
 

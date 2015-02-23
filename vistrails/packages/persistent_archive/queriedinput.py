@@ -1,11 +1,11 @@
 import os
 
 from vistrails.core.modules.basic_modules import Boolean, Directory, File, \
-    Integer, List, Path
+    Integer, List, Path, PathObject
 from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
-from .common import KEY_TIME, get_default_store, wrap_path
+from .common import KEY_TIME, get_default_store
 from .queries import QueryCondition
 
 
@@ -55,8 +55,8 @@ class QueriedInputPath(Module):
         pass
 
     def _set_result(self, results, latest):
-        self.set_output('most_recent', wrap_path(latest.filename))
-        self.set_output('results', [wrap_path(e.filename)
+        self.set_output('most_recent', PathObject(latest.filename))
+        self.set_output('results', [PathObject(e.filename)
                                    for e in results])
         self.set_output('count', len(results))
         # TODO : output metadata

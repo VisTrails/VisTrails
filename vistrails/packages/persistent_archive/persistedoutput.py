@@ -1,13 +1,13 @@
 from datetime import datetime
 import os
 
-from vistrails.core.modules.basic_modules import Directory, File, Path
+from vistrails.core.modules.basic_modules import Directory, File, Path, \
+    PathObject
 from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TYPE, TYPE_OUTPUT, \
-    KEY_SIGNATURE, KEY_TIME, KEY_WORKFLOW, KEY_MODULE_ID, \
-    get_default_store, wrap_path
+    KEY_SIGNATURE, KEY_TIME, KEY_WORKFLOW, KEY_MODULE_ID, get_default_store
 from .queries import Metadata
 
 
@@ -68,7 +68,7 @@ class PersistedPath(Module):
         pass
 
     def _set_result(self, path):
-        self.set_output('path', wrap_path(path))
+        self.set_output('path', PathObject(path))
 
 
 class PersistedFile(PersistedPath):

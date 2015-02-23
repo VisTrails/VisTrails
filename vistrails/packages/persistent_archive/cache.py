@@ -1,12 +1,13 @@
 from datetime import datetime
 import os
 
-from vistrails.core.modules.basic_modules import Directory, File, Path
+from vistrails.core.modules.basic_modules import Directory, File, Path, \
+    PathObject
 from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 from .common import KEY_TYPE, TYPE_CACHED, KEY_TIME, KEY_SIGNATURE, \
-    get_default_store, wrap_path
+    get_default_store
 
 
 class CachedPath(Module):
@@ -60,7 +61,7 @@ class CachedPath(Module):
         pass
 
     def _set_result(self, path):
-        self.set_output('path', wrap_path(path))
+        self.set_output('path', PathObject(path))
 
 
 class CachedFile(CachedPath):

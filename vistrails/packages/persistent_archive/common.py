@@ -21,15 +21,6 @@ set_default_store = StoreHolder.set_store
 get_default_store = StoreHolder.get_store
 
 
-def wrap_path(path):
-    if os.path.isdir(path):
-        r = Directory()
-    else:
-        r = File()
-    r.name = path
-    return r
-
-
 # The type of the file, i.e. how VisTrails stored it
 KEY_TYPE = 'vistrails_objecttype'
 TYPE_CACHED =   'cached'    # A cached path, with very little metadata
