@@ -23,8 +23,8 @@ class PersistedPath(Module):
 
     _cached = None
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method.
+    def update_upstream(self):
+        """A modified version of the update_upstream method.
 
         Only updates upstream if the file is not found in the store.
         """
@@ -39,7 +39,7 @@ class PersistedPath(Module):
         if best is not None:
             self._cached = best.filename
         else:
-            super(PersistedPath, self).updateUpstream()
+            super(PersistedPath, self).update_upstream()
 
     def compute(self):
         if self._cached is not None:

@@ -26,7 +26,7 @@ class CachedPath(Module):
 
     _cached = None
 
-    def updateUpstream(self):
+    def update_upstream(self):
         if not hasattr(self, 'signature'):
             raise ModuleError(self, "Module has no signature")
         file_store = get_default_store()
@@ -38,7 +38,7 @@ class CachedPath(Module):
         if best is not None:
             self._cached = best.filename
         else:
-            super(CachedPath, self).updateUpstream()
+            super(CachedPath, self).update_upstream()
 
     def compute(self):
         if self._cached is not None:
