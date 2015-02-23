@@ -4,9 +4,9 @@
 from __future__ import division
 
 class VTKInstanceWrapper(object):
-    def __init__(self, instance):
+    def __init__(self, instance, module_id=None):
         self.vtkInstance = instance
-
+        self.module_id = module_id
     # For future use: warns when .vtkInstance is used
     #@property
     #def vtkInstance(self):
