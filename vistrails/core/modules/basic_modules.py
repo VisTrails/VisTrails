@@ -736,10 +736,29 @@ class StandardOutput(NotCacheable, Module):
     mostly as a debugging device."""
 
     _input_ports = [IPort("value", 'Variant')]
-    
+
     def compute(self):
         v = self.get_input("value")
-        print v
+        if isinstance(v, PathObject):
+            try:
+                fp = open(v.name, 'rb')
+            except IOError:
+                print v
+            else:
+                try:
+                    CHUNKSIZE = 2048
+                    chunk = fp.read(CHUNKSIZE)
+                    if chunk:
+                        sys.stdout.write(chunk)
+                        while len(chunk) == CHUNKSIZE:
+                            chunk = fp.read(CHUNKSIZE)
+                            if chunk:
+                                sys.stdout.write(chunk)
+                        sys.stdout.write('\n')
+                finally:
+                    fp.close()
+        else:
+            print v
 
 ##############################################################################
 
