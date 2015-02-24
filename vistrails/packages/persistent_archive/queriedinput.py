@@ -38,6 +38,7 @@ class QueriedInputPath(Module):
             nb += 1
             self.check_path_type(entry.filename)
             if best is None or (KEY_TIME in entry.metadata and
+                    KEY_TIME in best.metadata and
                     entry[KEY_TIME] > best[KEY_TIME]):
                 best = entry
 
