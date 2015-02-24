@@ -93,9 +93,10 @@ class VTKCell(SpreadsheetCell):
         Dispatch the vtkRenderer to the actual rendering widget
         """
         # Set module_id on wrapped renderers
-        d = dict([(c(), c.obj) for c in self.inputPorts['AddRenderer']])
-        for ren, m in d.iteritems():
-            ren.module_id = m.moduleInfo['moduleId']
+        if self.has_input('AddRenderer'):
+            d = dict([(c(), c.obj) for c in self.inputPorts['AddRenderer']])
+            for ren, m in d.iteritems():
+                ren.module_id = m.moduleInfo['moduleId']
         renderers = self.force_get_input('AddRenderer', [])
         renderViews = self.force_get_input('SetRenderView', [])
         if len(renderViews)>1:
