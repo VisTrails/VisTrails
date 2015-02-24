@@ -44,8 +44,7 @@ import os
 from PyQt4 import QtCore, QtGui
 import sip
 from vistrails.core import system
-from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation, SpreadsheetMode
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from vistrails.gui.qt import qt_super
@@ -84,8 +83,7 @@ class VTKCell(SpreadsheetCell):
                     ("InteractionHandler", "vtkInteractionHandler", {'depth':1}),
                     ("InteractorStyle", "vtkInteractorStyle"),
                     ("AddPicker", "vtkAbstractPicker")]
-    _output_ports = [("self", "VTKCell")]
-                    
+
     def __init__(self):
         SpreadsheetCell.__init__(self)
         self.cellWidget = None
@@ -263,7 +261,9 @@ class QVTKWidget(QCellWidget):
                 # Check deprecated vtkInstance
                 if hasattr(renderer, 'vtkInstance'):
                     vtkInstance = renderer.vtkInstance
-                    self.renderer_maps[vtkInstance] = renderer.module_id
+                    # Old scripts may call this without setting module_id
+                    if hasattr(renderer, 'module_id'):
+                        self.renderer_maps[vtkInstance] = renderer.module_id
                 renWin.AddRenderer(vtkInstance)
             else:
                 vtkInstance = renderer
@@ -279,7 +279,7 @@ class QVTKWidget(QCellWidget):
         iren = renWin.GetInteractor()
         if picker:
             iren.SetPicker(picker) #.vtkInstance)
-            
+
         # Update interactor style
         self.removeObserversFromInteractorStyle()
         if renderView==None:
