@@ -327,21 +327,25 @@ class QVTKWidget(QCellWidget):
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
             if system.systemType=='Linux':
-                vp = None
+                display = None
                 try:
-                    vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
+                    display = int(QtGui.QX11Info.display())
                 except TypeError:
-                    #This was change for PyQt4.2
-                    if isinstance(QtGui.QX11Info.display(),QtGui.Display):
+                    # This was changed for PyQt4.2
+                    if isinstance(QtGui.QX11Info.display(), QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
-                        vp = '_%s_void_p' % (hex(display)[2:])
-                if vp is not None:
+                if display is not None:
                     v = vtk.vtkVersion()
                     version = [v.GetVTKMajorVersion(),
                                v.GetVTKMinorVersion(),
                                v.GetVTKBuildVersion()]
+                    display = hex(display)[2:]
                     if version < [5, 7, 0]:
-                        vp = vp + '\0x00'
+                        vp = ('_%s_void_p\0x00' % display)
+                    elif version < [6, 2, 0]:
+                        vp = ('_%s_void_p' % display)
+                    else:
+                        vp = ('_%s_p_void' % display)
                     self.mRenWin.SetDisplayId(vp)
                 self.resizeWindow(1,1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
