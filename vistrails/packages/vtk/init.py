@@ -1,4 +1,5 @@
-from vistrails.core.modules.basic_modules import Color, Path, PathObject, identifier as basic_pkg
+from vistrails.core.modules.basic_modules import Color, Path, PathObject, \
+                                                       identifier as basic_pkg
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError, Module
 from vistrails.core.modules.module_registry import get_module_registry
@@ -11,7 +12,7 @@ from vistrails.core.vistrail.connection import Connection
 
 from .tf_widget import _modules as tf_modules
 from .inspectors import _modules as inspector_modules
-#offscreen
+from .offscreen import _modules as offscreen_modules
 
 import re
 
@@ -19,9 +20,7 @@ from identifiers import identifier
 
 from . import vtk_classes, hasher
 
-_modules = tf_modules + inspector_modules
-
-#offscreen.register_self()
+_modules = tf_modules + inspector_modules + offscreen_modules
 
 registry = get_module_registry()
 if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
