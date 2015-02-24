@@ -27,11 +27,10 @@ registry = get_module_registry()
 if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
                        'SpreadsheetCell'):
     # load these only if spreadsheet is enabled
-    from . import vtkviewcell
-    from .vtkhandler import _modules as handler_modules
     from .vtkcell import _modules as cell_modules
-    _modules += cell_modules + handler_modules
-#    vtkviewcell.registerSelf()
+    from .vtkviewcell import _modules as view_cell_modules
+    from .vtkhandler import _modules as handler_modules
+    _modules += cell_modules + view_cell_modules + handler_modules
 
 
 # TODO: code below is independent of VTK and should be moved elsewhere

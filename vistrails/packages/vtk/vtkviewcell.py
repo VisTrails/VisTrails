@@ -44,21 +44,11 @@ import os
 from PyQt4 import QtCore, QtGui
 import sip
 from vistrails.core import system
-from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
-import gc
 from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
-from vistrails.core.vistrail.action import Action
-from vistrails.core.vistrail.port import Port
-from vistrails.core.vistrail import module
-from vistrails.core.vistrail import connection
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
-from vistrails.core.vistrail.location import Location
 from vistrails.core.modules.vistrails_module import ModuleError
-import copy
 
 from identifiers import identifier as vtk_pkg_identifier
 
@@ -70,6 +60,10 @@ class VTKViewCell(SpreadsheetCell):
     
     """
 
+    _input_ports = [("Location", "spreadsheet:CellLocation"),
+                    ("SetRenderView", "vtkRenderView", {'depth':1})]
+    _output_ports = [("Instance", "VTKViewCell")]
+
     def __init__(self):
         SpreadsheetCell.__init__(self)
         self.cellWidget = None
@@ -78,10 +72,10 @@ class VTKViewCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the vtkRenderer to the actual rendering widget
         """
-        renderView = self.force_get_input('SetRenderView')
-        if renderView==None:
+        renderViews = self.force_get_input('SetRenderView')
+        if renderViews==None:
             raise ModuleError(self, 'A vtkRenderView input is required.')
-        self.displayAndWait(QVTKViewWidget, (renderView,))
+        self.displayAndWait(QVTKViewWidget, renderViews)
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -998,18 +992,4 @@ class QVTKViewWidgetToolBar(QCellToolBar):
         self.addAnimationButtons()
         self.appendAction(QVTKViewWidgetSaveCamera(self))
 
-def registerSelf():
-    """ registerSelf() -> None
-    Registry module with the registry
-    """
-    registry = get_module_registry()
-    registry.add_module(VTKViewCell)
-    registry.add_input_port(VTKViewCell, "Location", CellLocation)
-    from vistrails.core import debug
-    for (port,module) in [("SetRenderView",'vtkRenderView')]:
-        try:
-            registry.add_input_port(VTKViewCell, port,
-                                    '(%s:%s)' % (vtk_pkg_identifier, module))
-        except Exception, e:
-            debug.warning("Got an exception adding VTKViewCell's %s input "
-                          "port" % port, e)
+_modules = [VTKViewCell,]
