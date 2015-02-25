@@ -328,80 +328,129 @@ def build_remap(module_name=None):
 
     def process_module(desc):
         # 0.9.3 upgrades
+        if not desc.name in klasses:
+            return
         remap = UpgradeModuleRemap(None, '0.9.3', '0.9.3',
                                    module_name=desc.name)
         process_ports(desc, remap, 'input')
         process_ports(desc, remap, 'output')
         _remap.add_module_remap(remap)
         # 0.9.5 upgrades
-        if desc.name in klasses:
-            remap = UpgradeModuleRemap('0.9.3', '0.9.5', '0.9.5',
-                                       module_name=desc.name)
-            remap.add_remap('src_port_remap', 'self', 'Instance')
-            _remap.add_module_remap(remap)
+        remap = UpgradeModuleRemap('0.9.3', '0.9.5', '0.9.5',
+                                   module_name=desc.name)
+        remap.add_remap('src_port_remap', 'self', 'Instance')
+        _remap.add_module_remap(remap)
         # 1.0.0 upgrades
-        if desc.name in klasses:
-            input_mappings = {}
-            function_mappings = {}
-            for spec in [desc.module._get_input_spec(s)
-                         for s in get_port_specs(desc, 'input')]:
-                def change_func(name, value):
-                    def remap(old_func, new_module):
-                        controller = _get_controller()
-                        new_function = controller.create_function(new_module,
-                                                                  name,
-                                                                  [value])
-                        new_module.add_function(new_function)
-                        return []
-                    return remap
-                if spec is None:
-                    continue
-                elif spec.port_type == 'basic:Boolean':
-                    if spec.method_name.endswith('On'):
-                        # Convert On/Off to single port
-                        input_mappings[spec.name + 'On'] = spec.name
-                        input_mappings[spec.name + 'Off'] = spec.name
-                        function_mappings[spec.name + 'On'] = \
+        input_mappings = {}
+        function_mappings = {}
+        for spec in [desc.module._get_input_spec(s)
+                     for s in get_port_specs(desc, 'input')]:
+            def change_func(name, value):
+                def remap(old_func, new_module):
+                    controller = _get_controller()
+                    new_function = controller.create_function(new_module,
+                                                              name,
+                                                              [value])
+                    return [('add', new_function, 'module', new_module.id)]
+                return remap
+            def color_func(name):
+                def remap(old_func, new_module):
+                    controller = _get_controller()
+                    value = ','.join([p.strValue for p in old_func.params])
+                    new_function = controller.create_function(new_module,
+                                                              name,
+                                                              [value])
+                    return [('add', new_function, 'module', new_module.id)]
+                return remap
+            def file_func(name):
+                def remap(old_func, new_module):
+                    controller = _get_controller()
+                    value = PathObject(old_func.params[0].strValue)
+                    new_function = controller.create_function(new_module,
+                                                              name,
+                                                              [value])
+                    return [('add', new_function, 'module', new_module.id)]
+                return remap
+            def to_file_func(name):
+                # Add Path module as name->File converter
+                def remap(old_conn, new_module):
+                    controller = _get_controller()
+                    create_new_connection = UpgradeWorkflowHandler.create_new_connection
+                    pipeline = _get_pipeline()
+                    module = pipeline.modules[old_conn.source.moduleId]
+                    x = (module.location.x + new_module.location.x)/2
+                    y = (module.location.y + new_module.location.y)/2
+                    path_module = controller.create_module(basic_pkg, 'Path',
+                                                           '', x, y)
+                    conn1 = create_new_connection(controller,
+                                                  module,
+                                                  old_conn.source,
+                                                  path_module,
+                                                  'name')
+                    conn2 = create_new_connection(controller,
+                                                  path_module,
+                                                  'value',
+                                                  new_module,
+                                                  name)
+                    return [('add', path_module),
+                            ('add', conn1),
+                            ('add', conn2)]
+                return remap
+            if spec is None:
+                continue
+            elif spec.port_type == 'basic:Boolean':
+                if spec.method_name.endswith('On'):
+                    # Convert On/Off to single port
+                    input_mappings[spec.name + 'On'] = spec.name
+                    input_mappings[spec.name + 'Off'] = spec.name
+                    function_mappings[spec.name + 'On'] = \
                                                   change_func(spec.name, True)
-                        function_mappings[spec.name + 'Off'] = \
+                    function_mappings[spec.name + 'Off'] = \
                                                  change_func(spec.name, False)
-                    else:
-                        # Add True to execute empty functions
-                        function_mappings[spec.name] = change_func(spec.name, True)
-                elif spec.entry_types and 'enum' in spec.entry_types:
-                    # Add one mapping for each default
-                    for enum in spec.values[0]:
-                        input_mappings[spec.method_name + enum] = spec.name
-                        # Add enum value to function
-                        function_mappings[spec.method_name + enum] = \
+                else:
+                    # Add True to execute empty functions
+                    function_mappings[spec.name] = change_func(spec.name, True)
+            elif spec.entry_types and 'enum' in spec.entry_types:
+                # Add one mapping for each default
+                for enum in spec.values[0]:
+                    input_mappings[spec.method_name + enum] = spec.name
+                    # Add enum value to function
+                    function_mappings[spec.method_name + enum] = \
                                                   change_func(spec.name, enum)
-                elif spec.port_type == 'basic:Color':
-                    # Remove 'Widget' suffix on Color
-                    input_mappings[spec.method_name + 'Widget'] = spec.name
-                elif spec.port_type == 'basic:File':
-                    input_mappings[spec.method_name] = spec.name  # Set*FileName -> *File
-                    input_mappings['Set' + spec.name] = spec.name # Set*File -> *File
-                elif spec.method_name == 'Set' + spec.name:
-                    # Remove 'Set' prefixes
-                    input_mappings[spec.method_name] = spec.name
-            output_mappings = {}
-            for spec_name in get_port_specs(desc, 'output'):
-                spec = desc.module._get_output_spec(spec_name)
-                if spec is None:
-                    continue
-                if spec.method_name == 'Get' + spec.name:
-                    # Remove 'Get' prefixes
-                    output_mappings[spec.method_name] = spec.name
+            elif spec.port_type == 'basic:Color':
+                # Remove 'Widget' suffix on Color
+                input_mappings[spec.method_name + 'Widget'] = spec.name
+                # Change old type (float, float, float) -> (,)*3
+                function_mappings[spec.method_name] = color_func(spec.name)
+            elif spec.port_type == 'basic:File':
+                input_mappings[spec.method_name] = to_file_func(spec.name)  # Set*FileName -> (->File->*File)
+                input_mappings['Set' + spec.name] = spec.name # Set*File -> *File
+                function_mappings[spec.method_name] = file_func(spec.name)
+            elif spec.method_name == 'Set' + spec.name:
+                # Remove 'Set' prefixes
+                input_mappings[spec.method_name] = spec.name
+            elif spec.name == 'AddInput_1':
+                # New version does not have AddInput
+                # FIXME what causes this?
+                input_mappings['AddInput'] = 'AddInput_1'
+        output_mappings = {}
+        for spec_name in get_port_specs(desc, 'output'):
+            spec = desc.module._get_output_spec(spec_name)
+            if spec is None:
+                continue
+            if spec.method_name == 'Get' + spec.name:
+                # Remove 'Get' prefixes
+                output_mappings[spec.method_name] = spec.name
 
-            remap = UpgradeModuleRemap('0.9.5', '1.0.0', '1.0.0',
-                                       module_name=desc.name)
-            for k, v in input_mappings.iteritems():
-                remap.add_remap('dst_port_remap', k, v)
-            for k, v in output_mappings.iteritems():
-                remap.add_remap('src_port_remap', k, v)
-            for k, v in function_mappings.iteritems():
-                remap.add_remap('function_remap', k, v)
-            _remap.add_module_remap(remap)
+        remap = UpgradeModuleRemap('0.9.5', '1.0.0', '1.0.0',
+                                   module_name=desc.name)
+        for k, v in input_mappings.iteritems():
+            remap.add_remap('dst_port_remap', k, v)
+        for k, v in output_mappings.iteritems():
+            remap.add_remap('src_port_remap', k, v)
+        for k, v in function_mappings.iteritems():
+            remap.add_remap('function_remap', k, v)
+        _remap.add_module_remap(remap)
 
     pkg = reg.get_package_by_name(identifier)
     if module_name is not None:
