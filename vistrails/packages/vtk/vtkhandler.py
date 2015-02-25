@@ -174,6 +174,7 @@ class vtkInteractionHandler(NotCacheable, Module):
             exec(source)
             if hasattr(self.observer.vtkInstance, 'PlaceWidget'):
                 self.observer.vtkInstance.PlaceWidget()
+        self.set_output('Instance', self)
 
     def eventHandler(self, obj, event):
         """ eventHandler(obj: vtkObject, event: str) -> None
