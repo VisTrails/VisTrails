@@ -225,6 +225,15 @@ class vtkObjectInfo(object):
         input_specs = self.get_input_port_specs()
         methods = [input for input in input_specs if not input.show_port]
         connections = [input for input in input_specs if input.show_port]
+
+        #In the case of a vtkRenderer,
+        # we need to call the methods after the
+        #input ports are set.
+        if isinstance(vtk_obj, vtk.vtkRenderer):
+            inputs = connections + methods
+        else:
+            inputs = methods + connections
+
         # Compute methods from visible ports last
         for port in methods + connections:
             if port.arg in inputs:
@@ -246,22 +255,21 @@ class vtkObjectInfo(object):
         if callback is None:
             vtk_obj.Update()
             return
-        is_aborted = False
+        is_aborted = [False]
         cbId = None
         def ProgressEvent(obj, event):
             try:
                 callback(obj.GetProgress())
-                #self.logging.update_progress(self, obj.GetProgress())
             except Exception, e:
                 if e.__name__ == 'AbortExecution':
                     obj.SetAbortExecute(True)
                     vtk_obj.RemoveObserver(cbId)
-                    is_aborted = True
+                    is_aborted[0] = True
                 else:
                     raise
         cbId = vtk_obj.AddObserver('ProgressEvent', ProgressEvent)
         vtk_obj.Update()
-        if not is_aborted:
+        if not is_aborted[0]:
             vtk_obj.RemoveObserver(cbId)
 
     #### COMPUTE PATCHING CODE ####
