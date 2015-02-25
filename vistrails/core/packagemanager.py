@@ -64,6 +64,13 @@ import vistrails.packages
 global _package_manager
 _package_manager = None
 
+def getattr_dotted(obj, name, skip_left=0):
+    name = name.split('.')
+    name = name[(skip_left + (1 if not name[0] else 0)):]
+    for n in name:
+        obj = getattr(obj, n)
+    return obj
+
 class PackageManager(object):
     # # add_package_menu_signal is emitted with a tuple containing the package
     # # identifier, package name and the menu item
@@ -212,6 +219,41 @@ class PackageManager(object):
                 globals = {'__name__': module}
                 if old_globals:
                     globals.update(old_globals)
+
+        # Translates vistrails.packages.xxx to vistrailspkg.xxx
+        if name.startswith('vistrails.packages.'):
+            origname, name = name, name[19:]
+            result = self._import_override(
+                    'vistrailspkg.' + name,
+                    globals, locals, fromlist, level)
+            vistrailspkg = sys.modules['vistrailspkg']
+            sys.modules[origname] = getattr_dotted(vistrailspkg, name)
+            name1 = name.split('.', 1)[0]
+            setattr(vistrails.packages, name1,
+                    getattr(vistrailspkg, name1))
+            if fromlist:
+                return result
+            else:
+                return vistrails
+        elif name.startswith('userpackages.'):
+            origname, name = name, name[13:]
+            result = self._import_override(
+                    'vistrailspkg.' + name,
+                    globals, locals, fromlist, level)
+            vistrailspkg = sys.modules['vistrailspkg']
+            sys.modules[origname] = getattr_dotted(vistrailspkg, name)
+            try:
+                userpackages = sys.modules['userpackages']
+            except KeyError:
+                userpackages = vistrailspkg
+            else:
+                name1 = name.split('.', 1)[0]
+                setattr(userpackages, name1,
+                        getattr(vistrailspkg, name1))
+            if fromlist:
+                return result
+            else:
+                return userpackages
 
         # Get the Package from the module name
         if module:
