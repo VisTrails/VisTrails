@@ -3,10 +3,10 @@ import re
 
 import vtk
 
-from class_tree import ClassTree
-from specs import VTKModuleSpec as ModuleSpec, SpecList, \
+from .class_tree import ClassTree
+from .specs import VTKModuleSpec as ModuleSpec, SpecList, \
                   InputPortSpec, OutputPortSpec
-from vtk_parser import VTKMethodParser
+from .vtk_parser import VTKMethodParser
 
 parser = VTKMethodParser()
 
@@ -482,12 +482,20 @@ def get_get_set_ports(cls, get_set_dict):
                 continue
             port_type = get_port_types(getter[0][0])
             if is_type_allowed(port_type):
-                ps = OutputPortSpec(name,
-                                    method_name=getter_name,
-                                    port_type=port_type,
-                                    show_port=False,
-                                    docstring=get_doc(cls, getter_name))
-                output_ports.append(ps)
+                if name in color_ports:
+                    ps = OutputPortSpec(name,
+                                        method_name=getter_name,
+                                        port_type="basic:Color",
+                                        show_port=False,
+                                        docstring=get_doc(cls, getter_name))
+                    input_ports.append(ps)
+                else:
+                    ps = OutputPortSpec(name,
+                                        method_name=getter_name,
+                                        port_type=port_type,
+                                        show_port=False,
+                                        docstring=get_doc(cls, getter_name))
+                    output_ports.append(ps)
 
         if len(setter_sig) > 1:
             prune_signatures(cls, setter_name, setter_sig)
@@ -794,7 +802,7 @@ def get_ports(cls):
     output_ports = chain(*zipped_ports.next())
     return input_ports, output_ports
 
-def parse():
+def parse(filename="vtk_raw.xml"):
     inheritance_graph = ClassTree(vtk)
     inheritance_graph.create()
 
@@ -821,7 +829,7 @@ def parse():
                 specs_list.extend(create_module("vtkObjectBase", child))
 
     specs = SpecList(specs_list)
-    specs.write_to_xml("vtk_raw.xml")
+    specs.write_to_xml(filename)
 
 
 if __name__ == '__main__':

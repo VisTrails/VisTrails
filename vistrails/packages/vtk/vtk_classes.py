@@ -367,13 +367,18 @@ def gen_function(spec):
     return compute
 
 
-def initialize():
+def initialize(spec_name=None):
     """ Generate vtk functions and add them to current module namespace
         Also adds spec so it can be referenced by module wrapper
     """
-    fname = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vtk.xml')
-    specs = SpecList.read_from_xml(fname, VTKModuleSpec)
+    if spec_name is None:
+        # The spec can be placed in the same folder if used as a standalone package
+        spec_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vtk.xml')
+        if not os.path.exists(spec_name):
+            return
+    specs = SpecList.read_from_xml(spec_name, VTKModuleSpec)
     globals()['specs'] = specs
     for spec in specs.module_specs:
         globals()[spec.module_name] = gen_function(spec)
+# Try to initialize
 initialize()

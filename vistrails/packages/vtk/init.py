@@ -5,7 +5,7 @@ from vistrails.core.modules.vistrails_module import ModuleError, Module
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
     ImageFileModeConfig
-from vistrails.core.system import get_vistrails_default_pkg_prefix, systemType
+from vistrails.core.system import get_vistrails_default_pkg_prefix, systemType, current_dot_vistrails
 
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
                                        UpgradeModuleRemap, UpgradePackageRemap
@@ -17,6 +17,7 @@ from .inspectors import _modules as inspector_modules
 from .offscreen import _modules as offscreen_modules
 
 import re
+import os.path
 
 import vtk
 
@@ -255,6 +256,18 @@ def gen_module(spec, lib, **module_settings):
 
 
 def initialize():
+    # First check if spec for this VTK version exists
+    v = vtk.vtkVersion()
+    version = [v.GetVTKMajorVersion(),
+               v.GetVTKMinorVersion(),
+               v.GetVTKBuildVersion()]
+
+    spec_name = os.path.join(current_dot_vistrails(), 'vtk-spec-%s.xml' % '_'.join([str(v) for v in version]))
+    # TODO: how to patch with diff/merge
+    if not os.path.exists(spec_name):
+        from .generate.parse import parse
+        parse(spec_name)
+    vtk_classes.initialize(spec_name)
     _modules.extend([gen_module(spec, vtk_classes, signature=hasher.vtk_hasher)
                      for spec in vtk_classes.specs.module_specs])
 
