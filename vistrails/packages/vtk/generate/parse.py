@@ -135,7 +135,7 @@ def create_module(base_cls_name, node):
                 issubclass(node.klass, vtk.vtkScalarTree)
 
     is_algorithm = issubclass(node.klass, vtk.vtkAlgorithm)
-    tempfile = '_tempfile,.vtk' if issubclass(node.klass, vtk.vtkWriter) else None
+    tempfile = '_tempfile' if issubclass(node.klass, vtk.vtkWriter) else None
     callback = '_callback' if is_algorithm else None
     outputs = '_outputs'
 
@@ -712,6 +712,7 @@ def get_other_ports(cls, other_list):
 
                     ps = InputPortSpec(n,
                                        name=n,
+                                       method_name=name,
                                        port_type=port_types,
                                        show_port=show_port,
                                        docstring=get_doc(cls, n))
@@ -736,7 +737,6 @@ def get_custom_ports(cls):
     input_ports = []
     output_ports = []
 
-    # FIXME: Where is this used?
     if cls == vtk.vtkAlgorithm:
         ps = InputPortSpec('AddInputConnection',
                            port_type='vtkAlgorithmOutput',
