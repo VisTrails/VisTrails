@@ -516,7 +516,6 @@ def get_get_set_ports(cls, get_set_dict):
             # FIXME add documentation
             elif name in color_ports:
                 ps = InputPortSpec(name,
-                                   name=name,
                                    method_name=setter_name,
                                    port_type="basic:Color",
                                    show_port=False)
@@ -726,7 +725,9 @@ def get_other_ports(cls, other_list):
                                        docstring=get_doc(cls, n))
                     input_ports.append(ps)
                 elif result == None or port_types == []:
-                    ps = InputPortSpec(name,
+                    n = resolve_overloaded_name(name, ix, signatures)
+                    ps = InputPortSpec(n,
+                                       method_name=name,
                                        port_type='basic:Boolean',
                                        # Methods like Build() should be called last
                                        sort_key=100,
@@ -763,16 +764,19 @@ def get_custom_ports(cls):
                            docstring='Sets the transfer function to use')
         input_ports.append(ps)
     elif cls == vtk.vtkDataSet:
-        ps = InputPortSpec('PointData',
+        ps = InputPortSpec('SetPointData',
+                           method_name='PointData',
                            port_type='vtkPointData',
                            docstring='Sets the point data')
         input_ports.append(ps)
-        ps = InputPortSpec('CellData',
+        ps = InputPortSpec('SetCellData',
+                           method_name='CellData',
                            port_type='vtkCellData',
                            docstring='Sets the cell data')
         input_ports.append(ps)
     elif cls==vtk.vtkCell:
-        ps = InputPortSpec('PointIds',
+        ps = InputPortSpec('SetPointIds',
+                           method_name='PointIds',
                            port_type='vtkIdList',
                            docstring='Sets the point id list')
         input_ports.append(ps)
