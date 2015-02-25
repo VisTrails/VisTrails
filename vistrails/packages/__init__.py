@@ -33,7 +33,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-# Nothing here on purpose
+
 from __future__ import division
 
-pass
+
+# Makes this package's content importable under 'vistrailspkg'
+__name__ = 'vistrailspkg'
+__import__('vistrailspkg').__path__ += __path__
+
+# Prevents importing this package's content from 'vistrails.packages'
+__path__ = []
