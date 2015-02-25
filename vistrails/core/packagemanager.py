@@ -206,8 +206,12 @@ class PackageManager(object):
                 if caller is None:
                     break
                 module = inspect.getmodule(caller)
-            if module:
+            if module is not None:
                 module = module.__name__
+                old_globals = globals
+                globals = {'__name__': module}
+                if old_globals:
+                    globals.update(old_globals)
 
         # Get the Package from the module name
         if module:
