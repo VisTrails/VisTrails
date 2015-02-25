@@ -84,8 +84,9 @@ class vtkDataSetInspector(vtkBaseInspector):
         vtk_object = None
         if self.has_input("SetInputConnection0"):
             ic = self.get_input("SetInputConnection0")
-            port_object = ic.vtkInstance
-            producer = port_object.GetProducer()
+            if hasattr(ic, "vtkInstance"):
+                ic = ic.vtkInstance
+            producer = ic.GetProducer()
             try:
                 vtk_object = producer.GetOutput()
             except AttributeError:
@@ -94,11 +95,9 @@ class vtkDataSetInspector(vtkBaseInspector):
         elif self.has_input("SetInput"):
             port_object = self.get_input("SetInput")
             if hasattr(port_object, "vtkInstance"):
-                vtk_object = port_object.vtkInstance
-            else:
-                raise ModuleError(self, "expected a vtk instance")
-        if vtk_object:
-            self.auto_set_results(vtk_object)
+                port_object = port_object.vtkInstance
+        if port_object:
+            self.auto_set_results(port_object)
 
 
 class vtkDataSetAttributesInspector(vtkBaseInspector):
@@ -117,11 +116,9 @@ class vtkDataSetAttributesInspector(vtkBaseInspector):
     def compute(self):
         vtk_object = None
         if self.has_input("SetInput"):
-            port_object = self.get_input("SetInput")
-            if hasattr(port_object, "vtkInstance"):
-                vtk_object = port_object.vtkInstance
-            else:
-                raise ModuleError(self, "expected a vtk instance")
+            vtk_object = self.get_input("SetInput")
+            if hasattr(vtk_object, "vtkInstance"):
+                vtk_object = vtk_object.vtkInstance
         if vtk_object:
             self.auto_set_results(vtk_object)
 
@@ -136,11 +133,9 @@ class vtkDataArrayInspector(vtkBaseInspector):
     def compute(self):
         vtk_object = None
         if self.has_input("SetInput"):
-            port_object = self.get_input("SetInput")
-            if hasattr(port_object, "vtkInstance"):
-                vtk_object = port_object.vtkInstance
-            else:
-                raise ModuleError(self, "expected a vtk instance")
+            vtk_object = self.get_input("SetInput")
+            if hasattr(vtk_object, "vtkInstance"):
+                vtk_object = vtk_object.vtkInstance
         if vtk_object:
             self.auto_set_results(vtk_object)
 
@@ -165,8 +160,9 @@ class vtkPolyDataInspector(vtkDataSetInspector):
     def compute(self):
         vtk_object = None
         if self.has_input("SetInputConnection0"):
-            ic = self.get_input("SetInputConnection0")
-            port_object = ic.vtkInstance
+            port_object = self.get_input("SetInputConnection0")
+            if hasattr(port_object, "vtkInstance"):
+                port_object = port_object.vtkInstance
             producer = port_object.GetProducer()
             try:
                 vtk_object = producer.GetOutput()
@@ -174,11 +170,9 @@ class vtkPolyDataInspector(vtkDataSetInspector):
                 raise ModuleError(self, 
                                   "expected a module that supports GetOutput")
         elif self.has_input("SetInput"):
-            port_object = self.get_input("SetInput")
-            if hasattr(port_object, "vtkInstance"):
-                vtk_object = port_object.vtkInstance
-            else:
-                raise ModuleError(self, "expected a vtk instance")
+            vtk_object = self.get_input("SetInput")
+            if hasattr(vtk_object, "vtkInstance"):
+                vtk_object = vtk_object.vtkInstance
         if vtk_object:
             self.auto_set_results(vtk_object)
 
