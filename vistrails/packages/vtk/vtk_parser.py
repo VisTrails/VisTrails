@@ -363,7 +363,10 @@ class VTKMethodParser(object):
         meths = self._find_state_methods(klass, meths)
         meths = self._find_get_set_methods(klass, meths)
         meths = self._find_get_methods(klass, meths)
-        self.other_meths = [x for x in meths if '__' not in x]
+        self.other_meths = [x for x in meths \
+                            if callable(getattr(klass, x)) and
+                                '__' not in x and
+                                not isinstance(getattr(klass, x), type)]
 
     def _remove_method(self, meths, method):
         try:
