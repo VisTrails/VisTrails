@@ -19,6 +19,7 @@ def str_repr(s):
 
 
 class Metadata(QtGui.QWidget):
+    # TODO: use constant widgets for these? (directly in the ports panel)
     remove = QtCore.pyqtSignal()
     changed = QtCore.pyqtSignal()
 

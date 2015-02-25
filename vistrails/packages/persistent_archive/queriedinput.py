@@ -19,10 +19,12 @@ class QueriedInputPath(Module):
     _input_ports = [
             IPort('query', QueryCondition),
             IPort('unique', Boolean, optional=True, default='False')]
+    # TODO: Order by more conditions than only `vistrails_timestamp`
     _output_ports = [
             OPort('most_recent', Path),
             OPort('results', List),
             OPort('count', Integer, optional=True)]
+    # TODO: Set query from `configure_widget`
 
     def compute(self):
         # Do the query
