@@ -46,9 +46,9 @@ def convert_input_param(value, _type):
 
 def convert_output_param(value, _type):
     # convert to Path port
-    if isinstance(_type, Path):
+    if issubclass(_type, Path):
         return PathObject(value)
-    if isinstance(_type, Color):
+    if issubclass(_type, Color):
         return InstanceObject(tuple=value)
     return value
 
