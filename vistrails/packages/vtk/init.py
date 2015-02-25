@@ -226,7 +226,7 @@ def gen_module(spec, lib, **module_settings):
 
         # convert values to vistrail types
         for name in outputs:
-            if outputs[name]:
+            if outputs[name] is not None:
                 outputs[name] = convert_output(outputs[name],
                                             self.output_specs[name].signature)
 
@@ -278,6 +278,12 @@ def build_remap(module_name=None):
     reg = get_module_registry()
     uscore_num = re.compile(r"(.+)_(\d+)$")
 
+    def base_name(name):
+        "returns name without overload index"
+        i = name.find('_')
+        if i != -1:
+            return name[:i]
+        return name
     def get_port_specs(descriptor, port_type):
         ports = {}
         for desc in reversed(reg.get_module_hierarchy(descriptor)):
@@ -486,18 +492,20 @@ def build_remap(module_name=None):
             elif spec.port_type == 'basic:Color':
                 # Remove 'Widget' suffix on Color
                 input_mappings[spec.method_name + 'Widget'] = spec.name
+                # Remove 'Set prefix'
+                input_mappings[spec.method_name] = spec.name
                 # Change old type (float, float, float) -> (,)*3
                 function_mappings[spec.method_name] = color_func(spec.name)
             elif spec.port_type == 'basic:File':
                 input_mappings[spec.method_name] = to_file_func(spec.name)  # Set*FileName -> (->File->*File)
                 input_mappings['Set' + spec.name] = spec.name # Set*File -> *File
                 function_mappings[spec.method_name] = file_func(spec.name)
-            elif spec.method_name == 'Set' + spec.name:
+            elif spec.method_name == 'Set' + base_name(spec.name):
                 # Remove 'Set' prefixes
-                input_mappings[spec.method_name] = spec.name
+                input_mappings['Set' + spec.name] = spec.name
             elif spec.name == 'AddInput_1':
-                # New version does not have AddInput
                 # FIXME what causes this?
+                # New version does not have AddInput
                 input_mappings['AddInput'] = 'AddInput_1'
         output_mappings = {}
         for spec_name in get_port_specs(desc, 'output'):
@@ -545,3 +553,4 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         build_remap(module_name)
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                               _remap)
+
