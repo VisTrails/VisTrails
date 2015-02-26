@@ -1,4 +1,5 @@
 """ Convert VTK classes into functions using spec in vtk.xml"""
+import locale
 import os
 import re
 import warnings
@@ -320,12 +321,14 @@ class vtkObjectInfo(object):
     # compute does not mutate class instance.
     # compute is treated as a function, having no state.
     def compute(self, **inputs):
+        # fixes reading data files on non-C locales
+        previous_locale = locale.setlocale(locale.LC_ALL)
+        locale.setlocale(locale.LC_ALL, 'C')
         vtk_obj = self.vtkClass()
 
         self.patch_inputs(vtk_obj, inputs)
 
         self.call_set_methods(vtk_obj, inputs)
-
         if self.spec.is_algorithm:
             self.do_algorithm_update(vtk_obj, inputs.get('_callback'))
         elif hasattr(vtk_obj, 'Update'):
@@ -347,6 +350,7 @@ class vtkObjectInfo(object):
         # return values based on output_type
         if self.spec.output_type is None:
             return outputs.values()[0]
+        locale.setlocale(locale.LC_ALL, previous_locale)
         if self.spec.output_type == 'list':
             return [outputs.get(name, None) for name in output_names]
         else:
