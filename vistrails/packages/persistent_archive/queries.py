@@ -63,7 +63,7 @@ class Metadata(QueryCondition):
     This is abstract and implemented by modules Equal*
 
     This both provides a metadata pair, as the 'metadata' attribute, for
-    inserting, and a condition, through the 'condition' attribute.
+    inserting, and conditions, through the 'conditions' attribute.
     """
     _input_ports = [
             IPort('key', String),
@@ -85,7 +85,7 @@ class Metadata(QueryCondition):
         self.set_results()
 
     def set_results(self):
-        self.condition = (self.key, {'type': self._type, 'equal': self.value})
+        self.conditions = {self.key: {'type': self._type, 'equal': self.value}}
         self.metadata = (self.key, self.value)
         self.set_output('value', self)
 
@@ -145,7 +145,7 @@ class IntInRange(QueryCondition):
             dct['lt'] = self.high
         dct['type'] = 'int'
 
-        self.condition = (self.key, dct)
+        self.conditions = {self.key: dct}
         self.set_output('value', self)
 
     def __str__(self):

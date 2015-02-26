@@ -30,8 +30,10 @@ class QueriedInputPath(Module):
 
     def compute(self):
         # Do the query
-        conditions = self.get_input_list('query')
-        conditions = dict(c.condition for c in conditions)
+        queries = self.get_input_list('query')
+        conditions = {}
+        for c in conditions:
+            conditions.update(c.conditions)
 
         file_store = get_default_store()
 
