@@ -1,3 +1,5 @@
+from __future__ import division
+
 from datetime import datetime
 from file_archive import hash_file, hash_directory
 import os

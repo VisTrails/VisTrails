@@ -1,3 +1,5 @@
+from __future__ import division
+
 import os
 
 from vistrails.core.modules.basic_modules import Boolean, Directory, File, \

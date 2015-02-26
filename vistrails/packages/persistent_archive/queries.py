@@ -1,3 +1,5 @@
+from __future__ import division
+
 from vistrails.core.modules.basic_modules import Constant, Integer, String
 from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, ModuleError

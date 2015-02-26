@@ -1,7 +1,8 @@
+from __future__ import division
+
 from file_archive import FileStore
 import os
 
-from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.system import current_dot_vistrails
 
 from .common import set_default_store, PersistentHash
