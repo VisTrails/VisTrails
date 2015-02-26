@@ -230,12 +230,12 @@ class vtkObjectInfo(object):
         # we need to call the methods after the
         #input ports are set.
         if isinstance(vtk_obj, vtk.vtkRenderer):
-            inputs = connections + methods
+            ports = connections + methods
         else:
-            inputs = methods + connections
+            ports = methods + connections
 
         # Compute methods from visible ports last
-        for port in methods + connections:
+        for port in ports:
             if port.arg in inputs:
                 self.call_set_method(vtk_obj, port.arg, inputs[port.arg])
 
