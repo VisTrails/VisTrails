@@ -1,5 +1,7 @@
 from __future__ import division
 
+from file_archive.parser import parse_expression
+
 from vistrails.core.modules.basic_modules import Constant, Integer, String
 from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, ModuleError
@@ -28,16 +30,21 @@ class QueryCondition(Constant):
             IPort('key', String)]
 
     @staticmethod
-    def translate_to_python(c):
+    def translate_to_python(c, top_class=None, text_query=True):
         try:
             i = c.index('(')
         except ValueError:
+            if text_query:
+                return TextQuery(c)
             raise ValueError("Invalid QueryCondition syntax")
         clsname = c[:i]
-        cls = find_subclass(QueryCondition, clsname)
-        if cls is None:
+        cls = find_subclass(top_class or QueryCondition, clsname)
+        if cls is not None:
+            return cls(*eval(c[i+1:-1]))
+        elif text_query:
+            return TextQuery(c)
+        else:
             raise ValueError("No such condition type: %s" % clsname)
-        return cls(*eval(c[i+1:-1]))
 
     @staticmethod
     def translate_to_string(cond):
@@ -55,6 +62,17 @@ class QueryCondition(Constant):
 
 QueryCondition._output_ports = [
         OPort('value', QueryCondition)]
+
+
+class TextQuery(QueryCondition):
+    """A query from a text expression.
+    """
+    def __init__(self, text):
+        self.query = text
+        self.conditions = parse_expression(text)
+
+    def __str__(self):
+        return self.query
 
 
 class Metadata(QueryCondition):
@@ -77,6 +95,12 @@ class Metadata(QueryCondition):
             self.set_results()
         else:
             self.key, self.value = None, None
+
+    @staticmethod
+    def translate_to_python(c):
+        return QueryCondition.translate_to_python(
+                c,
+                top_class=Metadata, text_query=False)
 
     def compute(self):
         self.key = self.get_input('key')
