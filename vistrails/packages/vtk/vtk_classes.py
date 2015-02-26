@@ -311,7 +311,7 @@ class vtkObjectInfo(object):
                 fn = inputs['_tempfile'](suffix='.vtk')
                 vtk_obj.SetFileName(fn)
             vtk_obj.Write()
-            outputs[file] = fn
+            outputs['file'] = fn
         elif issubclass(self.vtkClass, vtk.vtkScalarTree):
             vtk_obj.BuildTree()
 
