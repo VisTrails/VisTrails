@@ -279,7 +279,9 @@ class QVTKWidget(QCellWidget):
             
         iren = renWin.GetInteractor()
         if picker:
-            iren.SetPicker(picker) #.vtkInstance)
+            if hasattr(picker, 'vtkInstance'):
+                picker = picker.vtkInstance
+            iren.SetPicker(picker)
 
         # Update interactor style
         self.removeObserversFromInteractorStyle()
@@ -294,9 +296,16 @@ class QVTKWidget(QCellWidget):
             iren.SetInteractorStyle(iStyleInstance)
         self.addObserversToInteractorStyle()
         
-        for iHandler in self.iHandlers:
+        for i in xrange(len(self.iHandlers)):
+            iHandler = self.iHandlers[i]
+            if hasattr(iHandler, 'vtkInstance'):
+                iHandler = iHandler.vtkInstance
+                self.iHandler[i] = iHandler
             if iHandler.observer:
-                iHandler.observer.vtkInstance.SetInteractor(iren)
+                observer = iHandler.observer
+                if hasattr(observer, 'vtkInstance'):
+                    observer = observer.vtkInstance
+                observer.SetInteractor(iren)
         renWin.Render()
 
         # Capture window into history for playback
