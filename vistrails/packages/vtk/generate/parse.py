@@ -547,7 +547,8 @@ def get_get_set_ports(cls, get_set_dict):
                                        method_name=setter_name,
                                        port_type=port_types,
                                        show_port=show_port,
-                                       docstring=get_doc(cls, setter_name))
+                                       docstring=get_doc(cls, setter_name),
+                                       depth=1)
                     input_ports.append(ps)
 
     return input_ports, output_ports
@@ -696,8 +697,6 @@ def get_other_ports(cls, other_list):
                 signatures = parser.get_method_signature(method)
             if len(signatures) > 1:
                 prune_signatures(cls, name, signatures)
-            # Add ports should have depth 1
-            depth = 1 if name[:3] in 'Add' else 0
             for (ix, sig) in enumerate(signatures):
                 ([result], params) = sig
                 port_types = get_port_types(params)
@@ -724,7 +723,7 @@ def get_other_ports(cls, other_list):
                                        port_type=port_types,
                                        show_port=show_port,
                                        docstring=get_doc(cls, n),
-                                       depth=depth)
+                                       depth=1)
                     input_ports.append(ps)
                 elif result == None or port_types == []:
                     n = resolve_overloaded_name(name, ix, signatures)
@@ -734,7 +733,7 @@ def get_other_ports(cls, other_list):
                                        # Methods like Build() should be called last
                                        sort_key=100,
                                        docstring=get_doc(cls, name),
-                                       depth=depth)
+                                       depth=1)
                     input_ports.append(ps)
     return input_ports, []
 
