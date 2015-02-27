@@ -170,20 +170,18 @@ class vtkObjectInfo(object):
             return self.get_method_table[port_name]
         return self.parent.get_get_method_info(port_name) if self.parent else None
 
-    def call_set_method(self, vtk_obj, port_name, params):
-        info = self.get_set_method_info(port_name)
+    def call_set_method(self, vtk_obj, port, params):
+        info = self.get_set_method_info(port.arg)
         if info is None:
             raise Exception('Internal error: cannot find '
-                            'port "%s"' % port_name)
+                            'port "%s"' % port.arg)
         method_name, shape, other_params = info
 
         if isinstance(params, tuple):
             params = list(params)
         elif not isinstance(params, list):
             params = [params]
-        spec = [spec for spec in self.get_input_port_specs()
-                if spec.arg == port_name][0]
-        if spec.port_type == 'basic:Boolean':
+        if port.port_type == 'basic:Boolean':
             if not params[0]:
                 if method_name.endswith('On'):
                     # This is a toggle method
@@ -192,7 +190,7 @@ class vtkObjectInfo(object):
                     # Skip False 0-parameter method
                     return
             params = []
-        elif spec.entry_types and 'enum' in spec.entry_types:
+        elif port.entry_types and 'enum' in port.entry_types:
             # handle enums
             # Append enum name to function name and delete params
             method_name += params[0]
@@ -214,7 +212,8 @@ class vtkObjectInfo(object):
                 params[i] = params[i].vtkInstance
         try:
             if hasattr(self, '_special_input_function_' + method_name):
-                method = getattr(self, '_special_input_function_' + method_name)
+                method = getattr(self, '_special_input_function_' +
+                                 method_name)
                 method(self, vtk_obj, *(other_params + params))
             else:
                 method = getattr(vtk_obj, method_name)
@@ -227,6 +226,7 @@ class vtkObjectInfo(object):
         methods = [input for input in input_specs if not input.show_port]
         connections = [input for input in input_specs if input.show_port]
 
+        # Compute methods from visible ports last
         #In the case of a vtkRenderer,
         # we need to call the methods after the
         #input ports are set.
@@ -234,11 +234,14 @@ class vtkObjectInfo(object):
             ports = connections + methods
         else:
             ports = methods + connections
-
-        # Compute methods from visible ports last
         for port in ports:
             if port.arg in inputs:
-                self.call_set_method(vtk_obj, port.arg, inputs[port.arg])
+                params = inputs[port.arg]
+                # Call method once for each item in depth1 lists
+                if port.depth == 0:
+                    params = [params]
+                for ps in params:
+                    self.call_set_method(vtk_obj, port, ps)
 
     def call_get_method(self, vtk_obj, port_name):
         info = self.get_get_method_info(port_name)
@@ -341,8 +344,10 @@ class vtkObjectInfo(object):
             if out_name == 'Instance':
                 result = VTKInstanceWrapper(vtk_obj) # For old PythonSources using .vtkInstance
             elif not self.spec.outputs or out_name in inputs['_outputs']:
-                    # port is connected
-                    result = self.call_get_method(vtk_obj, out_name)
+                # port is connected
+                result = self.call_get_method(vtk_obj, out_name)
+                if isinstance(result, vtk.vtkObject):
+                    result = VTKInstanceWrapper(result)
             outputs[out_name] = result
 
         self.patch_outputs(vtk_obj, inputs, outputs)

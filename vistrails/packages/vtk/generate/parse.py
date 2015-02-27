@@ -696,6 +696,8 @@ def get_other_ports(cls, other_list):
                 signatures = parser.get_method_signature(method)
             if len(signatures) > 1:
                 prune_signatures(cls, name, signatures)
+            # Add ports should have depth 1
+            depth = 1 if name[:3] in 'Add' else 0
             for (ix, sig) in enumerate(signatures):
                 ([result], params) = sig
                 port_types = get_port_types(params)
@@ -716,13 +718,13 @@ def get_other_ports(cls, other_list):
                             except TypeError:
                                 pass
                         port_types = port_types[0]
-
                     ps = InputPortSpec(n,
                                        name=n,
                                        method_name=name,
                                        port_type=port_types,
                                        show_port=show_port,
-                                       docstring=get_doc(cls, n))
+                                       docstring=get_doc(cls, n),
+                                       depth=depth)
                     input_ports.append(ps)
                 elif result == None or port_types == []:
                     n = resolve_overloaded_name(name, ix, signatures)
@@ -731,7 +733,8 @@ def get_other_ports(cls, other_list):
                                        port_type='basic:Boolean',
                                        # Methods like Build() should be called last
                                        sort_key=100,
-                                       docstring=get_doc(cls, name))
+                                       docstring=get_doc(cls, name),
+                                       depth=depth)
                     input_ports.append(ps)
     return input_ports, []
 
@@ -749,12 +752,15 @@ def get_custom_ports(cls):
     if cls == vtk.vtkAlgorithm:
         ps = InputPortSpec('AddInputConnection',
                            port_type='vtkAlgorithmOutput',
-                           docstring='Adds an input connection')
+                           show_port=True,
+                           docstring='Adds an input connection',
+                           depth=1)
         input_ports.append(ps)
     # vtkWriters have a custom File port
     if cls in [vtk.vtkWriter, vtk.vtkImageWriter]:
         ps = OutputPortSpec('file',
                             port_type='basic:File',
+                            show_port=True,
                             docstring='The written file')
         output_ports.append(ps)
     elif cls == vtk.vtkVolumeProperty:
@@ -767,17 +773,20 @@ def get_custom_ports(cls):
         ps = InputPortSpec('SetPointData',
                            method_name='PointData',
                            port_type='vtkPointData',
+                           show_port=True,
                            docstring='Sets the point data')
         input_ports.append(ps)
         ps = InputPortSpec('SetCellData',
                            method_name='CellData',
                            port_type='vtkCellData',
+                           show_port=True,
                            docstring='Sets the cell data')
         input_ports.append(ps)
     elif cls==vtk.vtkCell:
         ps = InputPortSpec('SetPointIds',
                            method_name='PointIds',
                            port_type='vtkIdList',
+                           show_port=True,
                            docstring='Sets the point id list')
         input_ports.append(ps)
 
