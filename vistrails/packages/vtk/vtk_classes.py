@@ -39,7 +39,7 @@ def patch_methods(base_module, cls):
         else:
             instance_dict[name] = callable_(None)
 
-    def compute_SetVTKCell(old_compute):
+    def compute_VTKCell(old_compute):
         if old_compute is not None:
             return old_compute
         def call_SetRenderWindow(self, vtkInstance, cellObj):
@@ -85,8 +85,8 @@ def patch_methods(base_module, cls):
         return call_CopyImportVoidPointer
 
     if hasattr(cls, 'SetRenderWindow'):
-        update_dict('_special_input_function_SetVTKCell',
-                    compute_SetVTKCell)
+        update_dict('_special_input_function_VTKCell',
+                    compute_VTKCell)
     if issubclass(cls, vtk.vtkVolumeProperty):
         update_dict('_special_input_function_SetTransferFunction',
                     compute_TransferFunction)
