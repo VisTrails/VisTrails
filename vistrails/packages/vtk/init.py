@@ -195,7 +195,7 @@ def gen_module(spec, lib, **module_settings):
 
         # Optional temp file
         if spec.tempfile:
-            inputs[spec.tempfile] = self._file_pool.create_file
+            inputs[spec.tempfile] = self.file_pool.create_file
 
         # Optional list of outputs to compute
         if spec.outputs:
