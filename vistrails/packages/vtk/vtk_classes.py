@@ -2,14 +2,15 @@
 import locale
 import os
 import re
+import tempfile
+import types
 import warnings
 
 import vtk
 
 from . import fix_classes
 from .wrapper import VTKInstanceWrapper
-
-from .generate.specs import SpecList, VTKModuleSpec
+from .generate.specs import SpecList, ClassSpec
 
 ################################################################################
 
@@ -19,11 +20,7 @@ from .generate.specs import SpecList, VTKModuleSpec
 warnings.filterwarnings("ignore",
                         message="integer argument expected, got float")
 
-
 #### METHOD PATCHING CODE ####
-
-file_name_pattern = re.compile('.*FileName$')
-set_file_name_pattern = re.compile('Set.*FileName$')
 
 def patch_methods(base_module, cls):
     """class_dict(base_module, cls: vtkClass) -> dict
@@ -33,255 +30,62 @@ def patch_methods(base_module, cls):
     instance_dict = {}
     def update_dict(name, callable_):
         if instance_dict.has_key(name):
-            instance_dict[name] = callable_(instance_dict[name])
+            instance_dict[name] = callable_(types.MethodType(instance_dict[name], base_module))
         elif hasattr(base_module, name):
             instance_dict[name] = callable_(getattr(base_module, name))
         else:
             instance_dict[name] = callable_(None)
 
-    def compute_VTKCell(old_compute):
-        if old_compute is not None:
-            return old_compute
-        def call_SetRenderWindow(self, vtkInstance, cellObj):
-            if cellObj.cellWidget:
-                vtkInstance.SetRenderWindow(cellObj.cellWidget.mRenWin)
-        return call_SetRenderWindow
-    
-    def compute_TransferFunction(old_compute):
-        if old_compute is not None:
-            return old_compute
-        def call_TransferFunction(self, vtkInstance, tf):
-            tf.set_on_vtk_volume_property(vtkInstance)
-        return call_TransferFunction
-
-    def compute_PointData(old_compute):
-        if old_compute is not None:
-            return old_compute
-        def call_PointData(self, vtkInstance, pd):
-            vtkInstance.GetPointData().ShallowCopy(pd)
-        return call_PointData
-
-    def compute_CellData(old_compute):
-        if old_compute is not None:
-            return old_compute
-        def call_CellData(self, vtkInstance, cd):
-            vtkInstance.GetCellData().ShallowCopy(cd)
-        return call_CellData
-
-    def compute_PointIds(old_compute):
-        if old_compute is not None:
-            return old_compute
-        def call_PointIds(self, vtkInstance, point_ids):
-            vtkInstance.GetPointIds().SetNumberOfIds(point_ids.GetNumberOfIds())
-            for i in xrange(point_ids.GetNumberOfIds()):
-                vtkInstance.GetPointIds().SetId(i, point_ids.GetId(i))
-        return call_PointIds
-
-    def compute_CopyImportString(old_compute):
-        if old_compute is not None:
-            return old_compute
-        def call_CopyImportVoidPointer(self, vtkInstance, pointer):
-            vtkInstance.CopyImportVoidPointer(pointer, len(pointer))
-        return call_CopyImportVoidPointer
-
-    if hasattr(cls, 'SetRenderWindow'):
-        update_dict('_special_input_function_VTKCell',
-                    compute_VTKCell)
-    if issubclass(cls, vtk.vtkVolumeProperty):
-        update_dict('_special_input_function_SetTransferFunction',
-                    compute_TransferFunction)
-    if issubclass(cls, vtk.vtkDataSet):
-        update_dict('_special_input_function_PointData',
-                    compute_PointData)
-        update_dict('_special_input_function_CellData',
-                    compute_CellData)
-    if issubclass(cls, vtk.vtkCell):
-        update_dict('_special_input_function_PointIds',
-                    compute_PointIds)
-    if issubclass(cls, vtk.vtkImageImport):
-        update_dict('_special_input_function_CopyImportString',
-                    compute_CopyImportString)
-
-    for name, method in instance_dict.iteritems():
-        setattr(base_module, name, method)
-
-#### END METHOD PATCHING CODE ####
-
-
-class vtkObjectInfo(object):
-    """ Class that can expose a VTK class as a function
-
-    """
-    def __init__(self, spec, parent=None):
-        self.parent = parent
-        self.spec = spec
-        self.vtkClass = getattr(vtk, spec.code_ref)
-        # use fixed classes
-        if hasattr(fix_classes, self.vtkClass.__name__ + '_fixed'):
-            self.vtkClass = getattr(fix_classes, self.vtkClass.__name__ + '_fixed')
-        self.set_method_table = {}
-        for ps in spec.input_port_specs:
-            self.set_method_table[ps.arg] = (ps.method_name, ps.get_port_shape(),
-                                         ps.get_other_params())
-        self.get_method_table = {}
-        for ps in spec.output_port_specs:
-            self.get_method_table[ps.arg] = (ps.method_name, ps.get_other_params())
-
-        # patch vtk methods
-        patch_methods(self, self.vtkClass)
-
-    # cache input specs lookups
-    cached_input_port_specs = None
-    def get_input_port_specs(self):
-        """ Get inputs from parents as well, but skip duplicates
-        """
-        if self.cached_input_port_specs is not None:
-            return self.cached_input_port_specs
-        specs = self.spec.input_port_specs
-        ports = [spec.arg for spec in specs]
-        if self.parent:
-            for spec in reversed(self.parent.get_input_port_specs()):
-                if spec.arg not in ports:
-                    specs.insert(0, spec)
-        self.cached_input_port_specs = specs
-        return specs
-
-    # cache output specs lookups
-    cached_output_port_specs = None
-    def get_output_port_specs(self):
-        if self.cached_output_port_specs is not None:
-            return self.cached_output_port_specs
-        specs = self.spec.output_port_specs
-        ports = [spec.arg for spec in specs]
-        if self.parent:
-            for spec in reversed(self.parent.get_output_port_specs()):
-                if spec.arg not in ports:
-                    specs.insert(0, spec)
-        self.cached_output_port_specs = specs
-        return specs
-
-    def get_set_method_info(self, port_name):
-        if port_name in self.set_method_table:
-            return self.set_method_table[port_name]
-        return self.parent.get_set_method_info(port_name) if self.parent else None
-
-    def get_get_method_info(self, port_name):
-        if port_name in self.get_method_table:
-            return self.get_method_table[port_name]
-        return self.parent.get_get_method_info(port_name) if self.parent else None
-
-    def call_set_method(self, vtk_obj, port, params):
-        info = self.get_set_method_info(port.arg)
-        if info is None:
-            raise Exception('Internal error: cannot find '
-                            'port "%s"' % port.arg)
-        method_name, shape, other_params = info
-
-        if isinstance(params, tuple):
-            params = list(params)
-        elif not isinstance(params, list):
-            params = [params]
-        if port.port_type == 'basic:Boolean':
-            if not params[0]:
-                if method_name.endswith('On'):
-                    # This is a toggle method
-                    method_name = method_name[:-2] + 'Off'
-                else:
-                    # Skip False 0-parameter method
-                    return
-            params = []
-        elif port.entry_types and 'enum' in port.entry_types:
-            # handle enums
-            # Append enum name to function name and delete params
-            method_name += params[0]
-            params = []
-        if shape is not None:
-            def reshape_params(p, s):
-                out = []
-                for elt in s:
-                    if isinstance(elt, list):
-                        out.append(reshape_params(p, elt))
+    def compute_UpdateAlgorithm(oldUpdate):
+        def call_UpdateAlgorithm(self):
+            if self._callback is None:
+                oldUpdate()
+                return
+            is_aborted = [False]
+            cbId = None
+            def ProgressEvent(obj, event):
+                try:
+                    self._callback(obj.GetProgress())
+                except Exception, e:
+                    if e.__name__ == 'AbortExecution':
+                        obj.SetAbortExecute(True)
+                        self.RemoveObserver(cbId)
+                        is_aborted[0] = True
                     else:
-                        for i in xrange(elt):
-                            out.append(p.pop(0))
-                return out
-            params = reshape_params(params, shape)
-        # Unwraps VTK objects
-        for i in xrange(len(params)):
-            if hasattr(params[i], 'vtkInstance'):
-                params[i] = params[i].vtkInstance
-        try:
-            if hasattr(self, '_special_input_function_' + method_name):
-                method = getattr(self, '_special_input_function_' +
-                                 method_name)
-                method(self, vtk_obj, *(other_params + params))
-            else:
-                method = getattr(vtk_obj, method_name)
-                method(*(other_params + params))
-        except Exception, e:
-            raise
+                        raise
+            cbId = self.AddObserver('ProgressEvent', ProgressEvent)
+            oldUpdate()
+            if not is_aborted[0]:
+                self.RemoveObserver(cbId)
+        return call_UpdateAlgorithm
+    if issubclass(cls, vtk.vtkAlgorithm):
+        update_dict('Update', compute_UpdateAlgorithm)
 
-    def call_set_methods(self, vtk_obj, inputs):
-        input_specs = self.get_input_port_specs()
-        methods = [input for input in input_specs if not input.show_port]
-        connections = [input for input in input_specs if input.show_port]
+    def guarded_SimpleScalarTree_wrap_compute(old_compute):
+        # This builds the scalar tree
+        def compute(self):
+            old_compute(self)
+            self.vtkInstance.BuildTree()
+        return compute
+    if issubclass(cls, vtk.vtkScalarTree):
+        update_dict('Update', guarded_SimpleScalarTree_wrap_compute)
 
-        # Compute methods from visible ports last
-        #In the case of a vtkRenderer,
-        # we need to call the methods after the
-        #input ports are set.
-        if isinstance(vtk_obj, vtk.vtkRenderer):
-            ports = connections + methods
-        else:
-            ports = methods + connections
-        for port in ports:
-            if port.arg in inputs:
-                params = inputs[port.arg]
-                # Call method once for each item in depth1 lists
-                if port.depth == 0:
-                    params = [params]
-                for ps in params:
-                    self.call_set_method(vtk_obj, port, ps)
+    def guarded_Writer_wrap_compute(self):
+        # The behavior for vtkWriter subclasses is to call Write()
+        # If the user sets a name, we will create a file with that name
+        # If not, we will create a temporary file using _tempfile
+        fn = self.vtkInstance.GetFileName()
+        if not fn:
+            fn = self._tempfile(suffix='.vtk')
+            self.vtkInstance.SetFileName(fn)
+        self.vtkInstance.Write()
+        return fn
+    if issubclass(cls, vtk.vtkWriter):
+        instance_dict['file'] = guarded_Writer_wrap_compute
 
-    def call_get_method(self, vtk_obj, port_name):
-        info = self.get_get_method_info(port_name)
-        if info is None:
-            raise Exception('Internal error: cannot find '
-                            'port "%s"' % port_name)
-        method_name, other_params = info
-        method = getattr(vtk_obj, method_name)
-        try:
-            return method(*other_params)
-        except Exception, e:
-            raise
-
-    def do_algorithm_update(self, vtk_obj, callback=None):
-        if callback is None:
-            vtk_obj.Update()
-            return
-        is_aborted = [False]
-        cbId = None
-        def ProgressEvent(obj, event):
-            try:
-                callback(obj.GetProgress())
-            except Exception, e:
-                if e.__name__ == 'AbortExecution':
-                    obj.SetAbortExecute(True)
-                    vtk_obj.RemoveObserver(cbId)
-                    is_aborted[0] = True
-                else:
-                    raise
-        cbId = vtk_obj.AddObserver('ProgressEvent', ProgressEvent)
-        vtk_obj.Update()
-        if not is_aborted[0]:
-            vtk_obj.RemoveObserver(cbId)
-
-    #### COMPUTE PATCHING CODE ####
-
-    def patch_inputs(self, vtk_obj, kwargs):
-        if hasattr(self.vtkClass, 'SetFileName') and \
-           self.vtkClass.__name__.endswith('Reader') and \
-           not self.vtkClass.__name__.endswith('TiffReader'):
+    def guarded_SetFileName(old_compute):
+        # This builds the scalar tree
+        def check_SetFileName(self):
             # This checks for the presence of file in VTK readers
             # Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
             # it has other ways of specifying files, like SetFilePrefix for
@@ -297,97 +101,146 @@ class vtkObjectInfo(object):
                        v.GetVTKBuildVersion()]
             if version < [6, 0, 0]:
                 skip.append(vtk.vtkPLOT3DReader)
-            if not any(issubclass(self.vtkClass, x) for x in skip):
-                if 'FileName' in kwargs:
-                    name = kwargs['FileName']
-                else:
-                    raise Exception('Missing filename')
-                if not os.path.isfile(name):
+            if not any(issubclass(cls, x) for x in skip):
+                filename = self.vtkInstance.GetFileName()
+                if not os.path.isfile(filename):
                     raise Exception('File does not exist')
+            old_compute()
+        return check_SetFileName
+    if hasattr(cls, 'SetFileName') and \
+       cls.__name__.endswith('Reader') and \
+       not cls.__name__.endswith('TiffReader'):
+        update_dict('Update', guarded_SetFileName)
 
-    def patch_outputs(self, vtk_obj, inputs, outputs):
-        if issubclass(self.vtkClass, vtk.vtkWriter):
-            # The behavior for vtkWriter subclasses is to call Write()
-            # If the user sets a name, we will create a file with that name
-            # If not, we will create a temporary file from the file pool
-            fn = vtk_obj.GetFileName()
-            if not fn:
-                fn = inputs['_tempfile'](suffix='.vtk')
-                vtk_obj.SetFileName(fn)
-            vtk_obj.Write()
-            outputs['file'] = fn
-        elif issubclass(self.vtkClass, vtk.vtkScalarTree):
-            vtk_obj.BuildTree()
+    def call_SetRenderWindow(self, cellObj):
+        if cellObj.cellWidget:
+            self.vtkInstance.SetRenderWindow(cellObj.cellWidget.mRenWin)
+    if hasattr(cls, 'SetRenderWindow'):
+        instance_dict['VTKCell'] = call_SetRenderWindow
 
-    #### END COMPUTE PATCHING CODE ####
+    def call_TransferFunction(self, tf):
+        tf.set_on_vtk_volume_property(self.vtkInstance)
+    if issubclass(cls, vtk.vtkVolumeProperty):
+        instance_dict['SetTransferFunction'] = call_TransferFunction
 
-    # compute does not mutate class instance.
-    # compute is treated as a function, having no state.
-    def compute(self, **inputs):
+    def call_PointData(self, pd):
+        self.vtkInstance.GetPointData().ShallowCopy(pd.vtkInstance)
+    def call_CellData(self, cd):
+        self.vtkInstance.GetCellData().ShallowCopy(cd.vtkInstance)
+    if issubclass(cls, vtk.vtkDataSet):
+        instance_dict['PointData'] = call_PointData
+        instance_dict['CellData'] = call_CellData
+
+    def call_PointIds(self, point_ids):
+        self.vtkInstance.GetPointIds().SetNumberOfIds(point_ids.GetNumberOfIds())
+        for i in xrange(point_ids.GetNumberOfIds()):
+            self.vtkInstance.GetPointIds().SetId(i, point_ids.vtkInstance.GetId(i))
+    if issubclass(cls, vtk.vtkCell):
+        instance_dict['PointIds'] = call_PointIds
+
+    def call_CopyImportVoidPointer(self, pointer):
+        self.CopyImportVoidPointer(pointer, len(pointer))
+        return call_CopyImportVoidPointer
+    if issubclass(cls, vtk.vtkImageImport):
+        instance_dict['CopyImportString'] = call_CopyImportVoidPointer
+
+    for name, method in instance_dict.iteritems():
+        setattr(base_module, name, types.MethodType(method, base_module))
+
+#### END METHOD PATCHING CODE ####
+
+
+class vtkObjectInfo(object):
+    """ Each instance represents a VTK class
+
+    """
+    def __init__(self, spec, parent=None):
+        self.parent = parent
+        self.spec = spec
+        self.vtkClass = getattr(vtk, spec.code_ref)
+        # use fixed classes
+        if hasattr(fix_classes, self.vtkClass.__name__ + '_fixed'):
+            self.vtkClass = getattr(fix_classes, self.vtkClass.__name__ + '_fixed')
+
+class VTKInstancePatcher(object):
+    """ This is used in place of the vtk instance because it may not be
+        safe to set attributes directly on the vtk object.
+
+    """
+    def __init__(self, info_obj):
         # fixes reading data files on non-C locales
-        previous_locale = locale.setlocale(locale.LC_ALL)
+        self._previous_locale = locale.setlocale(locale.LC_ALL)
         locale.setlocale(locale.LC_ALL, 'C')
-        vtk_obj = self.vtkClass()
 
-        self.patch_inputs(vtk_obj, inputs)
+        self._info_obj = info_obj
+        self._callback = None
+        self._tempfile = tempfile.mkstemp
+        self.vtkInstance = info_obj.vtkClass()
+        patch_methods(self, info_obj.vtkClass)
 
-        self.call_set_methods(vtk_obj, inputs)
-        if self.spec.is_algorithm:
-            self.do_algorithm_update(vtk_obj, inputs.get('_callback'))
-        elif hasattr(vtk_obj, 'Update'):
-            vtk_obj.Update()
+    def _cleanup(self):
+        locale.setlocale(locale.LC_ALL, self._previous_locale)
 
-        outputs = {}
-        output_names = [out_spec.arg for out_spec in self.get_output_port_specs()]
-        for out_name in output_names:
-            result = None
-            if out_name == 'Instance':
-                result = VTKInstanceWrapper(vtk_obj) # For old PythonSources using .vtkInstance
-            elif not self.spec.outputs or out_name in inputs['_outputs']:
-                # port is connected
-                result = self.call_get_method(vtk_obj, out_name)
-                if isinstance(result, vtk.vtkObject):
-                    result = VTKInstanceWrapper(result)
-            outputs[out_name] = result
+    def __getattr__(self, name):
+        # redirect calls to vtkInstance
+        def call_wrapper(*args):
+            args = list(args)
+            for i in xrange(len(args)):
+                if hasattr(args[i], 'vtkInstance'):
+                    # Unwrap VTK objects
+                    args[i] = args[i].vtkInstance
+            args = tuple(args)
 
-        self.patch_outputs(vtk_obj, inputs, outputs)
+            #print "CALLING", name, [a.__class__.__name__ for a in args]
+            result = getattr(self.vtkInstance, name)(*args)
+            #print "GOT", result.__class__.__name__
 
-        # return values based on output_type
-        if self.spec.output_type is None:
-            return outputs.values()[0]
-        locale.setlocale(locale.LC_ALL, previous_locale)
-        if self.spec.output_type == 'list':
-            return [outputs.get(name, None) for name in output_names]
-        else:
-            return outputs
+            if isinstance(result, vtk.vtkObjectBase):
+                # Wrap VTK objects
+                result = VTKInstanceWrapper(result)
+            return result
+        return call_wrapper
 
+    def _set_callback(self, callback):
+        self._callback = callback
+
+    def _set_tempfile(self, tempfile):
+        self._tempfile = tempfile
+        
+    def Update(self):
+        if hasattr(self.vtkInstance, 'Update'):
+            self.vtkInstance.Update()
 
 # keep track of created modules for use as subclasses
 infoObjs = {}
 
-def gen_function(spec):
-    """Create a function from a vtk class specification
+
+def gen_instance_factory(spec):
+    """Create an instance factory from a vtk class specification
 
     """
     infoObj = vtkObjectInfo(spec, infoObjs.get(spec.superklass, None))
-    compute = infoObj.compute
-    compute.__func__.__name__ = spec.module_name
     infoObjs[spec.module_name] = infoObj
-    return compute
+    def instanceFactory():
+        return VTKInstancePatcher(infoObj)
+    return instanceFactory
 
 
 def initialize(spec_name=None):
-    """ Generate vtk functions and add them to current module namespace
+    """ Generate class wrappers and add them to current module namespace
         Also adds spec so it can be referenced by module wrapper
+
     """
     if spec_name is None:
         # The spec can be placed in the same folder if used as a standalone package
         spec_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vtk.xml')
         if not os.path.exists(spec_name):
             return
-    specs = SpecList.read_from_xml(spec_name, VTKModuleSpec)
+    specs = SpecList.read_from_xml(spec_name, ClassSpec)
     globals()['specs'] = specs
     for spec in specs.module_specs:
-        globals()[spec.module_name] = gen_function(spec)
-# Try to initialize
+        globals()[spec.module_name] = gen_instance_factory(spec)
+
+
+# Initialize if possible
 initialize()

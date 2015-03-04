@@ -81,14 +81,14 @@ class vtkDataSetInspector(vtkBaseInspector):
                      ]
 
     def compute(self):
-        vtk_object = None
+        port_object = None
         if self.has_input("SetInputConnection0"):
             ic = self.get_input("SetInputConnection0")
             if hasattr(ic, "vtkInstance"):
                 ic = ic.vtkInstance
             producer = ic.GetProducer()
             try:
-                vtk_object = producer.GetOutput()
+                port_object = producer.GetOutput()
             except AttributeError:
                 raise ModuleError(self, 
                                   "expected a module that supports GetOutput")

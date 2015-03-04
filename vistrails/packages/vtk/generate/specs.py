@@ -1,10 +1,5 @@
-
 import ast
-import inspect
 from xml.etree import cElementTree as ET
-
-def capfirst(s):
-    return s[0].upper() + s[1:]
 
 class SpecList(object):
     """ A class with module specifications and custom code
@@ -12,15 +7,13 @@ class SpecList(object):
         maps to modules in vistrails
     """
 
-    def __init__(self, module_specs=[], custom_code=""):
+    def __init__(self, module_specs=None):
+        if module_specs is None:
+            module_specs = []
         self.module_specs = module_specs
-        self.custom_code = custom_code
 
     def write_to_xml(self, fname):
         root = ET.Element("specs")
-        subelt = ET.Element("customCode")
-        subelt.text = self.custom_code
-        root.append(subelt)
         for spec in self.module_specs:
             root.append(spec.to_xml())
         tree = ET.ElementTree(root)
@@ -48,187 +41,18 @@ class SpecList(object):
         if klass is None:
             klass = ModuleSpec
         module_specs = []
-        custom_code = ""
         tree = ET.parse(fname)
         for elt in tree.getroot():
-            if elt.tag == "moduleSpec":
+            if elt.tag == klass.xml_name:
                 module_specs.append(klass.from_xml(elt))
-            elif elt.tag == "customCode":
-                custom_code = elt.text
-        retval = SpecList(module_specs, custom_code)
+        retval = SpecList(module_specs)
         # for spec in retval.module_specs:
         #     print "==", spec.name, "=="
         #     for ps in spec.port_specs:
         #         print " ", ps.arg, ps.name
         return retval
 
-class ModuleSpec(object):
-    """ Represents specification of a module
-        This mirrors how the module will look in the vistrails registry
-    """
-
-    # From Modulesettings. See core.modules.config._documentation
-    ms_attrs = ['name',
-                'configure_widget',
-                'constant_widget',
-                'constant_widgets',
-                'signature',
-                'constant_signature',
-                'color',
-                'fringe',
-                'left_fringe',
-                'right_fringe',
-                'abstract',
-                'namespace',
-                'package_version',
-                'hide_descriptor']
-    attrs = ['module_name', # Name of module (can be overridden by modulesettings)
-             'superklass',  # class to inherit from
-             'code_ref',    # reference to wrapped class/method
-             'docstring',   # module __doc__
-             'output_type', # None(=single), list(ordered), or dict(attr=value)
-             'callback',    # name of attribute for progress callback
-             'tempfile',    # attribute name for temporary file creation method
-             'outputs',     # attribute name for list of connected output port names
-             'cacheable']   # should this module be cached
-    attrs.extend(ms_attrs)
-
-    def __init__(self, module_name, superklass=None, code_ref=None, docstring="",
-                 output_type=None, callback=None, tempfile=None, outputs=None,
-                 cacheable=True, input_port_specs=None, output_port_specs=None,
-                 **kwargs):
-        if input_port_specs is None:
-            input_port_specs = []
-        if output_port_specs is None:
-            output_port_specs = []
-
-        self.module_name = module_name
-        self.superklass = superklass
-        self.code_ref = code_ref
-        self.docstring = docstring
-        self.output_type = output_type
-        self.callback = callback
-        self.tempfile = tempfile
-        self.outputs = outputs
-        self.cacheable = cacheable
-
-        self.input_port_specs = input_port_specs
-        self.output_port_specs = output_port_specs
-
-        for attr in self.ms_attrs:
-            setattr(self, attr, kwargs.get(attr, None))
-
-    def to_xml(self, elt=None):
-        if elt is None:
-            elt = ET.Element("moduleSpec")
-        elt.set("module_name", self.module_name)
-        elt.set("superclass", self.superklass)
-        elt.set("code_ref", self.code_ref)
-        subelt = ET.Element("docstring")
-        subelt.text = unicode(self.docstring)
-        elt.append(subelt)
-        if self.output_type is not None:
-            elt.set("output_type", self.output_type)
-        if self.callback is not None:
-            elt.set("callback", self.callback)
-        if self.tempfile is not None:
-            elt.set("tempfile", self.tempfile)
-        if self.outputs is not None:
-            elt.set("outputs", self.outputs)
-        if self.cacheable is False:
-            elt.set("cacheable", unicode(self.cacheable))
-
-        for attr in self.ms_attrs:
-            value = getattr(self, attr)
-            if value is not None:
-                elt.set(attr, repr(value))
-
-        for port_spec in self.input_port_specs:
-            subelt = port_spec.to_xml()
-            elt.append(subelt)
-        for port_spec in self.output_port_specs:
-            subelt = port_spec.to_xml()
-            elt.append(subelt)
-        return elt
-
-    @classmethod
-    def from_xml(cls, elt):
-        module_name = elt.get("module_name", "")
-        superklass = elt.get("superclass", "")
-        code_ref = elt.get("code_ref", "")
-        output_type = elt.get("output_type", None)
-        callback = elt.get("callback", "")
-        tempfile = elt.get("tempfile", "")
-        outputs = elt.get("outputs", "")
-        cacheable = ast.literal_eval(elt.get("cacheable", "True"))
-
-        kwargs = {}
-        for attr in cls.ms_attrs:
-            value = elt.get(attr, None)
-            if value is not None:
-                kwargs[attr] = ast.literal_eval(value)
-
-        docstring = ""
-        input_port_specs = []
-        output_port_specs = []
-        for child in elt.getchildren():
-            if child.tag == "inputPortSpec":
-                input_port_specs.append(InputPortSpec.from_xml(child))
-            elif child.tag == "outputPortSpec":
-                output_port_specs.append(OutputPortSpec.from_xml(child))
-            elif child.tag == "docstring":
-                if child.text:
-                    docstring = child.text
-        return cls(module_name, superklass, code_ref, docstring, output_type,
-                   callback, tempfile, outputs, cacheable,
-                   input_port_specs, output_port_specs, **kwargs)
-
-    def get_output_port_spec(self, compute_name):
-        for ps in self.output_port_specs:
-            if ps.compute_name == compute_name:
-                return ps
-        return None
-
-    def get_module_settings(self):
-        """ Returns modulesettings dict
-
-        """
-        attrs = {}
-        for attr in self.ms_attrs:
-            value = getattr(self, attr)
-            if value is not None:
-                attrs[attr] = value
-        return attrs
-
-class VTKModuleSpec(ModuleSpec):
-    """ Represents specification of a vtk module
-
-        Adds attribute is_algorithm
-    """
-
-    def __init__(self, module_name, superklass=None, code_ref=None,
-                 docstring="", output_type=None, callback=None,
-                 tempfile=None, outputs=None, cacheable=True,
-                 input_port_specs=None, output_port_specs=None,
-                 is_algorithm=False, **kwargs):
-        ModuleSpec.__init__(self, module_name, superklass, code_ref,
-                            docstring, output_type, callback, tempfile,
-                            outputs, cacheable,
-                            input_port_specs, output_port_specs, **kwargs)
-        self.is_algorithm = is_algorithm
-
-    def to_xml(self, elt=None):
-        elt = ModuleSpec.to_xml(self, elt)
-        if self.is_algorithm is True:
-            elt.set("is_algorithm", unicode(self.is_algorithm))
-        return elt
-
-    @classmethod
-    def from_xml(cls, elt):
-        inst = ModuleSpec.from_xml(elt)
-        inst.is_algorithm = ast.literal_eval(elt.get("is_algorithm", "False"))
-        return inst
-
+######### BASE MODULE SPEC ###########
 
 class PortSpec(object):
     """ Represents specification of a port
@@ -239,20 +63,16 @@ class PortSpec(object):
     # eval: serialize as string and use eval to get value back
     # FIXME: subelement/eval not needed if using json
     attrs = {"name": "",                         # port name
-             "method_name": "",                  # method/attribute name
              "port_type": None,                  # type signature in vistrails
              "docstring": ("", True),            # documentation
              "min_conns": (0, False, True),      # set min_conns (1=required)
              "max_conns": (-1, False, True),     # Set max_conns (default -1)
              "show_port": (False, False, True),  # Set not optional (use connection)
-             "hide": (False, False, True),       # hides/disables port (is this needed?)
              "sort_key": (-1, False, True),      # sort_key
              "shape": (None, False, True),       # physical shape
-             "depth": (0, False, True),          # expected list depth
-             "other_params": (None, True, True)} # prepended params used with indexed methods
+             "depth": (0, False, True)}          # expected list depth
 
-    def __init__(self, arg, **kwargs):
-        self.arg = arg # argument name
+    def __init__(self, **kwargs):
         self.set_defaults(**kwargs)
         self.port_types = []
 
@@ -267,16 +87,9 @@ class PortSpec(object):
             else:
                 setattr(self, attr, default_val)
 
-        if not self.name:
-            self.name = self.arg
-
-        if not self.method_name:
-            self.method_name = self.name
-
     def to_xml(self, elt=None):
         if elt is None:
             elt = ET.Element(self.xml_name)
-        elt.set("arg", self.arg)
         for attr, props in self.attrs.iteritems():
             attr_val = getattr(self, attr)
             is_subelt = False
@@ -298,11 +111,8 @@ class PortSpec(object):
 
     @classmethod
     def internal_from_xml(cls, elt, obj=None):
-        arg = elt.get("arg", "")
         if obj is None:
-            obj = cls(arg)
-        else:
-            obj.arg = arg
+            obj = cls()
 
         child_elts = {}
         for child in elt.getchildren():
@@ -330,7 +140,7 @@ class PortSpec(object):
                 attr_val = elt.get(attr)
                 if attr_val is not None:
                     attr_vals = [attr_val]
-            
+
             if len(attr_vals) > 1:
                 raise ValueError('Should have only one value for '
                                 'attribute "%s"' % attr)
@@ -340,23 +150,23 @@ class PortSpec(object):
                     try:
                         kwargs[attr] = ast.literal_eval(attr_val)
                     except (NameError, SyntaxError, ValueError):
-                        kwargs[attr] = attr_val                        
+                        kwargs[attr] = attr_val
                 else:
                     kwargs[attr] = attr_val
         obj.set_defaults(**kwargs)
         return obj, child_elts
-        
+
     @classmethod
     def from_xml(cls, elt, obj=None):
         obj, child_elts = cls.internal_from_xml(elt, obj)
         return obj
 
-    @staticmethod
-    def create_from_xml(elt):
-        if elt.tag == "inputPortSpec":
-            return InputPortSpec.from_xml(elt)
-        elif elt.tag == "outputPortSpec":
-            return OutputPortSpec.from_xml(elt)
+    @classmethod
+    def create_from_xml(cls, elt):
+        if elt.tag == cls.InputSpecType.xml_name:
+            return cls.InputSpecType.from_xml(elt)
+        elif elt.tag == cls.OutputSpecType.xml_name:
+            return cls.OutputSpecType.from_xml(elt)
         raise TypeError('Cannot create spec from element of type "%s"' %
                         elt.tag)
 
@@ -379,38 +189,12 @@ class PortSpec(object):
         except (SyntaxError, ValueError):
             pass
         return self.port_type
-        
-    def get_port_shape(self):
-        """ TODO: Is this needed for vtk?
-        """
 
-        if self.port_type is not None:
-            try:
-                port_types = ast.literal_eval(self.port_type)
-                def build_shape(t):
-                    if not isinstance(t, list):
-                        raise Exception("Expected a list for " + str(t))
-                    shape = []
-                    count = 0
-                    for elt in t:
-                        if isinstance(elt, list):
-                            if count > 0:
-                                shape.append(count)
-                            shape.append(build_shape(elt))
-                        else:
-                            count += 1
-                    if count > 0:
-                        shape.append(count)
-                    return shape
-                return build_shape(port_types)
-            except (SyntaxError, ValueError):
-                pass
-        return None
-
-    def get_other_params(self):
-        if self.other_params is None:
+    def get_prepend_params(self):
+        if self.prepend_params is None:
             return []
-        return self.other_params
+        return self.prepend_params
+
 
 class InputPortSpec(PortSpec):
     xml_name = "inputPortSpec"
@@ -420,9 +204,6 @@ class InputPortSpec(PortSpec):
              "defaults": (None, True, True),   # default value list
              }
     attrs.update(PortSpec.attrs)
-
-    def __init__(self, arg, **kwargs):
-        PortSpec.__init__(self, arg, **kwargs)
 
     def get_port_attrs(self):
         """ Port attribute dict that will be used to create the port
@@ -453,22 +234,11 @@ class InputPortSpec(PortSpec):
             attrs["optional"] = True
         return attrs
 
+
 class OutputPortSpec(PortSpec):
     xml_name = "outputPortSpec"
-    attrs = {"compute_name": "",
-             "compute_parent": "",
-             }
+    attrs = {}
     attrs.update(PortSpec.attrs)
-    
-    def set_defaults(self, **kwargs):
-        PortSpec.set_defaults(self, **kwargs)
-        if self.compute_name == "":
-            self.compute_name = self.arg
-
-    @classmethod
-    def from_xml(cls, elt, obj=None):
-        obj, child_elts = cls.internal_from_xml(elt, obj)
-        return obj
 
     def get_port_attrs(self):
         """ Port attribute dict that will be used to create the port
@@ -490,6 +260,392 @@ class OutputPortSpec(PortSpec):
         if not self.show_port:
             attrs["optional"] = True
         return attrs
+
+class ModuleSpec(object):
+    """ Represents specification of a module
+        This mirrors how the module will look in the vistrails registry
+    """
+    xml_name = 'moduleSpec'
+    InputSpecType = InputPortSpec
+    OutputSpecType = OutputPortSpec
+
+    # From Modulesettings. See core.modules.config._documentation
+    ms_attrs = ['name',
+                'configure_widget',
+                'constant_widget',
+                'constant_widgets',
+                'signature',
+                'constant_signature',
+                'color',
+                'fringe',
+                'left_fringe',
+                'right_fringe',
+                'abstract',
+                'namespace',
+                'package_version',
+                'hide_descriptor']
+    attrs = [
+             # basic attributes
+             'module_name', # Name of module (can be overridden by modulesettings)
+             'superklass',  # class to inherit from
+             'code_ref',    # reference to wrapped class/method
+             'docstring',   # module __doc__
+             'cacheable',   # should this module be cached
+             # special attributes
+             'callback',    # name of attribute for progress callback
+             'tempfile']    # attribute name for temporary file creation method
+    attrs.extend(ms_attrs)
+
+    def __init__(self, module_name='', superklass='', code_ref='',
+                 docstring='', callback=None, tempfile=None, cacheable=True,
+                 input_port_specs=None, output_port_specs=None, **kwargs):
+        if input_port_specs is None:
+            input_port_specs = []
+        if output_port_specs is None:
+            output_port_specs = []
+
+        self.module_name = module_name
+        self.superklass = superklass
+        self.code_ref = code_ref
+        self.docstring = docstring
+        self.callback = callback
+        self.tempfile = tempfile
+        self.cacheable = cacheable
+
+        self.input_port_specs = input_port_specs
+        self.output_port_specs = output_port_specs
+
+        for attr in self.ms_attrs:
+            setattr(self, attr, kwargs.get(attr, None))
+
+    def to_xml(self, elt=None):
+        if elt is None:
+            elt = ET.Element(self.xml_name)
+        elt.set("module_name", self.module_name)
+        elt.set("superklass", self.superklass)
+        elt.set("code_ref", self.code_ref)
+        subelt = ET.Element("docstring")
+        subelt.text = unicode(self.docstring)
+        elt.append(subelt)
+        if self.callback is not None:
+            elt.set("callback", self.callback)
+        if self.tempfile is not None:
+            elt.set("tempfile", self.tempfile)
+        if self.cacheable is False:
+            elt.set("cacheable", 'False')
+        for attr in self.ms_attrs:
+            value = getattr(self, attr)
+            if value is not None:
+                elt.set(attr, repr(value))
+
+        for port_spec in self.input_port_specs:
+            subelt = port_spec.to_xml()
+            elt.append(subelt)
+        for port_spec in self.output_port_specs:
+            subelt = port_spec.to_xml()
+            elt.append(subelt)
+        return elt
+
+    @staticmethod
+    def from_xml(elt, klass=None):
+        if klass is None:
+            klass = ModuleSpec
+        module_name = elt.get("module_name", '')
+        superklass = elt.get("superklass", '')
+        code_ref = elt.get("code_ref", '')
+        callback = elt.get("callback", None)
+        tempfile = elt.get("tempfile", None)
+        cacheable = ast.literal_eval(elt.get("cacheable", "True"))
+
+        kwargs = {}
+        for attr in klass.ms_attrs:
+            value = elt.get(attr, None)
+            if value is not None:
+                kwargs[attr] = ast.literal_eval(value)
+
+        docstring = ""
+        input_port_specs = []
+        output_port_specs = []
+        for child in elt.getchildren():
+            if child.tag == klass.InputSpecType.xml_name:
+                input_port_specs.append(klass.InputSpecType.from_xml(child))
+            elif child.tag == klass.OutputSpecType.xml_name:
+                output_port_specs.append(klass.OutputSpecType.from_xml(child))
+            elif child.tag == "docstring":
+                if child.text:
+                    docstring = child.text
+        return klass(module_name=module_name, superklass=superklass,
+                   code_ref=code_ref, docstring=docstring,
+                   callback=callback, tempfile=tempfile, cacheable=cacheable,
+                   input_port_specs=input_port_specs,
+                   output_port_specs=output_port_specs, **kwargs)
+
+    def get_output_port_spec(self, compute_name):
+        for ps in self.output_port_specs:
+            if ps.compute_name == compute_name:
+                return ps
+        return None
+
+    def get_module_settings(self):
+        """ Returns modulesettings dict
+
+        """
+        attrs = {}
+        for attr in self.ms_attrs:
+            value = getattr(self, attr)
+            if value is not None:
+                attrs[attr] = value
+        return attrs
+
+
+######### PYTHON FUNCTION SPEC ###########
+
+class FunctionInputPortSpec(InputPortSpec):
+    xml_name = "functionInputPortSpec"
+    attrs = {"arg": ""}                  # attribute name
+    attrs.update(InputPortSpec.attrs)
+
+
+class FunctionOutputPortSpec(OutputPortSpec):
+    xml_name = "functionOutputPortSpec"
+
+
+class FunctionSpec(ModuleSpec):
+    """ Specification for wrapping a python function
+    """
+    xml_name = 'functionSpec'
+    InputSpecType = FunctionInputPortSpec
+    OutputSpecType = FunctionOutputPortSpec
+
+    attrs = ['output_type'] # None(=single), list(ordered), or dict(attr=value)
+    attrs.extend(ModuleSpec.attrs)
+
+    def __init__(self, module_name, superklass='', code_ref='', docstring="",
+                 output_type=None, callback=None, tempfile=None,
+                 cacheable=True, input_port_specs=None, output_port_specs=None,
+                 **kwargs):
+        ModuleSpec.__init__(self, module_name, superklass, code_ref,
+                            docstring, callback, tempfile, cacheable,
+                            input_port_specs, output_port_specs, **kwargs)
+        self.output_type = output_type
+
+    def to_xml(self, elt=None):
+        if elt is None:
+            elt = ET.Element(self.xml_name)
+        elt = ModuleSpec.to_xml(self, elt)
+        if self.output_type is not None:
+            elt.set("output_type", self.output_type)
+        return elt
+
+    @classmethod
+    def from_xml(cls, elt):
+        inst = ModuleSpec.from_xml(elt, FunctionSpec)
+        inst.output_type = elt.get("output_type", None)
+        return inst
+
+######### PYTHON CLASS SPEC ###########
+
+
+class ClassInputPortSpec(InputPortSpec):
+    xml_name = "classInputPortSpec"
+    attrs = {"method_name": "",                  # method name
+             "method_type": "",                  # Type like nullary, OnOff or SetXToY
+             "prepend_params": (None, True, True)} # prepended params like index
+    attrs.update(InputPortSpec.attrs)
+
+    def __init__(self, **kwargs):
+        InputPortSpec.__init__(self, **kwargs)
+        if not self.method_name:
+            self.method_name = self.name
+
+
+class ClassOutputPortSpec(OutputPortSpec):
+    xml_name = "classOutputPortSpec"
+    attrs = {"method_name": "",                    # method/attribute name
+             "prepend_params": (None, True, True)} # prepended params used with indexed methods
+    attrs.update(OutputPortSpec.attrs)
+
+    def __init__(self, **kwargs):
+        OutputPortSpec.__init__(self, **kwargs)
+        if not self.method_name:
+            self.method_name = self.name
+
+
+class ClassSpec(ModuleSpec):
+    """ Specification for wrapping a python class
+    """
+    xml_name = 'classSpec'
+    InputSpecType = ClassInputPortSpec
+    OutputSpecType = ClassOutputPortSpec
+    attrs = ['methods_last', # If True will compute methods before connections
+             'compute', # Function to call after input methods
+             'cleanup'] # Function to call after output methods
+    attrs.extend(ModuleSpec.attrs)
+
+    def __init__(self, module_name, superklass='', code_ref='', docstring="",
+                 callback=None, tempfile=None,
+                 cacheable=True, input_port_specs=None, output_port_specs=None,
+                 compute=None, cleanup=None, methods_last=False, **kwargs):
+        ModuleSpec.__init__(self, module_name, superklass, code_ref,
+                            docstring, callback, tempfile, cacheable,
+                            input_port_specs, output_port_specs, **kwargs)
+        self.methods_last = methods_last
+        self.compute = compute
+        self.cleanup = cleanup
+
+    def to_xml(self, elt=None):
+        if elt is None:
+            elt = ET.Element(self.xml_name)
+        if self.methods_last is not False:
+            elt.set("methods_last", unicode(self.methods_last))
+        if self.compute is not None:
+            elt.set("compute", self.compute)
+        if self.cleanup is not None:
+            elt.set("cleanup", self.cleanup)
+        elt = ModuleSpec.to_xml(self, elt)
+        return elt
+
+    @classmethod
+    def from_xml(cls, elt):
+        inst = ModuleSpec.from_xml(elt, ClassSpec)
+        inst.methods_last = ast.literal_eval(elt.get("methods_last", 'False'))
+        inst.compute = elt.get("compute", None)
+        inst.cleanup = elt.get("cleanup", None)
+        return inst
+
+###############################################################################
+
+import sys
+import unittest
+
+class TestModuleSpec(unittest.TestCase):
+
+    def test_module_spec(self):
+        input_spec = InputPortSpec(name='myportname',
+                                   port_type='basic:String',
+                                   docstring='my port doc',
+                                   min_conns=1,
+                                   max_conns=3,
+                                   show_port=True,
+                                   sort_key=5,
+                                   depth=1,
+                                   entry_type='enum')
+        in_attrs = input_spec.get_port_attrs()
+
+        output_spec = OutputPortSpec(name='myportname',
+                                   port_type='basic:String',
+                                   docstring='my port doc',
+                                   min_conns=1,
+                                   max_conns=3,
+                                   show_port=False,
+                                   sort_key=5,
+                                   depth=1)
+        out_attrs = output_spec.get_port_attrs()
+
+        ms = ModuleSpec(module_name='myclassname',
+                        superklass='mysuperclassname',
+                        code_ref='theclassname',
+                        docstring='my documentation',
+                        callback=None,
+                        tempfile=None,
+                        cacheable=False,
+                        input_port_specs=[input_spec],
+                        output_port_specs=[output_spec])
+        as_string = ET.tostring(ms.to_xml())
+        from_string = ET.fromstring(as_string)
+        ms2 = ModuleSpec.from_xml(from_string)
+        in_attrs2 = ms2.input_port_specs[0].get_port_attrs()
+        out_attrs2 = ms2.output_port_specs[0].get_port_attrs()
+        self.assertEqual(in_attrs, in_attrs2)
+        self.assertEqual(out_attrs, out_attrs2)
+
+    def test_function_spec(self):
+        input_spec = FunctionInputPortSpec(name='myportname',
+                                   port_type='basic:String',
+                                   docstring='my port doc',
+                                   min_conns=1,
+                                   max_conns=3,
+                                   show_port=False,
+                                   sort_key=5,
+                                   depth=1,
+                                   arg='myargname',
+                                   )
+        in_attrs = input_spec.get_port_attrs()
+
+        output_spec = FunctionOutputPortSpec(name='myportname',
+                                   port_type='basic:String',
+                                   docstring='my port doc',
+                                   min_conns=1,
+                                   max_conns=3,
+                                   show_port=False,
+                                   sort_key=5,
+                                   depth=1)
+        out_attrs = output_spec.get_port_attrs()
+
+        ms = FunctionSpec(module_name='myclassname',
+                        superklass='mysuperclassname',
+                        code_ref='theclassname',
+                        docstring='my documentation',
+                        callback=None,
+                        tempfile=None,
+                        cacheable=False,
+                        input_port_specs=[input_spec],
+                        output_port_specs=[output_spec],
+                        output_type='list')
+        as_string = ET.tostring(ms.to_xml())
+        from_string = ET.fromstring(as_string)
+        ms2 = FunctionSpec.from_xml(from_string)
+        in_attrs2 = ms2.input_port_specs[0].get_port_attrs()
+        out_attrs2 = ms2.output_port_specs[0].get_port_attrs()
+        self.assertEqual(in_attrs, in_attrs2)
+        self.assertEqual(out_attrs, out_attrs2)
+
+    def test_class_spec(self):
+        input_spec = ClassInputPortSpec(name='myportname',
+                                   port_type='basic:String',
+                                   docstring='my port doc',
+                                   min_conns=1,
+                                   max_conns=3,
+                                   show_port=False,
+                                   sort_key=5,
+                                   depth=1,
+                                   method_name='MyClassMethodName',
+                                   method_type='SetXToY',
+                                   prepend_params=[1])
+        in_attrs = input_spec.get_port_attrs()
+
+        output_spec = ClassOutputPortSpec(name='myportname',
+                                   port_type='basic:String',
+                                   docstring='my port doc',
+                                   min_conns=1,
+                                   max_conns=3,
+                                   show_port=False,
+                                   sort_key=5,
+                                   depth=1,
+                                   method_name='MyClassMethodName',
+                                   prepend_params=[1])
+        out_attrs = output_spec.get_port_attrs()
+
+        ms = ClassSpec(module_name='myclassname',
+                        superklass='mysuperclassname',
+                        code_ref='theclassname',
+                        docstring='my documentation',
+                        callback=None,
+                        tempfile=None,
+                        cacheable=False,
+                        input_port_specs=[input_spec],
+                        output_port_specs=[output_spec],
+                        methods_last=True,
+                        compute='myCompute',
+                        cleanup='myCleanup')
+        as_string = ET.tostring(ms.to_xml())
+        from_string = ET.fromstring(as_string)
+        ms2 = ClassSpec.from_xml(from_string)
+        in_attrs2 = ms2.input_port_specs[0].get_port_attrs()
+        out_attrs2 = ms2.output_port_specs[0].get_port_attrs()
+        self.assertEqual(in_attrs, in_attrs2)
+        self.assertEqual(out_attrs, out_attrs2)
+
 
 #def run():
 #    specs = SpecList.read_from_xml("mpl_plots_raw.xml")

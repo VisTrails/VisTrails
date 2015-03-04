@@ -1,3 +1,4 @@
+from itertools import izip
 from vistrails.core.modules.basic_modules import Color, Path, PathObject, \
                                                        identifier as basic_pkg
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
@@ -101,6 +102,8 @@ _modules.append(vtkRendererOutput)
 
 # TODO: code below is independent of VTK and should be moved elsewhere
 
+####################################################################
+
 #### Automatic conversion between some vistrail and python types ####
 
 def convert_input_param(value, _type):
@@ -122,17 +125,13 @@ def convert_output_param(value, _type):
 def convert_input(value, signature):
     if len(signature) == 1:
         return convert_input_param(value, signature[0][0])
-    return [convert_input_param(v, t[0]) for v, t in zip(value, signature)]
+    return tuple([convert_input_param(v, t[0]) for v, t in zip(value, signature)])
 
 def convert_output(value, signature):
     if len(signature) == 1:
         return convert_output_param(value, signature[0][0])
-    return [convert_output_param(v, t[0]) for v, t in zip(value, signature)]
+    return tuple([convert_output_param(v, t[0]) for v, t in zip(value, signature)])
 
-####################################################################
-
-# keep track of created modules for use as subclasses
-klasses = {}
 
 def _get_input_spec(cls, name):
     """ Get named input spec from self or superclass
@@ -156,7 +155,156 @@ def _get_output_spec(cls, name):
         base = klasses.next()
     return None
 
-def gen_module(spec, lib, **module_settings):
+# keep track of created modules for use as subclasses
+klasses = {}
+
+
+class BaseClassModule(Module):
+    """ Wraps a python class as a vistrails Module using a ClassSpec
+        setter methods are used as inputs and getter methods as outputs
+
+    """
+    _settings = ModuleSettings(abstract=True)
+
+    _get_input_spec = classmethod(_get_input_spec)
+    _get_output_spec = classmethod(_get_output_spec)
+
+    def call_set_method(self, instance, port, params):
+        # convert params
+        params = convert_input(params, self.input_specs[port.name].signature)
+        if isinstance(params, tuple):
+            params = list(params)
+        elif not isinstance(params, list):
+            params = [params]
+        method_name = port.method_name
+        if port.method_type == 'OnOff':
+            # This converts booleans to XOn(), XOff() calls
+            method_name = method_name + ('On' if params[0] else 'Off')
+            params = []
+        elif port.method_type == 'nullary':
+            # Call X() only if boolean is true
+            if params[0]:
+                params = []
+            else:
+                return
+        elif port.method_type == 'SetXToY':
+            # Append enum name to function name and delete params
+            method_name += params[0]
+            params = []
+        prepend_params = port.get_prepend_params()
+        # print "SETTING", method_name, prepend_params + params, instance.vtkInstance.__class__.__name__
+        method = getattr(instance, method_name)
+        try:
+            method(*(prepend_params + params))
+        except Exception, e:
+            raise
+
+    def call_get_method(self, instance, port):
+        # print "GETTING", port.method_name, port.get_prepend_params(), instance.vtkInstance.__class__.__name__
+        method = getattr(instance, port.method_name)
+        try:
+            value = method(*(port.get_prepend_params()))
+            # convert params
+            return convert_output(value, self.output_specs[port.name].signature)
+        except Exception, e:
+            raise
+
+    def call_inputs(self, instance):
+        # compute input methods and connections
+        # We need to preserve the order of the inputs
+        methods = self.is_method.values()
+        methods.sort()
+        methods_to_call = []
+        for value in methods:
+            (_, port) = value
+            conn = self.is_method.inverse[value]
+            p = conn()
+            # Convert to correct port depth
+            depth = conn.depth()
+            while depth < self._get_input_spec(port).depth:
+                p = [p]
+                depth += 1
+            methods_to_call.append([port, p])
+        connections_to_call = []
+        for (function, connector_list) in self.inputPorts.iteritems():
+            paramList = self.force_get_input_list(function)
+            for p,connector in izip(paramList, connector_list):
+                # Don't call method
+                if connector in self.is_method:
+                    continue
+                depth = connector.depth()
+                while depth < connector.spec.depth:
+                    p = [p]
+                    depth += 1
+                connections_to_call.append([function, p])
+        # Compute methods from visible ports last
+        #In the case of a vtkRenderer,
+        # we need to call the methods after the
+        #input ports are set.
+        if self._module_spec.methods_last:
+            to_call = connections_to_call + methods_to_call
+        else:
+            to_call = methods_to_call + connections_to_call
+        for port_name, params in to_call:
+            port = self._get_input_spec(port_name)
+            # Call method once for each item in depth1 lists
+            if port.depth == 0:
+                params = [params]
+            for ps in params:
+                self.call_set_method(instance, port, ps)
+
+    def call_outputs(self, instance):
+        outputs_list = self.output_specs_order
+        if 'self' in outputs_list:
+            outputs_list.remove('self')
+        if 'Instance' in outputs_list:
+            outputs_list.remove('Instance')
+        for port_name in outputs_list:
+            if not port_name in self.outputPorts:
+                # not connected
+                continue
+            port = self._get_output_spec(port_name)
+            result = self.call_get_method(instance, port)
+            self.set_output(port_name, result)
+
+    def compute(self):
+        spec = self._module_spec
+        # First create the instance
+        # TODO: How to handle parameters to instance
+        instance = getattr(self._lib, spec.code_ref)()
+
+        # Optional callback used for progress reporting
+        if spec.callback:
+            def callback(c):
+                self.logging.update_progress(self, c)
+            getattr(instance, spec.callback)(callback)
+        # Optional function for creating temporary files
+        if spec.tempfile:
+            getattr(instance, spec.tempfile)(self.file_pool.create_file)
+
+        # call input methods on instance
+        self.call_inputs(instance)
+
+        # optional compute method
+        if spec.compute:
+            getattr(instance, spec.compute)()
+
+        # convert outputs to dict
+        outputs = {}
+        outputs_list = self.output_specs_order
+        outputs_list.remove('self') # self is automatically set by base Module
+
+        # Get outputs
+        self.call_outputs(instance)
+
+        self.set_output('Instance', instance)
+
+        # optional cleanup method
+        if spec.cleanup:
+            getattr(instance, spec.cleanup)()
+
+
+def gen_function_module(spec, lib, **module_settings):
     """Create a module from a python function specification
 
     Parameters
@@ -196,10 +344,6 @@ def gen_module(spec, lib, **module_settings):
         # Optional temp file
         if spec.tempfile:
             inputs[spec.tempfile] = self.file_pool.create_file
-
-        # Optional list of outputs to compute
-        if spec.outputs:
-            inputs[spec.outputs] = self.outputPorts.keys()
 
         function = getattr(lib, spec.code_ref)
         try:
@@ -255,6 +399,48 @@ def gen_module(spec, lib, **module_settings):
     return new_klass
 
 
+def gen_class_module(spec, lib, **module_settings):
+    """Create a module from a python class specification
+
+    Parameters
+    ----------
+    spec : ClassSpec
+        A class to module specification
+    """
+    module_settings.update(spec.get_module_settings())
+    _settings = ModuleSettings(**module_settings)
+
+    # convert input/output specs into VT port objects
+    input_ports = [CIPort(ispec.name, ispec.get_port_type(), **ispec.get_port_attrs())
+                   for ispec in spec.input_port_specs]
+    output_ports = [COPort(ospec.name, ospec.get_port_type(), **ospec.get_port_attrs())
+                    for ospec in spec.output_port_specs]
+    output_ports.insert(0, COPort('Instance', spec.module_name)) # Adds instance output port
+
+    _input_spec_table = {}
+    for ps in spec.input_port_specs:
+        _input_spec_table[ps.name] = ps
+    _output_spec_table = {}
+    for ps in spec.output_port_specs:
+        _output_spec_table[ps.name] = ps
+
+    d = {'__module__': __name__,
+         '_settings': _settings,
+         '__doc__': spec.docstring,
+         '__name__': spec.name or spec.module_name,
+         '_input_ports': input_ports,
+         '_output_ports': output_ports,
+         '_input_spec_table': _input_spec_table,
+         '_output_spec_table': _output_spec_table,
+         '_module_spec': spec,
+         '_lib': lib}
+
+    superklass = klasses.get(spec.superklass, BaseClassModule)
+    new_klass = type(str(spec.module_name), (superklass,), d)
+    klasses[spec.module_name] = new_klass
+    return new_klass
+
+
 def initialize():
     # First check if spec for this VTK version exists
     v = vtk.vtkVersion()
@@ -268,7 +454,8 @@ def initialize():
         from .generate.parse import parse
         parse(spec_name)
     vtk_classes.initialize(spec_name)
-    _modules.extend([gen_module(spec, vtk_classes, signature=hasher.vtk_hasher)
+    _modules.insert(0, BaseClassModule)
+    _modules.extend([gen_class_module(spec, vtk_classes, signature=hasher.vtk_hasher)
                      for spec in vtk_classes.specs.module_specs])
 
 ################# UPGRADES #####################################################
@@ -438,6 +625,17 @@ def build_remap(module_name=None):
                                                               [value])
                     return [('add', new_function, 'module', new_module.id)]
                 return remap
+            def change_SetXint(spec):
+                # Fix old SetX methods that takes an int representing the enum
+                def remap(old_func, new_module):
+                    controller = _get_controller()
+                    value = int(old_func.params[0].strValue)
+                    value = spec.values[0][value]
+                    new_function = controller.create_function(new_module,
+                                                              spec.name,
+                                                              [value])
+                    return [('add', new_function, 'module', new_module.id)]
+                return remap
             def color_func(name):
                 def remap(old_func, new_module):
                     controller = _get_controller()
@@ -483,25 +681,27 @@ def build_remap(module_name=None):
                 return remap
             if spec is None:
                 continue
-            elif spec.port_type == 'basic:Boolean':
-                if spec.method_name.endswith('On'):
-                    # Convert On/Off to single port
-                    input_mappings[spec.name + 'On'] = spec.name
-                    input_mappings[spec.name + 'Off'] = spec.name
-                    function_mappings[spec.name + 'On'] = \
-                                                  change_func(spec.name, True)
-                    function_mappings[spec.name + 'Off'] = \
-                                                 change_func(spec.name, False)
-                else:
-                    # Add True to execute empty functions
-                    function_mappings[spec.name] = change_func(spec.name, True)
-            elif spec.entry_types and 'enum' in spec.entry_types:
+            elif spec.method_type == 'OnOff':
+                # Convert On/Off to single port
+                input_mappings[spec.name + 'On'] = spec.name
+                input_mappings[spec.name + 'Off'] = spec.name
+                function_mappings[spec.name + 'On'] = \
+                                              change_func(spec.name, True)
+                function_mappings[spec.name + 'Off'] = \
+                                             change_func(spec.name, False)
+            elif spec.method_type == 'nullary':
+                # Add True to execute empty functions
+                function_mappings[spec.name] = change_func(spec.name, True)
+            elif spec.method_type == 'SetXToY':
                 # Add one mapping for each default
                 for enum in spec.values[0]:
                     input_mappings[spec.method_name + enum] = spec.name
                     # Add enum value to function
                     function_mappings[spec.method_name + enum] = \
                                                   change_func(spec.name, enum)
+                # Convert SetX(int) methods
+                old_name = spec.method_name[:-2]
+                function_mappings[spec.method_name[:-2]] = change_SetXint(spec)
             elif spec.port_type == 'basic:Color':
                 # Remove 'Widget' suffix on Color
                 input_mappings[spec.method_name + 'Widget'] = spec.name
@@ -541,7 +741,6 @@ def build_remap(module_name=None):
 
     pkg = reg.get_package_by_name(identifier)
     if module_name is not None:
-        # print 'building remap for', module_name
         desc = reg.get_descriptor_by_name(identifier, module_name)
         process_module(desc)
     else:

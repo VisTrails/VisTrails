@@ -4,8 +4,9 @@ import re
 import vtk
 
 from .class_tree import ClassTree
-from .specs import VTKModuleSpec as ModuleSpec, SpecList, \
-                  InputPortSpec, OutputPortSpec
+from .specs import ClassSpec, SpecList, \
+                   ClassInputPortSpec as InputPortSpec, \
+                   ClassOutputPortSpec as OutputPortSpec
 from .vtk_parser import VTKMethodParser
 
 parser = VTKMethodParser()
@@ -123,27 +124,20 @@ def create_module(base_cls_name, node):
     input_ports, output_ports = get_ports(node.klass)
     output_ports = list(output_ports) # drop generator
 
-    instance_port = OutputPortSpec('Instance',
-                               port_type=node.name,
-                               docstring='The wrapped VTK class instance',
-                               show_port=True)
-    output_ports.insert(0, instance_port)
-
-    output_type = 'list' if len(output_ports)>0 else None
     cacheable = (issubclass(node.klass, vtk.vtkAlgorithm) and
                  (not issubclass(node.klass, vtk.vtkAbstractMapper))) or \
                 issubclass(node.klass, vtk.vtkScalarTree)
 
     is_algorithm = issubclass(node.klass, vtk.vtkAlgorithm)
-    tempfile = '_tempfile' if issubclass(node.klass, vtk.vtkWriter) else None
-    callback = '_callback' if is_algorithm else None
-    outputs = '_outputs'
+    tempfile = '_set_tempfile' if issubclass(node.klass, vtk.vtkWriter) else None
+    callback = '_set_callback' if is_algorithm else None
+    methods_last = issubclass(node.klass, vtk.vtkRenderer)
 
-    module_spec = ModuleSpec(node.name, base_cls_name, node.name,
-                             node.klass.__doc__.decode('latin-1'), output_type,
-                             callback, tempfile, outputs, cacheable,
-                             input_ports, output_ports, is_algorithm,
-                             abstract=is_abstract())
+    module_spec = ClassSpec(node.name, base_cls_name, node.name,
+                            node.klass.__doc__.decode('latin-1'), callback,
+                            tempfile, cacheable, input_ports, output_ports,
+                            compute='Update', cleanup='_cleanup',
+                            methods_last=methods_last, abstract=is_abstract())
 
     module_specs = [module_spec]
     for child in node.children:
@@ -376,17 +370,17 @@ def get_algorithm_ports(cls):
         else:
             for i in xrange(instance.GetNumberOfInputPorts()):
                 port_name = "SetInputConnection%d" % i
-                port_spec = InputPortSpec(port_name,
+                port_spec = InputPortSpec(name=port_name,
                                           method_name="SetInputConnection",
                                           port_type="vtkAlgorithmOutput",
                                           docstring=get_doc(cls,
                                                         "SetInputConnection"),
                                           show_port=True,
-                                          other_params=[i])
+                                          prepend_params=[i])
                 input_ports.append(port_spec)
             for i in xrange(instance.GetNumberOfOutputPorts()):
                 port_name = "GetOutputPort%d" % i
-                port_spec = OutputPortSpec(port_name,
+                port_spec = OutputPortSpec(name=port_name,
                                            method_name="GetOutputPort",
                                            port_type="vtkAlgorithmOutput",
                                            docstring=get_doc(cls,
@@ -426,8 +420,7 @@ def get_get_ports(cls, get_list):
             port_type = get_port_types(getter[0][0])
             if is_type_allowed(port_type):
                 n = resolve_overloaded_name(name[3:], ix, signatures)
-                port_spec = OutputPortSpec(n,
-                                           name=n,
+                port_spec = OutputPortSpec(name=n,
                                            method_name=name,
                                            port_type=port_type,
                                            show_port=False,
@@ -483,14 +476,14 @@ def get_get_set_ports(cls, get_set_dict):
             port_type = get_port_types(getter[0][0])
             if is_type_allowed(port_type):
                 if name in color_ports:
-                    ps = OutputPortSpec(name,
+                    ps = OutputPortSpec(name=name,
                                         method_name=getter_name,
                                         port_type="basic:Color",
                                         show_port=False,
                                         docstring=get_doc(cls, getter_name))
                     input_ports.append(ps)
                 else:
-                    ps = OutputPortSpec(name,
+                    ps = OutputPortSpec(name=name,
                                         method_name=getter_name,
                                         port_type=port_type,
                                         show_port=False,
@@ -506,8 +499,7 @@ def get_get_set_ports(cls, get_set_dict):
             # Wrap SetFileNames for VisTrails file access
             # FIXME add documentation
             if file_name_pattern.match(name):
-                ps = InputPortSpec(name,
-                                   name=name[:-4],
+                ps = InputPortSpec(name=name[:-4],
                                    method_name=setter_name,
                                    port_type="basic:File",
                                    show_port=True)
@@ -515,7 +507,7 @@ def get_get_set_ports(cls, get_set_dict):
             # Wrap color methods for VisTrails GUI facilities
             # FIXME add documentation
             elif name in color_ports:
-                ps = InputPortSpec(name,
+                ps = InputPortSpec(name=name,
                                    method_name=setter_name,
                                    port_type="basic:Color",
                                    show_port=False)
@@ -523,8 +515,7 @@ def get_get_set_ports(cls, get_set_dict):
             # Wrap SetRenderWindow for exporters
             # FIXME Add documentation
             elif name == 'RenderWindow':
-                ps = InputPortSpec(name,
-                                   name="VTKCell",
+                ps = InputPortSpec(name="VTKCell",
                                    port_type="VTKCell",
                                    show_port=True)
                 input_ports.append(ps)
@@ -541,9 +532,7 @@ def get_get_set_ports(cls, get_set_dict):
                         port_types = port_types[0]
                     else:
                         show_port = False
-                    # BEWARE we will get port_types that look like
-                    # ["basic:Integer", ["basic:Float", "basic:Float"]]
-                    ps = InputPortSpec(n,
+                    ps = InputPortSpec(name=n,
                                        method_name=setter_name,
                                        port_type=port_types,
                                        show_port=show_port,
@@ -570,8 +559,9 @@ def get_toggle_ports(cls, toggle_dict):
     for name, default_val in toggle_dict.iteritems():
         if name in disallowed_toggle_ports:
             continue
-        ps = InputPortSpec(name,
-                           method_name=name + 'On',
+        ps = InputPortSpec(name=name,
+                           method_name=name, # With On/Off appended
+                           method_type='OnOff',
                            port_type="basic:Boolean",
                            show_port=False,
                            defaults=[bool(default_val)],
@@ -605,8 +595,9 @@ def get_state_ports(cls, state_dict):
             translations[mode[0]] = mode[1]
             enum_values.append(mode[0])
 
-        ps = InputPortSpec(name,
+        ps = InputPortSpec(name=name,
                            method_name=method_name_short,
+                           method_type='SetXToY',
                            port_type="basic:String",
                            entry_types=['enum'],
                            values=[enum_values],
@@ -684,7 +675,7 @@ def get_other_ports(cls, other_list):
             continue
         elif name=='CopyImportVoidPointer':
             # FIXME add documentation
-            ps = InputPortSpec('CopyImportVoidString',
+            ps = InputPortSpec(name='CopyImportVoidString',
                                method_name='CopyImportVoidPointer',
                                port_type='basic:String',
                                show_port=True)
@@ -717,8 +708,7 @@ def get_other_ports(cls, other_list):
                             except TypeError:
                                 pass
                         port_types = port_types[0]
-                    ps = InputPortSpec(n,
-                                       name=n,
+                    ps = InputPortSpec(name=n,
                                        method_name=name,
                                        port_type=port_types,
                                        show_port=show_port,
@@ -727,11 +717,10 @@ def get_other_ports(cls, other_list):
                     input_ports.append(ps)
                 elif result == None or port_types == []:
                     n = resolve_overloaded_name(name, ix, signatures)
-                    ps = InputPortSpec(n,
+                    ps = InputPortSpec(name=n,
                                        method_name=name,
                                        port_type='basic:Boolean',
-                                       # Methods like Build() should be called last
-                                       sort_key=100,
+                                       method_type='nullary',
                                        docstring=get_doc(cls, name),
                                        depth=1)
                     input_ports.append(ps)
@@ -749,7 +738,7 @@ def get_custom_ports(cls):
     output_ports = []
 
     if cls == vtk.vtkAlgorithm:
-        ps = InputPortSpec('AddInputConnection',
+        ps = InputPortSpec(name='AddInputConnection',
                            port_type='vtkAlgorithmOutput',
                            show_port=True,
                            docstring='Adds an input connection',
@@ -757,32 +746,32 @@ def get_custom_ports(cls):
         input_ports.append(ps)
     # vtkWriters have a custom File port
     if cls in [vtk.vtkWriter, vtk.vtkImageWriter]:
-        ps = OutputPortSpec('file',
+        ps = OutputPortSpec(name='file',
                             port_type='basic:File',
                             show_port=True,
                             docstring='The written file')
         output_ports.append(ps)
     elif cls == vtk.vtkVolumeProperty:
-        ps = InputPortSpec('TransferFunction',
+        ps = InputPortSpec(name='TransferFunction',
                            method_name='SetTransferFunction',
                            port_type='TransferFunction',
                            docstring='Sets the transfer function to use')
         input_ports.append(ps)
     elif cls == vtk.vtkDataSet:
-        ps = InputPortSpec('SetPointData',
+        ps = InputPortSpec(name='SetPointData',
                            method_name='PointData',
                            port_type='vtkPointData',
                            show_port=True,
                            docstring='Sets the point data')
         input_ports.append(ps)
-        ps = InputPortSpec('SetCellData',
+        ps = InputPortSpec(name='SetCellData',
                            method_name='CellData',
                            port_type='vtkCellData',
                            show_port=True,
                            docstring='Sets the cell data')
         input_ports.append(ps)
     elif cls==vtk.vtkCell:
-        ps = InputPortSpec('SetPointIds',
+        ps = InputPortSpec(name='SetPointIds',
                            method_name='PointIds',
                            port_type='vtkIdList',
                            show_port=True,
