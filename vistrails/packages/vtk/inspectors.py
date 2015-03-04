@@ -42,7 +42,7 @@ from vistrails.core.modules.basic_modules import Module, Float, Integer
 from vistrails.core.modules.config import ModuleSettings
 import vtk
 from .hasher import vtk_hasher
-from .wrapper import VTKInstanceWrapper
+from .vtk_wrapper.wrapper import VTKInstanceWrapper
 
 class vtkBaseInspector(Module):
 
