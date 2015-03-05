@@ -3,6 +3,7 @@ from __future__ import division
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.db.action import create_action
+from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.gui.modules.module_configure import \
     StandardModuleConfigurationWidget
 
@@ -21,7 +22,6 @@ def str_repr(s):
 
 
 class Metadata(QtGui.QWidget):
-    # TODO: use constant widgets for these? (directly in the ports panel)
     remove = QtCore.pyqtSignal()
     changed = QtCore.pyqtSignal()
 
@@ -239,3 +239,53 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         if not self.state_changed:
             self.state_changed = True
             self.emit(QtCore.SIGNAL('stateChanged'))
+
+
+class MetadataConstantWidget(QtGui.QWidget, ConstantWidgetMixin):
+    contentsChanged = QtCore.pyqtSignal(tuple)
+
+    def __init__(self, param, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        ConstantWidgetMixin.__init__(self, param)
+
+        self._key = QtGui.QLineEdit()
+        self.connect(self._key, QtCore.SIGNAL("returnPressed()"),
+                     self.update_parent)
+
+        self._type = QtGui.QComboBox()
+        self._type.addItems(['int', 'str'])
+        self.connect(self._type, QtCore.SIGNAL("currentIndexChanged()"),
+                     self.update_parent)
+
+        self._value = QtGui.QLineEdit()
+        self.connect(self._value, QtCore.SIGNAL("returnPressed()"),
+                     self.update_parent)
+
+        layout = QtGui.QHBoxLayout()
+        layout.addWidget(self._key)
+        layout.addWidget(self._type)
+        layout.addWidget(self._value)
+        self.setLayout(layout)
+
+        if param.strValue:
+            self.setContents(param.strValue)
+
+    def contents(self):
+        if self._type.currentText() == 'int':
+            return 'EqualInt(%s, %s)' % (str_repr(self._key.text()),
+                                         self._value.text())
+        else:  # self._type.currentText() == 'str':
+            return 'EqualString(%s, %s)' % (str_repr(self._key.text()),
+                                            str_repr(self._value.text()))
+
+    def setContents(self, value, silent=False):
+        cond = QueryCondition.translate_to_python(value, text_query=False)
+        self._key.setText(cond.key)
+        if isinstance(cond, EqualInt):
+            self._type.setCurrentIndex(0)
+            self._value.setText('%d' % cond.value)
+        elif isinstance(cond, EqualString):
+            self._type.setCurrentIndex(1)
+            self._value.setText(cond.value)
+        if not silent:
+            self.update_parent()

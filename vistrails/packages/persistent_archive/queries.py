@@ -116,6 +116,11 @@ class Metadata(QueryCondition):
     def __str__(self):
         return '%s(%r, %r)' % (self.__class__.__name__, self.key, self.value)
 
+    @staticmethod
+    def get_widget_class():
+        from .widgets import MetadataConstantWidget
+        return MetadataConstantWidget
+
 Metadata._output_ports = [
         OPort('value', Metadata)]
 
@@ -135,6 +140,12 @@ class EqualInt(Metadata):
 
     _type = 'int'
 
+    def __init__(self, *args):
+        if args:
+            key, value = args
+            assert isinstance(value, (int, long))
+        Metadata.__init__(self, *args)
+
 
 class IntInRange(QueryCondition):
     _input_ports = [
@@ -147,6 +158,8 @@ class IntInRange(QueryCondition):
 
         if args:
             self.key, self.low, self.high = args
+            assert isinstance(self.low, (int, long))
+            assert isinstance(self.high, (int, long))
             self.set_results()
         else:
             self.key, self.low, self.high = None, None, None
