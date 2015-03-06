@@ -221,6 +221,22 @@ class VTKInstancePatcher(object):
         locale.setlocale(locale.LC_ALL, self._previous_locale)
 
     def __getattr__(self, name):
+        v = vtk.vtkVersion()
+        version = [v.GetVTKMajorVersion(),
+                   v.GetVTKMinorVersion(),
+                   v.GetVTKBuildVersion()]
+        if version < [6, 0, 0]:
+            # Translate vtk6 port names to vtk5 port names
+            to_vtk5_names = {'AddInputData':  'AddInput',
+                          'AddDataSetInput':  'AddInput',
+                             'SetInputData':  'SetInput',
+                            'AddSourceData': 'AddSource',
+                            'SetSourceData': 'SetSource'}
+            for new, old in to_vtk5_names.iteritems():
+                if name.startswith(new):
+                    # Keep suffix
+                    name = old + name[len(new):]
+                    break
         # redirect calls to vtkInstance
         def call_wrapper(*args):
             args = list(args)

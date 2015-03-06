@@ -481,6 +481,16 @@ disallowed_get_set_ports = set(['ReferenceCount',
 color_ports = set(["DiffuseColor", "Color", "AmbientColor", "SpecularColor",
                    "EdgeColor", "Background", "Background2"])
 
+to_vtk6_names = {'AddInput':  'AddInputData',
+                 'SetInput':  'SetInputData',
+                'AddSource': 'AddSourceData',
+                'SetSource': 'SetSourceData'}
+def get_vtk6_name(cls, name):
+    # Return SetInputData for SetInput etc.
+    if name == 'AddInput' and cls == vtk.vtkXYPlotActor:
+        return 'AddDataSetInput'
+    return to_vtk6_names.get(name, name)
+
 # FIXME use defaults and ranges!
 def get_get_set_ports(cls, get_set_dict):
     """get_get_set_ports(cls: class, get_set_dict: dict) -> None
@@ -562,6 +572,14 @@ def get_get_set_ports(cls, get_set_dict):
                                    show_port=True)
                 input_ports.append(ps)
             else:
+                v = vtk.vtkVersion()
+                version = [v.GetVTKMajorVersion(),
+                           v.GetVTKMinorVersion(),
+                           v.GetVTKBuildVersion()]
+                if version < [6, 0, 0]:
+                    # Always use VTK6-style names for InputData-style types
+                    setter_name = get_vtk6_name(cls, setter_name)
+                    name = setter_name[3:]
                 n = resolve_overloaded_name(name, ix, setter_sig)
                 port_types = get_port_types(setter[1])
                 if is_type_allowed(port_types):
@@ -741,6 +759,13 @@ def get_other_ports(cls, other_list):
                         result is None):
                     continue
                 if is_type_allowed(port_types):
+                    v = vtk.vtkVersion()
+                    version = [v.GetVTKMajorVersion(),
+                               v.GetVTKMinorVersion(),
+                               v.GetVTKBuildVersion()]
+                    if version < [6, 0, 0]:
+                        # Always use VTK6-style names for InputData-style types
+                        name = get_vtk6_name(cls, name)
                     n = resolve_overloaded_name(name, ix, signatures)
                     show_port = False
                     if len(port_types) < 1:
