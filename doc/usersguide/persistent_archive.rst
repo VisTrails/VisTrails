@@ -52,3 +52,20 @@ All the files currently stored in the archive can be listed by clicking on the *
 
 Examples
 ========
+
+.. figure:: figures/persistent_archive/workflow_persistedfile.png
+   :align: center
+
+   Example: Using PersistedFile in a workflow with metadata. Upstream is not re-executed.
+
+
+.. figure:: figures/persistent_archive/workflow_textquery.png
+   :align: center
+
+   Example: Querying a file from the archive with text conditions.
+
+
+.. figure:: figures/persistent_archive/contents_filter.png
+   :align: center
+
+   Example: Searching for archive entries with the *Show archive content* dialog.
