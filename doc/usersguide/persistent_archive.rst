@@ -45,5 +45,10 @@ These simply get a previous result, or any entry from the store, from conditions
 
 Use it for example to analyse previous results.
 
+Managing the store
+==================
+
+All the files currently stored in the archive can be listed by clicking on the *Packages* menu > *Persistent Archive* > *Show archive content*.
+
 Examples
 ========
