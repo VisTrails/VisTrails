@@ -105,6 +105,13 @@ disallowed_classes = set(
         'vtkTDxMotionEventInfo',
         'vtkVolumeRayCastDynamicInfo',
         'vtkVolumeRayCastStaticInfo',
+        # For VTK 6
+        'vtkBlueObeliskData',
+        'vtkSocketController',
+        'vtkMPIController',
+        'vtkInformationVariantVectorKey',
+        'vtkInformationVariantKey',
+        'QImage',
     ])
 
 disallowed_modules = set(
@@ -685,6 +692,8 @@ disallowed_other_ports = set(
      # 'PRESERVES_GEOMETRY',
      # 'PRESERVES_RANGES',
      # 'PRESERVES_TOPOLOGY',
+     # for VTK 6
+     'SetMaterialProperties',
      ])
 
 
@@ -812,6 +821,13 @@ def get_custom_ports(cls):
                            show_port=True,
                            docstring='Sets the point id list')
         input_ports.append(ps)
+    elif cls==vtk.vtkMultiBlockPLOT3DReader:
+        ps = OutputPortSpec(name='StructuredGrid',
+                            method_name='FirstBlock',
+                            port_type='vtkStructuredGrid',
+                            show_port=True,
+                            docstring='Returns .GetOutput().GetBlock(0)')
+        output_ports.append(ps)
 
     return input_ports, output_ports
 

@@ -178,6 +178,11 @@ def patch_methods(base_module, cls):
     if issubclass(cls, vtk.vtkImageImport):
         instance_dict['CopyImportString'] = call_CopyImportVoidPointer
 
+    def call_GetFirstBlock(self):
+        return VTKInstanceWrapper(self.vtkInstance.GetOutput().GetBlock(0))
+    if issubclass(cls, vtk.vtkMultiBlockPLOT3DReader):
+        instance_dict['FirstBlock'] = call_GetFirstBlock
+
     for name, method in instance_dict.iteritems():
         setattr(base_module, name, types.MethodType(method, base_module))
 

@@ -174,6 +174,9 @@ def _get_pipeline():
     global _pipeline
     return _pipeline
 
+module_name_remap = {'vtkPLOT3DReader': 'vtkMultiBlockPLOT3DReader'}
+
+
 def build_remap(module_name=None):
     global _remap, _controller
 
@@ -309,16 +312,28 @@ def build_remap(module_name=None):
         process_ports(desc, remap, 'input')
         process_ports(desc, remap, 'output')
         _remap.add_module_remap(remap)
+        for old, new in module_name_remap.iteritems():
+            if desc.name == new:
+                # Remap using old name
+                remap.new_module = old
+                _remap.add_module_remap(remap, old)
         # 0.9.5 upgrades
         remap = UpgradeModuleRemap('0.9.3', '0.9.5', '0.9.5',
                                    module_name=desc.name)
         remap.add_remap('src_port_remap', 'self', 'Instance')
         _remap.add_module_remap(remap)
+        for old, new in module_name_remap.iteritems():
+            if desc.name == new:
+                # Remap using old name
+                remap.new_module = old
+                _remap.add_module_remap(remap, old)
         # 1.0.0 upgrades
         input_mappings = {}
         function_mappings = {}
-        for spec in [desc.module._get_input_spec(s)
-                     for s in get_port_specs(desc, 'input')]:
+        input_specs = [desc.module._get_input_spec(s)
+                     for s in get_port_specs(desc, 'input')]
+        input_names = [s.name for s in input_specs]
+        for spec in input_specs:
             def change_func(name, value):
                 def remap(old_func, new_module):
                     controller = _get_controller()
@@ -381,8 +396,36 @@ def build_remap(module_name=None):
                             ('add', conn1),
                             ('add', conn2)]
                 return remap
+            def wrap_block_func():
+                def remap(old_conn, new_module):
+                    controller = _get_controller()
+                    create_new_connection = UpgradeWorkflowHandler.create_new_connection
+                    pipeline = _get_pipeline()
+                    module1 = pipeline.modules[old_conn.destination.moduleId]
+                    dest_port = old_conn.destination
+                    candidates = ['AddInputData_1', 'AddInputData',
+                                  'SetInputData_1', 'SetInputData',
+                                  'AddInput', 'SetInput']
+                    if 'Connection' in old_conn.destination.name:
+                        _desc = reg.get_descriptor_by_name(identifier,
+                                                           module1.name)
+                        ports = get_port_specs(_desc, 'input')
+                        for c in candidates:
+                            if c in ports:
+                                dest_port = c
+                                break
+                    conn = create_new_connection(controller,
+                                                 new_module,
+                                                 'StructuredGrid',
+                                                 module1,
+                                                 dest_port)
+                    return [('add', conn)]
+                return remap
             if spec is None:
                 continue
+            elif spec.name == 'TextScaleMode':
+                function_mappings['ScaledTextOn'] = \
+                                           change_func('TextScaleMode', 'Prop')
             elif spec.method_type == 'OnOff':
                 # Convert On/Off to single port
                 input_mappings[spec.name + 'On'] = spec.name
@@ -415,9 +458,34 @@ def build_remap(module_name=None):
                 input_mappings[spec.method_name] = to_file_func(spec.name)  # Set*FileName -> (->File->*File)
                 input_mappings['Set' + spec.name] = spec.name # Set*File -> *File
                 function_mappings[spec.method_name] = file_func(spec.name)
+            elif base_name(spec.name) == 'AddDataSetInput':
+                # SetInput* does not exist in VTK 6
+                if spec.name[15:] == '_1':
+                    # Upgrade from version without overload
+                    input_mappings['AddInput'] = spec.name
+                input_mappings['AddInput' + spec.name[15:]] = spec.name
+            elif base_name(spec.name) == 'SetInputData':
+                # SetInput* does not exist in VTK 6
+                if spec.name[12:] == '_1':
+                    # Upgrade from version without overload
+                    input_mappings['SetInput'] = spec.name
+                input_mappings['SetInput' + spec.name[12:]] = spec.name
+            elif base_name(spec.name) == 'AddInputData':
+                # AddInput* does not exist in VTK 6
+                if spec.name[12:] == '_1':
+                    # Upgrade from version without overload
+                    input_mappings['AddInput'] = spec.name
+                input_mappings['AddInput' + spec.name[12:]] = spec.name
+            elif base_name(spec.name) ==  'SetSourceData':
+                # SetSource* does not exist in VTK 6
+                if spec.name[13:] == '_1':
+                    # Upgrade from version without overload
+                    input_mappings['SetSource'] = spec.name
+                input_mappings['SetSource' + spec.name[13:]] = spec.name
             elif spec.method_name == 'Set' + base_name(spec.name):
                 # Remove 'Set' prefixes
                 input_mappings['Set' + spec.name] = spec.name
+
             elif spec.name == 'AddInput_1':
                 # FIXME what causes this?
                 # New version does not have AddInput
@@ -430,6 +498,12 @@ def build_remap(module_name=None):
             if spec.method_name == 'Get' + spec.name:
                 # Remove 'Get' prefixes
                 output_mappings[spec.method_name] = spec.name
+        if desc.name == 'vtkMultiBlockPLOT3DReader':
+            # Move GetOutput to custom FirstBlock
+            output_mappings['GetOutput'] = wrap_block_func()
+            # Move GetOutputPort0 to custom FirstBlock
+            # and change destination port to AddInputData_1 or similar
+            output_mappings['GetOutputPort0'] = wrap_block_func()
 
         remap = UpgradeModuleRemap('0.9.5', '1.0.0', '1.0.0',
                                    module_name=desc.name)
@@ -440,6 +514,11 @@ def build_remap(module_name=None):
         for k, v in function_mappings.iteritems():
             remap.add_remap('function_remap', k, v)
         _remap.add_module_remap(remap)
+        for old, new in module_name_remap.iteritems():
+            if desc.name == new:
+                # Remap to new name
+                remap.new_module = new
+                _remap.add_module_remap(remap, old)
 
     pkg = reg.get_package_by_name(identifier)
     if module_name is not None:
@@ -463,6 +542,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     _controller = controller
     _pipeline = pipeline
     module_name = pipeline.modules[module_id].name
+    module_name = module_name_remap.get(module_name, module_name)
     if not _remap.has_module_remaps(module_name):
         build_remap(module_name)
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
