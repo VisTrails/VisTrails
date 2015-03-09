@@ -249,7 +249,9 @@ class QVTKWidget(QCellWidget):
 
         (renderers, renderView, self.iHandlers, iStyle, picker) = inputPorts
         if renderView:
-            renderView.vtkInstance.SetupRenderWindow(renWin)
+            renderView.vtkInstance.SetRenderWindow(renWin)
+            renderView.vtkInstance.ResetCamera()
+            self.addObserversToInteractorStyle()
             renderers = [renderView.vtkInstance.GetRenderer()]
         self.renderer_maps = {}
         self.usecameras = False

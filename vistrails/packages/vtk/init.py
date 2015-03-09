@@ -68,9 +68,8 @@ if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
                        'SpreadsheetCell'):
     # load these only if spreadsheet is enabled
     from .vtkcell import _modules as cell_modules
-    from .vtkviewcell import _modules as view_cell_modules
     from .vtkhandler import _modules as handler_modules
-    _modules += cell_modules + view_cell_modules + handler_modules
+    _modules += cell_modules + handler_modules
 
 class vtkRendererToFile(ImageFileMode):
     config_cls = ImageFileModeConfig
@@ -540,6 +539,10 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='vtkInteractionHandler')
         remap.add_remap('src_port_remap', 'self', 'Instance')
+        _remap.add_module_remap(remap)
+        remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
+                                   module_name='VTKViewCell',
+                                   new_module='VTKCell')
         _remap.add_module_remap(remap)
 
     _controller = controller
