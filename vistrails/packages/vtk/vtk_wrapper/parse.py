@@ -544,6 +544,15 @@ def get_get_set_ports(cls, get_set_dict):
 
         if len(setter_sig) > 1:
             prune_signatures(cls, setter_name, setter_sig)
+        docstring = get_doc(cls, setter_name)
+        v = vtk.vtkVersion()
+        version = [v.GetVTKMajorVersion(),
+                   v.GetVTKMinorVersion(),
+                   v.GetVTKBuildVersion()]
+        if version < [6, 0, 0]:
+            # Always use VTK6-style names for InputData-style types
+            setter_name = get_vtk6_name(cls, setter_name)
+            name = setter_name[3:]
         for ix, setter in enumerate(setter_sig):
             if setter[1] is None:
                 continue
@@ -572,14 +581,6 @@ def get_get_set_ports(cls, get_set_dict):
                                    show_port=True)
                 input_ports.append(ps)
             else:
-                v = vtk.vtkVersion()
-                version = [v.GetVTKMajorVersion(),
-                           v.GetVTKMinorVersion(),
-                           v.GetVTKBuildVersion()]
-                if version < [6, 0, 0]:
-                    # Always use VTK6-style names for InputData-style types
-                    setter_name = get_vtk6_name(cls, setter_name)
-                    name = setter_name[3:]
                 n = resolve_overloaded_name(name, ix, setter_sig)
                 port_types = get_port_types(setter[1])
                 if is_type_allowed(port_types):
@@ -596,7 +597,7 @@ def get_get_set_ports(cls, get_set_dict):
                                        method_name=setter_name,
                                        port_type=port_types,
                                        show_port=show_port,
-                                       docstring=get_doc(cls, setter_name),
+                                       docstring=docstring,
                                        depth=1)
                     input_ports.append(ps)
 
@@ -750,6 +751,14 @@ def get_other_ports(cls, other_list):
                 signatures = parser.get_method_signature(method)
             if len(signatures) > 1:
                 prune_signatures(cls, name, signatures)
+            docstring = get_doc(cls, name)
+            v = vtk.vtkVersion()
+            version = [v.GetVTKMajorVersion(),
+                       v.GetVTKMinorVersion(),
+                       v.GetVTKBuildVersion()]
+            if version < [6, 0, 0]:
+                # Always use VTK6-style names for InputData-style types
+                name = get_vtk6_name(cls, name)
             for (ix, sig) in enumerate(signatures):
                 ([result], params) = sig
                 port_types = get_port_types(params)
@@ -759,14 +768,9 @@ def get_other_ports(cls, other_list):
                         result is None):
                     continue
                 if is_type_allowed(port_types):
-                    v = vtk.vtkVersion()
-                    version = [v.GetVTKMajorVersion(),
-                               v.GetVTKMinorVersion(),
-                               v.GetVTKBuildVersion()]
-                    if version < [6, 0, 0]:
-                        # Always use VTK6-style names for InputData-style types
-                        name = get_vtk6_name(cls, name)
                     n = resolve_overloaded_name(name, ix, signatures)
+                    if n.startswith('Set'):
+                        n = n[3:]
                     show_port = False
                     if len(port_types) < 1:
                         raise Exception("Shouldn't have empty input")
@@ -781,7 +785,7 @@ def get_other_ports(cls, other_list):
                                        method_name=name,
                                        port_type=port_types,
                                        show_port=show_port,
-                                       docstring=get_doc(cls, n),
+                                       docstring=docstring,
                                        depth=1)
                     input_ports.append(ps)
                 elif result == None or port_types == []:

@@ -464,28 +464,31 @@ def build_remap(module_name=None):
                     # Upgrade from version without overload
                     input_mappings['AddInput'] = spec.name
                 input_mappings['AddInput' + spec.name[15:]] = spec.name
-            elif base_name(spec.name) == 'SetInputData':
+            elif base_name(spec.name) == 'InputData':
                 # SetInput* does not exist in VTK 6
-                if spec.name[12:] == '_1':
+                if spec.name[9:] == '_1':
                     # Upgrade from version without overload
                     input_mappings['SetInput'] = spec.name
-                input_mappings['SetInput' + spec.name[12:]] = spec.name
+                input_mappings['SetInput' + spec.name[9:]] = spec.name
             elif base_name(spec.name) == 'AddInputData':
                 # AddInput* does not exist in VTK 6
                 if spec.name[12:] == '_1':
                     # Upgrade from version without overload
                     input_mappings['AddInput'] = spec.name
                 input_mappings['AddInput' + spec.name[12:]] = spec.name
-            elif base_name(spec.name) ==  'SetSourceData':
+            elif base_name(spec.name) ==  'SourceData':
                 # SetSource* does not exist in VTK 6
-                if spec.name[13:] == '_1':
+                if spec.name[10:] == '_1':
                     # Upgrade from version without overload
                     input_mappings['SetSource'] = spec.name
-                input_mappings['SetSource' + spec.name[13:]] = spec.name
+                input_mappings['SetSource' + spec.name[10:]] = spec.name
             elif spec.method_name == 'Set' + base_name(spec.name):
+                if spec.name[-2:] == '_1':
+                    # Upgrade from versions without overload
+                    input_mappings[spec.name[:-2]] = spec.name
+                    input_mappings['Set' + spec.name[:-2]] = spec.name
                 # Remove 'Set' prefixes
                 input_mappings['Set' + spec.name] = spec.name
-
             elif spec.name == 'AddInput_1':
                 # FIXME what causes this?
                 # New version does not have AddInput

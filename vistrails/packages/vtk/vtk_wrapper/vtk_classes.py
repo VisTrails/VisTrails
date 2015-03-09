@@ -226,7 +226,7 @@ class VTKInstancePatcher(object):
                    v.GetVTKMinorVersion(),
                    v.GetVTKBuildVersion()]
         if version < [6, 0, 0]:
-            # Translate vtk6 port names to vtk5 port names
+            # Translate vtk6 method names to vtk5 method names
             to_vtk5_names = {'AddInputData':  'AddInput',
                           'AddDataSetInput':  'AddInput',
                              'SetInputData':  'SetInput',
