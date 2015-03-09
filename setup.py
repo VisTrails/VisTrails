@@ -1,5 +1,6 @@
 import os
 from setuptools import setup
+import sys
 
 
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
@@ -46,6 +47,18 @@ for version in os.listdir('vistrails/db/versions'):
 ]
 
 
+requirements = [
+    # 'PyQt<5.0',
+    'numpy',
+    'scipy',
+    'certifi',
+    'backports.ssl_match_hostname',
+]
+
+if sys.version_info < (2, 7):
+    requirements.append('argparse')
+
+
 description = """
 VisTrails is an open-source data analysis and visualization tool. It provides a comprehensive provenance infrastructure that maintains detailed history information about the steps followed and data derived in the course of an exploratory task: VisTrails maintains provenance of data products, of the computational processes that derive these products and their executions.
 
@@ -65,12 +78,7 @@ setup(name='vistrails',
         'console_scripts': [
           'vistrails = vistrails.run:main']},
       zip_safe=False,
-      install_requires=[
-        # 'PyQt<5.0',
-        'numpy',
-        'scipy',
-        'certifi',
-        'backports.ssl_match_hostname'],
+      install_requires=requirements,
       description='Data analysis and visualization tool',
       author="New York University",
       author_email='vistrails-dev@vistrails.org',
