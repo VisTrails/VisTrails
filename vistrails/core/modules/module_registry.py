@@ -820,7 +820,7 @@ class ModuleRegistry(DBRegistry):
             ports.update(self.module_ports('output', desc))
         all_ports = ports.values()
         if do_sort:
-            all_ports.sort(key=lambda x: (x.sort_key, x.id))
+            all_ports.sort(key=lambda x: (-x.sort_key, x.id))
         return all_ports        
 
     def module_source_ports(self, do_sort, identifier, module_name, 
