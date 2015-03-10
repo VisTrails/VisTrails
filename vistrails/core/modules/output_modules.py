@@ -509,6 +509,32 @@ class RichTextOutput(OutputModule):
     # need specific spreadsheet richtext mode here
     pass
 
+class IPythonModeConfig(OutputModeConfig):
+    mode_type = "ipython"
+    _fields = []
+
+class IPythonMode(OutputMode):
+    mode_type = "ipython"
+    priority = 2
+    config_cls = IPythonModeConfig
+
+    @staticmethod
+    def can_compute():
+        try:
+            import __main__ as main
+            if hasattr(main, '__file__'):
+                return False
+            import IPython.core.display
+            return True
+        except ImportError:
+            return False
+
+    def compute_output(self, output_module, configuration=None):
+        from IPython.core.display import display
+
+        value = output_module.get_input('value')
+        display(value)
+
 _modules = [OutputModule, GenericOutput, FileOutput]
 
 # need to put WebOutput, ImageOutput, RichTextOutput, SVGOutput, etc. elsewhere
