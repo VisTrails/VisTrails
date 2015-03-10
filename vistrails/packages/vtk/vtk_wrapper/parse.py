@@ -105,6 +105,8 @@ disallowed_classes = set(
         'vtkTDxMotionEventInfo',
         'vtkVolumeRayCastDynamicInfo',
         'vtkVolumeRayCastStaticInfo',
+        # For VTK 5.8
+        'vtkMPICommunicatorOpaqueComm',
         # For VTK 6
         'vtkBlueObeliskData',
         'vtkSocketController',
