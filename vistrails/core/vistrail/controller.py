@@ -530,7 +530,7 @@ class VistrailController(object):
         added_upgrade = False
         should_migrate_tags = get_vistrails_configuration().check("migrateTags")
         for action in self._delayed_actions:
-            self.vistrail.add_action(action, start_version, 
+            self.vistrail.add_action(action, start_version,
                                      self.current_session)
             # HACK to populate upgrade information
             if (action.has_annotation_with_key(desc_key) and
@@ -3283,17 +3283,17 @@ class VistrailController(object):
                     #mashup.id = uuid.uuid1()
                     # we move it to the new version so that references still work
                     self._mashups.remove(mashup)
-                    
+
                     for action in mashup.actions:
                         for alias in action.mashup.aliases:
                             c = alias.component
-                            if (Module.vtType, c.vtmid) in mfp_remap:
+                            while (Module.vtType, c.vtmid) in mfp_remap:
                                 c.vtmid = mfp_remap[(Module.vtType, c.vtmid)]
-                            if (ModuleFunction.vtType,
+                            while (ModuleFunction.vtType,
                                 c.vtparent_id) in mfp_remap:
                                 c.vtparent_id=mfp_remap[(ModuleFunction.vtType,
                                                          c.vtparent_id)]
-                            if (ModuleParam.vtType, c.vtid) in mfp_remap:
+                            while (ModuleParam.vtType, c.vtid) in mfp_remap:
                                 c.vtid = mfp_remap[(ModuleParam.vtType,
                                                      c.vtid)]
                     mashup.currentVersion = mashup.getLatestVersion()
@@ -3308,7 +3308,7 @@ class VistrailController(object):
                 self._delayed_paramexps.extend(new_param_exps)
                 self._delayed_mashups.extend(new_mashups)
             else:
-                vistrail.add_action(upgrade_action, new_version, 
+                vistrail.add_action(upgrade_action, new_version,
                                     self.current_session)
                 vistrail.set_upgrade(new_version, str(upgrade_action.id))
                 if get_vistrails_configuration().check("migrateTags"):
