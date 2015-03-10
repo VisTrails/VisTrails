@@ -1,14 +1,12 @@
 from __future__ import division
 
-import ast
-import copy
 import os
 import sys
 import unittest
 
-from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, ConfigURL, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
+from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
-from vistrails.core.modules.config import IPort, OPort, ModuleSettings
+from vistrails.core.modules.config import IPort, ModuleSettings
 import vistrails.core.system
 
 class OutputMode(object):
