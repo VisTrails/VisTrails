@@ -427,8 +427,11 @@ class JobMonitor(object):
                     delete = False
             if delete:
                 del self.jobs[job_id]
-        if self.callback:
-            self.callback.deleteWorkflow(id)
+        try:
+            if self.callback:
+                self.callback.deleteWorkflow(id)
+        except ReferenceError:
+            pass
 
     def deleteJob(self, id):
         """ deleteJob(id: str, parent_id: str) -> None
@@ -438,8 +441,11 @@ class JobMonitor(object):
         for wf in self.workflows.itervalues():
             if id in wf.jobs:
                 del wf.jobs[id]
-        if self.callback:
-            self.callback.deleteJob(id)
+        try:
+            if self.callback:
+                self.callback.deleteJob(id)
+        except ReferenceError:
+            pass
 
     ###########################################################################
     # _current_workflow methods
@@ -459,8 +465,11 @@ class JobMonitor(object):
                             self._current_workflow)
         workflow.reset()
         self._current_workflow = workflow
-        if self.callback:
-            self.callback.startWorkflow(workflow)
+        try:
+            if self.callback:
+                self.callback.startWorkflow(workflow)
+        except ReferenceError:
+            pass
 
     def addJobRec(self, obj, parent_id=None):
         workflow = self.currentWorkflow()
@@ -505,8 +514,11 @@ class JobMonitor(object):
         for job in workflow.jobs.values():
             if not job.finished and not job.updated:
                 job.finish()
-        if self.callback:
-            self.callback.finishWorkflow(workflow)
+        try:
+            if self.callback:
+                self.callback.finishWorkflow(workflow)
+        except ReferenceError:
+            pass
         self._current_workflow = None
 
     def addJob(self, id, params=None, name='', finished=False):
@@ -535,8 +547,11 @@ class JobMonitor(object):
             workflow.jobs[id] = job
             # we add workflows permanently if they have at least one job
             self.workflows[workflow.id] = workflow
-        if self.callback:
-            self.callback.addJob(self.getJob(id))
+        try:
+            if self.callback:
+                self.callback.addJob(self.getJob(id))
+        except ReferenceError:
+            pass
 
     def addParent(self, error):
         """ addParent(id: str, name: str, finished: bool) -> None
@@ -566,9 +581,12 @@ class JobMonitor(object):
                 raise ModuleSuspended(module, 'Job is running',
                                       handle=handle)
         job = self.getJob(id)
-        if self.callback:
-            self.callback.checkJob(module, id, handle)
-            return
+        try:
+            if self.callback:
+                self.callback.checkJob(module, id, handle)
+                return
+        except ReferenceError:
+            pass
 
         conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
