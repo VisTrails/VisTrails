@@ -271,8 +271,8 @@ class vtkRendererToFile(ImageFileMode):
     config_cls = ImageFileModeConfig
     formats = ['png', 'jpg', 'tif', 'pnm']
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         return True
 
     def compute_output(self, output_module, configuration):
