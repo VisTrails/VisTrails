@@ -254,8 +254,8 @@ class SpreadsheetMode(OutputMode):
     priority = 3
     config_cls = SpreadsheetModeConfig
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         if get_vistrails_configuration().batch:
             return False
         return True

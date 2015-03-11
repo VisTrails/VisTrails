@@ -13,8 +13,8 @@ class OutputMode(object):
     mode_type = None
     priority = -1
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         return False
 
     def compute_output(self, output_module, configuration=None):
@@ -306,8 +306,8 @@ class StdoutMode(OutputMode):
     priority = 2
     config_cls = StdoutModeConfig
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         return True
 
 class FileModeConfig(OutputModeConfig):
@@ -332,8 +332,8 @@ class FileMode(OutputMode):
     # need to reset this after each execution!
     series_next = 0
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         return True
 
     @classmethod
