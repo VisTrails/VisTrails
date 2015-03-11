@@ -45,9 +45,21 @@ from PyQt4.QtXmlPatterns import QXmlQuery
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, \
+    SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 ################################################################################
+
+
+class RichTextToSpreadsheet(SpreadsheetMode):
+    def compute_output(self, output_module, configuration=None):
+        filename = output_module.get_input('value').name
+
+        with open(filename, 'rb') as fp:
+            html = fp.read()
+
+        self.display_and_wait(output_module, configuration,
+                              RichTextCellWidget, (html,))
 
 class RichTextCell(SpreadsheetCell):
     """
@@ -79,7 +91,6 @@ class RichTextCell(SpreadsheetCell):
                 raise ModuleError(self, "'%s' format is unknown" % text_format)
 
         self.displayAndWait(RichTextCellWidget, (html,))
-
 
 class XSLCell(SpreadsheetCell):
     """

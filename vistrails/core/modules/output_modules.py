@@ -506,10 +506,10 @@ class ImageFileMode(FileMode):
 
 class RichTextOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
-    # need specific spreadsheet richtext mode here
-    pass
+    _input_ports = [('value', 'File')]
+    _output_modes = [FileToFileMode]
 
-_modules = [OutputModule, GenericOutput, FileOutput]
+_modules = [OutputModule, GenericOutput, FileOutput, RichTextOutput]
 
 # need to put WebOutput, ImageOutput, RichTextOutput, SVGOutput, etc. elsewhere
 

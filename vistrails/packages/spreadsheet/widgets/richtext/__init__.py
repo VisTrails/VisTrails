@@ -38,7 +38,9 @@
 ################################################################################
 from __future__ import division
 
-from richtext import RichTextCell, XSLCell
+from vistrails.core.modules.output_modules import RichTextOutput
+
+from richtext import RichTextCell, XSLCell, RichTextToSpreadsheet
 
 ################################################################################
 
@@ -49,7 +51,7 @@ def widgetName():
     """
     return 'HTML Viewer'
 
-def registerWidget(reg, basicModules, basicWidgets):    
+def registerWidget(reg, basicModules, basicWidgets):
     """ registerWidget(reg: module_registry,
                        basicModules: python package,
                        basicWidgets: python package) -> None
@@ -67,3 +69,5 @@ def registerWidget(reg, basicModules, basicWidgets):
     reg.add_input_port(XSLCell, "Location", basicWidgets.CellLocation)
     reg.add_input_port(XSLCell, "XML", basicModules.File)
     reg.add_input_port(XSLCell, "XSL", basicModules.File)
+
+    RichTextOutput.register_output_mode(RichTextToSpreadsheet)
