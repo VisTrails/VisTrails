@@ -267,7 +267,7 @@ class QVTKWidget(QCellWidget):
                     vtkInstance = renderer.vtkInstance
                     # Old scripts may call this without setting module_id
                     if hasattr(renderer, 'module_id'):
-                        self.renderer_maps[vtkInstance] = renderer.module_id
+                        self.renderer_maps[id(vtkInstance)] = renderer.module_id
                 renWin.AddRenderer(vtkInstance)
             else:
                 vtkInstance = renderer
@@ -1064,7 +1064,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
             cup = cam.GetViewUp()
             # Looking for SetActiveCamera()
             camera = None
-            rendererId = cellWidget.renderer_maps[ren]
+            rendererId = cellWidget.renderer_maps[id(ren)]
             renderer = pipeline.modules[rendererId]
             for c in pipeline.connections.values():
                 if c.destination.moduleId==rendererId:
