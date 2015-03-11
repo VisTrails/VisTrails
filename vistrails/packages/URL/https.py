@@ -4,6 +4,8 @@
 
 # Code from https://gist.github.com/schlamar/2993700
 
+from __future__ import division
+
 import httplib
 import urllib2
 import ssl

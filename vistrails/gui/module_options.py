@@ -1,43 +1,46 @@
 ###############################################################################
 
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """ This file contains a dialog for editing options for how the given
-    VisTrails module is looped.
+    VisTrails module is executed.
 
-QModuleIteration
+QModuleOptions
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.gui.theme import CurrentTheme
@@ -48,7 +51,7 @@ import unittest
 
 ###############################################################################
 
-class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
+class QModuleOptions(QtGui.QDialog, QVistrailsPaletteInterface):
     """
     QModuleIteration is a dialog for editing module looping options.
 
@@ -60,7 +63,7 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
 
         """
         QtGui.QDialog.__init__(self, parent)
-        self.setWindowTitle("Module Looping")
+        self.setWindowTitle("Module Execution Options")
         self.createButtons()
         self.update_module()
 
@@ -170,6 +173,11 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         whileLayout.addStretch(1)
         self.layout().addLayout(whileLayout)
 
+        self.jobCacheButton = QtGui.QCheckBox("Cache Output Persistently")
+        self.jobCacheButton.setToolTip('Cache the module results persistently to disk. (outputs must be constants)')
+        self.layout().addWidget(self.jobCacheButton)
+        self.layout().setStretch(2, 0)
+
         self.layout().addStretch(1)
         self.buttonLayout = QtGui.QHBoxLayout()
         self.buttonLayout.setMargin(5)
@@ -186,7 +194,7 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
                      self.saveTriggered)
         self.connect(self.resetButton, QtCore.SIGNAL('clicked(bool)'),
                      self.resetTriggered)        
-        self.layout().setStretch(2, 0)
+        self.layout().setStretch(3, 0)
         self.update_module()
         self.pairwiseButton.toggled.connect(self.stateChanged)
         self.cartesianButton.toggled.connect(self.stateChanged)
@@ -200,6 +208,7 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         self.delayEdit.textChanged.connect(self.stateChanged)
         self.feedInputEdit.textChanged.connect(self.stateChanged)
         self.feedOutputEdit.textChanged.connect(self.stateChanged)
+        self.jobCacheButton.toggled.connect(self.stateChanged)
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -221,10 +230,7 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
             self.emit(QtCore.SIGNAL('doneConfigure'), self.module.id)
             
     def resetTriggered(self, checked = False):
-        self.state_changed = False
         self.update_module(self.module)
-        self.saveButton.setEnabled(False)
-        self.resetButton.setEnabled(False)
 
     def stateChanged(self, state=False, other=None):
         self.saveButton.setEnabled(True)
@@ -298,6 +304,10 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
             self.feedInputLabel.setVisible(False)
             self.feedOutputLabel.setVisible(False)
             self.portCombiner.setVisible(False)
+            self.jobCacheButton.setEnabled(False)
+            self.state_changed = False
+            self.saveButton.setEnabled(False)
+            self.resetButton.setEnabled(False)
             return
         # set defaults
         self.pairwiseButton.setEnabled(True)
@@ -319,6 +329,8 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         self.feedOutputLabel.setVisible(False)
         self.portCombiner.setVisible(False)
         self.portCombiner.setDefault(module)
+        self.jobCacheButton.setEnabled(True)
+        self.jobCacheButton.setChecked(False)
         if module.has_control_parameter_with_name(ModuleControlParam.LOOP_KEY):
             type = module.get_control_parameter_by_name(ModuleControlParam.LOOP_KEY).value
             self.pairwiseButton.setChecked(type=='pairwise')
@@ -345,6 +357,12 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
         if module.has_control_parameter_with_name(ModuleControlParam.WHILE_OUTPUT_KEY):
             output = module.get_control_parameter_by_name(ModuleControlParam.WHILE_OUTPUT_KEY).value
             self.feedOutputEdit.setText(output)
+        if module.has_control_parameter_with_name(ModuleControlParam.JOB_CACHE_KEY):
+            jobCache = module.get_control_parameter_by_name(ModuleControlParam.JOB_CACHE_KEY).value
+            self.jobCacheButton.setChecked(jobCache.lower()=='true')
+        self.state_changed = False
+        self.saveButton.setEnabled(False)
+        self.resetButton.setEnabled(False)
 
     def updateVistrail(self):
         values = []
@@ -366,16 +384,18 @@ class QModuleIteration(QtGui.QDialog, QVistrailsPaletteInterface):
                        _while and self.feedInputEdit.text()))
         values.append((ModuleControlParam.WHILE_OUTPUT_KEY,
                        _while and self.feedOutputEdit.text()))
+        jobCache = self.jobCacheButton.isChecked()
+        values.append((ModuleControlParam.JOB_CACHE_KEY,
+                       [False, 'true'][jobCache]))
         for name, value in values:
             if value:
-                if not self.module.has_control_parameter_with_name(name) or \
-                        value != \
-                        self.module.get_control_parameter_by_name(name).value:
+                if (not self.module.has_control_parameter_with_name(name) or
+                        value != self.module.get_control_parameter_by_name(name).value):
                     if self.module.has_control_parameter_with_name(name):
                         self.controller.delete_control_parameter(name,
-                                                               self.module.id)
+                                                                 self.module.id)
                     self.controller.add_control_parameter((name, value),
-                                                   self.module.id)
+                                                          self.module.id)
             elif self.module.has_control_parameter_with_name(name):
                 self.controller.delete_control_parameter(name, self.module.id)
         return True

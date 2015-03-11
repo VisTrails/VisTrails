@@ -1,39 +1,42 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """basic_modules defines basic VisTrails Modules that are used in most
 pipelines."""
+from __future__ import division
+
 import vistrails.core.cache.hasher
 from vistrails.core.debug import format_exception
 from vistrails.core.modules.module_registry import get_module_registry
@@ -159,12 +162,6 @@ class Constant(Module):
     def setValue(self, v):
         self.set_output("value", self.translate_to_python(v))
         self.upToDate = True
-        
-    def serialize(self):
-        return self.outputPorts['value_as_string']
-    
-    def deserialize(self, v):
-        return self.translate_to_python(v)
 
     @staticmethod
     def translate_to_string(v):
@@ -312,8 +309,8 @@ class String(Constant):
 
     @staticmethod
     def translate_to_python(x):
-        assert isinstance(x, str)
-        return x
+        assert isinstance(x, (str, unicode))
+        return str(x)
 
     @staticmethod
     def validate(x):
@@ -761,10 +758,29 @@ class StandardOutput(NotCacheable, Module):
     mostly as a debugging device."""
 
     _input_ports = [IPort("value", 'Variant')]
-    
+
     def compute(self):
         v = self.get_input("value")
-        print v
+        if isinstance(v, PathObject):
+            try:
+                fp = open(v.name, 'rb')
+            except IOError:
+                print v
+            else:
+                try:
+                    CHUNKSIZE = 2048
+                    chunk = fp.read(CHUNKSIZE)
+                    if chunk:
+                        sys.stdout.write(chunk)
+                        while len(chunk) == CHUNKSIZE:
+                            chunk = fp.read(CHUNKSIZE)
+                            if chunk:
+                                sys.stdout.write(chunk)
+                        sys.stdout.write('\n')
+                finally:
+                    fp.close()
+        else:
+            print v
 
 ##############################################################################
 
@@ -824,7 +840,6 @@ class Untuple(Module):
 
 ##############################################################################
 
-# TODO: Create a better Module for ConcatenateString.
 class ConcatenateString(Module):
     """ConcatenateString takes many strings as input and produces the
     concatenation as output. Useful for constructing filenames, for
@@ -834,19 +849,14 @@ class ConcatenateString(Module):
     future."""
 
     fieldCount = 4
-    _input_ports = [IPort("str%d" % (i+1), "String") 
-                    for i in xrange(fieldCount)]
+    _input_ports = [IPort("str%d" % i, "String")
+                    for i in xrange(1, 1 + fieldCount)]
     _output_ports = [OPort("value", "String")]
 
     def compute(self):
-        result = ""
-        for i in xrange(self.fieldCount):
-            v = i+1
-            port = "str%s" % v
-            if self.has_input(port):
-                inp = self.get_input(port)
-                result += inp
-        self.set_output("value", result)
+        result = "".join(self.force_get_input('str%d' % i, '')
+                         for i in xrange(1, 1 + self.fieldCount))
+        self.set_output('value', result)
 
 ##############################################################################
 
@@ -1037,7 +1047,7 @@ class CodeRunnerMixin(object):
         exec code_str + '\n' in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
-                if locals_.get(k) != None:
+                if locals_.get(k) is not None:
                     self.set_output(k, locals_[k])
 
 ##############################################################################
@@ -1256,7 +1266,11 @@ class AssertEqual(Module):
         values = (self.get_input('value1'),
                   self.get_input('value2'))
         if values[0] != values[1]:
-            raise ModuleError(self, "AssertEqual: values are different",
+            reprs = tuple(repr(v) for v in values)
+            reprs = tuple('%s...' % v[:17] if len(v) > 20 else v
+                          for v in reprs)
+            raise ModuleError(self, "AssertEqual: values are different: "
+                                    "%r, %r" % reprs,
                               abort=True)
 
 ##############################################################################

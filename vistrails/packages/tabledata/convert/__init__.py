@@ -1,3 +1,5 @@
+from __future__ import division
+
 from vistrails.core.modules.utils import make_modules_dict
 
 from convert_dates import _modules as dates_modules

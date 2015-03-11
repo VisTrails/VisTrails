@@ -1,3 +1,5 @@
+from __future__ import division
+
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError

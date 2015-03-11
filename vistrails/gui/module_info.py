@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.configuration import get_vistrails_configuration, \
@@ -116,13 +119,12 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         self.name_edit.setMinimumSize(50, 22)
         type_label = QtGui.QLabel("Type:")
         self.type_edit = QtGui.QLabel("")
-        # self.type_edit.setReadOnly(True)
         package_label = QtGui.QLabel("Package:")
         self.package_edit = QtGui.QLabel("")
-        # self.package_edit.setReadOnly(True)
+        namespace_label = QtGui.QLabel("Namespace:")
+        self.namespace_edit = QtGui.QLabel("")
         id = QtGui.QLabel("Id:")
         self.module_id = QtGui.QLabel("")
-        # self.module_id.setReadOnly(True)
         self.configure_button = QDockPushButton("Configure")
         self.connect(self.configure_button, QtCore.SIGNAL('clicked()'),
                      self.configure)
@@ -148,6 +150,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         add_line(name_label, self.name_edit)
         add_line(type_label, self.type_edit)
         add_line(package_label, self.package_edit)
+        add_line(namespace_label, self.namespace_edit)
         add_line(id, self.module_id)
         h_layout = QtGui.QHBoxLayout()
         h_layout.setMargin(2)
@@ -204,6 +207,17 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
         else:
             self.update_module()
 
+    def set_visible(self, enabled):
+        if enabled and \
+           self.module is None and \
+           not self.toolWindow().isFloating() and \
+           not QVersionProp.instance().toolWindow().isFloating() and \
+           not self.toolWindow().visibleRegion().isEmpty():
+            QVersionProp.instance().set_visible(True)
+        else:
+            super(QModuleInfo, self).set_visible(enabled)
+
+
     def update_module(self, module=None):
         for plist in self.ports_lists:
             plist.types_visible = self.types_visible
@@ -227,6 +241,7 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
             self.type_edit.setText("")
             # self.type_edit.setEnabled(False)
             self.package_edit.setText("")
+            self.namespace_edit.setText("")
             self.module_id.setText("")
         else:
             # We show self  if both are tabified and
@@ -244,13 +259,14 @@ class QModuleInfo(QtGui.QWidget, QVistrailsPaletteInterface):
                                                      '4.7.0'):
                 self.name_edit.setPlaceholderText(self.module.name)
 
-            # self.name_edit.setEnabled(True)
             self.type_edit.setText(self.module.name)
-            # self.type_edit.setEnabled(True)
             self.package_edit.setText(self.module.package)
-            # self.package_edit.setEnabled(True)
+            if self.module.namespace is not None:
+                self.namespace_edit.setText(self.module.namespace.replace('|',
+                                                                          '/'))
+            else:
+                self.namespace_edit.setText('')
             self.module_id.setText('%d' % self.module.id)
-            # self.module_id.setEnabled(True)
 
     def name_editing_finished(self):
         # updating module may trigger a second call so we check for that

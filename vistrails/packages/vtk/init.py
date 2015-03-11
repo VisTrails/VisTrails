@@ -1,40 +1,43 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 ################################################################################
 # VTK Package for VisTrails
 ################################################################################
+
+from __future__ import division
 
 from vistrails.core.debug import debug, warning, unexpected_exception
 from vistrails.core.modules.basic_modules import Integer, Float, String, File, \
@@ -159,10 +162,13 @@ def get_method_signature(method, docum='', name=''):
     Re-wrap Prabu's method to increase performance
 
     """
-    doc = method.__doc__ if docum=='' else docum
-    tmptmp = doc.split('\n')
+    doc = docum or method.__doc__
+    if not doc:
+        debug("Ignoring method %r, no __doc__" % method)
+        return []
+    doc = doc.split('\n')
     tmp = []
-    for l in tmptmp:
+    for l in doc:
         l = l.strip('\n \t')
         if l.startswith('V.') or l.startswith('C++:'):
             tmp.append(l)
@@ -216,7 +222,7 @@ def get_method_signature(method, docum='', name=''):
                     arg = [arg]
 
             sig.append(([ret], arg))
-    return sig    
+    return sig
 
 def prune_signatures(module, name, signatures, output=False):
     """prune_signatures tries to remove redundant signatures to reduce
@@ -330,7 +336,7 @@ def prune_signatures(module, name, signatures, output=False):
                 c = curr.replace('[', '')
                 c = c.replace(']', '')
                 result.append(c)
-            elif (curr == None):
+            elif (curr is None):
                 result.append(curr)
             elif (isinstance(curr, list)):
                 curr.reverse()
@@ -872,56 +878,56 @@ def class_dict(base_module, node):
         return compute
 
     def compute_SetDiffuseColorWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetDiffuseColorWidget(self, color):
             self.vtkInstance.SetDiffuseColor(color.tuple)
         return call_SetDiffuseColorWidget
 
     def compute_SetAmbientColorWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetAmbientColorWidget(self, color):
             self.vtkInstance.SetAmbientColor(color.tuple)
         return call_SetAmbientColorWidget
 
     def compute_SetSpecularColorWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetSpecularColorWidget(self, color):
             self.vtkInstance.SetSpecularColor(color.tuple)
         return call_SetSpecularColorWidget
 
     def compute_SetColorWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetColorWidget(self, color):
             self.vtkInstance.SetColor(color.tuple)
         return call_SetColorWidget
 
     def compute_SetEdgeColorWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetEdgeColorWidget(self, color):
             self.vtkInstance.SetEdgeColor(color.tuple)
         return call_SetEdgeColorWidget
     
     def compute_SetBackgroundWidget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetBackgroundWidget(self, color):
             self.vtkInstance.SetBackground(color.tuple)
         return call_SetBackgroundWidget
     
     def compute_SetBackground2Widget(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetBackground2Widget(self, color):
             self.vtkInstance.SetBackground2(color.tuple)
         return call_SetBackground2Widget
     
     def compute_SetVTKCell(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetRenderWindow(self, cellObj):
             if cellObj.cellWidget:
@@ -930,28 +936,28 @@ def class_dict(base_module, node):
     
     def compute_SetTransferFunction(old_compute):
         # This sets the transfer function
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetTransferFunction(self, tf):
             tf.set_on_vtk_volume_property(self.vtkInstance)
         return call_SetTransferFunction
 
     def compute_SetPointData(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetPointData(self, pd):
             self.vtkInstance.GetPointData().ShallowCopy(pd)
         return call_SetPointData
 
     def compute_SetCellData(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetCellData(self, cd):
             self.vtkInstance.GetCellData().ShallowCopy(cd)
         return call_SetCellData            
 
     def compute_SetPointIds(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_SetPointIds(self, point_ids):
             self.vtkInstance.GetPointIds().SetNumberOfIds(point_ids.GetNumberOfIds())
@@ -960,7 +966,7 @@ def class_dict(base_module, node):
         return call_SetPointIds
 
     def compute_CopyImportString(old_compute):
-        if old_compute != None:
+        if old_compute is not None:
             return old_compute
         def call_CopyImportVoidPointer(self, pointer):
             self.vtkInstance.CopyImportVoidPointer(pointer, len(pointer))
@@ -987,7 +993,7 @@ def class_dict(base_module, node):
         if set_file_name_pattern.match(var):
             def get_compute_SetFile(method_name):
                 def compute_SetFile(old_compute):
-                    if old_compute != None:
+                    if old_compute is not None:
                         return old_compute
                     def call_SetFile(self, file_obj):
                         getattr(self.vtkInstance, method_name)(file_obj.name)

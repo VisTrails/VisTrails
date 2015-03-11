@@ -1,3 +1,5 @@
+from __future__ import division
+
 import urllib2
 
 from vistrails.core.bundles.pyimport import py_import

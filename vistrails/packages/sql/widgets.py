@@ -1,3 +1,5 @@
+from __future__ import division
+
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
 
 

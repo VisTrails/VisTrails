@@ -1,42 +1,46 @@
 ##############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 
 """Configuration variables for controlling specific things in VisTrails."""
+from __future__ import division
+
 import argparse
 import ast
 import copy
+import itertools
 import re
 import shlex
 import sys
@@ -80,8 +84,8 @@ installBundlesWithPip: Use pip to install missing Python dependencies
 isInServerMode: Indicates whether VisTrails is being run as a server
 jobAutorun: Run jobs automatically when they finish
 jobCheckInterval: How often to check for jobs (in seconds)
-jobList: List running jobs
-jobRun: Continue running specified job by id
+jobList: List running workflows
+jobInfo: List jobs in running workflow
 loadPackages: Whether to load the packages enabled in the configuration file
 logDir: Log files directory
 maxRecentVistrails: Number of recent vistrails
@@ -242,11 +246,11 @@ jobCheckInterval: Integer:
 
 jobList: Boolean
 
-    List running jobs.
+    List running workflows.
 
-jobRun: String
+jobInfo: Boolean
 
-    Continue running specified job by id (use jobList to get).
+    List jobs in running workflow
 
 loadPackages: Boolean
 
@@ -736,8 +740,8 @@ base_config = {
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),
-     ConfigField('jobRun', None, str, ConfigType.COMMAND_LINE),
-     ConfigField('jobList', False, bool, ConfigType.COMMAND_LINE_FLAG)],
+     ConfigField('jobList', False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField('jobInfo', False, bool, ConfigType.COMMAND_LINE_FLAG)],
 }
 
 # FIXME make sure that the platform-specific configs are added!
@@ -1241,7 +1245,7 @@ class ConfigurationObject(DBConfiguration):
                 self.db_add_config_key(key)
 
         # InstanceObject.__init__(self, *args, **kwargs)
-        self.__subscribers__ = {}
+        self._subscribers = {}
         self.vistrails = []
 
     def __copy__(self):
@@ -1253,7 +1257,7 @@ class ConfigurationObject(DBConfiguration):
         cp._in_init = False
         cp.__class__ = ConfigurationObject
         cp._unset_keys = copy.copy(self._unset_keys)
-        cp.__subscribers__ = copy.copy(self.__subscribers__)
+        cp._subscribers = copy.copy(self._subscribers)
         cp.vistrails = copy.copy(self.vistrails)
         return cp
 
@@ -1263,7 +1267,7 @@ class ConfigurationObject(DBConfiguration):
         _config_obj.__class__ = ConfigurationObject
         for _key in _config_obj.db_config_keys:
             ConfigKey.convert(_key)
-        _config_obj.__subscribers__ = {}
+        _config_obj._subscribers = {}
         _config_obj._unset_keys = {}
         _config_obj.vistrails = []
 
@@ -1289,7 +1293,7 @@ class ConfigurationObject(DBConfiguration):
                 raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        if name == '__subscribers__' or name == '_unset_keys' or name == '_in_init' or name == 'is_dirty' or name == 'vistrails' or self._in_init:
+        if name == '_subscribers' or name == '_unset_keys' or name == '_in_init' or name == 'is_dirty' or name == 'vistrails' or self._in_init:
             object.__setattr__(self, name, value)
         else:
             if name in self.db_config_keys_name_index:
@@ -1313,22 +1317,24 @@ class ConfigurationObject(DBConfiguration):
                     del self._unset_keys[name]
                     config_key = ConfigKey(name=name, value=value)
                     self.db_add_config_key(config_key)
-            if name in self.__subscribers__:
+            if name in self._subscribers:
                 to_remove = []
-                for subscriber in self.__subscribers__[name]:
+                for subscriber in self._subscribers[name]:
                     obj = subscriber()
                     if obj:
                         obj(name, value)
                     else:
                         to_remove.append(obj)
                 for ref in to_remove:
-                    self.__subscribers__[name].remove(ref)
+                    self._subscribers[name].remove(ref)
 
     def __eq__(self, other):
         if type(self) != type(other):
             return False
         seen_keys = set()
         for name in self.keys():
+            if self.is_unset(name):
+                continue
             seen_keys.add(name)
             if name not in other.keys():
                 return False
@@ -1339,6 +1345,8 @@ class ConfigurationObject(DBConfiguration):
             if val1 != val2:
                 return False
         for name in other.keys():
+            if other.is_unset(name):
+                continue
             if name not in seen_keys:
                 return False
         return True
@@ -1366,13 +1374,13 @@ class ConfigurationObject(DBConfiguration):
     def unsubscribe(self, field, callable_):
         """unsubscribe(field, callable_): remove observer from subject
         """
-        self.__subscribers__[field].remove(weakref.ref(callable_))
+        self._subscribers[field].remove(weakref.ref(callable_))
 
     def subscribe(self, field, callable_):
         """subscribe(field, callable_): call observer callable_ when
         self.field is set.
         """
-        append_to_dict_of_lists(self.__subscribers__, field,
+        append_to_dict_of_lists(self._subscribers, field,
                                 Ref(callable_))
 
     def has(self, key):
@@ -1444,14 +1452,15 @@ class ConfigurationObject(DBConfiguration):
         Returns all options stored in this object.
         """
 
-        return self.db_config_keys_name_index.keys()
+        return self.db_config_keys_name_index.keys() + self._unset_keys.keys()
 
     def keys(self):
         """keys(self) -> list of strings
         Returns all public options stored in this object.
         Public options are keys that do not start with a _
         """
-        return [k for k in self.db_config_keys_name_index
+        return [k for k in itertools.chain(self.db_config_keys_name_index,
+                                           self._unset_keys)
                 if not k.startswith('_')]
 
 # def default():
@@ -1670,6 +1679,11 @@ class TestConfiguration(unittest.TestCase):
 
         conf2.showWindow = False
         self.assertTrue(conf1.showWindow)
+
+    def test_unset_params(self):
+        conf = ConfigurationObject(test_field=(None, str))
+        self.assertTrue(conf.is_unset("test_field"))
+        self.assertIn("test_field", conf.keys())
 
     def test_type_mismatch(self):
         conf = default()

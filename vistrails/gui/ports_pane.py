@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from itertools import izip
 import os
@@ -319,7 +322,9 @@ class PortItem(QtGui.QTreeWidgetItem):
         self.is_optional = is_optional
         self.is_visible = is_visible
         self.is_editable = is_editable
-        self.build_item(port_spec, is_connected, is_optional, is_visible, is_editable)
+        self.is_unset = False
+        self.build_item(port_spec, is_connected, is_optional, is_visible,
+                        is_editable)
 
     def visible(self):
         return not self.is_optional or self.is_visible
@@ -347,6 +352,16 @@ class PortItem(QtGui.QTreeWidgetItem):
     def is_constant(self):
         return (self.port_spec.is_valid and 
                 get_module_registry().is_constant(self.port_spec))
+
+    def calcUnset(self):
+        self.is_unset = self.is_constant() and \
+                        self.port_spec.is_mandatory() and \
+                        not self.is_connected and \
+                        not self.isExpanded()
+        if self.is_unset:
+            font = self.font(3)
+            font.setWeight(QtGui.QFont.Bold)
+            self.setFont(3, font)
 
     def build_item(self, port_spec, is_connected, is_optional, is_visible, is_editable):
         if not is_optional:
@@ -396,7 +411,10 @@ class PortItem(QtGui.QTreeWidgetItem):
         widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         widget.exec_()
 
-    def __lt__( self, other ):
+    def __lt__(self, other):
+        # put unset mandatory ports first
+        if self.is_unset != other.is_unset:
+            return self.is_unset and not other.is_unset
         # put set (expanded) functions first
         if self.isExpanded() != other.isExpanded():
             return self.isExpanded() and not other.isExpanded()
@@ -486,7 +504,7 @@ class PortsList(QtGui.QTreeWidget):
                     subitem.setFirstColumnSpanned(True)
                     self.setItemWidget(subitem, 2, subitem.get_widget())
                     item.setExpanded(True)
-                
+
                     # self.setItemWidget(item, 0, item.get_visible())
                     # self.setItemWidget(item, 1, item.get_connected())
 
@@ -498,9 +516,12 @@ class PortsList(QtGui.QTreeWidget):
                     # connceted_checkbox = QtGui.QCheckBox()
                     # connected_checkbox.setEnabled(False)
                     # self.setItemWidget(i, 1, connected_checkbox)
-                self.sortItems(0, QtCore.Qt.AscendingOrder)
 
-                
+                # Highlight unset ports
+                for _, item  in self.port_spec_items.itervalues():
+                    item.calcUnset()
+
+                self.sortItems(0, QtCore.Qt.AscendingOrder)
 
             # base_items = {}
             # # Create the base widget item for each descriptor

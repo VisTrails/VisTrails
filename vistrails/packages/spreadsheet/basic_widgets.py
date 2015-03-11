@@ -1,68 +1,75 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file describes basic VisTrails Modules of the Spreadsheet package:
-#   CellLocation
-#   SheetReference
-#   SingleCellSheetReference
-#   SpreadsheetCell
-################################################################################
+
+"""This file describes basic VisTrails Modules of the Spreadsheet package:
+  CellLocation
+  SheetReference
+  SingleCellSheetReference
+  SpreadsheetCell
+"""
+
+from __future__ import division
+
+from PyQt4 import QtCore
+
 from vistrails.core.configuration import ConfigField, \
     get_vistrails_configuration
 from vistrails.core.modules.output_modules import OutputMode, OutputModeConfig
-from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
-from spreadsheet_base import (StandardSheetReference,
-                              StandardSingleCellSheetReference)
-from spreadsheet_controller import spreadsheetController
-from spreadsheet_event import DisplayCellEvent
-from PyQt4 import QtCore
+from vistrails.core.modules.vistrails_module import Module, NotCacheable, \
+    ModuleError
 
-################################################################################
+from .spreadsheet_base import StandardSheetReference, \
+    StandardSingleCellSheetReference
+from .spreadsheet_controller import spreadsheetController
+from .spreadsheet_event import DisplayCellEvent
+
 
 def widgetName():
     """ widgetName() -> str
     Identify the name of the package
-    
+
     """
     return 'Basic Widgets'
+
 
 def registerWidget(reg, basicModules, basicWidgets):
     """ registerWidget(reg: module_registry, basicModules: package,
                        basicWidgets:package) -> None
     Register widgets with VisTrails registry
-    
+
     """
     reg.add_module(SheetReference)
     reg.add_input_port(SheetReference, "MinRowCount", basicModules.Integer, True)
@@ -90,19 +97,20 @@ def registerWidget(reg, basicModules, basicWidgets):
                        basicModules.String, True)
     reg.add_output_port(SingleCellSheetReference, "value",
                         SingleCellSheetReference)
-     
+
+
 class SheetReference(Module):
     """
     SheetReference is a VisTrail Module that allows users to specify
     which sheet (page) to put the visualiation on. This is as
     well a wrapper to simply contain real sheet reference classes
-    
+
     """
     def compute(self):
         """ compute() -> None
         Store information on input ports and ready to be passed on to whoever
         needs it
-        
+
         """
         ref = StandardSheetReference()
         ref.minimumRowCount = self.force_get_input("MinRowCount", 1)
@@ -111,12 +119,13 @@ class SheetReference(Module):
 
         self.set_output('value', ref)
 
+
 class CellLocation(Module):
     """
     CellLocation is a Vistrail Module that allow users to specify
     where to put a visualization on a sheet, i.e. row, column
     location
-    
+
     """
     class Location(object):
         def __init__(self):
@@ -129,7 +138,7 @@ class CellLocation(Module):
     def compute(self):
         """ compute() -> None
         Translate input ports into (row, column) location
-        
+
         """
         loc = CellLocation.Location()
 
@@ -160,35 +169,36 @@ class CellLocation(Module):
 
         self.set_output('value', loc)
 
+
 class SpreadsheetCell(NotCacheable, Module):
     """
     SpreadsheetCell is a base class to other widget types. It provides
     a simple protocol to dispatch information to the spreadsheet
     cells. But it doesn't know how to display the information
     itself. That should be done by the specific widget type.
-    
+
     """
     def __init__(self):
         """ SpreadsheetCell() -> SpreadsheetCell
         Initialize attributes
-        
+
         """
         Module.__init__(self)
         self.location = None
-    
+
     def overrideLocation(self, location):
-        """ overrideLocation(location: CellLocation) -> None        
+        """ overrideLocation(location: CellLocation) -> None
         Make the cell always use this location instead of reading from
         the port
-        
+
         """
         self.location = location
 
     def createDisplayEvent(self, cellType, inputPorts):
-        """ display(cellType: python type, iputPorts: tuple) -> None        
+        """ display(cellType: python type, iputPorts: tuple) -> None
         Create a DisplayEvent with all the parameters from the cell
         locations and inputs
-        
+
         """
         e = DisplayCellEvent()
         e.vistrail = self.moduleInfo
@@ -214,7 +224,7 @@ class SpreadsheetCell(NotCacheable, Module):
         Keyword arguments:
         cellType   --- widget type, this is truely a python type
         inputPorts --- a tuple of input data that cellType() will understand
-        
+
         """
         e = self.createDisplayEvent(cellType, inputPorts)
         QtCore.QCoreApplication.processEvents()
@@ -227,6 +237,7 @@ class SpreadsheetCell(NotCacheable, Module):
 
     display = displayAndWait
 
+
 class SpreadsheetModeConfig(OutputModeConfig):
     mode_type = "spreadsheet"
     _fields = [ConfigField('row', None, int),
@@ -237,13 +248,14 @@ class SpreadsheetModeConfig(OutputModeConfig):
                ConfigField('rowSpan', None, int),
                ConfigField('colSpan', None, int)]
 
+
 class SpreadsheetMode(OutputMode):
     mode_type = "spreadsheet"
     priority = 3
     config_cls = SpreadsheetModeConfig
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         if get_vistrails_configuration().batch:
             return False
         return True
@@ -321,12 +333,12 @@ class SingleCellSheetReference(SheetReference):
     SingleCellSheetReference is a wrapper of StandardSingleCellSheetReference
     that will allow users to dedicate a whole sheet to view a single
     visualization by pass all other sheet control widgets.
-    
+
     """
     def compute(self):
         """ compute() -> None
         Store information from input ports into internal structure
-        
+
         """
         ref = StandardSingleCellSheetReference()
         ref.sheetName = self.force_get_input("SheetName")

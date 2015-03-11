@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import division
+
 import ast
 import re
 import sys
@@ -380,12 +382,12 @@ def parse_translation(rows, should_reverse=True):
         (val1, port_type1) = get_value_and_type(row[0])
         (val2, port_type2) = get_value_and_type(row[1])
         if should_reverse:
-            if val2 != None:
+            if val2 is not None:
                 port_types.append(port_type2)
                 values.append(val2)
                 t[val2] = val1
         else:
-            if val1 != None:
+            if val1 is not None:
                 port_types.append(port_type1)
                 values.append(val1)
                 t[val1] = val2

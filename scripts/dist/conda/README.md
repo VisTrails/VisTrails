@@ -21,7 +21,10 @@ package, just the `vistrails` directory alongside this README**.
 # Install Anaconda
 ./Anaconda-2.0.1-*.sh
 
-# Install patchelf
+# Install patchelf (from conda)
+conda install patchelf
+
+# Install patchelf (manually)
 sudo aptitude install build-essential git autoconf autoreconf
 git clone https://github.com/NixOS/patchelf.git
 cd patchelf/

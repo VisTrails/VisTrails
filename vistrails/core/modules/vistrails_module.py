@@ -1,39 +1,41 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from base64 import b16encode, b16decode
+from __future__ import division
 
+from base64 import b16encode, b16decode
 import copy
 import json
 import time
@@ -139,22 +141,22 @@ class ModuleSuspended(ModuleError):
     modules
     """
 
-    def __init__(self, module, errormsg, monitor=None, children=None, job_id=None, queue=None):
-        self.monitor = monitor
-        if monitor is None and queue is not None:
+    def __init__(self, module, errormsg, handle=None, children=None,
+                 queue=None):
+        ModuleError.__init__(self, module, errormsg)
+        self.handle = handle
+        if handle is None and queue is not None:
             warnings.warn("Use of deprecated argument 'queue' replaced by "
-                          "'monitor'",
+                          "'handle'",
                           category=VistrailsDeprecation,
                           stacklevel=2)
-            self.monitor = queue
+            self.handle = queue
         self.children = children
-        self.signature = job_id
         self.name = None
-        ModuleError.__init__(self, module, errormsg)
 
     @property
     def queue(self):
-        return self.monitor
+        return self.handle
 
 class ModuleErrors(Exception):
     """Exception representing a list of VisTrails module runtime errors.
@@ -186,31 +188,9 @@ class DummyModuleLogging(object):
 _dummy_logging = DummyModuleLogging()
 
 ################################################################################
-# Serializable
-
-class Serializable(object):
-    """
-    Serializable is a mixin class used to define methods to serialize and
-    deserialize modules.
-
-    """
-
-    def serialize(self):
-        """
-        Method used to serialize a module.
-        """
-        raise NotImplementedError('The serialize method is not defined for this module.')
-
-    def deserialize(self):
-        """
-        Method used to deserialize a module.
-        """
-        raise NotImplementedError('The deserialize method is not defined for this module.')
-
-################################################################################
 # Module
 
-class Module(Serializable):
+class Module(object):
     """Module is the base module from which all module functionality
     is derived from in VisTrails. It defines a set of basic interfaces to
     deal with data input/output (through ports, as will be explained
@@ -402,6 +382,68 @@ class Module(Serializable):
                 if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.remove_input_connector(port_name, connector)
 
+
+    def useJobCache(self):
+        """ useJobCache() -> Module/None
+            Checks if this is a job cache
+        """
+        if not self.moduleInfo.get('pipeline', None):
+            return False
+        p_modules = self.moduleInfo['pipeline'].modules
+        p_module = p_modules[self.moduleInfo['moduleId']]
+        if p_module.has_control_parameter_with_name(
+                                            ModuleControlParam.JOB_CACHE_KEY):
+            jobCache = p_module.get_control_parameter_by_name(
+                                       ModuleControlParam.JOB_CACHE_KEY).value
+            if jobCache and jobCache.lower() == 'true':
+                return p_module
+        return False
+
+    def setJobCache(self):
+        """ setJobCache() -> Boolean
+            Checks if this is a job cache and it exists
+        """
+        p_module = self.useJobCache()
+        if not p_module:
+            return False
+        jm = self.job_monitor()
+        specs = p_module.sourcePorts()
+        if jm.getCache(self.signature):
+            self.cache = jm.getCache(self.signature)
+            from vistrails.core.modules.basic_modules import Constant
+            for param, value in jm.getCache(self.signature).parameters.iteritems():
+                # get type for output param
+                spec = [s for s in specs if s.name == param][0]
+                module = spec.descriptors()[0].module
+                if not issubclass(module, Constant):
+                    raise ModuleError(self, "Trying to use a non-constant type a cache: %s" % spec.name)
+                self.set_output(param, module.translate_to_python(value))
+            self.upToDate = True
+            return True
+        return False
+
+    def addJobCache(self):
+        """ addJobCache() -> None
+            Add outputs from job cache
+        """
+        p_module = self.useJobCache()
+        if not p_module:
+            return False
+        jm = self.job_monitor()
+        specs = p_module.sourcePorts()
+        params = {}
+        if not jm.getCache(self.signature):
+            from vistrails.core.modules.basic_modules import Constant
+            for spec in specs:
+                if spec.name == 'self':
+                    continue
+                # get type for output param
+                module = spec.descriptors()[0].module
+                if not issubclass(module, Constant):
+                    raise ModuleError(self, "Trying to cache a non-constant type: %s" % spec.name)
+                params[spec.name] = module.translate_to_string(self.get_output(spec.name))
+                jm.setCache(self.signature, params, p_module.name)
+
     def update_upstream(self):
         """ update_upstream() -> None
         Go upstream from the current module, then update its upstream
@@ -502,7 +544,8 @@ class Module(Serializable):
         elif self.computed:
             return
         self.logging.begin_update(self)
-        self.update_upstream()
+        if not self.setJobCache():
+            self.update_upstream()
         if self.upToDate:
             if not self.computed:
                 self.logging.update_cached(self)
@@ -527,6 +570,7 @@ class Module(Serializable):
                 self.compute_while()
             else:
                 self.compute()
+                self.addJobCache()
             self.computed = True
         except ModuleSuspended, e:
             self.had_error, self.was_suspended = False, True
@@ -623,21 +667,21 @@ class Module(Serializable):
         loop = self.logging.begin_loop_execution(self, num_inputs)
         ## Update everything for each value inside the list
         outputs = {}
-        module = copy.copy(self)
-        module.list_depth = self.list_depth - 1
         for i in xrange(num_inputs):
             self.logging.update_progress(self, float(i)/num_inputs)
+            module = copy.copy(self)
+            module.list_depth = self.list_depth - 1
             module.had_error = False
+            module.was_suspended = False
 
             if not self.upToDate: # pragma: no partial
                 ## Type checking if first iteration and last iteration level
                 if i == 0 and self.list_depth == 1:
-                    module.typeChecking(module, port_names, elements)
+                    self.typeChecking(module, port_names, elements)
 
                 module.upToDate = False
                 module.computed = False
-
-                module.setInputValues(module, port_names, elements[i], i)
+                self.setInputValues(module, port_names, elements[i], i)
 
             loop.begin_iteration(module, i)
 
@@ -645,6 +689,7 @@ class Module(Serializable):
                 module.update()
             except ModuleSuspended, e:
                 e.loop_iteration = i
+                module.logging.end_update(module, e, was_suspended=True)
                 suspended.append(e)
                 loop.end_iteration(module)
                 continue
@@ -714,7 +759,7 @@ class Module(Serializable):
         module = copy.copy(self)
         module.list_depth = self.list_depth - 1
         if num_inputs:
-            milestones = [i*num_inputs/10 for i in xrange(1,11)]
+            milestones = [i*num_inputs//10 for i in xrange(1, 11)]
         def generator(self):
             self.logging.begin_compute(module)
             i = 0
@@ -739,18 +784,18 @@ class Module(Serializable):
                     yield None
                 if num_inputs:
                     if i in milestones:
-                        self.logging.update_progress(module,float(i)/num_inputs)
+                        self.logging.update_progress(module, float(i)/num_inputs)
                 else:
                     self.logging.update_progress(module, 0.5)
                 module.had_error = False
                 ## Type checking
                 if i == 0:
-                    module.typeChecking(module, ports, [elements])
+                    self.typeChecking(module, ports, [elements])
 
                 module.upToDate = False
                 module.computed = False
 
-                module.setInputValues(module, ports, elements, i)
+                self.setInputValues(module, ports, elements, i)
 
                 try:
                     module.compute()
@@ -800,8 +845,8 @@ class Module(Serializable):
                     # assembled all inputs so do the actual computation
                     elements = [inputs[port] for port in ports]
                     ## Type checking
-                    module.typeChecking(module, ports, zip(*elements))
-                    module.setInputValues(module, ports, elements, i)
+                    self.typeChecking(module, ports, zip(*elements))
+                    self.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
                     except Exception, e:
@@ -862,8 +907,8 @@ class Module(Serializable):
                 if None not in elements:
                     self.logging.begin_compute(module)
                     ## Type checking
-                    module.typeChecking(module, ports, [elements])
-                    module.setInputValues(module, ports, elements, i)
+                    self.typeChecking(module, ports, [elements])
+                    self.setInputValues(module, ports, elements, i)
                     try:
                         module.compute()
                     except Exception, e:
@@ -1106,9 +1151,9 @@ class Module(Serializable):
         """Returns the value coming in on the input port named **port_name**.
 
         :param port_name: the name of the input port being queried
-        :type port_name: String
+        :type port_name: str
         :param allow_default: whether to return the default value if it exists
-        :type allow_default: Boolean
+        :type allow_default: bool
         :returns: the value being passed in on the input port
         :raises: ``ModuleError`` if there is no value on the port (and no default value if allow_default is True)
 
@@ -1151,7 +1196,7 @@ class Module(Serializable):
         this method obtains all the values being passed in.
 
         :param port_name: the name of the input port being queried
-        :type port_name: String
+        :type port_name: str
         :returns: a list of all the values being passed in on the input port
         :raises: ``ModuleError`` if there is no value on the port
         """
@@ -1214,7 +1259,7 @@ class Module(Serializable):
         """This method is used to set a value on an output port.
 
         :param port_name: the name of the output port to be set
-        :type port_name: String
+        :type port_name: str
         :param value: the value to be assigned to the port
 
         """
@@ -1225,7 +1270,7 @@ class Module(Serializable):
         Raises an exception if the input port named *port_name* is not set.
 
         :param port_name: the name of the input port being checked
-        :type port_name: String
+        :type port_name: str
         :raises: ``ModuleError`` if there is no value on the port
         """
         if not self.has_input(port_name):
@@ -1236,8 +1281,8 @@ class Module(Serializable):
         the input port named **port_name**.
 
         :param port_name: the name of the input port being queried
-        :type port_name: String
-        :rtype: Boolean
+        :type port_name: str
+        :rtype: bool
 
         """
         return port_name in self.inputPorts
@@ -1247,7 +1292,7 @@ class Module(Serializable):
         returns a user-specified default_value or None.
 
         :param port_name: the name of the input port being queried
-        :type port_name: String
+        :type port_name: str
         :param default_value: the default value to be used if there is \
         no value on the input port
         :returns: the value being passed in on the input port or the default
@@ -1264,7 +1309,7 @@ class Module(Serializable):
         exist, it returns an empty list
 
         :param port_name: the name of the input port being queried
-        :type port_name: String
+        :type port_name: str
         :returns: a list of all the values being passed in on the input port
 
         """
@@ -1337,7 +1382,7 @@ class Module(Serializable):
         might add the seed that was used to initialize the generator.
 
         :param d: a dictionary where both the keys and values are strings
-        :type d: Dictionary
+        :type d: dict
 
         """
 
@@ -1407,7 +1452,7 @@ class Module(Serializable):
         module.computed = False
 
         if num_inputs:
-            milestones = [i*num_inputs/10 for i in xrange(1,11)]
+            milestones = [i*num_inputs//10 for i in xrange(1, 11)]
 
         def _Generator(self):
             self.logging.begin_compute(module)
@@ -1424,8 +1469,8 @@ class Module(Serializable):
                         module.set_output(name_output, None)
                     yield None
                 ## Type checking
-                module.typeChecking(module, ports, [elements])
-                module.setInputValues(module, ports, elements, i)
+                self.typeChecking(module, ports, [elements])
+                self.setInputValues(module, ports, elements, i)
 
                 userGenerator.next()
                 # <compute here>
@@ -1436,7 +1481,7 @@ class Module(Serializable):
                 #module.set_output(name_output, intsum)
                 if num_inputs:
                     if i in milestones:
-                        self.logging.update_progress(self,float(i)/num_inputs)
+                        self.logging.update_progress(self, float(i)/num_inputs)
                 else:
                     self.logging.update_progress(self, 0.5)
                 i += 1
@@ -1456,16 +1501,16 @@ class Module(Serializable):
         """This method is used to set a streaming output port.
 
         :param port: the name of the output port to be set
-        :type port: String
+        :type port: str
         :param generator: An iterator object supporting .next()
         :param size: The number of values if known (default=0)
-        :type size: Integer
+        :type size: int
         """
         from vistrails.core.modules.basic_modules import Generator
         module = copy.copy(self)
 
         if size:
-            milestones = [i*size/10 for i in xrange(1,11)]
+            milestones = [i*size//10 for i in xrange(1, 11)]
         def _Generator():
             i = 0
             while 1:
@@ -1486,7 +1531,7 @@ class Module(Serializable):
                 module.set_output(port, value)
                 if size:
                     if i in milestones:
-                        self.logging.update_progress(self,float(i)/size)
+                        self.logging.update_progress(self, float(i)/size)
                 else:
                     self.logging.update_progress(self, 0.5)
                 i += 1
@@ -1496,6 +1541,16 @@ class Module(Serializable):
                                         module=module,
                                         generator=_generator,
                                         port=port))
+
+    def job_monitor(self):
+        """ job_monitor() -> JobMonitor
+        Returns the JobMonitor for the associated controller if it exists
+        """
+        controller = self.moduleInfo['controller']
+        if controller is None:
+            raise ModuleError(self,
+                              "Cannot run job, no controller is specified!")
+        return controller.jobMonitor
 
     @classmethod
     def provide_input_port_documentation(cls, port_name):
@@ -1724,10 +1779,11 @@ class ModuleConnector(object):
                                     "type %s" % (i, self.port, desc.name))
         return result
 
-def new_module(base_module, name, dict={}, docstring=None):
+
+def new_module(base_module, name, class_dict={}, docstring=None):
     """new_module(base_module or [base_module list],
                   name,
-                  dict={},
+                  class_dict={},
                   docstring=None
 
     Creates a new VisTrails module dynamically. Exactly one of the
@@ -1742,7 +1798,7 @@ def new_module(base_module, name, dict={}, docstring=None):
         superclasses = tuple(base_module)
     else:
         raise TypeError
-    d = copy.copy(dict)
+    d = copy.copy(class_dict)
     if docstring:
         d['__doc__'] = docstring
     return type(name, superclasses, d)

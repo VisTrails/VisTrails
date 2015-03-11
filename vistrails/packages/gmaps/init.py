@@ -1,3 +1,5 @@
+from __future__ import division
+
 from .gmap_cell import _modules as gmap_modules
 from .vis import _modules as vis_modules
 from .identifiers import identifier

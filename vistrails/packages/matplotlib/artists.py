@@ -1,3 +1,5 @@
+from __future__ import division
+
 from vistrails.core.modules.vistrails_module import Module
 from bases import MplProperties
 import matplotlib.artist
@@ -99,7 +101,7 @@ class MplArtistProperties(MplProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplArtistProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplProperties.compute(self, artist)
         if self.has_input('picker'):
@@ -201,7 +203,7 @@ class Mpl_AxesImageBaseProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = Mpl_AxesImageBaseProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('origin'):
@@ -283,7 +285,7 @@ class MplAxesImageProperties(Mpl_AxesImageBaseProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplAxesImageProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         Mpl_AxesImageBaseProperties.compute(self, artist)
         if self.has_input('origin'):
@@ -359,7 +361,7 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplNonUniformImageProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplAxesImageProperties.compute(self, artist)
         if self.has_input('norm'):
@@ -435,7 +437,7 @@ class MplBboxImageProperties(Mpl_AxesImageBaseProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplBboxImageProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         Mpl_AxesImageBaseProperties.compute(self, artist)
         if self.has_input('origin'):
@@ -518,7 +520,7 @@ class MplPcolorImageProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplPcolorImageProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('A'):
@@ -594,7 +596,7 @@ class MplFigureImageProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplFigureImageProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('origin'):
@@ -739,7 +741,7 @@ class MplCollectionProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('transOffset'):
@@ -835,7 +837,7 @@ class MplPathCollectionProperties(MplCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplPathCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplCollectionProperties.compute(self, artist)
         if self.has_input('paths'):
@@ -889,7 +891,7 @@ class MplPolyCollectionProperties(MplCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplPolyCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplCollectionProperties.compute(self, artist)
         if self.has_input('paths'):
@@ -946,7 +948,7 @@ class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplBrokenBarHCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPolyCollectionProperties.compute(self, artist)
         if self.has_input('xranges'):
@@ -998,7 +1000,7 @@ class MplRegularPolyCollectionProperties(MplCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplRegularPolyCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplCollectionProperties.compute(self, artist)
         if self.has_input('numsides'):
@@ -1053,7 +1055,7 @@ class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplStarPolygonCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplRegularPolyCollectionProperties.compute(self, artist)
         if self.has_input('numsides'):
@@ -1108,7 +1110,7 @@ class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties)
     def compute(self, artist=None):
         if artist is None:
             artist = MplAsteriskPolygonCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplRegularPolyCollectionProperties.compute(self, artist)
         if self.has_input('numsides'):
@@ -1191,7 +1193,7 @@ class MplLineCollectionProperties(MplCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplLineCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplCollectionProperties.compute(self, artist)
         if self.has_input('paths'):
@@ -1263,7 +1265,7 @@ class MplCircleCollectionProperties(MplCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplCircleCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplCollectionProperties.compute(self, artist)
         if self.has_input('sizes'):
@@ -1317,7 +1319,7 @@ class MplEllipseCollectionProperties(MplCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplEllipseCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplCollectionProperties.compute(self, artist)
         if self.has_input('units'):
@@ -1381,7 +1383,7 @@ class MplPatchCollectionProperties(MplCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplPatchCollectionProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplCollectionProperties.compute(self, artist)
         if self.has_input('paths'):
@@ -1439,7 +1441,7 @@ class MplTriMeshProperties(MplCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplTriMeshProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplCollectionProperties.compute(self, artist)
         if self.has_input('triangulation'):
@@ -1526,7 +1528,7 @@ class MplQuadMeshProperties(MplCollectionProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplQuadMeshProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplCollectionProperties.compute(self, artist)
         if self.has_input('paths'):
@@ -1605,7 +1607,7 @@ class MplPatchProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplPatchProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('edgecolor'):
@@ -1678,7 +1680,7 @@ class MplShadowProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplShadowProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('patch'):
@@ -1743,7 +1745,7 @@ class MplRectangleProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplRectangleProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('bounds'):
@@ -1807,7 +1809,7 @@ class MplRegularPolygonProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplRegularPolygonProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('xy'):
@@ -1865,7 +1867,7 @@ class MplCirclePolygonProperties(MplRegularPolygonProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplCirclePolygonProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplRegularPolygonProperties.compute(self, artist)
         if self.has_input('radius'):
@@ -1917,7 +1919,7 @@ class MplPathPatchProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplPathPatchProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('path'):
@@ -1967,7 +1969,7 @@ class MplPolygonProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplPolygonProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('xy'):
@@ -2037,7 +2039,7 @@ class MplFancyArrowProperties(MplPolygonProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplFancyArrowProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPolygonProperties.compute(self, artist)
         if self.has_input('length_includes_head'):
@@ -2113,7 +2115,7 @@ class MplWedgeProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplWedgeProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('theta2'):
@@ -2177,7 +2179,7 @@ class MplArrowProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplArrowProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('y'):
@@ -2246,7 +2248,7 @@ class MplYAArrowProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplYAArrowProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('xytip'):
@@ -2310,7 +2312,7 @@ class MplEllipseProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplEllipseProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('width'):
@@ -2366,7 +2368,7 @@ class MplCircleProperties(MplEllipseProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplCircleProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplEllipseProperties.compute(self, artist)
         if self.has_input('xy'):
@@ -2433,7 +2435,7 @@ class MplArcProperties(MplEllipseProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplArcProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplEllipseProperties.compute(self, artist)
         if self.has_input('theta2'):
@@ -2516,7 +2518,7 @@ class MplFancyBboxPatchProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplFancyBboxPatchProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('mutation_scale'):
@@ -2610,7 +2612,7 @@ class MplFancyArrowPatchProperties(MplPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplFancyArrowPatchProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplPatchProperties.compute(self, artist)
         if self.has_input('connectionstyle'):
@@ -2727,7 +2729,7 @@ class MplConnectionPatchProperties(MplFancyArrowPatchProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplConnectionPatchProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplFancyArrowPatchProperties.compute(self, artist)
         if self.has_input('connectionstyle'):
@@ -2868,7 +2870,7 @@ class MplLine2DProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplLine2DProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('picker'):
@@ -3010,7 +3012,7 @@ class MplTextProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplTextProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('rotation_mode'):
@@ -3184,7 +3186,7 @@ class MplTextWithDashProperties(MplTextProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplTextWithDashProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplTextProperties.compute(self, artist)
         if self.has_input('dashpush'):
@@ -3361,7 +3363,7 @@ class MplTickProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplTickProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('label1On'):
@@ -3487,7 +3489,7 @@ class MplXTickProperties(MplTickProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplXTickProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplTickProperties.compute(self, artist)
         if self.has_input('label1On'):
@@ -3600,7 +3602,7 @@ class MplYTickProperties(MplTickProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplYTickProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplTickProperties.compute(self, artist)
         if self.has_input('label1On'):
@@ -3735,7 +3737,7 @@ class MplAxisProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplAxisProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('pickradius'):
@@ -3835,7 +3837,7 @@ class MplXAxisProperties(MplAxisProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplXAxisProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplAxisProperties.compute(self, artist)
         if self.has_input('view_interval'):
@@ -3907,7 +3909,7 @@ class MplYAxisProperties(MplAxisProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplYAxisProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplAxisProperties.compute(self, artist)
         if self.has_input('offset_position'):
@@ -4053,7 +4055,7 @@ class MplLegendProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplLegendProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('fancybox'):
@@ -4280,7 +4282,7 @@ class MplAxesProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplAxesProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('adjustable'):
@@ -4423,7 +4425,7 @@ class MplAxesSubplotProperties(MplAxesProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplAxesSubplotProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplAxesProperties.compute(self, artist)
         if self.has_input('fig'):
@@ -4507,7 +4509,7 @@ class MplFigureProperties(MplArtistProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplFigureProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplArtistProperties.compute(self, artist)
         if self.has_input('edgecolor'):
@@ -4596,7 +4598,7 @@ class MplAnnotationProperties(MplTextProperties):
     def compute(self, artist=None):
         if artist is None:
             artist = MplAnnotationProperties.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         MplTextProperties.compute(self, artist)
         if self.has_input('xycoords'):

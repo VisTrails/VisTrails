@@ -1,3 +1,5 @@
+from __future__ import division
+
 try:
     import simplejson as json
 except ImportError:

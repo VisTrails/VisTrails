@@ -1,3 +1,5 @@
+from __future__ import division
+
 import contextlib
 from itertools import izip
 import subprocess

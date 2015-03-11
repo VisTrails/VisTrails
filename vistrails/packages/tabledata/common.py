@@ -1,3 +1,5 @@
+from __future__ import division
+
 try:
     import numpy
 except ImportError: # pragma: no cover
@@ -266,6 +268,7 @@ class SingleColumnTable(Converter):
     """
     _input_ports = [('in_value', List)]
     _output_ports = [('out_value', Table)]
+
     def compute(self):
         column = self.get_input('in_value')
         if not isinstance(column, ListType):
@@ -275,9 +278,12 @@ class SingleColumnTable(Converter):
                 len(column),            # nb_rows
                 ['converted_list']))    # names
 
+
 class TableToFileMode(FileMode):
-    formats = ['html']
-    def write_html(self, table):
+    formats = ['html', 'csv']
+
+    @staticmethod
+    def make_html(table):
         document = ['<!DOCTYPE html>\n'
                     '<html>\n  <head>\n'
                     '    <meta http-equiv="Content-type" content="text/html; '
@@ -310,16 +316,33 @@ class TableToFileMode(FileMode):
 
         return ''.join(document)
 
-    def compute_output(self, output_module, configuration=None):
-        value = output_module.get_input("value")
+    def write_html(self, table, configuration):
         filename = self.get_filename(configuration, suffix='.html')
         with open(filename, 'wb') as fp:
-            fp.write(self.write_html(value))
+            fp.write(self.make_html(table))
+
+    def write_csv(self, table, configuration):
+        from .write.write_csv import WriteCSV
+
+        filename = self.get_filename(configuration, suffix='.csv')
+        WriteCSV.write(filename, table)
+
+    def compute_output(self, output_module, configuration=None):
+        value = output_module.get_input("value")
+        format = configuration.get('format', 'html').lower()
+        try:
+            func = getattr(self, 'write_%s' % format)
+        except AttributeError:
+            raise AttributeError("TableToFileMode: unknown format %s" % format)
+        else:
+            func(value, configuration)
+
 
 class TableOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'Table')]
     _output_modes = [TableToFileMode]
+
 
 _modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable,
             (SingleColumnTable, {'hide_descriptor': True}),
