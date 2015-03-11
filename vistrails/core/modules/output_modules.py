@@ -504,11 +504,6 @@ class ImageFileMode(FileMode):
     config_cls = ImageFileModeConfig
     mode_type = "imageFile"
 
-class RichTextOutput(OutputModule):
-    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
-    _input_ports = [('value', 'File')]
-    _output_modes = [FileToFileMode]
-
 class IPythonModeConfig(OutputModeConfig):
     mode_type = "ipython"
     _fields = []
@@ -534,6 +529,20 @@ class IPythonMode(OutputMode):
 
         value = output_module.get_input('value')
         display(value)
+
+class IPythonHtmlMode(IPythonMode):
+    mode_type = "ipython"
+
+    def compute_output(self, output_module, configuration=None):
+        from IPython.core.display import display, HTML
+
+        value = output_module.get_input('value')
+        display(HTML(filename=value.name))
+
+class RichTextOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _input_ports = [('value', 'File')]
+    _output_modes = [FileToFileMode, IPythonHtmlMode]
 
 _modules = [OutputModule, GenericOutput, FileOutput, RichTextOutput]
 
