@@ -3,7 +3,7 @@ from __future__ import division
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.db.action import create_action
-from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
+from vistrails.gui.modules.constant_configuration import ConstantWidgetBase
 from vistrails.gui.modules.module_configure import \
     StandardModuleConfigurationWidget
 
@@ -241,12 +241,11 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
             self.emit(QtCore.SIGNAL('stateChanged'))
 
 
-class MetadataConstantWidget(QtGui.QWidget, ConstantWidgetMixin):
+class MetadataConstantWidget(ConstantWidgetBase, QtGui.QWidget):
     contentsChanged = QtCore.pyqtSignal(tuple)
 
     def __init__(self, param, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        ConstantWidgetMixin.__init__(self, param)
 
         self._key = QtGui.QLineEdit()
         self.connect(self._key, QtCore.SIGNAL("returnPressed()"),
@@ -267,8 +266,10 @@ class MetadataConstantWidget(QtGui.QWidget, ConstantWidgetMixin):
         layout.addWidget(self._value)
         self.setLayout(layout)
 
-        if param.strValue:
-            self.setContents(param.strValue)
+        ConstantWidgetBase.__init__(self, param)
+        self._key.installEventFilter(self)
+        self._type.installEventFilter(self)
+        self._value.installEventFilter(self)
 
     def contents(self):
         if self._type.currentText() == 'int':
