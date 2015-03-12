@@ -38,9 +38,12 @@
 ################################################################################
 from __future__ import division
 
+from vistrails.core.modules.output_modules import ImageOutput
+
 from imageviewer import ImageViewerCell, ImageFileToSpreadsheet
 
 ################################################################################
+
 
 def widgetName():
     """ widgetName() -> str
@@ -60,7 +63,4 @@ def registerWidget(reg, basicModules, basicWidgets):
     reg.add_input_port(ImageViewerCell, "Location", basicWidgets.CellLocation)
     reg.add_input_port(ImageViewerCell, "File", basicModules.File)    
 
-    # FIXME we need an ImageOutput module defined for this, but this
-    # probably requires an Image type as well...
-    #
-    # ImageOutput.register_output_mode(ImageFileToSpreadsheet)
+    ImageOutput.register_output_mode(ImageFileToSpreadsheet)

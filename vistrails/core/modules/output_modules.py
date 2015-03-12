@@ -329,7 +329,7 @@ class FileMode(OutputMode):
     config_cls = FileModeConfig
     formats = []
     
-    # need to reset this after each execution!
+    # TODO: need to reset this after each execution!
     series_next = 0
 
     @staticmethod
@@ -491,7 +491,7 @@ class GenericOutput(OutputModule):
 
 class FileOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
-    # should set file as a higher priority here...
+    # should set FileToFileMode as a higher priority here...
     _input_ports = [('value', 'File')]
     _output_modes = [FileToStdoutMode, FileToFileMode]
 
@@ -503,6 +503,12 @@ class ImageFileModeConfig(FileModeConfig):
 class ImageFileMode(FileMode):
     config_cls = ImageFileModeConfig
     mode_type = "imageFile"
+
+class ImageOutput(FileOutput):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _input_ports = [('value', 'File')]
+    # TODO: Should disable FileToStdoutMode here
+    _output_modes = [FileToFileMode]
 
 class IPythonModeConfig(OutputModeConfig):
     mode_type = "ipython"
@@ -544,7 +550,7 @@ class RichTextOutput(OutputModule):
     _input_ports = [('value', 'File')]
     _output_modes = [FileToFileMode, IPythonHtmlMode]
 
-_modules = [OutputModule, GenericOutput, FileOutput, RichTextOutput]
+_modules = [OutputModule, GenericOutput, FileOutput, ImageOutput, RichTextOutput]
 
 # need to put WebOutput, ImageOutput, RichTextOutput, SVGOutput, etc. elsewhere
 
