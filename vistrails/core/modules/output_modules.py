@@ -454,12 +454,15 @@ class FileMode(OutputMode):
                 raise IOError('File "%s" exists and overwrite is False' % full_path)
 
         return full_path
-        
+
 class FileToFileMode(FileMode):
+    default_file_extension = None
+
     def compute_output(self, output_module, configuration=None):
         old_fname = output_module.get_input('value').name
         full_path = self.get_filename(configuration,
-                                      suffix=os.path.splitext(old_fname)[1])
+                                      suffix=(os.path.splitext(old_fname)[1] or
+                                              self.default_file_extension))
         # we know we are in overwrite mode because it would have been
         # flagged otherwise
         if os.path.exists(full_path):
@@ -505,13 +508,13 @@ class FileOutput(OutputModule):
     _output_modes = [(FileToStdoutMode, 50), (FileToFileMode, 200)]
 
 class ImageFileModeConfig(FileModeConfig):
-    mode_type = "imageFile"
+    mode_type = "file"
     _fields = [ConfigField('width', 800, int),
                ConfigField('height', 600, int)]
 
 class ImageFileMode(FileMode):
     config_cls = ImageFileModeConfig
-    mode_type = "imageFile"
+    mode_type = "file"
 
 class ImageOutput(FileOutput):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
@@ -554,10 +557,13 @@ class IPythonHtmlMode(IPythonMode):
         value = output_module.get_input('value')
         display(HTML(filename=value.name))
 
-class RichTextOutput(OutputModule):
+class HtmlToFileMode(FileToFileMode):
+    default_file_extension = '.html'
+
+class RichTextOutput(FileOutput):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'File')]
-    _output_modes = [FileToFileMode, IPythonHtmlMode]
+    _output_modes = [HtmlToFileMode, (FileToStdoutMode, 50), IPythonHtmlMode]
 
 _modules = [OutputModule, GenericOutput, FileOutput, ImageOutput, RichTextOutput]
 
