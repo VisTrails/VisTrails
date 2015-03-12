@@ -114,6 +114,7 @@ disallowed_classes = set(
         'vtkInformationVariantVectorKey',
         'vtkInformationVariantKey',
         'QImage',
+        'vtkPLOT3DReader',
     ])
 
 disallowed_modules = set(
