@@ -17,6 +17,10 @@ class OutputMode(object):
     def can_compute():
         return False
 
+    @classmethod
+    def get_config(cls):
+        return cls.config_cls
+
     def compute_output(self, output_module, configuration=None):
         raise NotImplementedError("Subclass of OutputMode should implement "
                                   "this")
@@ -245,8 +249,8 @@ class OutputModule(NotCacheable, Module):
         for c in reversed(cls_list):
             c.ensure_mode_dict()
 
-    def get_mode_config(self, mode_cls):
-        mode_config_cls = mode_cls.config_cls
+    def get_mode_config(self, mode):
+        mode_config_cls = mode.get_config()
         mode_config_dict = {}
         configuration = self.force_get_input('configuration')
         if configuration is not None:
@@ -292,11 +296,11 @@ class OutputModule(NotCacheable, Module):
             raise ModuleError(self, "No output mode is valid, output cannot "
                               "be generated")
 
-        mode_config = self.get_mode_config(mode_cls)
         mode = mode_cls()
+        mode_config = self.get_mode_config(mode)
         self.annotate({"output_mode": mode.mode_type})
         mode.compute_output(self, mode_config)
-                
+
 class StdoutModeConfig(OutputModeConfig):
     mode_type = "stdout"
     _fields = []
