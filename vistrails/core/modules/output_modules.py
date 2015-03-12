@@ -458,7 +458,8 @@ class FileMode(OutputMode):
 class FileToFileMode(FileMode):
     def compute_output(self, output_module, configuration=None):
         old_fname = output_module.get_input('value').name
-        full_path = self.get_filename(configuration)
+        full_path = self.get_filename(configuration,
+                                      suffix=os.path.splitext(old_fname)[1])
         # we know we are in overwrite mode because it would have been
         # flagged otherwise
         if os.path.exists(full_path):
