@@ -172,13 +172,15 @@ class OutputModule(NotCacheable, Module):
     @classmethod
     def ensure_mode_dict(cls):
         if '_output_modes_dict' not in cls.__dict__:
+            cls._output_modes_dict = {}
             if '_output_modes' in cls.__dict__:
-                cls._output_modes_dict = \
-                                dict((mcls.mode_type, (mcls, mcls.priority))
-                                     for mcls in cls._output_modes)
-            else:
-                cls._output_modes_dict = {}
-            
+                for mcls in cls._output_modes:
+                    if isinstance(mcls, tuple):
+                        mcls, prio = mcls
+                    else:
+                        prio = mcls.priority
+                    cls._output_modes_dict[mcls.mode_type] = mcls, prio
+
     @classmethod
     def register_output_mode(cls, mode_cls, priority=None):
         if mode_cls.mode_type is None:
@@ -491,9 +493,9 @@ class GenericOutput(OutputModule):
 
 class FileOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
-    # should set FileToFileMode as a higher priority here...
     _input_ports = [('value', 'File')]
-    _output_modes = [FileToStdoutMode, FileToFileMode]
+    # Stdout is low priority, probably a bad plan
+    _output_modes = [(FileToStdoutMode, 50), (FileToFileMode, 200)]
 
 class ImageFileModeConfig(FileModeConfig):
     mode_type = "imageFile"
@@ -507,8 +509,8 @@ class ImageFileMode(FileMode):
 class ImageOutput(FileOutput):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'File')]
-    # TODO: Should disable FileToStdoutMode here
-    _output_modes = [FileToFileMode]
+    # FileToStdoutMode is disabled, since it's definitely binary
+    _output_modes = [FileToFileMode, (FileToStdoutMode, -1)]
 
 class IPythonModeConfig(OutputModeConfig):
     mode_type = "ipython"

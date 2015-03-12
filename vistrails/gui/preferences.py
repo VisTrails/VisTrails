@@ -575,9 +575,10 @@ class QOutputConfigurationPane(QtGui.QWidget):
         sublist = reg.get_descriptor_subclasses(output_d)
         modes = {}
         for d in sublist:
-            if hasattr(d.module, '_output_modes'):
-                for mode in d.module._output_modes:
-                    modes[mode.mode_type] = mode
+            if hasattr(d.module, '_output_modes_dict'):
+                for mode_type, (mode, _) in (d.module._output_modes_dict
+                                                     .iteritems()):
+                    modes[mode_type] = mode
 
         found_modes = set()
         for mode_type, mode in modes.iteritems():
