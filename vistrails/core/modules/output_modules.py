@@ -296,14 +296,14 @@ class OutputModule(NotCacheable, Module):
         mode = mode_cls()
         self.annotate({"output_mode": mode.mode_type})
         mode.compute_output(self, mode_config)
-                
+
 class StdoutModeConfig(OutputModeConfig):
     mode_type = "stdout"
     _fields = []
 
 class StdoutMode(OutputMode):
     mode_type = "stdout"
-    priority = 2
+    priority = 200
     config_cls = StdoutModeConfig
 
     @staticmethod
@@ -325,7 +325,7 @@ class FileModeConfig(OutputModeConfig):
 
 class FileMode(OutputMode):
     mode_type = "file"
-    priority = 1
+    priority = 100
     config_cls = FileModeConfig
     formats = []
     
