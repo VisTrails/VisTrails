@@ -243,7 +243,7 @@ class Module(DBModule):
     input_port_specs = property(_get_input_port_specs)
     def _get_output_port_specs(self):
         return sorted(self._output_port_specs, 
-                      key=lambda x: (-x.sort_key, x.id))
+                      key=lambda x: (x.sort_key, x.id))
     output_port_specs = property(_get_output_port_specs)
 
     def _get_descriptor_info(self):
