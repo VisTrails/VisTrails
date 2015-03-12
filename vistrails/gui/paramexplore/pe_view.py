@@ -35,9 +35,8 @@
 ###############################################################################
 from __future__ import division
 
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore
 
-from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget
 from vistrails.gui.theme import CurrentTheme

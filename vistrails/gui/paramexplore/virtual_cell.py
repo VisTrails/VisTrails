@@ -190,7 +190,6 @@ def assembleThumbnails(images, name, background='#000000'):
     maxSheet = max(i[2] for i in images) + 1
     
     w = h = 0
-    sizeX = sizeY = 0
     sheets = []
     painter = QtGui.QPainter()
     
@@ -369,7 +368,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         """
         while True:
             item = self.layout().takeAt(0)
-            if item==None:
+            if item is None:
                 break
             self.disconnect(item.widget(),
                             QtCore.SIGNAL('finishedDragAndDrop'),
@@ -424,7 +423,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         for i in xrange(len(visibleRows)):
             for c in xrange(self.numCell):
                 label = self.cells[visibleRows[i]][c]
-                if label.type==None:
+                if label.type is None:
                     label.type = ''
                 self.cells[i][c].setCellData(label.type, label.id)
 
@@ -441,7 +440,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         for i in xrange(len(visibleCols)):
             for r in xrange(self.numCell):
                 label = self.cells[r][visibleCols[i]]
-                if label.type==None:
+                if label.type is None:
                     label.type = ''
                 self.cells[r][i].setCellData(label.type, label.id)
 
@@ -550,7 +549,7 @@ class QVirtualCellLabel(QtGui.QLabel):
         painter = QtGui.QPainter()
         painter.begin(image)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        if self.type==None:
+        if self.type is None:
             painter.setPen(QtCore.Qt.NoPen)
             painter.setBrush(QtCore.Qt.NoBrush)
         else:
@@ -564,7 +563,7 @@ class QVirtualCellLabel(QtGui.QLabel):
                                             image.height()-1), 25, 25)
 
         painter.setFont(font)
-        if self.type!=None:
+        if self.type is not None:
             painter.drawText(QtCore.QRect(QtCore.QPoint(6, 6), size),
                              QtCore.Qt.AlignCenter | QtCore.Qt.TextWrapAnywhere,
                              split_camel_case(self.type))

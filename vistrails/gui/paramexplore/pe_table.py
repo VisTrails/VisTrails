@@ -206,6 +206,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                         value = '%s' % escape(str(interpolator._str_values), escape_dict)
                     elif intType == 'User-defined Function':
                         value ='%s' % escape(interpolator.function, escape_dict)
+                    else:
+                        assert False
                     # Write parameter tag
                     param = PEParam(id=id_scope.getNewId(PEParam.vtType),
                                     pos=paramInfo.pos,
@@ -323,7 +325,6 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         for f in xmlDoc.getElementsByTagName('function'):
             # Retrieve function attributes
             f_id = long(f.attributes['id'].value)
-            f_name = str(f.attributes['name'].value)
             f_is_alias = (str(f.attributes['alias'].value) == 'True')
             # Search the parameter treeWidget for this function and add it directly
             newEditor = None
@@ -482,7 +483,7 @@ class QParameterExplorationTable(QPromptWidget):
                 for p in xrange(len(pEditor.info[1])):
                     param = pEditor.info[1][p]
                     widget = pEditor.paramWidgets[p]                    
-                    if (param in ps.info[1] and (not widget.isEnabled())):
+                    if param in ps.info[1] and not widget.isEnabled():
                         widget.setDimension(0)
                         widget.setDuplicate(False)
                         widget.setEnabled(True)
@@ -497,16 +498,16 @@ class QParameterExplorationTable(QPromptWidget):
         """
         # Go through all possible parameter widgets
         counts = self.label.getCounts()
-        for i in xrange(self.layout().count()):
-            pEditor = self.layout().itemAt(i).widget()
+        for wdg in xrange(self.layout().count()):
+            pEditor = self.layout().itemAt(wdg).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 for paramWidget in pEditor.paramWidgets:
                     dim = paramWidget.getDimension()
                     if dim in [0, 1, 2, 3]:
-                        se = paramWidget.editor.stackedEditors
+                        stackedEditors = paramWidget.editor.stackedEditors
                         # Notifies editor widgets of size update 
-                        for i in xrange(se.count()):
-                            wd = se.widget(i)
+                        for edit in xrange(stackedEditors.count()):
+                            wd = stackedEditors.widget(edit)
                             if hasattr(wd, 'size_was_updated'):
                                 wd.size_was_updated(counts[dim])
 
@@ -547,7 +548,7 @@ class QParameterExplorationTable(QPromptWidget):
         else:
             self.clear()
         self.pipeline = pipeline
-        self.label.setEnabled(self.pipeline!=None)
+        self.label.setEnabled(self.pipeline is not None)
 
     def collectParameterActions(self):
         """ collectParameterActions() -> list
@@ -578,8 +579,7 @@ class QParameterExplorationTable(QPromptWidget):
                         parentType = paramInfo.parent_dbtype
                         parentId = paramInfo.parent_id
                         function = self.pipeline.db_get_object(parentType,
-                                                               parentId)  
-                        fName = function.name
+                                                               parentId)
                         old_param = self.pipeline.db_get_object(pType,pId)
                         pName = old_param.name
                         pAlias = old_param.alias
@@ -894,7 +894,6 @@ class QParameterWidget(QtGui.QWidget):
         self.label.setFixedWidth(50)
         hLayout.addWidget(self.label)
 
-        registry = get_module_registry()
         module = param.spec.descriptor.module
         assert issubclass(module, Constant)
 
@@ -1010,14 +1009,3 @@ class QDimensionRadioButton(QtGui.QRadioButton):
         
         """
         self.click()
-
-################################################################################
-
-if __name__=="__main__":        
-    import sys
-    import vistrails.gui.theme
-    app = QtGui.QApplication(sys.argv)
-    vistrails.gui.theme.initializeCurrentTheme()
-    vc = QDimensionLabel(CurrentTheme.EXPLORE_SHEET_PIXMAP, 'Hello World')
-    vc.show()
-    sys.exit(app.exec_())
