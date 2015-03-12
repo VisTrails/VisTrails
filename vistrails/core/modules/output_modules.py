@@ -1,5 +1,6 @@
 from __future__ import division
 
+from copy import copy
 import os
 import sys
 import unittest
@@ -325,7 +326,7 @@ class FileModeConfig(OutputModeConfig):
                ConfigField('overwrite', True, bool),
                ConfigField('seriesPadding', 3, int),
                ConfigField('seriesStart', 0, int),
-               ConfigField('format', None, str)]
+               ConfigField('format', None, str, widget_type='combo')]
 
 class FileMode(OutputMode):
     mode_type = "file"
@@ -339,6 +340,26 @@ class FileMode(OutputMode):
     @staticmethod
     def can_compute():
         return True
+
+    @classmethod
+    def get_config(cls):
+        if '_config_cls_with_formats' in cls.__dict__:
+            return cls.__dict__['_config_cls_with_formats']
+        else:
+            dct = {}
+            orig_config_cls = super(FileMode, cls).get_config()
+            format_field = orig_config_cls.get_field('format')
+            if format_field.widget_type == 'combo':
+                format_field = copy(format_field)
+                opts = dict(format_field.widget_options)
+                opts['allowed_values'] = cls.get_formats()
+                format_field.widget_options = opts
+                dct['_fields'] = [format_field]
+            config_cls = type('%s_WithFormats' % orig_config_cls.__name__,
+                              (orig_config_cls,),
+                              dct)
+            cls._config_cls_with_formats = config_cls
+            return config_cls
 
     @classmethod
     def get_formats(cls):
