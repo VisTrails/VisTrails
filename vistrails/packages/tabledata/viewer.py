@@ -1,3 +1,5 @@
+from __future__ import division
+
 import os
 from PyQt4 import QtCore, QtGui
 
@@ -6,10 +8,6 @@ from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, \
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 
 class TableToSpreadsheetMode(SpreadsheetMode):
-    @classmethod
-    def can_compute(cls):
-        return SpreadsheetMode.can_compute()
-
     def compute_output(self, output_module, configuration=None):
         table = output_module.get_input('value')
         self.display_and_wait(output_module, configuration,

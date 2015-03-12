@@ -24,6 +24,8 @@ prompt the user to start a cluster if none is available. It is True by default
 """
 
 
+from __future__ import division
+
 __all__ = ['get_client', 'direct_view', 'load_balanced_view', 'parallel_map']
 
 

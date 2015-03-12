@@ -1,40 +1,42 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import os
 import sys
-import traceback
 import weakref
 import warnings
 
@@ -105,7 +107,7 @@ class VistrailsApplicationInterface(object):
             parser.parse_args(args, namespace=command_line_config)
         except SystemError:
             print "GOT SYSTEM ERROR!"
-            traceback.print_exc()
+            debug.print_exc()
 
         self.input = command_line_config.vistrails
         if len(self.input) == 0:
@@ -338,7 +340,7 @@ class VistrailsApplicationInterface(object):
                     m(*args)
                 except Exception, e:
                     debug.unexpected_exception(e)
-                    traceback.print_exc()
+                    debug.print_exc()
 
     def showBuilderWindow(self):
         pass
@@ -357,7 +359,7 @@ class VistrailsApplicationInterface(object):
         """
         raise NotImplementedError("Subclass must implement ensure_vistrail")
 
-    def select_version(self, version=None):
+    def select_version(self, version):
         """select_version changes the version of the currently open vistrail
         to the specified version.
 
@@ -422,9 +424,10 @@ class VistrailsApplicationInterface(object):
                 if not controller.is_abstraction:
                     collection.add_to_workspace(entity)
                 collection.commit()
-            except VistrailsDBException:
-                debug.critical("Exception from the database",
-                               traceback.format_exc())
+            except VistrailsDBException as e:
+                debug.unexpected_exception(e)
+                debug.critical("Exception from the database: %s" % e,
+                               debug.format_exc())
                 return None
 
         version = self.convert_version(version)
@@ -454,9 +457,10 @@ class VistrailsApplicationInterface(object):
             controller.perform_action(action)
             controller.vistrail.set_tag(action.id, "Imported workflow")
             controller.change_selected_version(action.id)
-        except VistrailsDBException:
-            debug.critical("Exception from the database",
-                           traceback.format_exc())
+        except VistrailsDBException as e:
+            debug.unexpected_exception(e)
+            debug.critical("Exception from the database: %s" % e,
+                           debug.format_exc())
             return None
 
         controller.select_latest_version()
@@ -482,7 +486,7 @@ class VistrailsApplicationInterface(object):
             controller.write_vistrail(locator, export=export)
         except Exception, e:
             debug.unexpected_exception(e)
-            debug.critical("Failed to save vistrail", traceback.format_exc())
+            debug.critical("Failed to save vistrail", debug.format_exc())
             raise
         if export:
             return controller.locator
@@ -504,7 +508,7 @@ class VistrailsApplicationInterface(object):
             collection.add_to_workspace(entity)
             collection.commit()
         except Exception, e:
-            debug.critical('Failed to index vistrail', traceback.format_exc())
+            debug.critical('Failed to index vistrail', debug.format_exc())
         return controller.locator
 
     def close_vistrail(self, locator=None, controller=None):

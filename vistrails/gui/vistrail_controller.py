@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from __future__ import division
 
 import copy
 import math
@@ -46,7 +49,7 @@ from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 import vistrails.core.db.action
 from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.interpreter.job import Workflow as JobWorkflow
+from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
 from vistrails.core.log.opm_graph import OpmGraph
 from vistrails.core.log.prov_document import ProvDocument
@@ -65,6 +68,7 @@ from vistrails.gui.theme import CurrentTheme
 import vistrails.gui.utils
 from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from vistrails.gui.version_prop import QVersionProp
+
 
 
 ################################################################################
@@ -147,6 +151,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_version_view = True
         self.quiet = False
         self.progress = None
+        self.create_job = False
         
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
@@ -377,6 +382,24 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         self.flush_delayed_actions()
+
+        if self.create_job:
+            version_id = self.current_version
+            # check if a job exist for this workflow
+            current_workflow = None
+            for wf in self.jobMonitor.workflows.itervalues():
+                try:
+                    wf_version = int(wf.version)
+                except ValueError:
+                    wf_version = self.vistrail.get_version_number(wf.version)
+                if version_id == wf_version:
+                    current_workflow = wf
+                    self.jobMonitor.startWorkflow(wf)
+            if not current_workflow:
+                current_workflow = JobWorkflow(version_id)
+                self.jobMonitor.startWorkflow(current_workflow)
+            self.create_job = False
+
         if self.current_pipeline:
             locator = self.get_locator()
             if locator:
@@ -403,6 +426,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Execute the current workflow (if exists) and monitors it if it contains jobs
         
         """
+
         # reset job view
         from vistrails.gui.job_monitor import QJobView
         jobView = QJobView.instance()
@@ -412,25 +436,12 @@ class VistrailController(QtCore.QObject, BaseController):
             return
         jobView.updating_now = True
 
-        if not jobView.jobMonitor.currentWorkflow():
-            version_id = self.current_version
-            url = self.locator.to_url()
-            # check if a job for this workflow exists
-            current_workflow = None
-            for job in jobView.jobMonitor._running_workflows.itervalues():
-                try:
-                    job_version = int(job.version)
-                except ValueError:
-                    job_version = self.vistrail.get_version_number(job.version)
-                if version_id == job_version and url == job.vistrail:
-                    current_workflow = job
-                    jobView.jobMonitor.startWorkflow(job)
-            if not current_workflow:
-                current_workflow = JobWorkflow(url, version_id)
-                jobView.jobMonitor.startWorkflow(current_workflow)
         try:
             self.progress = ExecutionProgressDialog(self.vistrail_view)
             self.progress.show()
+
+            if not self.jobMonitor.currentWorkflow():
+                self.create_job = True
 
             result =  self.execute_current_workflow(reason=reason, sinks=sinks)
 
@@ -439,7 +450,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.progress.hide()
             self.progress.deleteLater()
             self.progress = None
-            jobView.jobMonitor.finishWorkflow()
+            self.create_job = False
+            self.jobMonitor.finishWorkflow()
             jobView.updating_now = False
 
         return result
@@ -562,10 +574,9 @@ class VistrailController(QtCore.QObject, BaseController):
 #                 else:
 #                     process_err(exception_set.__iter__().next())
 
-        except Exception, e:
-            import traceback
+        except Exception:
             debug.critical('Unexpected Exception',
-                           traceback.format_exc())
+                           debug.format_exc())
         
         # FIXME: this code breaks undo/redo, and seems to be ok with normal
         # pipeline manipulations so I am leaving it commented out for now
@@ -872,14 +883,10 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         full = self.vistrail.getVersionGraph()
-        changed = False
         p = full.parent(v2)
         while p>v1:
             self.vistrail.expandVersion(p)
-            changed = True
             p = full.parent(p)
-        if changed:
-            self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True)
 
@@ -894,8 +901,6 @@ class VistrailController(QtCore.QObject, BaseController):
         am = self.vistrail.actionMap
         tm = self.vistrail.get_tagMap()
 
-        changed = False
-
         while 1:
             try:
                 current=x.pop()
@@ -907,15 +912,12 @@ class VistrailController(QtCore.QObject, BaseController):
             if len(children) > 1:
                 break
             self.vistrail.collapseVersion(current)
-            changed = True
 
             for child in children:
                 if (not child in tm and  # has no Tag
                     child != self.current_version): # not selected
                     x.append(child)
 
-        if changed:
-            self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True) 
 
@@ -932,8 +934,6 @@ class VistrailController(QtCore.QObject, BaseController):
         
         am = self.vistrail.actionMap
 
-        changed = False
-
         while 1:
             try:
                 current=x.pop()
@@ -946,13 +946,9 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.vistrail.expandVersion(current)
             else:
                 self.vistrail.collapseVersion(current)
-            changed = True
 
             for child in children:
                 x.append(child)
-
-        if changed:
-            self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True) 
 
@@ -970,19 +966,8 @@ class VistrailController(QtCore.QObject, BaseController):
         am = self.vistrail.actionMap
         for a in am.iterkeys():
             self.vistrail.collapseVersion(a)
-        self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True)
-
-    def set_num_versions_always_shown(self, num):
-        """ set_num_versions_always_shown(num: int) -> None
-
-        """
-        if num <> self.num_versions_always_shown:
-            self.num_versions_always_shown = num
-            self.set_changed(True)
-            self.recompute_terse_graph()
-            self.invalidate_version_tree(False)
 
     def setSavedQueries(self, queries):
         """ setSavedQueries(queries: list of (str, str, str)) -> None
@@ -1037,7 +1022,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.invalidate_version_tree(False)
 
     def get_pipeline_name(self, version=None):
-        if version == None:
+        if version is None:
             version = self.current_version
         return self.vistrail.get_pipeline_name(version)
 

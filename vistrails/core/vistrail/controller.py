@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import copy
 from itertools import izip
 import os
@@ -47,7 +50,7 @@ import vistrails.core.db.locator
 from vistrails.core import debug
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.interpreter.job import JobMonitor
+from vistrails.core.vistrail.job import JobMonitor
 from vistrails.core.layout.workflow_layout import WorkflowLayout, \
     Pipeline as LayoutPipeline, Defaults as LayoutDefaults
 from vistrails.core.log.controller import LogController, DummyLogController
@@ -62,9 +65,8 @@ from vistrails.core.modules.module_registry import ModuleRegistryException, \
     MissingPackage, PortsIncompatible
 from vistrails.core.modules.package import Package
 from vistrails.core.modules.sub_module import new_abstraction, read_vistrail, \
-    get_all_abs_namespaces, get_cur_abs_namespace, get_cur_abs_annotation_key, \
-    get_next_abs_annotation_key, save_abstraction, parse_abstraction_name
-from vistrails.core.packagemanager import PackageManager, get_package_manager
+    get_all_abs_namespaces, get_cur_abs_namespace, get_next_abs_annotation_key, save_abstraction, parse_abstraction_name
+from vistrails.core.packagemanager import get_package_manager
 import vistrails.core.packagerepository
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, UpgradeWorkflowError
@@ -78,7 +80,7 @@ from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.location import Location
-from vistrails.core.vistrail.module import Module, ModuleFunction, ModuleParam
+from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
@@ -94,6 +96,7 @@ from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
 from vistrails.db.services.vistrail import getSharedRoot
 from vistrails.core.utils import any
+
 
 def vt_action(description_or_f=None):
     def get_f(f, description=None):
@@ -187,7 +190,7 @@ class VistrailController(object):
         # theme used to estimate module size for layout
         self.layoutTheme = DefaultCoreTheme()
         
-        self.set_vistrail(vistrail, locator, 
+        self.set_vistrail(vistrail, locator,
                           abstractions=abstractions, 
                           thumbnails=thumbnails,
                           mashups=mashups,
@@ -229,6 +232,7 @@ class VistrailController(object):
         self.id_scope = id_scope
         self.current_session = -1
         self.log = Log()
+        self.jobMonitor = JobMonitor()
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
             self.current_session = self.vistrail.idScope.getNewId("session")
@@ -241,6 +245,9 @@ class VistrailController(object):
                 ThumbnailCache.getInstance().add_entries_from_files(thumbnails)
             if mashups is not None:
                 self._mashups = mashups
+            job_annotation = vistrail.get_annotation('__jobs__')
+            self.jobMonitor = JobMonitor(job_annotation and job_annotation.value)
+
         self.current_version = -1
         self.current_pipeline = Pipeline()
         if self.locator != locator and self.locator is not None:
@@ -254,7 +261,7 @@ class VistrailController(object):
             self.set_changed(True)
         if self.vistrail is not None:
             self.recompute_terse_graph()
-        
+
     def close_vistrail(self, locator):
         if not self.vistrail.is_abstraction:
             self.unload_abstractions()
@@ -281,7 +288,7 @@ class VistrailController(object):
         Change the controller file name
         
         """
-        if file_name == None:
+        if file_name is None:
             file_name = ''
         if self.file_name!=file_name:
             self.file_name = file_name
@@ -523,7 +530,7 @@ class VistrailController(object):
         added_upgrade = False
         should_migrate_tags = get_vistrails_configuration().check("migrateTags")
         for action in self._delayed_actions:
-            self.vistrail.add_action(action, start_version, 
+            self.vistrail.add_action(action, start_version,
                                      self.current_session)
             # HACK to populate upgrade information
             if (action.has_annotation_with_key(desc_key) and
@@ -2368,7 +2375,7 @@ class VistrailController(object):
                                           descriptor_tuple[1],
                                           descriptor_tuple[4],
                                           [v for k, v in lookup.iteritems()
-                                           if k[1] != None])
+                                           if k[1] is not None])
                 descriptor_tuple = (new_desc.package, new_desc.name, 
                                     new_desc.namespace, new_desc.package_version,
                                     str(new_desc.version))
@@ -3286,17 +3293,17 @@ class VistrailController(object):
                     #mashup.id = uuid.uuid1()
                     # we move it to the new version so that references still work
                     self._mashups.remove(mashup)
-                    
+
                     for action in mashup.actions:
                         for alias in action.mashup.aliases:
                             c = alias.component
-                            if (Module.vtType, c.vtmid) in mfp_remap:
+                            while (Module.vtType, c.vtmid) in mfp_remap:
                                 c.vtmid = mfp_remap[(Module.vtType, c.vtmid)]
-                            if (ModuleFunction.vtType,
+                            while (ModuleFunction.vtType,
                                 c.vtparent_id) in mfp_remap:
                                 c.vtparent_id=mfp_remap[(ModuleFunction.vtType,
                                                          c.vtparent_id)]
-                            if (ModuleParam.vtType, c.vtid) in mfp_remap:
+                            while (ModuleParam.vtType, c.vtid) in mfp_remap:
                                 c.vtid = mfp_remap[(ModuleParam.vtType,
                                                      c.vtid)]
                     mashup.currentVersion = mashup.getLatestVersion()
@@ -3311,7 +3318,7 @@ class VistrailController(object):
                 self._delayed_paramexps.extend(new_param_exps)
                 self._delayed_mashups.extend(new_mashups)
             else:
-                vistrail.add_action(upgrade_action, new_version, 
+                vistrail.add_action(upgrade_action, new_version,
                                     self.current_session)
                 vistrail.set_upgrade(new_version, str(upgrade_action.id))
                 if get_vistrails_configuration().check("migrateTags"):
@@ -3530,8 +3537,6 @@ class VistrailController(object):
                     self.current_version = new_version
                 except InvalidPipeline, e:
                     # display invalid pipeline?
-                    # import traceback
-                    # traceback.print_exc()
                     new_error = e
                     
                     # just do the version switch, anyway, but alert the
@@ -3580,8 +3585,7 @@ class VistrailController(object):
             elif len(e._exception_set) > 0:
                 process_err(e._exception_set.__iter__().next())
         except Exception, e:
-            import traceback
-            debug.critical("Unhandled exception", traceback.format_exc())
+            debug.critical("Unhandled exception", debug.format_exc())
 
     def write_temporary(self):
         if self.vistrail and self.changed:
@@ -3660,6 +3664,12 @@ class VistrailController(object):
         export=True means you should not update the current controller"""
         result = False 
         if self.vistrail and (self.changed or self.locator != locator):
+            # Save jobs as annotation
+            if self.jobMonitor.workflows:
+                self.vistrail.set_annotation('__jobs__',
+                                             self.jobMonitor.serialize())
+            else:
+                self.vistrail.set_annotation('__jobs__', '')
             # FIXME create this on-demand?
             abs_save_dir = tempfile.mkdtemp(prefix='vt_abs')
             is_abstraction = self.vistrail.is_abstraction
@@ -3728,8 +3738,6 @@ class VistrailController(object):
                     # Load all abstractions from new namespaces
                     self.ensure_abstractions_loaded(new_vistrail, 
                                                     save_bundle.abstractions) 
-                    JobMonitor.getInstance().updateUrl(locator.to_url(),
-                                                       old_locator.to_url())
                     self.set_file_name(locator.name)
                     if old_locator and not export:
                         old_locator.clean_temporaries()

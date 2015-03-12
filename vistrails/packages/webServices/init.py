@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from __future__ import division
 
 import sys
 import os.path
@@ -125,7 +128,7 @@ def webServiceTypesDict(WBobj):
             nameattrib = nameattrib[0].upper() + nameattrib[1:]
             sentence = "visobj" + "." + nameattrib
             visdata = eval(sentence)
-            if visdata != None:
+            if visdata is not None:
                 try:
                     Type = wsdlTypesDict[str(typechild)]
                     setattr(libobj,nameattrib,visdata)
@@ -148,7 +151,7 @@ def webServiceTypesDict(WBobj):
                 nameattribute = nameattrib[0].upper() + nameattrib[1:]
                 sentence = "visobj" + "." + nameattribute
                 visdata = eval(sentence)
-                if visdata != None:
+                if visdata is not None:
                     nameattrib = "attribute_typecode_dict[" + nameattrib + "].pname"
                     setattr(libobj,nameattrib,visdata)
 
@@ -330,7 +333,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
         if isinstance(resp, list):
             ptype = resp[0].typecode.type[1]
         else:
-            if resp.typecode.type[1] == None:
+            if resp.typecode.type[1] is None:
                 ptype = resp.typecode.pname
             else:    
                 ptype = resp.typecode.type[1]
@@ -550,12 +553,12 @@ def processType(complexschema,w):
 
     if complexschema.isElement():
         try:
-            if complexschema.content.content == None:
+            if complexschema.content.content is None:
                 contentschema = []
             else:    
                 contentschema = complexschema.content.content.content
             objModule.typeobj = 'ComplexType'
-            if (complexschema.content.content == None or
+            if (complexschema.content.content is None or
                 complexschema.content.content.content == ()):
                 objModule.isEmptySequence = True
         except AttributeError:
@@ -574,7 +577,7 @@ def processType(complexschema,w):
             contentschema = complexschema.content.content
     try:       
         #Get all the attributes of the complex type
-        if complexschema.attr_content != None:
+        if complexschema.attr_content is not None:
             for attribute in complexschema.attr_content:
                 nametype = attribute.getAttributeName()
                 Type = 'string'
@@ -1335,7 +1338,7 @@ def verify_wsdl(wsdlList):
         response = conn.getresponse()
         remoteHeader = response.msg.getheader('last-modified')
         isoutdated = False
-        if remoteHeader != None:
+        if remoteHeader is not None:
             localFile = client_file
             reg = vistrails.core.modules.module_registry.get_module_registry()
             httpfile = reg.get_descriptor_by_name(
@@ -1345,7 +1348,7 @@ def verify_wsdl(wsdlList):
             except OSError:
                 print "File doesn't exist"
                 isoutdated = True
-        if isoutdated or remoteHeader == None:
+        if isoutdated or remoteHeader is None:
             outdated_list.append(w)
         else:
             updated_list.append(w)

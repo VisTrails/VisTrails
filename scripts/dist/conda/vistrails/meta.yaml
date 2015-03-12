@@ -1,14 +1,10 @@
 package:
   name: vistrails
-  version: !!str 2.1.4
+  version: !!str _REPLACE_version_REPLACE_
 
 source:
-  fn: vistrails-2.1.4.tar.gz
-  url: https://pypi.python.org/packages/source/v/vistrails/vistrails-2.1.4.tar.gz
-  md5: 9560fa3f9bce61f1ac70841c90ff208a
-#  patches:
-   # List any patch files here
-   # - fix.patch
+  fn: vistrails.tar.gz
+  url: _REPLACE_url_REPLACE_
 
 build:
   #preserve_egg_dir: True
@@ -49,7 +45,7 @@ test:
     # You can put test commands to be run here.  Use this to test that the
     # entry points work.
 
-    - vistrails --help
+    - python -m vistrails.tests vistrails
 
   # You can also put a file called run_test.py in the recipe that will be run
   # at test time.

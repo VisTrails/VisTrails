@@ -112,7 +112,7 @@ class ${spec.name}(${spec.superklass}):
     def compute(self, artist=None):
         if artist is None:
             artist = ${spec.name}.Artist()
-            self.setResult("value", artist)
+            self.set_output("value", artist)
 
         % if spec.get_compute_before():
         ${spec.get_compute_before()}

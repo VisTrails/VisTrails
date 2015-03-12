@@ -9,6 +9,8 @@ Qt's WebKit in the spreadsheet.
 #   * Package created (from existing local work from 2013)
 
 
+from __future__ import division
+
 from identifiers import *
 
 
