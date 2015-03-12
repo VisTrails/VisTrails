@@ -11,7 +11,7 @@ import vistrails.core.system
 
 class OutputMode(object):
     mode_type = None
-    priority = -1
+    priority = -1  # -1 prevents the mode from being selected automatically
 
     @staticmethod
     def can_compute():
@@ -228,9 +228,15 @@ class OutputModule(NotCacheable, Module):
         mode_dict = {}
         for c in reversed(cls_list):
             mode_dict.update(c._output_modes_dict)
-        mode_list = [c for c, _ in reversed(sorted(mode_dict.itervalues(), 
-                                                   key=lambda x: x[1]))]
-        return mode_list
+
+        # Iterator over (mode_cls, priority)
+        modes = mode_dict.itervalues()
+        # Drop if priority < 0
+        modes = ((c, p) for (c, p) in modes if p >= 0)
+        # Sort by descending priority
+        modes = sorted(modes, key=lambda x: -x[1])
+        # Build list of mode_cls (drop priority)
+        return [c for c, _ in modes]
 
     @classmethod
     def get_mode_tree(cls):
