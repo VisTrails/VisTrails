@@ -39,8 +39,8 @@ class Digits(Module):
     """Example dataset: digits.
     """
     _settings = ModuleSettings(namespace="datasets")
-    _output_ports = [("data", "basic:List", {'sort_key': 1, 'shape': 'circle'}),
-                     ("target", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
+    _output_ports = [("data", "basic:List", {'shape': 'circle'}),
+                     ("target", "basic:List", {'shape': 'circle'})]
 
     def compute(self):
         data = datasets.load_digits()
@@ -52,8 +52,8 @@ class Iris(Module):
     """Example dataset: iris.
     """
     _settings = ModuleSettings(namespace="datasets")
-    _output_ports = [("data", "basic:List", {'sort_key': 1, 'shape': 'circle'}),
-                     ("target", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
+    _output_ports = [("data", "basic:List", {'shape': 'circle'}),
+                     ("target", "basic:List", {'shape': 'circle'})]
 
     def compute(self):
         data = datasets.load_iris()
@@ -140,13 +140,13 @@ class Transform(Module):
 class TrainTestSplit(Module):
     """Split data into training and testing randomly."""
     _settings = ModuleSettings(namespace="cross-validation")
-    _input_ports = [("data", "basic:List", {'sort_key': 0, 'shape': 'circle'}),
-                    ("target", "basic:List", {'sort_key': 1, 'shape': 'circle'}),
-                    ("test_size", "basic:Float", {"defaults": [.25], 'sort_key': 2})]
-    _output_ports = [("training_data", "basic:List", {'sort_key': 3, 'shape': 'circle'}),
-                     ("training_target", "basic:List", {'sort_key': 2, 'shape': 'circle'}),
-                     ("test_data", "basic:List", {'sort_key': 1, 'shape': 'circle'}),
-                     ("test_target", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
+    _input_ports = [("data", "basic:List", {'shape': 'circle'}),
+                    ("target", "basic:List", {'shape': 'circle'}),
+                    ("test_size", "basic:Float", {"defaults": [.25]})]
+    _output_ports = [("training_data", "basic:List", {'shape': 'circle'}),
+                     ("training_target", "basic:List", {'shape': 'circle'}),
+                     ("test_data", "basic:List", {'shape': 'circle'}),
+                     ("test_target", "basic:List", {'shape': 'circle'})]
 
     def compute(self):
         X_train, X_test, y_train, y_test = \
@@ -183,12 +183,12 @@ class CrossValScore(Module):
 
 class GridSearchCV(Estimator):
     """Perform cross-validated grid-search over a parameter grid."""
-    _input_ports = [("model", "Estimator", {'sort_key': 0, 'shape': 'diamond'}),
-                    ("parameters", "basic:Dictionary", {'sort_key': 1}),
-                    ("data", "basic:List", {'sort_key': 2, 'shape': 'circle'}),
-                    ("target", "basic:List", {'sort_key': 3, 'shape': 'circle'}),
-                    ("metric", "basic:String", {"defaults": ["accuracy"], 'sort_key': 4}),
-                    ("folds", "basic:Integer", {"defaults": ["3"], 'sort_key': 5})]
+    _input_ports = [("model", "Estimator", {'shape': 'diamond'}),
+                    ("parameters", "basic:Dictionary"),
+                    ("data", "basic:List", {'shape': 'circle'}),
+                    ("target", "basic:List", {'shape': 'circle'}),
+                    ("metric", "basic:String", {"defaults": ["accuracy"]}),
+                    ("folds", "basic:Integer", {"defaults": ["3"]})]
     _output_ports = [("scores", "basic:List"), ("model", "Estimator", {'shape': 'diamond'}),
                      ("best_parameters", "basic:Dictionary"),
                      ("best_score", "basic:Float")]
@@ -211,13 +211,11 @@ class GridSearchCV(Estimator):
 
 class Pipeline(Estimator):
     """Chain estimators to form a pipeline."""
-    _input_ports = [("model1", "Estimator", {'shape': 'diamond', 'sort_key': 2}),
-                    ("model2", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 3}),
-                    ("model3", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 4}),
-                    ("model4", "Estimator", {'optional': True, 'shape': 'diamond', 'sort_key': 5}),
-                    ("training_data", "basic:List", {'shape': 'circle', 'sort_key': 0}),
-                    ("training_target", "basic:List", {'shape': 'circle', 'sort_key': 1}),
-                    ]
+    _input_ports = [("training_data", "basic:List", {'shape': 'circle'}),
+                    ("training_target", "basic:List", {'shape': 'circle'}),("model1", "Estimator", {'shape': 'diamond'}),
+                    ("model2", "Estimator", {'optional': True, 'shape': 'diamond'}),
+                    ("model3", "Estimator", {'optional': True, 'shape': 'diamond'}),
+                    ("model4", "Estimator", {'optional': True, 'shape': 'diamond'})]
 
     def compute(self):
         models = ["model%d" % d for d in range(1, 5)]
@@ -273,9 +271,9 @@ class ROCCurve(Module):
 # Classifiers and Regressors
 
 def make_module(name, Estimator, namespace, supervised=False, Base=None):
-    input_ports = [("training_data", "basic:List", {'sort_key': 0, 'shape': 'circle'})]
+    input_ports = [("training_data", "basic:List", {'shape': 'circle'})]
     if supervised:
-        input_ports.append(("training_target", "basic:List", {'sort_key': 1, 'shape': 'circle'}))
+        input_ports.append(("training_target", "basic:List", {'shape': 'circle'}))
     est = Estimator()
     input_ports.extend([(param, "basic:String", {'optional': True}) for param
                         in est.get_params()])
