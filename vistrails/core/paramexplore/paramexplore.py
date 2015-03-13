@@ -142,6 +142,8 @@ class ParameterExploration(DBParameterExploration):
         added_functions = {}
         vistrail_vars = []
         function_actions = []
+        tmp_f_id = -1L
+        tmp_p_id = -1L
         for i in xrange(len(self.functions)):
             pe_function = self.functions[i]
             module = pipeline.db_get_object(Module.vtType, pe_function.module_id)
@@ -149,8 +151,6 @@ class ParameterExploration(DBParameterExploration):
             if module.is_vistrail_var():
                 vistrail_vars.append(module.get_vistrail_var())
             port_spec = reg.get_input_port_spec(module, pe_function.port_name)
-            tmp_f_id = -1L
-            tmp_p_id = -1L
             for param in pe_function.parameters:
                 port_spec_item = port_spec.port_spec_items[param.pos]
                 dim = param.dimension
