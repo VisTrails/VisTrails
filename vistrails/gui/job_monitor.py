@@ -148,7 +148,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         controllers = [view.controller for view in _app.getAllViews()]
         for c in self.widgets.keys():
             if c not in controllers:
-                self.jobView.takeTopLevelItem(self.widgets[c])
+                self.jobView.takeTopLevelItem(self.jobView.indexOfTopLevelItem(self.widgets[c]))
                 del self.widgets[c]
 
         if not controller:
@@ -159,7 +159,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             item = QVistrailItem(controller)
             self.jobView.addTopLevelItem(item)
             self.jobView.expandAll()
-            self.widgets[controller] = self.jobView.indexOfTopLevelItem(item)
+            self.widgets[controller] = item
             if item.childCount() > 0:
                 self.set_visible(True)
 
@@ -286,7 +286,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         QtGui.QTreeWidgetItem.__init__(self, parent,
                                        [self.locator.short_name, ''])
         self.setIcon(0, theme.get_current_theme().HISTORY_ICON)
-        self.setToolTip(0, self.locator.name)
+        self.setToolTip(0, self.locator.to_url())
         self.workflowItems = {}
         self.load_running_jobs()
 
