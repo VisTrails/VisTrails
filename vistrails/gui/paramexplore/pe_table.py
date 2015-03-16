@@ -250,8 +250,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                     paramInfo = moduleItem.child(cidx).parameter
                     name, params = paramInfo
                     if params[0].module_id == f.module_id and \
-                       params[0].name == f.port_name and \
-                       params[0].is_alias == f.is_alias:
+                       params[0].name == f.port_name:
                         newEditor = self.table.addParameter(paramInfo)
                         
             # Retrieve params for this function and set their values in the UI
