@@ -1555,7 +1555,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
         # Update output ports
         [x, y] = self.nextOutputPortPos
-        for port in outputPorts:            
+        for port in reversed(outputPorts):
             self.outputPorts[port] = self.createPortItem(port, x, y)
             x -= t.PORT_WIDTH + t.MODULE_PORT_SPACE
         self.nextOutputPortPos = [x, y]
