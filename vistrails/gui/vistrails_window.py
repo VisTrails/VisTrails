@@ -884,7 +884,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.connect(QtGui.QApplication.clipboard(),
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboard_changed)
-        self.connect(QtGui.QApplication.instance(), 
+        self.connect(QtGui.QApplication.instance(),
                      QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"),
                      self.applicationFocusChanged)
 
@@ -1050,8 +1050,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module'))),
                ((QParameterView, False),
-                (('controller_changed', 'set_controller'),
-                 ('pipeline_changed', 'set_pipeline'))),
+                (('controller_changed', 'set_controller'),)),
                ((QLogDetails, False),
                 (('controller_changed', 'set_controller'),
                  ('execution_updated', 'execution_updated'),
