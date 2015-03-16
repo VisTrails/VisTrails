@@ -7,9 +7,8 @@ except ImportError: # pragma: no cover
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
-from vistrails.packages.tabledata.common import TableObject
 
-from ..common import Table
+from ..common import TableObject, Table
 
 
 def get_xlrd():
