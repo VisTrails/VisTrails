@@ -35,13 +35,13 @@ EXPORT_PATHS = "vistrails doc examples extensions scripts CHANGELOG LICENSE".spl
 EXPORT_IGNORE_PATHS = [] #["scripts/dist"] # enable on master
 
 # VisTrails Release Version
-VT_VERSION = '2.1.4'
+VT_VERSION = '2.1.5'
 
 # Branch to be used to build release
 VT_BRANCH = 'v2.1'
 
 # Hash used in the release
-VT_HASH = '41eb2e32883a'
+VT_HASH = '2220bd346ef1'
 
 # Distribution Tarball name (Do not add ".tar.gz")
 #TARBALL_NAME = "vistrails-src-%s-%s" % (VT_VERSION, VT_HASH)
