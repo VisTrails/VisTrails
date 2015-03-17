@@ -126,6 +126,11 @@ Metadata._output_ports = [
 
 
 class EqualString(Metadata):
+    """A string metadata.
+
+    A piece of metadata with a value of type string. When used in a query,
+    means "key has a value of type string equal to <value>".
+    """
     _input_ports = [
             IPort('key', String),
             IPort('value', String)]
@@ -134,6 +139,11 @@ class EqualString(Metadata):
 
 
 class EqualInt(Metadata):
+    """An integer metadata.
+
+    A piece of metadata with a value of type integer. When used in a query,
+    means "key has a value of type integer equal to <value>".
+    """
     _input_ports = [
             IPort('key', String),
             IPort('value', Integer)]
@@ -148,6 +158,13 @@ class EqualInt(Metadata):
 
 
 class IntInRange(QueryCondition):
+    """An integer range condition.
+
+    Means "key has a value of type integer which lies between <lower_bound> and
+    <higher_bound>".
+
+    Note that you can omit one of the bounds.
+    """
     _input_ports = [
             IPort('key', String),
             IPort('lower_bound', Integer, optional=True),
