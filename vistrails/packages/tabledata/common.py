@@ -7,7 +7,8 @@ except ImportError: # pragma: no cover
 
 from vistrails.core.modules.basic_modules import List, ListType
 from vistrails.core.modules.config import ModuleSettings
-from vistrails.core.modules.output_modules import OutputModule, FileMode
+from vistrails.core.modules.output_modules import OutputModule, FileMode, \
+    IPythonMode
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     Converter
 
@@ -279,9 +280,7 @@ class SingleColumnTable(Converter):
                 ['converted_list']))    # names
 
 
-class TableToFileMode(FileMode):
-    formats = ['html', 'csv']
-
+class HtmlRendererMixin(object):
     @staticmethod
     def make_html(table):
         document = ['<!DOCTYPE html>\n'
@@ -316,6 +315,10 @@ class TableToFileMode(FileMode):
 
         return ''.join(document)
 
+
+class TableToFileMode(FileMode, HtmlRendererMixin):
+    formats = ['html', 'csv']
+
     def write_html(self, table, configuration):
         filename = self.get_filename(configuration, suffix='.html')
         with open(filename, 'wb') as fp:
@@ -338,10 +341,19 @@ class TableToFileMode(FileMode):
             func(value, configuration)
 
 
+class TableToIPythonMode(IPythonMode, HtmlRendererMixin):
+    def compute_output(self, output_module, configuration=None):
+        from IPython.core.display import display, HTML
+
+        table = output_module.get_input('value')
+        html = self.make_html(table)
+        display(HTML(data=html))
+
+
 class TableOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'Table')]
-    _output_modes = [TableToFileMode]
+    _output_modes = [TableToFileMode, TableToIPythonMode]
 
 
 _modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable,
