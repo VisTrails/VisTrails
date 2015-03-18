@@ -180,6 +180,13 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                         'self': 'value'},
                 }),
             ],
+            'RichTextCell': [
+                (None, '0.9.4',
+                 'org.vistrails.vistrails.basic:RichTextOutput', {
+                    'dst_port_remap': {
+                        'File': 'value'},
+                }),
+            ],
         }
 
     return UpgradeWorkflowHandler.remap_module(controller,
