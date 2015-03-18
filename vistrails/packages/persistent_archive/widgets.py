@@ -267,9 +267,9 @@ class MetadataConstantWidget(ConstantWidgetBase, QtGui.QWidget):
         self.setLayout(layout)
 
         ConstantWidgetBase.__init__(self, param)
-        self._key.installEventFilter(self)
-        self._type.installEventFilter(self)
-        self._value.installEventFilter(self)
+        self.watchForFocusEvents(self._key)
+        self.watchForFocusEvents(self._type)
+        self.watchForFocusEvents(self._value)
 
     def contents(self):
         if self._type.currentText() == 'int':
