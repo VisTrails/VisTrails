@@ -630,6 +630,7 @@ def build_remap(module_name=None):
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     global _remap, _controller, _pipeline
+
     if _remap is None:
         _remap = UpgradePackageRemap()
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
@@ -637,10 +638,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         remap.add_remap('src_port_remap', 'self', 'Instance')
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
-                                   module_name='VTKCell',
-                                   new_module='vtkRendererOutput')
+                                   module_name='VTKCell')
         remap.add_remap('src_port_remap', 'self', 'Instance')
-        remap.add_remap('dst_port_remap', 'AddRenderer', 'value')
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='VTKViewCell',
@@ -653,5 +652,16 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     module_name = module_name_remap.get(module_name, module_name)
     if not _remap.has_module_remaps(module_name):
         build_remap(module_name)
+
+    try:
+        from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
+    except ImportError:
+        module_remap = _remap
+    else:
+        module_remap = upgrade_cell_to_output(
+                _remap, module_id, pipeline,
+                'VTKCell', 'vtkRendererOutput',
+                '0.9.6', 'AddRenderer')
+
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
-                                              _remap)
+                                               module_remap)
