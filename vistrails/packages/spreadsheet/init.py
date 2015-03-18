@@ -226,6 +226,10 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
             module_remap, module_id, pipeline,
             'RichTextCell', 'org.vistrails.vistrails.basic:RichTextOutput',
             '0.9.4', 'File')
+    module_remap = upgrade_cell_to_output(
+            module_remap, module_id, pipeline,
+            'ImageViewerCell', 'org.vistrails.vistrails.basic:ImageOutput',
+            '0.9.4', 'File')
 
     return UpgradeWorkflowHandler.remap_module(controller,
                                                module_id,
