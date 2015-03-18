@@ -46,6 +46,8 @@ import sys
 from vistrails.core import debug
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.utils import create_descriptor_string, \
+    parse_descriptor_string
 from vistrails.core.system import vistrails_root_directory
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 
@@ -160,6 +162,36 @@ def finalize():
     spreadsheetWindow.deleteLater()
 
 
+def upgrade_cell_to_output(module_remap, module_id, pipeline,
+                           old_name, new_module,
+                           output_version, input_port_name):
+    """This function upgrades a *Cell module to a *Output module.
+
+    The upgrade only happens if the original module doesn't have any connection
+    on the cell input ports that can't be translated.
+
+    This is to ease the transition to *Output modules, but we don't want (or
+    need) to break anything; the *Cell modules still exist, so they can stay.
+    """
+    old_module = pipeline.modules[module_id]
+    old_module_name = create_descriptor_string(old_module.package,
+                                               old_module.name,
+                                               old_module.namespace,
+                                               False)
+    if old_module_name != old_name:
+        return module_remap
+
+    if set(old_module.connected_input_ports.keys()) != set([input_port_name]):
+        return module_remap
+
+    module_remap = dict(module_remap)
+    module_remap.setdefault(old_name, []).append(
+            (None, output_version, new_module, {
+                'dst_port_remap': {input_port_name: 'value'}})
+        )
+    return module_remap
+
+
 def handle_module_upgrade_request(controller, module_id, pipeline):
     module_remap = {
             'CellLocation': [
@@ -180,14 +212,12 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                         'self': 'value'},
                 }),
             ],
-            'RichTextCell': [
-                (None, '0.9.4',
-                 'org.vistrails.vistrails.basic:RichTextOutput', {
-                    'dst_port_remap': {
-                        'File': 'value'},
-                }),
-            ],
         }
+
+    module_remap = upgrade_cell_to_output(
+            module_remap, module_id, pipeline,
+            'RichTextCell', 'org.vistrails.vistrails.basic:RichTextOutput',
+            '0.9.4', 'File')
 
     return UpgradeWorkflowHandler.remap_module(controller,
                                                module_id,
