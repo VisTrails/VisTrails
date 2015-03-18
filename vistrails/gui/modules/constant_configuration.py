@@ -82,6 +82,18 @@ class ConstantWidgetMixin(object):
             self.contentsChanged.emit((self, newContents))
 
 class ConstantWidgetBase(ConstantWidgetMixin):
+    class FocusFilter(QtCore.QObject):
+        def __init__(self, cwidget):
+            QtCore.QObject.__init__(self, cwidget)
+            self.__cwidget = cwidget
+
+        def eventFilter(self, o, event):
+            if event.type() == QtCore.QEvent.FocusIn:
+                self.__cwidget._focus_in(event)
+            elif event.type() == QtCore.QEvent.FocusOut:
+                self.__cwidget._focus_out(event)
+            return False
+
     def __init__(self, param):
         if param is None:
             raise ValueError("Must pass param as first argument.")
@@ -99,7 +111,11 @@ class ConstantWidgetBase(ConstantWidgetMixin):
         else:
             self.setContents(param.strValue)
 
-        self.installEventFilter(self)
+        self.__focus_filter = self.FocusFilter(self)
+        self.installEventFilter(self.__focus_filter)
+
+    def watchForFocusEvents(self, widget):
+        widget.installEventFilter(self.__focus_filter)
 
     def setDefault(self, value):
         # default to setting the contents silenty
