@@ -104,6 +104,13 @@ class PersistedInputPath(Module):
 
 
 class PersistedInputFile(PersistedInputPath):
+    """Records or retrieves an external file in the file store.
+
+    Because this class has the same interface for querying an existing file and
+    inserting a new one, it uses Metadata instead of QueryCondition for the
+    query. This means it only allows equality conditions.
+    """
+
     _input_ports = [
             IPort('path', File, optional=True),
             IPort('metadata', Metadata, optional=True),
@@ -119,6 +126,14 @@ class PersistedInputFile(PersistedInputPath):
 
 
 class PersistedInputDir(PersistedInputPath):
+    """Records or retrieves an external directory in the file store.
+
+    Because this class has the same interface for querying an existing
+    directory and inserting a new one, it uses Metadata instead of
+    QueryCondition for the query. This means it only allows equality
+    conditions.
+    """
+
     _input_ports = [
             IPort('path', Directory,  optional=True),
             IPort('metadata', Metadata,  optional=True),

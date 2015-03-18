@@ -12,7 +12,7 @@ from .queries import QueryCondition
 
 
 class QueriedInputPath(Module):
-    """Searches for files using a query.
+    """Base class for file-querying modules.
 
     This uses QueryConditions instead of Metadata, allowing for more complex
     queries than what PersistedInputPath provides (equality in metadata).
@@ -70,6 +70,12 @@ class QueriedInputPath(Module):
 
 
 class QueriedInputFile(QueriedInputPath):
+    """Searches for files using a query.
+
+    This uses QueryConditions instead of Metadata, allowing for more complex
+    queries than what PersistedInputFile provides (equality in metadata).
+    """
+
     _output_ports = [
             OPort('most_recent', File),
             OPort('results', List),
@@ -81,6 +87,12 @@ class QueriedInputFile(QueriedInputPath):
 
 
 class QueriedInputDir(QueriedInputPath):
+    """Searches for directories using a query.
+
+    This uses QueryConditions instead of Metadata, allowing for more complex
+    queries than what PersistedInputDir provides (equality in metadata).
+    """
+
     _output_ports = [
             OPort('most_recent', Directory),
             OPort('results', List),

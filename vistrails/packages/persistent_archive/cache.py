@@ -18,8 +18,8 @@ class CachedPath(Module):
     Stores the path in the cache along with the module signature, so it can be
     retrieved in a later execution of the same pipeline.
 
-    This is very similar to PersistentIntermediatePath except it doesn't record
-    more metadata than what's required for caching.
+    This is very similar to PersistedPath except it doesn't record more
+    metadata than what's required for caching.
     """
 
     _input_ports = [
@@ -67,6 +67,15 @@ class CachedPath(Module):
 
 
 class CachedFile(CachedPath):
+    """Uses the file store as a cache.
+
+    Stores the file in the cache along with the module signature, so it can be
+    retrieved in a later execution of the same pipeline.
+
+    This is very similar to PersistedFile except it doesn't record more
+    metadata than what's required for caching.
+    """
+
     _input_ports = [
             IPort('path', File)]
     _output_ports = [
@@ -78,6 +87,15 @@ class CachedFile(CachedPath):
 
 
 class CachedDir(CachedPath):
+    """Uses the file store as a cache.
+
+    Stores the directory in the cache along with the module signature, so it
+    can be retrieved in a later execution of the same pipeline.
+
+    This is very similar to PersistedDir except it doesn't record more metadata
+    than what's required for caching.
+    """
+
     _input_ports = [
             IPort('path', Directory)]
     _output_ports = [

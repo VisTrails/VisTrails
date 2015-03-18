@@ -74,6 +74,9 @@ class PersistedPath(Module):
 
 
 class PersistedFile(PersistedPath):
+    """Records a file in the file store.
+    """
+
     _input_ports = [
             IPort('path', File),
             IPort('metadata', Metadata, optional=True)]
@@ -88,6 +91,9 @@ class PersistedFile(PersistedPath):
 
 
 class PersistedDir(PersistedPath):
+    """Records a directory in the file store.
+    """
+
     _input_ports = [
             IPort('path', Directory),
             IPort('metadata', Metadata, optional=True)]
