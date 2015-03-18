@@ -186,9 +186,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                           'ylabel': None,
                                           'self': 'value'},
                        'src_port_remap': {'source': 'value'}})],
-                    'MplFigureCell':
-                    [(None, '1.0.5', 'MplFigureOutput',
-                      {'dst_port_remap': {'figure': 'value'}})],
                 }
 
     # '1.0.2' -> '1.0.3' changes 'self' output port to 'value'
@@ -209,8 +206,18 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         action = vistrails.core.db.action.create_action([('delete', conn)])
         action_list.append(action)
 
-    normal_actions = UpgradeWorkflowHandler.remap_module(controller, module_id, 
-                                                        pipeline, module_remap)
+    try:
+        from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
+    except ImportError:
+        pass
+    else:
+        module_remap = upgrade_cell_to_output(
+                module_remap, module_id, pipeline,
+                'MplFigureCell', 'MplFigureOutput',
+                '1.0.5', 'figure')
+
+    normal_actions = UpgradeWorkflowHandler.remap_module(
+            controller, module_id, pipeline, module_remap)
     action_list.extend(normal_actions)
 
     more_ops = []
