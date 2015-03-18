@@ -637,8 +637,10 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         remap.add_remap('src_port_remap', 'self', 'Instance')
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
-                                   module_name='VTKCell')
+                                   module_name='VTKCell',
+                                   new_module='vtkRendererOutput')
         remap.add_remap('src_port_remap', 'self', 'Instance')
+        remap.add_remap('dst_port_remap', 'AddRenderer', 'value')
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='VTKViewCell',
