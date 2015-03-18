@@ -23,3 +23,4 @@ xlrd
 xlwt
 scikit-learn
 nose
+-e git+https://github.com/remram44/file_archive.git#egg=file_archive
