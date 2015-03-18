@@ -47,7 +47,7 @@ from vistrails.core.configuration import ConfigField
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import registry
 from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
-    ImageFileModeConfig
+    ImageFileModeConfig, IPythonMode, IPythonModeConfig
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 import vistrails.core.system
 from .identifiers import identifier as vtk_pkg_identifier
@@ -267,6 +267,34 @@ class vtkBaseModule(Module):
                     self.set_output(function, retValues)
         self.set_output('Instance', VTKInstanceWrapper(self.vtkInstance, mid))
 
+def render_to_image(output_filename, vtk_format, renderer, w, h):
+    window = vtk.vtkRenderWindow()
+    window.OffScreenRenderingOn()
+    window.SetSize(w, h)
+
+    # FIXME think this may be fixed in VTK6 so we don't have this
+    # dependency...
+    widget = None
+    if vistrails.core.system.systemType=='Darwin':
+        from PyQt4 import QtCore, QtGui
+        widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+        widget.resize(w, h)
+        widget.show()
+        window.SetWindowInfo(str(int(widget.winId())))
+
+    window.AddRenderer(renderer)
+    window.Render()
+    win2image = vtk.vtkWindowToImageFilter()
+    win2image.SetInput(window)
+    win2image.Update()
+    writer = vtk_format()
+    writer.SetInput(win2image.GetOutput())
+    writer.SetFileName(output_filename)
+    writer.Write()
+    window.Finalize()
+    if widget!=None:
+        widget.close()
+
 class vtkRendererToFile(ImageFileMode):
     config_cls = ImageFileModeConfig
     formats = ['png', 'jpg', 'tif', 'pnm']
@@ -289,32 +317,31 @@ class vtkRendererToFile(ImageFileMode):
                               'Cannot output in format "%s"' % img_format)
         fname = self.get_filename(configuration, suffix='.%s' % img_format)
 
+        render_to_image(fname, format_map[img_format], r, w, h)
+
+class vtkRendererToIPythonModeConfig(IPythonModeConfig):
+    _fields = [ConfigField('width', 640, int),
+               ConfigField('height', 480, int)]
+
+class vtkRendererToIPythonMode(IPythonMode):
+    config_cls = vtkRendererToIPythonModeConfig
+
+    def compute_output(self, output_module, configuration=None):
+        from IPython.core.display import display, Image
+
+        r = output_module.get_input('value').vtkInstance
+        width = configuration['width']
+        height = configuration['height']
+
         window = vtk.vtkRenderWindow()
         window.OffScreenRenderingOn()
-        window.SetSize(w, h)
+        window.SetSize(width, height)
 
-        # FIXME think this may be fixed in VTK6 so we don't have this
-        # dependency...
-        widget = None
-        if vistrails.core.system.systemType=='Darwin':
-            from PyQt4 import QtCore, QtGui
-            widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
-            widget.resize(w, h)
-            widget.show()
-            window.SetWindowInfo(str(int(widget.winId())))
+        fname = output_module.interpreter.filePool.create_file(
+                prefix='ipython_', suffix='.png').name
 
-        window.AddRenderer(r)
-        window.Render()
-        win2image = vtk.vtkWindowToImageFilter()
-        win2image.SetInput(window)
-        win2image.Update()
-        writer = format_map[img_format]()
-        writer.SetInput(win2image.GetOutput())
-        writer.SetFileName(fname)
-        writer.Write()
-        window.Finalize()
-        if widget!=None:
-            widget.close()
+        render_to_image(fname, vtk.vtkPNGWriter, r, width, height)
+        display(Image(filename=fname, width=width, height=height))
 
 class vtkRendererOutput(OutputModule):
     # DAK: no render view here, use a separate module for this...
@@ -326,4 +353,4 @@ class vtkRendererOutput(OutputModule):
                     # ('interactionHandler', 'vtkInteractionHandler'), 
                     # ('interactorStyle', 'vtkInteractorStyle'), 
                     # ('picker', 'vtkAbstractPicker')]
-    _output_modes = [vtkRendererToFile]
+    _output_modes = [vtkRendererToFile, vtkRendererToIPythonMode]

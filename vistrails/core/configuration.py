@@ -86,6 +86,7 @@ jobAutorun: Run jobs automatically when they finish
 jobCheckInterval: How often to check for jobs (in seconds)
 jobList: List running workflows
 jobInfo: List jobs in running workflow
+loadPackages: Whether to load the packages enabled in the configuration file
 logDir: Log files directory
 maxRecentVistrails: Number of recent vistrails
 maximizeWindows: VisTrails windows should be maximized
@@ -250,6 +251,10 @@ jobList: Boolean
 jobInfo: Boolean
 
     List jobs in running workflow
+
+loadPackages: Boolean
+
+    Whether to load the packages enabled in the configuration file
 
 logDir: Path
 
@@ -702,6 +707,7 @@ base_config = {
          ConfigField('cacheSize', 20, int, widget_type='thumbnailcache')])],
     "Packages":
     [ConfigField('enablePackagesSilently', False, bool, ConfigType.ON_OFF),
+     ConfigField('loadPackages', True, bool, ConfigType.ON_OFF),
      ConfigField('installBundles', True, bool, ConfigType.ON_OFF),
      ConfigField('installBundlesWithPip', False, bool, ConfigType.ON_OFF,
                  depends_on="installBundles"),

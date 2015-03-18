@@ -53,3 +53,6 @@ if not hasattr(unittest, 'skipIf'):
     sys.stderr.write("WARNING: Your unittest is missing 2.7 features. Please "
                      "upgrade Python or\ninstall unittest2, else VisTrails "
                      "might fail because of missing symbols.\n")
+
+
+from vistrails.core.api import *
