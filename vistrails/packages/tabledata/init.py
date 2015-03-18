@@ -82,6 +82,12 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                         None: add_keyname},
                 })
             ],
+            'TableCell': [
+                (None, '0.1.6', 'TableOutput', {
+                    'dst_port_remap': {
+                        'table': 'value'},
+                })
+            ],
         }
 
     return UpgradeWorkflowHandler.remap_module(controller,
