@@ -122,8 +122,9 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         if self.controller:
             currentVersion = self.controller.current_version
             pe = self.controller.vistrail.get_paramexp(currentVersion)
-            self.controller.current_parameter_exploration = pe
-            self.setParameterExploration(pe)
+            if self.controller.current_parameter_exploration != pe:
+                self.controller.current_parameter_exploration = pe
+                self.setParameterExploration(pe)
 
     def getParameterExplorationOld(self):
         """ getParameterExploration() -> string
@@ -243,7 +244,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                     paramInfo = moduleItem.child(cidx).parameter
                     name, params = paramInfo
                     if params[0].module_id == f.module_id and \
-                       params[0].name == f.port_name:
+                       params[0].name == f.port_name and \
+                       bool(params[0].is_alias) == bool(f.is_alias):
                         newEditor = self.table.addParameter(paramInfo)
                         
             # Retrieve params for this function and set their values in the UI
