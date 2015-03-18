@@ -186,6 +186,9 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                           'ylabel': None,
                                           'self': 'value'},
                        'src_port_remap': {'source': 'value'}})],
+                    'MplFigureCell':
+                    [(None, '1.0.5', 'MplFigureOutput',
+                      {'dst_port_remap': {'figure': 'value'}})],
                 }
 
     # '1.0.2' -> '1.0.3' changes 'self' output port to 'value'
