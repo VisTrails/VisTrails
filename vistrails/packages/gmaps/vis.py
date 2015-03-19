@@ -49,11 +49,11 @@ class TitlesMixin(object):
 
 class GMapVis(Module, OptionsMixin):
     _input_ports = [('table', 'tabledata:Table'),
-                    ('latitudeColIdx', 'basic:Integer', {'optional': True,
-                                                         'default': 0}),
+                    ('latitudeColIdx', 'basic:Integer', {
+                        'optional': True, 'defaults': "['0']"}),
                     ('latitudeColName', 'basic:String', {'optional': True}),
-                    ('longitudeColIdx', 'basic:Integer', {'optional': True,
-                                                          'default': 1}),
+                    ('longitudeColIdx', 'basic:Integer', {
+                        'optional': True, 'defaults': "['1']"}),
                     ('longitudeColName', 'basic:String', {'optional': True})]
     _output_ports = [('self', 'GMapVis')]
 
@@ -117,8 +117,8 @@ class GMapMarkers(GMapVis, TitlesMixin):
         self.setResult("self", vis_data)
 
 class GMapValueVis(GMapVis):
-    _input_ports = [('valueColIdx', 'basic:Integer', {'optional': True,
-                                                      'default': 2}),
+    _input_ports = [('valueColIdx', 'basic:Integer', {
+                        'optional': True, 'defaults': "['2']"}),
                     ('valueColName', 'basic:String', {'optional': True})]
     def get_values(self, table=None):
         if table is None:
@@ -153,7 +153,7 @@ class GMapCircles(GMapValueVis):
              'fillOpacity']
     _input_ports = [("strokeColor", "basic:Color", {
                         'optional': True,
-                        'default': InstanceObject(tuple=(0,0,0))}),
+                        'defaults': "['0,0,0']"}),
                     ("strokeWeight", "basic:Integer", {'optional': True}),
                     ("strokeOpacity", "basic:Float", {'optional': True}),
                     ("fillColor", "basic:Color", {'optional': True}),
@@ -200,24 +200,24 @@ class GMapSymbols(GMapValueVis, TitlesMixin):
              ('scale', None, True)]
     _input_ports = [("strokeColor", "basic:Color", {
                         'optional': True,
-                        'default': InstanceObject(tuple=(0,0,0))}),
-                    ("strokeWeight", "basic:Integer", {'optional': True,
-                                                       'default': 1}),
+                        'defaults': "['0,0,0']"}),
+                    ("strokeWeight", "basic:Integer", {
+                        'optional': True, 'defaults': "['1']"}),
                     ("strokeOpacity", "basic:Float", {'optional': True}),
                     ("fillStartColor", "basic:Color", {
                         'optional': True,
-                        'default': InstanceObject(tuple=(1,1,1))}),
+                        'defaults': "['1,1,1']"}),
                     ("fillEndColor", "basic:Color", {
                         'optional': True,
-                        'default': InstanceObject(tuple=(1,0,0))}),
+                        'defaults': "['1,0,0']"}),
                     ("fillOpacity", "basic:Float", {'optional': True,
-                                                    'default': 1.0}),
+                                                    'defaults': "['1.0']"}),
                     ("scale", "basic:Float", {'optional': True,
-                                              'default': 5.0}),
+                                              'defaults': "['5.0']"}),
                     ('titleColIdx', 'basic:Integer', {'optional': True}),
                     ('titleColName', 'basic:String', {'optional': True}),
-                    ("allowLegacy", "basic:Boolean", {'optional': True,
-                                                      'default': False})]
+                    ("allowLegacy", "basic:Boolean", {
+                        'optional': True, 'defaults': "['False']"})]
 
     def compute(self):
         (positions, center) = self.get_positions()
@@ -294,10 +294,10 @@ class GMapHeatmap(GMapValueVis):
              'opacity',
              'radius']
     _input_ports = [("dissipating", "basic:Boolean", {'optional': True,
-                                                      'default': True}),
+                                                      'defaults': "['True']"}),
                     ("maxIntensity", "basic:Float", {'optional': True}),
                     ("opacity", "basic:Float", {'optional': True,
-                                                'default': 0.6}),
+                                                'defaults': "['0.6']"}),
                     ("radius", "basic:Float", {'optional': True})]
     
     def compute(self):

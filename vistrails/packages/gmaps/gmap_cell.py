@@ -19,7 +19,7 @@ class GMapCell(SpreadsheetCell, OptionsMixin):
              'center']
     _input_ports = [("layers", "GMapVis"),
                     ("zoom", "basic:Integer", {'optional': True,
-                                               'default': 11}),
+                                               'defaults': "['11']"}),
                     ("center", "basic:Float,basic:Float", {'optional': True})]
 
     def compute(self):
