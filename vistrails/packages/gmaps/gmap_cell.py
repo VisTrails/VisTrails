@@ -1,13 +1,8 @@
 from __future__ import division
 
-import colorsys
-import copy
-import json
-import uuid
-import sys
 from string import Template
 
-from vistrails.core.modules.config import IPort, OPort, ModuleSettings
+from vistrails.core.modules.config import IPort
 from vistrails.core.modules.vistrails_module import ModuleError
 
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
