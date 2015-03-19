@@ -28,9 +28,9 @@ def convert_color(c):
 class TitlesMixin(object):
     def get_titles(self, table=None, default_col=None):
         if table is None:
-            table = self.get_input("table")
-        title_col_idx = self.force_get_input('titleColIdx')
-        title_col_name = self.force_get_input('titleColName')
+            table = self.getInputFromPort("table")
+        title_col_idx = self.forceGetInputFromPort('titleColIdx')
+        title_col_name = self.forceGetInputFromPort('titleColName')
         print "title_col_idx:", title_col_idx
         print "title_col_name:", title_col_name
 
@@ -61,19 +61,19 @@ class GMapVis(Module, OptionsMixin):
 
     def get_positions(self, table=None):
         if table is None:
-            table = self.get_input("table")
+            table = self.getInputFromPort("table")
         
-        lat_col_idx = self.force_get_input('latitudeColIdx')
-        lat_col_name = self.force_get_input('latitudeColName')
-        lng_col_idx = self.force_get_input('longitudeColIdx')
-        lng_col_name = self.force_get_input('longitudeColName')
+        lat_col_idx = self.forceGetInputFromPort('latitudeColIdx')
+        lat_col_name = self.forceGetInputFromPort('latitudeColName')
+        lng_col_idx = self.forceGetInputFromPort('longitudeColIdx')
+        lng_col_name = self.forceGetInputFromPort('longitudeColName')
         if lat_col_idx is None and lat_col_name is None:
-            lat_idx = self.get_input('latitudeColIdx') # default 0
+            lat_idx = self.getInputFromPort('latitudeColIdx') # default 0
         else:
             lat_idx = choose_column(table.columns, table.names, 
                                     lat_col_name, lat_col_idx)
         if lng_col_idx is None and lng_col_name is None:
-            lng_idx = self.get_input('longitudeColIdx') # default 1
+            lng_idx = self.getInputFromPort('longitudeColIdx') # default 1
         else:
             lng_idx = choose_column(table.columns, table.names, 
                                     lng_col_name, lng_col_idx)
@@ -116,7 +116,7 @@ class GMapMarkers(GMapVis, TitlesMixin):
                 "marker_titles": titles}
         
         vis_data = GMapVisData([], self.TEMPLATE, data, center)
-        self.set_output("self", vis_data)
+        self.setResult("self", vis_data)
 
 class GMapValueVis(GMapVis):
     _input_ports = [IPort('valueColIdx', 'basic:Integer', optional=True,
@@ -125,11 +125,11 @@ class GMapValueVis(GMapVis):
     _settings = ModuleSettings(abstract=True)
     def get_values(self, table=None):
         if table is None:
-            table = self.get_input("table")
-        value_col_idx = self.force_get_input("valueColIdx")
-        value_col_name = self.force_get_input("valueColName")
+            table = self.getInputFromPort("table")
+        value_col_idx = self.forceGetInputFromPort("valueColIdx")
+        value_col_name = self.forceGetInputFromPort("valueColName")
         if value_col_idx is None and value_col_name is None:
-            value_idx = self.get_input("valueColIdx") # default 2
+            value_idx = self.getInputFromPort("valueColIdx") # default 2
         else:
             value_idx = choose_column(table.columns, table.names, 
                                       value_col_name, value_col_idx)
@@ -171,7 +171,7 @@ class GMapCircles(GMapValueVis):
         data = {"circle_options": circle_options,
                 "circle_data": circle_data}
         vis_data = GMapVisData([], self.TEMPLATE, data, center)
-        self.set_output("self", vis_data)
+        self.setResult("self", vis_data)
 
 class GMapSymbols(GMapValueVis, TitlesMixin):
     TEMPLATE = Template("""
@@ -220,7 +220,7 @@ class GMapSymbols(GMapValueVis, TitlesMixin):
 
     def compute(self):
         (positions, center) = self.get_positions()
-        legacy = self.get_input("allowLegacy")
+        legacy = self.getInputFromPort("allowLegacy")
         use_values = True
         try:
             values = [float(x) for x in self.get_values()]
@@ -277,7 +277,7 @@ class GMapSymbols(GMapValueVis, TitlesMixin):
                 "symbol_titles": symbol_titles,
                 "use_values": use_values}
         vis_data = GMapVisData([], self.TEMPLATE, data, center)
-        self.set_output("self", vis_data)
+        self.setResult("self", vis_data)
 
 class GMapHeatmap(GMapValueVis):
     TEMPLATE = Template("""
@@ -309,7 +309,7 @@ class GMapHeatmap(GMapValueVis):
         data = {"heatmap_data": heatmap_data,
                 "heatmap_options": heatmap_options}
         vis_data = GMapVisData([], self.TEMPLATE, data, center)
-        self.set_output("self", vis_data)
+        self.setResult("self", vis_data)
 
 _modules = [GMapVis, GMapMarkers, GMapValueVis, GMapCircles, GMapSymbols,
             GMapHeatmap]

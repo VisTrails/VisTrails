@@ -21,8 +21,8 @@ class OptionsMixin(object):
             else:
                 key = spec
 
-            if self.has_input(key) or use_default:
-                val = self.get_input(key)
+            if self.hasInputFromPort(key) or use_default:
+                val = self.getInputFromPort(key)
                 if convert_f is not None:
                     val = convert_f(val)
                 options[key] = val

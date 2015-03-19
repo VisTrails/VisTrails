@@ -28,7 +28,7 @@ class GMapCell(SpreadsheetCell, OptionsMixin):
 
         """
 
-        layers = self.get_input_list("layers")
+        layers = self.getInputListFromPort("layers")
         if len(layers) < 1:
             raise ModuleError(self, "Must provide at least one layer")
         map_options = self.get_options(self.SPECS)
