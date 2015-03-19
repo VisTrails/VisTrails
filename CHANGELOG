@@ -14,6 +14,7 @@ Enhancements:
  - ungrouping materializes InputPort and OutputPort modules for unconnected
    Group ports
  - CLTools path and directory types
+ - CLTools module fails if command doesn't return 0 (#957)
  - adds an icon for 'port not visible' (instead of blank)
  - sql package with SQLAlchemy
  - auto-enabling package with unmet dependencies (4a1b200b)
@@ -37,11 +38,13 @@ Enhancements:
  - output port drawn from left to right
 Bug fixes:
  - fixes strptime on system with non-English locale
+ - fixes returning numpy arrays from PythonSource modules (3468998b)
  - pressing ctrl+s after loading a pipeline no longer replace it with a vistrail
 Behavior change for package developers:
  - made Module methods python_style; updateUpstream won't work, others will
    work but trigger warning
  - don't use Module instances as data; pass new objects on connections
+ - module upgrades can be chained (#805)
  - use output modules instead of cell/writer modules
  - output port drawn from left to right; change your sort_keys
  - constant widget use eventfilter; call installEventFilter for child widgets
