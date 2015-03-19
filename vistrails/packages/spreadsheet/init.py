@@ -98,16 +98,14 @@ def importWidgetModules(basicWidgets):
     Find all widget package under ./widgets/* to add to the spreadsheet registry
 
     """
-    packageName = __name__.lower().endswith('.init') and \
-        __name__[:-5] or __name__
-    widgetDir = os.path.join(
-        os.path.join(os.path.dirname(vistrails_root_directory()),
-                     *packageName.split('.')),
-        'widgets')
-    candidates = os.listdir(widgetDir)
-    for folder in candidates:
-        if os.path.isdir(os.path.join(widgetDir, folder)) and folder != '.svn':
-            addWidget('.'.join([packageName, 'widgets', folder]))
+    packageName = (__name__[:-5]
+                   if __name__.lower().endswith('.init')
+                   else __name__)
+
+    for widgetDir in __import__(packageName + '.widgets').__path__:
+        for folder in os.listdir(widgetDir):
+            if os.path.isdir(os.path.join(widgetDir, folder)) and folder != '.svn':
+                addWidget(__name__ + '.widgets.' + folder)
 
 
 def initialize(*args, **keywords):
