@@ -140,19 +140,34 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         # returns the actual remap function
         return remap_vis
 
-    def add_legacy(fname, module):
-        new_function = controller.create_function(module,
+    old_module = pipeline.modules[module_id]
+    if (old_module.name == 'GMapSymbols' and
+            '0.1' <= old_module.version < '0.3'):
+        from vistrails.core.db.action import create_action
+        from vistrails.core.modules.module_registry import get_module_registry
+
+        reg = get_module_registry()
+        new_desc = reg.get_descriptor_by_name(identifier, 'GMapCell')
+        new_module = controller.create_module_from_descriptor(
+                new_desc,
+        old_module.location.x, old_module.location.y)
+        actions = UpgradeWorkflowHandler.replace_generic(
+                controller, pipeline,
+                old_module, new_module)
+
+        new_function = controller.create_function(new_module,
                                                   "allowLegacy",
                                                   ["True"])
-        return [('add', new_function, 'module', module.id)]
+        actions.append(create_action([('add', new_function,
+                                       'module', new_module.id)]))
+        return actions
 
     # zoom gets moved for free from old cell to new cell
     remap = {
             'GMapCell': [
                 ('0.1', '0.3', 'GMapCell', {
                     'dst_port_remap': {
-                        'table': insert_vis("GMapSymbols", {
-                            None: add_legacy}),  # broken
+                        'table': insert_vis("GMapSymbols", {}),
                         'colormapName': None},
                 })
             ],
