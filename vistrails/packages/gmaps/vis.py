@@ -3,7 +3,6 @@ from __future__ import division
 import colorsys
 from string import Template
 
-from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError, Module
 from vistrails.core.utils import InstanceObject
 # FIXME make package imports better
@@ -49,15 +48,14 @@ class TitlesMixin(object):
         return None
 
 class GMapVis(Module, OptionsMixin):
-    _input_ports = [IPort('table', 'tabledata:Table'),
-                    IPort('latitudeColIdx', 'basic:Integer', optional=True,
-                          default=0),
-                    IPort('latitudeColName', 'basic:String', optional=True),
-                    IPort('longitudeColIdx', 'basic:Integer', optional=True,
-                          default=1),
-                    IPort('longitudeColName', 'basic:String', optional=True)]
-    _output_ports = [OPort('self', 'GMapVis')]
-    _settings = ModuleSettings(abstract=True)
+    _input_ports = [('table', 'tabledata:Table'),
+                    ('latitudeColIdx', 'basic:Integer', {'optional': True,
+                                                         'default': 0}),
+                    ('latitudeColName', 'basic:String', {'optional': True}),
+                    ('longitudeColIdx', 'basic:Integer', {'optional': True,
+                                                          'default': 1}),
+                    ('longitudeColName', 'basic:String', {'optional': True})]
+    _output_ports = [('self', 'GMapVis')]
 
     def get_positions(self, table=None):
         if table is None:
@@ -102,9 +100,9 @@ class GMapMarkers(GMapVis, TitlesMixin):
   }
 """)
     SPECS = ['flat']
-    _input_ports = [IPort("flat", "basic:Boolean", optional=True),
-                    IPort('titleColIdx', 'basic:Integer', optional=True),
-                    IPort('titleColName', 'basic:String', optional=True)]
+    _input_ports = [("flat", "basic:Boolean", {'optional': True}),
+                    ('titleColIdx', 'basic:Integer', {'optional': True}),
+                    ('titleColName', 'basic:String', {'optional': True})]
     
     def compute(self):
         (positions, center) = self.get_positions()
@@ -119,10 +117,9 @@ class GMapMarkers(GMapVis, TitlesMixin):
         self.setResult("self", vis_data)
 
 class GMapValueVis(GMapVis):
-    _input_ports = [IPort('valueColIdx', 'basic:Integer', optional=True,
-                          default=2),
-                    IPort('valueColName', 'basic:String', optional=True),]
-    _settings = ModuleSettings(abstract=True)
+    _input_ports = [('valueColIdx', 'basic:Integer', {'optional': True,
+                                                      'default': 2}),
+                    ('valueColName', 'basic:String', {'optional': True})]
     def get_values(self, table=None):
         if table is None:
             table = self.getInputFromPort("table")
@@ -154,13 +151,14 @@ class GMapCircles(GMapValueVis):
              'strokeWeight', 
              'strokeOpacity',
              'fillOpacity']
-    _input_ports = [IPort("strokeColor", "basic:Color", optional=True,
-                          default=InstanceObject(tuple=(0,0,0))),
-                    IPort("strokeWeight", "basic:Integer", optional=True),
-                    IPort("strokeOpacity", "basic:Float", optional=True),
-                    IPort("fillColor", "basic:Color", optional=True),
-                    IPort("fillOpacity", "basic:Float", optional=True),
-                    IPort("scale", "basic:Float", optional=True)]
+    _input_ports = [("strokeColor", "basic:Color", {
+                        'optional': True,
+                        'default': InstanceObject(tuple=(0,0,0))}),
+                    ("strokeWeight", "basic:Integer", {'optional': True}),
+                    ("strokeOpacity", "basic:Float", {'optional': True}),
+                    ("fillColor", "basic:Color", {'optional': True}),
+                    ("fillOpacity", "basic:Float", {'optional': True}),
+                    ("scale", "basic:Float", {'optional': True})]
     
     def compute(self):
         (positions, center) = self.get_positions()
@@ -200,23 +198,26 @@ class GMapSymbols(GMapValueVis, TitlesMixin):
              'strokeOpacity',
              ('fillOpacity', None, True),
              ('scale', None, True)]
-    _input_ports = [IPort("strokeColor", "basic:Color", optional=True,
-                          default=InstanceObject(tuple=(0,0,0))),
-                    IPort("strokeWeight", "basic:Integer", optional=True,
-                          default=1),
-                    IPort("strokeOpacity", "basic:Float", optional=True),
-                    IPort("fillStartColor", "basic:Color", optional=True,
-                          default=InstanceObject(tuple=(1,1,1))),
-                    IPort("fillEndColor", "basic:Color", optional=True,
-                          default=InstanceObject(tuple=(1,0,0))),
-                    IPort("fillOpacity", "basic:Float", optional=True,
-                          default=1.0),
-                    IPort("scale", "basic:Float", optional=True,
-                          default=5.0),
-                    IPort('titleColIdx', 'basic:Integer', optional=True),
-                    IPort('titleColName', 'basic:String', optional=True),
-                    IPort("allowLegacy", "basic:Boolean", optional=True,
-                          default=False)]
+    _input_ports = [("strokeColor", "basic:Color", {
+                        'optional': True,
+                        'default': InstanceObject(tuple=(0,0,0))}),
+                    ("strokeWeight", "basic:Integer", {'optional': True,
+                                                       'default': 1}),
+                    ("strokeOpacity", "basic:Float", {'optional': True}),
+                    ("fillStartColor", "basic:Color", {
+                        'optional': True,
+                        'default': InstanceObject(tuple=(1,1,1))}),
+                    ("fillEndColor", "basic:Color", {
+                        'optional': True,
+                        'default': InstanceObject(tuple=(1,0,0))}),
+                    ("fillOpacity", "basic:Float", {'optional': True,
+                                                    'default': 1.0}),
+                    ("scale", "basic:Float", {'optional': True,
+                                              'default': 5.0}),
+                    ('titleColIdx', 'basic:Integer', {'optional': True}),
+                    ('titleColName', 'basic:String', {'optional': True}),
+                    ("allowLegacy", "basic:Boolean", {'optional': True,
+                                                      'default': False})]
 
     def compute(self):
         (positions, center) = self.get_positions()
@@ -292,12 +293,12 @@ class GMapHeatmap(GMapValueVis):
              'maxIntensity',
              'opacity',
              'radius']
-    _input_ports = [IPort("dissipating", "basic:Boolean", optional=True,
-                          default=True),
-                    IPort("maxIntensity", "basic:Float", optional=True),
-                    IPort("opacity", "basic:Float", optional=True,
-                     default=0.6),
-                    IPort("radius", "basic:Float", optional=True)]
+    _input_ports = [("dissipating", "basic:Boolean", {'optional': True,
+                                                      'default': True}),
+                    ("maxIntensity", "basic:Float", {'optional': True}),
+                    ("opacity", "basic:Float", {'optional': True,
+                                                'default': 0.6}),
+                    ("radius", "basic:Float", {'optional': True})]
     
     def compute(self):
         (positions, center) = self.get_positions()
@@ -311,5 +312,5 @@ class GMapHeatmap(GMapValueVis):
         vis_data = GMapVisData([], self.TEMPLATE, data, center)
         self.setResult("self", vis_data)
 
-_modules = [GMapVis, GMapMarkers, GMapValueVis, GMapCircles, GMapSymbols,
-            GMapHeatmap]
+_modules = [(GMapVis, {'abstract': True}), (GMapValueVis, {'abstract': True}),
+            GMapMarkers, GMapCircles, GMapSymbols, GMapHeatmap]

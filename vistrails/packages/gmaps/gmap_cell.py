@@ -2,7 +2,6 @@ from __future__ import division
 
 from string import Template
 
-from vistrails.core.modules.config import IPort
 from vistrails.core.modules.vistrails_module import ModuleError
 
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
@@ -18,9 +17,10 @@ class GMapCell(SpreadsheetCell, OptionsMixin):
 
     SPECS = [('zoom', None, True), 
              'center']
-    _input_ports = [IPort("layers", "GMapVis"),
-                    IPort("zoom", "basic:Integer", optional=True, default=11),
-                    IPort("center", "basic:Float,basic:Float", optional=True)]
+    _input_ports = [("layers", "GMapVis"),
+                    ("zoom", "basic:Integer", {'optional': True,
+                                               'default': 11}),
+                    ("center", "basic:Float,basic:Float", {'optional': True})]
 
     def compute(self):
         """compute() -> None
