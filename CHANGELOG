@@ -1,8 +1,50 @@
 RELEASE NOTES
 -------------
 Release Name: v2.2 build b5341fe97287 from master branch
- 
-TODO: Add changes here
+
+TODO: FILL THIS IN BEFORE RELEASE
+
+Enhancements:
+ - zip/unzip binaries no longer needed
+ - new version of tabledata package (also backported to v2.1.5)
+ - new version of parallelflow package
+ - adds developer debugger (enable "developerDebugger" in expert settings)
+ - improves logging
+ - reloading a disabled package (if you changed __init__)
+ - ungrouping materializes InputPort and OutputPort modules for unconnected
+   Group ports
+ - CLTools path and directory types
+ - adds an icon for 'port not visible' (instead of blank)
+ - sql package with SQLAlchemy
+ - auto-enabling package with unmet dependencies (4a1b200b)
+ - job submission/monitor
+ - controlflow caches looped modules
+ - menu to export a single spreadsheet cell
+ - custom colors for version in tree
+ - export version tree to graphviz dot graph
+ - adds ReadFile module
+ - HTTP package is now URL, validates HTTPS certificates, handles ssh://
+ - fixes spreadsheet cells size resetting when resizing window
+ - loads packages from pkg_resources entry points "vistrails.packages"
+ - new persistent_archive package
+ - new sklearn package for machine learning; http://scikit-learn.org/
+ - highlight unset required ports in input ports list
+ - new user API with IPython notebook integration
+ - StandardOutput module can print a File's content
+ - output module system: same module can output to spreadsheet, file, stdout,
+   IPython, ...
+ - constant widget use eventfilter
+ - output port drawn from left to right
+Bug fixes:
+ - fixes strptime on system with non-English locale
+ - pressing ctrl+s after loading a pipeline no longer replace it with a vistrail
+Behavior change for package developers:
+ - made Module methods python_style; updateUpstream won't work, others will
+   work but trigger warning
+ - don't use Module instances as data; pass new objects on connections
+ - use output modules instead of cell/writer modules
+ - output port drawn from left to right; change your sort_keys
+ - constant widget use eventfilter; call installEventFilter for child widgets
 
 From Release: v2.1.5 build 2220bd346ef1 from v2.1 branch
 
