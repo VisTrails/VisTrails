@@ -94,7 +94,8 @@ class DBConnection(Module):
         elif self.protocol == 'postgresql':
             return psycopg2
         else:
-            raise ModuleError(self, "Currently no support for '%s'" % protocol)
+            raise ModuleError(self,
+                              "Currently no support for '%s'" % self.protocol)
         
     def ping(self):
         """ping() -> boolean 
