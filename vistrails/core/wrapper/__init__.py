@@ -33,5 +33,4 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.wrapper.specs import *
-# Replace with actual spec file when using as standalone package
+pass
