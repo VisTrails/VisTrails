@@ -1,6 +1,10 @@
 RELEASE NOTES
 -------------
-Release Name: v2.1.5 build 9a01936a5640 from v2.1 branch
+Release Name: v2.1.x build 9a01936a5640 from v2.1 branch
+
+  No changes logged since last release
+
+From Release: v2.1.5 build 9a01936a5640 from v2.1 branch
 
 Enhancements:
  - Tabledata package updated to version 0.1.5
