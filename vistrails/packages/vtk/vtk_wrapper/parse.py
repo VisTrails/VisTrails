@@ -381,8 +381,8 @@ def get_port_types(name):
         return type_map_dict[name]
     else:
         if name is not None and name.strip():
-            if not name.startswith("vtk"):
-                print "RETURNING RAW TYPE:", name
+            #if not name.startswith("vtk"):
+            #    print "RETURNING RAW TYPE:", name
             return name
     return None
 
@@ -455,12 +455,12 @@ def get_get_ports(cls, get_list):
             prune_signatures(cls, name, signatures, output=True)
         for ix, getter in enumerate(signatures):
             if getter[1]:
-                print ("Can't handle getter %s (%s) of class %s: Needs input "
-                       "to get output" % (ix+1, name, cls.__name__))
+                #print ("Can't handle getter %s (%s) of class %s: Needs input "
+                #       "to get output" % (ix+1, name, cls.__name__))
                 continue
             if len(getter[0]) != 1:
-                print ("Can't handle getter %s (%s) of class %s: More than a "
-                       "single output" % (ix+1, name, cls.__name__))
+                #print ("Can't handle getter %s (%s) of class %s: More than a "
+                #       "single output" % (ix+1, name, cls.__name__))
                 continue
             port_type = get_port_types(getter[0][0])
             if is_type_allowed(port_type):
@@ -521,12 +521,12 @@ def get_get_set_ports(cls, get_set_dict):
             prune_signatures(cls, getter_name, getter_sig, output=True)
         for order, getter in enumerate(getter_sig):
             if getter[1]:
-                print ("Can't handle getter %s (%s) of class %s: Needs input "
-                       "to get output" % (order+1, name, cls.__name__))
+                #print ("Can't handle getter %s (%s) of class %s: Needs input "
+                #       "to get output" % (order+1, name, cls.__name__))
                 continue
             if len(getter[0]) != 1:
-                print ("Can't handle getter %s (%s) of class %s: More than a "
-                       "single output" % (order+1, name, cls.__name__))
+                #print ("Can't handle getter %s (%s) of class %s: More than a "
+                #       "single output" % (order+1, name, cls.__name__))
                 continue
             port_type = get_port_types(getter[0][0])
             if is_type_allowed(port_type):
