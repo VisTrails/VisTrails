@@ -1,11 +1,7 @@
 from __future__ import division
 
 import colorsys
-import copy
-import json
 from string import Template
-import sys
-import uuid
 
 from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError, Module

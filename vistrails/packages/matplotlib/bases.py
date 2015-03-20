@@ -34,18 +34,16 @@
 
 from __future__ import division
 
-import itertools
-import matplotlib
-from matplotlib.backend_bases import FigureCanvasBase
 import pylab
 import urllib
 
 from matplotlib.backend_bases import FigureCanvasBase
 
+from vistrails.core.configuration import ConfigField
 from vistrails.core.modules.basic_modules import CodeRunnerMixin
 from vistrails.core.modules.config import ModuleSettings, IPort
 from vistrails.core.modules.output_modules import ImageFileMode, \
-    ImageFileModeConfig, OutputModule
+    ImageFileModeConfig, OutputModule, IPythonModeConfig, IPythonMode
 from vistrails.core.modules.vistrails_module import Module, NotCacheable
 
 ################################################################################
@@ -146,13 +144,33 @@ class MplFigureToFile(ImageFileMode):
         figure.set_size_inches(previous_size[0],previous_size[1])
         canvas.draw()
 
+class MplIPythonModeConfig(IPythonModeConfig):
+    mode_type = "ipython"
+    _fields = [ConfigField('width', None, int),
+               ConfigField('height', None, int)]
+
+class MplIPythonMode(IPythonMode):
+    mode_type = "ipython"
+    priority = 2
+    config_cls = MplIPythonModeConfig
+
+    def compute_output(self, output_module, configuration=None):
+        from IPython.display import set_matplotlib_formats
+        from IPython.core.display import display
+
+        set_matplotlib_formats('png')
+
+        # TODO: use size from configuration
+        fig = output_module.get_input('value')
+        display(fig.figInstance)
+
 class MplFigureOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'MplFigure')]
-    _output_modes = [MplFigureToFile]
+    _output_modes = [MplFigureToFile, MplIPythonMode]
 
 _modules = [(MplProperties, {'abstract': True}),
-            (MplPlot, {'abstract': True}), 
+            (MplPlot, {'abstract': True}),
             (MplSource, {'configureWidgetType': \
                              ('vistrails.packages.matplotlib.widgets',
                               'MplSourceConfigurationWidget')}),
@@ -160,4 +178,3 @@ _modules = [(MplProperties, {'abstract': True}),
             MplContourSet,
             MplQuadContourSet,
             MplFigureOutput]
-

@@ -53,6 +53,7 @@ requirements = [
     'scipy',
     'certifi',
     'backports.ssl_match_hostname',
+    'file_archive>=0.6',
 ]
 
 if sys.version_info < (2, 7):

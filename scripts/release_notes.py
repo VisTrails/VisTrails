@@ -69,6 +69,7 @@ password = None
 need_cleanup = False
 
 ################################################################################
+
 def userpass(realm, u, may_save):
     global username
     global password
@@ -78,6 +79,11 @@ def userpass(realm, u, may_save):
         username = raw_input()
         password = getpass.getpass()
     return True, username, password, False
+
+################################################################################
+
+def rstrip(s):
+    return '\n'.join(l.rstrip() for l in s.splitlines())
 
 ################################################################################
 
@@ -132,7 +138,7 @@ def cleanup_repo():
     global clonepath, need_cleanup
     if need_cleanup:
         shutil.rmtree(clonepath)
-        
+
 ################################################################################
 
 def init_branch(path_to, branch):
@@ -150,7 +156,7 @@ def init_branch(path_to, branch):
         print "   ", line
     if process.returncode == 0:
         print "Branch %s was checked out."%branch
-    os.chdir(current_dir)    
+    os.chdir(current_dir)
     return process.returncode
 
 ################################################################################
@@ -170,7 +176,7 @@ def pull_changes(path_to):
         print "   ", line
     if process.returncode == 0:
         print "Changes were pulled."
-    os.chdir(current_dir)    
+    os.chdir(current_dir)
     return process.returncode
 
 ################################################################################
@@ -185,7 +191,7 @@ def build_release_notes(repo, branch):
     global username
     global password
     global commit_start, commit_end
-    
+
     def check_inside_skip(skip_list, message):
         found = False
         for s in skip_list:
@@ -193,7 +199,7 @@ def build_release_notes(repo, branch):
                 found = True
                 break
         return found
-    
+
     re_ticket_old = re.compile(r'<ticket>(.*?)</ticket>', re.M | re.S)
     re_ticket = re.compile(r'^Ticket: (.*?)$', re.M | re.S)
     re_ticket2 = re.compile(r'^Fixes: (.*?)$', re.M | re.S)
@@ -210,14 +216,14 @@ def build_release_notes(repo, branch):
     for c in repo.iter_commits("%s..%s"%(commit_start,commit_end)):
         logs.append(c)
         log_map_time[c.hexsha] = c.committed_date
-        
+
     #populate dictionaries
     bugfixes = {}
     tickets = {}
     features = {}
     changes = {}
     ticket_info = {}
-    
+
     for log in logs:
         ls = re_skip.findall(log.message)
         lf = re_feature.findall(log.message)
@@ -244,7 +250,7 @@ def build_release_notes(repo, branch):
             bugfixes[b.strip()] = log.hexsha
         if len(ls) == 0 and len(lf) == 0 and len(lt) == 0 and len(lb) == 0:
             changes[log.message] = log.hexsha
-                
+
 
     #get ticket summaries from xmlrpc plugin installed on vistrails trac
     print "Will connect to VisTrails Trac with authentication..."
@@ -286,8 +292,8 @@ def build_release_notes(repo, branch):
     print "Release Name: v%s build %s from %s branch" % (release_name,
                                                          commit_end[0:12],
                                                          branch)
-    print 
-    print "Enhancements: "
+    print
+    print "Enhancements:"
     times = []
     for t, r in features.iteritems():
         times.append((log_map_time[r], t))
@@ -295,10 +301,10 @@ def build_release_notes(repo, branch):
     revisions.reverse()
     for (t,text) in revisions:
         r = features[text]
-        print " - %s (%s)" %(text,r[0:12])
-    
+        print " - %s (%s)" %(rstrip(text),r[0:12])
+
     print
-    print "Bug fixes: "
+    print "Bug fixes:"
     times = []
     for t, r in bugfixes.iteritems():
         times.append((log_map_time[r], t))
@@ -306,10 +312,10 @@ def build_release_notes(repo, branch):
     revisions.reverse()
     for (t,text) in revisions:
         r = bugfixes[text]
-        print " - %s (%s)" %(text,r[0:12])
+        print " - %s (%s)" %(rstrip(text),r[0:12])
 
     print
-    print "Other changes: "
+    print "Other changes:"
     times = []
     for t, r in changes.iteritems():
         times.append((log_map_time[r], t))
@@ -317,11 +323,9 @@ def build_release_notes(repo, branch):
     revisions.reverse()
     for (t,text) in revisions:
         r = changes[text]
-        print " - %s (%s)" %(text.split('\n')[0][0:100],r[0:12])
+        print " - %s (%s)" %(text.split('\n')[0][0:100].rstrip(),r[0:12])
 
 if __name__ == "__main__":
     repo = init_repo()
     build_release_notes(repo, branch)
     cleanup_repo()
-
-

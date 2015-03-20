@@ -52,6 +52,7 @@ from vistrails.core import debug
 from abc import ABCMeta
 from ast import literal_eval
 from itertools import izip
+import mimetypes
 import os
 import pickle
 import re
@@ -332,13 +333,34 @@ class String(Constant):
 
 ##############################################################################
 
+# Rich display for IPython
+try:
+    from IPython import display
+except ImportError:
+    display = None
+
 class PathObject(object):
     def __init__(self, name):
         self.name = name
+        self._ipython_repr = None
 
     def __repr__(self):
         return "PathObject(%r)" % self.name
     __str__ = __repr__
+
+    def __getattr__(self, name):
+        if name.startswith('_repr_') and name.endswith('_'):
+            if self._ipython_repr is None:
+                filetype, encoding = mimetypes.guess_type(self.name)
+                if not filetype:
+                    self._ipython_repr = False
+                elif filetype.startswith('image/'):
+                    self._ipython_repr = display.Image(filename=self.name)
+                else:
+                    self._ipython_repr = False
+            elif self._ipython_repr is not False:
+                return getattr(self._ipython_repr, name)
+        raise AttributeError
 
 class Path(Constant):
     _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" % \

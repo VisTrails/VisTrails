@@ -2,11 +2,68 @@ RELEASE NOTES
 -------------
 Release Name: v2.2 build b5341fe97287 from master branch
 
-Add changes here
+TODO: FILL THIS IN BEFORE RELEASE
 
-Release Name: v2.1.4 build 269e4808eca3 from v2.1 branch
+Enhancements:
+ - zip/unzip binaries no longer needed
+ - new version of tabledata package (also backported to v2.1.5)
+ - new version of parallelflow package
+ - adds developer debugger (enable "developerDebugger" in expert settings)
+ - improves logging
+ - reloading a disabled package (if you changed __init__)
+ - ungrouping materializes InputPort and OutputPort modules for unconnected
+   Group ports
+ - CLTools path and directory types
+ - CLTools module fails if command doesn't return 0 (#957)
+ - adds an icon for 'port not visible' (instead of blank)
+ - sql package with SQLAlchemy
+ - auto-enabling package with unmet dependencies (4a1b200b)
+ - job submission/monitor
+ - controlflow caches looped modules
+ - menu to export a single spreadsheet cell
+ - custom colors for version in tree
+ - export version tree to graphviz dot graph
+ - adds ReadFile module
+ - HTTP package is now URL, validates HTTPS certificates, handles ssh://
+ - fixes spreadsheet cells size resetting when resizing window
+ - loads packages from pkg_resources entry points "vistrails.packages"
+ - new persistent_archive package
+ - new sklearn package for machine learning; http://scikit-learn.org/
+ - highlight unset required ports in input ports list
+ - new user API with IPython notebook integration
+ - StandardOutput module can print a File's content
+ - output module system: same module can output to spreadsheet, file, stdout,
+   IPython, ...
+ - constant widget use eventfilter
+ - output port drawn from left to right
+Bug fixes:
+ - fixes strptime on system with non-English locale
+ - fixes returning numpy arrays from PythonSource modules (3468998b)
+ - pressing ctrl+s after loading a pipeline no longer replace it with a vistrail
+Behavior change for package developers:
+ - made Module methods python_style; updateUpstream won't work, others will
+   work but trigger warning
+ - don't use Module instances as data; pass new objects on connections
+ - module upgrades can be chained (#805)
+ - use output modules instead of cell/writer modules
+ - output port drawn from left to right; change your sort_keys
+ - constant widget use eventfilter; call installEventFilter for child widgets
 
-Bug fixes: 
+From Release: v2.1.5 build 9a01936a5640 from v2.1 branch
+
+Enhancements:
+ - Tabledata package updated to version 0.1.5
+ - New google maps cell package
+ - New distribution packaging
+
+Bug fixes:
+ - Fixed problems with parameter explorations:
+   * Using more than one unset function now works
+   * Fixed update logic when switching views
+
+From Release: v2.1.4 build 269e4808eca3 from v2.1 branch
+
+Bug fixes:
  - Pinch gesture was broken (2d5494ed1d10)
  - Ticket 893: "Create Version" button on the spreadsheet does not work (d3db65418fad)
  - New Parameter Exploration was created for each execution (c324acad38f9)
@@ -18,7 +75,7 @@ Bug fixes:
 
 From Release: v2.1.3 build 8262f078ed3b from v2.1 branch
 
-Bug fixes: 
+Bug fixes:
  - Fixes scripting examples (8dd634391b71)
  - Fixes Map and Filter modules outputting Variant (d597dcd6027f)
  - Makes StringFormat handle {!r} or {:.2f} correctly (5f99a90fdc87)
@@ -29,13 +86,13 @@ Bug fixes:
 
 From Release: v2.1.2 build 7d8a4ed2feeb from v2.1 branch
 
-Enhancements: 
+Enhancements:
  - Ticket 846: File Selection Dialog (78e8d01bd7ab)
  - Ticket 824: Workflow execution output in console (8ea1231e736f)
  - Adds PromptIsOkay module (WIP) (a1bad0cc2d46)
  - Adds a YesNoDialog module (b267d2bed5eb)
 
-Bug fixes: 
+Bug fixes:
  - Ticket 849: Autosave for existing vistrails not working (671eade8a9b8)
  - Saving mashups to DB corrupts them (5be2ed41d33f)
  - CLTools wizard does not show list type field (df8ef413aff4)
@@ -61,7 +118,7 @@ Bug fixes:
 
 From Release: v2.1.1 build 90975fc00211 from v2.1 branch
 
-Bug fixes: 
+Bug fixes:
  - Ticket 814: Parameter Exploration Broken (13da70d0b35f)
  - Fixes early gui import in application_server (3b2f6186cea9)
  - Ticket 816: Saved vistrail doesn't appear in 'my vistrails' (784414a617d2)
@@ -69,11 +126,11 @@ Bug fixes:
 
 From Release: v2.1 build 179c82045907 from v2.1 branch
 
-Enhancements: 
+Enhancements:
  - Ticket 292: Add XSL support to RichTextCell (ae0126167aa8)
  - Set file associations on Linux (579d702aaab9)
 
-Bug fixes: 
+Bug fixes:
  - Ticket 610: Exporting to the database should update locator (e6c3203a2710)
  - Ticket 809: Suspending module attached to more than one sink kills workflow execution (3b791e47c453)
  - Save button is not disabled when file is saved (d0dc3525f334)
@@ -117,7 +174,7 @@ Bug fixes:
 
 From Release: v2.1 beta2 build 99faabb791a0 from v2.1 branch
 
-Bug fixes: 
+Bug fixes:
  - Ticket #735: Windows dulwich install via pip fails (14d362a695df)
  - Ticket #718: persistence can't handle directories (2a668a6e9881)
  - Fix issue with persistent paths in Windows (2a668a6e9881)
@@ -196,7 +253,7 @@ Bug fixes:
 
 From Release: v2.1 beta build 16ae99d82468 from v2.1 branch
 
-Enhancements: 
+Enhancements:
 
  - Ticket #695: Parameter explorations should be migrated through upgrades if possible (29f072af3087)
  - Start migrating parameter explorations through upgrades (29f072af3087)
@@ -274,7 +331,7 @@ Enhancements:
  - Add load_workflow method to api (5786189661b2)
  - Automatically install PyQt4 on Fedora Linux (b11e69aafe2e)
 
-Bug fixes: 
+Bug fixes:
  - Fixed spreadsheet capturing keys in other windows (aad252798fe6)
  - Fix issues with completions in port tables (f19e8a6e222a)
  - Ticket #692: Parameter exploration schema logic invalid (44a29f0422b8)
@@ -439,11 +496,11 @@ Bug fixes:
  - "Show raw pipeline" and "construct from root" commands should switch to the pipeline view (dc2deb9ed6e0)
  - Fix command_line argv dependency (5786189661b2)
  - Mashups: slider and numericstepper widgets are only displayed for numeric aliases (3b8c4f954bce)
- - Mashups: Validating Min Max and Step edit boxes so they accept only numbers (3b8c4f954bce) 
- 
+ - Mashups: Validating Min Max and Step edit boxes so they accept only numbers (3b8c4f954bce)
+
 From release: v2.0.2 build 3813fdd2573b from v2.0 branch
 
-Enhancements: 
+Enhancements:
  - Added animation support to matplotlib/pylab (38fb971b6305)
  - Job Monitor Improvements (af8f43039c94)
  - Job Monitoring Tool View (3c43a8c5b3b7)
@@ -452,7 +509,7 @@ Enhancements:
  - Added saving/loading SubWorkflows to/from the DB as part of a vistrail bundle (0704f03b2011)
  - Ticket #628: Set the path to the vistrails tmp dir (f07b3223d16d)
 
-Bug fixes: 
+Bug fixes:
  - Saving log to previous version failed (e66941c40e22)
  - Opened vistrails were not selected (14415ac3c709)
  - parallelflow: Do not deepcopy module dict (e66a6a3713ec)
@@ -500,7 +557,7 @@ Enhancements:
  - Improved exception message for invalid port specification (431802313d43)
  - Improved error messages during package loading (4175f8c09b4d)
 
-Bug fixes: 
+Bug fixes:
  - Added the missing v1_0_3 directory for schema v1_0_3 support from master branch (916cf9162df8)
  - FileHooks for DBVistrail types should be skipped (94bb430fa0f0)
  - Check if package has been removed before setting package information (94bb430fa0f0)
@@ -549,7 +606,7 @@ building the pdf version of the usersguide  (3899208009dd)
 
 From Release: v2.0 build 240bcab5bbcd from v2.0 branch
 
-Enhancements: 
+Enhancements:
  - Ticket #424: SUDSWebServices should store the WSDL spec in the .vt file to enable upgrades (88f616a741de)
  - Packages can store files in .vt zip files (88f616a741de)
  - .vt files using SUDS Web Services can now be edited offline (88f616a741de)
@@ -557,7 +614,7 @@ Enhancements:
  - CLTools: added Open Wizard to package menu (1f19d0a7339a)
  - Added CLToolsWizard.command file to Mac Binary (99adfd823a2d)
  - Ticket #430: use of absolute file names can be problematic in vtl files (2b731d8d5043)
- - LaTex Extension: Added support for relative .vtl links in pdf and relative filenames 
+ - LaTex Extension: Added support for relative .vtl links in pdf and relative filenames
    in .vtl files (2b731d8d5043)
  - Package requirement for the job submission package (77f3f1761f92)
  - Ticket #519: Executions in Version View that fail should change to pipeline (cea08c6e25d9)
@@ -567,8 +624,8 @@ Enhancements:
  - Allow modules in subpipelines to be cached (4ef2b8639b6d)
  - Added alps package to VisTrails 64-bit Windows Binary  (519d862a63f5)
 
-Bug fixes: 
- - Ticket #575: Vistrail variables panel has an overdraw 
+Bug fixes:
+ - Ticket #575: Vistrail variables panel has an overdraw
    problem (c4171c8aab63) (09815c35efb8) (7ca53292670a) (07fdeb8602a7) (45a4818a0b5c)
  - Ticket #404: Overriding a port via add_*_port does not work (47e72744ede1)
  - Ensure add_*_port can override ports in superclass port lists (47e72744ede1)
@@ -576,7 +633,7 @@ Bug fixes:
  - Add default support back in (e3f1b1a3253f)
  - Fixed spelling in repository.py (6c2259e84214)
  - SUDSWebServices: Wrong indentation caused vistrail save to fail (5497e50c727f)
- - Ticket #576: Analogies are only displayed if we change the focus out of VisTrails to 
+ - Ticket #576: Analogies are only displayed if we change the focus out of VisTrails to
    another application and back (d782197a1cab)
  - Fix issue with redrawing the tree after analogies (d782197a1cab)
  - Running instance was not accepting parameters from another instance (63b58b8416d0)
@@ -590,7 +647,7 @@ Bug fixes:
  - Fix issue when setting a vistrail variable on multiple modules (02f2acee1727)
  - Ticket #574: Cannot add variable to empty detached Vistrail Variables window (4ae4f3d9c582)
  - Fixed issue with creating vistrail variables in an undocked panel (4ae4f3d9c582)
- - Ticket #539: Standard Module Configuration Widget asks to save when two ports are 
+ - Ticket #539: Standard Module Configuration Widget asks to save when two ports are
    enabled (154525da1047)
  - Ticket #521: Annoying PythonSource behavior (154525da1047)
  - Configuration widgets will prompt to save only when the current
@@ -615,11 +672,11 @@ Bug fixes:
  - Workflow results that used a VTKCell were consisting of a black
    screen when running in batch mode (80d55defb140)
  - Ticket #551: Cannot access messages window when preferences window is open (cc8fa8e6ad8a)
- - Ticket #487: isosurface script version of terminator.vt causes vistrails to 
+ - Ticket #487: isosurface script version of terminator.vt causes vistrails to
    crash (02caf56e6c0e)
  - Ticket #564: Invalid view warning (3b2062c17cb0)
  - Ticket #552: No visual clue when ubuntu package finishes installing (2f78b1b1d749)
- - Ticket #540: Vistrail is not always marked as changed when containing a vistrail 
+ - Ticket #540: Vistrail is not always marked as changed when containing a vistrail
    variable (7acddff31ff1)
  - Ticket #566: QPixmap scaled error message (c6842a9fa320)
  - Fixed QPixmap scaled issue (c6842a9fa320)
@@ -639,7 +696,7 @@ Bug fixes:
  - Fixed issue with error message for editing package subworkflows (7c03b6999125)
  - Ticket #541: Crash when detaching ModuleInformation dockwidget on Mac (72c7afc3a95e)
  - Fix crash on undocking module info palette on Mac OS X (72c7afc3a95e)
- - Ticket #546: Selecting a version selects the text box instead of the version 
+ - Ticket #546: Selecting a version selects the text box instead of the version
    ellipse (5a7df50dd899)
  - Make version tree selection more intuitive (5a7df50dd899)
  - Ticket #538: Pipeline Connection Drawing? (ed11bdfffa54)
@@ -654,10 +711,10 @@ Bug fixes:
  - Fix logic in identifier checks in package manager (1882ed36cd76)
  - Ticket #554: Port labels not displayed (a9454abc238a)
  - Add missing port labels to ports panel (a9454abc238a)
- - Ticket #553: Suspended module does not execute on second run even when 
+ - Ticket #553: Suspended module does not execute on second run even when
    notcacheable (3e22759385d3)
  - Ticket #549: update_db.py script does not work (fb5ad0eb480a)
- - Parameter Exploration only worked on parameters from the Basic Modules 
+ - Parameter Exploration only worked on parameters from the Basic Modules
    package (99969b93ece2)
  - Autoloading a SUDS Web Service no longer produce error messages (c079bd9c52db)
  - Ticket #513: Add detachHistoryView back (08bec17e40e6)
@@ -672,12 +729,12 @@ Bug fixes:
 
 From Release: v2.0-beta build 2d428fbd26cc from v2.0 branch
 
-Enhancements: 
+Enhancements:
  - Mashup View: Added float slider (b5d481049666)
  - New module execution state suspended added (cb47d3fc66b7)
 
-Bug fixes: 
- - Parameter Exploration: Changed call to update the progress bar to be 
+Bug fixes:
+ - Parameter Exploration: Changed call to update the progress bar to be
    thread safe (716501f8b2fd)
  - Fixed bug in iceCream.vt example (929ddcaa504a)
  - MySQLdb was not being shipped correctly in Mac binary (e50f1c91b3e8)
@@ -693,7 +750,7 @@ Bug fixes:
 
 From Release: v2.0-beta build 10836452c19a from v2.0 branch
 
-Bug fixes: 
+Bug fixes:
  - Fix issue with deleting modules and connections (10836452c19a)
  - VTK package: fix problem when upgrading vtkCellArray.InsertNextCell input port (e29a873af4a1)
  - Ticket #525: The create analogy button is too small (bf61e06b0a50)
@@ -702,7 +759,7 @@ Bug fixes:
 
 From Release: v2.0-beta build b074d3a4eb44 from v2.0 branch
 
-Enhancements: 
+Enhancements:
  - Added VisTrails Server documentation (611f2082f98d)
  - Add more functionality to core.api (26c775f0a7bb)
  - Ticket #518: Need to fix VTK ports with no parameters (9a985c40f6a2)
@@ -718,11 +775,11 @@ Enhancements:
  - Added support for html and mediawiki extensions to
 access a remote vistrails server  (dd7456507ab4)
 
-Bug fixes: 
+Bug fixes:
  - Mashups: editing an alias' values list had no effect (c485a7433dde)
- - Mashups: slider and numericstepper widgets are only displayed for 
+ - Mashups: slider and numericstepper widgets are only displayed for
    numeric aliases (c485a7433dde)
- - Mashups: Validating Min Max and Step edit boxes so they accept only 
+ - Mashups: Validating Min Max and Step edit boxes so they accept only
    numbers (c485a7433dde)
  - Accessing Module Annotate from context menu did not work (ac100b566d84)
  - Fixed problem where unrequested vistrail temporary files were being created during test suite (445e2b68d9e6) (1a539cad8a9a)
@@ -744,38 +801,38 @@ Bug fixes:
  - Argument error caused gui/vistrail_controller test to fail (e447e02b37ca)
  - CHEBI wsdl changed (a7f1ab43159d) (6e00beb17ce6)
  - Removed matplotlib backend selection warning (23a6e3a89001)
- - Dragging a version directly on a spreadsheet cell was not executing 
+ - Dragging a version directly on a spreadsheet cell was not executing
    the workflow (3395a01a2139) (66d49a064e59)
  - Fixed unable to display jpeg images in the spreadsheet
 due to a wrong Qt plugins configuration (a6a1950024a7) (333456765278)
  - Display more meaningful error when persistent inputs do not exist in a repository (1c905da96eb1)
  - Fix issue in ModuleDescriptor.expand_descriptor_string (7b973b4a4aeb) (35f1feb4d853)
  - Add icons to CLTools so that they not only work on X11 (a6a08bc1dd4e) (69110931c4e3)
- - SourceConfigurationWidget silently fails when code contains 
+ - SourceConfigurationWidget silently fails when code contains
    non-ascii characters (0c020878edf3) (768fc8ed4df5)
  - MultiHeads configuration was not working on 2.0  (669957620bdc) (07e9672e6186)
  - Ticket #513: Add detachHistoryView back (f238870a17fe) (38a3b95d1b5d)
  - Added back detachHistoryView option (f238870a17fe) (38a3b95d1b5d)
- - Removed configuration options that are only used in non-interactive mode 
+ - Removed configuration options that are only used in non-interactive mode
    from Expert Configuration (bb0046fe6f49)
- - Ticket #515: opening a specific version from the command line does 
+ - Ticket #515: opening a specific version from the command line does
    not work (20ab44a5a4ce) (468fe95d351f)
  - Fixed opening a specific version from the command line (20ab44a5a4ce) (468fe95d351f)
- - Ticket #512: Add how to create alias to users guide (83e49a3d487b) 
+ - Ticket #512: Add how to create alias to users guide (83e49a3d487b)
    (d56e02d30133) (a6249193e674) (f5b881191441)
  - Ticket #421: db version import error handling (a6eb8ae65052) (6ac6c0abec6e)
- - Detect between when a db version is missing and when it contains 
+ - Detect between when a db version is missing and when it contains
    an error (a6eb8ae65052) (6ac6c0abec6e)
  - Ticket #391: Module colors in Visual Diff are wrong after upgrades (6b16033351a9) (c28166f2110b)
  - diff view did not use correct brush for non-upgraded modules (6b16033351a9) (c28166f2110b)
  - autosave feature caused "new file" action to fail (9b19a0fc5193) (6c49e4329b8a)
- - Ticket #511: "export workflow as xml" adds extension as "..xml" (two dots) if 
+ - Ticket #511: "export workflow as xml" adds extension as "..xml" (two dots) if
    not explicitly specified (39d605e721e5) (fb2061eec506)
  - get_save_file_locator_from_gui was adding two dots (39d605e721e5) (fb2061eec506)
- - SpreadSheet: prompt the user to save unsaved vistrails before trying 
+ - SpreadSheet: prompt the user to save unsaved vistrails before trying
    to save a spreadsheet (d296dae6e508) (5e29113d0694)
  - Ubuntu Unity did not restore menu bar after being closed (3d702340c1fa) (719ad4dd22b5)
- - Param Exploration User-defined function did not work because of new python 
+ - Param Exploration User-defined function did not work because of new python
    editor interface (8354a9340944) (0f62ec4023c7)
  - Ticket #510: The Spreadsheet can't open/save spreadsheets (9259d3b8d619) (ae73b7e48971)
  - Ticket #194: Copy and paste duplicates aliases (7419092665c4) (27ee5e68a7e3)
@@ -797,10 +854,10 @@ due to a wrong Qt plugins configuration (a6a1950024a7) (333456765278)
 
 From Release: v2.0-alpha build c4e3600b6481 from v2.0 branch
 
-Enhancements: 
+Enhancements:
  - Wizard for CLTools - gui for wrapper creation (de5fbcd6144a)
 
-Bug fixes: 
+Bug fixes:
  - Ticket #508: Add port documentation back to ports panel (d83b2637f5b5)
  - Ticket #502: change_selected_version causes key error in adjacency_list (815d38ff608a)
  - Ticket #472: parameters in parameter exploration are reset if not executed (829303e1efeb)
@@ -809,31 +866,31 @@ Bug fixes:
 
 From Release: v2.0-alpha build 1b88c3949efd from v2.0 branch
 
-Enhancements: 
- - VisTrails now requires Python 2.7.*, Qt 4.7.*, sip 4.12.2 and PyQt4 4.8.4 to run 
+Enhancements:
+ - VisTrails now requires Python 2.7.*, Qt 4.7.*, sip 4.12.2 and PyQt4 4.8.4 to run
  - Reworked VisTrails interface. Added Workspace palette where user's vistrails
-   are kept. Users can open multiple pipelines in different tabs that are 
+   are kept. Users can open multiple pipelines in different tabs that are
    detachable.
  - In addition to Pipeline, History, Query and Exploration Views, new views were
    added, including Provenance and Mashup views. The Provenance view displays the
-   execution logs of a vistrail. The Mashup view allows creating simple 
-   applications based on workflows by exposing only the relevant parameters. 
+   execution logs of a vistrail. The Mashup view allows creating simple
+   applications based on workflows by exposing only the relevant parameters.
    See the VisTrails manual for detailed instructions.
- - Merged the "Methods" and the "Set Methods" panel into an improved 
-   "Module Information" Palette. Now port visibility, connectedness, and 
-   parameters are shown in a single display. Thus, for module types without 
-   special configuration widgets, there is no need for a separate configuration 
+ - Merged the "Methods" and the "Set Methods" panel into an improved
+   "Module Information" Palette. Now port visibility, connectedness, and
+   parameters are shown in a single display. Thus, for module types without
+   special configuration widgets, there is no need for a separate configuration
    window.
  - CLTools - package for wrapping command line tools (3ac68958d3db)
  - Expand search results to include all open vistrails (b2a069e38956)
  - Opening exported mashups using Open menu will execute them automatically (48cefab0a019)
- - Added support for exporting a mashup to a .vtl file. To export a mashup, just 
-   click the "Export" button in the mashups inspector. Double-clicking the .vtl 
+ - Added support for exporting a mashup to a .vtl file. To export a mashup, just
+   click the "Export" button in the mashups inspector. Double-clicking the .vtl
    file will execute the mashup in VisTrails (09203c1e12b8)
  - Show parameters for invalid modules (7078566f7b89)
  - Changed "Keep" button to "Tag" in the Mashups View (5ed3637c2d6f)
  - Open subworkflow from module palette (c48a11df430f)
- - Executions in provenance view are now given names based on the 
+ - Executions in provenance view are now given names based on the
    "tagname + n" naming scheme (31a4a94cf967)
  - Update executions in workspace when they are created (8b7b85229c64)
  - Make pipeline current when selected in provenance explorer (49e93f5f789d)
@@ -845,16 +902,16 @@ Enhancements:
  - Workspace now updates Workflows and Mashups as they are created (429ceb313408)
  - Expand Workflows/Mashups items by default (429ceb313408)
  - Ticket #479: Dropdown boxes have white text (677a0b750762)
- - Added support for html and mediawiki extensions to access a 
+ - Added support for html and mediawiki extensions to access a
    remote vistrails server  (2eba04217a99)
- - Displaying mashups in workspace. Double-clicking a mashup will show 
+ - Displaying mashups in workspace. Double-clicking a mashup will show
    version tree, select corresponding version and execute the mashup. (3df2af8d8cb2)
- - Added support for multiple PythonSource configuration windows. Read-only 
+ - Added support for multiple PythonSource configuration windows. Read-only
    windows can be detached from the main module onfiguration window. (372c0143f6b6)
  - Remove workspace entry when selected file has been deleted (8bdd77c78fe2)
  - Workspace can show workflows in a tree view (c715b4a84a38)
  - Added a Control Flow Assistant (f05f014bc778)
- - Added Vistrail Variables support, so that modules deriving from Constant can 
+ - Added Vistrail Variables support, so that modules deriving from Constant can
    be used to create re-usable variables (a83402e0c218)
  - Added support for cross-vistrail diffs (c300063531e8)
  - Perform visual diff from workspace by dragging pipelines together (dd83c3f08cea)
@@ -892,8 +949,8 @@ option to start paraview server when the package is initialized.  (9023c13aa76b)
  - Ticket #411: Support temporary directories in the FilePool (7eb29d2ba0fb)
  - Initial version of a GIS package that uses QGIS (4cd7cc6df8db)
 
-Bug fixes: 
- - VTK Package: Call to ResetCamera() in vtkRenderer was producing wrong 
+Bug fixes:
+ - VTK Package: Call to ResetCamera() in vtkRenderer was producing wrong
    results (d5789e5a560b)
  - Ticket #499: Issue with BaseView.layout (9dc74870fde7)
  - Fix issue where 'layout' was an overloaded field name (9dc74870fde7)
@@ -909,20 +966,20 @@ Bug fixes:
  - Ticket #496: Showing/hiding module ports resets module position (c073ff4bf200)
  - Keep module position when changing visibility of ports (c073ff4bf200)
  - Ticket #488: configuring webservices breaks vistrails (b8a935d8bbae)
- - Ticket #495: vtkCellArray won't allow multiple points through 
+ - Ticket #495: vtkCellArray won't allow multiple points through
    InsertCellPoint (0dcbf136aeb8)
- - Fixed issue with ports that may have multiple functions associated with 
+ - Fixed issue with ports that may have multiple functions associated with
    them (e.g. in the vtk package) (0dcbf136aeb8)
  - Ticket 481: Optional Output Ports collapse to non-Optional ones (7463f214023b)
- - Fixed the issue of being unable to activate windows under Mac OS X 
+ - Fixed the issue of being unable to activate windows under Mac OS X
    Lion. (7463f214023b)
  - Mashups: Fixed bug introduced when removing gui
    dependencies for core.modules widgets (76a998022666)
  - Ticket #492: Upgrade error: signatures differ (5a70996965f8)
  - Add upgrade for PythonSource to fix issue with 'self' port (5a70996965f8)
- - Fixed messages during upgrades so that upgrade info is not flagged as 
+ - Fixed messages during upgrades so that upgrade info is not flagged as
    a warning (8714561fed05)
- - Mashups: creating aliases in mashup view was not updating the alias 
+ - Mashups: creating aliases in mashup view was not updating the alias
    table (770f755d089d)
  - Ticket #491: Opening a .vtl will always create a new file (3a25858be1ac)
  - Opening vtl files: igonring showSpreadsheetOnly if execute is false (3a25858be1ac)
@@ -932,34 +989,34 @@ Bug fixes:
  - Remove vistrail from workspace if removed from disk (044a841b97e9)
  - view.is_abstraction logic fixed (044a841b97e9)
  - sql package was not using new gui.modules.source_configure (1714703fb145)
- - Updated VTK, Persistence and Matplolib packages to use 
+ - Updated VTK, Persistence and Matplolib packages to use
    gui.modules import (f953ce4d25e4)
  - get_current_view bug caused double-clicking a vistrail to fail (00b264c0920b)
  - Ticket #489: VisTrails 2.0 can't open .vtl files anymore (2d450422c25b)
  - opening .vtl files fails (2d450422c25b)
  - Ticket #460: Subworkflow port naming errors after editing (687becdff050)
- - Fixed issue where subworkflow edits could result in one-to-many 
+ - Fixed issue where subworkflow edits could result in one-to-many
    port mappings. (687becdff050)
- - Fixed issues with multiple versions of subworkflows appearing in the 
+ - Fixed issues with multiple versions of subworkflows appearing in the
    module palette (186d5c06a788)
  - Do not store subworkflows in "recent files" or "My Vistrails" (17aebdbd32fa)
  - workspace.item_selected had invalid setSelected call (3effd7a1385b)
  - Fixed 2 detach view bugs (3f5159f5b49f)
- - Ticket #468: Diff tab should have all modes except pipeline 
+ - Ticket #468: Diff tab should have all modes except pipeline
    disabled (4f691ba6ed23) (139ec1d18b22)
- - Fixed an issue when loading a vistrail that references different versions 
+ - Fixed an issue when loading a vistrail that references different versions
    of a subworkflow that share common ancestors (4b34089abb09)
- - Ticket #486: query execution and parameter problems (323f12916d09) 
+ - Ticket #486: query execution and parameter problems (323f12916d09)
    (0262b0410051) (d9fbb412a9b5)
  - Added ability to open workflows from query results (323f12916d09)
  - Ticket #484: subworkflow save causes window to change (bc100442dfe4)
  - Fixed issues with executing queries (0262b0410051)
- - Fixed issue where numeric comparisons were being done as 
+ - Fixed issue where numeric comparisons were being done as
    string compares (d9fbb412a9b5)
  - Fixed issue where substring queries were backward (d9fbb412a9b5)
  - Fix an issue with copy/paste to query view (b9fed84af41a)
  - Fix issue with package subworkflows and namespaces (87c7c61f1c9e)
- - Ticket #476: numeric stepper has wrong default value, in some cases 
+ - Ticket #476: numeric stepper has wrong default value, in some cases
    (1642d3573f62) (a08e8dc0f9c2)
  - Ticket #485: Random Mashups Window (917b1d8b83c5)
  - Allow return to original query in interface (0df170d3335d)
@@ -976,33 +1033,33 @@ Bug fixes:
  - Ticket #483: Index error when recovering a vistrail (8589b301ba13)
  - Fixed issues with upgraded subworkflows (9c4dfcbef423)
  - Ticket #475: Changing the background color fails in Mashup mode (31670c3e66f2)
- - Ticket #477: opening mashup from workspace doesn't show exposed 
+ - Ticket #477: opening mashup from workspace doesn't show exposed
    parameters (429ceb313408)
  - Sometimes closing a vistrail while closing VisTrails fails (429ceb313408)
- - Double clicking a vistrail in file browser fails because of 
+ - Double clicking a vistrail in file browser fails because of
    _first_view bug (263f1947cf2c)
  - vtkhandler did not handle new PythonEditor correctly (aa3511259f10)
- - Ticket #443: ports are not added through Module Configuration 
+ - Ticket #443: ports are not added through Module Configuration
    and annoying confirmation (01ed7a6566b3)
- - Ticket #473: Cannot execute from history view immediately after 
+ - Ticket #473: Cannot execute from history view immediately after
    opening vistrail (e0ba2e97d058)
- - Ticket #472: parameters in parameter exploration are reset if 
+ - Ticket #472: parameters in parameter exploration are reset if
    not executed (63c55f11f03d)
- - Ticket #474: Error quitting when spreadsheet is visible (afe4512b1ca9) 
+ - Ticket #474: Error quitting when spreadsheet is visible (afe4512b1ca9)
    (107b24e904ea)
  - Ticket #470: copy doesn't copy to the correct cell (c44347501d5a)
  - Fixed issue with cell locations in spreadsheet editing mode (c44347501d5a)
- - Ticket #471: visual diff window is missing the create analogy 
+ - Ticket #471: visual diff window is missing the create analogy
    button (14a24ea42b15)
- - Ticket #469: locate version in editing mode selects history but shows 
+ - Ticket #469: locate version in editing mode selects history but shows
    pipeline (080a2dc8b820)
  - Opening xml vistrail from workspace showed open file dialog (069db5448e8e)
  - Module documentation in module palette not working (647613ad637e)
  - Ticket #467: A file is changed when test suit is run (37e0ab607139)
- - Ticket #466: history mode selected and pipeline view shows up after 
+ - Ticket #466: history mode selected and pipeline view shows up after
    merging 2 trees (e22fe0a4f8b0)
  - Ticket #459: the explore tab draws upside down (542e2cda8845)
- - Outdated inspector.annotated_modules value caused explorer tab to be 
+ - Outdated inspector.annotated_modules value caused explorer tab to be
    drawn upside down on Mac (542e2cda8845)
  - Ticket #446: subworkflow editing only good for one save (2ab6a92c2084)
    (85b50d980ab1)
@@ -1014,12 +1071,12 @@ Bug fixes:
  - Select latest version when opening a vistrail (154e9b2e8eaa)
  - Ticket #462: Ungrab mouse error after editing subworkflow (6aaa6bd2b526)
  - Ticket #432: Problem with labeling groups (6aaa6bd2b526)
- - Ticket #461: Initial history view for first vistrail is not zoomed to 
+ - Ticket #461: Initial history view for first vistrail is not zoomed to
    fit (b3d8909ac0ed)
  - Fix zoom to fit for initial vistrail (b3d8909ac0ed)
- - Ticket #434: Can't remove tags of versions that were 
+ - Ticket #434: Can't remove tags of versions that were
    upgraded (v2.0) (47636de1ec66)
- - Fix issue where raw pipeline and construct from root were not 
+ - Fix issue where raw pipeline and construct from root were not
    working (47636de1ec66)
  - Enabled Embed version by default when selecting Publish > To Paper (8bf5e737a2c2)
  - Ticket #456: Cannot copy/paste in detached pipelines/vistrails (0cb6ef7650af)
@@ -1027,17 +1084,17 @@ Bug fixes:
  - Enabled Edit Configuration and Show Documentation from a module's
    context menu  (00dcb21d22a6)
  - File > Export > PDF was not working  (fce8cc569c14)
- - Ticket #455: Module Information Tab stretches unnaturally when package 
+ - Ticket #455: Module Information Tab stretches unnaturally when package
    has a long name (2d07662227fd)
  - module information stretches unnaturally (2d07662227fd)
- - Ticket #457: PythonSource ports are not updated when configuration window 
+ - Ticket #457: PythonSource ports are not updated when configuration window
    is saved (f6e151300476)
  - Ticket #456: Cannot copy/paste in detached pipelines/vistrails (f9470d9fa04a)
  - Removed missing web service (028fc4e03c62)
  - Fixed header placement in xml files that were causing tests to fail (4db41b9e2e75)
- - Workspace fixes for saving empty vistrail and closing detached 
+ - Workspace fixes for saving empty vistrail and closing detached
    vistrail (1f798a7a0c84)
- - Ticket #454: Can't interact with TransferFunction widget using 
+ - Ticket #454: Can't interact with TransferFunction widget using
    Qt 4.7.* (ea7e21dc9e01)
  - Ticket #453: Workspace indexing error in tree mode (f8b17ab82b9b)
  - Skip workspace make_tree when no window exist (f8b17ab82b9b)
@@ -1061,7 +1118,7 @@ were being interpolated (8485390429b1)
  - Ticket #435: diff result is not properly sized/centered (96c4adaa2a1a)
  - Show executions for the current session as well (fc112c4c1079)
  - Workspace threw exception when closing vistrails (47ae1c3c4428)
- - Fixed crash when running VisTrails 64-bit on Windows with more than 4GB 
+ - Fixed crash when running VisTrails 64-bit on Windows with more than 4GB
    of RAM (71b4bfc41a6d)
  - 2 bugfixes to the vistrail merge code (4f05a96bcc2c)
  - open merged vistrail in new tab and other fixes (556804ba40c4)
@@ -1073,7 +1130,7 @@ were being interpolated (8485390429b1)
  - persistence package did not show dates correctly (357f3a55aaf5)
  - Spreadsheet package: Fixed a typo on the usage of issubclass() which prevented
    subclassed sheets to be used by the spreadsheet (8bcd8ac86cd4)
- - SUDSWebServices wsdl caching in Windows need to use pickle 
+ - SUDSWebServices wsdl caching in Windows need to use pickle
    protocol=0 (4ca71139f604)
  - SUDSWebService wsdl hash did not use the correct wsdl string (4ca71139f604)
  - Fix issue with caching and persistent files (f56f14061d3f)
@@ -1097,7 +1154,7 @@ using \vistrailsenv{} (be50aeab59ca)
  - Overflow checking for SQL datatypes (b520f1c847c8)
  - Changed memory size to be computed in megabytes instead of bytes
 to avoid large numbers (4d21156d99f5)
- - Ticket #414: Focus out event on Tag version edit box generates an unnecessary 
+ - Ticket #414: Focus out event on Tag version edit box generates an unnecessary
    vistrail change event (6dc3154542ba)
  - Media wiki extension: casting returned version of a given tag to
 string before using it (6dc3154542ba)
@@ -1127,20 +1184,20 @@ From Release: v1.7 build 325bfe1b517d from v1.7 branch
 
 Enhancements:
  - VisTrails is now distributed under the "Modified BSD License"
- - VisTrails binaries are now shipped with python 2.7.1, Qt 4.7.2, sip 4.12.2, 
-   PyQt4 4.8.4, vtk 5.6.1, numpy 1.5.1, scipy 0.9.0 and matplotlib 1.0.1. 
+ - VisTrails binaries are now shipped with python 2.7.1, Qt 4.7.2, sip 4.12.2,
+   PyQt4 4.8.4, vtk 5.6.1, numpy 1.5.1, scipy 0.9.0 and matplotlib 1.0.1.
 Bug fixes:
  - Importing basic_modules.py leads to import loop (325bfe1b517d)
  - VTK Package: Fixed bug when drawing TransferFunction widget (7722fc6727aa)
 
 From Release: v1.6.2 build af4a69ad566a from v1.6 branch
 
-Enhancements: 
+Enhancements:
  - Adding pdf version of Usersguide to binaries.  (60cec4e6d858)
  - Improved efficiency of vtk workflow upgrades (501a552cd722)
  - LaTex extension: Added an example for embedding local files (f5976c82826f)
 
-Bug fixes: 
+Bug fixes:
  - Fixed infovis example  (bd810b67daaf)
  - Fixed NOAA Web services example. NOAA had changed the urls
 for their services  (bd810b67daaf)
@@ -1179,7 +1236,7 @@ upgraded  (36322a953de2)
 
 From Release: v1.6.1 build ba9616b413d2 from v1.6 branch
 
-Bug fixes: 
+Bug fixes:
  - Ticket #406: Builder Window menu inconsistencies (fd46220842bf)
  - Added support for executing workflows even if VisTrails is already
 running (useful for Latex extension) (16c1d253a63a)
@@ -1207,7 +1264,7 @@ From Release: v1.6 build e9f97c5908ac from v1.6 branch
 
 Enhancements:
  - Added prompt for password for database access in batch mode (06c4b63434a7)
- - Please notice that the parameter separator in the command line changed again from 
+ - Please notice that the parameter separator in the command line changed again from
   '&&' to '$&$' so it's consistent with the server version. (35ad76515a97)
  - VisTrails now has "Check for Updates" option in Help drop-down (b80862d8a39f)
  - Show port_spec.sigstring in PortMismatch error message for more
@@ -1216,31 +1273,31 @@ Enhancements:
  - add/delete Web Services from module palette for SUDSWebServices package (2e381a4394ed)
  - Package-level context menus in the module palette (2e381a4394ed)
  - Add preference for migrating tags and notes on upgrades (41177e74e687)
- - Add stack trace to exception details for unexpected exceptions during 
+ - Add stack trace to exception details for unexpected exceptions during
    change_selected_version (fd3840df3c6b)
- - Added new class Chdir to prevent users from triggering side-effects by accident 
+ - Added new class Chdir to prevent users from triggering side-effects by accident
    when using os.chdir() (4aa722db61d1)
- - Added Open Recent to File menu (it works for vistrails in the file system or in 
-   the database. The maximum number of files in the list can be configured from Advanced 
+ - Added Open Recent to File menu (it works for vistrails in the file system or in
+   the database. The maximum number of files in the list can be configured from Advanced
    Preferences Tab (search for maxRecentVistrails) (4aa722db61d1)
  - Configuration object now supports bound methods as subscribers (4aa722db61d1)
  - Debug messages now have a "details" attribute (f2911a6a6000)
  - Buttons for filtering VisTrails messages (ebc728d49db3)
  - Colors of message types added to theme file (ebc728d49db3)
- - Improved log messages in the server log to also indicate the instance of the server that 
+ - Improved log messages in the server log to also indicate the instance of the server that
    is logging the messages (762902e79b7a)
  - Improved handling of log messages (037568dc5960)
  - Changed all examples using relative paths to datasets to use HTTPFile (403205442fd7)
  - Updated head.vt and terminator.vt example to use TransferFunction widget (403205442fd7)
  - Maintain suffixes on persistent files and directories (e9b5e906e069)
  - Improved debug messages (9dcd1a5a2ea8)
- - Ticket #390: Add support to Latex extension to download workflows at compilation 
+ - Ticket #390: Add support to Latex extension to download workflows at compilation
    time (90ef6cee20a9)
  - Improved error handling in vistrails.packages (a44800a88083)
  - Improved debugging messages for vistrails.gui (25b718347ef0)
  - Improved error handling in vistrails.core (2e095f36dc90)
  - Debug library updated (41e3778d507e)
- - Web Services package is now deprecated. Showing a warning message when the WebServices 
+ - Web Services package is now deprecated. Showing a warning message when the WebServices
    package is loaded. Message will be shown only once. (9996bba52dd1)
  - Ticket #375: Add GUI support for synchronizing vistrails (4efb09fbe5bd)
  - Merge 2 Vistrails from within VisTrails (4efb09fbe5bd)
@@ -1251,22 +1308,22 @@ Enhancements:
  - Updated php scripts to work with Latex extension's new features (2b53ad32a374)
  - VisTrails server: added new function to return version tree as pdf  (2b53ad32a374)
  - Created a separate php file to store the server configuration (8d15fdbe8e1d)
- - Added support for running crowdlabs and vistrails server on separate machines 
+ - Added support for running crowdlabs and vistrails server on separate machines
    (still testing) (064304a99993)
  - Ticket #382: Improvements to Latex extension (3123297d6a1b)
- - LaTex extension: VisTrails can now embed a workflow graph or a history tree in 
+ - LaTex extension: VisTrails can now embed a workflow graph or a history tree in
    LaTex pdf (3123297d6a1b)
- - LaTex extension: Caching latex instructions and images for embedding images in case python 
+ - LaTex extension: Caching latex instructions and images for embedding images in case python
    is not available (3123297d6a1b)
- - Ticket #381: Split HTTPFile.compute() method to download the file in a separate 
+ - Ticket #381: Split HTTPFile.compute() method to download the file in a separate
    function (62d25dca3f3a)
  - Add MplScatterplot and MplHistogram modules to pylab (4af6514c20d4)
  - Ticket #295: Add Debug .command to Mac distribution (e835d69d8426)
- - Added git executable to windows repository. It will be included in future windows 
+ - Added git executable to windows repository. It will be included in future windows
    binaries for persistence package  (8d9931bbbe04)
  - Updated version of the rpy package (c895125216cb)
  - Migrating new persistence package from persistence_exp to persistence (5b6418233dea)
- - Added methods to expand shortcut string representations for module descriptors and port 
+ - Added methods to expand shortcut string representations for module descriptors and port
    specs (5b6418233dea)
  - Added support for shortcuts to remap modules/ports for upgrades (5b6418233dea)
  - Use List for controlflow now instead of ListOfSElements (74f30460d3fe)
@@ -1283,15 +1340,15 @@ Enhancements:
 
 Bug fixes:
  - Fix issue with console mode and unit tests (a4d544eec673)
- - Ticket #361: Cannot configure output cell layout for cells in groups in parameter 
+ - Ticket #361: Cannot configure output cell layout for cells in groups in parameter
    explorations (5807414236ba)
- - Enable all spreadsheet cells for parameter exploration, even if they are embedded in 
+ - Enable all spreadsheet cells for parameter exploration, even if they are embedded in
    groups or subworkflows (5807414236ba)
- - Ticket #399: Exception thrown when loading parameter exploration tab with no existing 
+ - Ticket #399: Exception thrown when loading parameter exploration tab with no existing
    exploration (4366e52c39cf)
- - Fixed exception when loading parameter exploration tab for a workflow with no saved 
+ - Fixed exception when loading parameter exploration tab for a workflow with no saved
    explorations (4366e52c39cf)
- - Ticket #154: vistrails should check for a new version being available and tell the 
+ - Ticket #154: vistrails should check for a new version being available and tell the
    user to download it (b80862d8a39f)
  - Ticket #398: Failure opening vtl files (filename issue) (c52ba7adc5f8)
  - Matplotlib package: if hide toolbar parameter is set after the source
@@ -1303,7 +1360,7 @@ Bug fixes:
  - Fixed problem where controlflow package would raise duplicate errors (4351b3f0102f)
  - Fixed issue with groups and input values that evaluate to False (6fc007c0535d)
  - Fixed ordering of PortMismatch parameters in ensure_port_specs (c28dad738abc)
- - Fixed bug introduced on Windows platforms when changed os.chdir() calls by 
+ - Fixed bug introduced on Windows platforms when changed os.chdir() calls by
    core.utils.Chdir (0a2b8a0d50d8)
  - Enable the Linux theme for 'Linux' system types (57dfb4a85e7a)
  - added deletion of namespaces in module palette (2e381a4394ed)
@@ -1311,17 +1368,17 @@ Bug fixes:
  - Message filter colors does not show in linux (ee8906c91039)
  - Ticket #397: Save execution log when in console mode (2dae96a8f004) (1afa51d895e9)
  - Update version tree when adding delayed actions (d1dbf3005499)
- - Subworkflows from packages that need upgrades are now moved to local.abstractions 
+ - Subworkflows from packages that need upgrades are now moved to local.abstractions
    in the registry and picked up for workflow upgrades (04476a172f61)
  - Fixed issue with spreadsheet and grouped spreadsheet cells (fd3840df3c6b)
  - Replaced svn command with git command to get current commit (if present) (4aa722db61d1)
- - Flush delayed actions (including upgrades) to fix issues with delayed upgrades and 
+ - Flush delayed actions (including upgrades) to fix issues with delayed upgrades and
    grouping upgraded workflows (79dd982e6cef)
  - VisTrails Server: Applied fix to caching of history tree images when
    generated as pdfs (fc0ab9f1626d)
  - VisTrails Server: fixed problem in caching of history tree images (4862e1f7d18a)
  - Ignoring mouse gestures when Qt version is < 4.6 (4862e1f7d18a)
- - Ticket #394: VisTrails server is not detecting updates in vistrails loaded 
+ - Ticket #394: VisTrails server is not detecting updates in vistrails loaded
    from the database (762902e79b7a)
  - Restoring extensions/http/run_vistrails.php to version before merge (762902e79b7a)
  - VisTrails server was ignoring the build_always variable if it
@@ -1337,7 +1394,7 @@ Bug fixes:
  - Updated mediawiki extension to work with crowdlabs server  (3125e0eb8e81)
  - Added workaround for RotateFileHandler problem on Windows when some
    packages start child processes during workflow execution (e5afc47797cb)
- - Fixed issue where named intermediate persistent files/directories were not 
+ - Fixed issue where named intermediate persistent files/directories were not
    reused correctly (df3deb58a18c)
  - Fixed git hash retrieval for persisted directories (df3deb58a18c)
  - Pasted text in VisTrails shell was being ignored (c48e67f02ae8)
@@ -1352,9 +1409,9 @@ Bug fixes:
  - Batch mode: On Windows, VisTrails was not executing workflows
    when an absolute path to a vt file was given (81812ac04e85)
  - Minor error fixes (45b53eef1c53)
- - Ticket #386: Moving modules after an upgrade generates invalid actions with 
+ - Ticket #386: Moving modules after an upgrade generates invalid actions with
    delayed upgrades (ad9e029035f7)
- - With delayed upgrades, moving modules after an upgrade now generates actions 
+ - With delayed upgrades, moving modules after an upgrade now generates actions
    in the correct order (ad9e029035f7)
  - Ticket #385: Workflow instantiation fails when doing on-demand package loading (aff3408c7a51)
  - Fix issue with on-demand package loading leaving workflows as invalid (aff3408c7a51)
@@ -1379,7 +1436,7 @@ the current version of crowdlabs vistrails server (only local
 setup currently supported) (8d15fdbe8e1d)
  - Fixed bug where server method get_wf_graph_png would sometimes
 fail (064304a99993)
- - Fixed bug where although DBLocators were being cached, the 
+ - Fixed bug where although DBLocators were being cached, the
    connections were not  (b07c22d9e93d)
  - Ticket #359: When using VTKRenderOffscreen module VisTrails crashes (48e477f4c1d9)
  - VTK Package doesnt work with VTK version 5.7.0 (ba5e0bdbbb16)
@@ -1437,24 +1494,24 @@ VisMashup (93884b6a47c0)
 
 From Release: v1.5.1 build 1863
 
-Enhancements: 
+Enhancements:
  - branching is now supported when uploading to web repositories (r1853)
  - Added ParaView package (r1850)
  - Added Titan package (r1847)
-Bug fixes: 
+Bug fixes:
  - Ticket #368: Spreadsheet: export as single image does not work (r1861)
- - Fixed bug where RichTextCell was not displayed when running on 
+ - Fixed bug where RichTextCell was not displayed when running on
    server mode (r1857)
  - Fixed bug with thumbnails and RichTextCell (r1856)
  - Making sure to use only image files when generating thumbnails (r1856)
- - Fixed web repository commit bug where updated vistrail files where not 
+ - Fixed web repository commit bug where updated vistrail files where not
    successfully loaded into VisTrails after being downloaded (r1853)
  - web repository vt id annotation is now being saved (r1853)
- - web repository cookie is now nullified if the web repository url 
+ - web repository cookie is now nullified if the web repository url
    changes (r1853)
- - VisTrails Batch mode: Changing parameter separator from '&' to '&&' so 
+ - VisTrails Batch mode: Changing parameter separator from '&' to '&&' so
    urls with query urls work (r1846)
- - Added procedure to WIndows installer script to remove VC Redist files 
+ - Added procedure to WIndows installer script to remove VC Redist files
    left behind (r1846)
  - log file names are now updated according to VisTrails version (r1845)
  - Ticket #366: VTK overloaded ports from old vistrail files are not being shown in the GUI (r1842)
@@ -1465,20 +1522,20 @@ Bug fixes:
  - Fix issue with annotations that have the same key/value pairs (r1840)
  - Ticket #363: Enabling the Web services package on-the-fly is broken (r1839)
  - Spreadsheet package: SingleCellSheetReference could not be used (r1839)
- - On Mac, the eventFilter was not being removed when finalizing 
+ - On Mac, the eventFilter was not being removed when finalizing
    Vistrails and sometimes delayed events could not be processed  (r1839)
- - ImageViewerCell: Disabling the zoom slider when playing 
+ - ImageViewerCell: Disabling the zoom slider when playing
    animation (r1838)
  - Ticket #362: ImageViewerCell Animation Icons Are Not Displayed (r1837)
- - repository_vt_id now represents the crowdlabs vistrail object id instead 
+ - repository_vt_id now represents the crowdlabs vistrail object id instead
    of the vistrails db id (r1834)
- - when merging a vistrail with one on the web repository, a check is made 
+ - when merging a vistrail with one on the web repository, a check is made
    to see if that vistrail still exists (r1834)
 
 
 From Release: v1.5 build 1832
 
-Enhancements: 
+Enhancements:
  - Upgraded libraries: VTK 5.6, Qt 4.6.3, python 2.6
  - Adding extension files to release
  - Add support for calling binaries in Mac bundles (r1813)
@@ -1486,27 +1543,27 @@ Enhancements:
  - Better configuration for persistence package (r1813)
  - Added scripts for manipulating the database (r1809)
  - User may now designate permissions when uploading vistrail to web repository (r1806)
- - More informative upload dialog that lists incompatibilities between 
+ - More informative upload dialog that lists incompatibilities between
    vistrail files and web repository, including PythonSource module checks (r1806)
  - Merges with web repository now updates local vistrail version (r1806)
  - Changed VisTrails version to 1.5 (r1805)
  - Files produced by FileSync modules are publishable by default.
    Use publishFile boolean to avoid publishing the files.  (r1805)
- - Server mode: added support for executing workflows and returning 
+ - Server mode: added support for executing workflows and returning
    results as pdf files (r1804)
  - Latex Extension: added support for embedding pdf files. See README file
    in extensions/latex for help (r1804)
  - Ticket #317: Add support to the spreadsheet cells also generate PDF files (r1801)
- - Spreasheet Package: Added global configuration for controlling 
-   the file type (PNG or PDF) when dumping cells (console mode). This can be set 
-in the Spreadsheet configuration panel or as a 
-command line option (use --pdf or -p 
+ - Spreasheet Package: Added global configuration for controlling
+   the file type (PNG or PDF) when dumping cells (console mode). This can be set
+in the Spreadsheet configuration panel or as a
+command line option (use --pdf or -p
 for dumping files in pdf). (r1801)
  - Added support for merging vistrails on the server side (r1798)
- - Added support to draw workflow graphs (as png and pdf) and 
+ - Added support to draw workflow graphs (as png and pdf) and
 history trees (as png) (r1798)
  - VTK Package: Added the ability to use the Transfer Funtion widget to
-create color mappings (vtkColorTransferFunction) not necessarily in 
+create color mappings (vtkColorTransferFunction) not necessarily in
 volume property.  (r1796)
  - Changed version of VTK Package to 0.9.2 (r1796)
  - Added two new output ports to vtkScaledTransferFunction: vtkPiecewiseFunction and vtkColorTransferFunction (r1796)
@@ -1539,7 +1596,7 @@ volume property.  (r1796)
  - new Dictionary module (r1721)
  - new SourceConfigurationWidget to make creating source configuration widget easier (r1720)
 
-Bug fixes: 
+Bug fixes:
  - Sometimes matplotlib plots were not refreshed in the spreadsheet (r1828)
  - Fixed the flickering issues of VTKCell on Windows (r1825)
  - Updated Web services code to work with HTTP package chages (r1824)
@@ -1556,7 +1613,7 @@ instead of importing them (r1812)
  - Fixed issue where deleted annotations were not translated to previous version (r1807)
  - Fixed issue where deleted annotations could not be mapped back to previous schemas (r1807)
  - Fixed issue where annotations were not set with the correct db flags (r1807)
- -  Generating the pdf of the workflow in console mode was not 
+ -  Generating the pdf of the workflow in console mode was not
 working.  (r1805)
  - Fixed bug in script that starts VisTrails in server mode using Xvfb (r1804)
  - Spreadsheet package: corrected paper size of generated pdfs (r1803)
@@ -1577,7 +1634,7 @@ contents to file.  (r1801)
  - When pruning a node, make sure that node is removed from the version tree display (r1782)
  - Fixed issue with re-saving to the database with groups (r1781)
  - Fixed issue with upgrading groups and database persistence (r1781)
- - References to thumbnaisl were being shared across 
+ - References to thumbnaisl were being shared across
 different vistrails (r1780)
  - Existing thumbnails were not being replaced by new ones (r1780)
  - Don't automatically switch to pruned upgrade nodes (r1779)
@@ -1615,7 +1672,7 @@ allow boost:python, etc. classes (r1739)
 
 From Release: v1.4.2 build 1716
 
-Enhancements: 
+Enhancements:
  - Ticket #290: Reload packages without restating VisTrails (r1714)
  - Package reloading support should now be fully functional (r1714)
  - Enabling access to a Web package repository. (r1712)
@@ -1638,16 +1695,16 @@ vistrail/workflow on the DB so it can be embedded on a .vtl file (r1709)
  - SQL package: added cacheResults parameter to SQLSource (r1696)
  - SQL package also handles connection timeouts (r1696)
 
-Bug fixes: 
+Bug fixes:
  - Package menu items (on the toolbar) are now properly removed when the package is disabled (r1714)
  - Package lists can now be traversed with the keyboard (r1714)
- - Fixed bug that when enabling a package dynamically sometimes VisTrails 
-would say that it failed but if you just selected the version node again the 
+ - Fixed bug that when enabling a package dynamically sometimes VisTrails
+would say that it failed but if you just selected the version node again the
 pipeline would be loaded without problems (r1711)
  - MAC and Qt4.6: VisTrails would fail to start when using MacBrushMetalStyle (r1711)
  - Mac and Qt4.6: There was not text anti-aliasing in modules and version
 nodes (r1711)
- - Qt4.6: Moving a module in the pipeline view would not move the 
+ - Qt4.6: Moving a module in the pipeline view would not move the
 connections attached to it (r1711)
  - Qt4.6: Legend Window in Visual Diff would not properly display the
 colors (r1711)
@@ -1658,16 +1715,16 @@ vistrail was not being set (r1709)
  - Properly track all modules in the hierarchy of a module loaded by a package for correct packing reloading (r1706)
  - Made reset query work immediately for the version search box (r1705)
  - Stop creating empty actions (r1704)
- - DBLocator: Removing object name from XML serialization. 
+ - DBLocator: Removing object name from XML serialization.
 This was causing inconsistencies with caching locators because we don't
 know the name of the object before we load it  (r1702)
  - Ticket #345: db connection edit bug (r1700)
- - DBLocator: Serializing also db connection user so current 
+ - DBLocator: Serializing also db connection user so current
 permissions are not overriden by the cached version (r1700)
  - Ticket #344: Ungroup failing (r1699)
  - Ensure correct modules after ungrouping (r1699)
  - Ticket #342: Method responses return None in Web Services Package (r1698)
- - Complex types were ignoring the new 'self' input port when 
+ - Complex types were ignoring the new 'self' input port when
 unwrapping contents (r1698)
  - Ticket #341: On Ubuntu, VisTrails doesn't try to install MySQLdb (if not present) when accessing the database (r1695)
  - Move Vistrail import into load_vistrail method to avoid
@@ -1675,10 +1732,10 @@ circular imports. (r1694)
 
 From Release: v1.4.1 build 1693
 
-Enhancements: 
+Enhancements:
  - Code cleanup: removed unnecessary imports in a few files (r1687)
 
-Bug fixes: 
+Bug fixes:
  - Using VisTrails as a library: added more imports to
  init_for_library.py file (r1687)
  - In the pipeline view, if you changed a module (moving it, for
@@ -1696,9 +1753,9 @@ Bug fixes:
 
 From Release: v1.4 build 1682
 
-Enhancements: 
- - EXPERIMENTAL: Packages can handle workflow upgrade requests. Still very much 
-work-in-progress. If you want to enable this, set 'automaticallyUpgradeWorkflows' 
+Enhancements:
+ - EXPERIMENTAL: Packages can handle workflow upgrade requests. Still very much
+work-in-progress. If you want to enable this, set 'automaticallyUpgradeWorkflows'
 to True in the Expert Configuration tab in the Preferences menu.   (r1665)
  - Module Packages tab in Preferences menu now shows package version. (r1665)
  - Initial revision of a sql scripting package (r1664)
@@ -1720,15 +1777,15 @@ in multiple stores (r1654)
  - Visual Diff now shows matches in white; modules shared by history are colored
 gray while modules shared by matching are colored white. (r1634)
  - Added better default descriptions to version tree. (r1634)
- - Enabled the 'SetInputArrayToProcess' method of vtkAlgorithm class to use 
-for the InfoVis package. This port was disallowed earlier for some reason, so 
+ - Enabled the 'SetInputArrayToProcess' method of vtkAlgorithm class to use
+for the InfoVis package. This port was disallowed earlier for some reason, so
 we have to watch if this will cause any issue. (r1632)
  - Added support for storing logs and thumbnails on the database. (r1625)
- - Add a new module that allows the user to control the order of execution of 
+ - Add a new module that allows the user to control the order of execution of
 two sinks. (r1618)
- - Use the module descriptor to do hashing instead of the module since the 
+ - Use the module descriptor to do hashing instead of the module since the
 descriptor used may be a different version. (r1615)
- - Fix so core and gui controllers both use the same change_selected_version 
+ - Fix so core and gui controllers both use the same change_selected_version
 logic. (r1614)
  - Streamline error handling for workflow materialization. (r1614)
  - Added Path and Directory constants and updated File constant
@@ -1747,7 +1804,7 @@ Qt's QWebView which is based on WebKit (r1596)
 pipelines (r1563)
  - Added VTKViewCell for displaying vtkRenderView compatible with the current VTK trunk. Just connect vtkRenderView to VTKViewCell. First attempt, only tested on Linux. (r1562)
 
-Bug fixes: 
+Bug fixes:
  - Ticket #334: Programmatic change_parameter problem (r1679)
  - Add translation to new ids back after input/output remap. (r1663)
  - Ticket #328: Backslashes in SQL Problem (r1662)
@@ -1766,7 +1823,7 @@ persistence. (r1662)
  - Fixed exporting Log, Workflow and Registry to XML (r1652)
  - Fixed exporting Log and Workflow to DB (r1652)
  - tag "tag" was being ignored when "version" was empty in .vtl file (r1651)
- - Copying DBLog objects was not working (r1650) 
+ - Copying DBLog objects was not working (r1650)
  - DBVistrail.do_copy doesn't fail when log is None (r1649)
  - Add copy methods to enhanced DBVistrail (r1645)
  - Don't disable entire vistrails when they contain **unused**
@@ -1847,11 +1904,11 @@ object that was created. (r1601)
  - Ticket #297: MissingPort exception not raised (r1589)
  - Fixes bug where user is never notified if a module on the
 registry is missing the requested port. (r1589)
- - Updated VisTrails Server code in the trunk to be consistent with the server 
+ - Updated VisTrails Server code in the trunk to be consistent with the server
 running in vistrails.sci.utah.edu (r1583)
- - Fixed small bug that prevented load a vistrail from the database 
+ - Fixed small bug that prevented load a vistrail from the database
 using the GUI. (r1582)
- - Partial fix to deprecation messages. Not closing the ticket because it's 
+ - Partial fix to deprecation messages. Not closing the ticket because it's
 not fixed on Windows. (r1576)
  - Ticket #283: Fold Type Mismatch Error (r1575)
  - Fix the type mismatch error message. (r1575)
@@ -1878,103 +1935,103 @@ Changes:
  - Updated VTK libs to use 5.4.2 release
  - Removes conditional expression constructs, so that code runs on Python < 2.5.
  - Including Gridfields python module
- - Using only application single instance behavior if Qt 4.4 or later is 
+ - Using only application single instance behavior if Qt 4.4 or later is
    available
  - Added support for SubWorkflows (with no database support yet)
- - Added a Control Flow Package (see user's guide to see how to use it) and 
+ - Added a Control Flow Package (see user's guide to see how to use it) and
    related example files
  - Added support for basic package repository
- - Introduced a major reorg of the registry and related classes.  Specifically, 
-   it adds serialization capabilities, and unifies the 
+ - Introduced a major reorg of the registry and related classes.  Specifically,
+   it adds serialization capabilities, and unifies the
    core.modules.module_registry.PortSpec and
    core.vistrail.port_spec.PortSpec classes.  In addition, all configuration and
-   drawing is done using PortSpecs (not Ports). It also includes revisions to 
-   the PythonSource, and Tuple configuration dialogs, and adds controller code 
-   to better support resulting updates. You can serialize the registry via the 
+   drawing is done using PortSpecs (not Ports). It also includes revisions to
+   the PythonSource, and Tuple configuration dialogs, and adds controller code
+   to better support resulting updates. You can serialize the registry via the
    "File -> Export -> Registry To ..." menu items.
- - Added support for "registry quickstart" which allows VisTrails to boot 
-   significantly faster.  It also further changes registry behavior to allow 
-   VisTrails to function without having access to the actual python modules 
-   behind the ModuleDescriptors.  Everything can be done by tracing the 
-   descriptor hierarchy instead of the mro, but we still use the mro when we 
-   have it.  Try the quickstart by starting VisTrails normally and selecting 
-   "File -> Export -> Registry To XML..." and saving the resulting file. 
-   Then restart VisTrails with the -q flag followed by the registry file: 
+ - Added support for "registry quickstart" which allows VisTrails to boot
+   significantly faster.  It also further changes registry behavior to allow
+   VisTrails to function without having access to the actual python modules
+   behind the ModuleDescriptors.  Everything can be done by tracing the
+   descriptor hierarchy instead of the mro, but we still use the mro when we
+   have it.  Try the quickstart by starting VisTrails normally and selecting
+   "File -> Export -> Registry To XML..." and saving the resulting file.
+   Then restart VisTrails with the -q flag followed by the registry file:
    (ie "./vistrails -q <registry_filename>")
- - Use solid colors instead of textured backgrounds on graphics views, 
+ - Use solid colors instead of textured backgrounds on graphics views,
    since Qt (or pyqt) redraws much slower when these are enabled.
  - Improved layout of modules in visual diff and analogy
  - Added support for displaying thumbnails below the notes panel and/or as a
    version node tooltip. See Thumbnails Preference tab for changing specific
    options
  - Improved menu File organization
- - Added translate* methods for versions 0.9.3 and up, and updated code to use 
-   them.  This should ensure that xml vistrails, workflows, logs, and 
+ - Added translate* methods for versions 0.9.3 and up, and updated code to use
+   them.  This should ensure that xml vistrails, workflows, logs, and
    registries, can be updated when schemas change.  The idea is that you open a
-   vistrail, and if it is not in the current schema, it is translated to the 
+   vistrail, and if it is not in the current schema, it is translated to the
    current schema, no matter if you're using an xml-based file or relational
-   database.  When saving the vistrail, the db code will attempt to translate 
-   the vistrail to the schema of the database (even if it is an older version) 
-   before saving.  For xml-based files, you may optionally specify to save the 
-   file as an older version.  Currently, you are only able to translate back 
+   database.  When saving the vistrail, the db code will attempt to translate
+   the vistrail to the schema of the database (even if it is an older version)
+   before saving.  For xml-based files, you may optionally specify to save the
+   file as an older version.  Currently, you are only able to translate back
    to 0.9.3 (See menu "File -> Export -> Stable Version").
  - Added initial support for workflow debugging
- - Added the progress functionality allowing modules to show their progress 
+ - Added the progress functionality allowing modules to show their progress
    during the compute() by calling self.logging.update_progress(self, progress).
- - The VisTrails Console is now a dockable window. Also fixed a long-standing 
-   bug that hitting enter when cursor is not at EOL will carry garbage to next 
-   line. Fixed also a bug where if user types fast enough in the shell, the 
+ - The VisTrails Console is now a dockable window. Also fixed a long-standing
+   bug that hitting enter when cursor is not at EOL will carry garbage to next
+   line. Fixed also a bug where if user types fast enough in the shell, the
    input fails.
- - Added support for constants to generate custom hashes. The main current 
-   usecase is File constants, which hash against filename and last-modified 
-   times. The biggest consequence is that pipelines that use File objects will 
-   now be smarter when it comes to files that change upstream, reducing the 
+ - Added support for constants to generate custom hashes. The main current
+   usecase is File constants, which hash against filename and last-modified
+   times. The biggest consequence is that pipelines that use File objects will
+   now be smarter when it comes to files that change upstream, reducing the
    number of times one has to clear the cache.
- - Improved the initialization of packages: if package fails during call to 
-   initialize(), we report failure, disable the package, and continue 
-   initialization. This allows startup process to continue. Also in preferences 
-   pane, when package fails to load, we now display the error message; 
-   previously, it just said "error". (There's still the problem of reporting 
+ - Improved the initialization of packages: if package fails during call to
+   initialize(), we report failure, disable the package, and continue
+   initialization. This allows startup process to continue. Also in preferences
+   pane, when package fails to load, we now display the error message;
+   previously, it just said "error". (There's still the problem of reporting
    packages that load ok but fail to initialize)
- - Changed view behavior so that the initial pipeline view upon opening a 
+ - Changed view behavior so that the initial pipeline view upon opening a
    vistrail is reset.
  - Added support for importing workflows that have been saved as xml.
- - Added a function to change parameters from the api along with a function to 
-   find modules by name (and package/namespace if specified). Note that the 
-   param_list in change_parameter requires a list of strings---the serialized 
+ - Added a function to change parameters from the api along with a function to
+   find modules by name (and package/namespace if specified). Note that the
+   param_list in change_parameter requires a list of strings---the serialized
    representations of the parameters!
- - Updated the gen_vtk_examples scripts to create better pipeline 
+ - Updated the gen_vtk_examples scripts to create better pipeline
    specifications.
  - Added pc3 package for the Third Provenance Challenge.
  - VTK package:
-   + Added support for Picking in a VisTrails cell. By default, the 
-     vtkRenderWindow contains a picker. The 'p' key activates the pick test in 
-     the render window.  A new vtkPicker can be attached to the VTKCell to 
+   + Added support for Picking in a VisTrails cell. By default, the
+     vtkRenderWindow contains a picker. The 'p' key activates the pick test in
+     the render window.  A new vtkPicker can be attached to the VTKCell to
      modify the picking behavior according to the mechanism provided by VTK.
    + All VTK Filters are registered to show their progress while executing
-   + Added support of InfoVis to VTKCell. Notice that the saving camera feature 
-     does not working with InfoVis (because there are no direct SetCamera port 
+   + Added support of InfoVis to VTKCell. Notice that the saving camera feature
+     does not working with InfoVis (because there are no direct SetCamera port
      for InfoVis classes).
-   + Added support for changing the backgorund color of a vtkRenderer using 
+   + Added support for changing the backgorund color of a vtkRenderer using
      color widget
  - Spreadsheet:
    + Added exporting images and echo mode feature
-     
+
 Bug Fixes:
  - Fixed bug where queries with multiple sources would fail in query by example
  - Spreadsheet:
    + Jpg/gif/png images can be correctly displayed on the spreadsheet
    + Fixed many interaction bugs
    + temp files were not being correctly removed
- - VTK state changes with statically overloaded parameters are now handled 
+ - VTK state changes with statically overloaded parameters are now handled
    correctly. Typical example is vtkTreeMapView::SetLayoutStrategy
- - Fixes a  bug where the configuration wouldn't be setup properly for a new 
+ - Fixes a  bug where the configuration wouldn't be setup properly for a new
    .vistrails directory.
  - Fixed plot.vt example to work with matplotlib version >= 0.98.5.2
- - Catch exceptions when writing file to raise dialog box if there is an error.  
-   This fixes bug that nothing was being shown to the user in case of a bad 
+ - Catch exceptions when writing file to raise dialog box if there is an error.
+   This fixes bug that nothing was being shown to the user in case of a bad
    write (ie, file permissions insufficient).
- - Fixed PythonSource syntax highlighter error and (yes!) there's a line number 
+ - Fixed PythonSource syntax highlighter error and (yes!) there's a line number
    for debugging now.
  - Fixed startup "bug" when package with dependencies fails to load
  - Copy/paste is relative to the current canvas
@@ -1982,12 +2039,12 @@ Bug Fixes:
  - ImageMagick package:
    + Added CombineRGBA class, configuration object, and fixed GaussianBlur bug
    + Removed requirement check that prevented the package from loading if
-     ImageMagick was not found in the path  
- - Bug fixes in Windows installer: 
-   + Installer always creates desktop shortcut and uninstaller did not remove 
+     ImageMagick was not found in the path
+ - Bug fixes in Windows installer:
+   + Installer always creates desktop shortcut and uninstaller did not remove
      all pyc files
  - Other minor fixes
-     
+
 From Release v1.2.1 build 1336
 Changes:
  - Schema upgrade. Current version: 0.9.3. If you keep vt files in a database,
@@ -2013,10 +2070,10 @@ Changes:
  - Added new items to the View Menu to show and hide branches and nodes
  - Restored the "Clear Recent Searches" in the search box in the version
    properties
- - Added command line options to execute workflows and show only 
+ - Added command line options to execute workflows and show only
    the spreadsheet when opening
  - Logging information is now stored in .vt file
- 
+
  Bug fixes:
  - Copying and Pasting dynamic modules, such as PythonSource threw an error
  - File version was not set correctly
@@ -2036,28 +2093,28 @@ Changes:
     * Pressing 'ESC', 'Ctrl-F', 'F11' or 'Alt-Enter'
     * Right click on the fullscreen mode and unselect 'Fullscreen'
   - Border color of selected cells in the spreadsheet is now consistent
- 
+
 From Release: v1.2 build 1263
 Changes:
  - Version tags can be edited directly by double-clicking the tree nodes
  - Added basic support for package management on Fedora Core through YUM
  - Added compatibility with Qt4.4
  - Added support for dynamic addition of modules in packages
- - Pipeline, Query and History views are now reset with Ctrl+R 
+ - Pipeline, Query and History views are now reset with Ctrl+R
   (Command+R, on a Mac) so that it does not interfere with version text
-  items 
- - Add a transparent overlay to the version viewer that shows the 
-   selected version's properties.  By default this is turned off, but 
+  items
+ - Add a transparent overlay to the version viewer that shows the
+   selected version's properties.  By default this is turned off, but
    can be enabled under the view menu.
- - Added standalone functions that help third-party applications that 
+ - Added standalone functions that help third-party applications that
    need an API into VisTrails, located on vistrails/api directory.
  - Improvements in the command-line for both non-interactive and interactive mode:
    + Added support for executing more than one workflow at a time
    + Included support for opening a vistrails from the database
      Now a version (tag or id) can be specified in the command-line
-     together with the filename (or vistrails id when opening from the 
-     database). 
- - Added support for opening special vistrails files (.vtl files) on 
+     together with the filename (or vistrails id when opening from the
+     database).
+ - Added support for opening special vistrails files (.vtl files) on
    the web (wiki integration)
  - WebServices package: added support for loading wsdl urls automatically
    when opening a pipeline using them
@@ -2070,11 +2127,11 @@ Bug fixes:
  - Query display didn't ghost module fill
  - Query execution and reset didn't update pipeline view
  - Connection line was drawn twice in query canvas
- - Editing parameters in query mode was cumbersome because of 
+ - Editing parameters in query mode was cumbersome because of
    bad focus management
  - Fixed database support to pipelines with groups
  - Fixed "Add Database" dialog confusing behavior
- - Fixed a long-standing bug on PythonCalc where ModuleError was 
+ - Fixed a long-standing bug on PythonCalc where ModuleError was
    being called without the self parameter
  - HTTP Package: slightly better error handling with malformed URLs
  - Improved general GUI performance when changing versions, including
@@ -2093,15 +2150,15 @@ Changes:
  - Added vistrails files for many of the vtk examples
  - Added support for packages to create menus in the builder window
    (see spreadsheet package for an example)
- - Modules and input ports can be automatically registered by 
-   setting per-module _input_ports and _output_ports fields and 
+ - Modules and input ports can be automatically registered by
+   setting per-module _input_ports and _output_ports fields and
    per-package _modules field (see teem package at www.vistrails.org)
  - Removed graphviz dependency
  - Ability to export workflow and history views to PDF
  - In WevServices Package: Improved support to web services using
-   complex types 
- - Added a BooleanWidget, so Booleans are now given by a checkbox 
- - In VTK Package: 
+   complex types
+ - Added a BooleanWidget, so Booleans are now given by a checkbox
+ - In VTK Package:
    + Added Transfer Function Widget
    + Added dataset inspectors, special vtk modules that allow users
      to easily query bounds and scalar range of an object.
@@ -2115,8 +2172,8 @@ Bug fixes:
  - Fixed analogies
  - Version tree was not refreshed when analogy was applied on the spreadsheet
  - Fixed double drawing of module names and version node names on the mac
- - Added support for running Visual Diff for pipelines with 
-   PythonSources and other modules with a local registry that 
+ - Added support for running Visual Diff for pipelines with
+   PythonSources and other modules with a local registry that
    have different input and output ports
  - Changed the behavior of selecting new cell locations on the
    spreadsheet when it is full (cycling vs. using always the first
@@ -2125,25 +2182,25 @@ Bug fixes:
    written to the startup.xml file
 
 ----------------------------------------
-From Release v1.0.1 build 1063 
+From Release v1.0.1 build 1063
 Changes:
- - In VTK Package: Exporters now take a VTKCell as input when exporting 
+ - In VTK Package: Exporters now take a VTKCell as input when exporting
    the scene
- 
+
 Bug fixes:
- - Caching mechanism: VTK modules didn't take the connections into account 
+ - Caching mechanism: VTK modules didn't take the connections into account
    when deciding whether to cache or not. This is related with the error
    message "function expects 1 argument, got 0 instead".
- - Fixed Parameter Exploration bugs where parameter widgets did not update 
+ - Fixed Parameter Exploration bugs where parameter widgets did not update
    correctly when changes are made to the pipeline.
 
 
 From Release 1.0 build 1024
 Changes:
  - Added a preference option to enable/disable Brushed Metal Style on Mac
- 
+
 Bug fixes:
- - Opening/Saving a .vt file on a path with spaces was not working on Unix 
+ - Opening/Saving a .vt file on a path with spaces was not working on Unix
    systems
  - Creating/Applying analogies  on the spreadsheet
  - Opening/Saving spreadsheets
@@ -2162,7 +2219,7 @@ Bug fixes:
  - Modules downstream of a error module were green (as if they were executed)
  - Select All button on the spreadsheet was not working
  - Creating a version from the spreadsheet didn't work
- - Tags weren't deleted when pruning the tree 
+ - Tags weren't deleted when pruning the tree
  - Booleans weren't supported in parameter exploration
  - Fixed double-clicking on a vt file when opening vistrails on Windows
 

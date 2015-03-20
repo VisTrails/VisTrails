@@ -40,7 +40,6 @@ from PyQt4 import QtGui, QtCore
 from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.theme import CurrentTheme
-from pe_view import QParamExploreView 
 
 import weakref
 
@@ -109,9 +108,6 @@ class QParamExploreInspector(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def stateChanged(self):
         self.pe_properties.updateVersion()
-
-    def set_exploration(self, pe = None):
-        self.stateChanged()
 
     def backPressed(self):
         self.pe_properties.goBack()

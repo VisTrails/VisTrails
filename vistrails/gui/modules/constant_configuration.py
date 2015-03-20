@@ -82,6 +82,18 @@ class ConstantWidgetMixin(object):
             self.contentsChanged.emit((self, newContents))
 
 class ConstantWidgetBase(ConstantWidgetMixin):
+    class FocusFilter(QtCore.QObject):
+        def __init__(self, cwidget):
+            QtCore.QObject.__init__(self, cwidget)
+            self.__cwidget = cwidget
+
+        def eventFilter(self, o, event):
+            if event.type() == QtCore.QEvent.FocusIn:
+                self.__cwidget._focus_in(event)
+            elif event.type() == QtCore.QEvent.FocusOut:
+                self.__cwidget._focus_out(event)
+            return False
+
     def __init__(self, param):
         if param is None:
             raise ValueError("Must pass param as first argument.")
@@ -99,6 +111,12 @@ class ConstantWidgetBase(ConstantWidgetMixin):
         else:
             self.setContents(param.strValue)
 
+        self.__focus_filter = self.FocusFilter(self)
+        self.installEventFilter(self.__focus_filter)
+
+    def watchForFocusEvents(self, widget):
+        widget.installEventFilter(self.__focus_filter)
+
     def setDefault(self, value):
         # default to setting the contents silenty
         self.setContents(value, True)
@@ -108,28 +126,24 @@ class ConstantWidgetBase(ConstantWidgetMixin):
 
     def contents(self):
         raise NotImplementedError("Subclass must implement this method.")
-        
-    ###########################################################################
-    # event handlers
 
-    def focusInEvent(self, event):
+    def eventFilter(self, o, event):
+        if event.type() == QtCore.QEvent.FocusIn:
+            self._focus_in(event)
+        elif event.type() == QtCore.QEvent.FocusOut:
+            self._focus_out(event)
+        return False
+
+    def _focus_in(self, event):
         """ focusInEvent(event: QEvent) -> None
         Pass the event to the parent
 
         """
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
-        for t in self.__class__.mro()[1:]:
-            if issubclass(t, QtGui.QWidget):
-                t.focusInEvent(self, event) 
-                break
 
-    def focusOutEvent(self, event):
+    def _focus_out(self, event):
         self.update_parent()
-        for t in self.__class__.mro()[1:]:
-            if issubclass(t, QtGui.QWidget):
-                t.focusOutEvent(self, event) 
-                break
         if self.parent():
             QtCore.QCoreApplication.sendEvent(self.parent(), event)
 

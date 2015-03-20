@@ -185,7 +185,6 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         for f in xmlDoc.getElementsByTagName('function'):
             # Retrieve function attributes
             f_id = long(f.attributes['id'].value)
-            f_name = str(f.attributes['name'].value)
             f_is_alias = (str(f.attributes['alias'].value) == 'True')
             # Search the parameter treeWidget for this function and add it directly
             newEditor = None

@@ -47,14 +47,14 @@ import sys
 import warnings
 
 from vistrails.core import debug, get_vistrails_application, system
-from vistrails.core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject, \
+    get_vistrails_configuration
 import vistrails.core.data_structures.graph
-import vistrails.core.db.io
-from vistrails.core.modules.module_registry import ModuleRegistry, \
-                                         MissingPackage, MissingPackageVersion
+from vistrails.core.modules.module_registry import MissingPackage, \
+    MissingPackageVersion
 from vistrails.core.modules.package import Package
 from vistrails.core.requirements import MissingRequirement
-from vistrails.core.utils import VistrailsInternalError, InstanceObject, \
+from vistrails.core.utils import VistrailsInternalError, \
     versions_increasing, VistrailsDeprecation
 import vistrails.packages
 
@@ -124,7 +124,6 @@ class PackageManager(object):
         if self._userpackages is not None:
             return self._userpackages
         # Imports user packages directory
-        conf = self._startup.temp_configuration
         old_sys_path = copy.copy(sys.path)
         userPackageDir = system.get_vistrails_directory('userPackageDir')
         if userPackageDir is not None:
@@ -183,8 +182,23 @@ class PackageManager(object):
         # Compute the list of available packages, _available_packages
         self.build_available_package_names_list()
 
-        for pkg in self._startup.enabled_packages.itervalues():
-            self.add_package(pkg.name, prefix=pkg.prefix)
+        if get_vistrails_configuration().loadPackages:
+            for pkg in self._startup.enabled_packages.itervalues():
+                self.add_package(pkg.name, prefix=pkg.prefix)
+        else:
+            try:
+                basic_pkg = self._startup.enabled_packages['basic_modules']
+            except KeyError:
+                pass
+            else:
+                self.add_package(basic_pkg.name, prefix=basic_pkg.prefix)
+
+            try:
+                abs_pkg = self._startup.enabled_packages['abstraction']
+            except KeyError:
+                pass
+            else:
+                self.add_package(abs_pkg.name, prefix=abs_pkg.prefix)
 
     def _import_override(self,
                          name, globals={}, locals={}, fromlist=[], level=-1):

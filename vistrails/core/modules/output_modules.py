@@ -1,22 +1,20 @@
 from __future__ import division
 
-import ast
-import copy
 import os
 import sys
 import unittest
 
-from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, ConfigURL, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
+from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
-from vistrails.core.modules.config import IPort, OPort, ModuleSettings
+from vistrails.core.modules.config import IPort, ModuleSettings
 import vistrails.core.system
 
 class OutputMode(object):
     mode_type = None
     priority = -1
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         return False
 
     def compute_output(self, output_module, configuration=None):
@@ -308,8 +306,8 @@ class StdoutMode(OutputMode):
     priority = 2
     config_cls = StdoutModeConfig
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         return True
 
 class FileModeConfig(OutputModeConfig):
@@ -334,8 +332,8 @@ class FileMode(OutputMode):
     # need to reset this after each execution!
     series_next = 0
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         return True
 
     @classmethod
@@ -506,12 +504,47 @@ class ImageFileMode(FileMode):
     config_cls = ImageFileModeConfig
     mode_type = "imageFile"
 
+class IPythonModeConfig(OutputModeConfig):
+    mode_type = "ipython"
+    _fields = []
+
+class IPythonMode(OutputMode):
+    mode_type = "ipython"
+    priority = 2
+    config_cls = IPythonModeConfig
+
+    @staticmethod
+    def can_compute():
+        try:
+            import __main__ as main
+            if hasattr(main, '__file__'):
+                return False
+            import IPython.core.display
+            return True
+        except ImportError:
+            return False
+
+    def compute_output(self, output_module, configuration=None):
+        from IPython.core.display import display
+
+        value = output_module.get_input('value')
+        display(value)
+
+class IPythonHtmlMode(IPythonMode):
+    mode_type = "ipython"
+
+    def compute_output(self, output_module, configuration=None):
+        from IPython.core.display import display, HTML
+
+        value = output_module.get_input('value')
+        display(HTML(filename=value.name))
+
 class RichTextOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
-    # need specific spreadsheet richtext mode here
-    pass
+    _input_ports = [('value', 'File')]
+    _output_modes = [FileToFileMode, IPythonHtmlMode]
 
-_modules = [OutputModule, GenericOutput, FileOutput]
+_modules = [OutputModule, GenericOutput, FileOutput, RichTextOutput]
 
 # need to put WebOutput, ImageOutput, RichTextOutput, SVGOutput, etc. elsewhere
 
