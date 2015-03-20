@@ -54,6 +54,8 @@ requirements = [
     'certifi',
     'backports.ssl_match_hostname',
     'file_archive>=0.6',
+    'xlrd',
+    'xlwt',
 ]
 
 if sys.version_info < (2, 7):
