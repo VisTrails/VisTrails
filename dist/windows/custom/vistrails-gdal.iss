@@ -115,8 +115,8 @@ Source: ..\Input\qt.conf; DestDir: {app}\Python27
 ;Source: D:\Qt\4.6.3\plugins\iconengines\*; DestDir: {app}\vistrails\Python26\plugins\iconengines
 ;Source: D:\Qt\4.6.3\plugins\imageformats\*; DestDir: {app}\vistrails\Python26\plugins\imageformats
 ;Source: Input\qt.conf; DestDir: {app}\vistrails\Python26
-Source: C:\Windows\system32\python27.dll; DestDir: {app}
-Source: C:\Windows\system32\python27.dll; DestDir: {app}\Python27
+Source: C:\Windows\SysWOW64\python27.dll; DestDir: {app}
+Source: C:\Windows\SysWOW64\python27.dll; DestDir: {app}\Python27
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.dll; DestDir: {app}
 Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.pyd; DestDir: {app}
 ;Source: D:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
