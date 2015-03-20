@@ -50,7 +50,7 @@ from vistrails.core.system import get_vistrails_default_pkg_prefix, systemType, 
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
                                        UpgradeModuleRemap, UpgradePackageRemap
 from vistrails.core.vistrail.connection import Connection
-from vistrails.core.wrapper.pythonclass import BaseClassModule, gen_class_module
+from .pythonclass import BaseClassModule, gen_class_module
 
 from .tf_widget import _modules as tf_modules
 from .inspectors import _modules as inspector_modules
