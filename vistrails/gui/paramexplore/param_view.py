@@ -125,6 +125,12 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         else:
             self.pipeline_view.scene().clear()
         self.pipeline_view.updateAnnotatedIds(pipeline)
+        # this ensures the correct pipeline is set when updating exploration
+        self.get_palette().set_pipeline(pipeline)
+
+    def get_palette(self):
+        from vistrails.gui.paramexplore.pe_inspector import QParamExploreInspector
+        return QParamExploreInspector.instance()
 
 class QParameterWidget(QSearchTreeWindow):
     """

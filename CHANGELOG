@@ -49,14 +49,17 @@ Behavior change for package developers:
  - output port drawn from left to right; change your sort_keys
  - constant widget use eventfilter; call installEventFilter for child widgets
 
-From Release: v2.1.5 build 2220bd346ef1 from v2.1 branch
+From Release: v2.1.5 build 9a01936a5640 from v2.1 branch
+
+Enhancements:
+ - Tabledata package updated to version 0.1.5
+ - New google maps cell package
+ - New distribution packaging
 
 Bug fixes:
- - Tabledata package updated to version 0.1.5
  - Fixed problems with parameter explorations:
    * Using more than one unset function now works
-   * Fixed missing functions when switching views
- - New distribution packaging
+   * Fixed update logic when switching views
 
 From Release: v2.1.4 build 269e4808eca3 from v2.1 branch
 
