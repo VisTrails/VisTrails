@@ -11,14 +11,14 @@ LicenseFile={#root}\LICENSE
 
 ; Set 32/64 bit differences
 #ifdef bit64
-  #define python "Python27"
-  #define bits "x86"
-  #define nbits "32"
-  #define sys "system32"
-#else
   #define python "Python27_64"
   #define bits "x64"
   #define nbits "64"
+  #define sys "Sysnative"
+#else
+  #define python "Python27"
+  #define bits "x86"
+  #define nbits "32"
   #define sys "SysWOW64"
 #endif
 
