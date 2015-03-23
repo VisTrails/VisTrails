@@ -1009,14 +1009,14 @@ class QArgWidget(QtGui.QWidget):
             self.suffix.setText(self.options.get('suffix', ''))
         self.typeChanged()
         self.klassChanged()
-            
+
     def toList(self):
         self.getValues()
         if self.argtype not in self.stdTypes:
-            return [self.argtype, self.name, self.klass, self.options]
+            return [self.argtype, self.name, self.klass, dict(self.options)]
         else:
-            return [self.name, self.klass, self.options]
-            
+            return [self.name, self.klass, dict(self.options)]
+
     def fromList(self, arg):
         if self.argtype not in self.stdTypes:
             self.argtype, self.name, klass, self.options = arg
