@@ -2128,8 +2128,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if srcModule.module.is_vistrail_var():
             connectionItem.hide()
             var_uuid = srcModule.module.get_vistrail_var()
-            dstPortItem.addVistrailVar(
-                self.controller.get_vistrail_variable_by_uuid(var_uuid))
             dstPortItem.addVistrailVar(var_uuid)
         self.update_connections([srcModule.id, dstModule.id])
         return connectionItem
