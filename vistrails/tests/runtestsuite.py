@@ -420,8 +420,13 @@ if compare_use_vtk:
         a = removeAlpha(prev)
         b = removeAlpha(next)
         idiff = vtk.vtkImageDifference()
-        idiff.SetInput(a)
-        idiff.SetImage(b)
+        if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= \
+           LooseVersion('6.0.0'):
+            idiff.SetInputData(a)
+            idiff.SetImageData(b)
+        else:
+            idiff.SetInput(a)
+            idiff.SetImage(b)
         idiff.Update()
         return idiff.GetThresholdedError()
 else:

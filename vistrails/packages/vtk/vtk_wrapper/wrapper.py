@@ -1,5 +1,7 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -31,10 +33,24 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+#import warnings
+
 
 from __future__ import division
 
-identifier = 'org.vistrails.vistrails.vtk'
-old_identifiers = ['edu.utah.sci.vistrails.vtk']
-name = 'VTK'
-version = '1.0.0'
+class VTKInstanceWrapper(object):
+    def __init__(self, instance, module_id=None):
+        self.vtkInstance = instance
+        self.module_id = module_id
+    # For future use: warns when .vtkInstance is used
+    #@property
+    #def vtkInstance(self):
+    #    warnings.warn(
+    #            "Dereferencing VTK object with '.vtkInstance' is not needed "
+    #            "anymore, call method directly",
+    #            DeprecationWarning,
+    #            stacklevel=2)
+    #    return self.__vtkInstance
+
+    def __getattr__(self, name):
+        return getattr(self.vtkInstance, name)

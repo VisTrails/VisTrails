@@ -33,7 +33,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 # Author: Prabhu Ramachandran
 # Copyright (c) 2004, Enthought, Inc.
 # License: BSD Style.
@@ -43,8 +42,6 @@ modules.  This can be used (among other things) to generate the
 traitified VTK classes in the correct order.
 
 """
-
-from __future__ import division
 
 import __builtin__
 
