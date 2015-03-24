@@ -109,7 +109,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
             new_vis_desc = ModuleDescriptor(package=identifier,
                                             name=vis_name,
-                                            version='0.3')
+                                            version='0.3.0')
             new_vis_module = \
                 controller.create_module_from_descriptor(new_vis_desc,
                                                          new_x, new_y)
@@ -148,13 +148,13 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                                   "allowLegacy",
                                                   ["True"])
         return [('add', new_function, 'module', module.id)]
-    remap.add_module_remap(UpgradeModuleRemap('0.1', '0.3', '0.3',
+    remap.add_module_remap(UpgradeModuleRemap('0.1.0', '0.3.0', '0.3.0',
                                               new_module="GMapCell",
                                               module_name="GMapCell",
                             dst_port_remap={'table': insert_vis("GMapSymbols",
                                             {None: add_legacy}),
                                             'colormapName': None}))
-    remap.add_module_remap(UpgradeModuleRemap('0.1', '0.3', '0.3',
+    remap.add_module_remap(UpgradeModuleRemap('0.1.0', '0.3.0', '0.3.0',
                                               new_module="GMapCell",
                                               module_name="GMapHeatmapCell",
                             dst_port_remap={'table': insert_vis("GMapHeatmap",
@@ -167,7 +167,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                             'opacity': None,
                                             'radius': None,
                                             }))
-    remap.add_module_remap(UpgradeModuleRemap('0.1', '0.3', '0.3',
+    remap.add_module_remap(UpgradeModuleRemap('0.1.0', '0.3.0', '0.3.0',
                                               new_module="GMapCell",
                                               module_name="GMapCircleCell",
                             dst_port_remap={'table': insert_vis("GMapCircles",
@@ -182,7 +182,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                             'fillColor': None,
                                             'fillOpacity': None,
                                             }))
-    remap.add_module_remap(UpgradeModuleRemap('0.1', '0.3', '0.3',
+    remap.add_module_remap(UpgradeModuleRemap('0.1.0', '0.3.0', '0.3.0',
                                               new_module="GMapCell",
                                               module_name="GMapSymbolCell",
                             dst_port_remap={'table': insert_vis("GMapSymbols",
