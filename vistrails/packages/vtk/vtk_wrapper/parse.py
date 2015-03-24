@@ -49,6 +49,8 @@ parser = VTKMethodParser()
 disallowed_classes = set(
     [
         'simplewrapper', # ticket 464: VTK 5.10 on OpenSuSE needs this
+        'vtkEventQtSlotConnect', # VTK 5.10.1 OpenSuSE (uses QObject)
+        'vtkQtView', # VTK 5.10.1 OpenSuSE (uses QWidget)
         'vtkCriticalSection',
         'vtkDataArraySelection',
         'vtkDebugLeaks',
