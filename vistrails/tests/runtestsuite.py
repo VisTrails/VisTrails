@@ -178,6 +178,11 @@ from vistrails.core.packagemanager import get_package_manager
 # after vistrails
 import unittest
 
+# reinitializing arguments and options so VisTrails does not try parsing them
+sys.argv = sys.argv[:1]
+vistrails.gui.application.VistrailsApplicationSingleton.use_event_filter = \
+        False
+
 
 root_directory = os.path.realpath(vistrails_root_directory())
 
@@ -238,9 +243,6 @@ def module_filter(name):
     return False
 
 ###############################################################################
-# reinitializing arguments and options so VisTrails does not try parsing them
-sys.argv = sys.argv[:1]
-
 # creates the app so that testing can happen
 
 # We need the windows so we can test events, etc.

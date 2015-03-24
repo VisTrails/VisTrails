@@ -72,7 +72,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     there will be only one instance of the application during VisTrails
     
     """
-    
+
+    use_event_filter = system.systemType in ['Darwin']
+
     def __call__(self):
         """ __call__() -> VistrailsApplicationSingleton
         Return self for calling method
@@ -92,7 +94,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
-        if system.systemType in ['Darwin']:
+        if self.use_event_filter:
             self.installEventFilter(self)
         self.builderWindow = None
         # local notifications
