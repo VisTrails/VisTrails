@@ -117,6 +117,8 @@ disallowed_classes = set(
         'vtkInformationVariantKey',
         'QImage',
         'vtkPLOT3DReader',
+        # For VTK 6.2
+        'QuantileDefinitionType'
     ])
 
 disallowed_modules = set(
@@ -134,6 +136,7 @@ def create_module(base_cls_name, node):
 
     """
     if node.name in disallowed_modules: return []
+    if node.name == 'int': return [] #enum
     def obsolete_class_list():
         lst = []
         items = ['vtkInteractorStyleTrackball',
