@@ -33,6 +33,8 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from itertools import izip
 
 from vistrails.core.modules.vistrails_module import Module

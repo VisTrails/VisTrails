@@ -33,7 +33,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-# """ Convert VTK classes into functions using spec in vtk.xml"""
+
+""" Convert VTK classes into functions using spec in vtk.xml"""
+
+from __future__ import division
+
 import locale
 import os
 import tempfile
