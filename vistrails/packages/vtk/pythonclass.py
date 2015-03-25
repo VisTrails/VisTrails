@@ -220,6 +220,7 @@ def gen_class_module(spec, lib, klasses, **module_settings):
          '_input_spec_table': _input_spec_table,
          '_output_spec_table': _output_spec_table,
          '_module_spec': spec,
+         'is_cacheable': lambda self:spec.cacheable,
          '_lib': lib}
 
     superklass = klasses.get(spec.superklass, BaseClassModule)
