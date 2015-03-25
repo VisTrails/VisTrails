@@ -200,9 +200,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         vistrails.gui.theme.initializeCurrentTheme()
         VistrailsApplicationInterface.init(self, optionsDict, args)
         
-        if self.temp_configuration.check('jobRun') or \
+        if self.temp_configuration.check('jobInfo') or \
            self.temp_configuration.check('jobList'):
-            self.temp_configuration.interactiveMode = False
+            self.temp_configuration.batch = True
 
         # singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
@@ -594,7 +594,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                         mashups, auto_save=False)
         text = "### Jobs in workflow ###\n"
         text += "name | start date | status\n"
-        workflow = controller.jobMonitor.workflows[int(version)]
+        workflow = [wf for wf in controller.jobMonitor.workflows.itervalues()
+                    if wf.version == int(version)]
+        if len(workflow) < 1:
+            text = "No job for workflow with id %s" % version
+            print text
+            return text
+        workflow = workflow[0]
         text += '\n'.join(
             ["%s %s %s" %(i.name,
                           i.start,
