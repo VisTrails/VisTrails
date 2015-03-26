@@ -44,7 +44,7 @@ from vistrails.core.configuration import ConfigField
 from vistrails.core.modules.basic_modules import PathObject, \
                                                        identifier as basic_pkg
 from vistrails.core.modules.config import ModuleSettings
-from vistrails.core.modules.vistrails_module import ModuleError
+from vistrails.core.modules.vistrails_module import ModuleError, Module
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
     ImageFileModeConfig, IPythonMode, IPythonModeConfig
@@ -73,6 +73,11 @@ if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
     from .vtkcell import _modules as cell_modules
     from .vtkhandler import _modules as handler_modules
     _modules += cell_modules + handler_modules
+else:
+    # Add abstract VTKCell so that VTKCell type ports work
+    class VTKCell(Module):
+        _settings = {'abstract': True}
+    _modules += [VTKCell]
 
 
 ################# OUTPUT MODULES #############################################
