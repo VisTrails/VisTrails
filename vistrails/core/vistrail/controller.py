@@ -2742,7 +2742,7 @@ class VistrailController(object):
             except IndexError:
                 break
 
-            # mount childs list
+            # mount children list
             if current in am and self.vistrail.is_pruned(current):
                 children = []
             else:
@@ -2776,7 +2776,7 @@ class VistrailController(object):
                         tersedVersionTree.add_edge(parent,current,0)
 
                     # update the parent info that will be used by the
-                    # childs of this node
+                    # children of this node
                     parentToChildren = current
                 else:
                     parentToChildren = parent

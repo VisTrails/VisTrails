@@ -146,7 +146,7 @@ class VistrailsTreeLayoutLW(object):
             mapTreeNodes[id] = tree.addNode(None,width,height,(id,tag))
 
         # preserve the order of the edges
-        # to add the childs to their parents
+        # to add the children to their parents
         for (parentId, childId) in edges:
             # print "add arc into tree %d -> %d" % (parentId, childId)
             parent = mapTreeNodes[parentId]
