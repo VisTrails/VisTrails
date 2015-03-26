@@ -170,7 +170,6 @@ class VistrailController(QtCore.QObject, BaseController):
                                   CurrentTheme.VERSION_FONT_METRIC.height(), 
                                   CurrentTheme.VERSION_LABEL_MARGIN[0], 
                                   CurrentTheme.VERSION_LABEL_MARGIN[1])
-        self.animate_layout = False
         #this was moved to BaseController
         #self.num_versions_always_shown = 1
         BaseController.__init__(self, vistrail, locator, abstractions, 
@@ -238,7 +237,6 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         self.reset_version_view = reset_version_view
-        self.animate_layout = animate_layout
         #FIXME: in the future, rename the signal
         try:
             self.emit(QtCore.SIGNAL('vistrailChanged()'))
@@ -646,83 +644,8 @@ class VistrailController(QtCore.QObject, BaseController):
         if self._current_full_graph is None:
             self.recompute_terse_graph()
 
-        if not self.animate_layout:
-            return (self._current_terse_graph, self._current_full_graph,
-                    self._current_graph_layout)
-
-        graph_layout = copy.deepcopy(self._current_graph_layout)
-        terse_graph = copy.deepcopy(self._current_terse_graph)
-        am = self.vistrail.actionMap
-        step = 1.0/(1.0+math.exp(-(step*12-6))) # use a logistic sigmoid function
-        
-        # Adding nodes to tree
-        for (c_id, c_node) in self._current_graph_layout.nodes.iteritems():
-            if self._previous_graph_layout.nodes.has_key(c_id):
-                p_node = self._previous_graph_layout.nodes[c_id]
-            else: 
-                p_id = c_id
-                # Find closest child of contained in both graphs
-                while not self._previous_graph_layout.nodes.has_key(p_id):
-                    # Should always have exactly one child
-                    p_id = [to for (to, _) in \
-                                self._current_full_graph.adjacency_list[p_id]
-                            if (to in am) and \
-                                not self.vistrail.is_pruned(to)][0]
-                p_node = self._previous_graph_layout.nodes[p_id]
-
-            # Interpolate position
-            x = p_node.p.x - c_node.p.x
-            y = p_node.p.y - c_node.p.y
-            graph_layout.move_node(c_id, x*(1.0-step), y*(1.0-step))
-            
-        # Removing nodes from tree
-        for (p_id, p_node) in self._previous_graph_layout.nodes.iteritems():
-            if not self._current_graph_layout.nodes.has_key(p_id):
-                # Find closest parent contained in both graphs
-                shared_parent = p_id
-                while (shared_parent > 0 and 
-                       shared_parent not in self._current_graph_layout.nodes):
-                    shared_parent = \
-                        self._current_full_graph.parent(shared_parent)
-
-                # Find closest child contained in both graphs
-                c_id = p_id
-                while not self._current_graph_layout.nodes.has_key(c_id):
-                    # Should always have exactly one child
-                    c_id = [to for (to, _) in \
-                                self._current_full_graph.adjacency_list[c_id]
-                            if (to in am) and \
-                                not self.vistrail.is_pruned(to)][0]
-                    
-                # Don't show edge that skips the disappearing nodes
-                if terse_graph.has_edge(shared_parent, c_id):
-                    terse_graph.delete_edge(shared_parent, c_id)
-
-                # Add the disappearing node to the graph and layout
-                c_node = copy.deepcopy(self._current_graph_layout.nodes[c_id])
-                c_node.id = p_id
-                graph_layout.add_node(p_id, c_node)
-                terse_graph.add_vertex(p_id)
-                p_parent = self._current_full_graph.parent(p_id)
-                if not terse_graph.has_edge(p_id, p_parent):
-                    terse_graph.add_edge(p_parent, p_id)
-                p_child = p_id
-                while p_child not in self._current_graph_layout.nodes:
-                    # Should always have exactly one child
-                    p_child = [to for (to, _) in \
-                                   self._current_full_graph.adjacency_list[p_child]
-                               if (to in am) and \
-                                   not self.vistrail.is_pruned(to)][0]
-                if not terse_graph.has_edge(p_id, p_child):
-                    terse_graph.add_edge(p_id, p_child)
-
-                # Interpolate position
-                x = p_node.p.x - c_node.p.x
-                y = p_node.p.y - c_node.p.y
-                graph_layout.move_node(p_id, x*(1.0-step), y*(1.0-step))
-
-        return (terse_graph, self._current_full_graph,
-                graph_layout)
+        return (self._current_terse_graph, self._current_full_graph,
+                self._current_graph_layout)
 
     ##########################################################################
     # undo/redo navigation
