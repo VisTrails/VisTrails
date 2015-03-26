@@ -195,13 +195,6 @@ class VistrailController(object):
                           id_scope=id_scope, 
                           set_log_on_vt=set_log_on_vt)
 
-    # allow gui.vistrail_controller to reference individual views
-    def _get_current_version(self):
-        return self._current_version
-    def _set_current_version(self, version):
-        self._current_version = version
-    current_version = property(_get_current_version, _set_current_version)
-
     def _get_current_base_version(self):
         version = self.current_version
         if self._upgrade_rev_map:
@@ -209,12 +202,6 @@ class VistrailController(object):
         else:
             return version
     current_base_version = property(_get_current_base_version)
-
-    def _get_current_pipeline(self):
-        return self._current_pipeline
-    def _set_current_pipeline(self, pipeline):
-        self._current_pipeline = pipeline
-    current_pipeline = property(_get_current_pipeline, _set_current_pipeline)
 
     def flush_pipeline_cache(self):
         self._pipelines = {0: Pipeline()}

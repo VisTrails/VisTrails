@@ -66,11 +66,7 @@ class Log(DBLog):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
+    id = DBLog.db_id
 
     def _get_workflow_execs(self):
         return self.db_workflow_execs
@@ -82,11 +78,7 @@ class Log(DBLog):
         for wf_exec in copy.copy(self.workflow_execs):
             self.db_delete_workflow_exec(wf_exec)
 
-    def _get_vistrail_id(self):
-        return self.db_vistrail_id
-    def _set_vistrail_id(self, id):
-        self.db_vistrail_id = id
-    vistrail_id = property(_get_vistrail_id, _set_vistrail_id)
+    vistrail_id = DBLog.db_vistrail_id
 
     def get_last_workflow_exec_id(self):
         if len(self.workflow_execs) < 1:

@@ -60,44 +60,12 @@ class Machine(DBMachine):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-
-    def _get_name(self):
-        return self.db_name
-    def _set_name(self, name):
-        self.db_name = name
-    name = property(_get_name, _set_name)
-
-    def _get_os(self):
-        return self.db_os
-    def _set_os(self, os):
-        self.db_os = os
-    os = property(_get_os, _set_os)
-
-    def _get_architecture(self):
-        return self.db_architecture
-    def _set_architecture(self, architecture):
-        self.db_architecture = architecture
-    architecture = property(_get_architecture, _set_architecture)
-
-    def _get_processor(self):
-        return self.db_processor
-    def _set_processor(self, processor):
-        self.db_processor = processor
-    processor = property(_get_processor, _set_processor)
-
-    def _get_ram(self):
-        return self.db_ram
-    def _set_ram(self, ram):
-        self.db_ram = ram
-    ram = property(_get_ram, _set_ram)
-
-    ##########################################################################
-    # Properties
+    id = DBMachine.db_id
+    name = DBMachine.db_name
+    os = DBMachine.db_os
+    architecture = DBMachine.db_architecture
+    processor = DBMachine.db_processor
+    ram = DBMachine.db_ram
 
     def equals_no_id(self, other):
         return (self.name == other.name and

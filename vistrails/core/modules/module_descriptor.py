@@ -140,8 +140,8 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._module_color = None
             self._hasher_callable = None
             self._widget_item = None
-            self._is_hidden = False
-            self._namespace_hidden = False
+            self.is_hidden = False
+            self.namespace_hidden = False
             self._widget_classes = {}
             self.children = []
             # The ghost attributes represent the original values
@@ -166,10 +166,10 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._module_color = other._module_color
             self._hasher_callable = other._hasher_callable
             self._widget_item = other._widget_item
-            self._is_hidden = other._is_hidden
+            self.is_hidden = other.is_hidden
             self._widget_classes = dict((k,copy.copy(v)) for k, v in \
                                          other._widget_classes.iteritems())
-            self._namespace_hidden = other._namespace_hidden
+            self.namespace_hidden = other.namespace_hidden
             self.ghost_identifier = other.ghost_identifier
             self.ghost_package_version = other.ghost_package_version
             self.ghost_namespace = other.ghost_namespace
@@ -323,18 +323,6 @@ class ModuleDescriptor(DBModuleDescriptor):
         self._hasher_callable = callable_
     def hasher_callable(self):
         return self._hasher_callable
-
-    def _get_is_hidden(self):
-        return self._is_hidden
-    def _set_is_hidden(self, hidden):
-        self._is_hidden = hidden
-    is_hidden = property(_get_is_hidden, _set_is_hidden)
-
-    def _get_namespace_hidden(self):
-        return self._namespace_hidden
-    def _set_namespace_hidden(self, hidden):
-        self._namespace_hidden = hidden
-    namespace_hidden = property(_get_namespace_hidden, _set_namespace_hidden)
 
     ##########################################################################
     # Operators

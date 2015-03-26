@@ -169,6 +169,7 @@ class Vistrail(DBVistrail):
     annotations = DBVistrail.db_annotations
     action_annotations = DBVistrail.db_actionAnnotations
     vistrail_variables = DBVistrail.db_vistrailVariables
+    vistrail_vars = vistrail_variables
     parameter_explorations = DBVistrail.db_parameter_explorations
     
     def _get_actionMap(self):
@@ -215,13 +216,6 @@ class Vistrail(DBVistrail):
     def _set_database_info(self, value):
         return self.set_annotation("__database_info__", value)
     database_info = property(_get_database_info, _set_database_info)
-    
-    def _get_vistrail_vars(self):
-        return self.vistrail_variables
-    
-    def _set_vistrail_vars(self, vars):
-        self.vistrail_variables = vars
-    vistrail_vars = property(_get_vistrail_vars, _set_vistrail_vars)
     
     def has_vistrail_var(self, name):
         return self.db_has_vistrailVariable_with_name(name)

@@ -405,11 +405,11 @@ class PortSpec(DBPortSpec):
             port_string = self.type.capitalize()
         else:
             port_string = 'Invalid'
-        _depth = " (depth %s)" % self.depth if self.depth else ''
+        depth = " (depth %s)" % self.depth if self.depth else ''
         self._tooltip = "%s port %s\n%s%s" % (port_string,
                                             self.name,
                                             self._short_sigstring,
-                                            _depth)
+                                            depth)
         
     ##########################################################################
     # Operators

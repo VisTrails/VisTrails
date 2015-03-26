@@ -69,7 +69,7 @@ class LoopExec(DBLoopExec):
         return self.db_loop_iterations
     def _set_loop_iterations(self, iterations):
         self.db_loop_iterations = iterations
-    loop_iterations = property(_get_loop_iterations, _set_loop_iterations)
+    loop_iterations = DBLoopExec.db_loop_iterations
     def add_loop_iteration(self, iteration):
         self.db_add_loop_iteration(iteration)
 
@@ -118,10 +118,6 @@ class LoopIteration(DBLoopIteration):
         return None
     duration = property(_get_duration)
 
-    def _get_item_execs(self):
-        return self.db_item_execs
-    def _set_item_execs(self, item_execs):
-        self.db_item_execs = item_execs
-    item_execs = property(_get_item_execs, _set_item_execs)
+    item_execs = DBLoopIteration.db_item_execs
     def add_item_exec(self, item_exec):
         self.db_add_item_exec(item_exec)
