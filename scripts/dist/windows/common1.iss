@@ -11,15 +11,17 @@ LicenseFile={#root}\LICENSE
 
 ; Set 32/64 bit differences
 #ifdef bit64
-  #define python "Python27_64"
+  #define python "Python27_64_VTK6"
   #define bits "x64"
   #define nbits "64"
   #define sys "Sysnative"
+  #define prog "Program Files"
 #else
-  #define python "Python27"
+  #define python "Python27_VTK6"
   #define bits "x86"
   #define nbits "32"
   #define sys "SysWOW64"
+  #define prog "Program Files (x86)"
 #endif
 
 #if Exec("C:\" + python + "\python.exe", root + "\scripts\get_usersguide.py Input", ".")
@@ -63,8 +65,7 @@ Source: Input\qt.conf; DestDir: {app}\{#python}
 
 Source: C:\Windows\{#sys}\python27.dll; DestDir: {app}
 Source: C:\Windows\{#sys}\python27.dll; DestDir: {app}\{#python}
-Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.dll; DestDir: {app}
-Source: C:\Users\vistrails\src\vtk\vtk-5.10.1\build\bin\Release\*.pyd; DestDir: {app}
+Source: C:\{#prog}\VTK 6.2.0\bin\*.dll; DestDir: {app}
 
 ;;;; --------    ALPS FILES    ----------;;;;
 Source: Input\{#bits}\alps_libs\*; DestDir: {app}; Flags: recursesubdirs

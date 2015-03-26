@@ -120,6 +120,8 @@ disallowed_classes = set(
         'vtkInformationVariantKey',
         'QImage',
         'vtkPLOT3DReader',
+        # For VTK 6.2
+        'QuantileDefinitionType'
     ])
 
 disallowed_modules = set(
@@ -137,6 +139,7 @@ def create_module(base_cls_name, node):
 
     """
     if node.name in disallowed_modules: return []
+    if node.name == 'int': return [] #enum
     def obsolete_class_list():
         lst = []
         items = ['vtkInteractorStyleTrackball',
@@ -584,8 +587,10 @@ def get_get_set_ports(cls, get_set_dict):
             # Wrap SetRenderWindow for exporters
             # FIXME Add documentation
             elif name == 'RenderWindow':
+                # Spreadsheet may not be loaded
+                # so we cannot use VTKCell type
                 ps = InputPortSpec(name="VTKCell",
-                                   port_type="VTKCell",
+                                   port_type="basic:Variant",
                                    show_port=True)
                 input_ports.append(ps)
             else:
