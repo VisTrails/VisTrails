@@ -81,6 +81,8 @@ class VTKCell(SpreadsheetCell):
                     ("InteractorStyle", "vtkInteractorStyle"),
                     ("AddPicker", "vtkAbstractPicker")]
 
+    _output_ports = [("Instance", "VTKCell")]
+
     def __init__(self):
         SpreadsheetCell.__init__(self)
         self.cellWidget = None
@@ -107,6 +109,7 @@ class VTKCell(SpreadsheetCell):
         iStyle = self.force_get_input('InteractorStyle')
         picker = self.force_get_input('AddPicker')
         self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
+        self.set_output('Instance', self)
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
