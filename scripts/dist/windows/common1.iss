@@ -11,13 +11,15 @@ LicenseFile={#root}\LICENSE
 
 ; Set 32/64 bit differences
 #ifdef bit64
-  #define python "Python27_64_VTK6"
+  #define python "Python27_64"
+  #define python_src "Python27_64_VTK6"
   #define bits "x64"
   #define nbits "64"
   #define sys "Sysnative"
   #define prog "Program Files"
 #else
-  #define python "Python27_VTK6"
+  #define python "Python27"
+  #define python_src "Python27_VTK6"
   #define bits "x86"
   #define nbits "32"
   #define sys "SysWOW64"
@@ -38,16 +40,16 @@ LicenseFile={#root}\LICENSE
 #endif
 
 [Files]
-Source: C:\{#python}\LICENSE.txt; DestDir: {app}\{#python}
-Source: C:\{#python}\*.exe; DestDir: {app}\{#python}
-Source: C:\{#python}\README.txt; DestDir: {app}\{#python}
-Source: C:\{#python}\DLLs\*; DestDir: {app}\{#python}\DLLs
-Source: C:\{#python}\include\*; DestDir: {app}\{#python}\include
-Source: C:\{#python}\Lib\*; DestDir: {app}\{#python}\Lib; Flags: recursesubdirs
-Source: C:\{#python}\libs\*; DestDir: {app}\{#python}\libs
-Source: C:\{#python}\Scripts\*; DestDir: {app}\{#python}\Scripts
-Source: C:\{#python}\tcl\*; DestDir: {app}\{#python}\tcl; Flags: recursesubdirs
-Source: C:\{#python}\Tools\*; DestDir: {app}\{#python}\Tools; Flags: recursesubdirs
+Source: C:\{#python_src}\LICENSE.txt; DestDir: {app}\{#python}
+Source: C:\{#python_src}\*.exe; DestDir: {app}\{#python}
+Source: C:\{#python_src}\README.txt; DestDir: {app}\{#python}
+Source: C:\{#python_src}\DLLs\*; DestDir: {app}\{#python}\DLLs
+Source: C:\{#python_src}\include\*; DestDir: {app}\{#python}\include
+Source: C:\{#python_src}\Lib\*; DestDir: {app}\{#python}\Lib; Flags: recursesubdirs
+Source: C:\{#python_src}\libs\*; DestDir: {app}\{#python}\libs
+Source: C:\{#python_src}\Scripts\*; DestDir: {app}\{#python}\Scripts
+Source: C:\{#python_src}\tcl\*; DestDir: {app}\{#python}\tcl; Flags: recursesubdirs
+Source: C:\{#python_src}\Tools\*; DestDir: {app}\{#python}\Tools; Flags: recursesubdirs
 Source: {#root}\examples\*; DestDir: {app}\examples; Components: examples; Flags: recursesubdirs
 Source: {#root}\scripts\*; Excludes: "dist"; DestDir: {app}\scripts; Flags: recursesubdirs
 Source: {#root}\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
