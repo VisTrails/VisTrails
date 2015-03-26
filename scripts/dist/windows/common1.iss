@@ -58,7 +58,7 @@ Source: Input\git.exe; DestDir: {app}
 Source: Input\tar.exe; DestDir: {app}
 Source: Input\runvistrails.py; DestDir: {app}
 Source: Input\*.dll; DestDir: {app}
-Source: {#root}\LICENSE; DestDir: {app} DestName: license.txt
+Source: {#root}\LICENSE; DestDir: {app}; DestName: license.txt
 Source: C:\Users\vistrails\vcredist_{#bits}.exe; DestDir: {tmp}; Flags: deleteafterinstall
 Source: Input\VisTrails.pdf; DestDir: {app}\doc; Components: usersguide
 Source: Input\qt.conf; DestDir: {app}\{#python}
