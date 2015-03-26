@@ -955,21 +955,11 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         Construct the scene to view a version tree
         
         """
-        import time
-        t = time.clock()
-
-        tClearRefine = time.clock()
-
-        # Clean the previous scene
-        # self.clear()
-
         self.select_by_click = False        
         self.controller = controller
 
         # perform graph layout
         (tree, self.fullGraph, layout) = controller.refine_graph()
-
-        tClearRefine = time.clock() - tClearRefine
 
         # compute nodes that should be removed
         # O(n  * (hashmap query key time)) on 
@@ -1016,7 +1006,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.emit_selection = True
         self.selectionChanged()
 
-
         # remove gui edges from scene
         for (v1, v2) in removeEdgeSet:
             self.removeLink(v1,v2)
@@ -1024,8 +1013,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # remove gui nodes from scene
         for v in removeNodeSet:
             self.removeVersion(v)
-
-        tCreate = time.clock()
 
         # adjust the colors
         self.adjust_version_colors(controller)
@@ -1057,21 +1044,13 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                     linkShape.setupLink(guiSource, guiTarget,
                                         expand, collapse)
                 else:
-                    #print "add link %d %d" % (source, target)
                     self.addLink(guiSource, guiTarget, 
                                  expand, collapse)
 
-        tCreate = time.clock() - tCreate
-
         # Update bounding rects and fit to all view
-        tUpdate = time.clock()
         self.updateSceneBoundingRect()
-        tUpdate = time.clock() - tUpdate
 
         self.select_by_click = True
-
-        t = time.clock() - t
-        # print "time in msec to setupScene total: %f  refine %f  layout %f  create %f" % (t, tClearRefine, tCreate)
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None
