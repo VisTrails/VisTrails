@@ -40,7 +40,8 @@ for necessary installs."""
 from __future__ import division
 
 import vistrails.core.bundles.installbundle
-from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.configuration import get_vistrails_configuration, \
+    get_vistrails_persistent_configuration
 from vistrails.core import debug
 
 ##############################################################################
@@ -56,7 +57,7 @@ class PyImportBug(PyImportException):
 def _vanilla_import(module_name):
     return __import__(module_name, globals(), locals(), [])
 
-def py_import(module_name, dependency_dictionary):
+def py_import(module_name, dependency_dictionary, setting=None):
     """Tries to import a python module, installing if necessary.
 
     If the import doesn't succeed, we guess which system we are running on and
@@ -75,10 +76,22 @@ def py_import(module_name, dependency_dictionary):
     if module_name in _previously_failed_pkgs:
         raise PyImportException("Import of Python module '%s' failed again, "
                                 "not triggering installation" % module_name)
+    if setting is not None:
+        should_install = getattr(get_vistrails_configuration(), setting, None)
+        if should_install is not None and not should_install:
+            raise PyImportException("Import of Python module '%s' failed "
+                                    "again, installation disabled by "
+                                    "configuration" % module_name)
     debug.warning("Import of python module '%s' failed. "
                   "Will try to install bundle." % module_name)
 
-    success = vistrails.core.bundles.installbundle.install(dependency_dictionary)
+    success = vistrails.core.bundles.installbundle.install(
+            dependency_dictionary)
+
+    if setting is not None:
+        setattr(get_vistrails_persistent_configuration(),
+                setting,
+                bool(success))
 
     if not success:
         _previously_failed_pkgs.add(module_name)
