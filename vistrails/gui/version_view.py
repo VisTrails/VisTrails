@@ -979,7 +979,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         # loop on the nodes of the tree
         vistrail = controller.vistrail
-        tm = vistrail.get_tagMap()
         am = vistrail.actionMap
         last_n = vistrail.getLastActions(controller.num_versions_always_shown)
 
@@ -990,7 +989,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             v = node.id
 
             # version tag
-            tag = tm.get(v, None)
+            tag = tree.vertices.get(v, None)
             action = am.get(v, None)
             description = vistrail.get_description(v)
 
@@ -1018,9 +1017,9 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.adjust_version_colors(controller)
 
         # Add or update links
-        for source in tree.vertices.iterkeys():
+        for source, source_tag in tree.vertices.iteritems():
             eFrom = tree.edges_from(source)
-            for (target, aux) in eFrom:
+            for (target, expand) in eFrom:
                 guiSource = self.versions[source]
                 guiTarget = self.versions[target]
                 sourceChildren = [to for (to, _) in 
@@ -1029,13 +1028,13 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 targetChildren = [to for (to, _) in
                                   self.fullGraph.adjacency_list[target]
                                   if (to in am) and not vistrail.is_pruned(to)]
-                expand = self.fullGraph.parent(target)!=source
+                target_tag = tree.vertices[target]
                 collapse = (self.fullGraph.parent(target)==source and # No in betweens
                             len(targetChildren) == 1 and # target is not a leaf or branch
                             target != controller.current_version and # target is not selected
-                            target not in tm and # target has no tag
+                            target_tag is None and # target has no tag
                             target not in last_n and # not one of the last n modules
-                            (source in tm or # source has a tag
+                            (source_tag is not None or # source has a tag
                              source == 0 or # source is root node
                              len(sourceChildren) > 1 or # source is branching node 
                              source == controller.current_version)) # source is selected

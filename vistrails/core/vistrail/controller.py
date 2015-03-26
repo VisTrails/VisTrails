@@ -2721,14 +2721,14 @@ class VistrailController(object):
                 debug.unexpected_exception(e)
                 raise
 
-    def recompute_terse_graph(self):
+    def recompute_terse_graph(self, show_upgrades=False):
         # get full version tree (including pruned nodes) this tree is
         # kept updated all the time. This data is read only and should
         # not be updated!
         fullVersionTree = self.vistrail.tree.getVersionTree()
 
         # create tersed tree
-        open_list = [(0, None)]  # List of elements to be handled
+        open_list = [(0, None, False)]  # List of elements to be handled
         tersedVersionTree = Graph()
 
         # cache actionMap and tagMap because they're properties, sort
@@ -2737,8 +2737,51 @@ class VistrailController(object):
         tm = self.vistrail.get_tagMap()
         last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
 
+        # process upgrade annotations
+        upgrades = set()
+        upgrade_rev_map = {}
+        def rev_map(v):
+            return upgrade_rev_map.get(v, v)
+        for ann in self.vistrail.action_annotations:
+            if ann.key != Vistrail.UPGRADE_ANNOTATION:
+                continue
+            # The target is an upgrade
+            upgrades.add(int(ann.value))
+            # Map from upgraded version to original
+            upgrade_rev_map[int(ann.value)] = ann.action_id
+
+        current_version = self.current_version
+        if not show_upgrades:
+            # Map current version
+            current_version = rev_map(current_version)
+
+            # Map tags
+            tm, orig_tm = {}, tm
+            for version, name in sorted(orig_tm.iteritems(),
+                                        key=lambda p: p[0]):
+                v = version
+                while v in upgrade_rev_map:
+                    v = upgrade_rev_map[v]
+                    if v in orig_tm:
+                        # Found another tag in upgrade chain, don't move tag
+                        v = version
+                        break
+                tm[v] = name
+            del orig_tm
+
+        # Transitively flatten upgrade_rev_map
+        for k, v in upgrade_rev_map.iteritems():
+            while v in upgrade_rev_map:
+                v = upgrade_rev_map[v]
+            upgrade_rev_map[k] = v
+
+        print "upgrade_rev_map: %r" % (upgrade_rev_map,)
+        print "upgrades: %r" % (upgrades,)
+        print "current_version: %r" % (current_version,)
+        print "tag map: %r" % (tm,)
+
         while open_list:
-            current, parent = open_list.pop()
+            current, parent, expandable = open_list.pop()
 
             # mount children list
             children = [
@@ -2746,12 +2789,12 @@ class VistrailController(object):
                 if to in am and not self.vistrail.is_pruned(to)]
 
             if (self.full_tree or
-                    current == 0 or                     # is root
-                    current in tm or                    # hasTag:
-                    len(children) != 1 or               # not oneChild:
-                    current == self.current_version or  # isCurrentVersion
-                    am[current].expand or               # forced expansion
-                    current in last_n):                 # show latest
+                    current == 0 or                 # is root
+                    current in tm or                # hasTag:
+                    am[current].expand or           # forced expansion
+                    current in last_n or            # show latest
+                    current == current_version or   # isCurrentVersion
+                    len(children) != 1):            # leaf or branch
 
                 # yes it will!  this needs to be here because if we
                 # are refining version view receives the graph without
@@ -2761,24 +2804,27 @@ class VistrailController(object):
                         current == 0 or
                         (self.refine and self.search and
                          self.search.match(self.vistrail, am[current])) or
-                        current == self.current_version):
+                        current == current_version):
                     # add vertex...
-                    tersedVersionTree.add_vertex(current)
+                    tersedVersionTree.add_vertex(current, tm.get(current))
 
                     # ...and the parent
                     if parent is not None:
-                        tersedVersionTree.add_edge(parent, current, 0)
+                        tersedVersionTree.add_edge(parent, current, expandable)
 
                     # update the parent info that will be used by the
                     # children of this node
                     parentToChildren = current
+                    expandable = False
                 else:
                     parentToChildren = parent
+                    expandable = True
             else:
                 parentToChildren = parent
+                expandable = True
 
             for child in reversed(children):
-                open_list.append((child, parentToChildren))
+                open_list.append((child, parentToChildren, expandable))
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()

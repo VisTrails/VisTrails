@@ -86,7 +86,7 @@ class Graph(object):
 
     @staticmethod
     def map_vertices(graph, vertex_map=None, edge_map=None):
-        """ map_verices(graph: Graph, vertex_map: dict): Graph
+        """ map_vertices(graph: Graph, vertex_map: dict): Graph
 
         Creates a new graph that is a mapping of vertex ids through
         vertex_map.
