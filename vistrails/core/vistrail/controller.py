@@ -2728,7 +2728,7 @@ class VistrailController(object):
         fullVersionTree = self.vistrail.tree.getVersionTree()
 
         # create tersed tree
-        x = [(0,None)]
+        open_list = [(0, None)]  # List of elements to be handled
         tersedVersionTree = Graph()
 
         # cache actionMap and tagMap because they're properties, sort
@@ -2737,11 +2737,8 @@ class VistrailController(object):
         tm = self.vistrail.get_tagMap()
         last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
 
-        while 1:
-            try:
-                (current,parent)=x.pop()
-            except IndexError:
-                break
+        while open_list:
+            current, parent = open_list.pop()
 
             # mount children list
             if current in am and self.vistrail.is_pruned(current):
@@ -2749,32 +2746,32 @@ class VistrailController(object):
             else:
                 children = \
                     [to for (to, _) in fullVersionTree.adjacency_list[current]
-                     if (to in am) and (not self.vistrail.is_pruned(to) or \
+                     if (to in am) and (not self.vistrail.is_pruned(to) or
                                             to == self.current_version)]
 
             if (self.full_tree or
-                (current == 0) or  # is root
-                (current in tm) or # hasTag:
-                (len(children) <> 1) or # not oneChild:
-                (current == self.current_version) or # isCurrentVersion
-                (am[current].expand) or  # forced expansion
-                (current in last_n)): # show latest
+                    current == 0 or                     # is root
+                    current in tm or                    # hasTag:
+                    len(children) != 1 or               # not oneChild:
+                    current == self.current_version or  # isCurrentVersion
+                    am[current].expand or               # forced expansion
+                    current in last_n):                 # show latest
 
                 # yes it will!  this needs to be here because if we
                 # are refining version view receives the graph without
                 # the non matching elements
-                if( (not self.refine) or
-                    (self.refine and not self.search) or
-                    (current == 0) or
-                    (self.refine and self.search and
-                     self.search.match(self.vistrail,am[current]) or
-                     current == self.current_version)):
+                if (not self.refine or
+                        (self.refine and not self.search) or
+                        current == 0 or
+                        (self.refine and self.search and
+                         self.search.match(self.vistrail, am[current])) or
+                        current == self.current_version):
                     # add vertex...
                     tersedVersionTree.add_vertex(current)
 
                     # ...and the parent
                     if parent is not None:
-                        tersedVersionTree.add_edge(parent,current,0)
+                        tersedVersionTree.add_edge(parent, current, 0)
 
                     # update the parent info that will be used by the
                     # children of this node
@@ -2785,7 +2782,7 @@ class VistrailController(object):
                 parentToChildren = parent
 
             for child in reversed(children):
-                x.append((child, parentToChildren))
+                open_list.append((child, parentToChildren))
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
