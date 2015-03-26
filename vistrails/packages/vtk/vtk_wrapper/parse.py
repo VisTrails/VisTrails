@@ -584,10 +584,8 @@ def get_get_set_ports(cls, get_set_dict):
             # Wrap SetRenderWindow for exporters
             # FIXME Add documentation
             elif name == 'RenderWindow':
-                # Spreadsheet may not be loaded
-                # so we cannot use VTKCell type
                 ps = InputPortSpec(name="VTKCell",
-                                   port_type="basic:Variant",
+                                   port_type="VTKCell",
                                    show_port=True)
                 input_ports.append(ps)
             else:
