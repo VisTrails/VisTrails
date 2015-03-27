@@ -1,8 +1,6 @@
 RELEASE NOTES
 -------------
-Release Name: v2.2 build b5341fe97287 from master branch
-
-TODO: FILL THIS IN BEFORE RELEASE
+Release Name: v2.2 build 7a19c29b8322 from master branch
 
 Enhancements:
  - zip/unzip binaries no longer needed
@@ -18,7 +16,7 @@ Enhancements:
  - adds an icon for 'port not visible' (instead of blank)
  - sql package with SQLAlchemy
  - auto-enabling package with unmet dependencies (4a1b200b)
- - job submission/monitor
+ - Updated job submission/monitor
  - controlflow caches looped modules
  - menu to export a single spreadsheet cell
  - custom colors for version in tree
@@ -36,6 +34,18 @@ Enhancements:
    IPython, ...
  - constant widget use eventfilter
  - output port drawn from left to right
+ - Warn when parameters have invalid values
+ - New parameter widgets for editing parameters directly on modules
+ - New list handling (deprecating the controlflow package):
+   - Typed lists (Ports can now have 'list depth')
+   - Automatic looping: Modules taking single items processes each item in
+     a list and returns a list of results
+   - Streaming support for processing one list item at a time through
+     the pipeline
+   - New control parameters for controlling looping behaviour
+ - Switching views are now faster
+ - New VTK package supporting up to VTK 6.2
+  - Installers now contains VTK 6.2
 Bug fixes:
  - fixes strptime on system with non-English locale
  - fixes returning numpy arrays from PythonSource modules (3468998b)
