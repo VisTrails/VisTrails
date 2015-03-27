@@ -777,7 +777,7 @@ class UpgradeWorkflowHandler(object):
                 new_module_desc = ModuleDescriptor(package=new_module_t[0],
                                                    name=new_module_t[1],
                                                    namespace=new_module_t[2],
-                                                   version=new_pkg_version)
+                                                   package_version=new_pkg_version)
                 use_registry = False
 
                 # need to try more upgrades since this one isn't current
@@ -787,7 +787,7 @@ class UpgradeWorkflowHandler(object):
                                                         False)
                 old_version = new_pkg_version
                 next_module_remap = pkg_remap.get_module_upgrade(old_desc_str,
-                                                            old_version)
+                                                                 old_version)
                 old_module_t = new_module_t
             replace_module = UpgradeWorkflowHandler.replace_module
             actions = replace_module(controller, 
