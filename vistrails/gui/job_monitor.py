@@ -188,7 +188,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             if self.timer_id:
                 self.killTimer(self.timer_id)
                 self.timer_id = None
-        conf = configuration.get_vistrails_configuration()
+        conf = configuration.get_vistrails_persistent_configuration()
         conf.jobCheckInterval = refresh
         self.updating_now = False
 
