@@ -77,13 +77,19 @@ class LogController(object):
 
     This holds a log.
     """
-    local_machine = Machine(
-            id=-1,
-            name=vistrails.core.system.current_machine(),
-            os=vistrails.core.system.systemType,
-            architecture=vistrails.core.system.current_architecture(),
-            processor=vistrails.core.system.current_processor(),
-            ram=vistrails.core.system.guess_total_memory())
+    _local_machine = None
+
+    @classmethod
+    def get_local_machine(cls):
+        if cls._local_machine is None:
+            cls._local_machine = Machine(
+                    id=-1,
+                    name=vistrails.core.system.current_machine(),
+                    os=vistrails.core.system.systemType,
+                    architecture=vistrails.core.system.current_architecture(),
+                    processor=vistrails.core.system.current_processor(),
+                    ram=vistrails.core.system.guess_total_memory())
+        return copy.copy(cls._local_machine)
 
     def __init__(self, log, machine=None):
         self.log = log
@@ -93,7 +99,7 @@ class LogController(object):
         if machine is not None:
             self.machine = machine
         else:
-            self.machine = copy.copy(self.local_machine)
+            self.machine = copy.copy(self.get_local_machine())
             self.machine.id = self.log.id_scope.getNewId(Machine.vtType)
 
     def _create_module_exec(self, module, module_id, module_name,
