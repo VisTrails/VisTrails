@@ -164,7 +164,7 @@ class BaseClassModule(Module):
             getattr(instance, spec.callback)(callback)
         # Optional function for creating temporary files
         if spec.tempfile:
-            getattr(instance, spec.tempfile)(self.file_pool.create_file)
+            getattr(instance, spec.tempfile)(self.interpreter.filePool.create_file)
 
         # call input methods on instance
         self.call_inputs(instance)
