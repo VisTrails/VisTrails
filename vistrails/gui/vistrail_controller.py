@@ -160,8 +160,6 @@ class VistrailController(QtCore.QObject, BaseController):
         self.timer = None
         if self._auto_save:
             self.setup_timer()
-        
-        self._previous_graph_layout = None
 
         def width_f(text):
             return CurrentTheme.VERSION_FONT_METRIC.width(text)
@@ -630,7 +628,6 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def recompute_terse_graph(self):
         BaseController.recompute_terse_graph(self)
-        self._previous_graph_layout = copy.deepcopy(self._current_graph_layout)
         self._current_graph_layout.layout_from(self.vistrail,
                                                self._current_terse_graph)
 
