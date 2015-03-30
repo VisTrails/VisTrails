@@ -68,10 +68,10 @@ def get_shell_dialog():
                 'linux-debian': 'ipython-qtconsole'}
 
         IPython = py_import('IPython.qt.console.rich_ipython_widget', deps,
-                            setting="promptInstallIPython")
+                            True)
         RichIPythonWidget = \
                 IPython.qt.console.rich_ipython_widget.RichIPythonWidget
-        py_import('IPython.qt.inprocess', deps)
+        py_import('IPython.qt.inprocess', deps, True)
         QtInProcessKernelManager = \
                 IPython.qt.inprocess.QtInProcessKernelManager
     except ImportError:

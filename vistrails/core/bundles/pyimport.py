@@ -57,7 +57,7 @@ class PyImportBug(PyImportException):
 def _vanilla_import(module_name):
     return __import__(module_name, globals(), locals(), [])
 
-def py_import(module_name, dependency_dictionary, setting=None):
+def py_import(module_name, dependency_dictionary, store_in_config=False):
     """Tries to import a python module, installing if necessary.
 
     If the import doesn't succeed, we guess which system we are running on and
@@ -76,9 +76,15 @@ def py_import(module_name, dependency_dictionary, setting=None):
     if module_name in _previously_failed_pkgs:
         raise PyImportException("Import of Python module '%s' failed again, "
                                 "not triggering installation" % module_name)
-    if setting is not None:
-        should_install = getattr(get_vistrails_configuration(), setting, None)
-        if should_install is not None and not should_install:
+    if store_in_config:
+        ignored_packages_list = getattr(get_vistrails_configuration(),
+                                        'bundleDeclinedList',
+                                        None)
+        if ignored_packages_list:
+            ignored_packages = set(ignored_packages_list.split(';'))
+        else:
+            ignored_packages = set()
+        if module_name in ignored_packages:
             raise PyImportException("Import of Python module '%s' failed "
                                     "again, installation disabled by "
                                     "configuration" % module_name)
@@ -88,10 +94,14 @@ def py_import(module_name, dependency_dictionary, setting=None):
     success = vistrails.core.bundles.installbundle.install(
             dependency_dictionary)
 
-    if setting is not None:
+    if store_in_config:
+        if bool(success):
+            ignored_packages.discard(module_name)
+        else:
+            ignored_packages.add(module_name)
         setattr(get_vistrails_persistent_configuration(),
-                setting,
-                bool(success))
+                'bundleDeclinedList',
+                ';'.join(sorted(ignored_packages)))
 
     if not success:
         _previously_failed_pkgs.add(module_name)
@@ -104,5 +114,3 @@ def py_import(module_name, dependency_dictionary, setting=None):
         _previously_failed_pkgs.add(module_name)
         raise PyImportBug("Installation of package '%s' succeeded, but import "
                           "still fails." % module_name)
-
-##############################################################################
