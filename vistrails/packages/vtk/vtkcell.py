@@ -760,7 +760,7 @@ class QVTKWidget(QCellWidget):
         Convert Qt key code into key name
         
         """
-        handler = {QtCore.Qt.Key_Backspace:"BackSpace",
+        handler = {QtCore.Qt.Key_Backspace:"Backspace",
                    QtCore.Qt.Key_Tab:"Tab",
                    QtCore.Qt.Key_Backtab:"Tab",
                    QtCore.Qt.Key_Return:"Return",
