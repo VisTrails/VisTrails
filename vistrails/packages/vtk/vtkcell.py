@@ -679,10 +679,10 @@ class QVTKWidget(QCellWidget):
         if not keysym:
             keysym = self.qt_key_to_key_sym(e.key())
 
-        # Ignore 'q' or 'e' or Ctrl-anykey
+        # Ignore Ctrl-anykey
         ctrl = (e.modifiers()&QtCore.Qt.ControlModifier)
         shift = (e.modifiers()&QtCore.Qt.ShiftModifier)
-        if (keysym in ['q','e'] or ctrl):
+        if ctrl:
             e.ignore()
             return
         
