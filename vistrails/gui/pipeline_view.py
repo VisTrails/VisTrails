@@ -2751,7 +2751,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def update_connections(self, modules=None):
         if self.skip_update:
             return
-        if self.controller.current_pipeline.is_valid:
+        if (self.controller.current_pipeline and
+            self.controller.current_pipeline.is_valid):
             for module_id, list_depth in \
                     self.controller.current_pipeline.mark_list_depth(modules):
                 if module_id in self.modules:
