@@ -566,8 +566,13 @@ def package_is_loaded():
                        'vtkRenderer')
 
 
-@unittest.skipIf(package_is_loaded() is False, "VTK package not loaded")
 class TestModuleSpec(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from vistrails.tests.utils import enable_package
+        from ..identifiers import identifier
+
+        enable_package(identifier)
 
     def test_module_spec(self):
         input_spec = InputPortSpec(name='myportname',
