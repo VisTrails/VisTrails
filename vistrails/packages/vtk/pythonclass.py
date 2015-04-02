@@ -78,15 +78,11 @@ class BaseClassModule(Module):
             params = []
         prepend_params = port.get_prepend_params()
         # print "SETTING", method_name, prepend_params + params, instance.vtkInstance.__class__.__name__
-        print "A"
         method = getattr(instance, method_name)
-        print "B"
         try:
             method(*(prepend_params + params))
-            print "C"
         except Exception, e:
-            print "BEFORE"
-            raise ModuleError(self, 'Exception calling method "%s"' % method_name)
+            raise
 
     def call_get_method(self, instance, port):
         # print "GETTING", port.method_name, port.get_prepend_params(), instance.vtkInstance.__class__.__name__
@@ -96,7 +92,7 @@ class BaseClassModule(Module):
             # convert params
             return convert_output(value, self.output_specs[port.name].signature)
         except Exception, e:
-            raise ModuleError(self, format_exc())
+            raise
 
     def call_inputs(self, instance):
         # compute input methods and connections
