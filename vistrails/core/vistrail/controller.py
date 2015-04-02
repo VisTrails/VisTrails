@@ -2784,9 +2784,24 @@ class VistrailController(object):
             current, parent, expandable = open_list.pop()
 
             # mount children list
-            children = [
+            all_children = [
                 to for to, _ in fullVersionTree.adjacency_list[current]
-                if to in am and not self.vistrail.is_pruned(to)]
+                if to in am]
+            children = []
+            while all_children:
+                child = all_children.pop()
+                # Pruned: drop it
+                if self.vistrail.is_pruned(child):
+                    pass
+                # An upgrade: get its children directly
+                # (unless it is tagged, and that tag couldn't be moved)
+                elif (not show_upgrades and child in upgrades and
+                        child not in tm):
+                    all_children.extend(
+                        to for to, _ in fullVersionTree.adjacency_list[child]
+                        if to in am)
+                else:
+                    children.append(child)
 
             if (self.full_tree or
                     current == 0 or                 # is root
@@ -2823,7 +2838,7 @@ class VistrailController(object):
                 parentToChildren = parent
                 expandable = True
 
-            for child in reversed(children):
+            for child in children:
                 open_list.append((child, parentToChildren, expandable))
 
         self._current_terse_graph = tersedVersionTree
