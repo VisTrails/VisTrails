@@ -73,11 +73,6 @@ if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
     from .vtkcell import _modules as cell_modules
     from .vtkhandler import _modules as handler_modules
     _modules += cell_modules + handler_modules
-else:
-    # Add abstract VTKCell so that VTKCell type ports work
-    class VTKCell(Module):
-        _settings = {'abstract': True}
-    _modules += [VTKCell]
 
 
 ################# OUTPUT MODULES #############################################
@@ -457,6 +452,30 @@ def build_remap(module_name=None):
                                                  dest_port)
                     return [('add', conn)]
                 return remap
+            def fix_vtkcell_func():
+                # Move VTKCell.self -> X.VTKCell to
+                # vtkRenderer.Instance -> X.vtkRenderer
+                def remap(old_conn, new_module):
+                    controller = _get_controller()
+                    create_new_connection = UpgradeWorkflowHandler.create_new_connection
+                    pipeline = _get_pipeline()
+                    # find vtkRenderer
+                    vtkRenderer = None
+                    for conn in pipeline.connections.itervalues():
+                        src_module_id = conn.source.moduleId
+                        dst_module_id = conn.destination.moduleId
+                        if dst_module_id == old_conn.source.moduleId and \
+                           pipeline.modules[src_module_id].name == 'vtkRenderer':
+                            vtkRenderer = pipeline.modules[src_module_id]
+                    if vtkRenderer:
+                        conn = create_new_connection(controller,
+                                                     vtkRenderer,
+                                                     'Instance',
+                                                     new_module,
+                                                     'vtkRenderer')
+                        return [('add', conn)]
+                    return []
+                return remap
             if spec is None:
                 continue
             elif spec.name == 'TextScaleMode':
@@ -529,6 +548,9 @@ def build_remap(module_name=None):
                 # FIXME what causes this?
                 # New version does not have AddInput
                 input_mappings['AddInput'] = 'AddInput_1'
+            elif spec.name == 'vtkRenderer':
+                # Classes having SetRendererWindow also used to have VTKCell
+                input_mappings['SetVTKCell'] = fix_vtkcell_func()
         output_mappings = {}
         for spec_name in get_port_specs(desc, 'output'):
             spec = desc.module._get_output_spec(spec_name)
