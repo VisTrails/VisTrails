@@ -42,7 +42,6 @@ import locale
 import os
 import tempfile
 import types
-import warnings
 
 from  platform import system
 
@@ -56,9 +55,6 @@ from .specs import SpecList, ClassSpec
 
 # filter some deprecation warnings coming from the fact that vtk calls
 # range() with float parameters
-
-warnings.filterwarnings("ignore",
-                        message="integer argument expected, got float")
 
 #### METHOD PATCHING CODE ####
 
