@@ -50,23 +50,28 @@ class TableCellWidget(QCellWidget):
         self.table.setColumnCount(table.columns + 1)
         self.table.setRowCount(table.rows)
 
-        for col in xrange(table.columns):
-            column = table.get_column(col)
-            for row in xrange(table.rows):
-                elem = column[row]
-                if isinstance(elem, bytes):
-                    elem = elem.decode('utf-8', 'replace')
-                elif not isinstance(elem, unicode):
-                    elem = unicode(elem)
-                item = QtGui.QTableWidgetItem(elem)
-                item.setFlags(QtCore.Qt.ItemIsEnabled |
-                              QtCore.Qt.ItemIsSelectable)
-                self.table.setItem(row, col + 1, item)
         for row in xrange(table.rows):
             item = QtGui.QTableWidgetItem()
             item.setData(QtCore.Qt.EditRole, row)
             item.setFlags(QtCore.Qt.NoItemFlags)
             self.table.setItem(row, 0, item)
+
+        try:
+            for col in xrange(table.columns):
+                column = table.get_column(col)
+                for row in xrange(table.rows):
+                    elem = column[row]
+                    if isinstance(elem, bytes):
+                        elem = elem.decode('utf-8', 'replace')
+                    elif not isinstance(elem, unicode):
+                        elem = unicode(elem)
+                    item = QtGui.QTableWidgetItem(elem)
+                    item.setFlags(QtCore.Qt.ItemIsEnabled |
+                                  QtCore.Qt.ItemIsSelectable)
+                    self.table.setItem(row, col + 1, item)
+        except:
+            self.table.setColumnCount(1)
+            raise
 
         if table.names is not None:
             names = table.names
