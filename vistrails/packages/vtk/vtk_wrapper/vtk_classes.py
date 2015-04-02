@@ -44,6 +44,8 @@ import tempfile
 import types
 import warnings
 
+from  platform import system
+
 import vtk
 
 from . import fix_classes
@@ -150,11 +152,26 @@ def patch_methods(base_module, cls):
        not cls.__name__.endswith('TiffReader'):
         update_dict('Update', guarded_SetFileName)
 
-    def call_SetRenderWindow(self, cellObj):
-        if cellObj.cellWidget:
-            self.vtkInstance.SetRenderWindow(cellObj.cellWidget.mRenWin)
+    def call_SetRenderWindow(self, vtkRenderer):
+        window = vtk.vtkRenderWindow()
+        w = 512
+        h = 512
+        window.OffScreenRenderingOn()
+        window.SetSize(w, h)
+
+        widget = None
+        if system() == 'Darwin':
+            from PyQt4 import QtCore, QtGui
+            widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+            widget.resize(w, h)
+            widget.show()
+            window.SetWindowInfo(str(int(widget.winId())))
+
+        window.AddRenderer(vtkRenderer.vtkInstance)
+        window.Render()
+        self.vtkInstance.SetRenderWindow(window)
     if hasattr(cls, 'SetRenderWindow'):
-        instance_dict['VTKCell'] = call_SetRenderWindow
+        instance_dict['vtkRenderer'] = call_SetRenderWindow
 
     def call_TransferFunction(self, tf):
         tf.set_on_vtk_volume_property(self.vtkInstance)

@@ -588,8 +588,8 @@ def get_get_set_ports(cls, get_set_dict):
             # Wrap SetRenderWindow for exporters
             # FIXME Add documentation
             elif name == 'RenderWindow':
-                ps = InputPortSpec(name="VTKCell",
-                                   port_type="VTKCell",
+                ps = InputPortSpec(name="vtkRenderer",
+                                   port_type="vtkRenderer",
                                    show_port=True)
                 input_ports.append(ps)
             else:
