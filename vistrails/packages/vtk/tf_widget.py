@@ -53,8 +53,6 @@ import StringIO
 import unittest
 ElementTree = get_elementtree_library()
 
-from .identifiers import identifier as vtk_pkg_identifier
-
 ################################################################################
 # etc
 
@@ -214,6 +212,8 @@ class TransferFunction(object):
                                  float(colorNode.get('G','0.0')),
                                  float(colorNode.get('B','0.0')))
                         break
+                else:
+                    assert "'point' node has no 'color' child"
                 tf._pts.append((scalar,opacity,color))
         tf._pts.sort()
         return tf

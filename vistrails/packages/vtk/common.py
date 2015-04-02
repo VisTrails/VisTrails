@@ -86,4 +86,3 @@ def get_output_spec(cls, name):
             return base._output_spec_table[name]
         base = klasses.next()
     return None
-

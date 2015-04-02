@@ -44,7 +44,7 @@ from vistrails.core.configuration import ConfigField
 from vistrails.core.modules.basic_modules import PathObject, \
                                                        identifier as basic_pkg
 from vistrails.core.modules.config import ModuleSettings
-from vistrails.core.modules.vistrails_module import ModuleError, Module
+from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
     ImageFileModeConfig, IPythonMode, IPythonModeConfig
@@ -616,4 +616,3 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         build_remap(module_name)
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                               _remap)
-

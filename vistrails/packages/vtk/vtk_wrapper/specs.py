@@ -553,17 +553,7 @@ class ClassSpec(ModuleSpec):
 
 ###############################################################################
 
-import sys
 import unittest
-
-
-# Remove this when moving to vistrails core
-def package_is_loaded():
-    from vistrails.core.modules.module_registry import get_module_registry
-    from vistrails.core.system import get_vistrails_default_pkg_prefix
-    registry = get_module_registry()
-    return registry.has_module('%s.vtk' % get_vistrails_default_pkg_prefix(),
-                       'vtkRenderer')
 
 
 class TestModuleSpec(unittest.TestCase):
