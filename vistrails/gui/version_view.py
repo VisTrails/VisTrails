@@ -967,8 +967,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.controller = controller
 
         # perform graph layout
-        (tree, self.fullGraph, layout) = \
-            controller.refine_graph(2.0)
+        (tree, self.fullGraph, layout) = controller.refine_graph()
 
         tClearRefine = time.clock() - tClearRefine
 
