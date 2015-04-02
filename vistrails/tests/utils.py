@@ -51,16 +51,20 @@ from vistrails.core.modules.vistrails_module import Module
 def enable_package(identifier):
     """Enables a package.
     """
+    from vistrails.core.modules.module_registry import MissingPackage
     from vistrails.core.packagemanager import get_package_manager
 
     pm = get_package_manager()
 
-    dep_graph = pm.build_dependency_graph([identifier])
-    for pkg_id in pm.get_ordered_dependencies(dep_graph):
-        pkg = pm.identifier_is_available(pkg_id)
-        if pkg is None:
-            raise
-        pm.late_enable_package(pkg.codepath)
+    try:
+        pm.get_package(identifier)
+    except MissingPackage:
+        dep_graph = pm.build_dependency_graph([identifier])
+        for pkg_id in pm.get_ordered_dependencies(dep_graph):
+            pkg = pm.identifier_is_available(pkg_id)
+            if pkg is None:
+                raise
+            pm.late_enable_package(pkg.codepath)
 
 
 def execute(modules, connections=[], add_port_specs=[],
