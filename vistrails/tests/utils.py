@@ -48,6 +48,21 @@ except ImportError:
 from vistrails.core.modules.vistrails_module import Module
 
 
+def enable_package(identifier):
+    """Enables a package.
+    """
+    from vistrails.core.packagemanager import get_package_manager
+
+    pm = get_package_manager()
+
+    dep_graph = pm.build_dependency_graph([identifier])
+    for pkg_id in pm.get_ordered_dependencies(dep_graph):
+        pkg = pm.identifier_is_available(pkg_id)
+        if pkg is None:
+            raise
+        pm.late_enable_package(pkg.codepath)
+
+
 def execute(modules, connections=[], add_port_specs=[],
             enable_pkg=True, full_results=False):
     """Build a pipeline and execute it.
@@ -143,12 +158,7 @@ def execute(modules, connections=[], add_port_specs=[],
         except MissingPackage:
             if not enable_pkg:
                 raise
-            dep_graph = pm.build_dependency_graph([identifier])
-            for pkg_id in pm.get_ordered_dependencies(dep_graph):
-                pkg = pm.identifier_is_available(pkg_id)
-                if pkg is None:
-                    raise
-                pm.late_enable_package(pkg.codepath)
+            enable_package(identifier)
             pkg = pm.get_package(identifier)
 
         for func_name, params in functions:
