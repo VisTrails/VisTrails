@@ -302,18 +302,21 @@ def gen_instance_factory(spec):
     return instanceFactory
 
 
+specs = None
+
+
 def initialize(spec_name=None):
     """ Generate class wrappers and add them to current module namespace
         Also adds spec so it can be referenced by module wrapper
 
     """
+    global specs
     if spec_name is None:
         # The spec can be placed in the same folder if used as a standalone package
         spec_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vtk.xml')
         if not os.path.exists(spec_name):
             return
     specs = SpecList.read_from_xml(spec_name, ClassSpec)
-    globals()['specs'] = specs
     for spec in specs.module_specs:
         globals()[spec.module_name] = gen_instance_factory(spec)
 
