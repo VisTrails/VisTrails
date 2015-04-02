@@ -60,11 +60,12 @@ class WriteCSV(Module):
 
     @staticmethod
     def write(fname, table, delimiter=';', write_header=True):
+        cols = [table.get_column(i) for i in xrange(table.columns)]
+
         with open(fname, 'w') as fp:
             if write_header and table.names is not None:
                 fp.write(delimiter.join(table.names) + '\n')
 
-            cols = [table.get_column(i) for i in xrange(table.columns)]
             line = 0
             for l in izip(*cols):
                 fp.write(delimiter.join(str(e) for e in l) + '\n')

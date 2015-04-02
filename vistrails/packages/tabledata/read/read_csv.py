@@ -36,6 +36,7 @@
 from __future__ import division
 
 import csv
+import operator
 try:
     import numpy
 except ImportError: # pragma: no cover
@@ -147,7 +148,15 @@ class CSVTable(TableObject):
                 else:
                     reader = csv.reader(fp, delimiter=self.delimiter)
 
-                result = [row[index] for row in reader]
+                getter = operator.itemgetter(index)
+                try:
+                    result = []
+                    for rownb, row in enumerate(reader, 1):
+                        result.append(getter(row))
+                except IndexError:
+                    raise ValueError("Invalid CSV file: only %d fields on "
+                                     "line %d (column %d requested)" % (
+                                         len(row), rownb, index))
             if numeric:
                 result = [float(e) for e in result]
 
