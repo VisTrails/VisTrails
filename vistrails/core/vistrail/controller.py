@@ -2741,13 +2741,9 @@ class VistrailController(object):
             current, parent = open_list.pop()
 
             # mount children list
-            if current in am and self.vistrail.is_pruned(current):
-                children = []
-            else:
-                children = \
-                    [to for (to, _) in fullVersionTree.adjacency_list[current]
-                     if (to in am) and (not self.vistrail.is_pruned(to) or
-                                            to == self.current_version)]
+            children = [
+                to for to, _ in fullVersionTree.adjacency_list[current]
+                if to in am and not self.vistrail.is_pruned(to)]
 
             if (self.full_tree or
                     current == 0 or                     # is root
