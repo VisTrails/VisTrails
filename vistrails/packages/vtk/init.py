@@ -207,6 +207,13 @@ def _get_pipeline():
 
 module_name_remap = {'vtkPLOT3DReader': 'vtkMultiBlockPLOT3DReader'}
 
+def base_name(name):
+    """Returns name without overload index.
+    """
+    i = name.find('_')
+    if i != -1:
+        return name[:i]
+    return name
 
 def build_remap(module_name=None):
     global _remap, _controller
@@ -214,17 +221,52 @@ def build_remap(module_name=None):
     reg = get_module_registry()
     uscore_num = re.compile(r"(.+)_(\d+)$")
 
-    def base_name(name):
-        "returns name without overload index"
-        i = name.find('_')
-        if i != -1:
-            return name[:i]
-        return name
     def get_port_specs(descriptor, port_type):
         ports = {}
         for desc in reversed(reg.get_module_hierarchy(descriptor)):
             ports.update(reg.module_ports(port_type, desc))
         return ports
+
+    def build_function(old_function, new_function_name, new_module):
+        controller = _get_controller()
+        if len(old_function.parameters) > 0:
+            new_param_vals, aliases = \
+                zip(*[(p.strValue, p.alias)
+                      for p in old_function.parameters])
+        else:
+            new_param_vals = []
+            aliases = []
+        new_function = controller.create_function(new_module,
+                                                  new_function_name,
+                                                  new_param_vals,
+                                                  aliases)
+        return new_function
+
+    def build_function_remap_method(desc, port_prefix, port_num):
+        f_map = {"vtkCellArray": {"InsertNextCell": 3}}
+
+        def remap(old_function, new_module):
+            for i in xrange(1, port_num):
+                port_name = "%s_%d" % (port_prefix, i)
+                port_spec = reg.get_input_port_spec(new_module, port_name)
+                old_sigstring = \
+                    reg.expand_port_spec_string(old_function.sigstring,
+                                                basic_pkg)
+                if port_spec.sigstring == old_sigstring:
+                    new_function = build_function(old_function, port_name,
+                                                  new_module)
+                    new_module.add_function(new_function)
+                    return []
+            port_idx = 1
+            if desc.name in f_map:
+                if port_prefix in f_map[desc.name]:
+                    port_idx =  f_map[desc.name][port_prefix]
+            port_name = "%s_%d" % (port_prefix, port_idx)
+            new_function = build_function(old_function, port_name, new_module)
+            new_module.add_function(new_function)
+            return []
+
+        return remap
 
     def build_remap_method(desc, port_prefix, port_num, port_type):
         # for connection, need to differentiate between src and dst
@@ -267,46 +309,6 @@ def build_remap(module_name=None):
             return [('add', new_conn)]
         return remap
 
-    def build_function_remap_method(desc, port_prefix, port_num):
-        f_map = {"vtkCellArray": {"InsertNextCell": 3}}
-        def build_function(old_function, new_function_name, new_module):
-            controller = _get_controller()
-            if len(old_function.parameters) > 0:
-                new_param_vals, aliases = \
-                    zip(*[(p.strValue, p.alias)
-                          for p in old_function.parameters])
-            else:
-                new_param_vals = []
-                aliases = []
-            new_function = controller.create_function(new_module,
-                                                      new_function_name,
-                                                      new_param_vals,
-                                                      aliases)
-            return new_function
-
-        def remap(old_function, new_module):
-            for i in xrange(1, port_num):
-                port_name = "%s_%d" % (port_prefix, i)
-                port_spec = reg.get_input_port_spec(new_module, port_name)
-                old_sigstring = \
-                    reg.expand_port_spec_string(old_function.sigstring,
-                                                basic_pkg)
-                if port_spec.sigstring == old_sigstring:
-                    new_function = build_function(old_function, port_name,
-                                                  new_module)
-                    new_module.add_function(new_function)
-                    return []
-            port_idx = 1
-            if desc.name in f_map:
-                if port_prefix in f_map[desc.name]:
-                    port_idx =  f_map[desc.name][port_prefix]
-            port_name = "%s_%d" % (port_prefix, port_idx)
-            new_function = build_function(old_function, port_name, new_module)
-            new_module.add_function(new_function)
-            return []
-
-        return remap
-
     def process_ports(desc, remap, port_type):
         if port_type == 'input':
             remap_dict_key = 'dst_port_remap'
@@ -333,6 +335,124 @@ def build_remap(module_name=None):
                 remap.add_remap('function_remap', port_prefix, m)
         if port_type == 'output' and desc.name in klasses:
             remap.add_remap('src_port_remap', 'self', 'Instance')
+
+    def change_func(name, value):
+        def remap(old_func, new_module):
+            controller = _get_controller()
+            new_function = controller.create_function(new_module,
+                                                      name,
+                                                      [value])
+            return [('add', new_function, 'module', new_module.id)]
+        return remap
+
+    def change_SetXint(spec):
+        # Fix old SetX methods that takes an int representing the enum
+        def remap(old_func, new_module):
+            controller = _get_controller()
+            value = int(old_func.params[0].strValue)
+            value = spec.values[0][value]
+            new_function = controller.create_function(new_module,
+                                                      spec.name,
+                                                      [value])
+            return [('add', new_function, 'module', new_module.id)]
+        return remap
+
+    def color_func(name):
+        def remap(old_func, new_module):
+            controller = _get_controller()
+            value = ','.join([p.strValue for p in old_func.params])
+            new_function = controller.create_function(new_module,
+                                                      name,
+                                                      [value])
+            return [('add', new_function, 'module', new_module.id)]
+        return remap
+
+    def file_func(name):
+        def remap(old_func, new_module):
+            controller = _get_controller()
+            value = PathObject(old_func.params[0].strValue)
+            new_function = controller.create_function(new_module,
+                                                      name,
+                                                      [value])
+            return [('add', new_function, 'module', new_module.id)]
+        return remap
+
+    def to_file_func(name):
+        # Add Path module as name->File converter
+        def remap(old_conn, new_module):
+            controller = _get_controller()
+            create_new_connection = UpgradeWorkflowHandler.create_new_connection
+            pipeline = _get_pipeline()
+            module = pipeline.modules[old_conn.source.moduleId]
+            x = (module.location.x + new_module.location.x)/2
+            y = (module.location.y + new_module.location.y)/2
+            path_module = controller.create_module(basic_pkg, 'Path',
+                                                   '', x, y)
+            conn1 = create_new_connection(controller,
+                                          module,
+                                          old_conn.source,
+                                          path_module,
+                                          'name')
+            conn2 = create_new_connection(controller,
+                                          path_module,
+                                          'value',
+                                          new_module,
+                                          name)
+            return [('add', path_module),
+                    ('add', conn1),
+                    ('add', conn2)]
+        return remap
+
+    def wrap_block_func():
+        def remap(old_conn, new_module):
+            controller = _get_controller()
+            create_new_connection = UpgradeWorkflowHandler.create_new_connection
+            pipeline = _get_pipeline()
+            module1 = pipeline.modules[old_conn.destination.moduleId]
+            dest_port = old_conn.destination
+            candidates = ['AddInputData_1', 'AddInputData',
+                          'SetInputData_1', 'SetInputData',
+                          'AddInput', 'SetInput']
+            if 'Connection' in old_conn.destination.name:
+                _desc = reg.get_descriptor_by_name(identifier,
+                                                   module1.name)
+                ports = get_port_specs(_desc, 'input')
+                for c in candidates:
+                    if c in ports:
+                        dest_port = c
+                        break
+            conn = create_new_connection(controller,
+                                         new_module,
+                                         'StructuredGrid',
+                                         module1,
+                                         dest_port)
+            return [('add', conn)]
+        return remap
+
+    def fix_vtkcell_func():
+        # Move VTKCell.self -> X.VTKCell to
+        # vtkRenderer.Instance -> X.vtkRenderer
+        def remap(old_conn, new_module):
+            controller = _get_controller()
+            create_new_connection = UpgradeWorkflowHandler.create_new_connection
+            pipeline = _get_pipeline()
+            # find vtkRenderer
+            vtkRenderer = None
+            for conn in pipeline.connections.itervalues():
+                src_module_id = conn.source.moduleId
+                dst_module_id = conn.destination.moduleId
+                if dst_module_id == old_conn.source.moduleId and \
+                   pipeline.modules[src_module_id].name == 'vtkRenderer':
+                    vtkRenderer = pipeline.modules[src_module_id]
+            if vtkRenderer:
+                conn = create_new_connection(controller,
+                                             vtkRenderer,
+                                             'Instance',
+                                             new_module,
+                                             'vtkRenderer')
+                return [('add', conn)]
+            return []
+        return remap
 
     def process_module(desc):
         # 0.9.3 upgrades
@@ -365,117 +485,6 @@ def build_remap(module_name=None):
                      for s in get_port_specs(desc, 'input')]
         input_names = [s.name for s in input_specs]
         for spec in input_specs:
-            def change_func(name, value):
-                def remap(old_func, new_module):
-                    controller = _get_controller()
-                    new_function = controller.create_function(new_module,
-                                                              name,
-                                                              [value])
-                    return [('add', new_function, 'module', new_module.id)]
-                return remap
-            def change_SetXint(spec):
-                # Fix old SetX methods that takes an int representing the enum
-                def remap(old_func, new_module):
-                    controller = _get_controller()
-                    value = int(old_func.params[0].strValue)
-                    value = spec.values[0][value]
-                    new_function = controller.create_function(new_module,
-                                                              spec.name,
-                                                              [value])
-                    return [('add', new_function, 'module', new_module.id)]
-                return remap
-            def color_func(name):
-                def remap(old_func, new_module):
-                    controller = _get_controller()
-                    value = ','.join([p.strValue for p in old_func.params])
-                    new_function = controller.create_function(new_module,
-                                                              name,
-                                                              [value])
-                    return [('add', new_function, 'module', new_module.id)]
-                return remap
-            def file_func(name):
-                def remap(old_func, new_module):
-                    controller = _get_controller()
-                    value = PathObject(old_func.params[0].strValue)
-                    new_function = controller.create_function(new_module,
-                                                              name,
-                                                              [value])
-                    return [('add', new_function, 'module', new_module.id)]
-                return remap
-            def to_file_func(name):
-                # Add Path module as name->File converter
-                def remap(old_conn, new_module):
-                    controller = _get_controller()
-                    create_new_connection = UpgradeWorkflowHandler.create_new_connection
-                    pipeline = _get_pipeline()
-                    module = pipeline.modules[old_conn.source.moduleId]
-                    x = (module.location.x + new_module.location.x)/2
-                    y = (module.location.y + new_module.location.y)/2
-                    path_module = controller.create_module(basic_pkg, 'Path',
-                                                           '', x, y)
-                    conn1 = create_new_connection(controller,
-                                                  module,
-                                                  old_conn.source,
-                                                  path_module,
-                                                  'name')
-                    conn2 = create_new_connection(controller,
-                                                  path_module,
-                                                  'value',
-                                                  new_module,
-                                                  name)
-                    return [('add', path_module),
-                            ('add', conn1),
-                            ('add', conn2)]
-                return remap
-            def wrap_block_func():
-                def remap(old_conn, new_module):
-                    controller = _get_controller()
-                    create_new_connection = UpgradeWorkflowHandler.create_new_connection
-                    pipeline = _get_pipeline()
-                    module1 = pipeline.modules[old_conn.destination.moduleId]
-                    dest_port = old_conn.destination
-                    candidates = ['AddInputData_1', 'AddInputData',
-                                  'SetInputData_1', 'SetInputData',
-                                  'AddInput', 'SetInput']
-                    if 'Connection' in old_conn.destination.name:
-                        _desc = reg.get_descriptor_by_name(identifier,
-                                                           module1.name)
-                        ports = get_port_specs(_desc, 'input')
-                        for c in candidates:
-                            if c in ports:
-                                dest_port = c
-                                break
-                    conn = create_new_connection(controller,
-                                                 new_module,
-                                                 'StructuredGrid',
-                                                 module1,
-                                                 dest_port)
-                    return [('add', conn)]
-                return remap
-            def fix_vtkcell_func():
-                # Move VTKCell.self -> X.VTKCell to
-                # vtkRenderer.Instance -> X.vtkRenderer
-                def remap(old_conn, new_module):
-                    controller = _get_controller()
-                    create_new_connection = UpgradeWorkflowHandler.create_new_connection
-                    pipeline = _get_pipeline()
-                    # find vtkRenderer
-                    vtkRenderer = None
-                    for conn in pipeline.connections.itervalues():
-                        src_module_id = conn.source.moduleId
-                        dst_module_id = conn.destination.moduleId
-                        if dst_module_id == old_conn.source.moduleId and \
-                           pipeline.modules[src_module_id].name == 'vtkRenderer':
-                            vtkRenderer = pipeline.modules[src_module_id]
-                    if vtkRenderer:
-                        conn = create_new_connection(controller,
-                                                     vtkRenderer,
-                                                     'Instance',
-                                                     new_module,
-                                                     'vtkRenderer')
-                        return [('add', conn)]
-                    return []
-                return remap
             if spec is None:
                 continue
             elif spec.name == 'TextScaleMode':
@@ -561,7 +570,7 @@ def build_remap(module_name=None):
                 output_mappings[spec.method_name] = spec.name
         if desc.name == 'vtkMultiBlockPLOT3DReader':
             # Move GetOutput to custom FirstBlock
-            output_mappings['GetOutput'] = wrap_block_func()
+            output_mappings['GetOutput'] = wrap_block_func()  # what!?
             # Move GetOutputPort0 to custom FirstBlock
             # and change destination port to AddInputData_1 or similar
             output_mappings['GetOutputPort0'] = wrap_block_func()
