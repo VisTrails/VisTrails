@@ -56,7 +56,10 @@ class JSONTable(Table):
         json_file = self.get_input('file').name
         with open(json_file, 'rb') as fp:
             obj = json.load(fp)
-        table = self.make_table(obj)
+        try:
+            table = self.make_table(obj)
+        except InternalModuleError, e:
+            e.raise_module_error(self)
         self.set_output('column_count', table.columns)
         if table.names is not None:
             self.set_output('column_names', table.names)

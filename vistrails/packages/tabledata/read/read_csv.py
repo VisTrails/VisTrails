@@ -140,9 +140,8 @@ class CSVTable(TableObject):
                 for i in xrange(self.skip_lines):
                     line = fp.readline()
                     if not line:
-                        raise InternalModuleError("skip_lines greater than "
-                                                  "the number of lines in the "
-                                                  "file")
+                        raise ValueError("skip_lines greater than the number "
+                                         "of lines in the file")
                 if self.dialect is not None:
                     reader = csv.reader(fp, dialect=self.dialect)
                 else:
