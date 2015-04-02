@@ -37,7 +37,8 @@ from __future__ import division
 
 from itertools import izip
 
-from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.debug import format_exc
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 
 from .common import convert_input, convert_output, get_input_spec, get_output_spec
@@ -62,7 +63,7 @@ class BaseClassModule(Module):
             params = [params]
         method_name = port.method_name
         if port.method_type == 'OnOff':
-            # This converts booleans to XOn(), XOff() calls
+            # This converts OnOff ports to XOn(), XOff() calls
             method_name = method_name + ('On' if params[0] else 'Off')
             params = []
         elif port.method_type == 'nullary':
@@ -77,11 +78,15 @@ class BaseClassModule(Module):
             params = []
         prepend_params = port.get_prepend_params()
         # print "SETTING", method_name, prepend_params + params, instance.vtkInstance.__class__.__name__
+        print "A"
         method = getattr(instance, method_name)
+        print "B"
         try:
             method(*(prepend_params + params))
+            print "C"
         except Exception, e:
-            raise
+            print "BEFORE"
+            raise ModuleError(self, 'Exception calling method "%s"' % method_name)
 
     def call_get_method(self, instance, port):
         # print "GETTING", port.method_name, port.get_prepend_params(), instance.vtkInstance.__class__.__name__
@@ -91,7 +96,7 @@ class BaseClassModule(Module):
             # convert params
             return convert_output(value, self.output_specs[port.name].signature)
         except Exception, e:
-            raise
+            raise ModuleError(self, format_exc())
 
     def call_inputs(self, instance):
         # compute input methods and connections

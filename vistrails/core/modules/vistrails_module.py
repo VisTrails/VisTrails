@@ -591,6 +591,8 @@ class Module(object):
         except ModuleBreakpoint:
             raise
         except Exception, e:
+            import traceback
+            traceback.print_exc()
             debug.unexpected_exception(e)
             raise ModuleError(
                     self,

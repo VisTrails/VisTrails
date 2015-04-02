@@ -184,8 +184,7 @@ def create_module(base_cls_name, node):
     is_algorithm = issubclass(node.klass, vtk.vtkAlgorithm)
     tempfile = '_set_tempfile' if issubclass(node.klass, vtk.vtkWriter) else None
     callback = '_set_callback' if is_algorithm else None
-    methods_last = (issubclass(node.klass, vtk.vtkRenderer) or
-                    hasattr(node.klass, 'SetRenderWindow'))
+    methods_last = hasattr(node.klass, 'SetRenderWindow')
 
     module_spec = ClassSpec(node.name, base_cls_name, node.name,
                             node.klass.__doc__.decode('latin-1'), callback,
@@ -587,7 +586,7 @@ def get_get_set_ports(cls, get_set_dict):
                 input_ports.append(ps)
             # Wrap SetRenderWindow for exporters
             # FIXME Add documentation
-            elif name == 'RenderWindow':
+            elif name == 'RenderWindow' and cls == vtk.vtkExporter:
                 ps = InputPortSpec(name="vtkRenderer",
                                    port_type="vtkRenderer",
                                    show_port=True)

@@ -519,6 +519,11 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             try:
                 obj.update()
                 continue
+            except Exception, e:
+                print "WHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                import traceback
+                traceback.print_exc()
+                print str(e)
             except ModuleWasSuspended:
                 continue
             except ModuleHadError:

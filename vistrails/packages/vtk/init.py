@@ -58,7 +58,7 @@ from .tf_widget import _modules as tf_modules
 from .inspectors import _modules as inspector_modules
 from .offscreen import _modules as offscreen_modules
 
-from identifiers import identifier
+from identifiers import identifier, version as package_version
 
 from .vtk_wrapper import vtk_classes
 from . import hasher
@@ -177,11 +177,15 @@ klasses = {}
 def initialize():
     # First check if spec for this VTK version exists
     v = vtk.vtkVersion()
-    version = [v.GetVTKMajorVersion(),
-               v.GetVTKMinorVersion(),
-               v.GetVTKBuildVersion()]
+    vtk_version = [v.GetVTKMajorVersion(),
+                   v.GetVTKMinorVersion(),
+                   v.GetVTKBuildVersion()]
 
-    spec_name = os.path.join(current_dot_vistrails(), 'vtk-spec-%s.xml' % '_'.join([str(v) for v in version]))
+    # vtk-VTKVERSION-spec-PKGVERSION.xml
+    spec_name = os.path.join(current_dot_vistrails(),
+                             'vtk-%s-spec-%s.xml' %
+                             ('_'.join([str(v) for v in vtk_version]),
+                              package_version.replace('.', '_')))
     # TODO: how to patch with diff/merge
     if not os.path.exists(spec_name):
         from .vtk_wrapper.parse import parse
