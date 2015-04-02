@@ -225,11 +225,44 @@ def build_remap(module_name=None):
     reg = get_module_registry()
     uscore_num = re.compile(r"(.+)_(\d+)$")
 
+    def create_function(module, *argv, **kwargs):
+        controller = _get_controller()
+        # create function using the current module version and identifier
+        # FIXME: This should really be handled by the upgrade code somehow
+        new_desc = reg.get_descriptor_by_name(module.package,
+                                              module.name,
+                                              module.namespace)
+        old_identifier = module.package
+        module.package = identifier
+        old_package_version = module.version
+        module.version = new_desc.package_version
+        new_function = controller.create_function(module, *argv, **kwargs)
+        module.package = old_identifier
+        module.version = old_package_version
+        return new_function
+
     def get_port_specs(descriptor, port_type):
         ports = {}
         for desc in reversed(reg.get_module_hierarchy(descriptor)):
             ports.update(reg.module_ports(port_type, desc))
         return ports
+
+    def get_input_port_spec(module, port_name):
+        # Get current desc
+        # FIXME: This should really be handled by the upgrade code somehow
+        new_desc = reg.get_descriptor_by_name(module.package,
+                                              module.name,
+                                              module.namespace)
+        port_specs = get_port_specs(new_desc, 'input')
+        return port_name in port_specs and port_specs[port_name]
+
+    def get_output_port_spec(module, port_name):
+        # Get current desc
+        new_desc = reg.get_descriptor_by_name(module.package,
+                                              module.name,
+                                              module.namespace)
+        port_specs = get_port_specs(new_desc, 'output')
+        return port_name in port_specs and port_specs[port_name]
 
     def build_function(old_function, new_function_name, new_module):
         controller = _get_controller()
@@ -240,10 +273,10 @@ def build_remap(module_name=None):
         else:
             new_param_vals = []
             aliases = []
-        new_function = controller.create_function(new_module,
-                                                  new_function_name,
-                                                  new_param_vals,
-                                                  aliases)
+        new_function = create_function(new_module,
+                                       new_function_name,
+                                       new_param_vals,
+                                       aliases)
         return new_function
 
     def build_function_remap_method(desc, port_prefix, port_num):
@@ -252,7 +285,7 @@ def build_remap(module_name=None):
         def remap(old_function, new_module):
             for i in xrange(1, port_num):
                 port_name = "%s_%d" % (port_prefix, i)
-                port_spec = reg.get_input_port_spec(new_module, port_name)
+                port_spec = get_input_port_spec(new_module, port_name)
                 old_sigstring = \
                     reg.expand_port_spec_string(old_function.sigstring,
                                                 basic_pkg)
@@ -276,11 +309,11 @@ def build_remap(module_name=None):
         # for connection, need to differentiate between src and dst
         if port_type == 'input':
             conn_lookup = Connection._get_destination
-            get_port_spec = reg.get_input_port_spec
+            get_port_spec = get_input_port_spec
             idx = 1
         else:
             conn_lookup = Connection._get_source
-            get_port_spec = reg.get_output_port_spec
+            get_port_spec = get_output_port_spec
             idx = 0
 
         def remap(old_conn, new_module):
@@ -343,9 +376,7 @@ def build_remap(module_name=None):
     def change_func(name, value):
         def remap(old_func, new_module):
             controller = _get_controller()
-            new_function = controller.create_function(new_module,
-                                                      name,
-                                                      [value])
+            new_function = create_function(new_module, name, [value])
             return [('add', new_function, 'module', new_module.id)]
         return remap
 
@@ -355,9 +386,7 @@ def build_remap(module_name=None):
             controller = _get_controller()
             value = int(old_func.params[0].strValue)
             value = spec.values[0][value]
-            new_function = controller.create_function(new_module,
-                                                      spec.name,
-                                                      [value])
+            new_function = create_function(new_module, spec.name, [value])
             return [('add', new_function, 'module', new_module.id)]
         return remap
 
@@ -365,9 +394,7 @@ def build_remap(module_name=None):
         def remap(old_func, new_module):
             controller = _get_controller()
             value = ','.join([p.strValue for p in old_func.params])
-            new_function = controller.create_function(new_module,
-                                                      name,
-                                                      [value])
+            new_function = create_function(new_module, name, [value])
             return [('add', new_function, 'module', new_module.id)]
         return remap
 
@@ -375,9 +402,7 @@ def build_remap(module_name=None):
         def remap(old_func, new_module):
             controller = _get_controller()
             value = PathObject(old_func.params[0].strValue)
-            new_function = controller.create_function(new_module,
-                                                      name,
-                                                      [value])
+            new_function = create_function(new_module, name, [value])
             return [('add', new_function, 'module', new_module.id)]
         return remap
 
