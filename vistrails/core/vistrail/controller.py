@@ -160,6 +160,7 @@ class VistrailController(object):
         self.flush_pipeline_cache()
         self._current_full_graph = None
         self._current_terse_graph = None
+        self.show_upgrades = False
         self.num_versions_always_shown = 1
 
         # if self.search is True, vistrail is currently being searched
@@ -2722,13 +2723,15 @@ class VistrailController(object):
                 raise
 
     def recompute_terse_graph(self, show_upgrades=False):
+        self.show_upgrades = show_upgrades
+
         # get full version tree (including pruned nodes) this tree is
         # kept updated all the time. This data is read only and should
         # not be updated!
         fullVersionTree = self.vistrail.tree.getVersionTree()
 
         # create tersed tree
-        open_list = [(0, None, False)]  # List of elements to be handled
+        open_list = [(0, None, False, False)]  # Elements to be handled
         tersedVersionTree = Graph()
 
         # cache actionMap and tagMap because they're properties, sort
@@ -2781,7 +2784,7 @@ class VistrailController(object):
         print "tag map: %r" % (tm,)
 
         while open_list:
-            current, parent, expandable = open_list.pop()
+            current, parent, expandable, collapsible = open_list.pop()
 
             # mount children list
             all_children = [
@@ -2825,7 +2828,10 @@ class VistrailController(object):
 
                     # ...and the parent
                     if parent is not None:
-                        tersedVersionTree.add_edge(parent, current, expandable)
+                        collapse_here = not collapsible and len(children) == 1
+                        tersedVersionTree.add_edge(parent, current,
+                                                   (expandable, collapse_here))
+                        collapsible = collapsible or collapse_here
 
                     # update the parent info that will be used by the
                     # children of this node
@@ -2838,8 +2844,11 @@ class VistrailController(object):
                 parentToChildren = parent
                 expandable = True
 
+            if collapsible and len(children) > 1:
+                collapsible = False
             for child in children:
-                open_list.append((child, parentToChildren, expandable))
+                open_list.append((child, parentToChildren,
+                                  expandable, collapsible))
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()

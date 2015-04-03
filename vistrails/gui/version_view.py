@@ -984,7 +984,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         self.emit_selection = False
         for node in layout.nodes.itervalues():
-
             # version id
             v = node.id
 
@@ -1019,25 +1018,9 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # Add or update links
         for source, source_tag in tree.vertices.iteritems():
             eFrom = tree.edges_from(source)
-            for (target, expand) in eFrom:
+            for target, (expand, collapse) in eFrom:
                 guiSource = self.versions[source]
                 guiTarget = self.versions[target]
-                sourceChildren = [to for (to, _) in 
-                                  self.fullGraph.adjacency_list[source]
-                                  if (to in am) and not vistrail.is_pruned(to)]
-                targetChildren = [to for (to, _) in
-                                  self.fullGraph.adjacency_list[target]
-                                  if (to in am) and not vistrail.is_pruned(to)]
-                target_tag = tree.vertices[target]
-                collapse = (self.fullGraph.parent(target)==source and # No in betweens
-                            len(targetChildren) == 1 and # target is not a leaf or branch
-                            target != controller.current_version and # target is not selected
-                            target_tag is None and # target has no tag
-                            target not in last_n and # not one of the last n modules
-                            (source_tag is not None or # source has a tag
-                             source == 0 or # source is root node
-                             len(sourceChildren) > 1 or # source is branching node 
-                             source == controller.current_version)) # source is selected
                 if self.edges.has_key((source,target)):
                     linkShape = self.edges[(source,target)]
                     linkShape.setupLink(guiSource, guiTarget,

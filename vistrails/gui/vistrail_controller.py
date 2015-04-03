@@ -804,7 +804,7 @@ class VistrailController(QtCore.QObject, BaseController):
         """
         full = self.vistrail.getVersionGraph()
         p = full.parent(v2)
-        while p>v1:
+        while p > v1:
             self.vistrail.expandVersion(p)
             p = full.parent(p)
         self.recompute_terse_graph()
@@ -821,14 +821,33 @@ class VistrailController(QtCore.QObject, BaseController):
         am = self.vistrail.actionMap
         tm = self.vistrail.get_tagMap()
 
-        while 1:
-            try:
-                current=x.pop()
-            except IndexError:
-                break
+        upgrades = set()
+        for ann in self.vistrail.action_annotations:
+            if ann.key != Vistrail.UPGRADE_ANNOTATION:
+                continue
+            # The target is an upgrade
+            upgrades.add(int(ann.value))
 
-            children = [to for (to, _) in full.adjacency_list[current]
-                        if (to in am) and not self.vistrail.is_pruned(to)]
+        while x:
+            current = x.pop()
+
+            all_children = [to for to, _ in full.adjacency_list[current]
+                            if to in am]
+            children = []
+            while all_children:
+                child = all_children.pop()
+                # Pruned: drop it
+                if self.vistrail.is_pruned(child):
+                    pass
+                # An upgrade: get its children directly
+                # (unless it is tagged, and that tag couldn't be moved)
+                elif (not self.show_upgrades and child in upgrades and
+                        child not in tm):
+                    all_children.extend(
+                        to for to, _ in full.adjacency_list[child]
+                        if to in am)
+                else:
+                    children.append(child)
             if len(children) > 1:
                 break
             self.vistrail.collapseVersion(current)
