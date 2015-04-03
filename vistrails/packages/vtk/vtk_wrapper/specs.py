@@ -475,8 +475,8 @@ class FunctionSpec(ModuleSpec):
             elt.set("output_type", self.output_type)
         return elt
 
-    @classmethod
-    def from_xml(cls, elt):
+    @staticmethod
+    def from_xml(elt):
         inst = ModuleSpec.from_xml(elt, FunctionSpec)
         inst.output_type = elt.get("output_type", None)
         return inst
@@ -543,8 +543,8 @@ class ClassSpec(ModuleSpec):
         elt = ModuleSpec.to_xml(self, elt)
         return elt
 
-    @classmethod
-    def from_xml(cls, elt):
+    @staticmethod
+    def from_xml(elt):
         inst = ModuleSpec.from_xml(elt, ClassSpec)
         inst.methods_last = ast.literal_eval(elt.get("methods_last", 'False'))
         inst.compute = elt.get("compute", None)
