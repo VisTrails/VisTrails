@@ -3002,13 +3002,14 @@ class VistrailController(object):
                 else:
                     children.append(child)
 
-            if (self.full_tree or
-                    current == 0 or                 # is root
-                    current in tm or                # hasTag:
-                    am[current].expand or           # forced expansion
-                    current in last_n or            # show latest
-                    current == current_version or   # isCurrentVersion
-                    len(children) != 1):            # leaf or branch
+            display = (self.full_tree or
+                       current == 0 or                 # is root
+                       current in tm or                # hasTag:
+                       current in last_n or            # show latest
+                       current == current_version or   # isCurrentVersion
+                       len(children) != 1)             # leaf or branch
+
+            if (display or am[current].expand):        # forced expansion
 
                 # yes it will!  this needs to be here because if we
                 # are refining version view receives the graph without
@@ -3024,7 +3025,7 @@ class VistrailController(object):
 
                     # ...and the parent
                     if parent is not None:
-                        collapse_here = not collapsible and len(children) == 1
+                        collapse_here = not collapsible and not display
                         tersedVersionTree.add_edge(parent, current,
                                                    (expandable, collapse_here))
                         collapsible = collapsible or collapse_here
