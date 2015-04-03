@@ -254,7 +254,8 @@ optionsDict = {
         'enablePackagesSilently': True,
         'handlerDontAsk': True,
         'developerDebugger': debug_mode,
-        'debugLevel': vistrails_verbose
+        'debugLevel': vistrails_verbose,
+        'dontUnloadModules': True,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails

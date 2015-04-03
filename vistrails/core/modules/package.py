@@ -45,10 +45,9 @@ import traceback
 import vistrails
 from vistrails.core import debug
 from vistrails.core import get_vistrails_application
-from vistrails.core.configuration import ConfigurationObject
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.utils import versions_increasing, VistrailsInternalError
-from vistrails.core.utils.uxml import (named_elements, enter_named_element)
 from vistrails.db.domain import DBPackage
 
 
@@ -457,10 +456,11 @@ class Package(DBPackage):
     def unload(self):
         for path in self.py_dependencies:
             if path not in sys.modules:
-                # print "skipping %s" % path
                 pass
-            else:
-                # print 'deleting path:', path, path in sys.modules
+            elif not getattr(get_vistrails_configuration(),
+                             'dontUnloadModules',
+                             False):
+                debug.debug("deleting from sys.modules: %s" % path)
                 del sys.modules[path]
         self.py_dependencies.clear()
         self._loaded = False
