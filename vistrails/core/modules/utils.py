@@ -35,7 +35,7 @@
 ###############################################################################
 from __future__ import division
 
-from vistrails.core.system import get_vistrails_default_pkg_prefix, \
+from vistrails.core.system import _defaultPkgPrefix, \
     get_vistrails_basic_pkg_id, get_module_registry
 
 def load_cls(cls_item, prefix=None):
@@ -93,7 +93,7 @@ def parse_descriptor_string(d_string, cur_package=None):
         if '.' in parts[0]:
             package = parts[0]
         else:
-            package = '%s.%s' % (get_vistrails_default_pkg_prefix(), parts[0])
+            package = '%s.%s' % (_defaultPkgPrefix, parts[0])
     else:
         qual_name = d_string
         if cur_package is None:

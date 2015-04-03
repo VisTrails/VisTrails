@@ -136,20 +136,20 @@ __examplesDir = __fileDir
 
 __defaultFileType = '.vt'
 
-__defaultPkgPrefix = 'org.vistrails.vistrails'
+_defaultPkgPrefix = 'org.vistrails.vistrails'
 
 def get_vistrails_default_pkg_prefix():
     """Gets the namespace under which identifiers of builtin packages live.
 
     You should *not* use this, it is only useful intended to expand short names
-    of builtin packages.
+    of builtin packages in parse_descriptor_string.
     """
     warnings.warn("get_vistrails_default_pkg_prefix() is deprecated",
                   category=VistrailsDeprecation)
-    return __defaultPkgPrefix
+    return _defaultPkgPrefix
 
 def get_vistrails_basic_pkg_id():
-    return "%s.basic" % __defaultPkgPrefix
+    return "%s.basic" % _defaultPkgPrefix
 
 def get_vistrails_directory(config_key, conf=None):
     if conf is None:
