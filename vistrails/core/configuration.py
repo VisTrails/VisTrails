@@ -78,6 +78,7 @@ executionLog: Track execution provenance when running workflows
 fileDir: Default vistrail directory
 fixedSpreadsheetCells: Draw spreadsheet cells at a fixed size
 handlerDontAsk: Do not ask about extension handling at startup
+hideUpgrades: Don't show upgrade nodes in the version tree
 host: The hostname for the database to load the vistrail from
 installBundles: Install missing Python dependencies
 installBundlesWithPip: Use pip to install missing Python dependencies
@@ -218,6 +219,10 @@ fixedSpreadsheetCells: Boolean
 handlerDontAsk: Boolean
 
     Do not ask about extension handling at startup (Linux only).
+
+hideUpgrades: Boolean
+
+    Don't show the "upgrade" nodes in the version tree.
 
 host: URL
 
@@ -670,6 +675,8 @@ base_config = {
     [ConfigField('upgrades', True, bool, ConfigType.ON_OFF),
      ConfigField('migrateTags', False, bool, ConfigType.ON_OFF,
                  depends_on="upgrades"),
+     ConfigField('hideUpgrades', True, bool, ConfigType.ON_OFF,
+                 depends_on='upgrades'),
      ConfigField('upgradeDelay', True, bool, ConfigType.ON_OFF,
                  depends_on="upgrades"),
      ConfigField('upgradeModuleFailPrompt', True, bool, ConfigType.ON_OFF,

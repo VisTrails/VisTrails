@@ -2722,7 +2722,10 @@ class VistrailController(object):
                 debug.unexpected_exception(e)
                 raise
 
-    def recompute_terse_graph(self, show_upgrades=False):
+    def recompute_terse_graph(self, show_upgrades=None):
+        if show_upgrades is None:
+            show_upgrades = not getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True)
         self.show_upgrades = show_upgrades
 
         # get full version tree (including pruned nodes) this tree is
@@ -2754,7 +2757,7 @@ class VistrailController(object):
             upgrade_rev_map[int(ann.value)] = ann.action_id
 
         current_version = self.current_version
-        if not show_upgrades:
+        if not self.show_upgrades:
             # Map current version
             current_version = rev_map(current_version)
 
@@ -2798,7 +2801,7 @@ class VistrailController(object):
                     pass
                 # An upgrade: get its children directly
                 # (unless it is tagged, and that tag couldn't be moved)
-                elif (not show_upgrades and child in upgrades and
+                elif (not self.show_upgrades and child in upgrades and
                         child not in tm):
                     all_children.extend(
                         to for to, _ in fullVersionTree.adjacency_list[child]
