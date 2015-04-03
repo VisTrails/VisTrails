@@ -42,29 +42,19 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
-from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException, MissingModuleVersion, MissingPackage, PortMismatch
 from vistrails.core.system import get_vistrails_default_pkg_prefix, \
     get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
-from vistrails.core.utils import expression, append_to_dict_of_lists
-from vistrails.core.utils.uxml import named_elements
-from vistrails.core.vistrail.abstraction import Abstraction
-from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
-from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.plugin_data import PluginData
-from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
 import vistrails.core.vistrail.action
-from vistrails.core.utils import profile, InvalidPipeline
+from vistrails.core.utils import InvalidPipeline
 
-from xml.dom.minidom import getDOMImplementation, parseString
 import copy
 
 import unittest

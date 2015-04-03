@@ -35,7 +35,6 @@
 ###############################################################################
 from __future__ import division
 
-import vistrails.core
 from vistrails.core.system import get_vistrails_default_pkg_prefix, \
     get_vistrails_basic_pkg_id, get_module_registry
 

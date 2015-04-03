@@ -37,18 +37,15 @@ from __future__ import division, with_statement
 
 import datetime
 import functools
-import getpass
 import locale
 import os
 import platform
-import socket
-import subprocess
 import sys
 import time
 import urllib2
 
 from vistrails.core import debug
-from vistrails.core.utils import unimplemented, VistrailsInternalError, Chdir
+from vistrails.core.utils import unimplemented, Chdir
 
 
 ###############################################################################

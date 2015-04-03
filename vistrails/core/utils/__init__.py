@@ -39,7 +39,6 @@ used all over VisTrails.
 """
 from __future__ import division, with_statement
 
-import vistrails.core.debug
 from vistrails.core.utils.enum import enum
 from vistrails.core.utils.timemethod import time_method, time_call
 from vistrails.core.utils.tracemethod import trace_method, bump_trace, report_stack, \
