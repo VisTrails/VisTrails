@@ -931,21 +931,21 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         # update link items
         dst = controller._current_terse_graph.edges_from(new_version)
-        for eto, _ in dst:
+        for eto, (expand, collapse) in dst:
             edge = self.edges[(old_version, eto)]
             edge.setupLink(self.versions[new_version],
                            self.versions[eto],
-                           self.fullGraph.parent(eto) != new_version,
+                           expand,
                            False) # We shouldn't ever need a collapse here
             self.edges[(new_version, eto)] = edge
             del self.edges[(old_version, eto)]
 
         src = controller._current_terse_graph.edges_to(new_version)
-        for efrom, _ in src:
+        for efrom, (expand, collapse) in src:
             edge = self.edges[(efrom, old_version)]
             edge.setupLink(self.versions[efrom],
                            self.versions[new_version],
-                           self.fullGraph.parent(new_version) != efrom,
+                           expand,
                            False) # We shouldn't ever need a collapse here
             self.edges[(efrom, new_version)] = edge
             del self.edges[(efrom, old_version)]
