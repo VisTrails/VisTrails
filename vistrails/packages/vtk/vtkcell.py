@@ -62,10 +62,9 @@ class vtkRendererToSpreadsheet(SpreadsheetMode):
         for ren, m in d.iteritems():
             ren.module_id = m.moduleInfo['moduleId']
         renderers = output_module.force_get_input('value') or []
-        handlers = output_module.force_get_input('interactionHandler') or []
         style = output_module.force_get_input('interactorStyle')
         picker = output_module.force_get_input('picker')
-        input_ports = (renderers, None, handlers, style, picker)
+        input_ports = (renderers, None, [], style, picker)
         self.cellWidget = self.display_and_wait(output_module, configuration,
                                                 QVTKWidget, input_ports)
 

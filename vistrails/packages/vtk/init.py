@@ -156,16 +156,14 @@ class vtkRendererToIPythonMode(IPythonMode):
 class vtkRendererOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules."
                        "output_configuration:OutputModuleConfigurationWidget")
-    _input_ports = [('value', 'vtkRenderer', {'depth':1})]
+    _input_ports = [('value', 'vtkRenderer', {'depth':1}),
+                    ('interactorStyle', 'vtkInteractorStyle'),
+                    ('picker', 'vtkAbstractPicker')]
     _output_modes = [vtkRendererToFile, vtkRendererToIPythonMode]
     if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
                        'SpreadsheetCell'):
-        _input_ports.extend([('interactionHandler', 'vtkInteractionHandler',
-                              {'depth':1}),
-                             ('interactorStyle', 'vtkInteractorStyle'),
-                             ('picker', 'vtkAbstractPicker')])
         from .vtkcell import vtkRendererToSpreadsheet
-        _output_modes.insert(0,vtkRendererToSpreadsheet)
+        _output_modes.append(vtkRendererToSpreadsheet)
 
 _modules.append(vtkRendererOutput)
 
