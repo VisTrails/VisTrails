@@ -559,6 +559,11 @@ import unittest
 class TestModuleSpec(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        try:
+            import vtk
+        except ImportError:
+            raise unittest.SkipTest("vtk is not installed")
+
         from vistrails.tests.utils import enable_package
         from ..identifiers import identifier
 
