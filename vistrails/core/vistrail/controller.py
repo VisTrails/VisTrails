@@ -4277,5 +4277,139 @@ class VistrailController(object):
                 
         #return module move operations
         return self.move_modules_ops(moves)
-        
-            
+
+
+import unittest
+
+class TestTerseGraph(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pm = vistrails.core.packagemanager.get_package_manager()
+        if pm.has_package('org.vistrails.test.upgrades_layout'):
+            return
+
+        d = {'test_upgrades_layout': 'vistrails.tests.resources.'}
+        pm.late_enable_package('test_upgrades_layout', d)
+        cls.maxDiff = None
+
+    @classmethod
+    def tearDownClass(cls):
+        manager = vistrails.core.packagemanager.get_package_manager()
+        if manager.has_package('org.vistrails.test.upgrades_layout'):
+            manager.late_disable_package('test_upgrades_layout')
+
+    def get_workflow(self, name):
+        from vistrails.core.db.locator import XMLFileLocator
+        from vistrails.core.system import vistrails_root_directory
+
+        locator = XMLFileLocator(vistrails_root_directory() +
+                                 '/tests/resources/' + name)
+        vistrail = locator.load()
+        return VistrailController(vistrail, locator)
+
+    def test_workflow1_upgrades(self):
+        """Computes the tersed version tree, with upgrades"""
+        controller = self.get_workflow('upgrades1.xml')
+        controller.recompute_terse_graph(True)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, False)), (5L, (False, False)), (16L, (True, False))],
+            1L: [(3L, (True, False))],
+            3L: [(4L, (False, False))],
+            5L: [(8L, (True, False)), (10L, (True, False))],
+            10L: [(11L, (False, False)), (13L, (True, False))],
+            4L: [], 8L: [], 11L: [], 13L: [], 16L: [],
+        })
+        controller.expand_all_versions_below(0)
+        controller.recompute_terse_graph(True)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, True))],
+            1L: [(2L, (False, True))],
+            2L: [(3L, (False, False))],
+            3L: [(4L, (False, False))],
+            5L: [(6L, (False, True)), (9L, (False, True))],
+            6L: [(7L, (False, False))],
+            7L: [(8L, (False, False))],
+            9L: [(10L, (False, False))],
+            10L: [(11L, (False, False)), (12L, (False, True))],
+            12L: [(13L, (False, False))],
+            14L: [(15L, (False, False))],
+            15L: [(16L, (False, False))],
+            4L: [], 8L: [], 11L: [], 13L: [], 16L: [],
+        })
+
+    def test_workflow1_no_upgrades(self):
+        """Computes the tersed version tree, without upgrades"""
+        controller = self.get_workflow('upgrades1.xml')
+        controller.recompute_terse_graph(False)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, False))],
+            1L: [(3L, (False, False))],
+            3L: [(4L, (False, False))],
+            5L: [(8L, (False, False)), (9L, (False, False))],
+            9L: [(11L, (False, False)), (13L, (False, False))],
+            4L: [], 8L: [], 11L: [], 13L: [], 14L: [],
+        })
+        controller.expand_all_versions_below(0)
+        controller.recompute_terse_graph(False)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, False))],
+            1L: [(3L, (False, False))],
+            3L: [(4L, (False, False))],
+            5L: [(8L, (False, False)), (9L, (False, False))],
+            9L: [(11L, (False, False)), (13L, (False, False))],
+            4L: [], 8L: [], 11L: [], 13L: [], 14L: [],
+        })
+
+    def test_workflow2_upgrades(self):
+        """Computes the tersed version tree, with upgrades"""
+        controller = self.get_workflow('upgrades2.xml')
+        controller.recompute_terse_graph(True)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(3L, (True, False)), (9L, (True, False)), (12L, (False, False))],
+            3L: [(7L, (True, False)), (6L, (True, False))],
+            9L: [(10L, (False, False)), (11L, (False, False))],
+            12L: [(13L, (False, False)), (15L, (False, False))],
+            13L: [(14L, (False, False)), (17L, (True, False))],
+            7L: [], 6L: [], 10L: [], 11L: [], 14L: [], 15L: [], 17L: [],
+        })
+        controller.expand_all_versions_below(0)
+        controller.recompute_terse_graph(True)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, True)), (8L, (False, True)), (12L, ((False, False)))],
+            1L: [(2L, (False, False))],
+            2L: [(3L, (False, False))],
+            3L: [(4L, (False, True)), (5L, (False, True))],
+            4L: [(7L, (False, False))],
+            5L: [(6L, (False, False))],
+            8L: [(9L, (False, False))],
+            9L: [(10L, (False, False)), (11L, (False, False))],
+            12L: [(13L, (False, False)), (15L, (False, False))],
+            13L: [(14L, (False, False)), (16L, (False, True))],
+            16L: [(17L, (False, False))],
+            7L: [], 6L: [], 10L: [], 11L: [], 14L: [], 15L: [], 17L: [],
+        })
+
+    def test_workflow2_no_upgrades(self):
+        """Computes the tersed version tree, without upgrades"""
+        controller = self.get_workflow('upgrades2.xml')
+        controller.recompute_terse_graph(False)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(2L, (True, False)), (9L, (True, False)), (13L, (True, False))],
+            2L: [(4L, (False, False)), (6L, (True, False))],
+            9L: [(10L, (False, False))],
+            13L: [(14L, (False, False)), (17L, (False, False))],
+            4L: [], 6L: [], 10L: [], 14L: [], 17L: [],
+        })
+        controller.expand_all_versions_below(0)
+        controller.recompute_terse_graph(False)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, True)), (8L, (False, True)), (12L, ((False, True)))],
+            1L: [(2L, (False, False))],
+            2L: [(4L, (False, False)), (5L, (False, True))],
+            5L: [(6L, (False, False))],
+            8L: [(9L, (False, False))],
+            9L: [(10L, (False, False))],
+            12L: [(13L, (False, False))],
+            13L: [(14L, (False, False)), (17L, (False, False))],
+            4L: [], 6L: [], 10L: [], 14L: [], 17L: [],
+        })
