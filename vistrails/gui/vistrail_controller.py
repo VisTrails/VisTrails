@@ -1198,8 +1198,7 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         reg = get_module_registry()
-        spreadsheet_pkg = '%s.spreadsheet' % \
-                vistrails.core.system.get_vistrails_default_pkg_prefix()
+        spreadsheet_pkg = 'org.vistrails.vistrails.spreadsheet'
         use_spreadsheet = reg.has_module(spreadsheet_pkg, 'CellLocation') and\
                           reg.has_module(spreadsheet_pkg, 'SheetReference')
 

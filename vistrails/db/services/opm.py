@@ -38,8 +38,7 @@ from __future__ import division
 from ast import literal_eval
 import copy
 import sys
-from vistrails.core.system import get_vistrails_default_pkg_prefix, \
-    get_vistrails_basic_pkg_id
+from vistrails.core.system import get_vistrails_basic_pkg_id
 import vistrails.db.services.io
 from vistrails.db.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBOpmWasGeneratedBy, DBOpmProcessIdCause, DBOpmProcessIdEffect, \
@@ -415,7 +414,7 @@ def create_opm(workflow, version, log, reg):
             out_downstream_artifacts = {}
 
 
-        ctrl_flow_pkg = '%s.control_flow' % get_vistrails_default_pkg_prefix()
+        ctrl_flow_pkg = 'org.vistrails.vistrails.control_flow'
         basic_pkg = get_vistrails_basic_pkg_id()
         all_special_ports = {'%s:Map' % ctrl_flow_pkg:
                                  [{'InputPort': False, 

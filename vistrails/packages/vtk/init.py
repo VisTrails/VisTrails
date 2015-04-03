@@ -67,8 +67,7 @@ from . import hasher
 _modules = tf_modules + inspector_modules + offscreen_modules
 
 registry = get_module_registry()
-if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
-                       'SpreadsheetCell'):
+if registry.has_module('org.vistrails.vistrails.spreadsheet', 'SpreadsheetCell'):
     # load these only if spreadsheet is enabled
     from .vtkcell import _modules as cell_modules
     from .vtkhandler import _modules as handler_modules
@@ -160,8 +159,8 @@ class vtkRendererOutput(OutputModule):
                     ('interactorStyle', 'vtkInteractorStyle'),
                     ('picker', 'vtkAbstractPicker')]
     _output_modes = [vtkRendererToFile, vtkRendererToIPythonMode]
-    if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
-                       'SpreadsheetCell'):
+    if registry.has_module('org.vistrails.vistrails.spreadsheet',
+                           'SpreadsheetCell'):
         from .vtkcell import vtkRendererToSpreadsheet
         _output_modes.append(vtkRendererToSpreadsheet)
 

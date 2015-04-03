@@ -44,8 +44,7 @@ from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException, MissingModuleVersion, MissingPackage, PortMismatch
-from vistrails.core.system import get_vistrails_default_pkg_prefix, \
-    get_vistrails_basic_pkg_id
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
@@ -1325,7 +1324,7 @@ class TestPipeline(unittest.TestCase):
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
-            m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
+            m.package = 'org.vistrails.vistrails.pythoncalc'
             m.functions.append(f1())
             m.control_parameters.append(cp1())
             return m
@@ -1344,7 +1343,7 @@ class TestPipeline(unittest.TestCase):
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
-            m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
+            m.package = 'org.vistrails.vistrails.pythoncalc'
             m.functions.append(f1())
             return m
         m1 = module1(p)
@@ -1554,7 +1553,7 @@ class TestPipeline(unittest.TestCase):
     def test_module_signature(self):
         """Tests signatures for modules with similar (but not equal)
         parameter specs."""
-        pycalc_pkg = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
+        pycalc_pkg = 'org.vistrails.vistrails.pythoncalc'
         p1 = Pipeline()
         p1_functions = [ModuleFunction(name='value1',
                                        parameters=[ModuleParam(type='Float',
@@ -1603,8 +1602,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.add_module(Module(name='CacheBug', 
-                            package='%s.console_mode_test' % \
-                             get_vistrails_default_pkg_prefix(),
+                            package='org.vistrails.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
 
@@ -1626,8 +1624,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.add_module(Module(name='CacheBug', 
-                            package='%s.console_mode_test' % \
-                             get_vistrails_default_pkg_prefix(),
+                            package='org.vistrails.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
         str(p1)

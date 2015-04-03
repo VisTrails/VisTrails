@@ -43,9 +43,10 @@ import platform
 import sys
 import time
 import urllib2
+import warnings
 
 from vistrails.core import debug
-from vistrails.core.utils import unimplemented, Chdir
+from vistrails.core.utils import unimplemented, VistrailsDeprecation, Chdir
 
 
 ###############################################################################
@@ -138,10 +139,17 @@ __defaultFileType = '.vt'
 __defaultPkgPrefix = 'org.vistrails.vistrails'
 
 def get_vistrails_default_pkg_prefix():
+    """Gets the namespace under which identifiers of builtin packages live.
+
+    You should *not* use this, it is only useful intended to expand short names
+    of builtin packages.
+    """
+    warnings.warn("get_vistrails_default_pkg_prefix() is deprecated",
+                  category=VistrailsDeprecation)
     return __defaultPkgPrefix
 
 def get_vistrails_basic_pkg_id():
-    return "%s.basic" % get_vistrails_default_pkg_prefix()
+    return "%s.basic" % __defaultPkgPrefix
 
 def get_vistrails_directory(config_key, conf=None):
     if conf is None:

@@ -38,7 +38,6 @@
 from __future__ import division
 
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.system import get_vistrails_default_pkg_prefix
 ################################################################################
 
 class PipelineInspector(object):
@@ -159,8 +158,7 @@ class PipelineInspector(object):
             if root_id is None:
                 root_id = []
             # Sometimes we run without the spreadsheet!
-            spreadsheet_pkg = \
-                '%s.spreadsheet' % get_vistrails_default_pkg_prefix()
+            spreadsheet_pkg = 'org.vistrails.vistrails.spreadsheet'
             if registry.has_module(spreadsheet_pkg, 'SpreadsheetCell'):
                 # First pass to check cells types
                 cellType = \

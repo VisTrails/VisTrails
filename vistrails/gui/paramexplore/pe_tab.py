@@ -269,7 +269,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         """
         registry = get_module_registry()
         actions = self.peWidget.table.collectParameterActions()
-        spreadsheet_pkg = '%s.spreadsheet' % get_vistrails_default_pkg_prefix()
+        spreadsheet_pkg = 'org.vistrails.vistrails.spreadsheet'
         # Set the annotation to persist the parameter exploration
         # TODO: For now, we just replace the existing exploration - Later we should append them.
         xmlString = "<paramexps>\n" + self.getParameterExploration() + "\n</paramexps>"
