@@ -232,7 +232,6 @@ class VistrailController(object):
         self.id_scope = id_scope
         self.current_session = -1
         self.log = Log()
-        self.jobMonitor = JobMonitor()
         if self.vistrail is not None:
             self.id_scope = self.vistrail.idScope
             self.current_session = self.vistrail.idScope.getNewId("session")
@@ -247,6 +246,8 @@ class VistrailController(object):
                 self._mashups = mashups
             job_annotation = vistrail.get_annotation('__jobs__')
             self.jobMonitor = JobMonitor(job_annotation and job_annotation.value)
+        else:
+            self.jobMonitor = JobMonitor()
 
         self.current_version = -1
         self.current_pipeline = Pipeline()
