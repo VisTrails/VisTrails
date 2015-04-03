@@ -58,11 +58,11 @@ from identifiers import identifier as vtk_pkg_identifier
 
 class vtkRendererToSpreadsheet(SpreadsheetMode):
     def compute_output(self, output_module, configuration=None):
-        d = dict([(c(), c.obj) for c in self.inputPorts['AddRenderer']])
+        d = dict([(c(), c.obj) for c in output_module.inputPorts['value']])
         for ren, m in d.iteritems():
             ren.module_id = m.moduleInfo['moduleId']
-        renderers = output_module.force_get_input_list('value')
-        handlers = output_module.force_get_input_list('interactionHandler')
+        renderers = output_module.force_get_input('value') or []
+        handlers = output_module.force_get_input('interactionHandler') or []
         style = output_module.force_get_input('interactorStyle')
         picker = output_module.force_get_input('picker')
         input_ports = (renderers, None, handlers, style, picker)

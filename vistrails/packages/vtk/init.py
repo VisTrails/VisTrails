@@ -118,7 +118,7 @@ class vtkRendererToFile(ImageFileMode):
                       'jpg': vtk.vtkJPEGWriter,
                       'tif': vtk.vtkTIFFWriter,
                       'pnm': vtk.vtkPNMWriter}
-        r = output_module.get_input("value").vtkInstance
+        r = output_module.get_input("value")[0].vtkInstance
         w = configuration["width"]
         h = configuration["height"]
         img_format = self.get_format(configuration)
@@ -139,7 +139,7 @@ class vtkRendererToIPythonMode(IPythonMode):
     def compute_output(self, output_module, configuration=None):
         from IPython.core.display import display, Image
 
-        r = output_module.get_input('value').vtkInstance
+        r = output_module.get_input('value')[0].vtkInstance
         width = configuration['width']
         height = configuration['height']
 
@@ -154,16 +154,18 @@ class vtkRendererToIPythonMode(IPythonMode):
         display(Image(filename=fname, width=width, height=height))
 
 class vtkRendererOutput(OutputModule):
-    # DAK: no render view here, use a separate module for this...
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules."
                        "output_configuration:OutputModuleConfigurationWidget")
-    _input_ports = [('value', 'vtkRenderer')]
+    _input_ports = [('value', 'vtkRenderer', {'depth':1})]
+    _output_modes = [vtkRendererToFile, vtkRendererToIPythonMode]
     if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
                        'SpreadsheetCell'):
-        _input_ports.extend([('interactionHandler', 'vtkInteractionHandler'),
+        _input_ports.extend([('interactionHandler', 'vtkInteractionHandler',
+                              {'depth':1}),
                              ('interactorStyle', 'vtkInteractorStyle'),
                              ('picker', 'vtkAbstractPicker')])
-    _output_modes = [vtkRendererToFile, vtkRendererToIPythonMode]
+        from .vtkcell import vtkRendererToSpreadsheet
+        _output_modes.insert(0,vtkRendererToSpreadsheet)
 
 _modules.append(vtkRendererOutput)
 
