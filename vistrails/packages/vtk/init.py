@@ -661,7 +661,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         module_remap = upgrade_cell_to_output(
                 _remap, module_id, pipeline,
                 'VTKCell', 'vtkRendererOutput',
-                '0.9.6', 'AddRenderer')
+                '1.0.1', 'AddRenderer',
+                start_version='1.0.0')
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                                module_remap)
