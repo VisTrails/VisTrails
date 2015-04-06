@@ -45,10 +45,11 @@ from ..common import Table
 def get_xlwt():
     try:
         return py_import('xlwt', {
-                'pip': 'xlwt',
-                'linux-debian': 'python-xlwt',
-                'linux-ubuntu': 'python-xlwt',
-                'linux-fedora': 'python-xlwt'})
+                             'pip': 'xlwt',
+                             'linux-debian': 'python-xlwt',
+                             'linux-ubuntu': 'python-xlwt',
+                             'linux-fedora': 'python-xlwt'},
+                         True)
     except ImportError: # pragma: no cover
         return None
 

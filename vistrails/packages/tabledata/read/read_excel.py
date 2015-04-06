@@ -49,10 +49,11 @@ from ..common import TableObject, Table
 def get_xlrd():
     try:
         return py_import('xlrd', {
-                'pip': 'xlrd',
-                'linux-debian': 'python-xlrd',
-                'linux-ubuntu': 'python-xlrd',
-                'linux-fedora': 'python-xlrd'})
+                             'pip': 'xlrd',
+                             'linux-debian': 'python-xlrd',
+                             'linux-ubuntu': 'python-xlrd',
+                             'linux-fedora': 'python-xlrd'},
+                         True)
     except ImportError: # pragma: no cover
         return None
 

@@ -44,10 +44,12 @@ from vistrails.core import debug
 
 try:
     py_import('certifi', {
-            'pip': 'certifi'})
+                  'pip': 'certifi'},
+              True)
     py_import('backports.ssl_match_hostname', {
-            'pip': 'backports.ssl_match_hostname',
-            'linux-fedora': 'python-backports-ssl_match_hostname'})
+                  'pip': 'backports.ssl_match_hostname',
+                  'linux-fedora': 'python-backports-ssl_match_hostname'},
+              True)
 except ImportError:
     def build_opener(*args, **kwargs):
         insecure = kwargs.pop('insecure', False)

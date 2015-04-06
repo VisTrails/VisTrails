@@ -737,7 +737,8 @@ base_config = {
      ConfigField('spawned', False, bool, ConfigType.INTERNAL),
      ConfigField('rootDirectory', None, ConfigPath, ConfigType.INTERNAL),
      ConfigField('developerDebugger', False, bool, ConfigType.INTERNAL),
-     ConfigField('dontUnloadModules', False, bool, ConfigType.INTERNAL)],
+     ConfigField('dontUnloadModules', False, bool, ConfigType.INTERNAL),
+     ConfigField('bundleDeclinedList', '', str, ConfigType.INTERNAL)],
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),
