@@ -103,6 +103,15 @@ class UpgradeModuleRemap(object):
             self._control_param_remap = control_param_remap
 
     @classmethod
+    def __copy__(cls, obj):
+        newobj = cls()
+        for k, v in obj.__dict__.iteritems():
+            if k.startswith('_') and k.endswith('_remap'):
+                v = copy.copy(v)
+            newobj.__dict__[k] = v
+        return newobj
+
+    @classmethod
     def from_tuple(cls, module_name, t):
         if len(t) == 3:
             obj = cls(t[0], t[1], None, t[2], module_name=module_name)
@@ -173,7 +182,14 @@ class UpgradeModuleRemap(object):
 
 class UpgradePackageRemap(object):
     def __init__(self):
-        self.remaps = {}
+        self.remaps = {}  # name (str): remap (UpgradeModuleRemap)
+
+    @classmethod
+    def __copy__(cls, obj):
+        newobj = cls()
+        newobj.remaps = dict((modname, copy.copy(modremap))
+                             for modname, modremap in obj.remaps.iteritems())
+        return newobj
 
     @classmethod
     def from_dict(cls, d):
