@@ -67,67 +67,10 @@ def enable_package(identifier):
             pm.late_enable_package(pkg.codepath)
 
 
-def execute(modules, connections=[], add_port_specs=[],
-            enable_pkg=True, full_results=False):
-    """Build a pipeline and execute it.
-
-    This is useful to simply build a pipeline in a test case, and run it. When
-    doing that, intercept_result() can be used to check the results of each
-    module.
-
-    modules is a list of module tuples describing the modules to be created,
-    with the following format:
-        [('ModuleName', 'package.identifier', [
-            # Functions
-            ('port_name', [
-                # Function parameters
-                ('Signature', 'value-as-string'),
-            ]),
-        ])]
-
-    connections is a list of tuples describing the connections to make, with
-    the following format:
-        [
-            (source_module_index, 'source_port_name',
-             dest_module_index, 'dest_module_name'),
-         ]
-
-    add_port_specs is a list of specs to add to modules, with the following
-    format:
-        [
-            (mod_id, 'input'/'output', 'portname',
-             '(port_sig)'),
-        ]
-    It is useful to test modules that can have custom ports through a
-    configuration widget.
-
-    The function returns the 'errors' dict it gets from the interpreter, so you
-    should use a construct like self.assertFalse(execute(...)) if the execution
-    is not supposed to fail.
-
-
-    For example, this creates (and runs) an Integer module with its value set
-    to 44, connected to a PythonCalc module, connected to a StandardOutput:
-
-    self.assertFalse(execute([
-            ('Float', 'org.vistrails.vistrails.basic', [
-                ('value', [('Float', '44.0')]),
-            ]),
-            ('PythonCalc', 'org.vistrails.vistrails.pythoncalc', [
-                ('value2', [('Float', '2.0')]),
-                ('op', [('String', '-')]),
-            ]),
-            ('StandardOutput', 'org.vistrails.vistrails.basic', []),
-        ],
-        [
-            (0, 'value', 1, 'value1'),
-            (1, 'value', 2, 'value'),
-        ]))
-    """
-    from vistrails.core.db.locator import XMLFileLocator
+def build_pipeline(modules, connections=[], add_port_specs=[],
+                   enable_pkg=True):
     from vistrails.core.modules.module_registry import MissingPackage
     from vistrails.core.packagemanager import get_package_manager
-    from vistrails.core.utils import DummyView
     from vistrails.core.vistrail.connection import Connection
     from vistrails.core.vistrail.module import Module
     from vistrails.core.vistrail.module_function import ModuleFunction
@@ -135,7 +78,6 @@ def execute(modules, connections=[], add_port_specs=[],
     from vistrails.core.vistrail.pipeline import Pipeline
     from vistrails.core.vistrail.port import Port
     from vistrails.core.vistrail.port_spec import PortSpec
-    from vistrails.core.interpreter.noncached import Interpreter
 
     pm = get_package_manager()
 
@@ -207,6 +149,70 @@ def execute(modules, connections=[], add_port_specs=[],
                          name=dport,
                          signature=d_sig),
                 ]))
+
+
+def execute(modules, connections=[], add_port_specs=[],
+            enable_pkg=True, full_results=False):
+    """Build a pipeline and execute it.
+
+    This is useful to simply build a pipeline in a test case, and run it. When
+    doing that, intercept_result() can be used to check the results of each
+    module.
+
+    modules is a list of module tuples describing the modules to be created,
+    with the following format:
+        [('ModuleName', 'package.identifier', [
+            # Functions
+            ('port_name', [
+                # Function parameters
+                ('Signature', 'value-as-string'),
+            ]),
+        ])]
+
+    connections is a list of tuples describing the connections to make, with
+    the following format:
+        [
+            (source_module_index, 'source_port_name',
+             dest_module_index, 'dest_module_name'),
+         ]
+
+    add_port_specs is a list of specs to add to modules, with the following
+    format:
+        [
+            (mod_id, 'input'/'output', 'portname',
+             '(port_sig)'),
+        ]
+    It is useful to test modules that can have custom ports through a
+    configuration widget.
+
+    The function returns the 'errors' dict it gets from the interpreter, so you
+    should use a construct like self.assertFalse(execute(...)) if the execution
+    is not supposed to fail.
+
+
+    For example, this creates (and runs) an Integer module with its value set
+    to 44, connected to a PythonCalc module, connected to a StandardOutput:
+
+    self.assertFalse(execute([
+            ('Float', 'org.vistrails.vistrails.basic', [
+                ('value', [('Float', '44.0')]),
+            ]),
+            ('PythonCalc', 'org.vistrails.vistrails.pythoncalc', [
+                ('value2', [('Float', '2.0')]),
+                ('op', [('String', '-')]),
+            ]),
+            ('StandardOutput', 'org.vistrails.vistrails.basic', []),
+        ],
+        [
+            (0, 'value', 1, 'value1'),
+            (1, 'value', 2, 'value'),
+        ]))
+    """
+    from vistrails.core.db.locator import XMLFileLocator
+    from vistrails.core.interpreter.noncached import Interpreter
+    from vistrails.core.utils import DummyView
+
+    pipeline = build_pipeline(modules, connections, add_port_specs, enable_pkg)
 
     interpreter = Interpreter.get()
     result = interpreter.execute(
