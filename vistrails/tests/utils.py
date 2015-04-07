@@ -97,15 +97,21 @@ def build_pipeline(modules, connections=[], add_port_specs=[],
 
     pipeline = Pipeline()
     module_list = []
-    for i, (name, identifier, functions) in enumerate(modules):
+    for i, mod in enumerate(modules):
+        name, identifier = mod[:2]
+        functions = mod[2] if len(mod) > 2 else []
+        version = mod[3] if len(mod) > 3 else None
         function_list = []
-        try:
-            pkg = pm.get_package(identifier)
-        except MissingPackage:
-            if not enable_pkg:
-                raise
-            enable_package(identifier)
-            pkg = pm.get_package(identifier)
+        if enable_pkg or version is None:
+            try:
+                pkg = pm.get_package(identifier)
+            except MissingPackage:
+                if not enable_pkg:
+                    raise
+                enable_package(identifier)
+                pkg = pm.get_package(identifier)
+            if version is None:
+                version = pkg.version
 
         for func_name, params in functions:
             param_list = []
@@ -124,7 +130,7 @@ def build_pipeline(modules, connections=[], add_port_specs=[],
         module = Module(name=name,
                         namespace=namespace,
                         package=identifier,
-                        version=pkg.version,
+                        version=version,
                         id=i,
                         functions=function_list)
         for port_spec in port_spec_per_module.get(i, []):
@@ -149,6 +155,8 @@ def build_pipeline(modules, connections=[], add_port_specs=[],
                          name=dport,
                          signature=d_sig),
                 ]))
+
+    return pipeline
 
 
 def execute(modules, connections=[], add_port_specs=[],
