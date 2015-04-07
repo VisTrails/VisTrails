@@ -987,8 +987,85 @@ class TestUpgradePackageRemap(unittest.TestCase):
             app.temp_configuration.upgrades = default_upgrades
             app.temp_configuration.upgradeDelay = default_upgrade_delay
 
-if __name__ == '__main__':
-    import vistrails.core.application
 
-    vistrails.core.application.init()
-    unittest.main()
+class TestUpgrades(unittest.TestCase):
+    # Remi's test cases:
+    # Package is upgrades_testcases, with versions 0.0..0.5
+    ident = 'org.vistrails.test.upgrades_testcases'
+    code = 'upgrades_testcases'
+
+    @classmethod
+    def setUpClass(cls):
+        pm = vistrails.core.packagemanager.get_package_manager()
+        if pm.has_package(cls.ident):
+            return
+
+        d = {'upgrades_testcases': 'vistrails.tests.resources.'}
+        pm.late_enable_package(cls.code, d)
+
+    @classmethod
+    def tearDownClass(cls):
+        manager = vistrails.core.packagemanager.get_package_manager()
+        if manager.has_package(cls.ident):
+            manager.late_disable_package(cls.code)
+
+    def make_controller(self, *args):
+        from vistrails.core.db.locator import UntitledLocator
+        from vistrails.tests.utils import build_pipeline
+        from vistrails.core.vistrail.controller import VistrailController
+        from vistrails.core.vistrail.vistrail import Vistrail
+
+        pipeline = build_pipeline(*args, enable_pkg=False)
+
+        # Copied from VistrailsApplicationInterface#open_workflow()
+        vistrail = Vistrail()
+        ops = []
+        for module in pipeline.module_list:
+            ops.append(('add', module))
+        for connection in pipeline.connection_list:
+            ops.append(('add', connection))
+        action = vistrails.core.db.action.create_action(ops)
+        vistrail.add_action(action, 0L)
+        vistrail.update_id_scope()
+        vistrail.change_description("Imported pipeline", 0L)
+        return VistrailController(vistrail, UntitledLocator())
+
+    def test_upgrade1(self):
+        """Simple upgrade from 0.2 to 0.4; auto upgrade to 0.5 is expected"""
+        ctrl = self.make_controller([
+                ('Test1', self.ident, [
+                    ('port', [('String', 'value')])
+                ], '0.2')
+            ])
+        ctrl.select_latest_version()
+        ctrl.validate(ctrl.current_pipeline)
+
+    def test_upgrade2(self):
+        """Chains two upgrades"""
+        ctrl = self.make_controller([
+                ('Test2', self.ident, [
+                    ('port', [('String', 'value')])
+                ], '0.2')
+            ])
+        ctrl.select_latest_version()
+        ctrl.validate(ctrl.current_pipeline)
+
+    def test_upgrade3(self):
+        """Chains two upgrades"""
+        ctrl = self.make_controller([
+                ('Test3', self.ident, [
+                    ('port', [('String', 'value')])
+                ], '0.2')
+            ])
+        ctrl.select_latest_version()
+        ctrl.validate(ctrl.current_pipeline)
+
+    def test_upgrade4(self):
+        """Chains two upgrades"""
+        ctrl = self.make_controller([
+                ('Test4', self.ident, [
+                    ('port', [('String', 'value')])
+                ], '0.0')
+            ])
+        ctrl.select_latest_version()
+        ctrl.validate(ctrl.current_pipeline)
