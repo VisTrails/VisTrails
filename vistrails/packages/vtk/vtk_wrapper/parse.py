@@ -82,6 +82,7 @@ disallowed_classes = set(
         'vtkBooleanTexture',  #Not working for VTK 5.7.0
         'vtkImageMaskBits',   #Not working for VTK 5.7.0
         'vtkHardwareSelector',#Not working for VTK 5.7.0
+        'vtkOpenGLExtensionManager',
 
         # these show up with new parse
         'vtkAbstractContextBufferId',
@@ -144,7 +145,9 @@ def create_module(base_cls_name, node):
         lst = []
         items = ['vtkInteractorStyleTrackball',
                  'vtkStructuredPointsGeometryFilter',
-                 'vtkConstrainedPointHandleRepresentation']
+                 'vtkConstrainedPointHandleRepresentation',
+                 'vtkRenderViewBase',
+                 'vtkRenderView']
         def try_to_add_item(item):
             try:
                 lst.append(getattr(vtk, item))
