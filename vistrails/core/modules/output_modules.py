@@ -618,14 +618,13 @@ class IPythonHtmlMode(IPythonMode):
         value = output_module.get_input('value')
         display(HTML(filename=value.name))
 
-class RichTextToFileMode(FileToFileMode):
-    formats = ['html']
+class HtmlToFileMode(FileToFileMode):
     default_file_extension = '.html'
 
-class RichTextOutput(OutputModule):
+class RichTextOutput(FileOutput):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'File')]
-    _output_modes = [RichTextToFileMode, (FileToStdoutMode, 50), IPythonHtmlMode]
+    _output_modes = [HtmlToFileMode, (FileToStdoutMode, 50), IPythonHtmlMode]
 
 _modules = [OutputModule, GenericOutput, FileOutput, ImageOutput, RichTextOutput]
 
