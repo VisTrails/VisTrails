@@ -186,7 +186,11 @@ def upgrade_cell_to_output(module_remap, module_id, pipeline,
     if old_module_name != old_name:
         return module_remap
 
-    if set(old_module.connected_input_ports.keys()) != set([input_port_name]):
+    used_input_ports = set(old_module.connected_input_ports.keys())
+    for func in old_module.functions:
+        used_input_ports.add(func.name)
+
+    if used_input_ports != set([input_port_name]):
         return module_remap
 
     _old_remap = module_remap
@@ -196,6 +200,7 @@ def upgrade_cell_to_output(module_remap, module_id, pipeline,
                                module_name=old_name,
                                new_module=new_module)
     remap.add_remap('dst_port_remap', input_port_name, 'value')
+    remap.add_remap('function_remap', input_port_name, 'value')
     module_remap.add_module_remap(remap)
     return module_remap
 
