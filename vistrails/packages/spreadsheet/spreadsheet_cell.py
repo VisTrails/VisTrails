@@ -285,11 +285,11 @@ class QCellWidget(QtGui.QWidget):
         return None
 
     def save_via_file_output(self, filename, mode_cls, save_format=None):
-        mode_config = self._output_module.get_mode_config(mode_cls)
+        mode = mode_cls()
+        mode_config = self._output_module.get_mode_config(mode)
         mode_config['file'] = filename
         if save_format is not None:
             mode_config['format'] = save_format
-        mode = mode_cls()
         mode.compute_output(self._output_module, mode_config)
 
 

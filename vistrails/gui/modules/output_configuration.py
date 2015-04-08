@@ -196,7 +196,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
                 self.add_field(group_layout, dummy_field, mode_config,
                                         k)
         else:
-            for field in mode.config_cls.get_all_fields():
+            for field in mode.get_config().get_all_fields():
                 self.add_field(group_layout, field, mode_config, 
                                mode.mode_type)
         self.setLayout(group_layout)

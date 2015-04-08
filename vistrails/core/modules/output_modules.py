@@ -36,6 +36,7 @@
 
 from __future__ import division
 
+from copy import copy
 import os
 import sys
 import unittest
@@ -52,6 +53,10 @@ class OutputMode(object):
     @staticmethod
     def can_compute():
         return False
+
+    @classmethod
+    def get_config(cls):
+        return cls.config_cls
 
     def compute_output(self, output_module, configuration=None):
         raise NotImplementedError("Subclass of OutputMode should implement "
@@ -281,8 +286,8 @@ class OutputModule(NotCacheable, Module):
         for c in reversed(cls_list):
             c.ensure_mode_dict()
 
-    def get_mode_config(self, mode_cls):
-        mode_config_cls = mode_cls.config_cls
+    def get_mode_config(self, mode):
+        mode_config_cls = mode.get_config()
         mode_config_dict = {}
         configuration = self.force_get_input('configuration')
         if configuration is not None:
@@ -328,11 +333,11 @@ class OutputModule(NotCacheable, Module):
             raise ModuleError(self, "No output mode is valid, output cannot "
                               "be generated")
 
-        mode_config = self.get_mode_config(mode_cls)
         mode = mode_cls()
+        mode_config = self.get_mode_config(mode)
         self.annotate({"output_mode": mode.mode_type})
         mode.compute_output(self, mode_config)
-                
+
 class StdoutModeConfig(OutputModeConfig):
     mode_type = "stdout"
     _fields = []
@@ -357,7 +362,7 @@ class FileModeConfig(OutputModeConfig):
                ConfigField('overwrite', True, bool),
                ConfigField('seriesPadding', 3, int),
                ConfigField('seriesStart', 0, int),
-               ConfigField('format', None, str)]
+               ConfigField('format', None, str, widget_type='combo')]
 
 class FileMode(OutputMode):
     mode_type = "file"
@@ -371,6 +376,26 @@ class FileMode(OutputMode):
     @staticmethod
     def can_compute():
         return True
+
+    @classmethod
+    def get_config(cls):
+        if '_config_cls_with_formats' in cls.__dict__:
+            return cls.__dict__['_config_cls_with_formats']
+        else:
+            dct = {}
+            orig_config_cls = super(FileMode, cls).get_config()
+            format_field = orig_config_cls.get_field('format')
+            if format_field.widget_type == 'combo':
+                format_field = copy(format_field)
+                opts = dict(format_field.widget_options)
+                opts['allowed_values'] = cls.get_formats()
+                format_field.widget_options = opts
+                dct['_fields'] = [format_field]
+            config_cls = type('%s_WithFormats' % orig_config_cls.__name__,
+                              (orig_config_cls,),
+                              dct)
+            cls._config_cls_with_formats = config_cls
+            return config_cls
 
     @classmethod
     def get_formats(cls):
@@ -575,10 +600,13 @@ class IPythonHtmlMode(IPythonMode):
         value = output_module.get_input('value')
         display(HTML(filename=value.name))
 
+class RichTextToFileMode(FileToFileMode):
+    formats = ['html']
+
 class RichTextOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'File')]
-    _output_modes = [FileToFileMode, IPythonHtmlMode]
+    _output_modes = [RichTextToFileMode, IPythonHtmlMode]
 
 _modules = [OutputModule, GenericOutput, FileOutput, RichTextOutput]
 
