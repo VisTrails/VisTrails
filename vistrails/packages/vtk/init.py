@@ -35,6 +35,7 @@
 ###############################################################################
 from __future__ import division
 
+import copy
 import re
 import os.path
 
@@ -656,13 +657,27 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     try:
         from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
     except ImportError:
-        module_remap = _remap
+        # Manually upgrade to 1.0.1
+        if _remap.get_module_remaps(module_name):
+            module_remap = copy.copy(_remap)
+            module_remap.add_module_remap(
+                    UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
+                                       module_name=module_name))
+        else:
+            module_remap = _remap
     else:
         module_remap = upgrade_cell_to_output(
                 _remap, module_id, pipeline,
                 'VTKCell', 'vtkRendererOutput',
                 '1.0.1', 'AddRenderer',
                 start_version='1.0.0')
+        if _remap.get_module_remaps(module_name):
+            remap = module_remap.get_module_upgrade(module_name, '1.0.0')
+            if remap is None:
+                # Manually upgrade to 1.0.1
+                module_remap.add_module_remap(
+                        UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
+                                           module_name=module_name))
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                                module_remap)
