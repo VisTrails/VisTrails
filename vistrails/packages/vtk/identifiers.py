@@ -39,4 +39,4 @@ from __future__ import division
 identifier = 'org.vistrails.vistrails.vtk'
 old_identifiers = ['edu.utah.sci.vistrails.vtk']
 name = 'VTK'
-version = '1.0.0'
+version = '1.0.1'

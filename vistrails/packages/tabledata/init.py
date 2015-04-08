@@ -38,7 +38,7 @@ _modules = make_modules_dict(*_modules)
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     def add_keyname(fname, module):
-        new_function = controller.create_function(module, 
+        new_function = controller.create_function(module,
                                                   "key_name",
                                                   ["_key"])
         return [('add', new_function, 'module', module.id)]
@@ -83,6 +83,16 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 })
             ],
         }
+
+    try:
+        from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
+    except ImportError:
+        pass
+    else:
+        module_remap = upgrade_cell_to_output(
+                module_remap, module_id, pipeline,
+                'TableCell', 'TableOutput',
+                '0.1.6', 'table')
 
     return UpgradeWorkflowHandler.remap_module(controller,
                                                module_id,
