@@ -589,7 +589,7 @@ class IPythonModeConfig(OutputModeConfig):
 
 class IPythonMode(OutputMode):
     mode_type = "ipython"
-    priority = 2
+    priority = 400
     config_cls = IPythonModeConfig
 
     @staticmethod
