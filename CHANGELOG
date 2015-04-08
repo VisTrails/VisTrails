@@ -3,12 +3,12 @@ RELEASE NOTES
 Release Name: v2.2 build 7a19c29b8322 from master branch
 
 Enhancements:
- - zip/unzip binaries no longer needed
+ - zip/unzip binaries no longer needed (#862)
  - new version of tabledata package (also backported to v2.1.5)
  - new version of parallelflow package
  - adds developer debugger (enable "developerDebugger" in expert settings)
  - improves logging
- - reloading a disabled package (if you changed __init__)
+ - reloading a disabled package (if you changed __init__; #714)
  - ungrouping materializes InputPort and OutputPort modules for unconnected
    Group ports
  - CLTools path and directory types
@@ -25,31 +25,32 @@ Enhancements:
  - HTTP package is now URL, validates HTTPS certificates, handles ssh://
  - fixes spreadsheet cells size resetting when resizing window
  - loads packages from pkg_resources entry points "vistrails.packages"
- - new persistent_archive package
+ - new persistent_archive package (#755)
  - new sklearn package for machine learning; http://scikit-learn.org/
  - highlight unset required ports in input ports list
- - new user API with IPython notebook integration
+ - new user API with IPython notebook integration (#24)
  - StandardOutput module can print a File's content
  - output module system: same module can output to spreadsheet, file, stdout,
    IPython, ...
- - constant widget use eventfilter
- - output port drawn from left to right
+ - output port drawn from left to right (#1006)
  - Warn when parameters have invalid values
  - New parameter widgets for editing parameters directly on modules
  - New list handling (deprecating the controlflow package):
-   - Typed lists (Ports can now have 'list depth')
-   - Automatic looping: Modules taking single items processes each item in
+   * Typed lists (Ports can now have 'list depth')
+   * Automatic looping: Modules taking single items processes each item in
      a list and returns a list of results
-   - Streaming support for processing one list item at a time through
+   * Streaming support for processing one list item at a time through
      the pipeline
-   - New control parameters for controlling looping behaviour
+   * New control parameters for controlling looping behaviour
  - Switching views are now faster
- - New VTK package supporting up to VTK 6.2
-  - Installers now contains VTK 6.2
+ - New VTK package supporting up to VTK 6.2 (#998)
+   * Installers now contains VTK 6.2
+ - No longer show upgrade actions in version tree (optional; #1046)
 Bug fixes:
  - fixes strptime on system with non-English locale
  - fixes returning numpy arrays from PythonSource modules (3468998b)
  - pressing ctrl+s after loading a pipeline no longer replace it with a vistrail
+ - fixed losing notes when clicking "execute" immediately from version view
 Behavior change for package developers:
  - made Module methods python_style; updateUpstream won't work, others will
    work but trigger warning
