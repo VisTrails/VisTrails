@@ -165,8 +165,8 @@ def finalize():
 
 def upgrade_cell_to_output(module_remap, module_id, pipeline,
                            old_name, new_module,
-                           output_version, input_port_name,
-                           start_version=None):
+                           end_version, input_port_name,
+                           start_version=None, output_version=None):
     """This function upgrades a *Cell module to a *Output module.
 
     The upgrade only happens if the original module doesn't have any connection
@@ -196,7 +196,7 @@ def upgrade_cell_to_output(module_remap, module_id, pipeline,
     _old_remap = module_remap
     module_remap = copy.copy(module_remap)
     assert _old_remap.remaps is not module_remap.remaps
-    remap = UpgradeModuleRemap(start_version, output_version, output_version,
+    remap = UpgradeModuleRemap(start_version, end_version, output_version,
                                module_name=old_name,
                                new_module=new_module)
     remap.add_remap('dst_port_remap', input_port_name, 'value')
