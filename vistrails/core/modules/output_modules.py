@@ -48,7 +48,7 @@ import vistrails.core.system
 
 class OutputMode(object):
     mode_type = None
-    priority = -1
+    priority = -1  # -1 prevents the mode from being selected automatically
 
     @staticmethod
     def can_compute():
@@ -213,13 +213,15 @@ class OutputModule(NotCacheable, Module):
     @classmethod
     def ensure_mode_dict(cls):
         if '_output_modes_dict' not in cls.__dict__:
+            cls._output_modes_dict = {}
             if '_output_modes' in cls.__dict__:
-                cls._output_modes_dict = \
-                                dict((mcls.mode_type, (mcls, mcls.priority))
-                                     for mcls in cls._output_modes)
-            else:
-                cls._output_modes_dict = {}
-            
+                for mcls in cls._output_modes:
+                    if isinstance(mcls, tuple):
+                        mcls, prio = mcls
+                    else:
+                        prio = mcls.priority
+                    cls._output_modes_dict[mcls.mode_type] = mcls, prio
+
     @classmethod
     def register_output_mode(cls, mode_cls, priority=None):
         if mode_cls.mode_type is None:
@@ -267,9 +269,15 @@ class OutputModule(NotCacheable, Module):
         mode_dict = {}
         for c in reversed(cls_list):
             mode_dict.update(c._output_modes_dict)
-        mode_list = [c for c, _ in reversed(sorted(mode_dict.itervalues(), 
-                                                   key=lambda x: x[1]))]
-        return mode_list
+
+        # Iterator over (mode_cls, priority)
+        modes = mode_dict.itervalues()
+        # Drop if priority < 0
+        modes = ((c, p) for (c, p) in modes if p >= 0)
+        # Sort by descending priority
+        modes = sorted(modes, key=lambda x: -x[1])
+        # Build list of mode_cls (drop priority)
+        return [c for c, _ in modes]
 
     @classmethod
     def get_mode_tree(cls):
@@ -344,7 +352,7 @@ class StdoutModeConfig(OutputModeConfig):
 
 class StdoutMode(OutputMode):
     mode_type = "stdout"
-    priority = 2
+    priority = 200
     config_cls = StdoutModeConfig
 
     @staticmethod
@@ -366,11 +374,11 @@ class FileModeConfig(OutputModeConfig):
 
 class FileMode(OutputMode):
     mode_type = "file"
-    priority = 1
+    priority = 100
     config_cls = FileModeConfig
     formats = []
     
-    # need to reset this after each execution!
+    # TODO: need to reset this after each execution!
     series_next = 0
 
     @staticmethod
@@ -507,11 +515,15 @@ class FileMode(OutputMode):
                 raise IOError('File "%s" exists and overwrite is False' % full_path)
 
         return full_path
-        
+
 class FileToFileMode(FileMode):
+    default_file_extension = None
+
     def compute_output(self, output_module, configuration=None):
         old_fname = output_module.get_input('value').name
-        full_path = self.get_filename(configuration)
+        full_path = self.get_filename(configuration,
+                                      suffix=(os.path.splitext(old_fname)[1] or
+                                              self.default_file_extension))
         # we know we are in overwrite mode because it would have been
         # flagged otherwise
         if os.path.exists(full_path):
@@ -552,18 +564,24 @@ class GenericOutput(OutputModule):
 
 class FileOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
-    # should set file as a higher priority here...
     _input_ports = [('value', 'File')]
-    _output_modes = [FileToStdoutMode, FileToFileMode]
+    # Stdout is low priority, probably a bad plan
+    _output_modes = [(FileToStdoutMode, 50), (FileToFileMode, 200)]
 
 class ImageFileModeConfig(FileModeConfig):
-    mode_type = "imageFile"
+    mode_type = "file"
     _fields = [ConfigField('width', 800, int),
                ConfigField('height', 600, int)]
 
 class ImageFileMode(FileMode):
     config_cls = ImageFileModeConfig
-    mode_type = "imageFile"
+    mode_type = "file"
+
+class ImageOutput(FileOutput):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _input_ports = [('value', 'File')]
+    # FileToStdoutMode is disabled, since it's definitely binary
+    _output_modes = [FileToFileMode, (FileToStdoutMode, -1)]
 
 class IPythonModeConfig(OutputModeConfig):
     mode_type = "ipython"
@@ -602,13 +620,14 @@ class IPythonHtmlMode(IPythonMode):
 
 class RichTextToFileMode(FileToFileMode):
     formats = ['html']
+    default_file_extension = '.html'
 
 class RichTextOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'File')]
-    _output_modes = [RichTextToFileMode, IPythonHtmlMode]
+    _output_modes = [RichTextToFileMode, (FileToStdoutMode, 50), IPythonHtmlMode]
 
-_modules = [OutputModule, GenericOutput, FileOutput, RichTextOutput]
+_modules = [OutputModule, GenericOutput, FileOutput, ImageOutput, RichTextOutput]
 
 # need to put WebOutput, ImageOutput, RichTextOutput, SVGOutput, etc. elsewhere
 

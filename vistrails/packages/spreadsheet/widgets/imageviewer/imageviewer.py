@@ -40,7 +40,6 @@ from __future__ import division
 
 import os
 from PyQt4 import QtCore, QtGui
-from vistrails.core.modules.vistrails_module import Module
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController

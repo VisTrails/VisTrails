@@ -251,7 +251,7 @@ class SpreadsheetModeConfig(OutputModeConfig):
 
 class SpreadsheetMode(OutputMode):
     mode_type = "spreadsheet"
-    priority = 3
+    priority = 500
     config_cls = SpreadsheetModeConfig
 
     @staticmethod
