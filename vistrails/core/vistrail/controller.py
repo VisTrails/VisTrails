@@ -2974,11 +2974,6 @@ class VistrailController(object):
                 v = upgrade_rev_map[v]
             upgrade_rev_map[k] = v
 
-        print "upgrade_rev_map: %r" % (upgrade_rev_map,)
-        print "upgrades: %r" % (upgrades,)
-        print "current_version: %r" % (current_version,)
-        print "tag map: %r" % (tm,)
-
         while open_list:
             current, parent, expandable, collapsible = open_list.pop()
 
