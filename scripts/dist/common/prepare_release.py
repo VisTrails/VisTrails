@@ -22,6 +22,7 @@ VERSION_FILES = [
     ["scripts/dist/windows/vistrails-gdal.iss", r'AppVerName=VisTrails '],
     ["scripts/dist/windows/vistrailsx64-gdal.iss", r'AppVerName=VisTrails x64 '],
     ["scripts/dist/source/make-vistrails-src-build.py", r'VT_VERSION = [\'"]'],
+    ["setup.py", r'version=[\'"]'],
     ["doc/usersguide/conf.py", r'release = [\'"]'],
     ["scripts/dist/common/splash/splash.svg", r'tspan4025">'],
     ["scripts/dist/common/splash/splash.svg", r'tspan4025-7">']] # second pass for shadow

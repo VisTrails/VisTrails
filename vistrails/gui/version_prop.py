@@ -316,6 +316,8 @@ class QVersionNotes(QtGui.QTextEdit):
         Update the text to be the notes of the vistrail versionNumber
         
         """
+        if self.versionNumber == versionNumber:
+            return
         self.versionNumber = versionNumber
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):

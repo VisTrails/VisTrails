@@ -86,7 +86,7 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
-extlinks = {'vtl': ('http://www.vistrails.org/usersguide/v2.1/examples/%sl',
+extlinks = {'vtl': ('http://www.vistrails.org/usersguide/v2.2/examples/%sl',
                     '')}
 
 # -- Options for HTML output ---------------------------------------------------

@@ -40,7 +40,8 @@ for necessary installs."""
 from __future__ import division
 
 import vistrails.core.bundles.installbundle
-from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.configuration import get_vistrails_configuration, \
+    get_vistrails_persistent_configuration
 from vistrails.core import debug
 
 ##############################################################################
@@ -56,7 +57,7 @@ class PyImportBug(PyImportException):
 def _vanilla_import(module_name):
     return __import__(module_name, globals(), locals(), [])
 
-def py_import(module_name, dependency_dictionary):
+def py_import(module_name, dependency_dictionary, store_in_config=False):
     """Tries to import a python module, installing if necessary.
 
     If the import doesn't succeed, we guess which system we are running on and
@@ -75,10 +76,32 @@ def py_import(module_name, dependency_dictionary):
     if module_name in _previously_failed_pkgs:
         raise PyImportException("Import of Python module '%s' failed again, "
                                 "not triggering installation" % module_name)
+    if store_in_config:
+        ignored_packages_list = getattr(get_vistrails_configuration(),
+                                        'bundleDeclinedList',
+                                        None)
+        if ignored_packages_list:
+            ignored_packages = set(ignored_packages_list.split(';'))
+        else:
+            ignored_packages = set()
+        if module_name in ignored_packages:
+            raise PyImportException("Import of Python module '%s' failed "
+                                    "again, installation disabled by "
+                                    "configuration" % module_name)
     debug.warning("Import of python module '%s' failed. "
                   "Will try to install bundle." % module_name)
 
-    success = vistrails.core.bundles.installbundle.install(dependency_dictionary)
+    success = vistrails.core.bundles.installbundle.install(
+            dependency_dictionary)
+
+    if store_in_config:
+        if bool(success):
+            ignored_packages.discard(module_name)
+        else:
+            ignored_packages.add(module_name)
+        setattr(get_vistrails_persistent_configuration(),
+                'bundleDeclinedList',
+                ';'.join(sorted(ignored_packages)))
 
     if not success:
         _previously_failed_pkgs.add(module_name)
@@ -91,5 +114,3 @@ def py_import(module_name, dependency_dictionary):
         _previously_failed_pkgs.add(module_name)
         raise PyImportBug("Installation of package '%s' succeeded, but import "
                           "still fails." % module_name)
-
-##############################################################################

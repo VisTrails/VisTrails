@@ -37,9 +37,11 @@ from __future__ import division
 
 from base64 import b16encode, b16decode
 import copy
-import json
-import time
 from itertools import izip, product
+import json
+import sys
+import time
+import traceback
 import warnings
 
 from vistrails.core.data_structures.bijectivedict import Bidict
@@ -114,7 +116,7 @@ class ModuleError(Exception):
 
     """
 
-    def __init__(self, module, errormsg, abort=False):
+    def __init__(self, module, errormsg, abort=False, errorTrace=None):
         """ModuleError should be passed the module instance that signaled the
         error and the error message as a string.
 
@@ -123,8 +125,7 @@ class ModuleError(Exception):
         self.abort = abort # force abort even if stopOnError is False
         self.module = module
         self.msg = errormsg
-        import traceback
-        self.errorTrace = traceback.format_exc()
+        self.errorTrace = errorTrace
 
 class ModuleSuspended(ModuleError):
     """Exception representing a VisTrails module being suspended.
@@ -577,10 +578,12 @@ class Module(object):
             raise
         except ModuleError, me:
             if hasattr(me.module, 'interpreter'):
+                if me.errorTrace is None:
+                    me.errorTrace = traceback.format_exc()
                 raise
             else:
                 msg = "A dynamic module raised an exception: '%s'" % me
-                raise ModuleError(self, msg)
+                raise ModuleError(self, msg, errorTrace=me.errorTrace)
         except ModuleErrors:
             raise
         except KeyboardInterrupt, e:
@@ -589,12 +592,10 @@ class Module(object):
             raise
         except Exception, e:
             debug.unexpected_exception(e)
-            import traceback
             raise ModuleError(
                     self,
-                    "Uncaught exception: %s\n%s" % (
-                    debug.format_exception(e),
-                    traceback.format_exc()))
+                    "Uncaught exception: %s" % debug.format_exception(e),
+                    errorTrace=traceback.format_exc())
         if self.annotate_output:
             self.annotate_output_values()
         self.upToDate = True

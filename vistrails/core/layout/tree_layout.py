@@ -96,7 +96,7 @@ class TreeLW(object):
         else:
             node.level = node.parent.level + 1
         maxLevel = node.level
-        for child in node.childs:
+        for child in node.children:
             maxLevel = max(maxLevel, self.__dfsUpdateLevel(child))
         return maxLevel
 
@@ -171,7 +171,7 @@ class NodeLW(object):
         self.height = height
         self.object = object
 
-        self.childs = []
+        self.children = []
 
         self.parent = None
         self.index = 0
@@ -193,35 +193,35 @@ class NodeLW(object):
         self.y = 0
         
     def getNumChilds(self):
-        return len(self.childs)
+        return len(self.children)
         
     def hasChild(self):
-        return len(self.childs) > 0
+        return bool(self.children)
 
     def addChild(self, node):
-        self.childs.append(node)
-        node.index = len(self.childs) - 1
+        self.children.append(node)
+        node.index = len(self.children) - 1
         node.parent = self
         node.level = self.level + 1
 
     def isLeaf(self):
-        return len(self.childs) == 0
+        return not self.children
 
     def leftChild(self):
-        return self.childs[0]
+        return self.children[0]
 
     def rightChild(self):
-        return self.childs[len(self.childs)-1]
+        return self.children[-1]
 
     def leftSibling(self):
         if self.index > 0:
-            return self.parent.childs[self.index-1]
+            return self.parent.children[self.index-1]
         else:
             return None
 
     def leftMostSibling(self):
         if self.parent is not None:
-            return self.parent.childs[0]
+            return self.parent.children[0]
         else:
             return self
 
@@ -313,7 +313,7 @@ class TreeLayoutLW(object):
         else:
             
             defaultAncestor = v.leftChild()
-            for w in v.childs:
+            for w in v.children:
                 self.firstWalk(w)
                 defaultAncestor = self.apportion(w, defaultAncestor)
             self.executeShifts(v)
@@ -417,7 +417,7 @@ class TreeLayoutLW(object):
         shift = 0
         change = 0
         for i in xrange(v.getNumChilds()-1,-1,-1):
-            w = v.childs[i]
+            w = v.children[i]
             w.prelim += shift
             w.mod += shift
             change += w.change
@@ -431,7 +431,7 @@ class TreeLayoutLW(object):
 
     def secondWalk(self,  v, m):
         v.x = v.prelim + m
-        for w in v.childs:
+        for w in v.children:
             self.secondWalk(w, m + v.mod)
 
 # graph

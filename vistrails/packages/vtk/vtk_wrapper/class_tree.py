@@ -33,7 +33,6 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
 # Author: Prabhu Ramachandran
 # Copyright (c) 2004, Enthought, Inc.
 # License: BSD Style.

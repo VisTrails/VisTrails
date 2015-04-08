@@ -1456,60 +1456,6 @@ def save_registry_bundle_to_db(save_bundle, db_connection, do_copy=False,
 ##############################################################################
 # Abstraction I/O
 
-def open_abstraction_from_db(db_connection, id, lock=False):
-    """open_abstraction_from_db(db_connection, id : long: lock: bool) 
-         -> DBAbstraction 
-    DEPRECATED
-    """
-    if db_connection is None:
-        msg = "Need to call open_db_connection() before reading"
-        raise VistrailsDBException(msg)
-    abstraction = read_sql_objects(db_connection, DBAbstraction.vtType, 
-                                   id, lock)[0]
-
-    # not sure where this really should be done...
-    # problem is that db reads the add ops, then change ops, then delete ops
-    # need them ordered by their id
-    for db_action in abstraction.db_get_actions():
-        db_action.db_operations.sort(key=lambda x: x.db_id)
-    vistrails.db.services.abstraction.update_id_scope(abstraction)
-    return abstraction
-
-def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
-    """ DEPRECATED """
-    db_connection.begin()
-    if abstraction.db_last_modified is None:
-        do_copy = True
-    if not do_copy:
-        match_id = get_matching_abstraction_id(db_connection, abstraction)
-        # FIXME remove print
-        #print 'match_id:', match_id
-        if match_id is not None:
-            abstraction.db_id = match_id
-            abstraction.is_new = False
-        else:
-            do_copy = True
-        new_time = get_db_object_modification_time(db_connection, 
-                                                   abstraction.db_id,
-                                                   DBAbstraction.vtType)
-        if new_time > abstraction.db_last_modified:
-            # need synchronization
-            # FIXME remove print
-            #print '*** doing synchronization ***'
-            old_abstraction = open_abstraction_from_db(db_connection, 
-                                                       abstraction.db_id,
-                                                       True)
-            # the "old" one is modified and changes integrated
-            vistrails.db.services.vistrail.synchronize(old_abstraction, abstraction,
-                                             0L)
-            abstraction = old_abstraction
-    if do_copy:
-        abstraction.db_id = None
-    abstraction.db_last_modified = get_current_time(db_connection)
-    write_sql_objects(db_connection, [abstraction], do_copy)
-    db_connection.commit()
-    return abstraction
-
 def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
     """save_abstraction_to_db(abs: DBVistrail, db_connection) -> None
     Saves an abstraction to db, and updating existing abstractions

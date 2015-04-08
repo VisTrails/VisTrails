@@ -1,5 +1,7 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -37,4 +39,4 @@ from __future__ import division
 identifier = 'org.vistrails.vistrails.vtk'
 old_identifiers = ['edu.utah.sci.vistrails.vtk']
 name = 'VTK'
-version = '0.9.5'
+version = '1.0.0'

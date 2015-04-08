@@ -36,14 +36,14 @@
 from __future__ import division
 
 import vtk
-from identifiers import identifier as vtk_pkg_identifier
-
-from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module
-from vistrails.core.modules.basic_modules import File, Integer
 from vistrails.core import system
 
 class VTKRenderOffscreen(Module):
+    _input_ports = [('renderer', 'vtkRenderer'),
+                    ('width', 'basic:Integer'),
+                    ('height', 'basic:Integer')]
+    _output_ports = [('image', 'basic:File')]
 
     def compute(self):
         r = self.get_input("renderer").vtkInstance
@@ -69,7 +69,11 @@ class VTKRenderOffscreen(Module):
         win2image.SetInput(window)
         win2image.Update()
         writer = vtk.vtkPNGWriter()
-        writer.SetInput(win2image.GetOutput())
+        if hasattr(writer, 'SetInput'):
+            writer.SetInput(win2image.GetOutput())
+        else:
+            # VTK 6 uses SetInputData
+            writer.SetInputData(win2image.GetOutput())
         output = self.interpreter.filePool.create_file(suffix='.png')
         writer.SetFileName(output.name)
         writer.Write()
@@ -78,13 +82,4 @@ class VTKRenderOffscreen(Module):
             widget.close()
         self.set_output("image", output)
 
-def register_self():
-    registry = get_module_registry()
-    r = registry.get_descriptor_by_name(vtk_pkg_identifier, 
-                                        'vtkRenderer').module
-    registry.add_module(VTKRenderOffscreen)
-    registry.add_input_port(VTKRenderOffscreen, 'renderer', r)
-    registry.add_input_port(VTKRenderOffscreen, 'width', Integer)
-    registry.add_input_port(VTKRenderOffscreen, 'height', Integer)
-    registry.add_output_port(VTKRenderOffscreen, 'image', File)
-
+_modules = [VTKRenderOffscreen]

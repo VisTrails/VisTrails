@@ -32,6 +32,11 @@ requirements:
     - numpy
     - scipy
     - pyqt
+    - certifi
+    - ssl_match_hostname
+    - xlrd
+    - xlwt
+    - ipython
 
 test:
   # Python imports

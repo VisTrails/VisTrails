@@ -45,7 +45,9 @@ import vistrails.core.db.io
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import XMLFileLocator, ZIPFileLocator
 from vistrails.core import debug
+import vistrails.core.interpreter.cached
 from vistrails.core.vistrail.job import Workflow as JobWorkflow
+import vistrails.core.vistrail.pipeline
 from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.controller import VistrailController
 import vistrails.core.packagemanager

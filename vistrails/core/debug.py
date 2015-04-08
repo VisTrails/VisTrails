@@ -257,7 +257,7 @@ class DebugPrint(object):
 
     def make_logger(self, f=None):
         self.fhandler = None
-        """self.make_logger_240(file) -> logger. Creates a logging object to
+        """self.make_logger(file) -> logger. Creates a logging object to
         be used within the DebugPrint class that sends the debugging
         output to file.
         We will configure log so it outputs to both stderr and a file.

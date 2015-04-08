@@ -195,12 +195,12 @@ class ExtractColumn(Module):
                     column_names=table.names,
                     name=self.force_get_input('column_name', None),
                     index=self.force_get_input('column_index', None))
+
+            self.set_output('value', table.get_column(
+                    column_idx,
+                    self.get_input('numeric', allow_default=True)))
         except ValueError, e:
             raise ModuleError(self, e.message)
-
-        self.set_output('value', table.get_column(
-                column_idx,
-                self.get_input('numeric', allow_default=True)))
 
 
 class BuildTable(Module):

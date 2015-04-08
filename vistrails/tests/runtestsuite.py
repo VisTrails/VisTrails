@@ -178,6 +178,11 @@ from vistrails.core.packagemanager import get_package_manager
 # after vistrails
 import unittest
 
+# reinitializing arguments and options so VisTrails does not try parsing them
+sys.argv = sys.argv[:1]
+vistrails.gui.application.VistrailsApplicationSingleton.use_event_filter = \
+        False
+
 
 root_directory = os.path.realpath(vistrails_root_directory())
 
@@ -238,9 +243,6 @@ def module_filter(name):
     return False
 
 ###############################################################################
-# reinitializing arguments and options so VisTrails does not try parsing them
-sys.argv = sys.argv[:1]
-
 # creates the app so that testing can happen
 
 # We need the windows so we can test events, etc.
@@ -252,7 +254,8 @@ optionsDict = {
         'enablePackagesSilently': True,
         'handlerDontAsk': True,
         'developerDebugger': debug_mode,
-        'debugLevel': vistrails_verbose
+        'debugLevel': vistrails_verbose,
+        'dontUnloadModules': True,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
@@ -420,8 +423,13 @@ if compare_use_vtk:
         a = removeAlpha(prev)
         b = removeAlpha(next)
         idiff = vtk.vtkImageDifference()
-        idiff.SetInput(a)
-        idiff.SetImage(b)
+        if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= \
+           LooseVersion('6.0.0'):
+            idiff.SetInputData(a)
+            idiff.SetImageData(b)
+        else:
+            idiff.SetInput(a)
+            idiff.SetImage(b)
         idiff.Update()
         return idiff.GetThresholdedError()
 else:

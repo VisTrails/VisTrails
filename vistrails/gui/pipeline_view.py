@@ -2128,8 +2128,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if srcModule.module.is_vistrail_var():
             connectionItem.hide()
             var_uuid = srcModule.module.get_vistrail_var()
-            dstPortItem.addVistrailVar(
-                self.controller.get_vistrail_variable_by_uuid(var_uuid))
             dstPortItem.addVistrailVar(var_uuid)
         self.update_connections([srcModule.id, dstModule.id])
         return connectionItem
@@ -2753,7 +2751,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def update_connections(self, modules=None):
         if self.skip_update:
             return
-        if self.controller.current_pipeline.is_valid:
+        if (self.controller.current_pipeline and
+            self.controller.current_pipeline.is_valid):
             for module_id, list_depth in \
                     self.controller.current_pipeline.mark_list_depth(modules):
                 if module_id in self.modules:

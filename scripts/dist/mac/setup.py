@@ -45,6 +45,10 @@ import sys
 
 VERSION = '2.2'
 
+# Add VTK 6.2 to path
+sys.path.insert(0,'/Users/vistrails/src/VTK6/build/Wrapping/Python')
+sys.path.insert(0,'/Users/vistrails/src/VTK6/build/lib/')
+
 plist = dict(
     CFBundleName='VisTrails',
     CFBundleShortVersionString=VERSION,
