@@ -153,7 +153,6 @@ class MplIPythonModeConfig(IPythonModeConfig):
 
 class MplIPythonMode(IPythonMode):
     mode_type = "ipython"
-    priority = 2
     config_cls = MplIPythonModeConfig
 
     def compute_output(self, output_module, configuration=None):
