@@ -160,6 +160,7 @@ class VistrailController(object):
         self.flush_pipeline_cache()
         self._current_full_graph = None
         self._current_terse_graph = None
+        self.show_upgrades = False
         self.num_versions_always_shown = 1
 
         # if self.search is True, vistrail is currently being searched
@@ -2721,14 +2722,212 @@ class VistrailController(object):
                 debug.unexpected_exception(e)
                 raise
 
-    def recompute_terse_graph(self):
+    def prune_versions(self, versions):
+        """ prune_versions(versions: list of version numbers) -> None
+        Prune all versions in 'versions' out of the view
+
+        """
+        # We need to go up-stream to the highest invisible node
+        current = self._current_terse_graph
+        if not current:
+            self.recompute_terse_graph()
+            current, full = self._current_terse_graph, self._current_full_graph
+        else:
+            full = self._current_full_graph
+        changed = False
+        new_current_version = None
+        for v in versions:
+            if v!=0: # not root
+                highest = v
+                while True:
+                    p = full.parent(highest)
+                    if p==-1:
+                        break
+                    if p in current.vertices:
+                        break
+                    highest = p
+                if highest!=0:
+                    changed = True
+                    if highest == self.current_version:
+                        new_current_version = full.parent(highest)
+                self.vistrail.pruneVersion(highest)
+        if changed:
+            self.set_changed(True)
+        if new_current_version is not None:
+            self.change_selected_version(new_current_version)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False)
+
+    def hide_versions_below(self, v=None):
+        """ hide_versions_below(v: int) -> None
+        Hide all versions including and below v
+
+        """
+        if v is None:
+            v = self.current_version
+        full = self.vistrail.getVersionGraph()
+        x = [v]
+
+        am = self.vistrail.actionMap
+
+        changed = False
+
+        while 1:
+            try:
+                current=x.pop()
+            except IndexError:
+                break
+
+            children = [to for (to, _) in full.adjacency_list[current]
+                        if (to in am) and \
+                            not self.vistrail.is_pruned(to)]
+            self.vistrail.hideVersion(current)
+            changed = True
+
+            for child in children:
+                x.append(child)
+
+        if changed:
+            self.set_changed(True)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False, False)
+
+    def show_all_versions(self):
+        """ show_all_versions() -> None
+        Unprune (graft?) all pruned versions
+
+        """
+        am = self.vistrail.actionMap
+        for a in am.iterkeys():
+            self.vistrail.showVersion(a)
+        self.set_changed(True)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False, False)
+
+    def expand_versions(self, v1, v2):
+        """ expand_versions(v1: int, v2: int) -> None
+        Expand all versions between v1 and v2
+
+        """
+        full = self.vistrail.getVersionGraph()
+        p = full.parent(v2)
+        while p > v1:
+            self.vistrail.expandVersion(p)
+            p = full.parent(p)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False, True)
+
+    def collapse_versions(self, v):
+        """ collapse_versions(v: int) -> None
+        Collapse all versions including and under version v until the next tag or branch
+
+        """
+        full = self.vistrail.getVersionGraph()
+        x = [v]
+
+        am = self.vistrail.actionMap
+        tm = self.vistrail.get_tagMap()
+
+        upgrades = set()
+        for ann in self.vistrail.action_annotations:
+            if ann.key != Vistrail.UPGRADE_ANNOTATION:
+                continue
+            # The target is an upgrade
+            upgrades.add(int(ann.value))
+
+        while x:
+            current = x.pop()
+
+            all_children = [to for to, _ in full.adjacency_list[current]
+                            if to in am]
+            children = []
+            while all_children:
+                child = all_children.pop()
+                # Pruned: drop it
+                if self.vistrail.is_pruned(child):
+                    pass
+                # An upgrade: get its children directly
+                # (unless it is tagged, and that tag couldn't be moved)
+                elif (not self.show_upgrades and child in upgrades and
+                        child not in tm):
+                    all_children.extend(
+                        to for to, _ in full.adjacency_list[child]
+                        if to in am)
+                else:
+                    children.append(child)
+            if len(children) > 1:
+                break
+            self.vistrail.collapseVersion(current)
+
+            for child in children:
+                if (not child in tm and  # has no Tag
+                    child != self.current_version): # not selected
+                    x.append(child)
+
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False, True)
+
+    def expand_or_collapse_all_versions_below(self, v=None, expand=True):
+        """ expand_or_collapse_all_versions_below(v: int) -> None
+        Expand/Collapse all versions including and under version v
+
+        """
+        if v is None:
+            v = self.current_version
+
+        full = self.vistrail.getVersionGraph()
+        x = [v]
+
+        am = self.vistrail.actionMap
+
+        while 1:
+            try:
+                current=x.pop()
+            except IndexError:
+                break
+
+            children = [to for (to, _) in full.adjacency_list[current]
+                        if (to in am) and not self.vistrail.is_pruned(to)]
+            if expand:
+                self.vistrail.expandVersion(current)
+            else:
+                self.vistrail.collapseVersion(current)
+
+            for child in children:
+                x.append(child)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False, True)
+
+    def expand_all_versions_below(self, v=None):
+        self.expand_or_collapse_all_versions_below(v, True)
+
+    def collapse_all_versions_below(self, v=None):
+        self.expand_or_collapse_all_versions_below(v, False)
+
+    def collapse_all_versions(self):
+        """ collapse_all_versions() -> None
+        Collapse all expanded versions
+
+        """
+        am = self.vistrail.actionMap
+        for a in am.iterkeys():
+            self.vistrail.collapseVersion(a)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False, True)
+
+    def recompute_terse_graph(self, show_upgrades=None):
+        if show_upgrades is None:
+            show_upgrades = not getattr(get_vistrails_configuration(),
+                                        'hideUpgrades', True)
+        self.show_upgrades = show_upgrades
+
         # get full version tree (including pruned nodes) this tree is
         # kept updated all the time. This data is read only and should
         # not be updated!
         fullVersionTree = self.vistrail.tree.getVersionTree()
 
         # create tersed tree
-        x = [(0,None)]
+        open_list = [(0, None, False, False)]  # Elements to be handled
         tersedVersionTree = Graph()
 
         # cache actionMap and tagMap because they're properties, sort
@@ -2737,55 +2936,116 @@ class VistrailController(object):
         tm = self.vistrail.get_tagMap()
         last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
 
-        while 1:
-            try:
-                (current,parent)=x.pop()
-            except IndexError:
-                break
+        # process upgrade annotations
+        upgrades = set()
+        upgrade_rev_map = {}
+        def rev_map(v):
+            return upgrade_rev_map.get(v, v)
+        for ann in self.vistrail.action_annotations:
+            if ann.key != Vistrail.UPGRADE_ANNOTATION:
+                continue
+            # The target is an upgrade
+            upgrades.add(int(ann.value))
+            # Map from upgraded version to original
+            upgrade_rev_map[int(ann.value)] = ann.action_id
+
+        current_version = self.current_version
+        if not self.show_upgrades:
+            # Map current version
+            current_version = rev_map(current_version)
+
+            # Map tags
+            tm, orig_tm = {}, tm
+            for version, name in sorted(orig_tm.iteritems(),
+                                        key=lambda p: p[0]):
+                v = version
+                while v in upgrade_rev_map:
+                    v = upgrade_rev_map[v]
+                    if v in orig_tm:
+                        # Found another tag in upgrade chain, don't move tag
+                        v = version
+                        break
+                tm[v] = name
+            del orig_tm
+
+        # Transitively flatten upgrade_rev_map
+        for k, v in upgrade_rev_map.iteritems():
+            while v in upgrade_rev_map:
+                v = upgrade_rev_map[v]
+            upgrade_rev_map[k] = v
+
+        print "upgrade_rev_map: %r" % (upgrade_rev_map,)
+        print "upgrades: %r" % (upgrades,)
+        print "current_version: %r" % (current_version,)
+        print "tag map: %r" % (tm,)
+
+        while open_list:
+            current, parent, expandable, collapsible = open_list.pop()
 
             # mount children list
-            if current in am and self.vistrail.is_pruned(current):
-                children = []
-            else:
-                children = \
-                    [to for (to, _) in fullVersionTree.adjacency_list[current]
-                     if (to in am) and (not self.vistrail.is_pruned(to) or \
-                                            to == self.current_version)]
+            all_children = [
+                to for to, _ in fullVersionTree.adjacency_list[current]
+                if to in am]
+            children = []
+            while all_children:
+                child = all_children.pop()
+                # Pruned: drop it
+                if self.vistrail.is_pruned(child):
+                    pass
+                # An upgrade: get its children directly
+                # (unless it is tagged, and that tag couldn't be moved)
+                elif (not self.show_upgrades and child in upgrades and
+                        child not in tm):
+                    all_children.extend(
+                        to for to, _ in fullVersionTree.adjacency_list[child]
+                        if to in am)
+                else:
+                    children.append(child)
 
-            if (self.full_tree or
-                (current == 0) or  # is root
-                (current in tm) or # hasTag:
-                (len(children) <> 1) or # not oneChild:
-                (current == self.current_version) or # isCurrentVersion
-                (am[current].expand) or  # forced expansion
-                (current in last_n)): # show latest
+            display = (self.full_tree or
+                       current == 0 or                 # is root
+                       current in tm or                # hasTag:
+                       current in last_n or            # show latest
+                       current == current_version or   # isCurrentVersion
+                       len(children) != 1)             # leaf or branch
+
+            if (display or am[current].expand):        # forced expansion
 
                 # yes it will!  this needs to be here because if we
                 # are refining version view receives the graph without
                 # the non matching elements
-                if( (not self.refine) or
-                    (self.refine and not self.search) or
-                    (current == 0) or
-                    (self.refine and self.search and
-                     self.search.match(self.vistrail,am[current]) or
-                     current == self.current_version)):
+                if (not self.refine or
+                        (self.refine and not self.search) or
+                        current == 0 or
+                        (self.refine and self.search and
+                         self.search.match(self.vistrail, am[current])) or
+                        current == current_version):
                     # add vertex...
-                    tersedVersionTree.add_vertex(current)
+                    tersedVersionTree.add_vertex(current, tm.get(current))
 
                     # ...and the parent
                     if parent is not None:
-                        tersedVersionTree.add_edge(parent,current,0)
+                        collapse_here = not collapsible and not display
+                        tersedVersionTree.add_edge(parent, current,
+                                                   (expandable, collapse_here))
+                        collapsible = collapsible or collapse_here
 
                     # update the parent info that will be used by the
                     # children of this node
                     parentToChildren = current
+                    expandable = False
                 else:
                     parentToChildren = parent
+                    expandable = True
             else:
                 parentToChildren = parent
+                expandable = True
 
-            for child in reversed(children):
-                x.append((child, parentToChildren))
+            if collapsible and len(children) > 1:
+                collapsible = False
+            for child in children:
+                open_list.append((child, parentToChildren,
+                                  expandable, collapsible))
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
@@ -4017,5 +4277,139 @@ class VistrailController(object):
                 
         #return module move operations
         return self.move_modules_ops(moves)
-        
-            
+
+
+import unittest
+
+class TestTerseGraph(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pm = vistrails.core.packagemanager.get_package_manager()
+        if pm.has_package('org.vistrails.test.upgrades_layout'):
+            return
+
+        d = {'test_upgrades_layout': 'vistrails.tests.resources.'}
+        pm.late_enable_package('test_upgrades_layout', d)
+        cls.maxDiff = None
+
+    @classmethod
+    def tearDownClass(cls):
+        manager = vistrails.core.packagemanager.get_package_manager()
+        if manager.has_package('org.vistrails.test.upgrades_layout'):
+            manager.late_disable_package('test_upgrades_layout')
+
+    def get_workflow(self, name):
+        from vistrails.core.db.locator import XMLFileLocator
+        from vistrails.core.system import vistrails_root_directory
+
+        locator = XMLFileLocator(vistrails_root_directory() +
+                                 '/tests/resources/' + name)
+        vistrail = locator.load()
+        return VistrailController(vistrail, locator)
+
+    def test_workflow1_upgrades(self):
+        """Computes the tersed version tree, with upgrades"""
+        controller = self.get_workflow('upgrades1.xml')
+        controller.recompute_terse_graph(True)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, False)), (5L, (False, False)), (16L, (True, False))],
+            1L: [(3L, (True, False))],
+            3L: [(4L, (False, False))],
+            5L: [(8L, (True, False)), (10L, (True, False))],
+            10L: [(11L, (False, False)), (13L, (True, False))],
+            4L: [], 8L: [], 11L: [], 13L: [], 16L: [],
+        })
+        controller.expand_all_versions_below(0)
+        controller.recompute_terse_graph(True)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, True))],
+            1L: [(2L, (False, True))],
+            2L: [(3L, (False, False))],
+            3L: [(4L, (False, False))],
+            5L: [(6L, (False, True)), (9L, (False, True))],
+            6L: [(7L, (False, False))],
+            7L: [(8L, (False, False))],
+            9L: [(10L, (False, False))],
+            10L: [(11L, (False, False)), (12L, (False, True))],
+            12L: [(13L, (False, False))],
+            14L: [(15L, (False, False))],
+            15L: [(16L, (False, False))],
+            4L: [], 8L: [], 11L: [], 13L: [], 16L: [],
+        })
+
+    def test_workflow1_no_upgrades(self):
+        """Computes the tersed version tree, without upgrades"""
+        controller = self.get_workflow('upgrades1.xml')
+        controller.recompute_terse_graph(False)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, False))],
+            1L: [(3L, (False, False))],
+            3L: [(4L, (False, False))],
+            5L: [(8L, (False, False)), (9L, (False, False))],
+            9L: [(11L, (False, False)), (13L, (False, False))],
+            4L: [], 8L: [], 11L: [], 13L: [], 14L: [],
+        })
+        controller.expand_all_versions_below(0)
+        controller.recompute_terse_graph(False)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, False)), (5L, (False, False)), (14L, (False, False))],
+            1L: [(3L, (False, False))],
+            3L: [(4L, (False, False))],
+            5L: [(8L, (False, False)), (9L, (False, False))],
+            9L: [(11L, (False, False)), (13L, (False, False))],
+            4L: [], 8L: [], 11L: [], 13L: [], 14L: [],
+        })
+
+    def test_workflow2_upgrades(self):
+        """Computes the tersed version tree, with upgrades"""
+        controller = self.get_workflow('upgrades2.xml')
+        controller.recompute_terse_graph(True)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(3L, (True, False)), (9L, (True, False)), (12L, (False, False))],
+            3L: [(7L, (True, False)), (6L, (True, False))],
+            9L: [(10L, (False, False)), (11L, (False, False))],
+            12L: [(13L, (False, False)), (15L, (False, False))],
+            13L: [(14L, (False, False)), (17L, (True, False))],
+            7L: [], 6L: [], 10L: [], 11L: [], 14L: [], 15L: [], 17L: [],
+        })
+        controller.expand_all_versions_below(0)
+        controller.recompute_terse_graph(True)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, True)), (8L, (False, True)), (12L, ((False, False)))],
+            1L: [(2L, (False, False))],
+            2L: [(3L, (False, False))],
+            3L: [(4L, (False, True)), (5L, (False, True))],
+            4L: [(7L, (False, False))],
+            5L: [(6L, (False, False))],
+            8L: [(9L, (False, False))],
+            9L: [(10L, (False, False)), (11L, (False, False))],
+            12L: [(13L, (False, False)), (15L, (False, False))],
+            13L: [(14L, (False, False)), (16L, (False, True))],
+            16L: [(17L, (False, False))],
+            7L: [], 6L: [], 10L: [], 11L: [], 14L: [], 15L: [], 17L: [],
+        })
+
+    def test_workflow2_no_upgrades(self):
+        """Computes the tersed version tree, without upgrades"""
+        controller = self.get_workflow('upgrades2.xml')
+        controller.recompute_terse_graph(False)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(2L, (True, False)), (9L, (True, False)), (13L, (True, False))],
+            2L: [(4L, (False, False)), (6L, (True, False))],
+            9L: [(10L, (False, False))],
+            13L: [(14L, (False, False)), (17L, (False, False))],
+            4L: [], 6L: [], 10L: [], 14L: [], 17L: [],
+        })
+        controller.expand_all_versions_below(0)
+        controller.recompute_terse_graph(False)
+        self.assertEqual(controller._current_terse_graph.adjacency_list, {
+            0: [(1L, (False, True)), (8L, (False, True)), (12L, ((False, True)))],
+            1L: [(2L, (False, False))],
+            2L: [(4L, (False, False)), (5L, (False, True))],
+            5L: [(6L, (False, False))],
+            8L: [(9L, (False, False))],
+            9L: [(10L, (False, False))],
+            12L: [(13L, (False, False))],
+            13L: [(14L, (False, False)), (17L, (False, False))],
+            4L: [], 6L: [], 10L: [], 14L: [], 17L: [],
+        })

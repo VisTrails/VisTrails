@@ -931,21 +931,21 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         # update link items
         dst = controller._current_terse_graph.edges_from(new_version)
-        for eto, _ in dst:
+        for eto, (expand, collapse) in dst:
             edge = self.edges[(old_version, eto)]
             edge.setupLink(self.versions[new_version],
                            self.versions[eto],
-                           self.fullGraph.parent(eto) != new_version,
+                           expand,
                            False) # We shouldn't ever need a collapse here
             self.edges[(new_version, eto)] = edge
             del self.edges[(old_version, eto)]
 
         src = controller._current_terse_graph.edges_to(new_version)
-        for efrom, _ in src:
+        for efrom, (expand, collapse) in src:
             edge = self.edges[(efrom, old_version)]
             edge.setupLink(self.versions[efrom],
                            self.versions[new_version],
-                           self.fullGraph.parent(new_version) != efrom,
+                           expand,
                            False) # We shouldn't ever need a collapse here
             self.edges[(efrom, new_version)] = edge
             del self.edges[(efrom, old_version)]
@@ -979,18 +979,16 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         # loop on the nodes of the tree
         vistrail = controller.vistrail
-        tm = vistrail.get_tagMap()
         am = vistrail.actionMap
         last_n = vistrail.getLastActions(controller.num_versions_always_shown)
 
         self.emit_selection = False
         for node in layout.nodes.itervalues():
-
             # version id
             v = node.id
 
             # version tag
-            tag = tm.get(v, None)
+            tag = tree.vertices.get(v, None)
             action = am.get(v, None)
             description = vistrail.get_description(v)
 
@@ -1018,27 +1016,11 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.adjust_version_colors(controller)
 
         # Add or update links
-        for source in tree.vertices.iterkeys():
+        for source, source_tag in tree.vertices.iteritems():
             eFrom = tree.edges_from(source)
-            for (target, aux) in eFrom:
+            for target, (expand, collapse) in eFrom:
                 guiSource = self.versions[source]
                 guiTarget = self.versions[target]
-                sourceChildren = [to for (to, _) in 
-                                  self.fullGraph.adjacency_list[source]
-                                  if (to in am) and not vistrail.is_pruned(to)]
-                targetChildren = [to for (to, _) in
-                                  self.fullGraph.adjacency_list[target]
-                                  if (to in am) and not vistrail.is_pruned(to)]
-                expand = self.fullGraph.parent(target)!=source
-                collapse = (self.fullGraph.parent(target)==source and # No in betweens
-                            len(targetChildren) == 1 and # target is not a leaf or branch
-                            target != controller.current_version and # target is not selected
-                            target not in tm and # target has no tag
-                            target not in last_n and # not one of the last n modules
-                            (source in tm or # source has a tag
-                             source == 0 or # source is root node
-                             len(sourceChildren) > 1 or # source is branching node 
-                             source == controller.current_version)) # source is selected
                 if self.edges.has_key((source,target)):
                     linkShape = self.edges[(source,target)]
                     linkShape.setupLink(guiSource, guiTarget,
