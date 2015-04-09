@@ -161,6 +161,10 @@ class VistrailController(QtCore.QObject, BaseController):
         if self._auto_save:
             self.setup_timer()
 
+        # the redo stack stores the undone action ids
+        # (undo is automatic with us, through the version tree)
+        self.redo_stack = []
+
         def width_f(text):
             return CurrentTheme.VERSION_FONT_METRIC.width(text)
         self._current_graph_layout = \
@@ -216,6 +220,41 @@ class VistrailController(QtCore.QObject, BaseController):
         if self.timer:
             self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
             self.timer.stop()
+
+    def reset_redo_stack(self):
+        self.redo_stack = []
+
+    def undo(self):
+        """Performs one undo step, moving up the version tree."""
+        action_map = self.vistrail.actionMap
+        old_action = action_map.get(self.current_version, None)
+        self.redo_stack.append(self.current_version)
+        self.show_parent_version()  # missing in core controller
+        new_action = action_map.get(self.current_version, None)
+        return (old_action, new_action)
+        # self.set_pipeline_selection(old_action, new_action, 'undo')
+        # return self.current_version
+
+    def redo(self):
+        """Performs one redo step if possible, moving down the version tree."""
+        action_map = self.vistrail.actionMap
+        old_action = action_map.get(self.current_version, None)
+        if len(self.redo_stack) < 1:
+            debug.critical("Redo on an empty redo stack. Ignoring.")
+            return
+        next_version = self.redo_stack[-1]
+        self.redo_stack = self.redo_stack[:-1]
+        self.show_child_version(next_version)  # missing in core controller
+        new_action = action_map[self.current_version]
+        return (old_action, new_action)
+        # self.set_pipeline_selection(old_action, new_action, 'redo')
+        # return next_version
+
+    def can_redo(self):
+        return (len(self.redo_stack) > 0)
+
+    def can_undo(self):
+        return self.current_version > 0
             
     ##########################################################################
     # Signal vistrail relayout / redraw
