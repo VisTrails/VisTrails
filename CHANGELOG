@@ -47,6 +47,7 @@ Enhancements:
    * Installers now contains VTK 6.2
  - No longer show upgrade actions in version tree (optional; #1046)
  - Associate with .vt and .vtl files on Linux
+ - Added min_conns and max_conns attribute to ports
 Bug fixes:
  - fixes strptime on system with non-English locale
  - fixes returning numpy arrays from PythonSource modules (3468998b)
