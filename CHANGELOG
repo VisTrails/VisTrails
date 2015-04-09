@@ -16,7 +16,7 @@ Enhancements:
  - adds an icon for 'port not visible' (instead of blank)
  - sql package with SQLAlchemy
  - auto-enabling package with unmet dependencies (4a1b200b)
- - Updated job submission/monitor
+ - Enhancements to job submission/monitor
  - controlflow caches looped modules
  - menu to export a single spreadsheet cell
  - custom colors for version in tree
@@ -46,6 +46,7 @@ Enhancements:
  - New VTK package supporting up to VTK 6.2 (#998)
    * Installers now contains VTK 6.2
  - No longer show upgrade actions in version tree (optional; #1046)
+ - Associate with .vt and .vtl files on Linux
 Bug fixes:
  - fixes strptime on system with non-English locale
  - fixes returning numpy arrays from PythonSource modules (3468998b)
@@ -59,6 +60,7 @@ Behavior change for package developers:
  - use output modules instead of cell/writer modules
  - output port drawn from left to right; change your sort_keys
  - constant widget use eventfilter; call installEventFilter for child widgets
+ - Improved module/parameter/widget configuration APIs
 
 From Release: v2.1.5 build 9a01936a5640 from v2.1 branch
 
