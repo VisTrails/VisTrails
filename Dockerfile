@@ -35,10 +35,8 @@ ADD requirements.txt MANIFEST.in setup.py /root/
 RUN \
   cd /root && \
   . venv/bin/activate && \
-  python -c "import sys; print sys.path" && \
   pip install -r requirements.txt && \
-  pip install 'tornado>=4.0' jsonschema && \
-  python -c "import sys; print sys.path"
+  pip install 'tornado>=4.0' jsonschema
 
 # Warning: using 'setup.py develop' will make setuptools add dist-packages to
 # sys.path, which will break everything; don't do it
@@ -53,5 +51,4 @@ RUN apt-get install -y libosmesa6 libglapi-mesa libgl1-mesa-swx11 libgl1-mesa-dr
 ENTRYPOINT \
   cd /root && \
   . venv/bin/activate && \
-  python -c "import sys; print sys.path" && \
   xvfb-run -s "-screen 0 640x480x24" ipython notebook --ip=0.0.0.0 --port=8888
