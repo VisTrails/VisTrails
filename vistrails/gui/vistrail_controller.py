@@ -353,6 +353,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.flush_delayed_actions()
         
         if self.vistrail.set_notes(self.current_version, str(notes)):
+            self.set_changed(True)
             self.emit(QtCore.SIGNAL('notesChanged()'))
 
     ##########################################################################
