@@ -58,7 +58,7 @@ from vistrails.core.vistrail.controller import custom_color_key, \
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
-################################################################################
+###############################################################################
 
 class ColorChooserButton(QtGui.QPushButton):
     color_selected = QtCore.pyqtSignal(object)
@@ -94,7 +94,7 @@ class ColorChooserButton(QtGui.QPushButton):
             if color.isValid():
                 self.setColor(color, silent=False)
 
-################################################################################
+###############################################################################
 
 class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
     """
@@ -365,8 +365,8 @@ class QVersionNotes(QtGui.QTextEdit):
             cursor = QtGui.QTextCursor(doc)
             cursor.deleteChar()
 
+###############################################################################
 
-################################################################################
 class QVersionPropOverlay(QtGui.QFrame):
     """
     QVersionPropOverlay is a transparent widget that sits on top of the version
@@ -564,7 +564,8 @@ class QVersionPropOverlay(QtGui.QFrame):
                 return False
         return QtGui.QFrame.event(self, e)
 
-################################################################################
+###############################################################################
+
 class QExpandButton(QtGui.QLabel):
     """
     A transparent button type with a + draw in 
@@ -625,7 +626,8 @@ class QExpandButton(QtGui.QLabel):
         painter.end()
         self.setPicture(self.picture)
 
-################################################################################
+###############################################################################
+
 class QNotesDialog(QtGui.QDialog):
     """
     A small non-modal dialog with text entry to modify and view notes
@@ -719,7 +721,7 @@ class QNotesDialog(QtGui.QDialog):
         """
         return QtCore.QSize(250,200)
         
-################################################################################
+###############################################################################
 
 class QVersionThumbs(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -767,7 +769,8 @@ class QVersionThumbs(QtGui.QWidget):
         self.thumbs.setPixmap(QtGui.QPixmap())
         self.thumbs.setFrameShape(QtGui.QFrame.NoFrame)
 
-################################################################################
+###############################################################################
+
 class QVersionMashups(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
