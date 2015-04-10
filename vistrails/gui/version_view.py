@@ -983,18 +983,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         am = vistrail.actionMap
         last_n = vistrail.getLastActions(controller.num_versions_always_shown)
 
-        # find currently selected version
-        # if hiding upgrades, we have to map back over upgrade annotations
-        current_version = controller.current_version
-        if not controller.show_upgrades:
-            upgrade_rev_map = {}
-            for ann in controller.vistrail.action_annotations:
-                if ann.key != Vistrail.UPGRADE_ANNOTATION:
-                    continue
-                upgrade_rev_map[int(ann.value)] = ann.action_id
-            current_version = upgrade_rev_map.get(current_version,
-                                                  current_version)
-
         self.emit_selection = False
         for node in layout.nodes.itervalues():
             # version id
@@ -1012,7 +1000,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             else:
                 self.addVersion(node, action, tag, description)
             if select_node:
-                self.versions[v].setSelected(v == current_version)
+                self.versions[v].setSelected(v == controller.current_base_version)
 
         self.emit_selection = True
         self.selectionChanged()
@@ -1280,4 +1268,3 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
 
     def select_current_version(self):
         self.scene().setupScene(self.controller)
-################################################################################

@@ -153,6 +153,7 @@ class VistrailController(object):
         self.file_name = ''
         self.is_abstraction = False
         self.changed = False
+        self._upgrade_rev_map = None
 
         # if _cache_pipelines is True, cache pipelines to speed up
         # version switching
@@ -200,6 +201,14 @@ class VistrailController(object):
     def _set_current_version(self, version):
         self._current_version = version
     current_version = property(_get_current_version, _set_current_version)
+
+    def _get_current_base_version(self):
+        version = self.current_version
+        if self._upgrade_rev_map:
+            return self._upgrade_rev_map.get(version, version)
+        else:
+            return version
+    current_base_version = property(_get_current_base_version)
 
     def _get_current_pipeline(self):
         return self._current_pipeline
@@ -2760,7 +2769,7 @@ class VistrailController(object):
 
         """
         if v is None:
-            v = self.current_version
+            v = self.current_base_version
         full = self.vistrail.getVersionGraph()
         x = [v]
 
@@ -2857,7 +2866,7 @@ class VistrailController(object):
 
             for child in children:
                 if (not child in tm and  # has no Tag
-                    child != self.current_version): # not selected
+                    child != self.current_base_version): # not selected
                     x.append(child)
 
         self.recompute_terse_graph()
@@ -2869,7 +2878,7 @@ class VistrailController(object):
 
         """
         if v is None:
-            v = self.current_version
+            v = self.current_base_version
 
         full = self.vistrail.getVersionGraph()
         x = [v]
@@ -2932,21 +2941,22 @@ class VistrailController(object):
         tm = self.vistrail.get_tagMap()
         last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
 
-        # process upgrade annotations
         upgrades = set()
         upgrade_rev_map = {}
+        current_version = self.current_version
         def rev_map(v):
             return upgrade_rev_map.get(v, v)
-        for ann in self.vistrail.action_annotations:
-            if ann.key != Vistrail.UPGRADE_ANNOTATION:
-                continue
-            # The target is an upgrade
-            upgrades.add(int(ann.value))
-            # Map from upgraded version to original
-            upgrade_rev_map[int(ann.value)] = ann.action_id
 
-        current_version = self.current_version
         if not self.show_upgrades:
+            # process upgrade annotations
+            for ann in self.vistrail.action_annotations:
+                if ann.key != Vistrail.UPGRADE_ANNOTATION:
+                    continue
+                # The target is an upgrade
+                upgrades.add(int(ann.value))
+                # Map from upgraded version to original
+                upgrade_rev_map[int(ann.value)] = ann.action_id
+
             # Map current version
             current_version = rev_map(current_version)
 
@@ -2964,11 +2974,11 @@ class VistrailController(object):
                 tm[v] = name
             del orig_tm
 
-        # Transitively flatten upgrade_rev_map
-        for k, v in upgrade_rev_map.iteritems():
-            while v in upgrade_rev_map:
-                v = upgrade_rev_map[v]
-            upgrade_rev_map[k] = v
+            # Transitively flatten upgrade_rev_map
+            for k, v in upgrade_rev_map.iteritems():
+                while v in upgrade_rev_map:
+                    v = upgrade_rev_map[v]
+                upgrade_rev_map[k] = v
 
         while open_list:
             current, parent, expandable, collapsible = open_list.pop()
@@ -3040,6 +3050,7 @@ class VistrailController(object):
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
+        self._upgrade_rev_map = upgrade_rev_map
 
     def save_version_graph(self, filename, tersed=True, highlight=None):
         if tersed:
