@@ -343,15 +343,16 @@ class VistrailController(QtCore.QObject, BaseController):
         return self.create_abstraction(module_ids, connection_ids, name)
 
     def update_notes(self, notes):
-        """
-        Parameters
-        ----------
+        # Find current location of notes
+        notes_version = self.vistrail.search_upgrade_versions(
+                self.current_version,
+                lambda vt, v, bv: v if vt.get_notes(v) else None)
 
-        - notes : 'string'
-        
-        """
-        self.flush_delayed_actions()
-        
+        # Remove notes
+        if notes_version is not None:
+            self.vistrail.set_notes(notes_version, None)
+
+        # Add notes
         if self.vistrail.set_notes(self.current_version, str(notes)):
             self.set_changed(True)
             self.emit(QtCore.SIGNAL('notesChanged()'))
@@ -724,22 +725,38 @@ class VistrailController(QtCore.QObject, BaseController):
         self.vistrail.setSavedQueries(queries)
         self.set_changed(True)
         
-    def update_current_tag(self,tag):
+    def update_current_tag(self, tag):
         """ update_current_tag(tag: str) -> Bool
         Update the current vistrail tag and return success predicate
         
         """
         self.flush_delayed_actions()
-        try:
-            if self.vistrail.hasTag(self.current_version):
-                self.vistrail.changeTag(tag, self.current_version)
-            else:
-                self.vistrail.addTag(tag, self.current_version)
-        except TagExists:
-            show_warning('Name Exists',
-                         "There is already another version named '%s'.\n"
-                         "Please enter a different one." % tag)
+
+        # Find current location of tag
+        tag_version = self.vistrail.search_upgrade_versions(
+                self.current_version,
+                lambda vt, v, bv: v if vt.has_tag(v) else None)
+
+        # No change in tag: return
+        if (tag_version is not None and
+                self.vistrail.getVersionName(tag_version) == tag):
+            return True
+
+        # This tag already exists elsewhere: error
+        if self.vistrail.has_tag_str(tag):
+            show_warning("Name Exists",
+                         "There is another version named '%s'.\n"
+                         "Please enter a different name." % tag)
             return False
+
+        # Remove current tag
+        self.vistrail.set_tag(tag_version, None)
+
+        if self.vistrail.hasTag(self.current_version):
+            self.vistrail.changeTag(tag, self.current_version)
+        else:
+            self.vistrail.addTag(tag, self.current_version)
+
         self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False)
