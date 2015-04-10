@@ -19,7 +19,7 @@ sudo aptitude install -y python python-dateutil python-dev python-docutils \
     python-pip python-qt4 python-qt4-gl python-qt4-sql python-scipy \
     python-setuptools python-sphinx python-sqlalchemy python-suds python-tz \
     python-unittest2 python-virtualenv python-vtk python-xlrd python-xlwt \
-    zip unzip xvfb
+    imagemagick xvfb
 cd /home/vagrant
 virtualenv --system-site-packages venv
 source venv/bin/activate
