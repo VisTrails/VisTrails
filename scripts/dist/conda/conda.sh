@@ -16,9 +16,10 @@ if [ -z "$1" ]; then
     exit 1
 fi
 if [ -z "$2" ]; then
-    # describe gives us either "v2.1.4" or "v2.1.4-40-g1234567"
+    # describe gives us something like:
+    # "v2.1.4", "v2.1.4-40-g1234567", "v2.2-pre-g1234567", "v2.2.0-rc1", "v2.2-rc2-g1234567"
     # note: no 'sed -r' on OS X
-    VERSION="$(git describe --always --tags | sed 's/^v//' | sed 's/^\([0-9.]*\)-\([0-9]*\)-g\([a-z0-9]*\)$/\1.\2/')"
+    VERSION="$(git describe --always --tags | sed 's/^v//' | sed 's/-g\([a-z0-9]*\)$//' | sed 's/-/./g')"
 else
     VERSION="$2"
 fi
