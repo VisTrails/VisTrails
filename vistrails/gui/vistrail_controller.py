@@ -353,7 +353,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.vistrail.set_notes(notes_version, None)
 
         # Add notes
-        if self.vistrail.set_notes(self.current_version, str(notes)):
+        if self.vistrail.set_notes(self.current_base_version, str(notes)):
             self.set_changed(True)
             self.emit(QtCore.SIGNAL('notesChanged()'))
 
@@ -753,9 +753,9 @@ class VistrailController(QtCore.QObject, BaseController):
         self.vistrail.set_tag(tag_version, None)
 
         if self.vistrail.hasTag(self.current_version):
-            self.vistrail.changeTag(tag, self.current_version)
+            self.vistrail.changeTag(tag, self.current_base_version)
         else:
-            self.vistrail.addTag(tag, self.current_version)
+            self.vistrail.addTag(tag, self.current_base_version)
 
         self.set_changed(True)
         self.recompute_terse_graph()
