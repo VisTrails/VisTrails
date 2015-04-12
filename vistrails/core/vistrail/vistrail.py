@@ -1051,7 +1051,48 @@ class Vistrail(DBVistrail):
                 except AttributeError, e:
                     debug.unexpected_exception(e)
         return package_list
-                    
+
+    def search_upgrade_versions(self, base_version, getter,
+                                start_at_base=None):
+        """Search all upgrades from a version for a specific value.
+
+        :param base_version: version from which to search (upgrades from this
+        version will be recursively searched)
+        :param getter: function that returns the value you are looking for, or
+        None to continue searching
+        :param start_at_base: if None (default), start from given version, then
+        if nothing is found start again from original version. If True, search
+        from the original action (the one that's not an upgrade). If False, go
+        down from given version only.
+        :returns: The result from getter, or None if all upgrades were exhausted
+        """
+        # TODO: cache these maps somewhere
+        upgrade_map = {}
+        upgrade_rev_map = {}
+        for ann in self.action_annotations:
+            if ann.key == Vistrail.UPGRADE_ANNOTATION:
+                upgrade_map[ann.action_id] = int(ann.value)
+                upgrade_rev_map[int(ann.value)] = ann.action_id
+
+        if start_at_base is True:
+            while base_version in upgrade_rev_map:
+                base_version = upgrade_rev_map[base_version]
+
+        version = base_version
+        walked_versions = set()
+        while version is not None and version not in walked_versions:
+            ret = getter(self, version, base_version)
+            if ret is not None:
+                return ret
+            walked_versions.add(version)
+            version = upgrade_map.get(version)
+            if version is None and start_at_base is None:
+                start_at_base = True
+                version = base_version
+                while version in upgrade_rev_map:
+                    version = upgrade_rev_map[version]
+        return None
+
 
 ##############################################################################
 
