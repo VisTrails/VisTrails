@@ -88,6 +88,8 @@ def _eintr_retry_call(func, *args):
 def _add_tool(path):
     # first create classes
     tool_name = os.path.basename(path)
+    if isinstance(tool_name, unicode):
+        tool_name = tool_name.encode('utf-8')
     if not tool_name.endswith(SUFFIX): # pragma: no cover
         return
     (tool_name, _) = os.path.splitext(tool_name)
@@ -371,10 +373,10 @@ def _add_tool(path):
     d = """This module is a wrapper for the command line tool '%s'""" % \
         conf['command']
     # create module
-    M = new_module(CLTools, tool_name,{"compute": compute,
-                                           "conf": conf,
-                                           "tool_name": tool_name,
-                                           "__doc__": d})
+    M = new_module(CLTools, tool_name, {"compute": compute,
+                                        "conf": conf,
+                                        "tool_name": tool_name,
+                                        "__doc__": d})
     reg = vistrails.core.modules.module_registry.get_module_registry()
     reg.add_module(M, package=identifiers.identifier,
                    package_version=identifiers.version)
