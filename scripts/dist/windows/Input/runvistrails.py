@@ -52,6 +52,10 @@ if len(args) > 3:
     if len(args) > 4:
         filenames = [os.path.abspath(a) for a in args[4:]]
     os.chdir(path)
-    path += os.getenv('PATH')
+    path = (os.path.join(os.path.dirname(python), 'Scripts') +
+            os.pathsep +
+            path +
+            os.pathsep +
+            os.getenv('PATH'))
     os.putenv('PATH', path)
     subprocess.call([python, pyfile] + filenames)

@@ -1052,6 +1052,19 @@ class Vistrail(DBVistrail):
                     debug.unexpected_exception(e)
         return package_list
 
+    def get_base_upgrade_version(self, version):
+        """Finds the base version in the upgrade chain.
+        """
+        # TODO: use this in search_upgrade_versions(), once the map is cached
+        upgrade_rev_map = {}
+        for ann in self.action_annotations:
+            if ann.key == Vistrail.UPGRADE_ANNOTATION:
+                upgrade_rev_map[int(ann.value)] = ann.action_id
+
+        while version in upgrade_rev_map:
+            version = upgrade_rev_map[version]
+        return version
+
     def search_upgrade_versions(self, base_version, getter,
                                 start_at_base=None):
         """Search all upgrades from a version for a specific value.

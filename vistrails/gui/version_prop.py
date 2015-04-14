@@ -222,9 +222,10 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.versionThumbs.updateVersion(versionNumber)
         self.versionMashups.updateVersion(versionNumber)
         if self.controller:
+            vistrail = self.controller.vistrail
             if self.use_custom_colors:
-                custom_color = self.controller.vistrail.get_action_annotation(
-                        versionNumber, custom_color_key)
+                custom_color = vistrail.get_action_annotation(versionNumber,
+                                                              custom_color_key)
                 if custom_color is not None:
                     try:
                         custom_color = parse_custom_color(custom_color.value)
@@ -235,13 +236,18 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                         custom_color = None
                 self.customColor.setColor(custom_color)
 
-            if self.controller.vistrail.actionMap.has_key(versionNumber):
+            if vistrail.actionMap.has_key(versionNumber):
                 # Follow upgrades forward to find tag
-                tag = self.controller.vistrail.search_upgrade_versions(
+                tag = vistrail.search_upgrade_versions(
                         versionNumber,
                         lambda vt, v, bv: vt.getVersionName(v) or None) or ''
 
-                action = self.controller.vistrail.actionMap[versionNumber]
+                if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
+                    base_ver = vistrail.get_base_upgrade_version(versionNumber)
+                else:
+                    base_ver = versionNumber
+
+                action = vistrail.actionMap[base_ver]
                 self.tagEdit.setText(tag)
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
@@ -510,18 +516,24 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.notes_dialog.updateVersion(versionNumber)
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
+                vistrail = self.controller.vistrail
                 # Follow upgrades forward to find tag
-                tag = self.controller.vistrail.search_upgrade_versions(
+                tag = vistrail.search_upgrade_versions(
                         versionNumber,
                         lambda vt, v, bv: vt.getVersionName(v) or None) or ''
 
-                action = self.controller.vistrail.actionMap[versionNumber]
-                description = self.controller.vistrail.get_description(versionNumber)
+                if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
+                    base_ver = vistrail.get_base_upgrade_version(versionNumber)
+                else:
+                    base_ver = versionNumber
+
+                action = vistrail.actionMap[base_ver]
+                description = vistrail.get_description(base_ver)
                 self.tag.setText(self.truncate(tag))
                 self.description.setText(self.truncate(description))
                 self.user.setText(self.truncate(action.user))
                 self.date.setText(self.truncate(action.date))
-                notes = self.controller.vistrail.get_notes(action.id)
+                notes = vistrail.get_notes(action.id)
                 if notes:
                     s = self.convertHtmlToText(notes)
                     self.notes.setText(self.truncate(s))
