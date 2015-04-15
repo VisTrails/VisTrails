@@ -6,14 +6,16 @@ import logging
 import os
 import urllib
 
-import tej
-
 from vistrails.core import debug
+from vistrails.core.bundles import py_import
 from vistrails.core.modules.basic_modules import PathObject
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     ModuleSuspended
 from vistrails.core.vistrail.job import JobMixin
+
+
+tej = py_import('tej', {'pip': 'tej'})
 
 
 assert __name__.endswith('.init')
