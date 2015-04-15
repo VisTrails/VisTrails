@@ -348,7 +348,8 @@ class QVersionNotes(QtGui.QTextEdit):
 
     def commit_changes(self):
         if self.controller and self.document().isModified():
-            self.controller.update_notes(str(self.toHtml()))
+            self.controller.update_notes('' if self.document().isEmpty()
+                                         else str(self.toHtml()))
 
     def reset_changes(self):
         """ reset_changes() -> None
