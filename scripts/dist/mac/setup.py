@@ -76,7 +76,7 @@ OPTIONS = {'argv_emulation': True,
                         sqlalchemy.dialects.drizzle,certifi,backports.ssl_match_hostname',
            'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,scipy,\
                         api,twisted,Scientific,distutils,h5py,batchq,osgeo,\
-                        nose,IPython,zmq,pygments,pyth,psycopg2,remoteq,file_archive',
+                        nose,IPython,zmq,pygments,pyth,psycopg2,remoteq,file_archive,sklearn',
            'excludes': 'mpl_toolkits.basemap,PyQt4.uic,PyQt4.uic.Compiler,\
                         PyQt4.uic.Loader,PyQt4.uic.port_v2,PyQt4.uic.port_v3',
            'plist': plist,
