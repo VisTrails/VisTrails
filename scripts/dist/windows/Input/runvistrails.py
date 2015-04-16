@@ -37,25 +37,16 @@ import os
 import subprocess
 import sys
 
-#1st argument is path to python executable
-#2nd argument is path to python file
-#3rd argument is the start in directory
-#4th argument is the vistrails file to open
 
-args = sys.argv
-
-if len(args) > 3:
-    python = args[1]
-    pyfile = args[2]
-    path = args[3]
-    filenames = []
-    if len(args) > 4:
-        filenames = [os.path.abspath(a) for a in args[4:]]
-    os.chdir(path)
-    path = (os.path.join(os.path.dirname(python), 'Scripts') +
-            os.pathsep +
-            path +
-            os.pathsep +
-            os.getenv('PATH'))
-    os.putenv('PATH', path)
-    subprocess.call([python, pyfile] + filenames)
+python = sys.executable
+pyfile = 'vistrails/run.py'
+path = os.path.abspath(os.path.dirname(__file__))
+os.chdir(path)
+path = (os.path.join(os.path.dirname(python), 'Scripts') +
+        os.pathsep +
+        path +
+        os.pathsep +
+        os.getenv('PATH'))
+os.putenv('PATH', path)
+filenames = [os.path.abspath(a) for a in sys.argv[1:]]
+subprocess.call([python, pyfile] + filenames)

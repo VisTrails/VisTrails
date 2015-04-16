@@ -22,8 +22,8 @@ Name: extensions; Description: Extension Files; Types: full
 Name: usersguide; Description: User's Guide PDF document; Types: full
 
 [Icons]
-Name: {group}\VisTrails; Filename: {app}\{#python}\python.exe; WorkingDir: {app}; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails\run.py
-Name: {commondesktop}\VisTrails; Filename: {app}\{#python}\python.exe; WorkingDir: {app}; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: """runvistrails.py"" ""{#python}\python.exe"" ""vistrails\run.py"" ""{app}"""; Components: main; Tasks: desktopicon
+Name: {group}\VisTrails; Filename: {app}\{#python}\python.exe; WorkingDir: {app}; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: """{app}\runvistrails.py"""
+Name: {commondesktop}\VisTrails; Filename: {app}\{#python}\python.exe; WorkingDir: {app}; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: """{app}\runvistrails.py"""; Components: main; Tasks: desktopicon
 Name: {group}\Uninstall VisTrails; Filename: {uninstallexe}
 Name: {group}\VisTrails.pdf; Filename: {app}\doc\VisTrails.pdf; Components: usersguide
 [Tasks]
@@ -39,7 +39,7 @@ LogFileAppend=false
 Root: HKCR; Subkey: .vt; ValueType: string; ValueData: VisTrailsFile; Flags: uninsdeletevalue; Tasks: associatefiles
 Root: HKCR; Subkey: VisTrailsFile; ValueType: string; ValueData: VisTrails File; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKCR; Subkey: VisTrailsFile\DefaultIcon; ValueType: string; ValueData: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; Tasks: associatefiles; Flags: uninsdeletekey
-Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\{#python}\python.exe"" ""{app}\runvistrails.py"" ""{app}\{#python}\python.exe"" ""{app}\vistrails\run.py"" ""{app}"" ""%1"""; Tasks: associatefiles; Flags: uninsdeletekey
+Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\{#python}\python.exe"" ""{app}\runvistrails.py"" ""%1"""; Tasks: associatefiles; Flags: uninsdeletekey
 Root: HKCR; Subkey: .vtl; ValueType: string; ValueData: VisTrailsFile; Flags: uninsdeletevalue; Tasks: associatefiles
 [InstallDelete]
 Name: {app}\dot.exe; Type: files
