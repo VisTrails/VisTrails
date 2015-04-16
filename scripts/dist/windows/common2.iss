@@ -23,7 +23,7 @@ Name: usersguide; Description: User's Guide PDF document; Types: full
 
 [Icons]
 Name: {group}\VisTrails; Filename: {app}\{#python}\python.exe; WorkingDir: {app}; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails\run.py
-Name: {commondesktop}\VisTrails; Filename: {app}\{#python}\python.exe; WorkingDir: {app}; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: vistrails\run.py; Components: main; Tasks: desktopicon
+Name: {commondesktop}\VisTrails; Filename: {app}\{#python}\python.exe; WorkingDir: {app}; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: """{app}\{#python}\python.exe"" ""runvistrails.py"" ""{#python}\python.exe"" ""vistrails\run.py"" ""{app}"""; Components: main; Tasks: desktopicon
 Name: {group}\Uninstall VisTrails; Filename: {uninstallexe}
 Name: {group}\VisTrails.pdf; Filename: {app}\doc\VisTrails.pdf; Components: usersguide
 [Tasks]
