@@ -43,7 +43,7 @@ from file_archive.viewer import StoreViewerWindow
 from vistrails.core.application import get_vistrails_application
 from vistrails.core.db.locator import FileLocator
 
-from .common import get_default_store
+from .common import get_default_store, KEY_WORKFLOW, KEY_MODULE_ID
 
 
 class VistrailsViewerWindow(StoreViewerWindow):
@@ -75,8 +75,8 @@ class VistrailsViewerWindow(StoreViewerWindow):
         self._search()
 
     def _alter_search_conditions(self, conditions):
-        if self._vt_only and not 'vistrails_workflow' in conditions:
-            conditions['vistrails_workflow'] = {'type': 'str'}
+        if self._vt_only and not KEY_WORKFLOW in conditions:
+            conditions[KEY_WORKFLOW] = {'type': 'str'}
         return conditions
 
     def _selection_changed(self):
@@ -94,8 +94,8 @@ class VistrailsViewerWindow(StoreViewerWindow):
             item = item.parent()
         metadata = item.entry.metadata
         try:
-            workflow = metadata['vistrails_workflow']
-            module_id = metadata['vistrails_module_id']
+            workflow = metadata[KEY_WORKFLOW]
+            module_id = metadata[KEY_MODULE_ID]
         except KeyError:
             return None
         return (workflow, module_id)
