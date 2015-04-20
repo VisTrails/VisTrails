@@ -38,6 +38,7 @@ from __future__ import division
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import IPort, OPort
+from vistrails.core.scripting import Prelude, Script
 
 ###############################################################################
 # PythonCalc
@@ -116,6 +117,31 @@ class PythonCalc(Module):
         # to capture the error and report it to the caller of the evaluation
         # function.
         raise ModuleError(self, "unrecognized operation: '%s'" % op)
+
+    # This method handles the translation of this module from a VisTrails
+    # pipeline to a Python script
+    OPS_DEFINITION = Prelude('''\
+import operator
+
+pythoncalc_ops = {'+': operator.add, '-': operator.sub,
+                  '*': operator.mul, '/': operator.truediv}
+''')
+
+    @classmethod
+    def to_python_script(cls, module):
+        # op is a function: generate a simple Python expression
+        for f in module.functions:
+            if f.name == 'op':
+                op = f.params[0].value()
+                if op in '+-*/':
+                    return Script("result = value1 %s value2")
+                break
+
+        # op comes from a port: look up the operator in a dict; provide that
+        # dict in a Prelude so it will only appear once in the script
+        script = Script("result = pythoncalc_ops[op](value1, value2)",
+                        'variables', {'value': 'result'})
+        return script, [cls.OPS_DEFINITION]
 
 # VisTrails will only load the modules specified in the _modules list.
 # This list contains all of the modules a package defines.
