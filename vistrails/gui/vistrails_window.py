@@ -1823,7 +1823,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         view.controller.recompute_terse_graph()
         view.controller.invalidate_version_tree()
         from vistrails.gui.collection.workspace import QWorkspaceWindow
-        QWorkspaceWindow.instance().add_vt_window()
+        QWorkspaceWindow.instance().add_vt_window(view)
         self.close_first_vistrail_if_necessary()
         self.qactions['pipeline'].trigger()
     
