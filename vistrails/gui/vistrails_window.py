@@ -2479,13 +2479,15 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         vistrails.db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
         vistrail = s1.vistrail
-        vistrail.locator = None
+        vistrail.locator = UntitledLocator()
         vistrail.set_defaults()
         view = self.create_view(vistrail, None)
         # FIXME need to figure out what to do with this !!!
         view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
         view.controller.set_changed(True)
         self.view_changed(view)
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        QWorkspaceWindow.instance().add_vt_window(view)
         self.reset_toolbar_for_view(view)
         self.qactions['history'].trigger()
         view.version_view.scene().fitToView(view.version_view, True)
