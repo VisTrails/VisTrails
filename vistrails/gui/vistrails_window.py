@@ -1819,6 +1819,11 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def open_workflow(self, locator):
         get_vistrails_application().open_workflow(locator)
+        view = self.get_current_view()
+        view.controller.recompute_terse_graph()
+        view.controller.invalidate_version_tree()
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        QWorkspaceWindow.instance().add_vt_window()
         self.close_first_vistrail_if_necessary()
         self.qactions['pipeline'].trigger()
     
