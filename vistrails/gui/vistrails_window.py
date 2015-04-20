@@ -583,8 +583,8 @@ class QVistrailViewWindow(QBaseViewWindow):
                              _app.pass_through_locator(self.get_current_view,
                                                        'export_stable')}),
                        ('exportPython', "Workflow to Python ...",
-                        {'statusTip': "Export the current workflow as a "
-                                      "Python script",
+                        {'statusTip': "Translates the current workflow to a "
+                                      "standalone Python script",
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_view,
                                                        'export_python')}),
