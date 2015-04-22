@@ -143,12 +143,16 @@ def assignPipelineCellLocations(pipeline, sheetName,
 
     for id_list in cellIds:
         # find at which depth we need to be working
-        id_iter = iter(id_list)
-        mId = next(id_iter)
-        m = pipeline.modules[mId]
-        for mId in id_iter:
-            pipeline = m.pipeline
+        if isinstance(id_list, (int, long)):
+            mId = id_list
             m = pipeline.modules[mId]
+        else:
+            id_iter = iter(id_list)
+            mId = next(id_iter)
+            m = pipeline.modules[mId]
+            for mId in id_iter:
+                pipeline = m.pipeline
+                m = pipeline.modules[mId]
 
         if reg.is_descriptor_subclass(m.module_descriptor,
                                       spreadsheet_cell_desc):
