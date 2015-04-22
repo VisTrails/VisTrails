@@ -90,12 +90,10 @@ def assignPipelineCellLocations(pipeline, sheetName,
                                           spreadsheet_cell_desc):
             continue
 
-        # Walk through all connections and remove all CellLocation
-        # modules connected to this spreadsheet cell
+        # Delete connections to 'Location' input port
         conns_to_delete = []
-        for (cId,c) in pipeline.connections.iteritems():
-            if (c.destinationId==mId and
-                pipeline.modules[c.sourceId].name=="CellLocation"):
+        for cId, c in pipeline.connections.iteritems():
+            if c.destinationId==mId and c.source.name == 'Location':
                 conns_to_delete.append(c.id)
         for c_id in conns_to_delete:
             pipeline.delete_connection(c_id)
