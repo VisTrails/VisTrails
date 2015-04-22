@@ -186,6 +186,8 @@ class Module(DBModule):
         return self.db_has_function_with_id(f_id)
     def get_function_by_real_id(self, f_id):
         return self.db_get_function_by_id(f_id)
+    def delete_function_by_real_id(self, f_id):
+        self.db_delete_function(self.db_get_function_by_id(f_id))
 
     def add_annotation(self, annotation):
         self.db_add_annotation(annotation)
