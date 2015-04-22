@@ -162,6 +162,9 @@ class PipelineInspector(object):
         cell_desc = registry.get_descriptor_by_name(
                 'org.vistrails.vistrails.spreadsheet',
                 'SpreadsheetCell')
+        output_desc = registry.get_descriptor_by_name(
+                'org.vistrails.vistrails.basic',
+                'OutputModule')
 
         def find_spreadsheet_cells(pipeline, root_id=None):
             if root_id is None:
@@ -173,6 +176,9 @@ class PipelineInspector(object):
                 # SpreadsheetCell subclasses
                 if registry.is_descriptor_subclass(desc, cell_desc):
                     self.spreadsheet_cells.append(root_id + [mId])
+                # Output modules with a 'spreadsheet' mode
+                elif registry.is_descriptor_subclass(desc, output_desc):
+                    if desc.module.get_mode_class('spreadsheet') is not None:
                         self.spreadsheet_cells.append(root_id + [mId])
 
             for subworkflow_id in self.find_subworkflows(pipeline):
