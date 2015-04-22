@@ -59,8 +59,8 @@ def assignPipelineCellLocations(pipeline, sheetName,
                                 minRowCount=None, minColCount=None):
 
     reg = get_module_registry()
-    spreadsheet_cell_desc = \
-        reg.get_descriptor_by_name(spreadsheet_pkg, 'SpreadsheetCell')
+    spreadsheet_cell_desc = reg.get_descriptor_by_name(spreadsheet_pkg,
+                                                       'SpreadsheetCell')
 
     create_module = VistrailController.create_module_static
     create_function = VistrailController.create_function_static
@@ -74,22 +74,7 @@ def assignPipelineCellLocations(pipeline, sheetName,
         inspector.inspect_ambiguous_modules(pipeline)
         cellIds = inspector.spreadsheet_cells
 
-    for id_list in cellIds:
-        # find at which depth we need to be working
-        try:
-            id_iter = iter(id_list)
-            m = pipeline.modules[id_iter.next()]
-            for mId in id_iter:
-                pipeline = m.pipeline
-                m = pipeline.modules[mId]
-        except TypeError:
-            mId = id_list
-
-        m = pipeline.modules[mId]
-        if not reg.is_descriptor_subclass(m.module_descriptor,
-                                          spreadsheet_cell_desc):
-            continue
-
+    def fix_cell_module(pipeline, mId):
         # Delete connections to 'Location' input port
         conns_to_delete = []
         for cId, c in pipeline.connections.iteritems():
@@ -155,6 +140,19 @@ def assignPipelineCellLocations(pipeline, sheetName,
         pipeline.add_connection(cell_conn)
         # replace the getNewId method
         pipeline.tmp_id.__class__.getNewId = orig_getNewId
+
+    for id_list in cellIds:
+        # find at which depth we need to be working
+        id_iter = iter(id_list)
+        mId = next(id_iter)
+        m = pipeline.modules[mId]
+        for mId in id_iter:
+            pipeline = m.pipeline
+            m = pipeline.modules[mId]
+
+        if reg.is_descriptor_subclass(m.module_descriptor,
+                                      spreadsheet_cell_desc):
+            fix_cell_module(mId)
 
     return root_pipeline
 
