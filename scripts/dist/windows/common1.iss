@@ -68,6 +68,7 @@ Source: Input\qt.conf; DestDir: {app}\{#python}
 Source: C:\Windows\{#sys}\python27.dll; DestDir: {app}
 Source: C:\Windows\{#sys}\python27.dll; DestDir: {app}\{#python}
 Source: C:\{#prog}\VTK 6.2.0\bin\*.dll; DestDir: {app}
+Source: C:\{#prog}\VTK 6.2.0\bin\*.manifest; DestDir: {app}
 
 ;;;; --------    ALPS FILES    ----------;;;;
 Source: Input\{#bits}\alps_libs\*; DestDir: {app}; Flags: recursesubdirs

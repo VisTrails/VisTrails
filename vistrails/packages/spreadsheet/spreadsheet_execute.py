@@ -59,8 +59,10 @@ def assignPipelineCellLocations(pipeline, sheetName,
                                 minRowCount=None, minColCount=None):
 
     reg = get_module_registry()
-    spreadsheet_cell_desc = \
-        reg.get_descriptor_by_name(spreadsheet_pkg, 'SpreadsheetCell')
+    spreadsheet_cell_desc = reg.get_descriptor_by_name(spreadsheet_pkg,
+                                                       'SpreadsheetCell')
+    output_module_desc = reg.get_descriptor_by_name(
+            'org.vistrails.vistrails.basic', 'OutputModule')
 
     create_module = VistrailController.create_module_static
     create_function = VistrailController.create_function_static
@@ -74,28 +76,11 @@ def assignPipelineCellLocations(pipeline, sheetName,
         inspector.inspect_ambiguous_modules(pipeline)
         cellIds = inspector.spreadsheet_cells
 
-    for id_list in cellIds:
-        # find at which depth we need to be working
-        try:
-            id_iter = iter(id_list)
-            m = pipeline.modules[id_iter.next()]
-            for mId in id_iter:
-                pipeline = m.pipeline
-                m = pipeline.modules[mId]
-        except TypeError:
-            mId = id_list
-
-        m = pipeline.modules[mId]
-        if not reg.is_descriptor_subclass(m.module_descriptor,
-                                          spreadsheet_cell_desc):
-            continue
-
-        # Walk through all connections and remove all CellLocation
-        # modules connected to this spreadsheet cell
+    def fix_cell_module(pipeline, mId):
+        # Delete connections to 'Location' input port
         conns_to_delete = []
-        for (cId,c) in pipeline.connections.iteritems():
-            if (c.destinationId==mId and
-                pipeline.modules[c.sourceId].name=="CellLocation"):
+        for c in pipeline.connection_list:
+            if c.destinationId == mId and c.destination.name == 'Location':
                 conns_to_delete.append(c.id)
         for c_id in conns_to_delete:
             pipeline.delete_connection(c_id)
@@ -155,8 +140,75 @@ def assignPipelineCellLocations(pipeline, sheetName,
         pipeline.add_module(cellLocation)
         pipeline.add_connection(sheet_conn)
         pipeline.add_connection(cell_conn)
+
         # replace the getNewId method
         pipeline.tmp_id.__class__.getNewId = orig_getNewId
+
+    def fix_output_module(pipeline, mId):
+        # Remove all connections to 'configuration' input port
+        conns_to_delete = []
+        for c in pipeline.connection_list:
+            if (c.destinationId == mId and
+                    c.destination.name == 'configuration'):
+                conns_to_delete.append(c.id)
+        for c_id in conns_to_delete:
+            pipeline.delete_connection(c_id)
+
+        m = pipeline.modules[mId]
+
+        # Remove all functions on 'configuration' input port
+        funcs_to_delete = []
+        for f in m.functions:
+            if f.name == 'configuration':
+                funcs_to_delete.append(f.real_id)
+        for f_id in funcs_to_delete:
+            m.delete_function_by_real_id(f_id)
+
+        # a hack to first get the id_scope to the local pipeline scope
+        # then make them negative by hacking the getNewId method
+        # all of this is reset at the end of this block
+        id_scope = pipeline.tmp_id
+        orig_getNewId = pipeline.tmp_id.__class__.getNewId
+        def getNewId(self, objType):
+            return -orig_getNewId(self, objType)
+        pipeline.tmp_id.__class__.getNewId = getNewId
+
+        config = {'row': row - 1, 'col': col - 1}
+        if minRowCount is not None:
+            config['sheetRowCount'] = minRowCount
+        if minColCount is not None:
+            config['sheetColCount'] = minColCount
+        if sheetName is not None:
+            config['sheetName']= sheetName
+        config = {'spreadsheet': config}
+        config_function = create_function(id_scope, m,
+                                          'configuration', [repr(config)])
+        m.add_function(config_function)
+
+        # replace the getNewId method
+        pipeline.tmp_id.__class__.getNewId = orig_getNewId
+
+    for id_list in cellIds:
+        cell_pipeline = pipeline
+
+        # find at which depth we need to be working
+        if isinstance(id_list, (int, long)):
+            mId = id_list
+            m = cell_pipeline.modules[mId]
+        else:
+            id_iter = iter(id_list)
+            mId = next(id_iter)
+            m = cell_pipeline.modules[mId]
+            for mId in id_iter:
+                cell_pipeline = m.pipeline
+                m = cell_pipeline.modules[mId]
+
+        if reg.is_descriptor_subclass(m.module_descriptor,
+                                      spreadsheet_cell_desc):
+            fix_cell_module(cell_pipeline, mId)
+        elif reg.is_descriptor_subclass(m.module_descriptor,
+                                        output_module_desc):
+            fix_output_module(cell_pipeline, mId)
 
     return root_pipeline
 

@@ -1,5 +1,10 @@
 RELEASE NOTES
 -------------
+Release Name: v2.2.1 build f1f701774801 from master branch
+
+Bug fixes:
+ - parameter exploration failed on cells upgraded to output modules (#1063)
+
 Release Name: v2.2 build 7a19c29b8322 from master branch
 
 Enhancements:

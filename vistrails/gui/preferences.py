@@ -42,18 +42,13 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package
 from vistrails.core.requirements import MissingRequirement
 from vistrails.core.system import get_vistrails_basic_pkg_id
-from vistrails.core.utils import InvalidPipeline
-from vistrails.core.utils.uxml import (named_elements,
-                             elements_filter, enter_named_element)
 from vistrails.gui.configuration import QConfigurationWidget, \
     QConfigurationPane
 from vistrails.gui.module_palette import QModulePalette
 from vistrails.gui.modules.output_configuration import OutputModeConfigurationWidget
-from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration, base_config
 from vistrails.core import debug
-import os.path
 
 ##############################################################################
 
@@ -325,6 +320,7 @@ class QPackagesWidget(QtGui.QWidget):
             try:
                 pm.late_enable_package(codepath)
             except (Package.InitializationFailed, MissingRequirement), e:
+                debug.unexpected_exception(e)
                 debug.critical("Initialization of package '%s' failed" %
                                codepath,
                                e)
