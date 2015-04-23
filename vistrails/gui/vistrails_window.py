@@ -538,7 +538,11 @@ class QVistrailViewWindow(QBaseViewWindow):
                        ('importWorkflowDB', "Workflow from DB...",
                         {'statusTip': "Import a workflow from a database",
                          'enabled': True,
-                         'callback': _app.import_workflow_from_db})]),
+                         'callback': _app.import_workflow_from_db}),
+                       ('importPython', "Python Script as Workflow...",
+                        {'statusTip': "Translates a Python script to a workflow",
+                         'enabled': True,
+                         'callback': _app.import_python})]),
                      ("export", "Export",
                       [('exportFile', "To DB...",
                         {'statusTip': "Export the current vistrail to a " \
@@ -1821,6 +1825,27 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         """
         self.import_workflow(DBLocator)
+
+    def import_python(self, controller=None):
+        """ translate a Python script back into a workflow """
+        filename = QtGui.QFileDialog.getOpenFileName(
+                self, "Choose a file",
+                ".", "Python script (*.py)")
+        if not filename:
+            return False
+
+        self.close_first_vistrail_if_necessary()
+        controller = get_vistrails_application().import_python(filename,
+                                                               controller)
+        if controller is not None:
+            self.qactions['pipeline'].trigger()
+            view = self.get_current_view()
+            view.controller.recompute_terse_graph()
+            view.controller.invalidate_version_tree()
+            from vistrails.gui.collection.workspace import QWorkspaceWindow
+            QWorkspaceWindow.instance().add_vt_window(view)
+            return True
+        return False
 
     def open_workflow(self, locator):
         self.close_first_vistrail_if_necessary()

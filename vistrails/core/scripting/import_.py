@@ -8,6 +8,10 @@ from __future__ import division, unicode_literals
 
 import ast
 import redbaron
+import urllib2
+
+from vistrails.core.db.action import create_action
+from vistrails.core.modules.module_registry import get_module_registry
 
 
 NUMBER_LITERALS = (redbaron.IntNode, redbaron.FloatNode, redbaron.LongNode,
@@ -25,6 +29,37 @@ def eval_int_literal(node):
         return node.value
     else:
         return ast.literal_eval(node.value)
+
+
+def read_workflow_from_python(controller, filename):
+    """Imports a Python script as a workflow on the given controller.
+    """
+    # FIXME: Unicode support?
+    with open(filename, 'rb') as f:
+        script = redbaron.RedBaron(f.read())
+    print ("Got %d-line Python script" % len(script))
+
+    # Remove previous modules
+    ops = [('delete', conn)
+           for conn in controller.current_pipeline.connection_list]
+    ops.extend(('delete', mod)
+           for mod in controller.current_pipeline.module_list)
+
+    # Create PythonSource
+    md = get_module_registry().get_descriptor_by_name(
+            'org.vistrails.vistrails.basic',
+            'PythonSource')
+    module = controller.create_module_from_descriptor(md)
+    source = urllib2.quote(script.dumps())
+    function = controller.create_function(module, 'source', [source])
+    module.add_function(function)
+    ops.append(('add', module))
+
+    action = create_action(ops)
+    controller.add_new_action(action, "Imported Python script")
+    controller.perform_action(action)
+    controller.change_selected_version(action.id)
+    return True
 
 
 ###############################################################################

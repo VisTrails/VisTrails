@@ -467,6 +467,16 @@ class VistrailsApplicationInterface(object):
         controller.set_changed(True)
         return controller
 
+    def import_python(self, filename, controller=None):
+        if controller is None:
+            controller = self.get_current_controller()
+            if controller is None:
+                new_locator = UntitledLocator()
+                controller = self.open_vistrail(new_locator)
+        if controller.import_python_script(filename):
+            return controller
+        return None
+
     def save_vistrail(self, locator=None, controller=None, export=False):
         if controller is None:
             controller = self.get_current_controller()
