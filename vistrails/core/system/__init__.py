@@ -298,7 +298,7 @@ def default_connections_file():
     """
     return os.path.join(current_dot_vistrails(), 'connections.xml')
 
-VERSION = '2.2'
+VERSION = '2.2.1'
 def vistrails_version():
     """vistrails_version() -> string - Returns the current VisTrails version."""
     # 0.1 was the Vis2005 version
