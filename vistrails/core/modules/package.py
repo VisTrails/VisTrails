@@ -644,6 +644,7 @@ class Package(DBPackage):
             except Exception, e:
                 debug.critical("Couldn't get dependencies of %s: %s: %s" % (
                                self.name, type(e).__name__, ', '.join(e.args)))
+                deps = []
 
         if self._module is not None and \
                 hasattr(self._module, '_dependencies'):
