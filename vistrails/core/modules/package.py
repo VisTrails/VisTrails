@@ -642,8 +642,10 @@ class Package(DBPackage):
             try:
                 deps = callable_()
             except Exception, e:
-                debug.critical("Couldn't get dependencies of %s: %s: %s" % (
-                               self.name, type(e).__name__, ', '.join(e.args)))
+                debug.critical(
+                        "Couldn't get dependencies of %s: %s\n%s" % (
+                            self.name, debug.format_exception(e),
+                            traceback.format_exc()))
                 deps = []
 
         if self._module is not None and \
