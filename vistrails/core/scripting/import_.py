@@ -55,8 +55,10 @@ def next_node(script, pos):
         if pos >= script_len:
             raise EndOfInput
         node = script[pos]
+        print "node: %s" % node.dumps()
         pos += 1
         if not isinstance(node, redbaron.EndlNode):
+            print "returning %s" % node.dumps()
             return pos, node
 
 
@@ -112,7 +114,7 @@ def read_workflow_from_python(controller, filename):
         except EndOfInput:
             break
 
-        print "% 4d - - -\n%s\n     -----" % node
+        print "% 4d - - -\n%s\n     -----" % (line_number(node), node.dumps())
 
         # Try to read an annotation
         if isinstance(script, redbaron.CommentNode):
@@ -342,7 +344,9 @@ def add_pythonsource(controller, registry, var_to_oport, oport_to_var,
         if v not in outputs and v in var_to_oport:
             inputs.add(v)
 
-    input_map = {'source': urllib2.quote(unicode(source).encode('utf-8'))}
+    input_map = {'source': (
+        'const',
+        urllib2.quote('\n'.join(s.dumps() for s in source).encode('utf-8')))}
     input_map.update((iport, ('var', iport)) for iport in inputs)
     output_map = dict((oport, ('var', oport)) for oport in outputs)
     port_specs = [('input', iport, 'org.vistrails.vistrails.basic:Variant')
