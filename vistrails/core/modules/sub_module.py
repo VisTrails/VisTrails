@@ -336,6 +336,9 @@ class Abstraction(Group):
     def __init__(self):
         Group.__init__(self)
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+
     # the compute method is inherited from Group!
 
 def read_vistrail(vt_fname):
