@@ -100,7 +100,8 @@ def write_workflow_to_python(pipeline, filename):
             first = False
 
         # Annotation, used to rebuild the pipeline
-        text.append("# MODULE name=%r, id=%s" % (module.name, module_id))
+        text.append("# MODULE %d %s" % (module_id,
+                                        module.module_descriptor.sigstring))
 
         code = modules[module_id]
 
@@ -217,17 +218,17 @@ class TestExport(unittest.TestCase):
 
     def test_sources(self):
         self.do_export('script_sources.xml', """\
-# MODULE name='Integer', id=2
+# MODULE 2 org.vistrails.vistrails.basic:Integer
 value = '8'
 
-# MODULE name='PythonSource', id=0
+# MODULE 0 org.vistrails.vistrails.basic:PythonSource
 # FUNCTION i i
 i = 42
 o = 1
 o = i # comment
 internal_var = 4
 
-# MODULE name='PythonSource', id=1
+# MODULE 1 org.vistrails.vistrails.basic:PythonSource
 # CONNECTION a o
 # CONNECTION someint value
 try:
@@ -240,10 +241,10 @@ internal_var_2 = value
 
     def test_list(self):
         self.do_export('script_list.xml', """\
-# MODULE name='Integer', id=1
+# MODULE 1 org.vistrails.vistrails.basic:Integer
 value = '3'
 
-# MODULE name='List', id=0
+# MODULE 0 org.vistrails.vistrails.basic:List
 # FUNCTION value value_3
 value_3 = [1, 2]
 # FUNCTION tail tail
