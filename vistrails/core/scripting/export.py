@@ -95,7 +95,7 @@ def write_workflow_to_python(pipeline, filename):
         print("Writing module %s %d" % (module.name, module_id))
 
         if not first:
-            text.append("")
+            text.append('\n')
         else:
             first = False
 
@@ -221,12 +221,14 @@ class TestExport(unittest.TestCase):
 # MODULE 2 org.vistrails.vistrails.basic:Integer
 value = '8'
 
+
 # MODULE 0 org.vistrails.vistrails.basic:PythonSource
 # FUNCTION i i
 i = 42
 o = 1
 o = i # comment
 internal_var = 4
+
 
 # MODULE 1 org.vistrails.vistrails.basic:PythonSource
 # CONNECTION a o
@@ -243,6 +245,7 @@ internal_var_2 = value
         self.do_export('script_list.xml', """\
 # MODULE 1 org.vistrails.vistrails.basic:Integer
 value = '3'
+
 
 # MODULE 0 org.vistrails.vistrails.basic:List
 # FUNCTION value value_3
