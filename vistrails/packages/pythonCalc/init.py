@@ -138,13 +138,10 @@ pythoncalc_ops = {'+': operator.add, '-': operator.sub,
         return script, [cls.OPS_DEFINITION]
 
     @classmethod
-    def from_python_script(cls, script, pos):
-        from ast import literal_eval
+    def from_python_script(cls, script, pos, iports={}):
         import redbaron
 
-        while script[pos].EndlNode:
-            pos += 1
-        node = script[pos]
+        pos, node = import_.next_node(script, pos)
 
         if (isinstance(node, redbaron.AssignmentNode) and
                 isinstance(node.target, redbaron.NameNode) and
@@ -155,9 +152,6 @@ pythoncalc_ops = {'+': operator.add, '-': operator.sub,
             output = node.target.value
             if isinstance(node.value.getitem.value, redbaron.NameNode):
                 op = 'var', node.value.getitem.value.value
-            elif isinstance(node.value.getitem.value, redbaron.StringNode):
-                val = node.value.getitem.value.value
-                op = 'const', [('basic:String', val)]
             else:
                 return None
             inputs = []
@@ -165,15 +159,11 @@ pythoncalc_ops = {'+': operator.add, '-': operator.sub,
                 if isinstance(node.value.call.value[i].value,
                               redbaron.NameNode):
                     inputs.append(('var', node.value.call.value[i].value.value))
-                elif isinstance(node.value.call.value[i].value,
-                                import_.NUMBER_LITERALS):
-                    val = literal_eval(node.value.call.value[i].value.value)
-                    inputs.append(('const', [('basic:Float', val)]))
                 else:
                     return None
             return pos, (cls,
                          {'op': op, 'value1': inputs[0], 'value2': inputs[1]},
-                         {'value': ('var', )})
+                         {'value': ('var', node.target.value)})
         return None
 
 # VisTrails will only load the modules specified in the _modules list.
