@@ -1389,3 +1389,20 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))
+
+    def test_abstraction_execute(self):
+        import api
+        api.new_vistrail()
+        api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'String', '')
+        api.change_parameter(0, 'value', ['Running Abstraction'])
+        api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'StandardOutput', '')
+        api.add_connection(0, 'value', 1, 'value')
+        c = api.get_current_controller()
+        abs = c.create_abstraction([0,1], [0], 'ExecAbs')
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, 'ExecAbs.xml')
+        desc = c.load_abstraction(filename, abs_name='ExecAbs')
+        api.new_vistrail()
+        c = api.get_current_controller()
+        api.add_module_from_descriptor(desc, 0, 0)
+        self.assertEqual(c.execute_current_workflow()[0][0].errors, {})
