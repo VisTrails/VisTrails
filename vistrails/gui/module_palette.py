@@ -42,6 +42,7 @@ QModuleTreeWidgetItem
 """
 from __future__ import division
 
+import traceback
 from PyQt4 import QtCore, QtGui
 from vistrails.core import get_vistrails_application
 from vistrails.core import debug
@@ -298,10 +299,12 @@ class QModuleTreeWidget(QSearchTreeWidget):
                         menu.exec_(event.globalPos())
                     return
             except Exception, e:
+                debug.unexpected_exception(e)
                 debug.warning("Got exception trying to display %s's "
-                              "context menu in the palette: %s: %s" % (
-                              package.name,
-                              type(e).__name__, ', '.join(e.args)))
+                              "context menu in the palette: %s\n%s" % (
+                                  package.name,
+                                  debug.format_exception(e),
+                                  traceback.format_exc()))
 
             item.contextMenuEvent(event, self)
 
