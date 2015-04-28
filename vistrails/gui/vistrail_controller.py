@@ -1391,7 +1391,7 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         self.assert_(os.path.exists(filename))
 
     def test_abstraction_execute(self):
-        import api
+        from vistrails import api
         api.new_vistrail()
         api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'String', '')
         api.change_parameter(0, 'value', ['Running Abstraction'])
