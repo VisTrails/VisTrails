@@ -119,8 +119,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                    'Convert2Grace': (dataset.WriteGraceFile,{}),
                    'DisplayXMGRPlot': (plots.DisplayGracePlot,{}),
                    'GraceXYPlot': (dataset.WriteGraceFile,{}),
-                   'MplXYPlot': (dataset.MplXYPlot,{'dst_port_remap': {'plot': 'plot'}, 'src_port_remap' :  {'unused': 'self'}}),
-                   'DataSet|Plot|MplXYPlot': (dataset.MplXYPlot,{'dst_port_remap': {'plot': 'plot'}, 'src_port_remap' :  {'unused': 'self'}}),
+                   'MplXYPlot': (dataset.MplXYPlot,{'dst_port_remap': {'plot': 'plot'}, 'src_port_remap' :  {'unused': 'value', 'self': 'value'}}),
+                   'DataSet|Plot|MplXYPlot': (dataset.MplXYPlot,{'dst_port_remap': {'plot': 'plot'}, 'src_port_remap' :  {'unused': 'value', 'self': 'value'}}),
                    'Select': (dataset.Select,{}),
                    'And': (dataset.And,{}),
                    'Or': (dataset.Or,{}),
@@ -167,12 +167,12 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
    new_remap['Dataset|Plot|ShowMplPlot'] = [(None, '2.2.0', 'DataSet|Plot|ShowMplPlot', {})]
    new_remap['MplXYPlotCell'] = [(None, '2.2.0', None, {})]
    new_remap['Tools|MplXYPlotCell'] = [(None, '2.2.0', None, {})]
-   new_remap['DataSet|Plot|MplXYPlot'] = [(None, '2.2.0', None, {})]
+   new_remap['DataSet|Plot|MplXYPlot'] = [(None, '2.2.0', None, {'self': 'value'})]
    new_remap['Tools|WriteInputFiles'] = [(None, '2.2.0', None, {'dst_port_remap': {'simulationid': 'simulationid'}})]
    new_remap['SimulationName'] = [(None, '2.2.0', None, {'dst_port_remap': {'value': 'value'},'src_port_remap': {'value': 'value'}})]
    new_remap['Applications|SimulationName'] = [(None, '2.2.0', None, {'dst_port_remap': {'value': 'value'},'src_port_remap': {'value': 'value'}})]
-   new_remap['MplXYPlot'] = [(None,'2.2.0',dataset.MplXYPlot,{'dst_port_remap': {'plot': 'plot'}, 'src_port_remap' :  {'unused': 'self'}})]
-   new_remap['DataSet|Plot|MplXYPlot'] = [(None,'2.2.0',dataset.MplXYPlot,{'dst_port_remap': {'plot': 'plot'}, 'src_port_remap' :  {'unused': 'self'}})]
+   new_remap['MplXYPlot'] = [(None,'2.2.0',dataset.MplXYPlot,{'dst_port_remap': {'plot': 'plot'}, 'src_port_remap' :  {'unused': 'value', 'self': 'value'}})]
+   new_remap['DataSet|Plot|MplXYPlot'] = [(None,'2.2.0',dataset.MplXYPlot,{'dst_port_remap': {'plot': 'plot'}, 'src_port_remap' :  {'unused': 'value', 'self': 'value'}})]
 
 
 
