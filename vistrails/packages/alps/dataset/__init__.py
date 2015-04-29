@@ -92,6 +92,8 @@ def selfRegister():
     # we can refer to it in a shorter way.
     reg = vistrails.core.modules.module_registry.registry
 
+    reg.add_module(MplCustomPlot, abstract=True)
+
     register(DataSets,'DataSet',abst=True)
     register(ConcatenateDataSets,'DataSet')
     register(ResultFiles,'DataSet')
