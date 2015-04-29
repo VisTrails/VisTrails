@@ -12,7 +12,6 @@
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
 from core.configuration import ConfigurationObject
-import core.bundles
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 try:

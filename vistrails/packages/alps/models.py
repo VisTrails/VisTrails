@@ -10,7 +10,6 @@
 ##############################################################################
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
-import core.bundles
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 

@@ -9,7 +9,6 @@
 #
 ##############################################################################
 
-import core.bundles
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 
