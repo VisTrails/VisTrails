@@ -357,7 +357,7 @@ class ConvertXML2HTML(alpscore.SystemCommand):
         output_file = self.interpreter.filePool.create_file(suffix='.html')
         if platform.system() == 'Windows':
           cmdlist = ['msxsl.exe',input_file] + self.style + ['-o', output_file.name]
-        if platform.system() != 'Windows':
+        else:
           cmdlist = [alpscore._get_path('xslttransform')] + self.style + [input_file, '>' , output_file.name]
         self.execute(cmdlist)
         if platform.system() == 'Windows': # need to convert to UTF-8
