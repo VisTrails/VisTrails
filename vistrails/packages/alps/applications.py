@@ -21,7 +21,7 @@ import system
 import glob
 import copy
 
-from packages.vtlcreator.init import VtlFileCreator
+from vistrails.packages.vtlcreator.init import VtlFileCreator
 from vistrails.core.modules.vistrails_module import ModuleError
 from plots import PlotFile
 from pyalps.plot_core import *

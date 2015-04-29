@@ -11,13 +11,13 @@
 ##############################################################################
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 try:
-  from packages.HTTP.init import HTTPFile
+  from vistrails.packages.HTTP.init import HTTPFile
 except:
-  from packages.URL.init import DownloadFile
+  from vistrails.packages.URL.init import DownloadFile
   HTTPFile = DownloadFile
 import os
 import os.path

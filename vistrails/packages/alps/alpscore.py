@@ -9,9 +9,9 @@
 #
 ##############################################################################
 
-from core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject
 from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from core.system import list2cmdline
+from vistrails.core.system import list2cmdline
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 import os
@@ -22,9 +22,9 @@ import sys
 import copy
 
 from PyQt4 import QtCore, QtGui
-from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
-from packages.spreadsheet.spreadsheet_cell import QCellWidget
-import packages.spreadsheet
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
+import vistrails.packages.spreadsheet
 
 import pyalps
 

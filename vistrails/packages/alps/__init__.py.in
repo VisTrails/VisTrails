@@ -9,7 +9,7 @@
 #
 ##############################################################################
 
-from core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject
 import platform
 
 identifier = 'org.comp-phys.alps'

@@ -28,7 +28,7 @@
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.basic_modules as basic
 from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
-from gui.modules.python_source_configure import PythonSourceConfigurationWidget
+from vistrails.gui.modules.python_source_configure import PythonSourceConfigurationWidget
 
 import urllib, copy
 import numpy as np

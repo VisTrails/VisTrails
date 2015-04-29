@@ -9,8 +9,8 @@
 #
 ##############################################################################
 
-from core.configuration import ConfigurationObject
-from core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.configuration import ConfigurationObject
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
 from vistrails.core.modules.module_registry import get_module_registry
 
 import alpscore

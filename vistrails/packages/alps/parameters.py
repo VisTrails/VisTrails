@@ -13,13 +13,13 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCach
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
 import copy
-# import packages.controlflow
+# import vistrails.packages.controlflow
 basic = vistrails.core.modules.basic_modules
 
 import numpy as np
 
 try:
-  from gui.modules.constant_configuration import StandardConstantWidget
+  from vistrails.gui.modules.constant_configuration import StandardConstantWidget
 except:
   from vistrails.core.modules.constant_configuration import StandardConstantWidget
 
