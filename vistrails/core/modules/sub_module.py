@@ -330,11 +330,11 @@ def get_port_spec_info(pipeline, module):
 ###############################################################################
 
 class Abstraction(Group):
-    _settings = ModuleSettings(name="SubWorkflow", 
+    # We need Abstraction to be a subclass of Group so that the hierarchy of
+    # modules is right
+    # But the pipeline comes from somewhere else, so skip the transfer_attrs()
+    _settings = ModuleSettings(name="SubWorkflow",
                                hide_descriptor=True)
-
-    def __init__(self):
-        Group.__init__(self)
 
     def transfer_attrs(self, module):
         Module.transfer_attrs(self, module)
