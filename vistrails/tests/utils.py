@@ -40,6 +40,7 @@ import contextlib
 import logging
 import os
 import sys
+import unittest
 
 try:
     import cStringIO as StringIO
@@ -371,3 +372,113 @@ class MockLogHandler(logging.Handler):
         finally:
             if hasattr(logging, '_acquireLock'):
                 logging._releaseLock()
+
+
+def _id(obj):
+    return obj
+
+
+class SkippingChecker(object):
+    """This mechanism allows to specify the checks you expect to fail.
+
+    VisTrails has lots of dependencies, some of which not easy to setup.
+    Running the test suite on your machine only tests what is available,
+    skipping over tests that can't run because of missing dependencies.
+
+    However, we want to make sure the right tests run on automated build
+    machines. For that reason, this mechanism allows to specify a whitelist of
+    the tests that are allowed to skip; if a disallowed test skips, an error
+    will be reported so we'll know about it (and add the dependency to the
+    machine, change our requirements, or fix the test if skipping was a
+    mistake).
+    """
+    def __init__(self):
+        self.allowed_tests = None
+
+    def skippable(self, dependency_specs):
+        if isinstance(dependency_specs, basestring):
+            dependency_specs = dependency_specs,
+
+        # Not using a whitelist; assume this is fine. The fact that this was
+        # skipped will still be logged if the testsuite is verbose
+        if self.allowed_tests is None:
+            return True
+        # Check against whitelist
+        else:
+            for dep in dependency_specs:
+                path = []
+                for comp in dep.split('.'):
+                    path.append(comp)
+                    if tuple(path) in self.allowed_tests:
+                        return True
+
+        return False
+
+    def skip_test(self, dependency_specs, reason=None):
+        """Skip this test, if allowed.
+
+        This raises SkipTest, same as unittest.TestCase.skipTest(), except that
+        if a list of skippable tests has been provided, this will fail if the
+        test does not appear in the list.
+
+        This allows the test runner to specify the tests it expects to be
+        skipped, and fail if another test fails.
+
+        There is no need to use this method when skipping a test that cannot
+        run or is known to be broken on the current architecture.
+        """
+        if reason:
+            args = reason,
+        else:
+            args = ()
+
+        if self.skippable(dependency_specs):
+            raise unittest.SkipTest(*args)
+        else:
+            raise AssertionError("Failing on disallowed skip_test(%r)" %
+                                 ", ".join(args))
+
+    def set_allowed_skips(self, tests):
+        """Sets the tests that can be skipped.
+
+        If tests is not None, skipping a test that doesn't appear in this list
+        will fail instead.
+        """
+        self.allowed_tests = set(tuple(t.split('.')) for t in tests)
+
+
+_test_skipping_checker = SkippingChecker()
+
+skippable_test = _test_skipping_checker.skippable
+skip_test_checked = _test_skipping_checker.skip_test
+set_skippable_tests = _test_skipping_checker.set_allowed_skips
+
+
+class TestSkippingChecker(unittest.TestCase):
+    def do_skip(self, checker, deps, should_raise):
+        try:
+            checker.skip_test(deps)
+        except unittest.SkipTest:
+            if should_raise:
+                self.fail("Skipping this test should have been disallowed")
+        except AssertionError:
+            if not should_raise:
+                self.fail("Skipping this test should have been allowed")
+
+    def test_checker(self):
+        checker = SkippingChecker()
+        checker.set_allowed_skips(['vtk',
+                                   'mpl.hist',
+                                   'sql.postgre', 'sql.mysql'])
+        self.assertEqual(checker.allowed_tests,
+                         set([('vtk',),
+                              ('mpl', 'hist'),
+                              ('sql', 'postgre'), ('sql', 'mysql')]))
+
+        self.do_skip(checker, 'vtk', False)
+        self.do_skip(checker, 'numpy', True)
+        self.do_skip(checker, ['mpl'], True)
+        self.do_skip(checker, ['vtk', 'numpy'], False)
+        self.do_skip(checker, ['vtk.offscreen', 'numpy'], False)
+        self.do_skip(checker, ['sql.oracle'], True)
+        self.do_skip(checker, ['sql.mysql'], False)
