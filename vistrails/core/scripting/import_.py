@@ -2,6 +2,20 @@
 
 This contains read_workflow_from_python(), which imports a standalone Python
 script as a VisTrails pipeline a standalone Python script.
+
+read_workflow_from_python() processes a full Python script, reading it from top
+to bottom. It parses annotations, and calls read_module() when code for a
+module is encountered.
+
+read_module() gets a starting position in the script and the info known from
+the annotations and previous module additions. It tries to read that module
+using a package-supplied from_python_script(), or fallbacks on PythonSource
+(using add_pythonsource()). Then update_module() is called either way.
+
+update_module() gets in the module's info, and tries to update that module if a
+module exists in the pipeline with that ID (and is the expected type), else
+creates a new module. It also connects to previous module's output ports and
+updates the output port mapping for future modules.
 """
 
 from __future__ import division, unicode_literals
@@ -16,7 +30,6 @@ from vistrails.core.db.action import create_action
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException
 from vistrails.core.modules.utils import parse_descriptor_string
-from vistrails.core.vistrail.port_spec import PortSpec
 
 
 NUMBER_LITERALS = (redbaron.IntNode, redbaron.FloatNode, redbaron.LongNode,
@@ -39,7 +52,9 @@ def eval_int_literal(node):
 def line_number(node):
     """Gets the number of the first line of a node.
     """
-    return node.absolute_bounding_box.top_left.line
+    # FIXME : -1 because we add a blank line before the script to workaround
+    # a baron bug
+    return node.absolute_bounding_box.top_left.line - 1
 
 
 class EndOfInput(Exception):
@@ -52,13 +67,11 @@ def next_node(script, pos):
     """
     script_len = len(script)
     while True:
+        pos += 1
         if pos >= script_len:
             raise EndOfInput
         node = script[pos]
-        print "node: %s" % node.dumps()
-        pos += 1
         if not isinstance(node, redbaron.EndlNode):
-            print "returning %s" % node.dumps()
             return pos, node
 
 
@@ -73,7 +86,7 @@ def re_multi(regexps, s):
 
 
 MODULE_ANNOTATION = re.compile(
-        r'^# MODULE ([0-9]+) ([\'A-Za-z0-9_:|]+)$')
+        r'^# MODULE ([0-9]+) ([A-Za-z0-9_:.|]+)$')
 FUNCTION_ANNOTATION = re.compile(
         r'^# FUNCTION ([A-Za-z0-9_]+) ([A-Za-z0-9_]+)$')
 CONNECTION_ANNOTATION = re.compile(
@@ -82,12 +95,17 @@ CONNECTION_ANNOTATION = re.compile(
 
 def read_workflow_from_python(controller, filename):
     """Imports a Python script as a workflow on the given controller.
+
+    This reads the file from top to bottom, reading annotations, and calls
+    read_module() when module code is encountered.
     """
     registry = get_module_registry()
 
     # FIXME: Unicode support?
     with open(filename, 'rb') as f:
-        script = redbaron.RedBaron(f.read())
+        # FIXME: adds '\n' to work around a bug in baron:
+        # https://github.com/Psycojoker/redbaron/issues/67
+        script = redbaron.RedBaron(b'\n' + f.read())
     print "Got %d-line Python script" % len(script)
 
     # Previous modules
@@ -104,7 +122,6 @@ def read_workflow_from_python(controller, filename):
 
     # Read the script
     pos = 0
-    len_script = len(script)
     module_desc, module_id = None, None
     iports = {}
     functions = []
@@ -117,7 +134,8 @@ def read_workflow_from_python(controller, filename):
         print "% 4d - - -\n%s\n     -----" % (line_number(node), node.dumps())
 
         # Try to read an annotation
-        if isinstance(script, redbaron.CommentNode):
+        if isinstance(node, redbaron.CommentNode):
+            print "It's a comment, checking for annotation..."
             r, m = re_multi((MODULE_ANNOTATION, FUNCTION_ANNOTATION,
                              CONNECTION_ANNOTATION), node.value)
             if r is MODULE_ANNOTATION:
@@ -125,7 +143,7 @@ def read_workflow_from_python(controller, filename):
                     debug.warning("Unexpected MODULE annotations line %d" %
                                   line_number(node))
                 module_id = int(m.group(1))
-                sigstring = ast.literal_eval(m.group(2))
+                sigstring = m.group(2)
                 iports = {}
                 print "next block is module %r, id=%d" % (sigstring, module_id)
                 info = parse_descriptor_string(sigstring)
@@ -149,7 +167,7 @@ def read_workflow_from_python(controller, filename):
                     if (isinstance(node, redbaron.AssignmentNode) and
                             isinstance(node.target, redbaron.NameNode) and
                             node.target.value == var):
-                        value = node.value.value
+                        value = node.value.dumps()
                         iports[port] = var
                         functions.append((m.group(1), value))
                         pos = nextpos
@@ -176,6 +194,7 @@ def read_workflow_from_python(controller, filename):
                                       "unknown variable %s line %d" % (
                                           var, line_number(node)))
             else:
+                print "Not a recognized annotation"
                 assert r is None
 
         # Read code
@@ -183,7 +202,8 @@ def read_workflow_from_python(controller, filename):
             print "reading module line %d" % line_number(node)
             newops, pos = read_module(script, pos, controller, registry,
                                       var_to_oport, oport_to_var,
-                                      module_desc, module_id, iports)
+                                      module_desc, module_id, iports,
+                                      functions)
             ops.extend(newops)
 
             module_id = None
@@ -204,7 +224,7 @@ def read_workflow_from_python(controller, filename):
 
 
 def read_module(script, pos, controller, registry, var_to_oport, oport_to_var,
-                module_desc, module_id, iports):
+                module_desc, module_id, iports, functions):
     """Reads a single module from the script.
 
     This gets the module's code and all the info from the annotations (module
@@ -212,18 +232,23 @@ def read_module(script, pos, controller, registry, var_to_oport, oport_to_var,
     fallback to PythonSource, and update the workflow.
     """
     # Call the module so it can try to parse itself
-    if module_desc is not None:
+    if module_desc is None:
+        print "We don't know what module this is..."
+    elif not hasattr(module_desc.module, 'from_python_script'):
+        print "Class %s doesn't have from_python_script()" % module_desc.name
+    else:
         try:
-            print "calling from_python_script for module %s" % module_desc.name
+            print "calling from_python_script for %s" % module_desc.name
             ret = module_desc.module.from_python_script(script, pos,
                                                         iports)
+
             if ret is not None:
                 pos, mod_info = ret
                 print "read successful, updating module in pipeline"
                 # Update the workflow with the module from from_python_script()
                 ops = update_module(controller, registry,
                                     var_to_oport, oport_to_var,
-                                    module_desc, module_id, mod_info)
+                                    module_id, mod_info, functions)
                 return ops, pos
         except Exception as e:
             debug.critical("Got error while reading module into workflow!")
@@ -254,19 +279,24 @@ def read_module(script, pos, controller, registry, var_to_oport, oport_to_var,
         endpos += 1
 
     source = script[pos:endpos]
+    print "PythonSource block: %d:%d:\n%s" % (
+            pos, endpos,
+            '\n'.join(s.dumps() for s in source))
     ops = add_pythonsource(controller, registry, var_to_oport, oport_to_var,
-                           source)
+                           source, functions)
     return ops, endpos
 
 
 def update_module(controller, registry, var_to_oport, oport_to_var,
-                  module_id, mod_info):
+                  module_id, mod_info, functions):
     """Updates the module in the workflow.
 
     This gets the information returned from from_python_script() and updates
     the workflow, either changing functions and connections on the module with
     the given ID, or making a new module.
     """
+    # TODO: add functions
+
     new_module, new_inputs, new_outputs = mod_info[:3]
     if len(mod_info) >= 4:
         port_specs = mod_info[3]
@@ -278,6 +308,9 @@ def update_module(controller, registry, var_to_oport, oport_to_var,
     else:
         new_module = registry.get_descriptor(new_module)
 
+    print "update_module: module %s, inputs %s, outputs %s, portspecs %s" % (
+            new_module.name, new_inputs, new_outputs, port_specs)
+
     # Make the module
     # TODO : update existing module module_id
     newmod = controller.create_module_from_descriptor(new_module)
@@ -285,11 +318,9 @@ def update_module(controller, registry, var_to_oport, oport_to_var,
 
     # Add port specs
     for i, (inout, name, sig) in enumerate(port_specs):
-        newmod.add_port_spec(PortSpec(id=i,
-                                      name=name,
-                                      type=inout,
-                                      sigstring=sig,
-                                      sort_key=-1))
+        print "adding portspec: %s, %s, %s" % (inout, name, sig)
+        ps = controller.create_port_spec(newmod, inout, name, sig)
+        newmod.add_port_spec(ps)
 
     # Connect inputs
     for iport, i in new_inputs.iteritems():
@@ -331,7 +362,7 @@ def update_module(controller, registry, var_to_oport, oport_to_var,
 
 
 def add_pythonsource(controller, registry, var_to_oport, oport_to_var,
-                     source):
+                     source, functions):
     """Creates a PythonSource module from a Python block.
     """
     outputs = set()
@@ -344,17 +375,21 @@ def add_pythonsource(controller, registry, var_to_oport, oport_to_var,
         if v not in outputs and v in var_to_oport:
             inputs.add(v)
 
+    # TODO: add functions if they appear in the code
     input_map = {'source': (
         'const',
         urllib2.quote('\n'.join(s.dumps() for s in source).encode('utf-8')))}
     input_map.update((iport, ('var', iport)) for iport in inputs)
-    output_map = dict((oport, ('var', oport)) for oport in outputs)
+    output_map = dict((oport, ('var', oport)) for oport in outputs)  # FIXME : something is wrong with port/var names
     port_specs = [('input', iport, 'org.vistrails.vistrails.basic:Variant')
                   for iport in inputs]
+    port_specs.extend(('output', oport, 'org.vistrails.vistrails.basic:Variant')
+                      for oport in outputs)
     return update_module(controller, registry, var_to_oport, oport_to_var,
                          None,
                          ('org.vistrails.vistrails.basic:PythonSource',
-                          input_map, output_map, port_specs))
+                          input_map, output_map, port_specs),
+                         functions)
 
 
 ###############################################################################
