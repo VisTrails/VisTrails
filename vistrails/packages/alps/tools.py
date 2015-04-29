@@ -23,6 +23,7 @@ import os
 import os.path
 import tempfile
 import copy
+import fnmatch
 import glob
 import zipfile
 import datetime
@@ -226,10 +227,17 @@ class Parameter2XML(alpscore.SystemCommandLogged):
                      ('output_dir', [basic.Directory]),
                      ('log_file',[basic.File])]
 
+# http://stackoverflow.com/a/2186639/720077
+def recursive_glob(treeroot, pattern):
+  results = []
+  for base, dirs, files in os.walk(treeroot):
+    goodfiles = fnmatch.filter(files, pattern)
+    results.extend(os.path.join(base, f) for f in goodfiles)
+  return results
 
 class Glob(Module):
     def expand(self,name):
-        l = recursive_glob(name)
+        l = recursive_glob('.', name)
         self.setResult('value',l)
     def compute(self):
       self.expand(self.getInputFromPort('input_file').name)
