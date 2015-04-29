@@ -1,4 +1,4 @@
-<vistrail id="" name="" version="1.0.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+<vistrail id="" name="" version="1.0.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
   <action date="2010-03-20 13:28:26" id="1" prevId="0" session="0" user="troyer">
     <annotation id="0" key="__description__" value="Copied from pipeline" />
     <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
@@ -324,7 +324,112 @@
       <location id="15" x="-145.716628283" y="320.022215173" />
     </change>
   </action>
+  <action date="2015-04-25 19:49:38" id="20" prevId="19" session="6" user="troyer">
+    <annotation id="6" key="__description__" value="Upgrade" />
+    <delete id="128" objectId="28" parentObjId="14" parentObjType="connection" what="port" />
+    <delete id="129" objectId="29" parentObjId="14" parentObjType="connection" what="port" />
+    <delete id="130" objectId="14" parentObjId="" parentObjType="" what="connection" />
+    <delete id="131" objectId="30" parentObjId="15" parentObjType="connection" what="port" />
+    <delete id="132" objectId="31" parentObjId="15" parentObjType="connection" what="port" />
+    <delete id="133" objectId="15" parentObjId="" parentObjType="" what="connection" />
+    <delete id="134" objectId="14" parentObjId="13" parentObjType="module" what="location" />
+    <delete id="135" objectId="13" parentObjId="" parentObjType="" what="module" />
+    <delete id="136" objectId="26" parentObjId="13" parentObjType="connection" what="port" />
+    <delete id="137" objectId="27" parentObjId="13" parentObjType="connection" what="port" />
+    <delete id="138" objectId="13" parentObjId="" parentObjType="" what="connection" />
+    <delete id="139" objectId="13" parentObjId="12" parentObjType="module" what="location" />
+    <delete id="140" objectId="12" parentObjId="" parentObjType="" what="module" />
+    <delete id="141" objectId="7" parentObjId="7" parentObjType="module" what="location" />
+    <delete id="142" objectId="3" parentObjId="3" parentObjType="function" what="parameter" />
+    <delete id="143" objectId="3" parentObjId="7" parentObjType="module" what="function" />
+    <delete id="144" objectId="7" parentObjId="" parentObjType="" what="module" />
+    <delete id="145" objectId="22" parentObjId="11" parentObjType="connection" what="port" />
+    <delete id="146" objectId="23" parentObjId="11" parentObjType="connection" what="port" />
+    <delete id="147" objectId="11" parentObjId="" parentObjType="" what="connection" />
+    <delete id="148" objectId="15" parentObjId="6" parentObjType="module" what="location" />
+    <delete id="149" objectId="2" parentObjId="2" parentObjType="function" what="parameter" />
+    <delete id="150" objectId="2" parentObjId="6" parentObjType="module" what="function" />
+    <delete id="151" objectId="6" parentObjId="" parentObjType="" what="module" />
+    <add id="152" objectId="14" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="14" name="MplFigureCell" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.5" />
+    </add>
+    <add id="153" objectId="16" parentObjId="14" parentObjType="module" what="location">
+      <location id="16" x="-53.2916073824" y="-91.9087141812" />
+    </add>
+    <add id="154" objectId="15" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="15" name="MplFigure" namespace="" package="org.vistrails.vistrails.matplotlib" version="1.0.5" />
+    </add>
+    <add id="155" objectId="17" parentObjId="15" parentObjType="module" what="location">
+      <location id="17" x="-13.9021584476" y="16.9915269915" />
+    </add>
+    <add id="156" objectId="18" parentObjId="" parentObjType="" what="connection">
+      <connection id="18" />
+    </add>
+    <add id="157" objectId="36" parentObjId="18" parentObjType="connection" what="port">
+      <port id="36" moduleId="15" moduleName="MplFigure" name="self" signature="(org.vistrails.vistrails.matplotlib:MplFigure)" type="source" />
+    </add>
+    <add id="158" objectId="37" parentObjId="18" parentObjType="connection" what="port">
+      <port id="37" moduleId="14" moduleName="MplFigureCell" name="figure" signature="(org.vistrails.vistrails.matplotlib:MplFigure)" type="destination" />
+    </add>
+    <add id="159" objectId="19" parentObjId="" parentObjType="" what="connection">
+      <connection id="19" />
+    </add>
+    <add id="160" objectId="38" parentObjId="19" parentObjType="connection" what="port">
+      <port id="38" moduleId="8" moduleName="MplXYPlot" name="self" signature="(org.vistrails.vistrails.matplotlib:MplPlot)" type="source" />
+    </add>
+    <add id="161" objectId="39" parentObjId="19" parentObjType="connection" what="port">
+      <port id="39" moduleId="15" moduleName="MplFigure" name="addPlot" signature="(org.vistrails.vistrails.matplotlib:MplPlot)" type="destination" />
+    </add>
+    <add id="162" objectId="16" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="16" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="163" objectId="4" parentObjId="16" parentObjType="module" what="function">
+      <function id="4" name="name" pos="0" />
+    </add>
+    <add id="164" objectId="4" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="Location" />
+    </add>
+    <add id="165" objectId="18" parentObjId="16" parentObjType="module" what="location">
+      <location id="18" x="-185.482265684" y="3.97455020333" />
+    </add>
+    <add id="166" objectId="20" parentObjId="" parentObjType="" what="connection">
+      <connection id="20" />
+    </add>
+    <add id="167" objectId="40" parentObjId="20" parentObjType="connection" what="port">
+      <port id="40" moduleId="16" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="168" objectId="41" parentObjId="20" parentObjType="connection" what="port">
+      <port id="41" moduleId="14" moduleName="MplFigureCell" name="Location" signature="(org.vistrails.vistrails.spreadsheet:CellLocation)" type="destination" />
+    </add>
+    <add id="169" objectId="17" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="17" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="170" objectId="5" parentObjId="17" parentObjType="module" what="function">
+      <function id="5" name="name" pos="0" />
+    </add>
+    <add id="171" objectId="5" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="plot" />
+    </add>
+    <add id="172" objectId="19" parentObjId="17" parentObjType="module" what="location">
+      <location id="19" x="-145.716628283" y="320.022215173" />
+    </add>
+    <add id="173" objectId="21" parentObjId="" parentObjType="" what="connection">
+      <connection id="21" />
+    </add>
+    <add id="174" objectId="42" parentObjId="21" parentObjType="connection" what="port">
+      <port id="42" moduleId="17" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="175" objectId="43" parentObjId="21" parentObjType="connection" what="port">
+      <port id="43" moduleId="8" moduleName="MplXYPlot" name="plot" signature="(org.comp-phys.alps:DataSet|Plot|PreparePlot)" type="destination" />
+    </add>
+  </action>
+  <action date="2015-04-25 19:50:11" id="21" prevId="20" session="6" user="troyer">
+    <change id="176" newObjId="20" oldObjId="19" parentObjId="17" parentObjType="module" what="location">
+      <location id="20" x="-117.230537507" y="308.777705656" />
+    </change>
+  </action>
   <annotation id="1" key="__abstraction_uuid__" value="c1720ce0-3456-11df-8e93-002500a2cd74" />
   <actionAnnotation actionId="3" date="2013-09-08 10:37:11" id="3" key="__upgrade__" user="troyer" value="4" />
   <actionAnnotation actionId="17" date="2014-05-16 16:05:33" id="5" key="__upgrade__" user="troyer" value="18" />
+  <actionAnnotation actionId="19" date="2015-04-25 19:49:38" id="7" key="__upgrade__" user="troyer" value="20" />
 </vistrail>

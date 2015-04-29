@@ -15,7 +15,11 @@ from core.configuration import ConfigurationObject
 import core.bundles
 import vistrails.core.modules.basic_modules
 import vistrails.core.modules.module_registry
-from packages.HTTP.init import HTTPFile
+try:
+  from packages.HTTP.init import HTTPFile
+except:
+  from packages.URL.init import DownloadFile
+  HTTPFile = DownloadFile
 import os
 import os.path
 import tempfile
