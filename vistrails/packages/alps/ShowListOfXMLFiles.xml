@@ -1,0 +1,214 @@
+<vistrail id="" name="" version="1.0.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2013-09-10 09:46:23" id="1" prevId="0" session="0" user="troyer">
+    <annotation id="1" key="__description__" value="Copied from pipeline" />
+    <add id="0" objectId="0" parentObjId="" parentObjType="" what="group">
+      <group cache="1" id="0" name="Group" namespace="" package="org.vistrails.vistrails.basic" version="2.1">
+        <workflow id="" name="untitled" version="" vistrail_id="">
+          <connection id="11">
+            <port id="21" moduleId="11" moduleName="File" name="value" signature="(org.vistrails.vistrails.basic:File)" type="source" />
+            <port id="22" moduleId="7" moduleName="ConvertXML2HTML" name="input_file" signature="(org.vistrails.vistrails.basic:File)" type="destination" />
+          </connection>
+          <connection id="12">
+            <port id="23" moduleId="11" moduleName="File" name="value_as_string" signature="(org.vistrails.vistrails.basic:String)" type="source" />
+            <port id="24" moduleId="10" moduleName="OutputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+          </connection>
+          <connection id="13">
+            <port id="25" moduleId="9" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+            <port id="26" moduleId="11" moduleName="File" name="name" signature="(org.vistrails.vistrails.basic:String)" type="destination" />
+          </connection>
+          <connection id="14">
+            <port id="27" moduleId="7" moduleName="ConvertXML2HTML" name="output_file" signature="(org.vistrails.vistrails.basic:File)" type="source" />
+            <port id="28" moduleId="12" moduleName="RichTextCell" name="File" signature="(org.vistrails.vistrails.basic:File)" type="destination" />
+          </connection>
+          <connection id="15">
+            <port id="29" moduleId="8" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+            <port id="30" moduleId="12" moduleName="RichTextCell" name="Location" signature="(org.vistrails.vistrails.spreadsheet:CellLocation)" type="destination" />
+          </connection>
+          <module cache="1" id="7" name="ConvertXML2HTML" namespace="Tools" package="org.comp-phys.alps" version="2.2.0">
+            <location id="7" x="-18.1713475845" y="-43.2756497008" />
+          </module>
+          <module cache="1" id="8" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1">
+            <location id="8" x="-244.358989205" y="140.041993813" />
+            <function id="4" name="name" pos="0">
+              <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="Location" />
+            </function>
+          </module>
+          <module cache="1" id="9" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1">
+            <location id="9" x="60.6541328043" y="134.703987597" />
+            <function id="5" name="name" pos="0">
+              <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="filename" />
+            </function>
+          </module>
+          <module cache="1" id="10" name="OutputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1">
+            <location id="10" x="159.669999398" y="-130.813420028" />
+            <function id="6" name="name" pos="0">
+              <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="value" />
+            </function>
+          </module>
+          <module cache="1" id="11" name="File" namespace="" package="org.vistrails.vistrails.basic" version="2.1">
+            <location id="11" x="33.549230776" y="40.1134111317" />
+          </module>
+          <module cache="1" id="12" name="RichTextCell" namespace="" package="org.vistrails.vistrails.spreadsheet" version="0.9.2">
+            <location id="12" x="8.65697381113" y="-140.770322814" />
+          </module>
+        </workflow>
+      </group>
+    </add>
+    <add id="1" objectId="0" parentObjId="0" parentObjType="group" what="annotation">
+      <annotation id="0" key="__desc__" value="ShowAsHTML" />
+    </add>
+    <add id="2" objectId="0" parentObjId="0" parentObjType="group" what="location">
+      <location id="0" x="-64.5220777887" y="-15.0666202806" />
+    </add>
+    <add id="3" objectId="1" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="1" name="Map" namespace="" package="org.vistrails.vistrails.control_flow" version="0.2.3" />
+    </add>
+    <add id="4" objectId="1" parentObjId="1" parentObjType="module" what="function">
+      <function id="1" name="InputPort" pos="1" />
+    </add>
+    <add id="5" objectId="1" parentObjId="1" parentObjType="function" what="parameter">
+      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['filename']" />
+    </add>
+    <add id="6" objectId="0" parentObjId="1" parentObjType="module" what="function">
+      <function id="0" name="OutputPort" pos="0" />
+    </add>
+    <add id="7" objectId="0" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="value" />
+    </add>
+    <add id="8" objectId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="1" x="27.0363967221" y="-154.243479797" />
+    </add>
+    <add id="9" objectId="2" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="2" name="CellLocation" namespace="" package="org.vistrails.vistrails.spreadsheet" version="0.9.2" />
+    </add>
+    <add id="10" objectId="3" parentObjId="2" parentObjType="module" what="function">
+      <function id="3" name="Row" pos="1" />
+    </add>
+    <add id="11" objectId="3" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="" />
+    </add>
+    <add id="12" objectId="2" parentObjId="2" parentObjType="module" what="function">
+      <function id="2" name="Column" pos="0" />
+    </add>
+    <add id="13" objectId="2" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:Integer" val="" />
+    </add>
+    <add id="14" objectId="2" parentObjId="2" parentObjType="module" what="location">
+      <location id="2" x="37.4856810666" y="169.310100078" />
+    </add>
+    <add id="15" objectId="3" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="3" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="16" objectId="4" parentObjId="3" parentObjType="module" what="function">
+      <function id="4" name="name" pos="0" />
+    </add>
+    <add id="17" objectId="4" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="InputList" />
+    </add>
+    <add id="18" objectId="3" parentObjId="3" parentObjType="module" what="location">
+      <location id="3" x="146.360158997" y="390.112079" />
+    </add>
+    <add id="19" objectId="4" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="4" name="InputPort" namespace="" package="org.vistrails.vistrails.basic" version="2.1" />
+    </add>
+    <add id="20" objectId="5" parentObjId="4" parentObjType="module" what="function">
+      <function id="5" name="name" pos="0" />
+    </add>
+    <add id="21" objectId="5" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="SheetReference" />
+    </add>
+    <add id="22" objectId="4" parentObjId="4" parentObjType="module" what="location">
+      <location id="4" x="-276.242567808" y="456.436717228" />
+    </add>
+    <add id="23" objectId="0" parentObjId="" parentObjType="" what="connection">
+      <connection id="0" />
+    </add>
+    <add id="24" objectId="1" parentObjId="0" parentObjType="connection" what="port">
+      <port id="1" moduleId="3" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="25" objectId="0" parentObjId="0" parentObjType="connection" what="port">
+      <port id="0" moduleId="1" moduleName="Map" name="InputList" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
+    </add>
+    <add id="26" objectId="1" parentObjId="" parentObjType="" what="connection">
+      <connection id="1" />
+    </add>
+    <add id="27" objectId="3" parentObjId="1" parentObjType="connection" what="port">
+      <port id="3" moduleId="0" moduleName="Group" name="Location" signature="(org.vistrails.vistrails.spreadsheet:CellLocation)" type="destination" />
+    </add>
+    <add id="28" objectId="2" parentObjId="1" parentObjType="connection" what="port">
+      <port id="2" moduleId="2" moduleName="CellLocation" name="self" signature="(org.vistrails.vistrails.spreadsheet:CellLocation)" type="source" />
+    </add>
+    <add id="29" objectId="2" parentObjId="" parentObjType="" what="connection">
+      <connection id="2" />
+    </add>
+    <add id="30" objectId="5" parentObjId="2" parentObjType="connection" what="port">
+      <port id="5" moduleId="4" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="31" objectId="4" parentObjId="2" parentObjType="connection" what="port">
+      <port id="4" moduleId="2" moduleName="CellLocation" name="SheetReference" signature="(org.vistrails.vistrails.spreadsheet:SheetReference)" type="destination" />
+    </add>
+    <add id="32" objectId="3" parentObjId="" parentObjType="" what="connection">
+      <connection id="3" />
+    </add>
+    <add id="33" objectId="7" parentObjId="3" parentObjType="connection" what="port">
+      <port id="7" moduleId="1" moduleName="Map" name="FunctionPort" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+    <add id="34" objectId="6" parentObjId="3" parentObjType="connection" what="port">
+      <port id="6" moduleId="0" moduleName="Group" name="self" signature="(org.vistrails.vistrails.basic:Group)" type="source" />
+    </add>
+  </action>
+  <action date="2014-07-30 21:13:50" id="2" prevId="1" session="1" user="michele">
+    <annotation id="4" key="__description__" value="Upgrade" />
+    <delete id="35" objectId="1" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="36" objectId="0" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="37" objectId="0" parentObjId="" parentObjType="" what="connection" />
+    <delete id="38" objectId="7" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="39" objectId="6" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="40" objectId="3" parentObjId="" parentObjType="" what="connection" />
+    <delete id="41" objectId="1" parentObjId="1" parentObjType="module" what="location" />
+    <delete id="42" objectId="0" parentObjId="0" parentObjType="function" what="parameter" />
+    <delete id="43" objectId="0" parentObjId="1" parentObjType="module" what="function" />
+    <delete id="44" objectId="1" parentObjId="1" parentObjType="function" what="parameter" />
+    <delete id="45" objectId="1" parentObjId="1" parentObjType="module" what="function" />
+    <delete id="46" objectId="1" parentObjId="" parentObjType="" what="module" />
+    <add id="47" objectId="5" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="5" name="Map" namespace="" package="org.vistrails.vistrails.control_flow" version="0.2.4" />
+    </add>
+    <add id="48" objectId="7" parentObjId="5" parentObjType="module" what="function">
+      <function id="7" name="InputPort" pos="1" />
+    </add>
+    <add id="49" objectId="7" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:List" val="['filename']" />
+    </add>
+    <add id="50" objectId="6" parentObjId="5" parentObjType="module" what="function">
+      <function id="6" name="OutputPort" pos="0" />
+    </add>
+    <add id="51" objectId="6" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="org.vistrails.vistrails.basic:String" val="value" />
+    </add>
+    <add id="52" objectId="5" parentObjId="5" parentObjType="module" what="location">
+      <location id="5" x="27.0363967221" y="-154.243479797" />
+    </add>
+    <add id="53" objectId="4" parentObjId="" parentObjType="" what="connection">
+      <connection id="4" />
+    </add>
+    <add id="54" objectId="8" parentObjId="4" parentObjType="connection" what="port">
+      <port id="8" moduleId="3" moduleName="InputPort" name="InternalPipe" signature="(org.vistrails.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="55" objectId="9" parentObjId="4" parentObjType="connection" what="port">
+      <port id="9" moduleId="5" moduleName="Map" name="InputList" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
+    </add>
+    <add id="56" objectId="5" parentObjId="" parentObjType="" what="connection">
+      <connection id="5" />
+    </add>
+    <add id="57" objectId="10" parentObjId="5" parentObjType="connection" what="port">
+      <port id="10" moduleId="0" moduleName="Group" name="self" signature="(org.vistrails.vistrails.basic:Group)" type="source" />
+    </add>
+    <add id="58" objectId="11" parentObjId="5" parentObjType="connection" what="port">
+      <port id="11" moduleId="5" moduleName="Map" name="FunctionPort" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <annotation id="2" key="__abstraction_origin_uuid__" value="16df5dae-19ed-11e3-a6cf-20c9d044a3eb" />
+  <annotation id="3" key="__abstraction_uuid__" value="16df5dae-19ed-11e3-a6cf-20c9d044a3eb" />
+  <actionAnnotation actionId="1" date="2014-07-30 21:13:50" id="5" key="__upgrade__" user="michele" value="2" />
+</vistrail>
