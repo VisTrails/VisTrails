@@ -30,6 +30,7 @@ import vistrails.core.modules.basic_modules as basic
 from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCacheable
 from vistrails.gui.modules.python_source_configure import PythonSourceConfigurationWidget
 from vistrails.packages.matplotlib.bases import MplPlot
+from ..vistrails_mpl import MplCustomPlot
 
 
 import urllib, copy
@@ -78,16 +79,16 @@ class PreparePlot(Descriptor, Module):
         PortDescriptor('grid',basic.Boolean),
     ]
 
-class MplXYPlot(MplPlot):
+class MplXYPlot(MplCustomPlot):
     my_input_ports = [
         PortDescriptor('plot',PreparePlot),
         PortDescriptor('hide_buttons',basic.Boolean),
         PortDescriptor('source',basic.String,use_python_source=True)
     ]
-    my_output_ports = [PortDescriptor('self',MplPlot)]
+    my_output_ports = []
   
     def __init__(self):
-        MplPlot.__init__(self)
+        MplCustomPlot.__init__(self)
         self.colors = ['k','b','g','m','c','y']
         self.worker = MplXYPlot_core()
     
@@ -96,8 +97,7 @@ class MplXYPlot(MplPlot):
     def gifp(self,m):
         return self.getInputFromPort(m)
             
-    def compute(self):
-            MplPlot.compute(self)
+    def plot(self):
             if self.hifp('plot'):
                 self.plt = self.gifp('plot')
             else:
