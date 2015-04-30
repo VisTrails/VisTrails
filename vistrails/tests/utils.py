@@ -46,8 +46,6 @@ try:
 except ImportError:
     import StringIO
 
-from vistrails.core.modules.vistrails_module import Module
-
 
 def enable_package(identifier):
     """Enables a package.
@@ -291,6 +289,8 @@ def intercept_results(*args):
             one1, one2, two1, two2):
         self.assertFalse(execute(...))
     """
+    from vistrails.core.modules.vistrails_module import Module
+
     ctx = []
     current_module = None
     for arg in args:
