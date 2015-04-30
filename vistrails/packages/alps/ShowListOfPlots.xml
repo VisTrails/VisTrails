@@ -670,7 +670,7 @@
             <port id="34" moduleId="15" moduleName="MplFigureCell" name="figure" signature="(org.vistrails.vistrails.matplotlib:MplFigure)" type="destination" />
           </connection>
           <connection id="18">
-            <port id="35" moduleId="2" moduleName="MplXYPlot" name="self" signature="(org.vistrails.vistrails.matplotlib:MplPlot)" type="source" />
+            <port id="35" moduleId="2" moduleName="MplXYPlot" name="value" signature="(org.comp-phys.alps:MplCustomPlot)" type="source" />
             <port id="36" moduleId="16" moduleName="MplFigure" name="addPlot" signature="(org.vistrails.vistrails.matplotlib:MplPlot)" type="destination" />
           </connection>
           <connection id="19">

@@ -428,6 +428,20 @@
       <location id="20" x="-117.230537507" y="308.777705656" />
     </change>
   </action>
+  <action date="2015-04-30 13:36:27" id="22" prevId="21" session="7" user="Remi">
+    <delete id="177" objectId="38" parentObjId="19" parentObjType="connection" what="port" />
+    <delete id="178" objectId="39" parentObjId="19" parentObjType="connection" what="port" />
+    <delete id="179" objectId="19" parentObjId="" parentObjType="" what="connection" />
+    <add id="180" objectId="22" parentObjId="" parentObjType="" what="connection">
+      <connection id="22" />
+    </add>
+    <add id="181" objectId="44" parentObjId="22" parentObjType="connection" what="port">
+      <port id="44" moduleId="8" moduleName="MplXYPlot" name="value" signature="(org.comp-phys.alps:MplCustomPlot)" type="source" />
+    </add>
+    <add id="182" objectId="45" parentObjId="22" parentObjType="connection" what="port">
+      <port id="45" moduleId="15" moduleName="MplFigure" name="addPlot" signature="(org.vistrails.vistrails.matplotlib:MplPlot)" type="destination" />
+    </add>
+  </action>
   <annotation id="1" key="__abstraction_uuid__" value="c1720ce0-3456-11df-8e93-002500a2cd74" />
   <actionAnnotation actionId="3" date="2013-09-08 10:37:11" id="3" key="__upgrade__" user="troyer" value="4" />
   <actionAnnotation actionId="17" date="2014-05-16 16:05:33" id="5" key="__upgrade__" user="troyer" value="18" />
