@@ -165,7 +165,7 @@ import vistrails.core.debug
 vistrails.core.debug.DebugPrint.getInstance().log_to_console()
 
 import vistrails.tests
-from vistrails.tests.utils import skippable_test
+from vistrails.tests.utils import set_skippable_tests, skippable_test
 import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
@@ -178,6 +178,14 @@ from vistrails.core.packagemanager import get_package_manager
 # VisTrails does funny stuff with unittest/unittest2, be sure to load that
 # after vistrails
 import unittest
+
+# Load the skippable test whitelist
+if 'VISTRAILS_SKIP_WHITELIST' in os.environ:
+    set_skippable_tests(os.environ['VISTRAILS_SKIP_WHITELIST'].split(','))
+    print ("Test skipping whitelist enabled; skipping non-whitelisted tests "
+           "will be\nreported as error")
+else:
+    print "No test skipping whitelist; tests will be skipped with no error"
 
 # reinitializing arguments and options so VisTrails does not try parsing them
 sys.argv = sys.argv[:1]
