@@ -383,9 +383,7 @@ class DebugPrint(object):
         for d in details:
             if isinstance(d, Exception):
                 d = format_exception(d)
-                msg = '%s\n%s' % (msg, d)
-            else:
-                msg = '%s\n%s' % (msg, d)
+            msg = '%s\n%s' % (msg, d)
         source = inspect.getsourcefile(caller)
         line = caller.f_lineno
         if source and line:

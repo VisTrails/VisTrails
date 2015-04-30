@@ -46,8 +46,6 @@ install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.dylib dist/
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.6.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5.6.dylib
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5_hl.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5_hl.dylib
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5_hl.6.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5_hl.6.dylib 
-echo "copying git executable..."
-cp Input/git dist/VisTrails.app/Contents/MacOS/
 echo "copying qt.conf..."
 cp Input/qt.conf dist/VisTrails.app/Contents/Resources/
 echo "copying plugins..."

@@ -54,9 +54,6 @@ Source: {#root}\examples\*; DestDir: {app}\examples; Components: examples; Flags
 Source: {#root}\scripts\*; Excludes: "dist"; DestDir: {app}\scripts; Flags: recursesubdirs
 Source: {#root}\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 Source: {#root}\extensions\*; DestDir: {app}\extensions; Flags: recursesubdirs
-Source: Input\unzip.exe; DestDir: {app}
-Source: Input\zip.exe; DestDir: {app}
-Source: Input\git.exe; DestDir: {app}
 Source: Input\tar.exe; DestDir: {app}
 Source: Input\runvistrails.py; DestDir: {app}
 Source: Input\*.dll; DestDir: {app}
