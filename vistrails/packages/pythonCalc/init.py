@@ -138,7 +138,7 @@ pythoncalc_ops = {'+': operator.add, '-': operator.sub,
         return script, [cls.OPS_DEFINITION]
 
     @classmethod
-    def from_python_script(cls, script, pos, iports={}):
+    def from_python_script(cls, script, pos):
         import redbaron
 
         pos, node = import_.next_node(script, pos)
