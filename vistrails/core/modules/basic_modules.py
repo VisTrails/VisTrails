@@ -191,6 +191,26 @@ class Constant(Module):
                 return Script(code, inputs={}, outputs={'value': u'value'})
         raise ValueError("Constant module has no value set")
 
+    @classmethod
+    def from_python_script(cls, script, pos, iports):
+        import redbaron
+
+        node = script[pos]
+
+        if (isinstance(node, redbaron.AssignmentNode) and
+                isinstance(node.target, redbaron.NameNode)):
+            # Python code
+            value = node.value.dumps()
+            # Live object
+            value = literal_eval(value)
+            # Serialized
+            value = cls.translate_to_string(value)
+            return pos, (cls,
+                         {'value': ('const', value)},
+                         {'value': ('var', node.target.value)})
+
+        return None
+
 def new_constant(name, py_conversion=None, default_value=None, validation=None,
                  widget_type=None,
                  str_conversion=None, base_class=Constant,
@@ -970,7 +990,7 @@ class List(Constant):
         add = []
         if 'head' in set_ports:
             inputs['head'] = u'head'  # TODO : depth=1 here...
-            add.append(u'head')
+            add.append(u'[head]')
         if 'value' in set_ports:
             inputs['value'] = u'middle'
             add.append(u'middle')
@@ -982,8 +1002,68 @@ class List(Constant):
         if 'tail' in set_ports:
             inputs['tail'] = u'tail'
             add.append(u'tail')
-        code = u'value = %s' % u' + '.join(add)
+        if add:
+            code = u'value = %s' % u' + '.join(add)
+        else:
+            code = u'[]'
         return Script(code, inputs=inputs, outputs={'value': u'value'})
+
+    @classmethod
+    def from_python_script(cls, script, pos, iports):
+        import redbaron
+        from vistrails.core.scripting import import_
+
+        node = script[pos]
+
+        if not isinstance(node, redbaron.AssignmentNode):
+            return None
+        output = node.target.value
+
+        items = []
+        def add(item):
+            if (isinstance(item, redbaron.BinaryOperatorNode) and
+                    item.value == '+'):
+                add(item.first)
+                add(item.second)
+            elif isinstance(item, (redbaron.NameNode, redbaron.ListNode)):
+                items.append(item)
+            else:
+                raise import_.Mismatch
+        add(node.value)
+
+        inputs = {}
+        portspecs = []
+        variant = 'org.vistrails.vistrails.basic:Variant'
+
+        if (items and isinstance(items[0], redbaron.ListNode) and
+                len(items[0].value) == 1):
+            v = items.pop(0).value[0]
+            if isinstance(v, redbaron.NameNode):
+                inputs['head'] = 'var', v.value
+            else:
+                inputs['head'] = 'const', v.dumps()
+        if items and isinstance(items[0], redbaron.NameNode):
+            v = items.pop(0)
+            inputs['value'] = 'var', v.value
+        if items and isinstance(items[0], redbaron.ListNode):
+            for i, v in enumerate(items.pop(0).value):
+                name = 'item%d' % i
+                portspecs.append(('input', name, variant))
+                if isinstance(v, redbaron.NameNode):
+                    inputs[name] = 'var', v.value
+                else:
+                    inputs[name] = 'const', v.value
+        if items and isinstance(items[0], redbaron.NameNode):
+            v = items.pop(0)
+            inputs['value'] = 'var', v.value
+
+        if items:
+            return None
+
+        return pos, (cls,
+                     inputs,
+                     {'value': ('var', output)},
+                     portspecs)
 
 ##############################################################################
 # Dictionary

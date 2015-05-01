@@ -62,6 +62,11 @@ class EndOfInput(Exception):
     """
 
 
+class Mismatch(Exception):
+    """Script doesn't match importable structure.
+    """
+
+
 def next_node(script, pos):
     """Go to the next non-empty line of the script.
     """
@@ -269,9 +274,12 @@ class PythonReader(object):
             try:
                 print "calling from_python_script for %s" % (
                     self.module_desc.name)
-                ret = self.module_desc.module.from_python_script(
-                        script, pos,
-                        self.var_to_iport)
+                try:
+                    ret = self.module_desc.module.from_python_script(
+                            script, pos,
+                            self.var_to_iport)
+                except Mismatch:
+                    ret = None
 
                 if ret is not None:
                     pos, mod_info = ret
