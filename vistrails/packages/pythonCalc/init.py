@@ -39,7 +39,6 @@ from __future__ import division
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import IPort, OPort
 from vistrails.core.scripting import Prelude, Script
-from vistrails.core.scripting import import_
 
 ###############################################################################
 # PythonCalc
@@ -138,10 +137,10 @@ pythoncalc_ops = {'+': operator.add, '-': operator.sub,
         return script, [cls.OPS_DEFINITION]
 
     @classmethod
-    def from_python_script(cls, script, pos):
+    def from_python_script(cls, script, pos, iports):
         import redbaron
 
-        pos, node = import_.next_node(script, pos)
+        node = script[pos]
 
         if (isinstance(node, redbaron.AssignmentNode) and
                 isinstance(node.target, redbaron.NameNode) and
@@ -163,7 +162,7 @@ pythoncalc_ops = {'+': operator.add, '-': operator.sub,
                     return None
             return pos, (cls,
                          {'op': op, 'value1': inputs[0], 'value2': inputs[1]},
-                         {'value': ('var', node.target.value)})
+                         {'value': ('var', output)})
         return None
 
 # VisTrails will only load the modules specified in the _modules list.

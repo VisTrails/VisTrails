@@ -269,7 +269,9 @@ class PythonReader(object):
             try:
                 print "calling from_python_script for %s" % (
                     self.module_desc.name)
-                ret = self.module_desc.module.from_python_script(script, pos)
+                ret = self.module_desc.module.from_python_script(
+                        script, pos,
+                        self.var_to_iport)
 
                 if ret is not None:
                     pos, mod_info = ret
@@ -324,7 +326,7 @@ class PythonReader(object):
         if len(mod_info) >= 4:
             port_specs = mod_info[3]
         else:
-            port_specs = None
+            port_specs = ()
         if isinstance(new_module, basestring):
             new_module = parse_descriptor_string(new_module)
             new_module = self.registry.get_descriptor_by_name(*new_module)
