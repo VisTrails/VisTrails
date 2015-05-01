@@ -181,11 +181,13 @@ class Constant(Module):
             return (value_a != value_b)
         return False
 
-    @staticmethod
-    def to_python_script(module):
+    @classmethod
+    def to_python_script(cls, module):
         for f in module.functions:
             if f.name == 'value':
-                code = u"value = %r" % f.parameters[0].strValue
+                assert len(f.parameters) == 1
+                value = f.parameters[0].strValue
+                code = u"value = %r" % cls.translate_to_python(value)
                 return Script(code, inputs={}, outputs={'value': u'value'})
         raise ValueError("Constant module has no value set")
 

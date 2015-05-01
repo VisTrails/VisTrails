@@ -219,7 +219,7 @@ class TestExport(unittest.TestCase):
     def test_sources(self):
         self.do_export('script_sources.xml', """\
 # MODULE 2 org.vistrails.vistrails.basic:Integer
-value = '8'
+value = 8
 
 
 # MODULE 0 org.vistrails.vistrails.basic:PythonSource
@@ -244,7 +244,7 @@ internal_var_2 = value
     def test_list(self):
         self.do_export('script_list.xml', """\
 # MODULE 1 org.vistrails.vistrails.basic:Integer
-value = '3'
+value = 3
 
 
 # MODULE 0 org.vistrails.vistrails.basic:List
