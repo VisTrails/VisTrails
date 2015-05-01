@@ -124,6 +124,8 @@ class PythonReader(object):
         # Functions for next module, from FUNCTION annotation + assignment
         self.functions = []
 
+        print "\n"
+
     def read_file(self, filename):
         """Imports a Python script as a workflow on the given controller.
 
@@ -210,6 +212,11 @@ class PythonReader(object):
                 if (isinstance(node, redbaron.AssignmentNode) and
                         isinstance(node.target, redbaron.NameNode) and
                         node.target.value == var):
+                    if var in self.var_to_oport:
+                        oldmod, oldport = self.var_to_oport.pop(var)
+                        del self.oport_to_var[(oldmod.id, oldport)]
+                    if var in self.var_to_iport:
+                        del self.iport_to_var[self.var_to_iport.pop(var)]
                     value = node.value.dumps()
                     self.iport_to_var[port] = var
                     self.var_to_iport[var] = port
@@ -300,7 +307,7 @@ class PythonReader(object):
             endpos += 1
 
         source = script[pos:endpos]
-        print "PythonSource block: %d:%d:\n%s" % (
+        print "PythonSource block: %d:%d:\n- - -\n%s\n-----" % (
                 pos, endpos,
                 '\n'.join(s.dumps() for s in source))
         ops = self.add_pythonsource(source)
@@ -340,8 +347,10 @@ class PythonReader(object):
             newmod.add_port_spec(ps)
 
         # Add functions
+        function_vars = set()
         for name, value in self.functions:
             func = self.controller.create_function(newmod, name, [value])
+            function_vars.add(self.iport_to_var[name])
             newmod.add_function(func)
 
         # Connect inputs
@@ -351,12 +360,13 @@ class PythonReader(object):
             if i[0] == 'var':
                 varname = i[1]
                 # Make connection
-                omod, oport = self.var_to_oport[varname]
-                print "connecting to mod %s %d, port %s" % (
-                    omod.module_descriptor.name, omod.id, oport)
-                conn = self.controller.create_connection(omod, oport,
-                                                         newmod, iport)
-                ops.append(('add', conn))
+                if not varname in function_vars:
+                    omod, oport = self.var_to_oport[varname]
+                    print "connecting to mod %s %d, port %s" % (
+                        omod.module_descriptor.name, omod.id, oport)
+                    conn = self.controller.create_connection(omod, oport,
+                                                             newmod, iport)
+                    ops.append(('add', conn))
             # Input is a constant
             elif i[0] == 'const':
                 value = i[1]
@@ -375,6 +385,11 @@ class PythonReader(object):
                 varname = o[1]
                 print "associating variable %s to mod %s %d, port %s" % (
                     varname, newmod.module_descriptor.name, newmod.id, oport)
+                if varname in self.var_to_oport:
+                    oldmod, oldport = self.var_to_oport.pop(varname)
+                    del self.oport_to_var[(oldmod.id, oldport)]
+                if varname in self.var_to_iport:
+                    del self.iport_to_var[self.var_to_iport.pop(varname)]
                 self.var_to_oport[varname] = newmod, oport
                 self.oport_to_var[(newmod.id, oport)] = varname
             # That's all we accept for now
@@ -397,25 +412,39 @@ class PythonReader(object):
                 inputs.add(v)
         inputs.update(self.var_to_iport)
 
+        pysource = []
+
+        # We don't have type information, can't make functions
+        # Inline functions in source
+        for iport, value in self.functions:
+            var = self.iport_to_var.pop(iport)
+            del self.var_to_iport[var]
+            inputs.discard(var)
+            pysource.append('%s = %s' % (var, value))
+        self.functions = []
+
         # For PythonSource, the port names must match the associated variable
         # names, so rename the ports now
         self.iport_to_var = self.var_to_iport = dict(
                 (v, v) for v in self.var_to_iport)
 
         # source code
+        pysource.extend(s.dumps() for s in source)
         input_map = {'source': (
             'const',
-            urllib2.quote('\n'.join(s.dumps() for s in source).encode('utf-8')))}
+            urllib2.quote('\n'.join(pysource).encode('utf-8')))}
         # input ports
         input_map.update((iport, ('var', iport)) for iport in inputs)
         # output ports
         output_map = dict((oport, ('var', oport)) for oport in outputs)
         port_specs = [('input', iport, 'org.vistrails.vistrails.basic:Variant')
                       for iport in inputs]
-        port_specs.extend(('output', oport, 'org.vistrails.vistrails.basic:Variant')
+        port_specs.extend(('output', oport,
+                           'org.vistrails.vistrails.basic:Variant')
                           for oport in outputs)
-        return self.update_module(('org.vistrails.vistrails.basic:PythonSource',
-                                   input_map, output_map, port_specs))
+        return self.update_module(
+                ('org.vistrails.vistrails.basic:PythonSource',
+                 input_map, output_map, port_specs))
 
 
 def read_workflow_from_python(controller, filename):
