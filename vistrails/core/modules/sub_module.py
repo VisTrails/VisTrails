@@ -487,8 +487,10 @@ def get_abstraction_dependencies(vistrail, internal_version=-1L):
     packages = {}
     def pipeline_deps(pipeline):
         for module in pipeline.module_list:
-            if module.name == 'Group' and module.package == basic_pkg:
-                return pipeline_deps(module.pipeline)
+            if module.is_group():
+                print module
+                pipeline_deps(module.pipeline)
+                continue
             if module.package not in packages:
                 packages[module.package] = set()
             packages[module.package].add(module.descriptor_info)
