@@ -39,6 +39,8 @@ NUMBER_LITERALS = (redbaron.IntNode, redbaron.FloatNode, redbaron.LongNode,
 def eval_int_literal(node):
     """Takes one of the number literal nodes and returns its value.
     """
+    # TODO: use to_python() once available in redbaron
+    # https://github.com/Psycojoker/redbaron/issues/65
     if not isinstance(node, NUMBER_LITERALS):
         raise ValueError
     if isinstance(node, redbaron.IntNode):
@@ -52,7 +54,7 @@ def eval_int_literal(node):
 def line_number(node):
     """Gets the number of the first line of a node.
     """
-    # FIXME : -1 because we add a blank line before the script to workaround
+    # FIXME: -1 because we add a blank line before the script to workaround
     # a baron bug: https://github.com/Psycojoker/redbaron/issues/67
     return node.absolute_bounding_box.top_left.line - 1
 
@@ -346,7 +348,7 @@ class PythonReader(object):
                                  port_specs))
 
         # Make the module
-        # TODO : update existing module module_id
+        # TODO: update existing module module_id
         newmod = self.controller.create_module_from_descriptor(new_module)
         ops = [('add', newmod)]
 
