@@ -481,14 +481,18 @@ def get_abstraction_dependencies(vistrail, internal_version=-1L):
         vistrail = read_vistrail(vistrail)
     if internal_version == -1L:
         internal_version = vistrail.get_latest_version()
-    # action = vistrail.actionMap[internal_version]
     pipeline = vistrail.getPipeline(internal_version)
-    
+
     packages = {}
-    for module in pipeline.module_list:
-        if module.package not in packages:
-            packages[module.package] = set()
-        packages[module.package].add(module.descriptor_info)
+    def pipeline_deps(pipeline):
+        for module in pipeline.module_list:
+            if module.is_group():
+                pipeline_deps(module.pipeline)
+                continue
+            if module.package not in packages:
+                packages[module.package] = set()
+            packages[module.package].add(module.descriptor_info)
+    pipeline_deps(pipeline)
     return packages
 
 def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1L):

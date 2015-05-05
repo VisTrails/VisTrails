@@ -319,8 +319,8 @@ class Package(DBPackage):
                         self._imports_are_good = False
                         debug.warning(
                             "In package '%s', Please use the 'vistrails.' "
-                            "prefix when importing vistrails packages." %
-                            (self.identifier or self.codepath))
+                            "prefix when importing vistrails packages (%s)" %
+                            (self.identifier or self.codepath, name))
                     fixed = pkg
                     name = "vistrails." + name
                     break

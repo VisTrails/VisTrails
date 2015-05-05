@@ -2454,7 +2454,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                                        "This subworkflow is from a package and "
                                        "cannot be modified.  You can create an "
                                        "editable copy in 'My Subworkflows' "
-                                       "using 'Edit->Import Subworkflow'")
+                                       "using 'Workflow->Import Subworkflow'")
     def merge_vistrail(self):
         action = self.sender()
         if action:
