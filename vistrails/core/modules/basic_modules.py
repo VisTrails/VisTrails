@@ -811,6 +811,27 @@ class StandardOutput(NotCacheable, Module):
         else:
             print v
 
+    @staticmethod
+    def to_python_script(module):
+        return Script("print value", 'variables', {})
+
+    @classmethod
+    def from_python_script(cls, script, pos, iports):
+        import redbaron
+
+        node = script[pos]
+
+        if isinstance(node, redbaron.PrintNode) and len(node.value) == 1:
+            value, = node.value
+            # Useless parens
+            if isinstance(value, redbaron.AssociativeParenthesisNode):
+                value = value.value
+            if isinstance(value, redbaron.NameNode):
+                return pos, (cls, {'value': ('var', value.value)}, {})
+            elif isinstance(value, redbaron.StringNode):
+                return pos, (cls, {'value': ('const', value.value)}, {})
+        return None
+
 ##############################################################################
 
 # Tuple will be reasonably magic right now. We'll integrate it better
