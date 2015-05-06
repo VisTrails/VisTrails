@@ -4080,7 +4080,7 @@ class VistrailController(object):
         write_workflow_to_python(self.current_pipeline, filename)
 
     def import_python_script(self, filename):
-        return read_workflow_from_python(self, filename)
+        read_workflow_from_python(self, filename)
 
     def write_log(self, locator):
         if self.log:

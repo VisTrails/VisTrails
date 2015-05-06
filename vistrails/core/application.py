@@ -473,9 +473,14 @@ class VistrailsApplicationInterface(object):
             if controller is None:
                 new_locator = UntitledLocator()
                 controller = self.open_vistrail(new_locator)
-        if controller.import_python_script(filename):
+        try:
+            controller.import_python_script(filename)
+        except Exception as e:
+            debug.unexpected_exception(e)
+            debug.critical("Error importing Python script", e)
+            return None
+        else:
             return controller
-        return None
 
     def save_vistrail(self, locator=None, controller=None, export=False):
         if controller is None:
