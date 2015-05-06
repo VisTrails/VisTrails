@@ -254,4 +254,9 @@ value_3 = [1, 2]
 tail = [4, 5]
 # CONNECTION item0 value
 value_2 = value_3 + [value] + tail
+
+
+# MODULE 2 org.vistrails.vistrails.basic:StandardOutput
+# CONNECTION value value_2
+print value_2
 """)
