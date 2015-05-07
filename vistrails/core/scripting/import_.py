@@ -247,7 +247,10 @@ class PythonReader(object):
                         del self.oport_to_var[(oldmod.id, oldport)]
                     if var in self.var_to_iport:
                         del self.iport_to_var[self.var_to_iport.pop(var)]
-                    value = node.value.dumps()
+                    if isinstance(node.value, redbaron.StringNode):
+                        value = ast.literal_eval(node.value.value)
+                    else:
+                        value = node.value.dumps()
                     self.iport_to_var[port] = var
                     self.var_to_iport[var] = port
                     self.functions.append((port, value))
