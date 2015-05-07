@@ -105,6 +105,10 @@ class PythonReader(object):
         self.controller = controller
         self.registry = get_module_registry()
 
+        self.PythonSource_desc = self.registry.get_descriptor_by_name(
+                'org.vistrails.vistrails.basic',
+                'PythonSource')
+
         # Previous modules
         self.pipeline = self.controller.current_pipeline
         self.prev_modules = set((mod.id, mod.name)
@@ -269,6 +273,8 @@ class PythonReader(object):
         # Call the module so it can try to parse itself
         if self.module_desc is None:
             print "We don't know what module this is..."
+        elif self.module_desc == self.PythonSource_desc:
+            pass
         elif not hasattr(self.module_desc.module, 'from_python_script'):
             print "%s doesn't have from_python_script()" % (
                 self.module_desc.module)
