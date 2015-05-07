@@ -84,6 +84,8 @@ def write_workflow_to_python(pipeline, filename):
         text.append('# Prelude')
         text.append(unicode(prelude))
         text.append('')
+    if preludes:
+        text.append('# PRELUDE ENDS -- pipeline code follows\n\n')
 
     # ########################################
     # Walk through the pipeline a second time to generate the full script

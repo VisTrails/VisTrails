@@ -92,6 +92,8 @@ def re_multi(regexps, s):
     return None, None
 
 
+PRELUDE_ENDS = re.compile(
+        r'^# PRELUDE ENDS(?: -- .+)?$')
 MODULE_ANNOTATION = re.compile(
         r'^# MODULE ([0-9]+) ([A-Za-z0-9_:.|]+)$')
 FUNCTION_ANNOTATION = re.compile(
@@ -150,10 +152,27 @@ class PythonReader(object):
             script = redbaron.RedBaron(b'\n' + f.read())
         print "Got %d-line Python script" % len(script)
 
+        # Find out whether there is a prelude section, and skip it
+        # TODO: modules need to read, they are subject to renaming!
+        prelude = False
+        pos = 0
+        while True:
+            try:
+                pos, node = next_node(script, pos)
+            except EndOfInput:
+                break
+            if isinstance(node, redbaron.CommentNode):
+                if PRELUDE_ENDS.match(node.value) is not None:
+                    prelude = True
+                    print "Found prelude end mark line %d" % line_number(node)
+                    break
+        if not prelude:
+            print "Didn't find any prelude -- reading pipeline from top"
+            pos = 0
+
         ops = []
 
         # Read the script
-        pos = 0
         while True:
             try:
                 pos, node = next_node(script, pos)
