@@ -499,3 +499,106 @@ class TestImport(unittest.TestCase):
                 values.append('skipped')
 
         self.assertEqual(values, [1, 2.0, 3, 'skipped', 4, 'skipped', 5])
+
+    def do_import(self, src):
+        import os
+        import tempfile
+
+        import vistrails.core.db.io
+        from vistrails.core.db.locator import UntitledLocator
+        from vistrails.core.vistrail.controller import VistrailController
+
+        locator = UntitledLocator()
+        loaded_objs = vistrails.core.db.io.load_vistrail(locator)
+        controller = VistrailController(loaded_objs[0], locator,
+                                        *loaded_objs[1:])
+
+        fd, name = tempfile.mkstemp(suffix='.py')
+        os.close(fd)
+        try:
+            with open(name, 'w') as fp:
+                fp.write(src)
+            read_workflow_from_python(controller, name)
+        finally:
+            os.remove(name)
+        return controller.current_pipeline
+
+    def test_sources(self):
+        from urllib import unquote
+
+        pipeline = self.do_import("""\
+# MODULE 2 org.vistrails.vistrails.basic:Integer
+value = 8
+
+
+# MODULE 0 org.vistrails.vistrails.basic:PythonSource
+# FUNCTION i i
+i = 42
+o = 1
+o = i # comment
+internal_var = 4
+
+
+# MODULE 1 org.vistrails.vistrails.basic:PythonSource
+# CONNECTION a o
+# CONNECTION someint value
+try:
+    print(o) # note that this will be allowed to collide
+except NameError:
+    pass
+print(o) # Yeah
+internal_var_2 = value
+""")
+        self.assertEqual(set(pipeline.modules), set([0, 1, 2]))
+        self.assertEqual(pipeline.modules[0].name, 'Integer')
+        self.assertEqual(pipeline.modules[1].name, 'PythonSource')
+        funcs = pipeline.modules[1].functions
+        self.assertEqual(len(funcs), 1)
+        self.assertEqual(unquote(funcs[0].parameters[0].strValue).strip(),
+                         """\
+i = 42
+o = 1
+o = i # comment
+internal_var = 4
+""".strip())
+        self.assertEqual(pipeline.modules[2].name, 'PythonSource')
+        funcs = pipeline.modules[2].functions
+        self.assertEqual(len(funcs), 1)
+        self.assertEqual(unquote(funcs[0].parameters[0].strValue).strip(),
+                         """\
+try:
+    print(o) # note that this will be allowed to collide
+except NameError:
+    pass
+print(o) # Yeah
+internal_var_2 = value
+""".strip())
+
+    def _test_list(self):
+        from urllib import unquote
+
+        pipeline = self.do_import("""\
+# MODULE 1 org.vistrails.vistrails.basic:Integer
+value = 3
+
+
+# MODULE 0 org.vistrails.vistrails.basic:List
+# FUNCTION value value_3
+value_3 = [1, 2]
+# FUNCTION tail tail
+tail = [4, 5]
+# CONNECTION item0 value
+value_2 = value_3 + [value] + tail
+
+
+# MODULE 2 org.vistrails.vistrails.basic:StandardOutput
+# CONNECTION value value_2
+print value_2
+""")
+        self.assertEqual(set(pipeline.modules), set([0, 1, 2]))
+        self.assertEqual(pipeline.modules[0].name, 'Integer')
+        self.assertEqual(pipeline.modules[1].name, 'List')
+        funcs = dict((f.name, f.parameters[0].strValue)
+                     for f in pipeline.modules[1].functions)
+        self.assertEqual(funcs, {'value': '[1, 2]', 'tail': '[4, 5]'})
+        self.assertEqual(pipeline.modules[2].name, 'StandardOutput')
