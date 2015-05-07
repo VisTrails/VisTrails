@@ -378,7 +378,8 @@ class PythonReader(object):
             if i[0] == 'var':
                 varname = i[1]
                 # Make connection
-                if not varname in function_vars:
+                if (not varname in function_vars and
+                        varname in self.var_to_oport):
                     omod, oport = self.var_to_oport[varname]
                     print "connecting to mod %s %d, port %s" % (
                         omod.module_descriptor.name, omod.id, oport)
