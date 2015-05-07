@@ -316,7 +316,7 @@ class PythonReader(object):
             if (isinstance(node, redbaron.CommentNode) and
                     MODULE_ANNOTATION.match(node.value) is not None):
                 break
-            elif isinstance(node, redbaron.EndlNode):
+            if isinstance(node, redbaron.EndlNode):
                 blank += 1
                 if blank == 2:
                     break
