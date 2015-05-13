@@ -7,7 +7,17 @@ from vistrails.core.bundles import py_import
 from vistrails.core.scripting.utils import utf8
 
 
-redbaron = py_import('redbaron', {'pip': 'redbaron'})
+redbaron = None
+
+def get_redbaron():
+    """Imports redbaron.
+
+    Not done at top-level so that we can trigger the bundle install if/when
+    needed.
+    """
+    global redbaron
+    redbaron = py_import('redbaron', {'pip': 'redbaron'})
+    return redbaron
 
 
 def make_unique(name, all_vars, more_vars=set()):
@@ -31,6 +41,7 @@ class BaseScript(object):
     """A piece of Python code.
     """
     def __init__(self, source):
+        get_redbaron()
         if isinstance(source, redbaron.RedBaron):
             self.source = source
         else:

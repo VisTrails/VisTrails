@@ -95,8 +95,7 @@ from vistrails.db.domain import IdScope, DBWorkflowExec
 from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
 from vistrails.db.services.vistrail import getSharedRoot
-from vistrails.core.scripting import write_workflow_to_python, \
-    read_workflow_from_python
+from vistrails.core.scripting import write_workflow_to_python
 from vistrails.core.utils import any
 
 
@@ -4080,6 +4079,7 @@ class VistrailController(object):
         write_workflow_to_python(self.current_pipeline, filename)
 
     def import_python_script(self, filename):
+        from vistrails.core.scripting.import_ import read_workflow_from_python
         read_workflow_from_python(self, filename)
 
     def write_log(self, locator):
