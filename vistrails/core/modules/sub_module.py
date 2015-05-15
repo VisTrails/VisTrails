@@ -47,7 +47,7 @@ from vistrails.core.modules import module_registry
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError, ModuleSuspended
+    ModuleError, ModuleSuspended, ModuleConnector
 from vistrails.core.utils import VistrailsInternalError
 import os.path
 
@@ -188,9 +188,15 @@ class Group(Module):
 
         # Connect Group's external input ports to internal InputPort modules
         for iport_name, conn in self.inputPorts.iteritems():
+            from vistrails.core.modules.basic_modules import create_constant
+            # The type information is lost when passing as Variant,
+            # so we need to use the the final normalized value
+            value = self.get_input(iport_name)
+            temp_conn = ModuleConnector(create_constant(value),
+                                        'value', conn[0].spec)
             iport_module = self.input_remap[iport_name]
             iport_obj = tmp_id_to_module_map[iport_module.id]
-            iport_obj.set_input_port('ExternalPipe', conn[0])
+            iport_obj.set_input_port('ExternalPipe', temp_conn)
 
         # Execute pipeline
         kwargs = {'logger': self.logging.log.recursing(self),
