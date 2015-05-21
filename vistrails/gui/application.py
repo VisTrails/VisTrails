@@ -42,6 +42,7 @@ from __future__ import division
 from ast import literal_eval
 import os.path
 import getpass
+import platform
 import re
 import sys
 import StringIO
@@ -63,7 +64,25 @@ from vistrails.gui import qt
 import vistrails.gui.theme
 
 
-################################################################################
+def global_ui_fixes():
+    # Prevent Mac OS 10.7 from restoring windows state since it would make Qt
+    # 4.7.3 unstable due to its lack of handling Cocoa's Main Window.
+    if platform.system() == 'Darwin':
+        release = platform.mac_ver()[0].split('.')
+        if len(release) >= 2 and (int(release[0]), int(release[1])) >= (10, 7):
+            ss_path = os.path.expanduser('~/Library/Saved Application State/'
+                                         'org.vistrails.savedState')
+            if os.path.exists(ss_path):
+                os.system('rm -rf "%s"' % ss_path)
+            os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows '
+                      '-bool false')
+
+    # font bugfix for Qt 4.8 and OS X 10.9
+    if platform.system() == 'Darwin':
+        release = platform.mac_ver()[0].split('.')
+        if len(release) >= 2 and (int(release[0]), int(release[1])) >= (1, 9):
+            QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
+
 
 class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                     QtGui.QApplication):
@@ -85,12 +104,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return self
 
     def __init__(self):
-        # font bugfix for Qt 4.8 and OS X 10.9
-        import platform
-        if platform.system()=='Darwin':
-            release = platform.mac_ver()[0].split('.')
-            if len(release)>=2 and int(release[0])*100+int(release[1])>=1009:
-                QtGui.QFont.insertSubstitution(".Lucida Grande UI", "Lucida Grande")
+        global_ui_fixes()
+
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
