@@ -73,7 +73,7 @@ def disable_lion_restore():
         return
     major = int(release[0])
     minor = int(release[1])
-    if (major, minor) < (1, 7):
+    if (major, minor) < (10, 7):
         return
     ss_path = os.path.expanduser(
             '~/Library/Saved Application State/org.vistrails.savedState')
