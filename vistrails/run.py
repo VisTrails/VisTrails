@@ -66,17 +66,21 @@ def disable_lion_restore():
     make Qt 4.7.3 unstable due to its lack of handling Cocoa's Main
     Window. """
     import platform
-    if platform.system()!='Darwin': return
+    if platform.system() != 'Darwin':
+        return
     release = platform.mac_ver()[0].split('.')
-    if len(release)<2: return
+    if len(release) < 2:
+        return
     major = int(release[0])
     minor = int(release[1])
-    if major*100+minor<107: return
-    ssPath = os.path.expanduser('~/Library/Saved Application State/org.vistrails.savedState')
-    if os.path.exists(ssPath):
-        os.system('rm -rf "%s"' % ssPath)
-    os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
-
+    if (major, minor) < (1, 7):
+        return
+    ss_path = os.path.expanduser(
+            '~/Library/Saved Application State/org.vistrails.savedState')
+    if os.path.exists(ss_path):
+        os.system('rm -rf "%s"' % ss_path)
+    os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows '
+              '-bool false')
 
 def fix_site():
     # py2app ships a stripped version of site.py
