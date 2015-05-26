@@ -623,7 +623,14 @@ class CDMSNaryVariableOperation(CDMSVariableOperation):
             var = self.applyOperations(var)
         return var
 
-class CDMS3DPlot(Module, NotCacheable):
+class CDMSPlot(Module, NotCacheable):
+    _input_ports = expand_port_specs([("variable", "CDMSVariable")])
+
+    def __init__(self):
+        Module.__init__(self)
+        self.var = None
+
+class CDMS3DPlot(CDMSPlot):
     _input_ports = expand_port_specs([("variable", "CDMSVariable"),
                                       ("variable2", "CDMSVariable", True),
                                       ("plotOrder", "basic:Integer", True),
@@ -636,8 +643,7 @@ class CDMS3DPlot(Module, NotCacheable):
     plot_type = None
 
     def __init__(self):
-        Module.__init__(self)
-        self.var = None
+        CDMSPlot.__init__(self)
 
         NotCacheable.__init__(self)
         self.template = "starter"
@@ -725,13 +731,13 @@ class CDMS3DPlot(Module, NotCacheable):
 
 # CDMS3DPlot.addPlotPorts()
 
-#        cgm = CDMSPlot.get_canvas_graphics_method(klass.plot_type, gmName)
+#        cgm = CDMS2DPlot.get_canvas_graphics_method(klass.plot_type, gmName)
 #        attribs = {}
 #        for attr in klass.gm_attributes:
 #            attribs[attr] = getattr(cgm,attr)
 #        return InstanceObject(**attribs)
 
-class CDMSPlot(Module, NotCacheable):
+class CDMS2DPlot(CDMSPlot):
     _input_ports = expand_port_specs([("variable", "CDMSVariable"),
                                       ("variable2", "CDMSVariable", True),
                                       ("plotOrder", "basic:Integer", True),
@@ -755,7 +761,7 @@ class CDMSPlot(Module, NotCacheable):
                                       ('continents', 'basic:Integer', True),
                                       ('ratio', 'basic:String', True),
                                       ("colorMap", "CDMSColorMap", True)])
-    _output_ports = expand_port_specs([("self", "CDMSPlot")])
+    _output_ports = expand_port_specs([("self", "CDMS2DPlot")])
 
     gm_attributes = [ 'datawc_calendar', 'datawc_timeunits',
                       'datawc_x1', 'datawc_x2', 'datawc_y1', 'datawc_y2',
@@ -765,8 +771,7 @@ class CDMSPlot(Module, NotCacheable):
     plot_type = None
 
     def __init__(self):
-        Module.__init__(self)
-        self.var = None
+        CDMSPlot.__init__(self)
 
         self.template = "starter"
         self.graphics_method_name = "default"
@@ -839,7 +844,7 @@ class CDMSPlot(Module, NotCacheable):
         global original_gm_attributes
         return original_gm_attributes[klass.plot_type][gmName]
 
-#        cgm = CDMSPlot.get_canvas_graphics_method(klass.plot_type, gmName)
+#        cgm = CDMS2DPlot.get_canvas_graphics_method(klass.plot_type, gmName)
 #        attribs = {}
 #        for attr in klass.gm_attributes:
 #            attribs[attr] = getattr(cgm,attr)
@@ -1052,7 +1057,6 @@ class QCDATWidget(QVTKWidget):
                     self.canvas.flush() # update the canvas by processing all the X events
 
 #            try:
-            kwargs[ 'cell_coordinates' ] = self.cell_coordinates
             self.canvas.plot(cgm,*args,**kwargs)
 #             except Exception, e:
 #                 print "cgm=",cgm,"args=",args,"kwargs=",kwargs
@@ -1086,7 +1090,6 @@ class QCDATWidget(QVTKWidget):
         #        self.window.setParent(QtGui.QApplication.activeWindow())
         #    self.window.setVisible(False)
             #reparentedVCSWindows[self.windowId] = self.window
-        self.canvas.onClosing( self.cell_coordinates )
 
         self.canvas = None
         #self.window = None
@@ -1123,7 +1126,8 @@ class QCDATWidget(QVTKWidget):
         """
         self.canvas.pdf(filename)#, width=11.5)
 
-_modules = [CDMSVariable, CDMSPlot, CDMS3DPlot, CDMSCell, CDMSTDMarker, CDMSVariableOperation,
+_modules = [VariableSource,
+            CDMSVariable, CDMSPlot, CDMS2DPlot, CDMS3DPlot, CDMSCell, CDMSTDMarker, CDMSVariableOperation,
             CDMSUnaryVariableOperation, CDMSBinaryVariableOperation,
             CDMSNaryVariableOperation, CDMSColorMap, CDMSGrowerOperation]
 
@@ -1370,7 +1374,7 @@ for plot_type in ['Boxfill', 'Isofill', 'Isoline', 'Meshfill', \
                   'Xyvsy', 'Yxvsx' ]:
     def get_init_method():
         def __init__(self):
-            CDMSPlot.__init__(self)
+            CDMS2DPlot.__init__(self)
             #self.plot_type = pt
         return __init__
     def get_is_cacheable_method():
@@ -1378,7 +1382,7 @@ for plot_type in ['Boxfill', 'Isofill', 'Isoline', 'Meshfill', \
             return False
         return is_cacheable
 
-    klass = type('CDMS' + plot_type, (CDMSPlot,),
+    klass = type('CDMS' + plot_type, (CDMS2DPlot,),
                  {'__init__': get_init_method(),
                   'plot_type': plot_type,
                   '_input_ports': get_input_ports(plot_type),
