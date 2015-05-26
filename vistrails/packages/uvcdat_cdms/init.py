@@ -1006,7 +1006,7 @@ class QCDATWidget(QVTKWidget):
                 k2 = self.prepExtraDims(plot.var2.var)
                 args.append(plot.var2.var(**k2))
                 cmd+="%s(**%s), " % (args[-1].id,str(k2))
-            args.append(plot.template)
+            #args.append(plot.template)
             cgm = self.get_graphics_method(plot.plot_type, plot.graphics_method_name)
 #            cgm.setProvenanceHandler( plot.processParameterUpdate )
             if plot.graphics_method_name != 'default':
