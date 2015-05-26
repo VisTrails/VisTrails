@@ -1,5 +1,3 @@
-from PyQt4 import QtCore, QtGui
-
 try:
     import cPickle as pickle
 except:
@@ -20,7 +18,7 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError, NotCach
 from vistrails.core.utils import InstanceObject
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_controller import spreadsheetController
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 from vistrails.gui.application import get_vistrails_application
 import vtk
 
@@ -1447,3 +1445,11 @@ def initialize(*args, **keywords):
                 elif attr == 'max' and attrs[attr] == None:
                     attrs[attr] = 1
             original_gm_attributes[plot_type][gmname] = InstanceObject(**attrs)
+
+
+try:
+    import dat.packages
+except ImportError:
+    pass # DAT is not available
+else:
+    from .dat_integration import *
