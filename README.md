@@ -1,10 +1,7 @@
-Homepage: <http://www.vistrails.org>
+DAT branch
 
-VisTrails is an open-source data analysis and visualization tool. It provides a comprehensive provenance infrastructure that maintains detailed history information about the steps followed and data derived in the course of an exploratory task: VisTrails maintains provenance of data products, of the computational processes that derive these products and their executions.
+This branch contains the original development history of the DAT.
 
-For more information, take a look at the [documentation](http://www.vistrails.org/index.php/Documentation), the [users guide](http://www.vistrails.org/usersguide/v2.1/html/), or our [publications](http://www.vistrails.org/index.php/Publications,_Tutorials_and_Presentations).
+It has been rebased May 2015 and is being integrated in VisTrails.
 
-Binary releases are available on our [download](http://www.vistrails.org/index.php/Downloads) page. To report bugs, please use the github [issue](https://github.com/VisTrails/VisTrails/issues) tracker, after checking our [FAQ](http://www.vistrails.org/index.php/FAQ)
- for known issues.
-
-Who we are: <http://www.vistrails.org/index.php/People>
+A lot has happened here, the original DAT code for matplotlib became VisTrails' "tabledata" package, pylab has been replaced by matplotlib... Therefore the actual history of DAT's development will no longer be visible in the DAT git log. But this branch has been preserved. Its commits are also referenced by early revisions of the DAT repository.
