@@ -145,7 +145,6 @@ class PythonReader(object):
         This reads the file from top to bottom, reading annotations, and calls
         read_module() when module code is encountered.
         """
-        # FIXME: Unicode support?
         with open(filename, 'rb') as f:
             # FIXME: adds '\n' to work around a bug in baron:
             # https://github.com/Psycojoker/redbaron/issues/67
