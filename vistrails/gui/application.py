@@ -93,6 +93,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     """
 
     use_event_filter = system.systemType in ['Darwin']
+    timeout = 15000
 
     def __call__(self):
         """ __call__() -> VistrailsApplicationSingleton
@@ -129,7 +130,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         # based on the C++ solution available at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
         if QtCore.QT_VERSION >= 0x40400:
-            self.timeout = 600000
             self._unique_key = os.path.join(system.home_directory(),
                        "vistrails-single-instance-check-%s"%getpass.getuser())
             self.shared_memory = QtCore.QSharedMemory(self._unique_key)
