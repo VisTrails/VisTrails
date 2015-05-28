@@ -153,6 +153,7 @@ class PythonReader(object):
             # https://github.com/Psycojoker/redbaron/issues/67
             script = redbaron.RedBaron(b'\n' + f.read())
         print "Got %d-line Python script" % len(script)
+        script = script.node_list
 
         # Find out whether there is a prelude section, and skip it
         # TODO: modules need to read, they are subject to renaming!
@@ -463,7 +464,7 @@ class PythonReader(object):
             var = self.iport_to_var.pop(iport)
             del self.var_to_iport[var]
             inputs.discard(var)
-            pysource.append('%s = %s' % (var, value))
+            pysource.append('%s = %s\n' % (var, value))
         self.functions = []
 
         # For PythonSource, the port names must match the associated variable
@@ -475,7 +476,7 @@ class PythonReader(object):
         pysource.extend(s.dumps() for s in source)
         input_map = {'source': (
             'const',
-            urllib2.quote('\n'.join(pysource).encode('utf-8')))}
+            urllib2.quote(''.join(pysource).encode('utf-8')))}
         # input ports
         input_map.update((iport, ('var', iport)) for iport in inputs)
         # output ports
