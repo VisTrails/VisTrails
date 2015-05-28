@@ -39,16 +39,19 @@ NUMBER_LITERALS = (redbaron.IntNode, redbaron.FloatNode, redbaron.LongNode,
 def eval_int_literal(node):
     """Takes one of the number literal nodes and returns its value.
     """
-    # TODO: use to_python() once available in redbaron
-    # https://github.com/Psycojoker/redbaron/issues/65
     if not isinstance(node, NUMBER_LITERALS):
         raise ValueError
-    if isinstance(node, redbaron.IntNode):
-        # FIXME: This branch probably shouldn't be required, filed as
-        # https://github.com/Psycojoker/redbaron/issues/65
-        return node.value
+
+    # FIXME: use to_python() once available in redbaron
+    if False and hasattr(node, 'to_python'):
+        return node.to_python()
     else:
-        return ast.literal_eval(node.value)
+        # https://github.com/Psycojoker/redbaron/issues/65
+        if (isinstance(node, redbaron.IntNode) and
+                isinstance(node.value, (int, long))):
+            return node.value
+        else:
+            return ast.literal_eval(node.value)
 
 
 def line_number(node):
@@ -596,8 +599,6 @@ internal_var_2 = value
 """.strip())
 
     def _test_list(self):
-        from urllib import unquote
-
         pipeline = self.do_import("""\
 # MODULE 1 org.vistrails.vistrails.basic:Integer
 value = 3
