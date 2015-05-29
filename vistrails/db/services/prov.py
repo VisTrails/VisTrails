@@ -488,11 +488,7 @@ def create_prov(workflow, version, log):
     # storing input data
     for id in prov_functions:
         entities.append(prov_functions[id])
-    
-    # machines
-    for machine in log._db_machines:
-        machines[machine.db_id] = (create_prov_agent_from_machine(id_scope, machine), False)
-    
+
     # executions
     for exec_ in log._db_workflow_execs:
         if exec_._db_parent_version != version:
@@ -505,6 +501,11 @@ def create_prov(workflow, version, log):
         else:
             prov_agent = agents_map[exec_._db_user]
         
+        # machines
+        for machine in exec_.machine_list:
+            if machine.db_id not in machines:
+                machines[machine.db_id] = (create_prov_agent_from_machine(id_scope, machine), False)
+
         # creating PROV activity
         prov_activity = create_prov_activity_from_wf_exec(id_scope, exec_)
         activities.append(prov_activity)
