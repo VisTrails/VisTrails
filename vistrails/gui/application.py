@@ -94,6 +94,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
     use_event_filter = system.systemType in ['Darwin']
     timeout = 15000
+    execution_timeout = 600000
 
     def __call__(self):
         """ __call__() -> VistrailsApplicationSingleton
@@ -764,7 +765,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             debug.critical("Writing failed: %s" %
                            local_socket.errorString())
             return False
-        if not local_socket.waitForReadyRead(self.timeout):
+        if not local_socket.waitForReadyRead(self.execution_timeout):
             debug.critical("Read error: %s" %
                            local_socket.errorString())
             return False
