@@ -40,7 +40,9 @@ import time
 
 from PyQt4 import QtCore, QtGui
 
-from vistrails.core import debug, configuration
+from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration, \
+    get_vistrails_persistent_configuration
 from vistrails.core.modules.vistrails_module import ModuleSuspended
 from vistrails.gui import theme
 from vistrails.gui.common_widgets import QDockPushButton
@@ -118,7 +120,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.interval.setEditable(True)
         self.interval.editTextChanged.connect(self.set_refresh)
         self.interval.setValidator(QNumberValidator())
-        conf = configuration.get_vistrails_configuration()
+        conf = get_vistrails_configuration()
         self.interval.setEditText(str(conf.jobCheckInterval))
         buttonsLayout.addWidget(self.interval)
 
@@ -164,8 +166,8 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.set_visible(True)
 
     def autorunToggled(self, value):
-        conf = configuration.get_vistrails_configuration()
-        conf.jobAutorun = value
+        get_vistrails_configuration().jobAutorun = value
+        get_vistrails_persistent_configuration().jobAutorun = value
 
     def set_refresh(self, refresh=0):
         """Changes the timer time.
@@ -188,8 +190,8 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             if self.timer_id:
                 self.killTimer(self.timer_id)
                 self.timer_id = None
-        conf = configuration.get_vistrails_persistent_configuration()
-        conf.jobCheckInterval = refresh
+        get_vistrails_configuration().jobCheckInterval = refresh
+        get_vistrails_persistent_configuration().jobCheckInterval = refresh
         self.updating_now = False
 
     def update_jobs(self):
@@ -412,7 +414,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         workflow_item.updateJobs()
         progress = self.controller.progress
 
-        conf = configuration.get_vistrails_configuration()
+        conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
         if interval and not conf.jobAutorun and not progress.suspended:
             # we should keep checking the job
