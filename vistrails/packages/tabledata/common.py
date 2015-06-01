@@ -330,7 +330,7 @@ class TableToFileMode(FileMode, HtmlRendererMixin):
         filename = self.get_filename(configuration, suffix='.csv')
         WriteCSV.write(filename, table)
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         value = output_module.get_input("value")
         format = configuration.get('format', 'html').lower()
         try:
@@ -342,7 +342,7 @@ class TableToFileMode(FileMode, HtmlRendererMixin):
 
 
 class TableToIPythonMode(IPythonMode, HtmlRendererMixin):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         from IPython.core.display import display, HTML
 
         table = output_module.get_input('value')
