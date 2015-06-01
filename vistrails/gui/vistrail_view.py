@@ -866,6 +866,12 @@ class QVistrailView(QtGui.QWidget):
         view.
         """
 
+        # Upgrade both versions if hiding upgrades
+        if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
+            vt_a = self.controller.vistrail
+            vt_b = vistrail_b or vt_a
+            version_a = vt_a.get_upgrade(version_a) or version_a
+            version_b = vt_b.get_upgrade(version_b) or version_b
         view = self.create_diff_view()
         view.set_controller(self.controller)
         view.set_diff(version_a, version_b, vistrail_b)
