@@ -413,9 +413,13 @@ class Pipeline(object):
         else:
             pipeline = self.pipeline
             if inputs:
-                id_scope = IdScope()
-                id_remap = {}
-                pipeline = pipeline.do_copy(True, id_scope, id_remap)
+                id_scope = IdScope(1)
+                pipeline = pipeline.do_copy(False, id_scope)
+
+                # A hach to get ids from id_scope that we know won't collide:
+                # make them negative
+                id_scope.getNewId = lambda t, g=id_scope.getNewId: -g(t)
+
                 create_module = \
                         VistrailController.create_module_from_descriptor_static
                 create_function = VistrailController.create_function_static

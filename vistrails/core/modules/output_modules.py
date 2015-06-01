@@ -58,7 +58,7 @@ class OutputMode(object):
     def get_config(cls):
         return cls.config_cls
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         raise NotImplementedError("Subclass of OutputMode should implement "
                                   "this")
 
@@ -519,7 +519,7 @@ class FileMode(OutputMode):
 class FileToFileMode(FileMode):
     default_file_extension = None
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         old_fname = output_module.get_input('value').name
         full_path = self.get_filename(configuration,
                                       suffix=(os.path.splitext(old_fname)[1] or
@@ -540,19 +540,19 @@ class FileToFileMode(FileMode):
             raise ModuleError(output_module, msg)
 
 class FileToStdoutMode(StdoutMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         fname = output_module.get_input('value').name
         with open(fname, 'r') as f:
             for line in f:
                 sys.stdout.write(line)
 
 class GenericToStdoutMode(StdoutMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
         print >>sys.stdout, value
 
 class GenericToFileMode(FileMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
         filename = self.get_filename(configuration)
         with open(filename, 'w') as f:
@@ -603,7 +603,7 @@ class IPythonMode(OutputMode):
         except ImportError:
             return False
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         from IPython.core.display import display
 
         value = output_module.get_input('value')
@@ -612,7 +612,7 @@ class IPythonMode(OutputMode):
 class IPythonHtmlMode(IPythonMode):
     mode_type = "ipython"
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         from IPython.core.display import display, HTML
 
         value = output_module.get_input('value')

@@ -35,7 +35,6 @@
 ###############################################################################
 from __future__ import division
 
-from vistrails.core.configuration import get_vistrails_configuration
 """ This python module defines Connection class.
 """
 import copy

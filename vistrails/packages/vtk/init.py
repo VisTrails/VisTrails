@@ -136,7 +136,7 @@ class vtkRendererToIPythonModeConfig(IPythonModeConfig):
 class vtkRendererToIPythonMode(IPythonMode):
     config_cls = vtkRendererToIPythonModeConfig
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         from IPython.core.display import display, Image
 
         r = output_module.get_input('value')[0].vtkInstance
