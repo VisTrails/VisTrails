@@ -595,13 +595,16 @@ class IPythonMode(OutputMode):
     @staticmethod
     def can_compute():
         try:
-            import __main__ as main
-            if hasattr(main, '__file__'):
-                return False
             import IPython.core.display
-            return True
+            from IPython import get_ipython
+            from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
         except ImportError:
             return False
+        else:
+            ip = get_ipython()
+            if ip is None or not isinstance(ip, ZMQInteractiveShell):
+                return False
+            return True
 
     def compute_output(self, output_module, configuration):
         from IPython.core.display import display
