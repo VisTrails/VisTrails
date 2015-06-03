@@ -592,8 +592,13 @@ class IPythonMode(OutputMode):
     priority = 400
     config_cls = IPythonModeConfig
 
-    @staticmethod
-    def can_compute():
+    # Set this to enable/disable notebook integration
+    notebook_override = None
+
+    @classmethod
+    def can_compute(cls):
+        if cls.notebook_override is not None:
+            return cls.notebook_override
         try:
             import IPython.core.display
             from IPython import get_ipython

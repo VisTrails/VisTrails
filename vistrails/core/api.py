@@ -104,6 +104,22 @@ def initialize():
     return True
 
 
+def ipython_mode(use_notebook=True):
+    """Selects whether the IPython notebook should be used.
+
+    Call ``vistrails.ipython_mode(True)`` to enable IPythonMode for output
+    modules, directing supported output to the notebook instead of files.
+    """
+    if use_notebook:
+        try:
+            import IPython.core.display
+        except ImportError:
+            raise ValueError("IPython doesn't seem to be installed!?")
+
+    from vistrails.core.modules.output_modules import IPythonMode
+    IPythonMode.notebook_override = use_notebook
+
+
 class Vistrail(object):
     """This class wraps both Vistrail and VistrailController.
 
