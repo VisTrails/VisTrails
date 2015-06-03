@@ -40,6 +40,7 @@ from copy import copy
 import os
 import sys
 import unittest
+import warnings
 
 from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
@@ -609,6 +610,12 @@ class IPythonMode(OutputMode):
             ip = get_ipython()
             if ip is None or not isinstance(ip, ZMQInteractiveShell):
                 return False
+            warnings.warn("Looks like we're running from the notebook; "
+                          "automatically enabling IPythonMode.\n"
+                          "If this is right, please call "
+                          "vistrails.ipython_mode(True) so that this keeps "
+                          "working in the future (and this warning doesn't "
+                          "show).")
             return True
 
     def compute_output(self, output_module, configuration):
