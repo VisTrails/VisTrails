@@ -343,7 +343,7 @@ def build_vistrails_cmd_line_db(path_to_vistrails, path_to_python,
     """
     #dump pdf
     if pdf:
-        pdfoption = ["-p"]
+        pdfoption = ["--graphs-as-pdf"]
     else:
         pdfoption = []
     #user
@@ -353,11 +353,11 @@ def build_vistrails_cmd_line_db(path_to_vistrails, path_to_python,
         useroption = []
     #dump tree and workflow graph
     if wgraph:
-        graphoption = ['-G', '%s'%os.path.abspath(path_to_figures)]
+        graphoption = ['-E', '--with-workflow', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
     elif tree:
-        graphoption = ['-U' ,'%s'%os.path.abspath(path_to_figures)]
+        graphoption = ['-E', '--with-version-tree', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
     else:
-        graphoption = ['-e', '%s'%os.path.abspath(path_to_figures)]
+        graphoption = ['-p', 'file.dir=%s'%os.path.abspath(path_to_figures)]
     #don't select a workflow
     if version is not None:
         voption = ":%s"%version
@@ -369,7 +369,7 @@ def build_vistrails_cmd_line_db(path_to_vistrails, path_to_python,
         prefix = ['%s'%path_to_python,
                   '%s'%path_to_vistrails]
     cmd_line = prefix + ['-b'] + graphoption + ['-t', host, '-f',db_name] + \
-             useroption + ['-r', port] + pdfoption + [ '%s%s'%(vt_id, voption)]
+             useroption + ['-r', port] + [ '%s%s'%(vt_id, voption)]
     return cmd_line
 
 ###############################################################################
@@ -386,16 +386,16 @@ def build_vistrails_cmd_line_file(path_to_vistrails, path_to_python,
     """
     #dump pdf
     if pdf:
-        pdfoption = ["-p"]
+        pdfoption = ["--graphs-as-pdf"]
     else:
         pdfoption = []
     #dump tree and workflow graph
     if wgraph:
-        graphoption = ['-G','%s'%os.path.abspath(path_to_figures)]
+        graphoption = ['-E', '--with-workflow', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
     elif tree:
-        graphoption = ['-U','%s'%os.path.abspath(path_to_figures)]
+        graphoption = ['-E', '--with-version-tree', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
     else:
-        graphoption = ['-e','%s'%os.path.abspath(path_to_figures)]
+        graphoption = ['-p', 'file.dir=%s'%os.path.abspath(path_to_figures)]
     #don't select a workflow
     if version is not None:
         voption = ":%s"%version
@@ -405,7 +405,7 @@ def build_vistrails_cmd_line_file(path_to_vistrails, path_to_python,
     if path_to_vistrails.endswith(".py"):
         prefix = ['%s'%path_to_python,
                   '%s'%path_to_vistrails]
-    cmd_line = prefix + ['-b'] + graphoption + pdfoption + \
+    cmd_line = prefix + ['-b'] + graphoption + \
                [ "%s%s"%(os.path.abspath(filename),voption)]
                       
     return cmd_line
