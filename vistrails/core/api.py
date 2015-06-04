@@ -60,7 +60,7 @@ from vistrails.db.domain import IdScope
 
 __all__ = ['Vistrail', 'Pipeline', 'Module', 'Package',
            'ExecutionResults', 'ExecutionErrors', 'Function',
-           'load_vistrail', 'load_pipeline', 'load_package',
+           'ipython_mode', 'load_vistrail', 'load_pipeline', 'load_package',
            'output_mode', 'run_vistrail',
            'NoSuchVersion', 'NoSuchPackage']
 
@@ -102,6 +102,22 @@ def initialize():
     is_initialized = True
 
     return True
+
+
+def ipython_mode(use_notebook=True):
+    """Selects whether the IPython notebook should be used.
+
+    Call ``vistrails.ipython_mode(True)`` to enable IPythonMode for output
+    modules, directing supported output to the notebook instead of files.
+    """
+    if use_notebook:
+        try:
+            import IPython.core.display
+        except ImportError:
+            raise ValueError("IPython doesn't seem to be installed!?")
+
+    from vistrails.core.modules.output_modules import IPythonMode
+    IPythonMode.notebook_override = use_notebook
 
 
 class Vistrail(object):
