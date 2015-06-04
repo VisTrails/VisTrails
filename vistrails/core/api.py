@@ -60,7 +60,7 @@ from vistrails.db.domain import IdScope
 
 __all__ = ['Vistrail', 'Pipeline', 'Module', 'Package',
            'ExecutionResults', 'ExecutionErrors', 'Function',
-           'load_vistrail', 'load_pipeline', 'load_package',
+           'ipython_mode', 'load_vistrail', 'load_pipeline', 'load_package',
            'output_mode', 'run_vistrail',
            'NoSuchVersion', 'NoSuchPackage']
 
