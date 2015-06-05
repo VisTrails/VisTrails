@@ -41,6 +41,7 @@ import os.path
 
 import vtk
 
+from distutils.version import LooseVersion
 from vistrails.core.configuration import ConfigField
 from vistrails.core.modules.basic_modules import PathObject, \
                                                        identifier as basic_pkg
@@ -98,7 +99,11 @@ def render_to_image(output_filename, vtk_format, renderer, w, h):
     win2image.SetInput(window)
     win2image.Update()
     writer = vtk_format()
-    writer.SetInput(win2image.GetOutput())
+    if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= \
+       LooseVersion('6.0.0'):
+        writer.SetInputData(win2image.GetOutput())
+    else:
+        writer.SetInput(win2image.GetOutput())
     writer.SetFileName(output_filename)
     writer.Write()
     window.Finalize()
