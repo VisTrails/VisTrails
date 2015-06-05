@@ -203,14 +203,15 @@ class Vistrail(object):
         else:
             raise TypeError("select_version() argument must be a string "
                             "or integer, not %r" % type(version).__name__)
-        self.controller.change_selected_version(version)
+        self.controller.do_version_switch(version)
         self._current_pipeline = None
         self._html = None
 
     def select_latest_version(self):
         """Sets the most recent version in the vistrail as current.
         """
-        self.controller.select_latest_version()
+        self.controller.do_version_switch(
+                self.controller.get_latest_version_in_graph())
         self._current_pipeline = None
         self._html = None
 
