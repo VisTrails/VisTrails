@@ -46,6 +46,8 @@ from PyQt4 import QtCore, QtGui
 from .spreadsheet_window import SpreadsheetWindow
 
 
+spreadsheetWindow = None
+
 class SpreadsheetController(object):
     """
     SpreadsheetController will act like an event dispatcher to
@@ -65,11 +67,13 @@ class SpreadsheetController(object):
         Looking for the spreadsheet window
 
         """
+        global spreadsheetWindow
+        if spreadsheetWindow is not None:
+            return spreadsheetWindow
         wList = QtGui.QApplication.topLevelWidgets()
         for w in wList:
             if isinstance(w, SpreadsheetWindow):
                 return w
-        global spreadsheetWindow
         spreadsheetWindow = SpreadsheetWindow()
         if show:
             spreadsheetWindow.configShow()

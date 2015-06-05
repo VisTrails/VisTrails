@@ -1106,6 +1106,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         self.setScene(QVersionTreeScene(self))
         self.versionProp = QVersionPropOverlay(self, self.viewport())
         self.versionProp.hide()
+        self._view_fitted = False
 
     def set_default_layout(self):
         from vistrails.gui.collection.workspace import QWorkspaceWindow
@@ -1195,6 +1196,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         self.setWindowTitle(title)
 
     def set_controller(self, controller):
+        self._view_fitted = False
         oldController = self.controller
         if oldController != controller:
             if oldController is not None:
@@ -1268,3 +1270,9 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
 
     def select_current_version(self):
         self.scene().setupScene(self.controller)
+
+    def viewSelected(self):
+        if not self._view_fitted and self.isVisible():
+            # We only do this once after a set_controller() call
+            self.zoomToFit()
+            self._view_fitted = True

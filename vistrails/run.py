@@ -61,23 +61,6 @@ else:
         sys.stderr.write("Couldn't import VISTRAILS_USERPACKAGES_DIR (%s), "
                          "continuing\n" % userpackages_dir)
 
-def disable_lion_restore():
-    """ Prevent Mac OS 10.7 to restore windows state since it would
-    make Qt 4.7.3 unstable due to its lack of handling Cocoa's Main
-    Window. """
-    import platform
-    if platform.system()!='Darwin': return
-    release = platform.mac_ver()[0].split('.')
-    if len(release)<2: return
-    major = int(release[0])
-    minor = int(release[1])
-    if major*100+minor<107: return
-    ssPath = os.path.expanduser('~/Library/Saved Application State/org.vistrails.savedState')
-    if os.path.exists(ssPath):
-        os.system('rm -rf "%s"' % ssPath)
-    os.system('defaults write org.vistrails NSQuitAlwaysKeepsWindows -bool false')
-
-
 def fix_site():
     # py2app ships a stripped version of site.py
     # USER_BASE and USER_SITE is not set,
@@ -114,7 +97,6 @@ def fix_paths():
 
 def main():
     fix_paths()
-    disable_lion_restore()
     fix_site()
 
     # Load the default locale (from environment)
