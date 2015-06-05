@@ -856,8 +856,8 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         QtGui.QGraphicsPathItem.__init__(self, path, parent)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         # Bump it slightly higher than the highest module
-        self.setZValue(max(srcModule.id,
-                           dstModule.id) + 0.1)
+        self.setZValue(max(srcModule.zValue(),
+                           dstModule.zValue()) + 0.1)
         self.connectionPen = CurrentTheme.CONNECTION_PEN
         self.connectingModules = (srcModule, dstModule)
         self.ghosted = False

@@ -103,7 +103,6 @@ def translate_object(obj, method_name, version=None, target_version=None):
         translate_dir = 'vistrails.db.versions.' + \
             get_version_name(end_version) + '.translate.' + \
             get_version_name(start_version)
-        print "TRANSLATE_DIR:", translate_dir
         return __import__(translate_dir, {}, {}, [''])
 
     path = []
