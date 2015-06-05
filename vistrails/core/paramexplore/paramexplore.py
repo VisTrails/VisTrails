@@ -1,38 +1,41 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """ This file contains the definition of the class ParameterExploration """
+
+from __future__ import division
 
 from xml.sax.saxutils import unescape
 
@@ -47,7 +50,7 @@ from vistrails.core.modules.paramexplore import IntegerLinearInterpolator, \
    FloatLinearInterpolator, RGBColorInterpolator, HSVColorInterpolator,\
    UserDefinedFunctionInterpolator
 
-
+from ast import literal_eval
 import unittest
 import copy
 
@@ -102,25 +105,25 @@ class ParameterExploration(DBParameterExploration):
     
     def get_dims(self):
         try:
-            return eval(self._dims)
-        except:
+            return literal_eval(self._dims)
+        except Exception:
             return []
     def set_dims(self, d):
         try:
             _dims = repr(d)
-        except:
+        except Exception:
             _dims = []
     dims = property(get_dims, set_dims)
 
     def get_layout(self):
         try:
-            return eval(self._layout)
-        except:
+            return literal_eval(self._layout)
+        except Exception:
             return {}
     def set_layout(self, l):
         try:
             _layout = repr(l)
-        except:
+        except Exception:
             _layout = '{}'
     layout = property(get_layout, set_layout)
 
@@ -139,6 +142,8 @@ class ParameterExploration(DBParameterExploration):
         added_functions = {}
         vistrail_vars = []
         function_actions = []
+        tmp_f_id = -1L
+        tmp_p_id = -1L
         for i in xrange(len(self.functions)):
             pe_function = self.functions[i]
             module = pipeline.db_get_object(Module.vtType, pe_function.module_id)
@@ -146,8 +151,6 @@ class ParameterExploration(DBParameterExploration):
             if module.is_vistrail_var():
                 vistrail_vars.append(module.get_vistrail_var())
             port_spec = reg.get_input_port_spec(module, pe_function.port_name)
-            tmp_f_id = -1L
-            tmp_p_id = -1L
             for param in pe_function.parameters:
                 port_spec_item = port_spec.port_spec_items[param.pos]
                 dim = param.dimension
@@ -160,25 +163,25 @@ class ParameterExploration(DBParameterExploration):
                 if param.interpolator == 'Linear Interpolation':
                     # need to figure out type
                     if port_spec_item.module == "Integer":
-                        i_range = eval(text)
+                        i_range = literal_eval(text)
                         p_min = int(i_range[0])
                         p_max =int(i_range[1])
                         values = IntegerLinearInterpolator(p_min, p_max,
                                                      count).get_values()
                     if port_spec_item.module == "Float":
-                        i_range = eval(text)
+                        i_range = literal_eval(text)
                         p_min = float(i_range[0])
                         p_max =float(i_range[1])
                         values = FloatLinearInterpolator(p_min, p_max,
                                                      count).get_values()
                 elif param.interpolator == 'RGB Interpolation':
-                    i_range = eval(text)
+                    i_range = literal_eval(text)
                     p_min = str(i_range[0])
                     p_max =str(i_range[1])
                     values = RGBColorInterpolator(p_min, p_max,
                                                      count).get_values()
                 elif param.interpolator == 'HSV Interpolation':
-                    i_range = eval(text)
+                    i_range = literal_eval(text)
                     p_min = str(i_range[0])
                     p_max =str(i_range[1])
                     values = HSVColorInterpolator(p_min, p_max,
@@ -186,7 +189,7 @@ class ParameterExploration(DBParameterExploration):
                 elif param.interpolator == 'List':
                     p_module = port_spec_item.descriptor.module
                     values = [p_module.translate_to_python(m)
-                              for m in eval(text)]
+                              for m in literal_eval(text)]
                 elif param.interpolator == 'User-defined Function':
                     p_module = port_spec_item.descriptor.module
                     values = UserDefinedFunctionInterpolator(p_module,
@@ -236,7 +239,7 @@ class ParameterExploration(DBParameterExploration):
                     new_param = ModuleParam(id=tmp_p_id,
                                             pos=old_param.pos,
                                             name=old_param.name,
-                                            alias=pe_function.is_alias,
+                                            alias=old_param.alias,
                                             val=str_value,
                                             type=old_param.type)
                     tmp_p_id -= 1
@@ -264,9 +267,12 @@ class ParameterExploration(DBParameterExploration):
         if len(self.functions) != len(other.functions):
             return False
         for p,q in zip(self.functions, other.functions):
-            if p.real_id != q.real_id or p != q:
+            if p != q:
                 return False
         return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 # Testing
 
@@ -303,21 +309,12 @@ class TestParameterExploration(unittest.TestCase):
         q.action_id = 8
         self.assertNotEqual(p, q)
         q.action_id = 6
-        q.user = 'bobo'
-        self.assertNotEqual(p, q)
-        q.user = 'tommy'
-        q.date = '2008-11-23 12:48'
-        self.assertNotEqual(p, q)
-        q.date = p.date
         q._dims = '[1,4]'
         self.assertNotEqual(p, q)
         q._dims = '[1,2]'
         q._layout = '{1:"different"}'
         self.assertNotEqual(p, q)
         q._layout = p._layout
-        q.name = 'test-pe2'
-        self.assertNotEqual(p, q)
-        q.name = p.name
         q.functions = [1]
         self.assertNotEqual(p, q)
 

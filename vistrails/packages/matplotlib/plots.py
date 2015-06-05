@@ -1,3 +1,5 @@
+from __future__ import division
+
 import matplotlib.pyplot
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from bases import MplPlot
@@ -75,12 +77,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplAcorr)"),
+        ("value", "(MplAcorr)"),
         ]
-    
+
 
     def compute(self):
-        super(MplAcorr, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -104,7 +105,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('hold')
             kwargs['hold'] = val
 
-        output = matplotlib.pyplot.acorr(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        output = matplotlib.pyplot.acorr(*args, **kwargs)
         if 'usevlines' in kwargs and kwargs['usevlines']:
             output = output + (output[2],)
         else:
@@ -158,12 +163,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplArrow)"),
+        ("value", "(MplArrow)"),
         ]
-    
+
 
     def compute(self):
-        super(MplArrow, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -184,7 +188,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             properties = self.get_input('arrowProperties')
             properties.update_kwargs(kwargs)
 
-        matplotlib.pyplot.arrow(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.arrow(*args, **kwargs)
 
 class MplAxhline(MplPlot):
     """Add a horizontal line across the axis.
@@ -229,12 +237,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplAxhline)"),
+        ("value", "(MplAxhline)"),
         ]
-    
+
 
     def compute(self):
-        super(MplAxhline, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -253,6 +260,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('xmax')
             kwargs['xmax'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         line = matplotlib.pyplot.axhline(*args, **kwargs)
         if self.has_input('lineProperties'):
             properties = self.get_input('lineProperties')
@@ -302,12 +313,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplAxhspan)"),
+        ("value", "(MplAxhspan)"),
         ]
-    
+
 
     def compute(self):
-        super(MplAxhspan, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -327,6 +337,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('xmax')
             kwargs['xmax'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         patch = matplotlib.pyplot.axhspan(*args, **kwargs)
         if self.has_input('patchProperties'):
             properties = self.get_input('patchProperties')
@@ -376,12 +390,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplAxvline)"),
+        ("value", "(MplAxvline)"),
         ]
-    
+
 
     def compute(self):
-        super(MplAxvline, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -400,6 +413,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('ymax')
             kwargs['ymax'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         line = matplotlib.pyplot.axvline(*args, **kwargs)
         if self.has_input('lineProperties'):
             properties = self.get_input('lineProperties')
@@ -447,12 +464,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplAxvspan)"),
+        ("value", "(MplAxvspan)"),
         ]
-    
+
 
     def compute(self):
-        super(MplAxvspan, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -472,6 +488,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
         val = self.get_input('xmax')
         kwargs['xmax'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         patch = matplotlib.pyplot.axvspan(*args, **kwargs)
         if self.has_input('patchProperties'):
             properties = self.get_input('patchProperties')
@@ -559,12 +579,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplBar)"),
+        ("value", "(MplBar)"),
         ]
-    
+
 
     def compute(self):
-        super(MplBar, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -636,6 +655,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('leftScalar')
             kwargs['left'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         if not kwargs.has_key('left'):
             kwargs['left'] = range(len(kwargs['height']))
         rectangles = matplotlib.pyplot.bar(*args, **kwargs)
@@ -719,12 +742,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplBarh)"),
+        ("value", "(MplBarh)"),
         ]
-    
+
 
     def compute(self):
-        super(MplBarh, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -792,6 +814,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('leftSequence')
             kwargs['left'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         rectangles = matplotlib.pyplot.barh(*args, **kwargs)
         if self.has_input('rectangleProperties'):
             properties = self.get_input('rectangleProperties')
@@ -839,12 +865,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplBrokenBarh)"),
+        ("value", "(MplBrokenBarh)"),
         ]
-    
+
 
     def compute(self):
-        super(MplBrokenBarh, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -858,7 +883,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         val = self.get_input('yrange')
         kwargs['yrange'] = val
 
-        matplotlib.pyplot.broken_barh(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        brokenBarHCollection = matplotlib.pyplot.broken_barh(*args, **kwargs)
         if self.has_input('brokenBarHCollectionProperties'):
             properties = self.get_input('brokenBarHCollectionProperties')
             if brokenBarHCollection is not None:
@@ -933,12 +962,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplBoxplot)"),
+        ("value", "(MplBoxplot)"),
         ]
-    
+
 
     def compute(self):
-        super(MplBoxplot, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -980,7 +1008,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('conf_intervals')
             kwargs['conf_intervals'] = val
 
-        output = matplotlib.pyplot.boxplot(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        output = matplotlib.pyplot.boxplot(*args, **kwargs)
         if 'patch_artist' in kwargs and kwargs['patch_artist']:
             output['boxPatches'] = output['boxes']
             output['boxes'] = []
@@ -1078,12 +1110,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplCohere)"),
+        ("value", "(MplCohere)"),
         ]
-    
+
 
     def compute(self):
-        super(MplCohere, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1127,7 +1158,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             properties = self.get_input('lineProperties')
             properties.update_kwargs(kwargs)
 
-        matplotlib.pyplot.cohere(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.cohere(*args, **kwargs)
 
 class MplClabel(MplPlot):
     """Label a contour plot.
@@ -1174,12 +1209,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplClabel)"),
+        ("value", "(MplClabel)"),
         ]
-    
+
 
     def compute(self):
-        super(MplClabel, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1216,6 +1250,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('inline')
             kwargs['inline'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         texts = matplotlib.pyplot.clabel(*args, **kwargs)
         if self.has_input('textProperties'):
             properties = self.get_input('textProperties')
@@ -1335,14 +1373,13 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplContour)"),
-              ("contourSet", "MplQuadContourSet",
-                {}),
+        ("value", "(MplContour)"),
+            # (this plot has additional output which are not exposed as ports
+            # right now)
         ]
-    
+
 
     def compute(self):
-        super(MplContour, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1421,6 +1458,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('norm')
             kwargs['norm'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         if self.has_input("N") and self.has_input("V"):
             del args[-1]
         contour_set = matplotlib.pyplot.contour(*args, **kwargs)
@@ -1538,14 +1579,13 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplContourf)"),
-              ("contourSet", "MplQuadContourSet",
-                {}),
+        ("value", "(MplContourf)"),
+            # (this plot has additional output which are not exposed as ports
+            # right now)
         ]
-    
+
 
     def compute(self):
-        super(MplContourf, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1606,6 +1646,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('norm')
             kwargs['norm'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         if self.has_input("N") and self.has_input("V"):
             del args[-1]
         contour_set = matplotlib.pyplot.contourf(*args, **kwargs)
@@ -1673,12 +1717,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplCsd)"),
+        ("value", "(MplCsd)"),
         ]
-    
+
 
     def compute(self):
-        super(MplCsd, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1722,7 +1765,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             properties = self.get_input('lineProperties')
             properties.update_kwargs(kwargs)
 
-        matplotlib.pyplot.csd(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.csd(*args, **kwargs)
 
 class MplErrorbar(MplPlot):
     """Plot an errorbar graph.
@@ -1803,12 +1850,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplErrorbar)"),
+        ("value", "(MplErrorbar)"),
         ]
-    
+
 
     def compute(self):
-        super(MplErrorbar, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1868,7 +1914,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('yerrScalar')
             kwargs['yerr'] = val
 
-        output = matplotlib.pyplot.errorbar(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        output = matplotlib.pyplot.errorbar(*args, **kwargs)
         plotline = output[0]
         caplines = output[1]
         barlines = output[2]
@@ -1926,12 +1976,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplFill)"),
+        ("value", "(MplFill)"),
         ]
-    
+
 
     def compute(self):
-        super(MplFill, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -1942,6 +1991,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
 
         kwargs = {}
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         polygons = matplotlib.pyplot.fill(*args, **kwargs)
         if self.has_input('polygonProperties'):
             properties = self.get_input('polygonProperties')
@@ -1987,12 +2040,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplFillBetween)"),
+        ("value", "(MplFillBetween)"),
         ]
-    
+
 
     def compute(self):
-        super(MplFillBetween, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2024,6 +2076,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('where')
             kwargs['where'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         polyCollection = matplotlib.pyplot.fill_between(*args, **kwargs)
         if self.has_input('polyCollectionProperties'):
             properties = self.get_input('polyCollectionProperties')
@@ -2067,12 +2123,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplFillBetweenx)"),
+        ("value", "(MplFillBetweenx)"),
         ]
-    
+
 
     def compute(self):
-        super(MplFillBetweenx, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2101,6 +2156,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('where')
             kwargs['where'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         polyCollection = matplotlib.pyplot.fill_betweenx(*args, **kwargs)
         if self.has_input('polyCollectionProperties'):
             properties = self.get_input('polyCollectionProperties')
@@ -2184,12 +2243,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplHexbin)"),
+        ("value", "(MplHexbin)"),
         ]
-    
+
 
     def compute(self):
-        super(MplHexbin, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2257,6 +2315,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('scale')
             kwargs['scale'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         polyCollection = matplotlib.pyplot.hexbin(*args, **kwargs)
         if self.has_input('polyCollectionProperties'):
             properties = self.get_input('polyCollectionProperties')
@@ -2332,12 +2394,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplHist)"),
+        ("value", "(MplHist)"),
         ]
-    
+
 
     def compute(self):
-        super(MplHist, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2401,7 +2462,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('log')
             kwargs['log'] = val
 
-        output = matplotlib.pyplot.hist(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        output = matplotlib.pyplot.hist(*args, **kwargs)
         rectangles = output[2]
         if self.has_input('rectangleProperties'):
             properties = self.get_input('rectangleProperties')
@@ -2463,12 +2528,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplHist2d)"),
+        ("value", "(MplHist2d)"),
         ]
-    
+
 
     def compute(self):
-        super(MplHist2d, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2500,7 +2564,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('bins')
             kwargs['bins'] = val
 
-        matplotlib.pyplot.hist2d(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.hist2d(*args, **kwargs)
 
 class MplHlines(MplPlot):
     """Plot horizontal lines.
@@ -2551,12 +2619,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplHlines)"),
+        ("value", "(MplHlines)"),
         ]
-    
+
 
     def compute(self):
-        super(MplHlines, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2596,6 +2663,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('hold')
             kwargs['hold'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         lines = matplotlib.pyplot.hlines(*args, **kwargs)
         if self.has_input('lineProperties'):
             properties = self.get_input('lineProperties')
@@ -2677,12 +2748,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplImshow)"),
+        ("value", "(MplImshow)"),
         ]
-    
+
 
     def compute(self):
-        super(MplImshow, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2739,7 +2809,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('interpolation')
             kwargs['interpolation'] = val
 
-        matplotlib.pyplot.imshow(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.imshow(*args, **kwargs)
 
 class MplLoglog(MplPlot):
     """Make a plot with log scaling on both the x and y axis.
@@ -2784,12 +2858,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplLoglog)"),
+        ("value", "(MplLoglog)"),
         ]
-    
+
 
     def compute(self):
-        super(MplLoglog, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2818,6 +2891,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('subsy')
             kwargs['subsy'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         lines = matplotlib.pyplot.loglog(*args, **kwargs)
         if self.has_input('lineProperties'):
             properties = self.get_input('lineProperties')
@@ -2913,12 +2990,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplPcolor)"),
+        ("value", "(MplPcolor)"),
         ]
-    
+
 
     def compute(self):
-        super(MplPcolor, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -2957,6 +3033,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('norm')
             kwargs['norm'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         polyCollection = matplotlib.pyplot.pcolor(*args, **kwargs)
         if self.has_input('polyCollectionProperties'):
             properties = self.get_input('polyCollectionProperties')
@@ -3008,12 +3088,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplPcolormesh)"),
+        ("value", "(MplPcolormesh)"),
         ]
-    
+
 
     def compute(self):
-        super(MplPcolormesh, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3044,7 +3123,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('norm')
             kwargs['norm'] = val
 
-        matplotlib.pyplot.pcolormesh(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.pcolormesh(*args, **kwargs)
 
 class MplPie(MplPlot):
     """Plot a pie chart.
@@ -3101,12 +3184,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplPie)"),
+        ("value", "(MplPie)"),
         ]
-    
+
 
     def compute(self):
-        super(MplPie, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3152,7 +3234,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('labeldistance')
             kwargs['labeldistance'] = val
 
-        output = matplotlib.pyplot.pie(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        output = matplotlib.pyplot.pie(*args, **kwargs)
         if len(output) < 3:
             output = output + ([],)
         wedges = output[0]
@@ -3214,12 +3300,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplPlotDate)"),
+        ("value", "(MplPlotDate)"),
         ]
-    
+
 
     def compute(self):
-        super(MplPlotDate, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3245,6 +3330,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('hold')
             kwargs['hold'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         lines = matplotlib.pyplot.plot_date(*args, **kwargs)
         if self.has_input('lineProperties'):
             properties = self.get_input('lineProperties')
@@ -3304,12 +3393,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplPsd)"),
+        ("value", "(MplPsd)"),
         ]
-    
+
 
     def compute(self):
-        super(MplPsd, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3351,7 +3439,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             properties = self.get_input('lineProperties')
             properties.update_kwargs(kwargs)
 
-        matplotlib.pyplot.psd(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.psd(*args, **kwargs)
 
 class MplQuiver(MplPlot):
     """Plot a 2-D field of arrows.
@@ -3422,12 +3514,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplQuiver)"),
+        ("value", "(MplQuiver)"),
         ]
-    
+
 
     def compute(self):
-        super(MplQuiver, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3487,6 +3578,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = translate_color(val)
             kwargs['color'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         polyCollection = matplotlib.pyplot.quiver(*args, **kwargs)
         if self.has_input('polyCollectionProperties'):
             properties = self.get_input('polyCollectionProperties')
@@ -3542,12 +3637,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplQuiverkey)"),
+        ("value", "(MplQuiverkey)"),
         ]
-    
+
 
     def compute(self):
-        super(MplQuiverkey, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3587,7 +3681,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('labelsep')
             kwargs['labelsep'] = val
 
-        matplotlib.pyplot.quiverkey(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.quiverkey(*args, **kwargs)
 
 class MplScatter(MplPlot):
     """Make a scatter plot.
@@ -3660,12 +3758,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplScatter)"),
+        ("value", "(MplScatter)"),
         ]
-    
+
 
     def compute(self):
-        super(MplScatter, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3721,6 +3818,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('norm')
             kwargs['norm'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         pathCollection = matplotlib.pyplot.scatter(*args, **kwargs)
         if self.has_input('pathCollectionProperties'):
             properties = self.get_input('pathCollectionProperties')
@@ -3762,12 +3863,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplSemilogx)"),
+        ("value", "(MplSemilogx)"),
         ]
-    
+
 
     def compute(self):
-        super(MplSemilogx, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3787,6 +3887,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('subsx')
             kwargs['subsx'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         lines = matplotlib.pyplot.semilogx(*args, **kwargs)
         if self.has_input('lineProperties'):
             properties = self.get_input('lineProperties')
@@ -3828,12 +3932,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplSemilogy)"),
+        ("value", "(MplSemilogy)"),
         ]
-    
+
 
     def compute(self):
-        super(MplSemilogy, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3853,6 +3956,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('subsy')
             kwargs['subsy'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         lines = matplotlib.pyplot.semilogy(*args, **kwargs)
         if self.has_input('lineProperties'):
             properties = self.get_input('lineProperties')
@@ -3920,12 +4027,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplSpecgram)"),
+        ("value", "(MplSpecgram)"),
         ]
-    
+
 
     def compute(self):
-        super(MplSpecgram, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -3970,7 +4076,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('noverlap')
             kwargs['noverlap'] = val
 
-        matplotlib.pyplot.specgram(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.specgram(*args, **kwargs)
 
 class MplStackplot(MplPlot):
     """Draws a stacked area plot.
@@ -3991,12 +4101,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplStackplot)"),
+        ("value", "(MplStackplot)"),
         ]
-    
+
 
     def compute(self):
-        super(MplStackplot, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4009,7 +4118,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = translate_color(val)
             kwargs['colors'] = val
 
-        matplotlib.pyplot.stackplot(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.stackplot(*args, **kwargs)
 
 class MplStem(MplPlot):
     """Create a stem plot.
@@ -4052,12 +4165,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplStem)"),
+        ("value", "(MplStem)"),
         ]
-    
+
 
     def compute(self):
-        super(MplStem, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4086,7 +4198,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('basefmt')
             kwargs['basefmt'] = val
 
-        output = matplotlib.pyplot.stem(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        output = matplotlib.pyplot.stem(*args, **kwargs)
         markerline = output[0]
         stemlines = output[1]
         baseline = output[2]
@@ -4130,12 +4246,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplStep)"),
+        ("value", "(MplStep)"),
         ]
-    
+
 
     def compute(self):
-        super(MplStep, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4149,6 +4264,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('where')
             kwargs['where'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         lines = matplotlib.pyplot.step(*args, **kwargs)
         if self.has_input('lineProperties'):
             properties = self.get_input('lineProperties')
@@ -4194,12 +4313,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplStreamplot)"),
+        ("value", "(MplStreamplot)"),
         ]
-    
+
 
     def compute(self):
-        super(MplStreamplot, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4244,7 +4362,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('norm')
             kwargs['norm'] = val
 
-        matplotlib.pyplot.streamplot(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.streamplot(*args, **kwargs)
 
 class MplTricontour(MplPlot):
     """Draw contours on an unstructured triangular grid. :func:`~matplotlib.pyplot.tricontour` and :func:`~matplotlib.pyplot.tricontourf` draw contour lines and filled contours, respectively.  Except as noted, function signatures and return values are the same for both versions.
@@ -4335,12 +4457,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplTricontour)"),
+        ("value", "(MplTricontour)"),
         ]
-    
+
 
     def compute(self):
-        super(MplTricontour, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4381,7 +4502,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('norm')
             kwargs['norm'] = val
 
-        matplotlib.pyplot.tricontour(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.tricontour(*args, **kwargs)
 
 class MplTricontourf(MplPlot):
     """Draw contours on an unstructured triangular grid. :func:`~matplotlib.pyplot.tricontour` and :func:`~matplotlib.pyplot.tricontourf` draw contour lines and filled contours, respectively.  Except as noted, function signatures and return values are the same for both versions.
@@ -4472,12 +4597,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplTricontourf)"),
+        ("value", "(MplTricontourf)"),
         ]
-    
+
 
     def compute(self):
-        super(MplTricontourf, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4518,7 +4642,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('norm')
             kwargs['norm'] = val
 
-        matplotlib.pyplot.tricontourf(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.tricontourf(*args, **kwargs)
 
 class MplTripcolor(MplPlot):
     """Create a pseudocolor plot of an unstructured triangular grid.
@@ -4549,19 +4677,22 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplTripcolor)"),
+        ("value", "(MplTripcolor)"),
         ]
-    
+
 
     def compute(self):
-        super(MplTripcolor, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
 
         kwargs = {}
 
-        matplotlib.pyplot.tripcolor(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.tripcolor(*args, **kwargs)
 
 class MplTriplot(MplPlot):
     """Draw a unstructured triangular grid as lines and/or markers.
@@ -4588,19 +4719,22 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplTriplot)"),
+        ("value", "(MplTriplot)"),
         ]
-    
+
 
     def compute(self):
-        super(MplTriplot, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
 
         kwargs = {}
 
-        matplotlib.pyplot.triplot(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.triplot(*args, **kwargs)
 
 class MplVlines(MplPlot):
     """Plot vertical lines.
@@ -4641,12 +4775,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplVlines)"),
+        ("value", "(MplVlines)"),
         ]
-    
+
 
     def compute(self):
-        super(MplVlines, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4674,7 +4807,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         val = self.get_input('ymin')
         kwargs['ymin'] = val
 
-        matplotlib.pyplot.vlines(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.vlines(*args, **kwargs)
 
 class MplXcorr(MplPlot):
     """Plot the cross correlation between x and y.
@@ -4733,12 +4870,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplXcorr)"),
+        ("value", "(MplXcorr)"),
         ]
-    
+
 
     def compute(self):
-        super(MplXcorr, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4764,7 +4900,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('hold')
             kwargs['hold'] = val
 
-        output = matplotlib.pyplot.xcorr(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        output = matplotlib.pyplot.xcorr(*args, **kwargs)
         if 'usevlines' in kwargs and kwargs['usevlines']:
             output = output + (output[2],)
         else:
@@ -4862,12 +5002,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplBarbs)"),
+        ("value", "(MplBarbs)"),
         ]
-    
+
 
     def compute(self):
-        super(MplBarbs, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -4925,6 +5064,10 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = self.get_input('fill_empty')
             kwargs['fill_empty'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         polyCollection = matplotlib.pyplot.barbs(*args, **kwargs)
         if self.has_input('polyCollectionProperties'):
             properties = self.get_input('polyCollectionProperties')
@@ -5002,12 +5145,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplSpy)"),
+        ("value", "(MplSpy)"),
         ]
-    
+
 
     def compute(self):
-        super(MplSpy, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -5031,7 +5173,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         val = self.get_input('Z')
         kwargs['Z'] = val
 
-        output = matplotlib.pyplot.spy(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        output = matplotlib.pyplot.spy(*args, **kwargs)
         if "marker" not in kwargs and "markersize" not in kwargs and \
                 not hasattr(kwargs["Z"], 'tocoo'):
             output = (output, None)
@@ -5067,12 +5213,11 @@ Multiple theta, r arguments are supported, with format strings, as in :func:`~ma
         ]
 
     _output_ports = [
-        ("self", "(MplPolar)"),
+        ("value", "(MplPolar)"),
         ]
-    
+
 
     def compute(self):
-        super(MplPolar, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -5083,6 +5228,10 @@ Multiple theta, r arguments are supported, with format strings, as in :func:`~ma
 
         kwargs = {}
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         lines = matplotlib.pyplot.polar(*args, **kwargs)
         if self.has_input('lineProperties'):
             properties = self.get_input('lineProperties')
@@ -5200,12 +5349,11 @@ Example:
         ]
 
     _output_ports = [
-        ("self", "(MplLegend)"),
+        ("value", "(MplLegend)"),
         ]
-    
+
 
     def compute(self):
-        super(MplLegend, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -5276,7 +5424,11 @@ Example:
             val = self.get_input('borderaxespad')
             kwargs['borderaxespad'] = val
 
-        matplotlib.pyplot.legend(*args, **kwargs)        
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
+        matplotlib.pyplot.legend(*args, **kwargs)
 
 class MplAnnotate(MplPlot):
     """Create an annotation: a piece of text referring to a data point.
@@ -5329,12 +5481,11 @@ Additional kwargs are Text properties:
         ]
 
     _output_ports = [
-        ("self", "(MplAnnotate)"),
+        ("value", "(MplAnnotate)"),
         ]
-    
+
 
     def compute(self):
-        super(MplAnnotate, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -5354,6 +5505,10 @@ Additional kwargs are Text properties:
             val = self.get_input('textcoords')
             kwargs['textcoords'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         if self.has_input("fancyArrowProperties"):
             kwargs['arrowprops'] = \
                 self.get_input("fancyArrowProperties").props
@@ -5425,12 +5580,11 @@ Additional kwargs: hold = [True|False] overrides default hold state
         ]
 
     _output_ports = [
-        ("self", "(MplLinePlot)"),
+        ("value", "(MplLinePlot)"),
         ]
-    
+
 
     def compute(self):
-        super(MplLinePlot, self).compute()
         # get args into args, kwargs
         # write out translations
         args = []
@@ -5446,13 +5600,17 @@ Additional kwargs: hold = [True|False] overrides default hold state
             val = translate_MplLinePlot_marker(val)
             kwargs['marker'] = val
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         lines = matplotlib.pyplot.plot(*args, **kwargs)
         if self.has_input('lineProperties'):
             properties = self.get_input('lineProperties')
             if lines is not None:
                 properties.update_props(lines)
 
-          
+
 _modules = [
             MplAcorr,
             MplArrow,

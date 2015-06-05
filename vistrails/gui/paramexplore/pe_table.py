@@ -1,42 +1,47 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from getpass import getuser
 
 from PyQt4 import QtCore, QtGui
+from ast import literal_eval
 from xml.dom.minidom import parseString
 from xml.sax.saxutils import escape, unescape
+from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.common_widgets import QPromptWidget
 from vistrails.gui.modules.paramexplore import QParameterEditor
@@ -118,12 +123,6 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         
         """
         self.table.setPipeline(pipeline)
-        # Update the UI with the most recent parameter exploration
-        if self.controller:
-            currentVersion = self.controller.current_version
-            pe = self.controller.vistrail.get_paramexp(currentVersion)
-            self.controller.current_parameter_exploration = pe
-            self.setParameterExploration(pe)
 
     def getParameterExplorationOld(self):
         """ getParameterExploration() -> string
@@ -201,6 +200,8 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                         value = '%s' % escape(str(interpolator._str_values), escape_dict)
                     elif intType == 'User-defined Function':
                         value ='%s' % escape(interpolator.function, escape_dict)
+                    else:
+                        assert False
                     # Write parameter tag
                     param = PEParam(id=id_scope.getNewId(PEParam.vtType),
                                     pos=paramInfo.pos,
@@ -211,7 +212,7 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                 functions.append(function)
         pe = ParameterExploration(dims=str(self.table.label.getCounts()),
                       layout=repr(palette.virtual_cell.getConfiguration()[2]),
-                      date=strftime(current_time(), '%Y-%m-%d %H:%M:%S'),
+                      date=current_time(),
                       user=getuser(),
                       functions=functions)
         return pe
@@ -244,8 +245,11 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                     name, params = paramInfo
                     if params[0].module_id == f.module_id and \
                        params[0].name == f.port_name and \
-                       params[0].is_alias == f.is_alias:
+                       bool(params[0].is_alias) == bool(f.is_alias):
                         newEditor = self.table.addParameter(paramInfo)
+                        break
+                if newEditor:
+                    break
                         
             # Retrieve params for this function and set their values in the UI
             if newEditor:
@@ -264,19 +268,21 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                                   'HSV Interpolation']:
                                 try:
                                     # Set min/max
-                                    i_range = eval('%s' % unescape(p.value,
-                                                               unescape_dict))
+                                    i_range = literal_eval('%s' % unescape(
+                                                           p.value,
+                                                           unescape_dict))
                                     p_min = str(i_range[0])
                                     p_max =str(i_range[1])
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
-                                except:
+                                except Exception:
                                     pass
                             elif p.interpolator == 'List':
                                 p_values = '%s' % unescape(p.value,
                                                         unescape_dict)
                                 # Set internal list structure
-                                interpolator._str_values = eval(p_values)
+                                interpolator._str_values = \
+                                        literal_eval(p_values)
                                 # Update UI list
                                 if interpolator.type == 'String':
                                     interpolator.listValues.setText(p_values)
@@ -299,23 +305,23 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
         # Parse/validate the xml
         try:
             xmlDoc = parseString(xmlString).documentElement
-        except:
+        except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Parameter Exploration load failed because of "
                            "invalid XML:\n\n%s" % xmlString)
             return
         palette = self.get_palette()
         paramView = self.get_param_view()
         # Set the exploration dimensions
-        dims = eval(str(xmlDoc.attributes['dims'].value))
+        dims = literal_eval(xmlDoc.attributes['dims'].value)
         self.table.label.setCounts(dims)
         # Set the virtual cell layout
-        layout = eval(str(xmlDoc.attributes['layout'].value))
+        layout = literal_eval(xmlDoc.attributes['layout'].value)
         palette.virtual_cell.setConfiguration(layout)
         # Populate parameter exploration window with stored functions and aliases
         for f in xmlDoc.getElementsByTagName('function'):
             # Retrieve function attributes
             f_id = long(f.attributes['id'].value)
-            f_name = str(f.attributes['name'].value)
             f_is_alias = (str(f.attributes['alias'].value) == 'True')
             # Search the parameter treeWidget for this function and add it directly
             newEditor = None
@@ -349,12 +355,12 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                                     p_max = str(p.attributes['max'].value)
                                     interpolator.fromEdit.set_value(p_min)
                                     interpolator.toEdit.set_value(p_max)
-                                except:
+                                except Exception:
                                     pass
                             elif p_intType == 'List':
                                 p_values = str(p.attributes['values'].value)
                                 # Set internal list structure
-                                interpolator._str_values = eval(p_values)
+                                interpolator._str_values = literal_eval(p_values)
                                 # Update UI list
                                 if interpolator.type == 'String':
                                     interpolator.listValues.setText(p_values)
@@ -474,7 +480,7 @@ class QParameterExplorationTable(QPromptWidget):
                 for p in xrange(len(pEditor.info[1])):
                     param = pEditor.info[1][p]
                     widget = pEditor.paramWidgets[p]                    
-                    if (param in ps.info[1] and (not widget.isEnabled())):
+                    if param in ps.info[1] and not widget.isEnabled():
                         widget.setDimension(0)
                         widget.setDuplicate(False)
                         widget.setEnabled(True)
@@ -489,16 +495,16 @@ class QParameterExplorationTable(QPromptWidget):
         """
         # Go through all possible parameter widgets
         counts = self.label.getCounts()
-        for i in xrange(self.layout().count()):
-            pEditor = self.layout().itemAt(i).widget()
+        for wdg in xrange(self.layout().count()):
+            pEditor = self.layout().itemAt(wdg).widget()
             if pEditor and isinstance(pEditor, QParameterSetEditor):
                 for paramWidget in pEditor.paramWidgets:
                     dim = paramWidget.getDimension()
                     if dim in [0, 1, 2, 3]:
-                        se = paramWidget.editor.stackedEditors
+                        stackedEditors = paramWidget.editor.stackedEditors
                         # Notifies editor widgets of size update 
-                        for i in xrange(se.count()):
-                            wd = se.widget(i)
+                        for edit in xrange(stackedEditors.count()):
+                            wd = stackedEditors.widget(edit)
                             if hasattr(wd, 'size_was_updated'):
                                 wd.size_was_updated(counts[dim])
 
@@ -539,7 +545,7 @@ class QParameterExplorationTable(QPromptWidget):
         else:
             self.clear()
         self.pipeline = pipeline
-        self.label.setEnabled(self.pipeline!=None)
+        self.label.setEnabled(self.pipeline is not None)
 
     def collectParameterActions(self):
         """ collectParameterActions() -> list
@@ -570,8 +576,7 @@ class QParameterExplorationTable(QPromptWidget):
                         parentType = paramInfo.parent_dbtype
                         parentId = paramInfo.parent_id
                         function = self.pipeline.db_get_object(parentType,
-                                                               parentId)  
-                        fName = function.name
+                                                               parentId)
                         old_param = self.pipeline.db_get_object(pType,pId)
                         pName = old_param.name
                         pAlias = old_param.alias
@@ -886,7 +891,6 @@ class QParameterWidget(QtGui.QWidget):
         self.label.setFixedWidth(50)
         hLayout.addWidget(self.label)
 
-        registry = get_module_registry()
         module = param.spec.descriptor.module
         assert issubclass(module, Constant)
 
@@ -1002,14 +1006,3 @@ class QDimensionRadioButton(QtGui.QRadioButton):
         
         """
         self.click()
-
-################################################################################
-
-if __name__=="__main__":        
-    import sys
-    import vistrails.gui.theme
-    app = QtGui.QApplication(sys.argv)
-    vistrails.gui.theme.initializeCurrentTheme()
-    vc = QDimensionLabel(CurrentTheme.EXPLORE_SHEET_PIXMAP, 'Hello World')
-    vc.show()
-    sys.exit(app.exec_())

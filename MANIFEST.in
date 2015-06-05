@@ -1,0 +1,15 @@
+include LICENSE
+include vistrails/core/collection/schema.sql
+include vistrails/core/collection/test.db
+graft vistrails/core/resources
+include vistrails/db/specs/all.xml
+graft vistrails/gui/resources/images
+include vistrails/gui/resources/vistrails-mime.xml
+recursive-include vistrails/packages/analytics *.vt
+recursive-include vistrails/packages/CLTools/icons *.png
+graft vistrails/packages/CLTools/test_files
+graft vistrails/packages/tabledata/test_files
+graft vistrails/tests/resources
+include vistrails/db/versions/v*/schemas/sql/*.sql
+include vistrails/db/versions/v*/schemas/xml/*.xsd
+include vistrails/db/versions/v*/specs/all.xml

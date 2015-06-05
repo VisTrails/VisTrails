@@ -11,159 +11,42 @@ Starting |vistrails| via the Command Line
 
 |vistrails| supports a number of command-line arguments that let you modify certain attributes and behaviors of the program. When invoking |vistrails| from the command line, the arguments are placed after the "run.py" filename. For example,
 
-   ``python vistrails/run.py -n``
+   ``python vistrails/run.py -b``
 
-suppresses the |vistrails| splash screen. Table :ref:`table-batch-cli` contains a complete list of the command line switches supported by \vistrails. Each command line switch has both a short form and a long form. The two forms are logically equivalent, and which one you use is a matter of personal preference. The short form consists of a single minus sign "-" followed by a single letter. The longer form uses two minus signs "--" followed by a descriptive word. For example, the above command to suppress the splash screen could have been written as:
+starts |vistrails| in batch mode. Table :ref:`table-batch-cli` contains a complete list of the command line switches supported by \vistrails. Each command line switch has both a short form and a long form. The two forms are logically equivalent, and which one you use is a matter of personal preference. The short form consists of a single minus sign "-" followed by a single letter. The longer form uses two minus signs "--" followed by a descriptive word. For example, the above command for batch mode could have been written as:
 
-   ``python vistrails/run.py --nosplash``
+   ``python vistrails/run.py --batch``
 
 
 In addition to the explicit switches listed in Table :ref:`table-batch-cli`, the |vistrails| command line also lets you indicate the filename of the vistrail you wish to open. For example, assuming your "examples" directory is one level above your current working directory, this is how you would tell |vistrails| to load the "lung.vt" example at startup:
 
-   ``python vistrails/run.py ../examples/lung.vt``
+   ``python vistrails/run.py examples/lung.vt``
 
 
 Moreover, if you want |vistrails| to start on a *specific version* of the pipeline within the vistrail, you can indicate that version's tag name on the command line. The filename and version tag should be separated by a colon. For example, to start |vistrails| with the ``colormap`` version of the "lung.vt" vistrail, use:
 
-   ``python vistrails/run.py ../examples/lung.vt:colormap``
+   ``python vistrails/run.py examples/lung.vt:colormap``
 
 
 In the event that the version you want to open contains a space in its tag name, simply surround the entire "filename:tag" pair in double quotes. For example:
 
-   ``python vistrails/run.py "../examples/lung.vt:Axial View"``
+   ``python vistrails/run.py "examples/lung.vt:Axial View"``
 
 
 You can also open up multiple vistrails at once by listing more than one vistrail file on the command line. This causes the vistrails to be opened in separate tabs, just as if you had opened them via the GUI. For example:
 
-   ``python vistrails/run.py ../examples/lung.vt ../examples/head.vt``
+   ``python vistrails/run.py examples/lung.vt examples/head.vt``
 
 
 You can specify version tags in conjunction with multiple filenames. Here is an example of an elaborate command-line invocation that opens two vistrails and sets each one to a specific version:
 
-   ``python vistrails/run.py "../examples/lung.vt:Axial View" ../examples/head.vt:bone``
+   ``python vistrails/run.py "examples/lung.vt:Axial View" examples/head.vt:bone``
 
 
-
-.. topic:: Note:
-
-   As of this writing, the |vistrails| development team is refactoring the implementation of many of the command-line switches presented in Table :ref:`table-batch-cli`. As such, depending on your version of |vistrails|, the results you achieve may not match those described. For a list of known issues with the command line switches, please refer to the |vistrails| website.
-
-.. raw::latex
-   \begin{table}
-   \caption{Command line arguments supported by VisTrails.}
-   \label{table:batch:cli}
-   \begin{center}
-   \begin{tabular}{ | l | l | p{3in} | }
-   \hline 
-   \textbf{Short form} & \textbf{Long form} & \textbf{Description} \\
-   \hline 
-     -h & -$\,$-help & Print a help message and exit. \\
-   \hline
-     -S \emph{/path} & -$\,$-startup=\emph{/path} &
-                           Set user configuration directory (default is \texttt{$\sim$/.vistrails})
-   %% (Not fully working. see Ticket 213)
-   \\
-   \hline
-     -? & &                Print a help message and exit. \\
-   \hline
-     -v & -$\,$-version &      Print version information and exit. \\
-   \hline
-     -V \emph{num} &  -$\,$-verbose=\emph{num} &
-                           Set verboseness level (0--2, default=0, higher means
-                           more verbose). \\
-   \hline
-     -b & -$\,$-noninteractive & Run in non-interactive (batch) mode. \\
-   \hline
-     -n & -$\,$-nosplash &       Do not display splash screen on startup. \\
-    \hline
-     -q \emph{file} & -$\,$-quickstart=\emph{file} &
-                             Start VisTrails using the specified static registry. \\
-   \hline
-     -c \emph{num} & -$\,$-cache=\emph{num} &
-                           Enable/disable caching (0 to disable, nonzero to enable. Default is enabled). \\
-   \hline
-     -m \emph{num} & -$\,$-movies=\emph{num} &
-                           Set automatic movie creation on spreadsheet (0 or 1,
-                           default=1). Set this to zero to work around VTK bug
-                           with offscreen renderer and OpenGL texture3D mappers. \\
-   \hline
-     -s & -$\,$-multiheads &     Display the Builder and Spreadsheet on different
-                           screens (if available).
-   \\
-   \hline
-     -x & -$\,$-maximized &      Maximize Builder and Spreadsheet windows at startup. \\
-   \hline
-     -D & -$\,$-detachHistoryView &  Detach the history view from the builder window. \\
-   \hline
-     -l & -$\,$-nologger &       Disable logging. \\
-   \hline
-     -d & -$\,$-debugsignals &   Debug Qt Signals. \\
-   \hline
-     -a \emph{params} & -$\,$-parameters=\emph{params} &
-                           Set workflow parameters (non-interactive mode only). \\
-   \hline
-     -e \emph{dir} & -$\,$-dumpcells=\emph{dir} &
-                           Set directory to dump spreadsheet cells before exiting (non-interactive mode only). \\
-   \hline
-     -G & -$\,$-workflowgraph &
-                           Save workflow graph in specified directory without running 
-			   the workflow (non-interactive mode only).
-   \hline
-     -U & -$\,$-evolutiongraph &
-                           Save evolution graph in specified directory without running
-			   any workflowDump images in pdf format (non-interactive mode only).
-  \hline
-     -p & -$\,$-pdf &
-                           Dump images in pdf format (non-interactive mode only).
-   \hline
-     -g & -$\,$-noSingleInstance &
-                           Run VisTrails without the single instance restriction. \\
-   \hline
-     -t \emph{host} & -$\,$-host=\emph{host} & Set hostname or IP address of database server. \\
-   \hline
-     -r \emph{port} & -$\,$-port=\emph{port} & Set database port. \\
-   \hline
-     -f \emph{dbName} & -$\,$-db=\emph{dbName} & Set database name. \\
-   \hline
-     -u \emph{userName} & -$\,$-user=\emph{userName} & Set database username. \\
-   \hline
-   \end{tabular}
-   \end{center}
-   \end{table}
-
-.. tabularcolumns:: |l|l|p{7.5cm}|
-   
-.. _table-batch-cli:
-
-.. csv-table:: Command line arguments supported by |vistrails|.
-   :header: **Short form**, **Long form**, **Description**
-   :widths: 10, 15, 20
-
-   -h, :math:`--`\ help, Print a help message and exit.
-   -S */path*, -\ -startup=\ */path*, Set user configuration directory (default is :math:`\sim`\ ``/.vistrails``)
-   -?, , Print a help message and exit.
-   -v, --version, Print version information and exit.
-   -V *num*, --verbose=\ *num*, "Set verboseness level (0--2, default=0, higher means more verbose)."
-   -b, --noninteractive, Run in non-interactive (batch) mode.
-   -n, --nosplash, Do not display splash screen on startup.
-   -q *file*, --quickstart=\ *file*, Start VisTrails using the specified static registry. 
-   -c *num*, --cache=\ *num*, "Enable/disable caching (0 to disable, nonzero to enable. Default is enabled)."
-   -m *num*, --movies=\ *num*, "Set automatic movie creation on spreadsheet (0 or 1, default=1). Set this to zero to work around VTK bug with offscreen renderer and OpenGL texture3D mappers."
-   -s, --multiheads, Display the Builder and Spreadsheet on different screens (if available).
-   -x, --maximized, Maximize Builder and Spreadsheet windows at startup.
-   -P, --parameterExploration, execute Parameter Exploration.
-   -l, --nologger, Disable logging.
-   -d, --debugsignals, Debug Qt Signals.
-   -a *params*, --parameters=\ *params*, Set workflow parameters (non-interactive mode only).
-   -e *dir*, --dumpcells=\ *dir*, Set directory to dump spreadsheet cells before exiting (non-interactive mode only).
-   -G, --workflowgraph, Save workflow graph in specified directory without running the workflow (non-interactive mode only).
-   -U, --evolutiongraph, Save evolution graph in specified directory without running any workflow (non-interactive mode only).
-   -p, --pdf, Dump images in pdf format (non-interactive mode only).
-   -g, --noSingleInstance, Run VisTrails without the single instance restriction. 
-   -t *host*, --host=\ *host*, Set hostname or IP address of database server.
-   -r *port*, --port=\ *port*, Set database port.
-   -f *dbName*, --db=\ *dbName*, Set database name.
-   -u *userName*, --user=\ *userName*, Set database username.
+.. argparse::
+   :module: vistrails.core.configuration
+   :func: build_sphinx_parser
+   :prog: run.py
 
 .. index:: configuration directory
 
@@ -171,7 +54,7 @@ Specifying a User Configuration Directory
 =========================================
 
 In addition to the default .vistrails directory, VisTrails allows you to create and use additional configuration directories.  First, you will need to create a new directory.  This is done by running:
- ``python vistrails/run.py -S /path_to_new_directory/new_directory_name``.  
+``python vistrails/run.py -S /path_to_new_directory/new_directory_name``.
 
 This will both create a new directory containing default configuration files and directories, and launch VisTrails, which will use the newly created files for configuration.  The user is then free to add desired configurations to the new directory.  Once a configuration directory exists, subsequent calls using the directory name (``python vistrails/run.py -S /path_to_directory/existing_directory``) will launch VisTrails using the 'existing_directory' for configuration and a new directory will not be created.
 
@@ -186,7 +69,7 @@ As discussed in Chapter :ref:`chap-database`, |vistrails| can read and write vis
 
 The last four rows of Table :ref:`table-batch-cli` show the command-line switches that pertain to database connectivity. Be advised that these switches were designed primarily for use by VTL files (see Section :ref:`sec-cli-vtl`) and as such, are not necessarily user-friendly. In particular, these switches are ignored unless you also specify the vistrail ID and version name on the command line. For example, to open the ``contour`` version of the the "spx" vistrail (whose ID is 5) from the database "vistrails" residing on the host "vistrails.sci.utah.edu" with a username of "vistrails":
 
-   ``python vistrails/run.py -t vistrails.sci.utah.edu -f vistrails -u vistrails 5:contour``
+   ``python vistrails/run.py --host=vistrails.sci.utah.edu --db=vistrails --user=vistrails 5:contour``
 
 
 Once |vistrails| opens, you will be prompted to enter the password. Upon successful authentication, the vistrail is loaded from the database and opened to the pipeline corresponding to the specified version.
@@ -218,13 +101,13 @@ Running |vistrails| in Batch Mode
    single: batch mode
    single: non-interactive mode
 
-Although |vistrails| is primarily intended to be run as an interactive, graphical client application, it also supports non-interactive use. |vistrails| can thus be invoked programmatically, \eg as part of a shell script. You can tell |vistrails| to start in non-interactive mode by using the "-b" or "--noninteractive" command line switch when launching \vistrails. [#]_
+Although |vistrails| is primarily intended to be run as an interactive, graphical client application, it also supports non-interactive use. |vistrails| can thus be invoked programmatically, \eg as part of a shell script. You can tell |vistrails| to start in non-interactive mode by using the "-b" or "--batch" command line switch when launching \vistrails. [#]_
 
 Running |vistrails| in non-interactive mode has little effect, however, without an additional command line argument indicating which vistrail to load. Since we are running |vistrails| as part of a batch process, it only makes sense to execute vistrails whose output is something tangible, such as a file. A vistrail whose only output is an interactive rendering in a ``VTKCell``, for instance, would not be well-suited for running in batch mode.
 
 Consider the following example. The "offscreen.vt" vistrail (included in the "examples" directory) has a variety of output options, depending on which version you select in the ``History`` view (Figure :ref:`The different versions of the offscreen.vt vistrail... <fig-batch-version_tree>`). The version tagged ``only vtk`` displays its output as an interactive VTK rendering. The version tagged ``html`` creates a simple web page in the Spreadsheet. The ``offscreen`` version, however, outputs an image file named "image.png". Since its output (a file) can be easily accessed outside of |vistrails|, this version is an ideal candidate for running in batch mode.  To try it, invoke |vistrails| as shown, specifying both the name of the vistrail file and the desired version:
 
-   ``python vistrails/run.py -b ../examples/offscreen.vt:offscreen``
+   ``python vistrails/run.py -b examples/offscreen.vt:offscreen``
 
 .. _fig-batch-version_tree:
 
@@ -276,17 +159,17 @@ Users can change workflow parameters that have an alias through the command line
 
 For example, offscreen pipeline in offscreen.vt always creates the file called image.png. If you want generate it with a different filename:
 
-``python vistrails/run.py -b ../examples/offscreen.vt:offscreen -a"filename=other.png"``
+``python vistrails/run.py -b examples/offscreen.vt:offscreen --parameters="filename=other.png"``
 
 filename in the example above is the alias name assigned to the parameter in the value method inside the String module. When running a pipeline from the command line, VisTrails will try to start the spreadsheet automatically if the pipeline requires it. For example, this other execution will also start the spreadsheet (attention to how $ characters are escaped when running on bash):
 
-``python vistrails/run.py -b ../examples/head.vt:aliases -a"isovalue=30\$&\$diffuse_color=0.8, 0.4, 0.2"``
+``python vistrails/run.py -b examples/head.vt:aliases --parameters="isovalue=30\$&\$diffuse_color=0.8, 0.4, 0.2"``
 
 You can also execute more than one pipeline on the command line:
 
-``python vistrails/run.py -b ../examples/head.vt:aliases ../examples/spx.vt:spx \ -a"isovalue=30"``
+``python vistrails/run.py -b examples/head.vt:aliases ../examples/spx.vt:spx \ --parameters="isovalue=30"``
 
-Use the -a parameter only once regardless the number of pipelines.
+Use --parameters only once regardless the number of pipelines.
 
 .. %TODO should we cover aliases here?
 
@@ -319,7 +202,7 @@ starts a multithreaded version of the XML-RPC server, so it will create a thread
 
 Note that this infrastructure works on Linux only. To make this work on Windows, you have to create a script similar to start_vistrails_xvfb.sh (located in the scripts folder) where you can send the number of other instances via command-line options to VisTrails. The command line options are:
 
-``python vistrails_server.py -T <ADDRESS> -R <PORT> -O<NUMBER_OF_OTHER_VISTRAILS_INSTANCES> [-M]&``
+``python vistrails_server.py --host=<ADDRESS> --port=<PORT> -O<NUMBER_OF_OTHER_VISTRAILS_INSTANCES> [-M]&``
 
 If you want the main vistrails instance to be multithreaded, use the -M at the end.
 

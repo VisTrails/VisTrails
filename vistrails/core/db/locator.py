@@ -1,37 +1,40 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import base64
 import getpass
 import os.path
@@ -255,8 +258,9 @@ class DBLocator(_DBLocator, CoreLocator):
                     shutil.copyfile(thumbnail, cachedir_thumbnail)
                     new_thumbnails.append(cachedir_thumbnail)
                 except Exception, e:
-                    debug.critical('copying %s -> %s failed: %s' % \
-                                       (thumbnail, cachedir_thumbnail, str(e)))
+                    debug.critical("copying %s -> %s failed" % (
+                                   thumbnail, cachedir_thumbnail),
+                                   e)
         save_bundle.thumbnails = new_thumbnails
         # Need to update thumbnail cache in case some references have changed
         thumb_cache.add_entries_from_files(save_bundle.thumbnails)
@@ -303,7 +307,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 f.write("\nConnect to db with username [%s]: "%self._user)
                 f.close()
                 user = raw_input()
-            except:
+            except IOError:
                 debug.warning("Couldn't write to terminal. Will try stdout")
                 user = raw_input("Connecting to db with username[%s]: "%self._user)
             try:
@@ -322,10 +326,10 @@ class DBLocator(_DBLocator, CoreLocator):
                 config['name'] = '%s@%s'%(self._user,self._host)
                 config['id'] = -1
             except VistrailsDBException, e:
-                debug.critical('VisTrails DB Exception',  str(e))
+                debug.critical('VisTrails DB Exception',  e)
                 config['succeeded'] = False
             except Exception, e2:
-                debug.critical('VisTrails Exception', str(e2))
+                debug.critical('VisTrails Exception', e2)
                 config['succeeded'] = False
         if config is not None:
             if config['succeeded'] == False:
@@ -343,7 +347,7 @@ class DBLocator(_DBLocator, CoreLocator):
                     config['succeeded'] = True
                     config['passwd'] = self._passwd
                 except VistrailsDBException, e:
-                    debug.critical('VisTrails DB Exception',  str(e))
+                    debug.critical('VisTrails DB Exception', e)
                     config['succeeded'] = False
             
             if config['succeeded'] == True:
@@ -372,7 +376,7 @@ class DBLocator(_DBLocator, CoreLocator):
         """get_connection_info(id: int) -> dict
         Returns info of ExtConnection """
         conn = self.__list.get_connection(id)
-        if conn != None:
+        if conn is not None:
             succeeded = False
             key = str(conn.id) + "." + conn.name + "." + conn.host
             passwd = DBLocator.keyChain.get_key(key)
@@ -400,20 +404,13 @@ class DBLocator(_DBLocator, CoreLocator):
         If the connection exists it will update it, else it will add it
 
         """
-        if kwargs.has_key("id"):
-            id = kwargs["id"]
-        if kwargs.has_key("name"):
-            name = kwargs["name"]
-        if kwargs.has_key("host"):
-            host = kwargs["host"]
-        if kwargs.has_key("port"):
-            port = kwargs["port"]
-        if kwargs.has_key("user"):
-            user = kwargs["user"]
-        if kwargs.has_key("passwd"):
-            passwd = kwargs["passwd"]
-        if kwargs.has_key("db"):
-            db = kwargs["db"]
+        id = kwargs["id"]
+        name = kwargs["name"]
+        host = kwargs["host"]
+        port = kwargs["port"]
+        user = kwargs["user"]
+        passwd = kwargs["passwd"]
+        db = kwargs["db"]
 
         conn = DBConnection(id=id,
                             name=name,
@@ -676,17 +673,17 @@ class FileLocator(CoreLocator):
             showSpreadsheetOnly = False
         try:
             version = int(version)
-        except:
+        except (ValueError, TypeError):
             pass
 
         if tag is None:
-            tag = '';
+            tag = ''
             
         ## execute and showSpreadsheetOnly should be written to the current
         ## configuration
         config = get_vistrails_configuration()
-        config.executeWorkflows = execute
-        config.showSpreadsheetOnly = showSpreadsheetOnly
+        config.execute = execute
+        config.showWindow = not showSpreadsheetOnly
         if not forceDB:
             if vtcontent is not None:
                 if url is not None:
@@ -752,9 +749,3 @@ class FileLocator(CoreLocator):
                                mashuptrail=mashuptrail,
                                mashupVersion=mashupVersion,
                                parameterExploration=parameterExploration)
-        
-        
-    ##########################################################################
-
-def untitled_locator():
-    return UntitledLocator()

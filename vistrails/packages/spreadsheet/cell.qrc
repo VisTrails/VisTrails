@@ -1,0 +1,10 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>images/copy_cell.png</file>
+    <file>images/move_cell.png</file>
+    <file>images/locate.png</file>
+    <file>images/update.png</file>
+    <file>images/create_analogy.png</file>
+    <file>images/apply_analogy.png</file>
+</qresource>
+</RCC>

@@ -1,22 +1,59 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2013-2014, NYU-Poly.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
+from __future__ import division
+
 try:
     import numpy
-except ImportError:
+except ImportError: # pragma: no cover
     numpy = None
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
-from vistrails.packages.tabledata.common import TableObject
 
-from ..common import Table
+from ..common import TableObject, Table
 
 
 def get_xlrd():
     try:
         return py_import('xlrd', {
-                'pip': 'xlrd',
-                'linux-debian': 'python-xlrd',
-                'linux-ubuntu': 'python-xlrd',
-                'linux-fedora': 'python-xlrd'})
+                             'pip': 'xlrd',
+                             'linux-debian': 'python-xlrd',
+                             'linux-ubuntu': 'python-xlrd',
+                             'linux-fedora': 'python-xlrd'},
+                         True)
     except ImportError: # pragma: no cover
         return None
 
@@ -56,6 +93,11 @@ class ExcelTable(TableObject):
 
 
 class ExcelSpreadsheet(Table):
+    """Reads a table from a Microsoft Excel file.
+
+    This module uses xlrd from the python-excel.org project to read a XLS or
+    XLSX file.
+    """
     _input_ports = [
             ('file', '(org.vistrails.vistrails.basic:File)'),
             ('sheet_name', '(org.vistrails.vistrails.basic:String)',
@@ -67,8 +109,7 @@ class ExcelSpreadsheet(Table):
     _output_ports = [
             ('column_count', '(org.vistrails.vistrails.basic:Integer)'),
             ('column_names', '(org.vistrails.vistrails.basic:String)'),
-            ('value', '(org.vistrails.vistrails.tabledata:'
-             'read|ExcelSpreadsheet)')]
+            ('value', Table)]
 
     def compute(self):
         xlrd = get_xlrd()
@@ -84,7 +125,7 @@ class ExcelSpreadsheet(Table):
             name = self.get_input('sheet_name')
             try:
                 index = workbook.sheet_names().index(name)
-            except:
+            except Exception:
                 raise ModuleError(self, "Sheet name not found")
             if self.has_input('sheet_index'):
                 if sheet_index != index:
@@ -116,12 +157,10 @@ from vistrails.tests.utils import execute, intercept_result
 from ..identifiers import identifier
 from ..common import ExtractColumn
 
-
+@unittest.skipIf(get_xlrd() is None, "xlrd not available")
 class ExcelTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if get_xlrd() is None: # pragma: no cover
-            raise unittest.SkipTest("xlrd not available")
         import os
         cls._test_dir = os.path.join(
                 os.path.dirname(__file__),

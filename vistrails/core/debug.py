@@ -1,118 +1,298 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
+import inspect
 import logging
 import logging.handlers
-import inspect
 import os
-import os.path
+import pdb
+import re
+import sys
 import time
-import vistrails.core
+import traceback
 
-# from core.utils import VersionTooLow
-# from core import system
+###############################################################################
 
-################################################################################
 
-class DebugPrint:
+def format_exception(e):
+    """Formats an exception as a single-line (no traceback).
+
+    Use this instead of str() which might drop the exception type.
+    """
+    return traceback._format_final_exc_line(type(e).__name__, e)
+
+
+def unexpected_exception(e, tb=None, frame=None):
+    """Marks an exception that we might want to debug.
+
+    Before logging an exception or showing a message (potentially with
+    format_exception()), you might want to call this. It's a no-op unless
+    debugging is enabled in the configuration, in which case it will start a
+    debugger.
+    """
+    if tb is None:
+        tb = sys.exc_info()[2]
+    if frame is None:
+        tb_it = tb
+        while tb_it.tb_next is not None:
+            tb_it = tb_it.tb_next
+        frame = tb_it.tb_frame
+
+    # Whether to use the debugger
+    try:
+        from vistrails.core.configuration import get_vistrails_configuration
+        debugger = getattr(get_vistrails_configuration(),
+                           'developerDebugger',
+                           False)
+    except Exception:
+        debugger = False
+    if not debugger:
+        return
+
+    # Removes PyQt's input hook
+    try:
+        from PyQt4 import QtCore
+    except ImportError:
+        pass
+    else:
+        QtCore.pyqtRemoveInputHook()
+
+    # Prints the exception and traceback
+    print >>sys.stderr, "!!!!!!!!!!"
+    print >>sys.stderr, "Got unexpected exception, starting debugger"
+    print_exception(None, e, tb, 3, file=sys.stderr)
+
+    # Starts the debugger
+    print >>sys.stderr, "!!!!!!!!!!"
+    # pdb.post_mortem()
+    p = pdb.Pdb()
+    p.reset()
+    p.interaction(frame, tb)
+
+###############################################################################
+
+def _format_exception(etype, value, etb, rtb):
+    yield "Traceback (most recent call last):\n"
+    if isinstance(rtb, (int, long)):
+        try:
+            raise ZeroDivisionError
+        except ZeroDivisionError:
+            f = sys.exc_info()[2].tb_frame
+            while rtb > 0:
+                f = f.f_back
+                rtb -= 1
+            rtb = f
+    for line in traceback.format_stack(rtb):
+        yield line
+    yield "--- Exception caught here ---\n"
+    if etb:
+        for line in traceback.format_tb(etb):
+            yield line
+    if value is not None:
+        if etype is None:
+            etype = type(value)
+        lines = traceback.format_exception_only(etype, value)
+        for line in lines:
+            yield line
+
+def print_exception(etype, value, etb, rtb=2, file=None):
+    """Like :func:`traceback.print_exception` but prints the full stack.
+
+    In addition to the stack frames between the exception and the point it is
+    caught, this prints the stack frames above the catching location.
+
+    `etb` is the traceback object from the exception, which will be printed
+    below the ``Exception caught here`` line. `rtb` is either a frame object at
+    which to start, or an integer specifying the depth.
+    """
+    if file is None:
+        file = sys.stderr
+    for line in _format_exception(etype, value, etb, rtb + 1):
+        file.write(line)
+
+def format_exc():
+    """Like :func:`traceback.format_exc` but uses the full stack.
+
+    In addition to the stack frames between the exception and the point it is
+    caught, this prints the stack frames above the catching location.
+    """
+    try:
+        etype, value, tb = sys.exc_info()
+        return ''.join(_format_exception(etype, value, tb, 3))
+    finally:
+        etype = value = tb = None
+
+def print_exc(file=None):
+    """Like :func:`traceback.print_exc` but prints the full stack.
+
+    In addition to the stack frames between the exception and the point it is
+    caught, this prints the stack frames above the catching location.
+    """
+    try:
+        etype, value, tb = sys.exc_info()
+        print_exception(etype, value, tb, 3, file)
+    finally:
+        etype = value = tb = None
+
+###############################################################################
+
+_warningformat = re.compile(
+        '^(.+):'
+        '([0-9]+): '
+        '([A-Za-z_][A-Za-z0-9_]*): '
+        '((?:.|\n)+)$')
+
+class EmitWarnings(logging.Handler):
+    """A logging Handler that re-logs warning messages in our log format.
+
+    This parses the warnings logged by the standard `warnings` module and
+    writes them to the given logger at level WARNING in the format we use
+    (see DebugPrint#message()).
+    """
+    def __init__(self, logger):
+        logging.Handler.__init__(self)
+        self.logger = logger
+
+    def emit(self, record):
+        # Here we basically do the contrary of warnings:formatwarning()
+        m = _warningformat.match(record.args[0])
+        if m is None:
+            self.logger.warning("(File info not available)\n" +
+                           record.args[0])
+        else:
+            filename, lineno, category, message = m.groups()
+            # And here we do self.message()
+            self.logger.warning('%s, line %s\n%s: %s' % (filename, lineno,
+                                                    category, message))
+
+###############################################################################
+
+class LoggerHandler(logging.Handler):
+    """A logging Handler Handler re-logs on a specified Logger.
+    """
+    def __init__(self, logger):
+        logging.Handler.__init__(self)
+        self.logger = logger
+
+    def emit(self, record):
+        if self.logger.isEnabledFor(record.levelno):
+            self.logger.handle(record)
+
+###############################################################################
+
+class DebugPrint(object):
     """ Class to be used for debugging information.
 
     Verboseness can be set in the following way:
-        - DebugPrint.Critical
+        - DebugPrint.CRITICAL
             Only critical messages will be shown
-        - DebugPrint.Warning
-            Warning and critical messages will be shown
-        - DebugPrint.Log
-            Information, warning and Critical messages will be shown
-            
+        - DebugPrint.WARNING
+            Warnings and critical messages will be shown (default)
+        - DebugPrint.INFO
+            Information, warning and Critical messages will be shown (verbose)
+        - DebugPrint.DEBUG
+            All logging messages will be shown (extra verbose)
+
     It uses information such as file name and line number only when printing
     to files and consoles, a stream can be registered to be used in gui.debug.
     Also, it goes up only one level in the traceback stack,
     so it will only get information of who called the DebugPrint functions.
 
     Example of usage:
-        >>> from core import debug
+        >>> from vistrails.core import debug
         >>> debug.DebugPrint.getInstance().set_message_level(
-                                                     debug.DebugPrint.Warning)
+                    debug.DebugPrint.WARNING)
         # the following messages will be shown
         >>> debug.critical('This is an error message')
         >>> debug.warning('This is a warning message')
-        #only warnings and above are shown
+        # only warnings and above are shown
         >>> debug.log('This is a log message and it will not be shown')
-        
+
     """
-    (Critical, Warning, Log) = (logging.CRITICAL,
-                                logging.WARNING,
-                                logging.INFO) #python logging levels
+    (CRITICAL, WARNING, INFO, DEBUG) = (logging.CRITICAL,
+                                       logging.WARNING,
+                                       logging.INFO,
+                                       logging.DEBUG) # python logging levels
     #Singleton technique
     _instance = None
     @staticmethod
     def getInstance(*args, **kwargs):
         if DebugPrint._instance is None:
-            obj = DebugPrint(*args, **kwargs)
-            DebugPrint._instance = obj
+            DebugPrint._instance = DebugPrint(*args, **kwargs)
         return DebugPrint._instance
-    
+
     def make_logger(self, f=None):
         self.fhandler = None
-        """self.make_logger_240(file) -> logger. Creates a logging object to
+        """self.make_logger(file) -> logger. Creates a logging object to
         be used within the DebugPrint class that sends the debugging
         output to file.
-        We will configure log so it outputs to both stderr and a file. 
-        
+        We will configure log so it outputs to both stderr and a file.
+
         """
-        self.logger = logging.getLogger("VisLog")
-        self.logger.setLevel(logging.INFO)
+        # Internal logger, the one we log on
+        self.logger = logging.getLogger('vistrails.logger')
+
+        self.logger.setLevel(logging.DEBUG)
         self.format = logging.Formatter("%(asctime)s %(levelname)s:\n%(message)s")
+
+        # Setup warnings logger
+        if hasattr(logging, 'captureWarnings'):
+            wlogger = logging.getLogger('py.warnings')
+            wlogger.propagate = False
+            wlogger.addHandler(EmitWarnings(self.logger))
+            logging.captureWarnings(True)
+
         # first we define a handler for logging to a file
         if f:
             self.set_logfile(f)
-        
-        #then we define a handler to log to the console
+
+        # Then we define a handler to log to the console
         self.console = logging.StreamHandler()
         self.console.setFormatter(self.format)
-        self.console.setLevel(logging.CRITICAL)
-        self.logger.addHandler(self.console)
-        self.handlers.append(self.console)
-        
-#    if system.python_version() <= (2,4,0,'',0):
-#        raise VersionTooLow('Python', '2.4.0')
-                
+        self.console.setLevel(logging.DEBUG)
+
+        # We also propagate to a second logger, that API users might want to
+        # configure
+        self.visible_logger = logging.getLogger('vistrails')
+        self.logger.propagate = False
+        self.logger.addHandler(LoggerHandler(self.visible_logger))
+
     def __init__(self):
-        self.handlers = []
         self.make_logger()
-        self.level = logging.CRITICAL
         self.app = None
 
     def set_logfile(self, f):
@@ -144,12 +324,12 @@ class DebugPrint:
                 os.rename(filename, "%s.%s"%(filename, mincount))
 
         try:
-            # there's a problem on Windows with RotatingFileHandler and that 
+            # there's a problem on Windows with RotatingFileHandler and that
             # happens when VisTrails starts child processes (it seems related
             # to the way Windows manages file handlers)
             # see http://bugs.python.org/issue4749
             # in this case we will deal with log files differently on Windows:
-            # we will check if we need to rotate the file at the beginning of 
+            # we will check if we need to rotate the file at the beginning of
             # the session.
             import vistrails.core.system
             if vistrails.core.system.systemType in ["Windows", "Microsoft"]:
@@ -158,7 +338,7 @@ class DebugPrint:
                 rotate_file_if_necessary(f)
                 handler = logging.FileHandler(f)
             else:
-                handler = logging.handlers.RotatingFileHandler(f, maxBytes=1024*1024, 
+                handler = logging.handlers.RotatingFileHandler(f, maxBytes=1024*1024,
                                                                backupCount=5)
             handler.setFormatter(self.format)
             handler.setLevel(logging.DEBUG)
@@ -168,28 +348,19 @@ class DebugPrint:
             self.logger.addHandler(handler)
 
         except Exception, e:
-            self.critical("Could not set log file %s: %s"%(f,str(e)))
+            self.critical("Could not set log file %s:" % f, e)
 
-    def set_stream(self, stream):
-        """set_stream(stream) -> None. Redirects debugging
-        output to a stream object."""
-        try:
-        #then we define a handler to log to the console
-            format = logging.Formatter('%(levelname)s\n%(asctime)s\n%(message)s')
-            handler = logging.StreamHandler(stream)
-            handler.setFormatter(format)
-            handler.setLevel(self.level)
-            self.handlers.append(handler)
-            self.logger.addHandler(handler)
-        except Exception, e:
-            self.critical("Could not set message stream %s: %s"%(stream,str(e)))
-            
+    def log_to_console(self, enable=True):
+        if enable:
+            logging.getLogger().addHandler(self.console)
+        else:
+            logging.getLogger().removeHandler(self.console)
+
     def set_message_level(self,level):
         """self.set_message_level(level) -> None. Sets the logging
-        verboseness.  level must be one of (DebugPrint.Critical,
-        DebugPrint.Warning, DebugPrint.Log)."""
-        self.level = level
-        [h.setLevel(level) for h in self.handlers]
+        verboseness.  level must be one of (DebugPrint.CRITICAL,
+        DebugPrint.WARNING, DebugPrint.INFO, DebugPrint.DEBUG)."""
+        self.visible_logger.setLevel(level)
 
     def register_splash(self, app):
         """ register_splash(self, classname)
@@ -204,56 +375,63 @@ class DebugPrint:
         if self.app:
             self.app.splashMessage(msg)
 
-    def message(self, caller, msg, details=''):
-        """self.message(caller, str, str) -> str. Returns a string with a
+    def message(self, caller, msg, *details):
+        """self.message(caller, str, ...) -> str. Returns a string with a
         formatted message to be send to the debugging output. This
         should not be called explicitly from userland. Consider using
         self.log(), self.warning() or self.critical() instead."""
-        msg = (msg + '\n' + details) if details else msg 
+        for d in details:
+            if isinstance(d, Exception):
+                d = format_exception(d)
+            msg = '%s\n%s' % (msg, d)
         source = inspect.getsourcefile(caller)
         line = caller.f_lineno
         if source and line:
             return source + ", line " + str(line) + "\n" + msg
         else:
             return "(File info not available)\n" + msg
-        
-    def debug(self, msg, details = ''):
-        """self.log(str, str) -> None. Send information message (low
+
+    def debug(self, msg, *details):
+        """self.log(str, ...) -> None. Send information message (low
         importance) to log with appropriate call site information."""
         caller = inspect.currentframe().f_back # who called us?
-        self.logger.debug(self.message(caller, msg, details))
-        
-    def log(self, msg, details = ''):
-        """self.log(str, str) -> None. Send information message (low
+        self.logger.debug(self.message(caller, msg, *details))
+
+    def log(self, msg, *details):
+        """self.log(str, ...) -> None. Send information message (low
         importance) to log with appropriate call site information."""
         caller = inspect.currentframe().f_back # who called us?
-        self.logger.info(self.message(caller, msg, details))
-        
-    def warning(self, msg, details = ''):
-        """self.warning(str, str) -> None. Send warning message (medium
+        self.logger.info(self.message(caller, msg, *details))
+
+    def warning(self, msg, *details):
+        """self.warning(str, ...) -> None. Send warning message (medium
         importance) to log with appropriate call site information."""
         caller = inspect.currentframe().f_back # who called us?
-        self.logger.warning(self.message(caller, msg, details))
-        
-    def critical(self, msg, details = ''):
-        """self.critical(str, str) -> None. Send critical message (high
+        self.logger.warning(self.message(caller, msg, *details))
+
+    def critical(self, msg, *details):
+        """self.critical(str, ...) -> None. Send critical message (high
         importance) to log with appropriate call site information."""
         caller = inspect.currentframe().f_back # who called us?
-        self.logger.critical(self.message(caller, msg, details))
-            
+        self.logger.critical(self.message(caller, msg, *details))
+
 splashMessage = DebugPrint.getInstance().splashMessage
 critical = DebugPrint.getInstance().critical
 warning  = DebugPrint.getInstance().warning
 log      = DebugPrint.getInstance().log
 debug    = DebugPrint.getInstance().debug
 
-################################################################################
+#   critical: terminal, messagebox
+#   warning: terminal
+#   log : shown if -V 1
+#   debug : shown if -V 2
+
+###############################################################################
 
 def timecall(method):
     """timecall is a method decorator that wraps any call in timing calls
     so we get the total time taken by a function call as a debugging message."""
     def call(self, *args, **kwargs):
-        caller = inspect.currentframe().f_back
         start = time.time()
         method(self, *args, **kwargs)
         end = time.time()
@@ -261,7 +439,7 @@ def timecall(method):
     call.__doc__ = method.__doc__
     return call
 
-################################################################################
+###############################################################################
 
 def object_at(desc):
     """object_at(id) -> object
@@ -274,8 +452,68 @@ def object_at(desc):
         target_id = desc
     elif isinstance(desc, basestring):
         target_id = int(desc, 16) # Reads desc as the hex address
+    else:
+        raise TypeError
     import gc
     for obj in gc.get_objects():
         if id(obj) == target_id:
             return obj
     raise KeyError("Couldn't find object")
+
+###############################################################################
+
+import unittest
+
+class TestStack(unittest.TestCase):
+    @staticmethod
+    def do_in_stack(catch_, raise_):
+        def a():
+            b()
+        def b():
+            c()
+        def c():
+            catch_(d)
+        def d():
+            e()
+        def e():
+            raise_()
+        a()
+
+    def test_print_exc(self):
+        import itertools
+        from StringIO import StringIO
+
+        sio = StringIO()
+
+        def catch_(d):
+            try:
+                d()
+            except RuntimeError:
+                return print_exc(file=sio)
+
+        def raise_():
+            raise RuntimeError("message here")
+
+        self.do_in_stack(catch_, raise_)
+        result = sio.getvalue().splitlines()
+        expected = (
+r'^ +a\(\)',
+r'^  File .+, line \d+, in a',
+r'^    b\(\)',
+r'^  File .+, line \d+, in b',
+r'^    c\(\)',
+r'^  File .+, line \d+, in c',
+r'^    catch_\(d\)',
+r'^--- Exception caught here ---',
+r'^  File .+, line \d+, in catch_',
+r'^    d\(\)',
+r'^  File .+, line \d+, in d',
+r'^    e\(\)',
+r'^  File .+, line \d+, in e',
+r'^    raise_\(\)',
+r'^  File .+, line \d+, in raise_',
+r'^    raise RuntimeError\("message here"\)',
+r'^RuntimeError: message here')
+        for a, e in itertools.izip(result[-len(expected):], expected):
+            self.assertIsNotNone(re.search(e, a),
+                                 "%r doesn't match %r" % (a, e))

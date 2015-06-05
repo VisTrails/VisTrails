@@ -6,15 +6,13 @@ wiki page
 """
 from datetime import date
 #Release version
-VT_VERSION = "2.1"
-VT_REVISION = "7fd4888b0ea2"
-
+VT_VERSION = "2.2.1"
+VT_REVISION = "c366dbcb640c"
 #Sourceforge information
 SF_ROOT_URL = "http://downloads.sourceforge.net/project/vistrails/vistrails/"
-SF_FOLDER_NAME = "v2.1"
+SF_FOLDER_NAME = "v2.2.1"
 SF_DOWNLOAD_URL = "%s%s"%(SF_ROOT_URL,SF_FOLDER_NAME)
 #binaries names
-MAC_105_BIN = "vistrails-mac-10.5-intel-%s-%s.dmg"%(VT_VERSION, VT_REVISION)
 MAC_64_BIN = "vistrails-mac-10.6-intel-%s-%s.dmg"%(VT_VERSION, VT_REVISION)
 WIN_32_BIN = "vistrails-setup-%s-%s.zip"%(VT_VERSION, VT_REVISION)
 WIN_64_BIN = "vistrails-x64-setup-%s-%s.zip"%(VT_VERSION, VT_REVISION)
@@ -23,12 +21,11 @@ ALL_PLAT_SRC = "vistrails-src-%s-%s.tar.gz"%(VT_VERSION, VT_REVISION)
 USERSGUIDE = "VisTrails.pdf"
 
 #sizes
-MAC_105_SIZE = "198.8 MB"
-MAC_64_SIZE = "182.3 MB"
-WIN_32_SIZE = "125.3 MB"
-WIN_64_SIZE = "150 MB"
-ALL_PLAT_SIZE = "19.2 MB"
-USERSGUIDE_SIZE = "8.7 MB"
+MAC_64_SIZE = "270.2 MB"
+WIN_32_SIZE = "173.9 MB"
+WIN_64_SIZE = "234.6 MB"
+ALL_PLAT_SIZE = "22.3 MB"
+USERSGUIDE_SIZE = "8.9 MB"
 
 def create_text():
     today = date.today().strftime("%Y-%m-%d")
@@ -57,16 +54,6 @@ def create_text():
 |.zip (64-bit Windows)
 |-
 """%(SF_DOWNLOAD_URL, WIN_64_BIN, WIN_64_BIN, WIN_64_SIZE)
-
-    text += """|
-* {{dmg
-  |link=%s/%s
-  |text=%s}}
-|%s
-|Mac OS X 10.5+ x86
-|.dmg (Mac bundle)
-|-
-"""%(SF_DOWNLOAD_URL, MAC_105_BIN, MAC_105_BIN, MAC_105_SIZE)
 
     text += """|
 * {{dmg

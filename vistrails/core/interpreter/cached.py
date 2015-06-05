@@ -1,37 +1,40 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from __future__ import division
 
 import base64
 import copy
@@ -40,12 +43,13 @@ import cPickle as pickle
 
 from vistrails.core.common import InstanceObject, VistrailsInternalError
 from vistrails.core.data_structures.bijectivedict import Bidict
+from vistrails.core import debug
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
-from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
-from vistrails.core.modules.basic_modules import identifier as basic_pkg
+from vistrails.core.modules.basic_modules import identifier as basic_pkg, \
+                                                 Generator
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
     ModuleConnector, ModuleError, ModuleErrors, ModuleHadError, \
@@ -53,6 +57,7 @@ from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
 from vistrails.core.utils import DummyView
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
+
 
 ###############################################################################
 
@@ -120,19 +125,15 @@ class ViewUpdatingLogController(object):
             ) -> None
             Report module as suspended
         """
-        # update job monitor because this may be an oldStyle job
-        jm = JobMonitor.getInstance()
+        # update job monitor because this may be an old-style job
+        jm = obj.job_monitor()
         reg = get_module_registry()
         name = reg.get_descriptor(obj.__class__).name
-        i = "%s" % self.remap_id(obj.id)
-        if error.loop_iteration is not None:
-            name = name + '/' + str(error.loop_iteration)
-            i = i + '/' + str(error.loop_iteration)
+        iteration = self.log.get_iteration_from_module(obj)
+        if iteration is not None:
+            name += '/%d' % iteration
         # add to parent list for computing the module tree later
         error.name = name
-        # if signature is not set we use the module identifier
-        if not error.signature:
-            error.signature = i
         jm.addParent(error)
 
     def end_update(self, obj, error=None, errorTrace=None,
@@ -160,7 +161,8 @@ class ViewUpdatingLogController(object):
         if i in self.ids:
             self.ids.remove(i)
             self.view.set_execution_progress(
-                    1.0 - (len(self.ids) * 1.0 / self.nb_modules))
+                    1.0 - ((len(self.ids) + len(Generator.generators)) * 1.0 /
+                           (self.nb_modules + len(Generator.generators))))
 
         msg = '' if error is None else error.msg
         self.log.finish_execution(obj, msg, errorTrace,
@@ -193,6 +195,9 @@ class ViewUpdatingLogController(object):
 
 ###############################################################################
 
+Variant_desc = None
+InputPort_desc = None
+
 class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
     def __init__(self):
@@ -206,8 +211,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self._file_pool = FilePool()
         self._persistent_pipeline = vistrails.core.vistrail.pipeline.Pipeline()
         self._objects = {}
-        self._executed = {}
         self.filePool = self._file_pool
+        self._streams = []
 
     def clear(self):
         self._file_pool.cleanup()
@@ -215,7 +220,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         for obj in self._objects.itervalues():
             obj.clear()
         self._objects = {}
-        self._executed = {}
 
     def __del__(self):
         self.clear()
@@ -257,6 +261,23 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                    if mod.module_descriptor.identifier == identifier]
         self.clean_modules(modules)
 
+    def make_connection(self, conn, src, dst):
+        """make_connection(self, conn, src, dst)
+        Builds a execution-time connection between modules.
+
+        """
+        iport = conn.destination.name
+        oport = conn.source.name
+        src.enable_output_port(oport)
+        src.load_type_check_descs()
+        if isinstance(src, src.InputPort_desc.module):
+            typecheck = [False]
+        else:
+            typecheck = src.get_type_checks(conn.source.spec)
+        dst.set_input_port(iport,
+                           ModuleConnector(src, oport, conn.source.spec,
+                                           typecheck))
+
     def setup_pipeline(self, pipeline, **kwargs):
         """setup_pipeline(controller, pipeline, locator, currentVersion,
                           view, aliases, **kwargs)
@@ -290,7 +311,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         def create_null():
             """Creates a Null value"""
-            getter = get_module_registry().get_descriptor_by_name
+            getter = reg.get_descriptor_by_name
             descriptor = getter(basic_pkg, 'Null')
             return descriptor.module()
         
@@ -340,7 +361,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             obj = self._objects[persistent_id] = module.summon()
             obj.interpreter = self
             obj.id = persistent_id
-            obj.is_breakpoint = module.is_breakpoint
             obj.signature = module._signature
             
             # Checking if output should be stored
@@ -353,20 +373,22 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             for f in module.functions:
                 connector = None
                 if len(f.params) == 0:
-                    connector = ModuleConnector(create_null(), 'value')
+                    connector = ModuleConnector(create_null(), 'value',
+                                                f.get_spec('output'))
                 elif len(f.params) == 1:
                     p = f.params[0]
                     try:
                         constant = create_constant(p, module)
-                        connector = ModuleConnector(constant, 'value')
-                    except ValueError, e:
-                        err = ModuleError(self, 'Cannot convert parameter '
-                                          'value "%s"\n' % p.strValue + str(e))
-                        errors[i] = err
-                        to_delete.append(obj.id)
+                        connector = ModuleConnector(constant, 'value',
+                                                    f.get_spec('output'))
                     except Exception, e:
-                        err = ModuleError(self, 'Uncaught exception: "%s"' % \
-                                              p.strValue + str(e))
+                        debug.unexpected_exception(e)
+                        err = ModuleError(
+                                module,
+                                "Uncaught exception creating Constant from "
+                                "%r: %s" % (
+                                p.strValue,
+                                debug.format_exception(e)))
                         errors[i] = err
                         to_delete.append(obj.id)
                 else:
@@ -376,20 +398,21 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                         try:
                             constant = create_constant(p, module)
                             constant.update()
-                            connector = ModuleConnector(constant, 'value')
+                            connector = ModuleConnector(constant, 'value',
+                                                        f.get_spec('output'))
                             tupleModule.set_input_port(j, connector)
-                        except ValueError, e:
-                            err = ModuleError(self, "Cannot convert parameter "
-                                              "value '%s'\n" % p.strValue + \
-                                                  str(e))
-                            errors[i] = err
-                            to_delete.append(obj.id)
                         except Exception, e:
-                            err = ModuleError(self, 'Uncaught exception: '
-                                              '"%s"' % p.strValue + str(e))
+                            debug.unexpected_exception(e)
+                            err = ModuleError(
+                                    module,
+                                    "Uncaught exception creating Constant "
+                                    "from %r: %s" % (
+                                    p.strValue,
+                                    debug.format_exception(e)))
                             errors[i] = err
                             to_delete.append(obj.id)
-                    connector = ModuleConnector(tupleModule, 'value')
+                    connector = ModuleConnector(tupleModule, 'value',
+                                                f.get_spec('output'))
                 if connector:
                     obj.set_input_port(f.name, connector, is_method=True)
 
@@ -399,7 +422,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             conn = self._persistent_pipeline.connections[persistent_id]
             src = self._objects[conn.sourceId]
             dst = self._objects[conn.destinationId]
-            conn.makeConnection(src, dst)
+            self.make_connection(conn, src, dst)
 
         if self.done_summon_hook:
             self.done_summon_hook(self._persistent_pipeline, self._objects)
@@ -459,6 +482,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
         # Update **all** modules in the current pipeline
         for i, obj in tmp_id_to_module_map.iteritems():
+            obj.in_pipeline = True # set flag to indicate in pipeline
             obj.logging = logging_obj
             obj.change_parameter = make_change_parameter(obj)
             
@@ -485,6 +509,9 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         else:
             persistent_sinks = [tmp_id_to_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
+
+        self._streams.append(Generator.generators)
+        Generator.generators = []
 
         # Update new sinks
         for obj in persistent_sinks:
@@ -517,6 +544,41 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                 abort = True
             if stop_on_error or abort:
                 break
+
+        # execute all generators until inputs are exhausted
+        # this makes sure branching and multiple sinks are executed correctly
+        if not logging_obj.errors and not logging_obj.suspended and \
+                                                          Generator.generators:
+            result = True
+            abort = False
+            while result is not None:
+                try:
+                    for m in Generator.generators:
+                        result = m.generator.next()
+                    continue
+                except AbortExecution:
+                    break
+                except ModuleErrors, mes:
+                    for me in mes.module_errors:
+                        me.module.logging.end_update(me.module, me)
+                        logging_obj.signalError(me.module, me)
+                        abort = abort or me.abort
+                except ModuleError, me:
+                    me.module.logging.end_update(me.module, me, me.errorTrace)
+                    logging_obj.signalError(me.module, me)
+                    abort = me.abort
+                except ModuleBreakpoint, mb:
+                    mb.module.logging.end_update(mb.module)
+                    logging_obj.signalError(mb.module, mb)
+                    abort = True
+                except Exception, e:
+                    import traceback
+                    traceback.print_exc()
+                    abort = True
+                if stop_on_error or abort:
+                    break
+
+        Generator.generators = self._streams.pop()
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)
@@ -643,8 +705,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
                                          'to execute: %s' % kwargs)
-
         self.clean_non_cacheable_modules()
+
 
 #         if controller is not None:
 #             vistrail = controller.vistrail
@@ -674,6 +736,8 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             res = self.execute_pipeline(pipeline, *(res[:2]), **new_kwargs)
         else:
             res = (to_delete, res[0], errors, {}, {}, {}, [])
+            for (i, error) in errors.iteritems():
+                view.set_module_error(i, error)
         self.finalize_pipeline(pipeline, *(res[:-1]), **new_kwargs)
 
         result = InstanceObject(objects=res[1],

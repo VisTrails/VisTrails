@@ -1,43 +1,47 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from itertools import izip
 import os
 import string
 
 from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.basic_modules import identifier as basic_identifier
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.utils import create_port_spec_string
@@ -47,6 +51,23 @@ from vistrails.gui.modules.utils import get_widget_class
 from vistrails.gui.common_widgets import QToolWindowInterface
 from vistrails.gui.port_documentation import QPortDocumentation
 from vistrails.gui.theme import CurrentTheme
+
+def letterIcon(letter, crossed=False):
+    """ Creates icon with a specific letter
+    """
+    pixmap = QtGui.QPixmap(48,48)
+    pixmap.fill(QtCore.Qt.transparent)
+    painter = QtGui.QPainter(pixmap)
+    painter.setPen(QtGui.QColor(0, 0, 0, 255))
+    font = painter.font()
+    font.setPointSize(40)
+    painter.setFont(font)
+    painter.drawText(0, 0, 48, 48, QtCore.Qt.AlignCenter, letter)
+    if crossed:
+        painter.drawLine(0,0,48,48)
+        painter.drawLine(0,48,48,0)
+    painter.end()
+    return QtGui.QIcon(pixmap)
 
 class AliasLabel(QtGui.QLabel):
     """
@@ -127,26 +148,37 @@ class AliasLabel(QtGui.QLabel):
                     self.parent().updateMethod()
 
 class Parameter(object):
-    def __init__(self, desc):
+    def __init__(self, desc, psi=None):
         self.type = desc.name
         self.identifier = desc.identifier
         self.namespace = None if not desc.namespace else desc.namespace
         self.strValue = ''
         self.alias = ''
         self.queryMethod = None
-        self.port_spec_item = None
+        self.port_spec_item = psi
         self.param_exists = False
+
+class Function(object):
+    def __init__(self, name, params, port_spec=None):
+        self.name = name
+        self.parameters = params
+        self.port_spec = port_spec
+
+    def get_spec(self, port_type):
+        return self.port_spec
+
         
 class ParameterEntry(QtGui.QTreeWidgetItem):
     plus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                          'gui/resources/images/plus.png'))
     minus_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                           'gui/resources/images/minus.png'))
-    def __init__(self, port_spec, function=None, parent=None):
+    def __init__(self, port_spec, function=None, types_visible=True, parent=None):
         QtGui.QTreeWidgetItem.__init__(self, parent)
         self.setFirstColumnSpanned(True)
         self.port_spec = port_spec
         self.function = function
+        self.types_visible = types_visible
 
     def build_widget(self, widget_accessor, with_alias=True):
         reg = get_module_registry()
@@ -224,15 +256,18 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
             else:
                 obj = Parameter(psi.descriptor)
             obj.port_spec_item = psi
-            if with_alias:
-                label = AliasLabel(obj.alias, obj.type, psi.label)
-                self.my_labels.append(label)
-            else:
-                label = QtGui.QLabel(obj.type)
+
+            if self.types_visible:
+                if with_alias:
+                    label = AliasLabel(obj.alias, obj.type, psi.label)
+                    self.my_labels.append(label)
+                else:
+                    label = QtGui.QLabel(obj.type)
+                layout.addWidget(label, i, 0)
+                layout.setAlignment(label, QtCore.Qt.AlignLeft)
+
             param_widget = widget_class(obj, self.group_box)
             self.my_widgets.append(param_widget)
-            layout.addWidget(label, i, 0)
-            layout.setAlignment(label, QtCore.Qt.AlignLeft)
             layout.addWidget(param_widget, i, 1)
             layout.addItem(QtGui.QSpacerItem(0,0, QtGui.QSizePolicy.MinimumExpanding), i, 2)
 
@@ -259,9 +294,16 @@ class ParameterEntry(QtGui.QTreeWidgetItem):
         return self.build_widget(get_widget_class, True)
 
 class PortItem(QtGui.QTreeWidgetItem):
-    null_icon = QtGui.QIcon()
-    eye_icon = QtGui.QIcon(os.path.join(vistrails_root_directory(),
-                                        'gui/resources/images/eye.png'))
+    edit_show =  QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                             'gui/resources/images/pencil.png'))
+    edit_hide = QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                             'gui/resources/images/pencil-disabled.png'))
+    eye_open_icon = \
+        QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                                 'gui/resources/images/eye.png'))
+    eye_closed_icon = \
+        QtGui.QIcon(os.path.join(vistrails_root_directory(),
+                                 'gui/resources/images/eye_closed.png'))
     eye_disabled_icon = \
         QtGui.QIcon(os.path.join(vistrails_root_directory(),
                                  'gui/resources/images/eye_gray.png'))
@@ -270,7 +312,7 @@ class PortItem(QtGui.QTreeWidgetItem):
                                  'gui/resources/images/connection.png'))
 
     def __init__(self, port_spec, is_connected, is_optional, is_visible,
-                 parent=None):
+                 is_editable=False, parent=None):
         QtGui.QTreeWidgetItem.__init__(self, parent)
         # self.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
         self.setFlags(QtCore.Qt.ItemIsEnabled)
@@ -279,7 +321,10 @@ class PortItem(QtGui.QTreeWidgetItem):
         self.is_connected = is_connected
         self.is_optional = is_optional
         self.is_visible = is_visible
-        self.build_item(port_spec, is_connected, is_optional, is_visible)
+        self.is_editable = is_editable
+        self.is_unset = False
+        self.build_item(port_spec, is_connected, is_optional, is_visible,
+                        is_editable)
 
     def visible(self):
         return not self.is_optional or self.is_visible
@@ -287,9 +332,16 @@ class PortItem(QtGui.QTreeWidgetItem):
     def set_visible(self, visible):
         self.is_visible = visible
         if visible:
-            self.setIcon(0, PortItem.eye_icon)
+            self.setIcon(0, PortItem.eye_open_icon)
         else:
-            self.setIcon(0, PortItem.null_icon)
+            self.setIcon(0, PortItem.eye_closed_icon)
+
+    def set_editable(self, edit):
+        self.is_editable = edit
+        if edit:
+            self.setIcon(0, PortItem.edit_show)
+        else:
+            self.setIcon(0, PortItem.edit_hide)
 
     def get_visible(self):
         return self.visible_checkbox
@@ -301,19 +353,37 @@ class PortItem(QtGui.QTreeWidgetItem):
         return (self.port_spec.is_valid and 
                 get_module_registry().is_constant(self.port_spec))
 
-    def build_item(self, port_spec, is_connected, is_optional, is_visible):
-        if not is_optional:
-            self.setIcon(0, PortItem.eye_disabled_icon)
-        elif is_visible:
-            self.setIcon(0, PortItem.eye_icon)
-            
-        if is_connected:
-            self.setIcon(1, PortItem.conn_icon)
-        self.setText(2, port_spec.name)
+    def calcUnset(self):
+        self.is_unset = self.is_constant() and \
+                        self.port_spec.is_mandatory() and \
+                        not self.is_connected and \
+                        not self.isExpanded()
+        if self.is_unset:
+            font = self.font(3)
+            font.setWeight(QtGui.QFont.Bold)
+            self.setFont(3, font)
 
-        # if port_spec is not a method, make it gray
-        if not self.is_constant():
-            self.setForeground(2, 
+    def build_item(self, port_spec, is_connected, is_optional, is_visible, is_editable):
+        if not is_optional:
+            self.setIcon(1, PortItem.eye_disabled_icon)
+        elif is_visible:
+            self.setIcon(1, PortItem.eye_open_icon)
+        else:
+            self.setIcon(1, PortItem.eye_closed_icon)
+
+        if is_connected:
+            self.setIcon(2, PortItem.conn_icon)
+        self.setText(3, port_spec.name)
+
+        if self.is_constant():
+            if len(self.port_spec.port_spec_items)>0:
+                if is_editable:
+                    self.setIcon(0, PortItem.edit_show)
+                else:
+                    self.setIcon(0, PortItem.edit_hide)
+        else:
+            # if port_spec is not a method, make it gray
+            self.setForeground(3,
                                QtGui.QBrush(QtGui.QColor.fromRgb(128,128,128)))
 
         self.visible_checkbox = QtGui.QCheckBox()
@@ -341,13 +411,24 @@ class PortItem(QtGui.QTreeWidgetItem):
         widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         widget.exec_()
 
+    def __lt__(self, other):
+        # put unset mandatory ports first
+        if self.is_unset != other.is_unset:
+            return self.is_unset and not other.is_unset
+        # put set (expanded) functions first
+        if self.isExpanded() != other.isExpanded():
+            return self.isExpanded() and not other.isExpanded()
+        # otherwise use port name
+        return self.port_spec.name < other.port_spec.name
+
 class PortsList(QtGui.QTreeWidget):
     def __init__(self, port_type, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.port_type = port_type
-        self.setColumnCount(3)
+        self.setColumnCount(4)
         self.setColumnWidth(0,24)
         self.setColumnWidth(1,24)
+        self.setColumnWidth(2,24)
         self.setRootIsDecorated(False)
         self.setIndentation(0)
         self.setHeaderHidden(True)
@@ -356,19 +437,24 @@ class PortsList(QtGui.QTreeWidget):
         self.module = None
         self.port_spec_items = {}
         self.entry_klass = ParameterEntry
+        self.ports_visible = True
+        self.types_visible = True
 
     def setReadOnly(self, read_only):
         self.setEnabled(not read_only)
 
     def set_entry_klass(self, entry_klass):
-        self.entry_klass = entry_klass
-        self.update_module(self.module)
+        if entry_klass != entry_klass:
+            self.entry_klass = entry_klass
+            self.update_module(self.module)
 
     def update_module(self, module):
         """ update_module(module: Module) -> None        
         Setup this tree widget to show functions of module
         
         """
+        self.setColumnHidden(0, True)
+        self.setColumnHidden(1, not self.ports_visible)
         # this is strange but if you try to clear the widget when the focus is 
         # in one of the items (after setting a parameter for example), 
         # VisTrails crashes on a Mac (Emanuele) This is probably a Qt bug
@@ -383,6 +469,8 @@ class PortsList(QtGui.QTreeWidget):
             reg = get_module_registry()
             descriptor = module.module_descriptor
             if self.port_type == 'input':
+                self.setColumnHidden(0,not get_vistrails_configuration(
+                                        ).check('showInlineParameterWidgets'))
                 port_specs = module.destinationPorts()
                 connected_ports = module.connected_input_ports
                 visible_ports = module.visible_input_ports
@@ -396,10 +484,11 @@ class PortsList(QtGui.QTreeWidget):
             for port_spec in sorted(port_specs, key=lambda x: x.name):
                 connected = port_spec.name in connected_ports and \
                     connected_ports[port_spec.name] > 0
-                item = PortItem(port_spec, 
+                item = PortItem(port_spec,
                                 connected,
                                 port_spec.optional,
-                                port_spec.name in visible_ports)
+                                port_spec.name in visible_ports,
+                                port_spec.name in module.editable_input_ports)
                 self.addTopLevelItem(item)
                 self.port_spec_items[port_spec.name] = (port_spec, item)
 
@@ -408,13 +497,14 @@ class PortsList(QtGui.QTreeWidget):
                     if not function.is_valid:
                         continue
                     port_spec, item = self.port_spec_items[function.name]
-                    subitem = self.entry_klass(port_spec, function)
+                    subitem = self.entry_klass(port_spec, function,
+                                               self.types_visible)
                     self.function_map[function.real_id] = subitem
                     item.addChild(subitem)
                     subitem.setFirstColumnSpanned(True)
-                    self.setItemWidget(subitem, 0, subitem.get_widget())
+                    self.setItemWidget(subitem, 2, subitem.get_widget())
                     item.setExpanded(True)
-                
+
                     # self.setItemWidget(item, 0, item.get_visible())
                     # self.setItemWidget(item, 1, item.get_connected())
 
@@ -426,7 +516,12 @@ class PortsList(QtGui.QTreeWidget):
                     # connceted_checkbox = QtGui.QCheckBox()
                     # connected_checkbox.setEnabled(False)
                     # self.setItemWidget(i, 1, connected_checkbox)
-                
+
+                # Highlight unset ports
+                for _, item  in self.port_spec_items.itervalues():
+                    item.calcUnset()
+
+                self.sortItems(0, QtCore.Qt.AscendingOrder)
 
             # base_items = {}
             # # Create the base widget item for each descriptor
@@ -488,7 +583,7 @@ class PortsList(QtGui.QTreeWidget):
                 self.function_map[function.real_id] = subitem
                 item.addChild(subitem)
                 subitem.setFirstColumnSpanned(True)
-                self.setItemWidget(subitem, 0, subitem.get_widget())
+                self.setItemWidget(subitem, 2, subitem.get_widget())
                 item.setExpanded(True)
 
     def item_clicked(self, item, col):
@@ -497,12 +592,26 @@ class PortsList(QtGui.QTreeWidget):
 
         if self.port_type == 'input':
             visible_ports = self.module.visible_input_ports
+            editable_ports = self.module.editable_input_ports
         elif self.port_type == 'output':
             visible_ports = self.module.visible_output_ports
         else:
             raise TypeError("Unknown port type: '%s'" % self.port_type)
 
         if col == 0:
+            if item.is_constant() and len(item.port_spec.port_spec_items)>0:
+                item.set_editable(not item.is_editable)
+                if item.is_editable:
+                    editable_ports.add(item.port_spec.name)
+                else:
+                    editable_ports.discard(item.port_spec.name)
+                self.controller.flush_delayed_actions()
+                self.controller.add_annotation((self.module.INLINE_WIDGET_ANNOTATION,
+                                                ','.join(editable_ports)),
+                                               self.module.id)
+                self.controller.current_pipeline_scene.recreate_module(
+                    self.controller.current_pipeline, self.module.id)
+        if col == 1:
             if item.is_optional:
                 item.set_visible(not item.is_visible)
                 if item.is_visible:
@@ -512,7 +621,7 @@ class PortsList(QtGui.QTreeWidget):
                 self.controller.flush_delayed_actions()
                 self.controller.current_pipeline_scene.recreate_module(
                     self.controller.current_pipeline, self.module.id)
-        if col == 2:
+        if col == 3:
             if item.isExpanded():
                 item.setExpanded(False)
             elif item.childCount() > 0:
@@ -586,7 +695,7 @@ class PortsList(QtGui.QTreeWidget):
         subitem = self.entry_klass(port_spec)
         item.addChild(subitem)
         subitem.setFirstColumnSpanned(True)
-        self.setItemWidget(subitem, 0, subitem.get_widget())
+        self.setItemWidget(subitem, 2, subitem.get_widget())
         item.setExpanded(True)
         if len(port_spec.descriptors()) == 0:
             self.update_method(subitem, port_spec.name, [], [])

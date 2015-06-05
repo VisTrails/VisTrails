@@ -1,51 +1,50 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
+from ast import literal_eval
 import os
 import sys
-import tempfile
 import urllib
 import rpy2.robjects as robjects
 
-from vistrails.core.modules.basic_modules import File, Constant, \
-    new_constant
+from vistrails.core.modules.basic_modules import PathObject, new_constant
+from vistrails.core.modules.vistrails_module import Module, ModuleError
+from .widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
-from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, NotCacheable
-from vistrails.core.modules.basic_modules import new_constant
-import vistrails.core.modules.module_registry
-from widgets import RSourceConfigurationWidget, RFigureConfigurationWidget
 
 # FIXME when rpy2 is installed on the path, we won't need this
 old_sys_path = sys.path
@@ -96,7 +95,7 @@ def create_vector(v_list, desired_type=None):
     return robjects.RVector(v_list)
 
 def vector_conv(v, desired_type=None):
-    v_list = eval(v)
+    v_list = literal_eval(v)
     return create_vector(v_list, desired_type)
 
 RVector = new_constant('RVector', staticmethod(vector_conv),
@@ -159,7 +158,7 @@ def create_matrix(v_list):
     
 def matrix_conv(v):
     # should be a double list
-    v_list = eval(v)
+    v_list = literal_eval(v)
     create_matrix(v_list)
 
 def matrix_compute(self):
@@ -190,7 +189,7 @@ def create_list(v_dict):
     return robjects.r['list'](**data_dict)
 
 def list_conv(v):
-    v_dict = eval(v)
+    v_dict = literal_eval(v)
     return create_list(v_dict)
 
 RList = new_constant('RList', staticmethod(list_conv),
@@ -211,7 +210,7 @@ def create_data_frame(v_dict):
     return robjects.r['data.frame'](**data_dict)
 
 def data_frame_conv(v):
-    v_dict = eval(v)
+    v_dict = literal_eval(v)
     return create_data_frame(v_dict)
 
 RDataFrame = new_constant('RDataFrame', staticmethod(data_frame_conv),
@@ -254,7 +253,7 @@ class NestedListFromRMatrix(Module):
         rmatrix = self.get_input('rmatrix')
         mlist = list(rmatrix)
         nrows = rmatrix.nrow
-        ncols = len(mlist) / nrows
+        ncols = len(mlist) // nrows
         olist = [] 
         for row in xrange(nrows):
             olist.append(mlist[row*ncols:(row+1)*ncols])
@@ -409,9 +408,7 @@ class RFigure(RSource):
         self.run_code(code_str, use_input=True, 
                       excluded_inputs=excluded_inputs)
         robjects.r['dev.off']()
-        image_file = File()
-        image_file.name = fname
-        image_file.upToDate = True
+        image_file = PathObject(fname)
         self.set_output('imageFile', image_file)
 
     def run_figure_file(self, fname, graphics_dev, width, height, 

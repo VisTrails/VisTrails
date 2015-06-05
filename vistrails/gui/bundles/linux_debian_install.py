@@ -1,42 +1,47 @@
 #!/usr/bin/env python
+# pragma: no testimport
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 
 # Installs a package through APT, showing progress.
+from __future__ import division
+
 import apt
 import apt_pkg
+import locale
 import sys
 import time
 
@@ -45,14 +50,16 @@ from apt.progress.base import InstallProgress, OpProgress, AcquireProgress
 
 from PyQt4 import QtCore, QtGui
 
-if __name__ != '__main__':
-    import vistrails.tests
-    raise vistrails.tests.NotModule('This should not be imported as a module')
-
 
 package_name = sys.argv[1]
 
 ##############################################################################
+
+def smart_decode(msg):
+    if isinstance(msg, bytes):
+        encoding = locale.getpreferredencoding() or 'utf-8'
+        msg = msg.decode(encoding, 'replace').replace(u'\xFFFD', '?')
+    return msg
 
 class GuiOpProgress(OpProgress):
     def __init__(self, pbar):
@@ -80,12 +87,12 @@ class GUIAcquireProgress(AcquireProgress):
             current_item = self.total_items
         if self.current_cps > 0:
             text = (_("Downloading file %(current)li of %(total)li with "
-                      "%(speed)s/s") % \
+                      "%(speed)s/s") %
                       {"current": current_item,
                        "total": self.total_items,
                        "speed": apt_pkg.size_to_str(self.current_cps)})
         else:
-            text = (_("Downloading file %(current)li of %(total)li") % \
+            text = (_("Downloading file %(current)li of %(total)li") %
                       {"current": current_item,
                        "total": self.total_items})
         self.status_label.setText(text)
@@ -130,7 +137,7 @@ class GUIInstallProgress(InstallProgress):
     def status_change(self, pkg, percent, status):
         if self.last >= percent:
             return
-        self.status_label.setText(status)
+        self.status_label.setText(smart_decode(status))
         self.pbar.setValue(int(percent))
         self.last = percent
         QtGui.qApp.processEvents()
@@ -163,8 +170,8 @@ class Window(QtGui.QWidget):
         geometry = desktop.screenGeometry(self)
         h = 200
         w = 300
-        self.setGeometry(geometry.left() + (geometry.width() - w)/2,
-                         geometry.top() + (geometry.height() - h)/2,
+        self.setGeometry(geometry.left() + (geometry.width() - w)//2,
+                         geometry.top() + (geometry.height() - h)//2,
                          w, h)
         self.setWindowTitle('VisTrails APT interface')
         lbl = QtGui.QLabel(self)

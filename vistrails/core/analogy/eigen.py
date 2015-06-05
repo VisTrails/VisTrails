@@ -1,37 +1,40 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import copy
 from itertools import imap, chain
 import math
@@ -39,7 +42,6 @@ import operator
 import scipy
 import tempfile
 
-from vistrails.core.bundles import py_import
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.utils import append_to_dict_of_lists
 
@@ -53,15 +55,11 @@ from .pipeline_utils import pipeline_bbox, pipeline_centroid
 # EigenBase
 
 def mzeros(*args, **kwargs):
-    nkwargs = copy.copy(kwargs)
-    nkwargs['dtype'] = float
-    az = scipy.zeros(*args, **nkwargs)
+    az = scipy.zeros(*args, dtype=float, **kwargs)
     return scipy.matrix(az)
 
 def mones(*args, **kwargs):
-    nkwargs = copy.copy(kwargs)
-    nkwargs['dtype'] = float
-    az = scipy.ones(*args, **nkwargs)
+    az = scipy.ones(*args, dtype=float, **kwargs)
     return scipy.matrix(az)
 
 #mzeros = lambda *args, **kwargs: scipy.matrix(scipy.zeros(*args, **kwargs))
@@ -265,7 +263,7 @@ class EigenBase(object):
         (c,) = v.shape
         print "[ ",
         for j in xrange(c):
-            if left_digits != None:
+            if left_digits is not None:
                 d = left_digits[0,j]
             else:
                 d = 0
@@ -315,99 +313,14 @@ class EigenBase(object):
         return (inputs, outputs)
 
 ##############################################################################
-# EigenPipelineSimilarity
-
-class EigenPipelineSimilarity(EigenBase):
-
-    ##########################################################################
-    # Constructor and initialization
-
-    def __init__(self,
-                 pipeline1,
-                 pipeline2):
-        EigenBase.__init__(self, pipeline1, pipeline2)
-        self.init_operator()
-
-    def init_operator(self):
-        num_verts_p1 = len(self._p1.graph.vertices)
-        num_verts_p2 = len(self._p2.graph.vertices)
-        def ix(a,b): return num_verts_p2 * a + b
-        self._operator = mzeros((num_verts_p1 * num_verts_p2,
-                                 num_verts_p1 * num_verts_p2))
-
-        u = 0.85
-        
-        for i in xrange(num_verts_p1):
-            v1_id = self._g1_vertex_map.inverse[i]
-            for j in xrange(num_verts_p2):
-                ix_ij = ix(i,j)
-                self._operator[ix_ij, ix_ij] = u
-                v2_id = self._g2_vertex_map.inverse[j]
-                def edges(pip, v_id):
-                    return chain(imap(lambda (f, t, i): (t, i),
-                                      self._p1.graph.iter_edges_from(v1_id)),
-                                 imap(lambda (f, t, i): (f, i),
-                                      self._p1.graph.iter_edges_to(v1_id)))
-                p1_edges = edges(self._p1, v1_id)
-                p2_edges = edges(self._p2, v2_id)
-                running_sum = 0.0
-                for (_, p1_edge) in p1_edges:
-                    for (_, p2_edge) in p2_edges:
-                        e1_id = self._g1_edge_map[p1_edge]
-                        e2_id = self._g2_edge_map[p2_edge]
-                        running_sum += self._edge_s8y[e1_id, e2_id]
-                p1_edges = edges(self._p1, v1_id)
-                p2_edges = edges(self._p2, v2_id)
-                if not running_sum:
-                    continue
-                for (p1_v, p1_edge_id) in p1_edges:
-                    for (p2_v, p2_edge_id) in p2_edges:
-                        e1_id = self._g1_edge_map[p1_edge_id]
-                        e2_id = self._g2_edge_map[p2_edge_id]
-                        p1_v_id = self._g1_vertex_map[p1_v]
-                        p2_v_id = self._g2_vertex_map[p2_v]
-                        value = self._edge_s8y[e1_id, e2_id]
-                        value *= (1.0 - u) / running_sum
-                        self._operator[ix_ij, ix(p1_v_id, p2_v_id)] = value
-
-    ##############################################################################
-    # Solve
-
-    def step(self, m):
-        v = m.reshape(len(self._p1.modules) *
-                      len(self._p2.modules))
-        v = scipy.dot(self._operator, v)
-        v = v.reshape(len(self._p1.modules),
-                      len(self._p2.modules)).transpose()
-        v = (v / v.sum(0)).transpose()
-        return v
-
-    def solve(self):
-        i = 0
-        while i < 50:
-            i += 1
-            v = self.step(self._vertex_s8y)
-            residue = self._vertex_s8y - v
-            residue *= residue
-            if residue.sum() < 0.0001:
-                break
-            self._vertex_s8y = v
-        mp = [(self._g1_vertex_map.inverse[ix],
-               self._g2_vertex_map.inverse[v])
-              for (ix, v) in
-              enumerate(self._vertex_s8y.argmax(1))]
-        return dict(mp)
-        
-##############################################################################
 # EigenPipelineSimilarity2
 
 class EigenPipelineSimilarity2(EigenBase):
 
     def __init__(self, *args, **kwargs):
-        basekwargs = copy.copy(kwargs)
-        del basekwargs['alpha']
-        EigenBase.__init__(self, *args, **basekwargs)
-        self.init_operator(alpha=kwargs['alpha'])
+        alpha = kwargs.pop('alpha')
+        EigenBase.__init__(self, *args, **kwargs)
+        self.init_operator(alpha=alpha)
 
     def init_operator(self, alpha):
         def edges(pip, v_id):

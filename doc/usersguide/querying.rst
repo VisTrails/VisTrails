@@ -126,14 +126,6 @@ One major difference between the ``Pipeline`` view and the ``Search`` view is th
 Textual Queries
 ===============
 
-.. %Removing this figure as the addition of the next example makes it redundant.
-.. %\begin{figure}
-.. %\centering
-.. %\includegraphics[width=3in]{query4.png}
-.. %\caption{A query made to find any changes made before February 21.}
-.. %\label{fig:querying:date}
-.. %\end{figure}
-
 .. index::
    pair: queries; textual
 

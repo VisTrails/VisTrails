@@ -1,37 +1,40 @@
 ###############################################################################
 ##
-## Copyright (C) 2011-2013, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.collection import Collection
@@ -64,6 +67,7 @@ class QueryController(object):
         self.search_str = None
         self.search_pipeline = None
         self.search_level = 3
+        self.use_regex = False
         self.vt_controller = None
         self.level = QueryController.LEVEL_VISTRAIL
         self.workflow_version = None
@@ -71,6 +75,9 @@ class QueryController(object):
     def set_level(self, level):
         self.query_view.query_box.setLevel(level)
         self.level_changed(level)
+
+    def set_use_regex(self, use_regex):
+        self.use_regex = use_regex
 
     def level_changed(self, level):
         self.query_view.set_result_level(level)
@@ -113,7 +120,6 @@ class QueryController(object):
             # reset changed here
             self.query_view.p_controller.set_changed(False)
             vt_controller = self.query_view.vt_controller
-            current_vistrail = self.vt_controller.vistrail
 
             def do_search(only_current_vistrail=False, 
                           only_current_workflow=False):
@@ -134,7 +140,8 @@ class QueryController(object):
                             versions_to_check = set(graph.vertices.iterkeys())
                         entities_to_check[entity] = versions_to_check
                 self.set_search(MultipleSearch(search_str, search_pipeline,
-                                               entities_to_check))
+                                               entities_to_check,
+                                               self.use_regex))
                 self.search.run()
                 return self.search.getResultEntities()
                 
@@ -146,7 +153,7 @@ class QueryController(object):
                 result_entities = do_search(True)
                 self.update_version_tree()
                 self.show_workflow_matches()
-            elif self.level == QueryController.LEVEL_ALL:
+            else:  # self.level == QueryController.LEVEL_ALL
                 result_entities = do_search()
                 self.show_global_matches()
 
@@ -291,13 +298,14 @@ class QQueryBox(QtGui.QWidget):
         layout.setSpacing(2)
         self.searchBox = QSearchBox(True, False, self)
         layout.addWidget(self.searchBox)
-        radio_layout = QtGui.QHBoxLayout()
-        radio_layout.setSpacing(5)
-        radio_layout.setAlignment(QtCore.Qt.AlignLeft)
-        radio_layout.addWidget(QtGui.QLabel("Search:"))
+        options_layout = QtGui.QHBoxLayout()
+        options_layout.setSpacing(5)
+        options_layout.setAlignment(QtCore.Qt.AlignLeft)
+        options_layout.addWidget(QtGui.QLabel("Search:"))
         searchAll = QtGui.QRadioButton("Open Vistrails")
         searchCurrent = QtGui.QRadioButton("Current Vistrail")
         searchWorkflow = QtGui.QRadioButton("Current Workflow")
+        useRegex = QtGui.QCheckBox("Regular expression")
         self.level_group = QtGui.QButtonGroup()
         self.level_group.addButton(searchAll)
         self.level_group.addButton(searchCurrent)
@@ -306,19 +314,20 @@ class QQueryBox(QtGui.QWidget):
             Bidict([(QueryController.LEVEL_ALL, searchAll),
                     (QueryController.LEVEL_VISTRAIL, searchCurrent),
                     (QueryController.LEVEL_WORKFLOW, searchWorkflow)])
-        radio_layout.addWidget(searchAll)
-        radio_layout.addWidget(searchCurrent)
-        radio_layout.addWidget(searchWorkflow)
+        options_layout.addWidget(searchAll)
+        options_layout.addWidget(searchCurrent)
+        options_layout.addWidget(searchWorkflow)
+        options_layout.addWidget(useRegex)
         searchCurrent.setChecked(True)
         
         self.editButton = QtGui.QPushButton("Edit")
         self.editButton.setEnabled(False)
         self.backButton = QtGui.QPushButton("Back to Search")
         self.backButton.setEnabled(False)
-        radio_layout.addStretch(1)
-        radio_layout.addWidget(self.editButton, 0, QtCore.Qt.AlignRight)
-        radio_layout.addWidget(self.backButton, 0, QtCore.Qt.AlignRight)
-        layout.addLayout(radio_layout)
+        options_layout.addStretch(1)
+        options_layout.addWidget(self.editButton, 0, QtCore.Qt.AlignRight)
+        options_layout.addWidget(self.backButton, 0, QtCore.Qt.AlignRight)
+        layout.addLayout(options_layout)
         self.setLayout(layout)
 
         self.connect(self.searchBox, QtCore.SIGNAL('resetSearch()'),
@@ -334,6 +343,8 @@ class QQueryBox(QtGui.QWidget):
         self.connect(self.level_group, 
                      QtCore.SIGNAL('buttonClicked(QAbstractButton*)'),
                      self.levelChanged)
+        self.connect(useRegex, QtCore.SIGNAL('stateChanged(int)'),
+                     self.useRegexChanged)
 
     def resetSearch(self, emit_signal=True):
         """
@@ -357,6 +368,9 @@ class QQueryBox(QtGui.QWidget):
     def levelChanged(self, button):
         self.controller.set_level(self.level_map.inverse[button])
 
+    def useRegexChanged(self, status):
+        self.controller.set_use_regex(status != QtCore.Qt.Unchecked)
+
     def setLevel(self, level):
         self.level_map[level].setChecked(True)
 
@@ -372,7 +386,7 @@ class QQueryBox(QtGui.QWidget):
             #     search = CombinedSearch(s, 
             #     search = SearchCompiler(s).searchStmt
             # except SearchParseError, e:
-            #     debug.warning("Search Parse Error", str(e))
+            #     debug.warning("Search Parse Error", e)
             #     search = None
             # self.controller.set_search(search, s)
             # self.emit(QtCore.SIGNAL('textQueryChange(bool)'), s!='')

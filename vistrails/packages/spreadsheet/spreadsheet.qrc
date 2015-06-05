@@ -1,0 +1,14 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>images/newsheet.png</file>
+    <file>images/open.png</file>
+    <file>images/ok.png</file>
+    <file>images/back.png</file>
+    <file>images/forward.png</file>
+    <file>images/save.png</file>
+    <file>images/saveas.png</file>
+    <file>images/fittowindow.png</file>
+    <file>images/delete.png</file>
+    <file>images/deletesheet.png</file>
+</qresource>
+</RCC>
