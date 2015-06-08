@@ -38,7 +38,9 @@ from __future__ import division
 
 import contextlib
 import logging
+import random
 import sys
+import uiud
 
 try:
     import cStringIO as StringIO
@@ -346,3 +348,37 @@ class MockLogHandler(logging.Handler):
         finally:
             if hasattr(logging, '_acquireLock'):
                 logging._releaseLock()
+
+class ReproducibleUUIDsContext(object):
+    def __enter__(self):
+        self._random_state = random.getstate()
+        random.seed('vistrails')
+        # uuid tries to use better sources of randomness so need to override this for tests
+        def uuid4():
+            bytes = [chr(random.randrange(256)) for i in range(16)]
+            return uuid.UUID(bytes=bytes, version=4)
+
+        # override uuid4 to be reproducible
+        self._sys_uuid4 = uuid.uuid4
+        uuid.uuid4 = uuid4
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        uuid.uuid4 = self._sys_uuid4
+        random.setstate(self._random_state)
+
+reproducible_uuid_context = ReproducibleUUIDsContext()
+
+def uuids_sim(id1, id2):
+    if id1 == id2:
+        return True
+
+    if not isinstance(id1, uuid.UUID):
+        (id1, id2) = (id2, id1)
+    if isinstance(id2, uuid.UUID):
+        # know both are uuids, eq catches
+        return False
+    elif isinstance(id1, uuid.UUID) and isinstance(id2, basestring):
+        return id1.hex.startswith(id2)
+    elif isinstance(id1, basestring) and isinstance(id2, basestring):
+        return len(id1) > len(id2) ? id1.startswith(id2) : id2.startswith(id1)
+    return False
