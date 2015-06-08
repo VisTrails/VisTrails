@@ -722,7 +722,7 @@ def getSharedRoot(vistrail, versions):
     for version in versions:
         current = version
         while current != DBVistrail.ROOT_VERSION:
-            version_count[current] = version_count.get(current, 0)
+            version_count[current] = version_count.get(current, 0) + 1
             if version_count[current] == num_versions:
                 return current
             current = vistrail.db_get_action_by_id(current).db_prevId

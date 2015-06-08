@@ -292,16 +292,18 @@ class Vistrail(DBVistrail):
         FIXME: Check if pruning is handled correctly here.
 
         """
-        try:
-            desc_key = Action.ANNOTATION_DESCRIPTION
-            # Get the max id of all actions (excluding upgrade actions)
-            max_ver = max(v.id for v in self.actions if not self.is_pruned(v.id) and not (v.has_annotation_with_key(desc_key) and v.get_annotation_by_key(desc_key).value == 'Upgrade'))
-            # If that action has an upgrade, use it
-            if self.has_upgrade(max_ver):
-                max_ver = long(self.get_upgrade(max_ver))
-            return max_ver
-        except Exception:
-            return 0
+        # try:
+        desc_key = Action.ANNOTATION_DESCRIPTION
+        # Get the max id of all actions (excluding upgrade actions)
+        # FIXME logic is wrong for UUIDs
+        max_ver = max((v.id for v in self.actions if not self.is_pruned(v.id) and not (v.has_annotation_with_key(desc_key) and v.get_annotation_by_key(desc_key).value == 'Upgrade')),
+                      key=lambda v: self.actionMap[v].date)
+        # If that action has an upgrade, use it
+        if self.has_upgrade(max_ver):
+            max_ver = self.get_upgrade(max_ver)
+        return max_ver
+        # except Exception:
+        #     return Vistrail.ROOT_VERSION
 
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
@@ -419,34 +421,16 @@ class Vistrail(DBVistrail):
         t1 = set()
         t1.add(v1)
         t = self.actionMap[v1].parent
-        while  t != 0:
+        while  t != Vistrail.ROOT_VERSION:
             t1.add(t)
             t = self.actionMap[t].parent
         
         t = v2
-        while t != 0:
+        while t != Vistrail.ROOT_VERSION:
             if t in t1:
                 return t
             t = self.actionMap[t].parent
         return 0
-    
-    def getLastCommonVersion(self, v):
-        """getLastCommonVersion(v: Vistrail) -> int
-        Returns the last version that is common to this vistrail and v
-        
-        """
-        # TODO:  There HAS to be a better way to do this...
-        common = []
-        for action in self.actionMap:
-            if(v.hasVersion(action.timestep)):
-                common.append(action.timestep)
-                
-        timestep = 0
-        for time in common:
-            if time > timestep:
-                timestep = time
-
-        return timestep
 
     def general_action_chain(self, v1, v2):
         """general_action_chain(v1, v2): Returns an action that turns
@@ -1018,7 +1002,7 @@ class Vistrail(DBVistrail):
         upgrade_rev_map = {}
         for ann in self.action_annotations:
             if ann.key == Vistrail.UPGRADE_ANNOTATION:
-                upgrade_rev_map[int(ann.value)] = ann.action_id
+                upgrade_rev_map[ann.value] = ann.action_id
 
         while version in upgrade_rev_map:
             version = upgrade_rev_map[version]
@@ -1043,8 +1027,8 @@ class Vistrail(DBVistrail):
         upgrade_rev_map = {}
         for ann in self.action_annotations:
             if ann.key == Vistrail.UPGRADE_ANNOTATION:
-                upgrade_map[ann.action_id] = int(ann.value)
-                upgrade_rev_map[int(ann.value)] = ann.action_id
+                upgrade_map[ann.action_id] = ann.value
+                upgrade_rev_map[ann.value] = ann.action_id
 
         if start_at_base is True:
             while base_version in upgrade_rev_map:
@@ -1108,6 +1092,7 @@ class VersionNotTagged(Exception):
 # Testing
 
 from vistrails.core.system import get_vistrails_basic_pkg_id
+from vistrails.tests.utils import reproducible_uuid_context, uuids_sim
 
 class TestVistrail(unittest.TestCase):
 
@@ -1305,6 +1290,22 @@ class TestVistrail(unittest.TestCase):
 
         do_test('/tests/resources/dummy.xml', XMLFileLocator)
         do_test('/tests/resources/terminator.vt', FileLocator)
+
+    def test_ids(self):
+        with reproducible_uuid_context:
+            v = Vistrail()
+            action1 = Action(id=v.idScope.getNewId(Action.vtType),
+                             operations=[])
+            action2 = Action(id=v.idScope.getNewId(Action.vtType),
+                             operations=[])
+            v.add_action(action1, Vistrail.ROOT_VERSION)
+            v.add_action(action2, Vistrail.ROOT_VERSION)
+            print "ACTION 1 ID:", action1.id
+            print "ACTION 2 ID:", action2.id
+            self.assertTrue(uuids_sim(action1.prevId, Vistrail.ROOT_VERSION))
+            self.assertTrue(uuids_sim(action1.id, '360de7dd'))
+            self.assertTrue(uuids_sim(action2.id, 'cc0d23a4'))
+
 
 if __name__ == '__main__':
     unittest.main()

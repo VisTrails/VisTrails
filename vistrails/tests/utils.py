@@ -40,7 +40,7 @@ import contextlib
 import logging
 import random
 import sys
-import uiud
+import uuid
 
 try:
     import cStringIO as StringIO
@@ -352,6 +352,7 @@ class MockLogHandler(logging.Handler):
 class ReproducibleUUIDsContext(object):
     def __enter__(self):
         self._random_state = random.getstate()
+        # python 3.2 may need to standardize version here...
         random.seed('vistrails')
         # uuid tries to use better sources of randomness so need to override this for tests
         def uuid4():
@@ -378,7 +379,11 @@ def uuids_sim(id1, id2):
         # know both are uuids, eq catches
         return False
     elif isinstance(id1, uuid.UUID) and isinstance(id2, basestring):
-        return id1.hex.startswith(id2)
+        return id1.hex.startswith(id2.replace('-',''))
     elif isinstance(id1, basestring) and isinstance(id2, basestring):
-        return len(id1) > len(id2) ? id1.startswith(id2) : id2.startswith(id1)
+        s1 = id1.replace('-','')
+        s2 = id2.replace('-','')
+        if (len(s1) < len(s2)):
+            (s1,s2) = (s2,s1)
+        return s1.startswith(s2)
     return False

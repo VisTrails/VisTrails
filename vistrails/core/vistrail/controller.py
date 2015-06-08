@@ -2958,9 +2958,9 @@ class VistrailController(object):
                 if ann.key != Vistrail.UPGRADE_ANNOTATION:
                     continue
                 # The target is an upgrade
-                upgrades.add(int(ann.value))
+                upgrades.add(ann.value)
                 # Map from upgraded version to original
-                upgrade_rev_map[int(ann.value)] = ann.action_id
+                upgrade_rev_map[ann.value] = ann.action_id
 
             # Map current version
             current_version = rev_map(current_version)

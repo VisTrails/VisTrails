@@ -126,7 +126,7 @@ class DBVistrail(_DBVistrail):
         #                                paramexp.db_id+1)
 
     def db_add_object(self, obj):
-        print "adding object", obj.vtType, obj.db_id
+        # print "adding object", obj.vtType, obj.db_id
         self.db_objects[(obj.vtType, obj.db_id)] = obj
 
     def db_get_object(self, type, id):
