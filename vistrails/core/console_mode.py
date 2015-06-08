@@ -103,19 +103,6 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
                             c = mashup.getAliasByName(key).component
                             params.append((c.vttype, c.vtid, value))
 
-        if output_dir is not None and controller.current_pipeline is not None:
-            # FIXME DAK: why is this always done?!? there is a flag for it...
-            if is_running_gui():
-                controller.updatePipelineScene()
-                base_fname = "%s_%s_pipeline.pdf" % (locator.short_filename, version)
-                filename = os.path.join(output_dir, base_fname)
-                controller.current_pipeline_scene.saveToPDF(filename)
-            else:
-                debug.critical("Cannot save pipeline figure when not "
-                               "running in gui mode")
-            base_fname = "%s_%s_pipeline.xml" % (locator.short_filename, version)
-            filename = os.path.join(output_dir, base_fname)
-            vistrails.core.db.io.save_workflow(controller.current_pipeline, filename)
         if not update_vistrail:
             conf = get_vistrails_configuration()
             if conf.has('thumbs'):
