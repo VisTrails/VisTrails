@@ -551,8 +551,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             extra_info = None
             if output_dir:
                 extra_info = {'pathDumpCells': output_dir}
-            print "eexecute is", self.temp_configuration.check('execute')
-            if self.temp_configuration.check('execute'):
+            if not self.temp_configuration.check('noExecute'):
                 if self.temp_configuration.check('parameterExploration'):
                     errs.extend(
                         vistrails.core.console_mode.run_parameter_explorations(

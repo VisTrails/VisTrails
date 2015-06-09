@@ -73,7 +73,7 @@ detachHistoryView: Show the version tree in a separate window
 dotVistrails: User configuration directory
 enablePackagesSilently: Automatically enable packages when needed
 errorLog: Write errors to a log file
-execute: Execute any specified workflows
+NoExecute: Do not execute specified workflows
 executionLog: Track execution provenance when running workflows
 fileDir: Default vistrail directory
 fixedSpreadsheetCells: Draw spreadsheet cells at a fixed size
@@ -199,9 +199,9 @@ errorLog: Boolean
 
     Write errors to a log file.
 
-execute: Boolean
+noExecute: Boolean
 
-    Execute any specified workflows.
+    Do not execute specified workflows.
 
 executionLog: Boolean
 
@@ -616,8 +616,8 @@ class ConfigFieldParent(object):
 
 base_config = {
     "Command-Line":
-    [ConfigField("execute", False, bool, ConfigType.COMMAND_LINE_FLAG,
-                 flag='-e'),
+    [ConfigField("noExecute", False, bool, ConfigType.COMMAND_LINE_FLAG,
+                 flag='-E'),
      ConfigField("batch", False, bool, ConfigType.COMMAND_LINE_FLAG,
                  flag='-b'),
      ConfigField("outputDirectory", None, ConfigPath, flag='-o'),
