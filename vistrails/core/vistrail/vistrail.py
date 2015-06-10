@@ -282,7 +282,13 @@ class Vistrail(DBVistrail):
 
         """
         return self.get_tag_str(version).action_id
-    
+
+    def get_ordered_actions(self):
+        """get_ordered_actions() -> [Action]
+        Returns all actions sorted by date (ids are not sequential with uuids)
+        """
+        return sorted(self.actions.itervalues(), key=lambda a: a.date)
+
     def get_latest_version(self):
         """get_latest_version() -> Integer
         Returns the latest version id for the vistrail.
@@ -292,18 +298,14 @@ class Vistrail(DBVistrail):
         FIXME: Check if pruning is handled correctly here.
 
         """
-        # try:
         desc_key = Action.ANNOTATION_DESCRIPTION
         # Get the max id of all actions (excluding upgrade actions)
-        # FIXME logic is wrong for UUIDs
         max_ver = max((v.id for v in self.actions if not self.is_pruned(v.id) and not (v.has_annotation_with_key(desc_key) and v.get_annotation_by_key(desc_key).value == 'Upgrade')),
                       key=lambda v: self.actionMap[v].date)
         # If that action has an upgrade, use it
         if self.has_upgrade(max_ver):
             max_ver = self.get_upgrade(max_ver)
         return max_ver
-        # except Exception:
-        #     return Vistrail.ROOT_VERSION
 
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
@@ -512,8 +514,8 @@ class Vistrail(DBVistrail):
         if num_actions < n:
             n = num_actions
         if n > 0:
-            sorted_keys = sorted(self.actionMap.keys())
-            last_n = sorted_keys[num_actions-n:num_actions-1]
+            sorted_items = sorted(self.actionMap.iteritems(), key=lambda a: a[1].date)
+            last_n = [k for (k,v) in sorted_items[num_actions-n:num_actions-1]]
         return last_n
 
     def hasVersion(self, version):
@@ -725,7 +727,7 @@ class Vistrail(DBVistrail):
         if a is not None:
             # Recurse to get the newest upgrade in case there are
             # multiple chained upgrades
-            return self.get_upgrade(long(a.value), False)
+            return self.get_upgrade(a.value, False)
         if root_level:
             return None
         return action_id

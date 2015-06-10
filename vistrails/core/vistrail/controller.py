@@ -2732,6 +2732,18 @@ class VistrailController(object):
                 debug.unexpected_exception(e)
                 raise
 
+    def prune_version(self, version):
+        tagMap = self.vistrail.get_tagMap()
+        if version != Vistrail.ROOT_VERSION:
+            def delete_tag(version):
+                if version in tagMap:
+                    # delete tag
+                    self.set_tag(version, '')
+            current_graph = self._current_full_graph
+            # current_graph = self.getVersionGraph()
+            current_graph.dfs(vertex_set=[version], enter_vertex=delete_tag)
+            self.vistrail.set_prune(version, str(True))
+
     def prune_versions(self, versions):
         """ prune_versions(versions: list of version numbers) -> None
         Prune all versions in 'versions' out of the view
@@ -2775,7 +2787,7 @@ class VistrailController(object):
         """
         if v is None:
             v = self.current_base_version
-        full = self.vistrail.getVersionGraph()
+        full = self._current_full_graph
         x = [v]
 
         am = self.vistrail.actionMap
@@ -2819,7 +2831,7 @@ class VistrailController(object):
         Expand all versions between v1 and v2
 
         """
-        full = self.vistrail.getVersionGraph()
+        full = self._current_full_graph
         p = full.parent(v2)
         while p > v1:
             self.vistrail.expandVersion(p)
@@ -2832,7 +2844,7 @@ class VistrailController(object):
         Collapse all versions including and under version v until the next tag or branch
 
         """
-        full = self.vistrail.getVersionGraph()
+        full = self._current_full_graph
         x = [v]
 
         am = self.vistrail.actionMap
@@ -2885,7 +2897,7 @@ class VistrailController(object):
         if v is None:
             v = self.current_base_version
 
-        full = self.vistrail.getVersionGraph()
+        full = self._current_full_graph
         x = [v]
 
         am = self.vistrail.actionMap
@@ -2968,7 +2980,7 @@ class VistrailController(object):
             # Map tags
             tm, orig_tm = {}, tm
             for version, name in sorted(orig_tm.iteritems(),
-                                        key=lambda p: p[0]):
+                                        key=lambda p: am[p[0]].date):
                 v = version
                 while v in upgrade_rev_map:
                     v = upgrade_rev_map[v]
