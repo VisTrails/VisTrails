@@ -32,7 +32,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.db.versions.v1_0_3.domain import DBVistrail, \
+from vistrails.db.versions.v1_0_4.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, DBAdd, DBChange, DBDelete, DBAbstraction, \
     DBGroup, DBModule, DBActionAnnotation, DBAnnotation, DBLoopExec, \
     DBModuleExec, DBGroupExec, IdScope
