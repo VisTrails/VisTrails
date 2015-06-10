@@ -101,7 +101,7 @@ class VistrailsTreeLayoutLW(object):
 
         # include the root manually
         nodes = [(Vistrail.ROOT_VERSION,"")]
-        X.add(0)
+        X.add(Vistrail.ROOT_VERSION)
 
         # include the tagged nodes
         for id, tag_name in vistrail.get_tagMap().iteritems():
