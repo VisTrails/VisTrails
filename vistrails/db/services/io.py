@@ -35,14 +35,6 @@
 ###############################################################################
 from __future__ import division, with_statement
 
-from vistrails.core.bundles import py_import
-
-sqlalchemy = py_import('sqlalchemy', 
-                       {'pip': 'SQLAlchemy',
-                        'linux-debian': 'python-sqlalchemy',
-                        'linux-ubuntu': 'python-sqlalchemy',
-                        'linux-fedora': 'python-sqlalchemy'})
-
 import copy
 from datetime import datetime
 import inspect
@@ -164,7 +156,16 @@ class SaveBundle(object):
 ##############################################################################
 # Versioned I/O
 
+def get_sqlalchemy():
+    return py_import('sqlalchemy',
+                     {'pip': 'SQLAlchemy',
+                        'linux-debian': 'python-sqlalchemy',
+                        'linux-ubuntu': 'python-sqlalchemy',
+                        'linux-fedora': 'python-sqlalchemy'})
+
 def default_open_db_connection(config):
+    sqlalchemy = get_sqlalchemy()
+
     if config is None:
         msg = "Need to provide a valid configuration dictionary or string"
         raise VistrailsDBException(msg)
@@ -191,6 +192,8 @@ def default_open_db_connection(config):
     return connection
 
 def get_db_version_from_db(db_connection):
+    sqlalchemy = get_sqlalchemy()
+
     if isinstance(db_connection, sqlalchemy.engine.interfaces.Connectable):
         db_connection = db_connection.connection
     c = db_connection.cursor()
