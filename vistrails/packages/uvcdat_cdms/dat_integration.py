@@ -1,4 +1,7 @@
-from PyQt4 import QtGui
+import cdms2
+import cdms2.error
+
+from PyQt4 import QtCore, QtGui
 
 from dat.packages import Plot, DataPort, \
     Variable, FileVariableLoader, VariableOperation, OperationArgument, \
@@ -43,23 +46,39 @@ class CDMSLoader(FileVariableLoader):
     """
     @classmethod
     def can_load(cls, filename):
-        return filename.endswith('.nc')
+        try:
+            cdms2.open(filename)
+        except cdms2.error.CDMSError:
+            return False
+        return True
 
     def __init__(self, filename):
         FileVariableLoader.__init__(self)
         self.filename = filename
-        self._varname = derive_varname(filename, remove_ext=True,
-                                       remove_path=True, prefix="cdat_")
+
+        f = cdms2.open(filename)
+        names = sorted(f.variables)
+
+        self._name_field = QtGui.QComboBox()
+        for name in sorted(f.variables):
+            self._name_field.addItem(name)
+        self.connect(self._name_field,
+                     QtCore.SIGNAL('currentIndexChanged(const QString&)'),
+                     self._var_changed)
+        self._var_changed(self._name_field.currentText())
 
         layout = QtGui.QFormLayout()
-
-        self._name_field = QtGui.QLineEdit()
         layout.addRow(_("Variable &name:"), self._name_field)
-
         self.setLayout(layout)
 
+    def _var_changed(self, varname):
+        self._varname = derive_varname(self.filename, remove_ext=True,
+                                       remove_path=True, prefix="cdms_",
+                                       suffix='_%s' % varname.decode('utf-8'))
+        self.default_variable_name_changed(self._varname)
+
     def load(self):
-        varname = self._name_field.text().encode('utf-8')
+        varname = self._name_field.currentText().encode('utf-8')
         return build_variable(self.filename, varname)
 
     def get_default_variable_name(self):
