@@ -174,6 +174,17 @@ class Action(DBAction):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __lt__(self, other):
+        return self.date < other.date
+
+    def __gt__(self, other):
+        return self.date > other.date
+
+    def __le__(self, other):
+        return self.date <= other.date
+
+    def __ge__(self, other):
+        return self.date >= other.date
 
     def __str__(self):
         """__str__() -> str 
