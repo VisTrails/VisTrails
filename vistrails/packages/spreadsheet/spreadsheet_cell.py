@@ -1,57 +1,61 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-################################################################################
-# This file contains classes working with cell helper widgets, i.e. toolbar,
-# resizer, etc.:
-#   QCellWidget
-#   QCellToolBar
-################################################################################
-from PyQt4 import QtCore, QtGui
+
+"""This file contains classes working with cell helper widgets, i.e. toolbar,
+esizer, etc.:
+  QCellWidget
+  QCellToolBar
+"""
+
+from __future__ import division
+
 import datetime
 import os
+from PyQt4 import QtCore, QtGui
 import tempfile
+
 from vistrails.core import debug
+from vistrails.core.modules.output_modules import FileMode
+from vistrails.core.system import strftime
+
+from .analogy_api import SpreadsheetAnalogy
+from .spreadsheet_config import configuration
 import cell_rc
 import celltoolbar_rc
-import spreadsheet_controller
-import analogy_api
-from spreadsheet_config import configuration
-from vistrails.core.system import strftime
-from vistrails.core.modules.output_modules import FileMode
 
-################################################################################
 
 class QCellWidget(QtGui.QWidget):
     """
@@ -65,7 +69,7 @@ class QCellWidget(QtGui.QWidget):
     def __init__(self, parent=None, flags=QtCore.Qt.WindowFlags()):
         """ QCellWidget(parent: QWidget) -> QCellWidget
         Instantiate the cell and helper properties
-        
+
         """
         QtGui.QWidget.__init__(self, parent, flags)
         self._historyImages = []
@@ -73,7 +77,7 @@ class QCellWidget(QtGui.QWidget):
         self._player.setAutoFillBackground(True)
         self._player.setFocusPolicy(QtCore.Qt.NoFocus)
         self._player.setScaledContents(True)
-        self._playerTimer = QtCore.QTimer()        
+        self._playerTimer = QtCore.QTimer()
         self._playerTimer.setSingleShot(True)
         self._currentFrame = 0
         self._playing = False
@@ -91,25 +95,25 @@ class QCellWidget(QtGui.QWidget):
 
     def setAnimationEnabled(self, enabled):
         """ setAnimationEnabled(enabled: bool) -> None
-        
+
         """
         self._capturingEnabled = enabled
         if not enabled:
             self.clearHistory()
-        
+
     def saveToPNG(self, filename):
-        """ saveToPNG(filename: str) -> Bool       
+        """ saveToPNG(filename: str) -> Bool
         Abtract function for saving the current widget contents to an
         image file
         Returns True when succesful
-        
+
         """
         debug.critical('saveToPNG() is unimplemented by the inherited cell')
 
     def saveToHistory(self):
         """ saveToHistory() -> None
         Save the current contents to the history
-        
+
         """
         # Generate filename
         current = datetime.datetime.now()
@@ -123,16 +127,16 @@ class QCellWidget(QtGui.QWidget):
     def clearHistory(self):
         """ clearHistory() -> None
         Clear all history files
-        
+
         """
         for fn in self._historyImages:
             os.remove(fn)
         self._historyImages = []
 
     def deleteLater(self):
-        """ deleteLater() -> None        
+        """ deleteLater() -> None
         Make sure to clear history and delete the widget
-        
+
         """
         self.clearHistory()
         QtGui.QWidget.deleteLater(self)
@@ -140,7 +144,7 @@ class QCellWidget(QtGui.QWidget):
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple)
         Make sure to capture to history
-        
+
         """
         # Capture window into history for playback
         if self._capturingEnabled:
@@ -149,7 +153,7 @@ class QCellWidget(QtGui.QWidget):
     def resizeEvent(self, e):
         """ resizeEvent(e: QEvent) -> None
         Re-adjust the player widget
-        
+
         """
         QtGui.QWidget.resizeEvent(self, e)
 
@@ -159,7 +163,7 @@ class QCellWidget(QtGui.QWidget):
     def setPlayerFrame(self, frame):
         """ setPlayerFrame(frame: int) -> None
         Set the player to display a particular frame number
-        
+
         """
         if (len(self._historyImages)==0):
             return
@@ -172,7 +176,7 @@ class QCellWidget(QtGui.QWidget):
     def startPlayer(self):
         """ startPlayer() -> None
         Adjust the size of the player to the cell and show it
-        
+
         """
         if not self._capturingEnabled:
             return
@@ -184,11 +188,11 @@ class QCellWidget(QtGui.QWidget):
         self._player.show()
         self.hide()
         self._playing = True
-        
+
     def stopPlayer(self):
         """ startPlayer() -> None
         Adjust the size of the player to the cell and show it
-        
+
         """
         if not self._capturingEnabled:
             return
@@ -200,18 +204,18 @@ class QCellWidget(QtGui.QWidget):
     def showNextFrame(self):
         """ showNextFrame() -> None
         Display the next frame in the history
-        
+
         """
         self._currentFrame += 1
         if self._currentFrame>=len(self._historyImages):
             self._currentFrame = 0
         self.setPlayerFrame(self._currentFrame)
-        
+
     def playNextFrame(self):
-        """ playNextFrame() -> None        
+        """ playNextFrame() -> None
         Display the next frame in the history and start the timer for
         the frame after
-        
+
         """
         self.showNextFrame()
         self._playerTimer.start(100)
@@ -219,7 +223,7 @@ class QCellWidget(QtGui.QWidget):
     def grabWindowPixmap(self):
         """ grabWindowPixmap() -> QPixmap
         Widget special grabbing function
-        
+
         """
         return QtGui.QPixmap.grabWidget(self)
 
@@ -252,7 +256,7 @@ class QCellWidget(QtGui.QWidget):
         painter.setWindow(pixmap.rect())
         painter.drawPixmap(0, 0, pixmap)
         painter.end()
-        
+
     def set_output_module(self, output_module, configuration=None):
         self._output_module = output_module
         self._output_configuration = configuration
@@ -275,32 +279,31 @@ class QCellWidget(QtGui.QWidget):
         return modes
 
     def get_conf_file_format(self):
-        if (self._output_configuration is not None and 
+        if (self._output_configuration is not None and
             'format' in self._output_configuration):
             return self._output_configuration['format']
         return None
 
     def save_via_file_output(self, filename, mode_cls, save_format=None):
-        mode_config = self._output_module.get_mode_config(mode_cls)
+        mode = mode_cls()
+        mode_config = self._output_module.get_mode_config(mode)
         mode_config['file'] = filename
         if save_format is not None:
             mode_config['format'] = save_format
-        mode = mode_cls()
         mode.compute_output(self._output_module, mode_config)
-        
-################################################################################
+
 
 class QCellToolBar(QtGui.QToolBar):
     """
     CellToolBar is inherited from QToolBar with some functionalities
     for interacting with CellHelpers
-    
+
     """
     def __init__(self, sheet):
         """ CellToolBar(sheet: SpreadsheetSheet) -> CellToolBar
         Initialize the cell toolbar by calling the user-defined
         toolbar construction function
-        
+
         """
         QtGui.QToolBar.__init__(self,sheet)
         self.setOrientation(QtCore.Qt.Horizontal)
@@ -311,13 +314,14 @@ class QCellToolBar(QtGui.QToolBar):
         self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
         self.addSaveCellAction()
+        self.addExecuteCellAction()
         self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
         self.appendAction(QCellToolBarMergeCells(QtGui.QIcon(':celltoolbar/mergecells.png'), self))
         self.createToolBar()
 
     def addAnimationButtons(self):
         """ addAnimationButtons() -> None
-        
+
         """
         self.appendAction(QCellToolBarCaptureToHistory(self))
         self.appendAction(QCellToolBarPlayHistory(self))
@@ -352,7 +356,7 @@ class QCellToolBar(QtGui.QToolBar):
             (filename, save_format) = \
                     QtGui.QFileDialog.getSaveFileNameAndFilter(
                         self, "Select a File to Export the Cell",
-                        ".", ';;'.join(['(*.%s)' % f for f in formats]), 
+                        ".", ';;'.join(['(*.%s)' % f for f in formats]),
                         selected_filter)
             if filename:
                 save_mode = format_map[save_format[3:-1]]
@@ -369,30 +373,62 @@ class QCellToolBar(QtGui.QToolBar):
             if filename:
                 cell.dumpToFile(filename)
 
+    def addExecuteCellAction(self):
+        if not hasattr(self, 'executeActionVar'):
+            self.executeActionVar = QCellToolBarSelectedCell(
+                    QtGui.QIcon(":/images/view-refresh.png"),
+                    "Re-execute cell",
+                    self)
+            self.executeActionVar.setStatusTip("Re-execute this cell")
+
+            self.connect(self.executeActionVar, QtCore.SIGNAL('triggered(bool)'),
+                         self.executeCell)
+        self.appendAction(self.executeActionVar)
+
+    def executeCell(self, checked=False):
+        from spreadsheet_execute import executePipelineWithProgress
+        #cell = self.sheet.getCell(self.row, self.col)
+        info = self.sheet.getCellPipelineInfo(self.row, self.col)
+        if info:
+            info = info[0]
+            mId = info['moduleId']
+            pipeline = self.sheet.setPipelineToLocateAt(self.row, self.col,
+                                                        info['pipeline'],
+                                                        [mId])
+            executePipelineWithProgress(pipeline, 'Re-execute Cell',
+                                        current_version=info['version'],
+                                        actions=info['actions'],
+                                        reason=info['reason'],
+                                        locator=info['locator'],
+                                        controller=info['controller'],
+                                        sinks=[mId])
+
+
+
     def createToolBar(self):
         """ createToolBar() -> None
         A user-defined method for customizing the toolbar. This is
         going to be an empty method here for inherited classes to
         override.
-        
+
         """
         self.addAnimationButtons()
 
     def snapTo(self, row, col):
         """ snapTo(row, col) -> None
         Assign which row and column the toolbar should be snapped to
-        
+
         """
         self.row = row
         self.col = col
         self.updateToolBar()
 
     def updateToolBar(self):
-        """ updateToolBar() -> None        
+        """ updateToolBar() -> None
         This will get called when the toolbar widgets need to have
         their status updated. It sends out needUpdateStatus signal
         to let the widget have a change to update their own status
-        
+
         """
         cellWidget = self.sheet.getCell(self.row, self.col)
         for action in self.actions():
@@ -402,7 +438,7 @@ class QCellToolBar(QtGui.QToolBar):
     def connectAction(self, action, widget):
         """ connectAction(action: QAction, widget: QWidget) -> None
         Connect actions to special slots of a widget
-        
+
         """
         if hasattr(widget, 'updateStatus'):
             self.connect(action, QtCore.SIGNAL('needUpdateStatus'),
@@ -417,7 +453,7 @@ class QCellToolBar(QtGui.QToolBar):
     def appendAction(self, action):
         """ appendAction(action: QAction) -> QAction
         Setup and add action to the tool bar
-        
+
         """
         action.toolBar = self
         self.addAction(action)
@@ -438,12 +474,13 @@ class QCellToolBar(QtGui.QToolBar):
     def getSnappedWidget(self):
         """ getSnappedWidget() -> QWidget
         Return the widget being snapped by the toolbar
-        
+
         """
         if self.row>=0 and self.col>=0:
             return self.sheet.getCell(self.row, self.col)
         else:
             return None
+
 
 class QCellToolBarSelectedCell(QtGui.QAction):
     """
@@ -455,7 +492,8 @@ class QCellToolBarSelectedCell(QtGui.QAction):
 
         """
         (sheet, row, col, cellWidget) = info
-        self.setVisible(cellWidget != None)
+        self.setVisible(cellWidget is not None)
+
 
 class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
     """
@@ -477,7 +515,7 @@ class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
         Execute the action when the button is clicked
-        
+
         """
         cellWidget = self.toolBar.getSnappedWidget()
         r = QtGui.QMessageBox.question(cellWidget, 'Clear cell',
@@ -487,6 +525,7 @@ class QCellToolBarRemoveCell(QCellToolBarSelectedCell):
                                        QtGui.QMessageBox.No)
         if (r==QtGui.QMessageBox.Yes):
             self.toolBar.sheet.deleteCell(self.toolBar.row, self.toolBar.col)
+
 
 class QCellToolBarMergeCells(QtGui.QAction):
     """
@@ -498,7 +537,7 @@ class QCellToolBarMergeCells(QtGui.QAction):
         """ QCellToolBarMergeCells(icon: QIcon, parent: QWidget)
                                    -> QCellToolBarMergeCells
         Setup the image, status tip, etc. of the action
-        
+
         """
         QtGui.QAction.__init__(self,
                                icon,
@@ -511,7 +550,7 @@ class QCellToolBarMergeCells(QtGui.QAction):
     def triggeredSlot(self):
         """ toggledSlot() -> None
         Execute the action when the button is clicked
-        
+
         """
         # Merge
         if self.isChecked():
@@ -533,15 +572,15 @@ class QCellToolBarMergeCells(QtGui.QAction):
     def updateStatus(self, info):
         """ updateStatus(info: tuple) -> None
         Updates the status of the button based on the input info
-        
+
         """
         (sheet, row, col, cellWidget) = info
         selectedCells = sorted(sheet.getSelectedLocations())
 
         # Will not show up if there is no cell selected
-        if len(selectedCells)==0:            
+        if len(selectedCells)==0:
             self.setVisible(False)
-            
+
         # If there is a single cell selected, only show up if it has
         # been merged before so that user can un-merge cells
         elif len(selectedCells)==1:
@@ -555,7 +594,7 @@ class QCellToolBarMergeCells(QtGui.QAction):
                 self.setVisible(True)
             else:
                 self.setVisible(False)
-                
+
         # If there are multiple cells selected, only show up if they
         # can be merged, i.e. cells are in consecutive position and
         # none of them is already merged
@@ -578,19 +617,20 @@ class QCellToolBarMergeCells(QtGui.QAction):
                 self.setVisible(True)
             else:
                 self.setVisible(False)
-            
+
+
 class QCellToolBarCaptureToHistory(QtGui.QAction):
     """
     QCellToolBarCaptureToHistory is the action to capture the
     underlying widget to history for play back. The cell type must
     support function saveToPNG(filename)
-    
+
     """
     def __init__(self, parent=None):
         """ QCellToolBarCaptureToHistory(parent: QWidget)
                                          -> QCellToolBarCaptureToHistory
         Setup the image, status tip, etc. of the action
-        
+
         """
         QtGui.QAction.__init__(self,
                                QtGui.QIcon(":/images/camera_mount.png"),
@@ -602,18 +642,18 @@ class QCellToolBarCaptureToHistory(QtGui.QAction):
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
         Execute the action when the button is clicked
-        
+
         """
         cellWidget = self.toolBar.getSnappedWidget()
         self.toolBar.hide()
         cellWidget.saveToHistory()
         self.toolBar.updateToolBar()
         self.toolBar.show()
-        
+
     def updateStatus(self, info):
         """ updateStatus(info: tuple) -> None
         Updates the status of the button based on the input info
-        
+
         """
         (sheet, row, col, cellWidget) = info
         if cellWidget:
@@ -621,19 +661,18 @@ class QCellToolBarCaptureToHistory(QtGui.QAction):
         else:
             self.setVisible(False)
 
-################################################################################
-        
+
 class QCellToolBarPlayHistory(QtGui.QAction):
     """
     QCellToolBarPlayHistory is the action to play the history as an
     animation
-    
+
     """
     def __init__(self, parent=None):
         """ QCellToolBarPlayHistory(parent: QWidget)
                                     -> QCellToolBarPlayHistory
         Setup the image, status tip, etc. of the action
-        
+
         """
         self.icons = [QtGui.QIcon(":/images/player_play.png"),
                       QtGui.QIcon(":/images/player_pause.png")]
@@ -648,7 +687,7 @@ class QCellToolBarPlayHistory(QtGui.QAction):
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
         Execute the action when the button is clicked
-        
+
         """
         cellWidget = self.toolBar.getSnappedWidget()
         if self.status==0:
@@ -660,7 +699,7 @@ class QCellToolBarPlayHistory(QtGui.QAction):
     def updateStatus(self, info):
         """ updateStatus(info: tuple) -> None
         Updates the status of the button based on the input info
-        
+
         """
         (sheet, row, col, cellWidget) = info
         if cellWidget:
@@ -675,39 +714,38 @@ class QCellToolBarPlayHistory(QtGui.QAction):
         else:
             self.setVisible(False)
 
-################################################################################
-            
+
 class QCellToolBarClearHistory(QtGui.QAction):
     """
     QCellToolBarClearHistory is the action to reset cell history
-    
+
     """
     def __init__(self, parent=None):
         """ QCellToolBarClearHistory(parent: QWidget)
                                      -> QCellToolBarClearHistory
         Setup the image, status tip, etc. of the action
-        
+
         """
         QtGui.QAction.__init__(self,
                                QtGui.QIcon(":/images/noatunloopsong.png"),
                                "&Clear this cell history",
                                parent)
         self.setStatusTip("Clear the cell history and its temporary "
-                          "image files on disk")        
-        
+                          "image files on disk")
+
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
         Execute the action when the button is clicked
-        
+
         """
         cellWidget = self.toolBar.getSnappedWidget()
         cellWidget.clearHistory()
         self.toolBar.updateToolBar()
-        
+
     def updateStatus(self, info):
         """ updateStatus(info: tuple) -> None
         Updates the status of the button based on the input info
-        
+
         """
         (sheet, row, col, cellWidget) = info
         if cellWidget:
@@ -717,19 +755,18 @@ class QCellToolBarClearHistory(QtGui.QAction):
         else:
             self.setVisible(False)
 
-################################################################################
 
 class QCellContainer(QtGui.QWidget):
     """ QCellContainer is a simple QWidget containing the actual cell
     widget as a child. This also acts as a sentinel protecting the
     actual cell widget from being destroyed by sheet widgets
     (e.g. QTableWidget) where they take control of the cell widget.
-    
+
     """
     def __init__(self, widget=None, parent=None):
         """ QCellContainer(parent: QWidget) -> QCellContainer
         Create an empty container
-        
+
         """
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout()
@@ -743,7 +780,7 @@ class QCellContainer(QtGui.QWidget):
     def setWidget(self, widget):
         """ setWidget(widget: QWidget) -> None
         Set the contained widget of this container
-        
+
         """
         if widget!=self.containedWidget:
             if self.containedWidget:
@@ -759,14 +796,14 @@ class QCellContainer(QtGui.QWidget):
     def widget(self):
         """ widget() -> QWidget
         Return the contained widget
-        
+
         """
         return self.containedWidget
 
     def takeWidget(self):
         """ widget() -> QWidget
         Take the contained widget out without deleting
-        
+
         """
         widget = self.containedWidget
         if self.containedWidget:
@@ -776,20 +813,19 @@ class QCellContainer(QtGui.QWidget):
         self.toolBar = None
         return widget
 
-################################################################################
 
 class QCellPresenter(QtGui.QLabel):
     """
     QCellPresenter represents a cell in the Editing Mode. It has an
     info bar on top and control dragable icons on the bottom
-    
+
     """
     def __init__(self, parent=None):
         """ QCellPresenter(parent: QWidget) -> QCellPresenter
         Create the layout of the widget
-        
-        """        
-        QtGui.QLabel.__init__(self, parent)        
+
+        """
+        QtGui.QLabel.__init__(self, parent)
         self.setAutoFillBackground(True)
         self.setScaledContents(True)
         self.setMargin(0)
@@ -801,9 +837,9 @@ class QCellPresenter(QtGui.QLabel):
         layout.setMargin(self.margin())
         layout.setRowStretch(1, 1)
         self.setLayout(layout)
-        
+
         self.info = QPipelineInfo()
-        layout.addWidget(self.info, 0, 0, 1, 2)        
+        layout.addWidget(self.info, 0, 0, 1, 2)
 
         self.manipulator = QCellManipulator()
         layout.addWidget(self.manipulator, 1, 0, 1, 2)
@@ -811,7 +847,7 @@ class QCellPresenter(QtGui.QLabel):
     def assignCellWidget(self, cellWidget):
         """ updateFromCellWidget(cellWidget: QWidget) -> None
         Assign a cell widget to this presenter
-        
+
         """
         self.cellWidget = cellWidget
         if cellWidget:
@@ -833,17 +869,17 @@ class QCellPresenter(QtGui.QLabel):
     def assignCell(self, sheet, row, col):
         """ assignCell(sheet: Sheet, row: int, col: int) -> None
         Assign a sheet cell to the presenter
-        
+
         """
         self.manipulator.assignCell(sheet, row, col)
         self.assignCellWidget(sheet.getCell(row, col))
         info = sheet.getCellPipelineInfo(row, col)
         self.info.updateInfo(info)
-        
+
     def releaseCellWidget(self):
         """ releaseCellWidget() -> QWidget
         Return the ownership of self.cellWidget to the caller
-        
+
         """
         cellWidget = self.cellWidget
         self.assignCellWidget(None)
@@ -853,26 +889,25 @@ class QCellPresenter(QtGui.QLabel):
         return cellWidget
 
     def deleteLater(self):
-        """ deleteLater() -> None        
+        """ deleteLater() -> None
         Make sure to delete the cell widget if it exists
-        
+
         """
         if (self.cellWidget):
             self.cellWidget.deleteLater()
         QtGui.QLabel.deleteLater(self)
 
-################################################################################
 
 class QInfoLineEdit(QtGui.QLineEdit):
     """
     QInfoLineEdit is wrapper for a transparent, un-frame, read-only
     line edit
-    
+
     """
     def __init__(self, parent=None):
         """ QInfoLineEdit(parent: QWidget) -> QInfoLineEdit
         Initialize the line edit
-        
+
         """
         QtGui.QLineEdit.__init__(self, parent)
         self.setReadOnly(True)
@@ -886,31 +921,30 @@ class QInfoLineEdit(QtGui.QLineEdit):
 class QInfoLabel(QtGui.QLabel):
     """
     QInfoLabel is wrapper for a transparent, bolded label
-    
+
     """
     def __init__(self, text='', parent=None):
         """ QInfoLabel(text: str, parent: QWidget) -> QInfoLabel
         Initialize the line edit
-        
+
         """
         QtGui.QLabel.__init__(self, text, parent)
         font = QtGui.QFont(self.font())
         font.setBold(True)
         self.setFont(font)
 
-################################################################################
-    
+
 class QPipelineInfo(QtGui.QFrame):
     """
     QPipelineInfo displays information about the executed pipeline of
     a cell. It has 3 static lines: Vistrail name, (pipeline name,
     pipeline id) and the cell type
-    
+
     """
     def __init__(self, parent=None):
         """ QPipelineInfo(parent: QWidget) -> None
         Create the 3 information lines
-        
+
         """
         QtGui.QFrame.__init__(self, parent)
         self.setAutoFillBackground(True)
@@ -922,7 +956,7 @@ class QPipelineInfo(QtGui.QFrame):
         color.setAlpha(196)
         pal.setBrush(QtGui.QPalette.Base, QtGui.QBrush(color))
         self.setPalette(pal)
-        
+
         topLayout = QtGui.QVBoxLayout(self)
         topLayout.setSpacing(0)
         topLayout.setMargin(0)
@@ -956,7 +990,7 @@ class QPipelineInfo(QtGui.QFrame):
     def updateInfo(self, info):
         """ updateInfo(info: (dict, pid)) -> None
         Update the information of a pipeline info
-        
+
         """
         if info!=None and info[0]['locator']!=None:
             self.edits[0].setText(str(info[0]['locator'].name))
@@ -967,7 +1001,6 @@ class QPipelineInfo(QtGui.QFrame):
             for edit in self.edits:
                 edit.setText('N/A')
 
-################################################################################
 
 class QCellManipulator(QtGui.QFrame):
     """
@@ -976,18 +1009,18 @@ class QCellManipulator(QtGui.QFrame):
     another. It also inclues a button for update the pipeline under
     the cell to be a new version on the pipeline. It is useful for the
     parameter exploration talks back to the builder
-    
+
     """
     def __init__(self, parent=None):
         """ QPipelineInfo(parent: QWidget) -> None
         Create the 3 information lines
-        
+
         """
         QtGui.QFrame.__init__(self, parent)
         self.setAcceptDrops(True)
         self.setFrameStyle(QtGui.QFrame.NoFrame)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        
+
         layout = QtGui.QVBoxLayout(self)
         layout.setSpacing(0)
         layout.setMargin(0)
@@ -996,7 +1029,7 @@ class QCellManipulator(QtGui.QFrame):
         layout.addStretch()
 
         bLayout = QtGui.QHBoxLayout()
-        layout.addLayout(bLayout)                
+        layout.addLayout(bLayout)
 
         bInfo = [(':/images/copy_cell.png',
                   'Drag to copy this cell to another place',
@@ -1010,9 +1043,9 @@ class QCellManipulator(QtGui.QFrame):
                  (':/images/apply_analogy.png',
                   'Drag to apply the current analogy to this cell and put it '
                   'at another place', 'apply_analogy', 'Apply\nAnalogy')]
-        
+
         self.buttons = []
-        
+
         bLayout.addStretch()
         for b in bInfo:
             button = QCellDragLabel(QtGui.QPixmap(b[0]))
@@ -1030,7 +1063,7 @@ class QCellManipulator(QtGui.QFrame):
 
         self.updateButton = QtGui.QToolButton()
         self.updateButton.setIconSize(QtCore.QSize(64, 64))
-        self.updateButton.setIcon(QtGui.QIcon(QtGui.QPixmap(            
+        self.updateButton.setIcon(QtGui.QIcon(QtGui.QPixmap(
             ':/images/update.png')))
         self.updateButton.setAutoRaise(True)
         self.updateButton.setToolTip('Add this cell as a new version')
@@ -1043,7 +1076,7 @@ class QCellManipulator(QtGui.QFrame):
 
         self.locateButton = QtGui.QToolButton()
         self.locateButton.setIconSize(QtCore.QSize(64, 64))
-        self.locateButton.setIcon(QtGui.QIcon(QtGui.QPixmap(            
+        self.locateButton.setIcon(QtGui.QIcon(QtGui.QPixmap(
             ':/images/locate.png')))
         self.locateButton.setAutoRaise(True)
         self.locateButton.setToolTip('Select this pipeline in the version tree ')
@@ -1054,26 +1087,26 @@ class QCellManipulator(QtGui.QFrame):
                      self.locateVersion)
         self.buttons.append(self.locateButton)
 
-        
+
         uLayout = QtGui.QHBoxLayout()
         uLayout.addStretch()
         uLayout.addWidget(self.locateButton)
         uLayout.addWidget(self.updateButton)
         uLayout.addStretch()
         layout.addLayout(uLayout)
-            
+
         bLayout.addStretch()
 
         layout.addStretch()
 
         self.innerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
                                                  self)
-        
+
     def assignCell(self, sheet, row, col):
         """ assignCell(sheet: Sheet, row: int, col: int) -> None
         Assign a cell to the manipulator, so it knows where to drag
         and drop
-        
+
         """
         self.cellInfo = (sheet, row, col)
         for b in self.buttons:
@@ -1094,7 +1127,7 @@ class QCellManipulator(QtGui.QFrame):
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
         Set to accept drops from the other cell info
-        
+
         """
         mimeData = event.mimeData()
         if hasattr(mimeData, 'cellInfo'):
@@ -1108,18 +1141,18 @@ class QCellManipulator(QtGui.QFrame):
                 self.highlight()
         else:
             event.ignore()
-            
+
     def dragLeaveEvent(self, event):
         """ dragLeaveEvent(event: QDragLeaveEvent) -> None
         Unhighlight when the cursor leaves
-        
+
         """
         self.highlight(False)
-        
+
     def dropEvent(self, event):
         """ dragLeaveEvent(event: QDragLeaveEvent) -> None
         Unhighlight when the cursor leaves
-        
+
         """
         self.highlight(False)
         mimeData = event.mimeData()
@@ -1129,29 +1162,29 @@ class QCellManipulator(QtGui.QFrame):
         if action in ['move', 'copy', 'create_analogy', 'apply_analogy']:
             event.setDropAction(QtCore.Qt.MoveAction)
             event.accept()
-            
+
             if action=='move':
                 self.cellInfo[0].swapCell(self.cellInfo[1], self.cellInfo[2],
                                           cellInfo[0], cellInfo[1], cellInfo[2])
                 manipulator.assignCell(*self.cellInfo)
                 self.assignCell(*cellInfo)
-                
+
             if action=='copy':
                 cellInfo[0].copyCell(cellInfo[1], cellInfo[2],
                                      self.cellInfo[0], self.cellInfo[1],
                                      self.cellInfo[2])
-                
+
             if action=='create_analogy':
                 p1Info = cellInfo[0].getPipelineInfo(cellInfo[1], cellInfo[2])
                 p2Info = self.cellInfo[0].getPipelineInfo(self.cellInfo[1],
                                                           self.cellInfo[2])
                 if p1Info!=None and p2Info!=None:
-                    analogy = analogy_api.SpreadsheetAnalogy()
+                    analogy = SpreadsheetAnalogy()
                     analogy.createAnalogy(p1Info, p2Info)
 
             if action=='apply_analogy':
                 p1Info = cellInfo[0].getPipelineInfo(cellInfo[1], cellInfo[2])
-                analogy = analogy_api.SpreadsheetAnalogy()
+                analogy = SpreadsheetAnalogy()
                 newPipeline = analogy.applyAnalogy(p1Info)
                 if newPipeline:
                     self.cellInfo[0].executePipelineToCell(newPipeline,
@@ -1161,12 +1194,12 @@ class QCellManipulator(QtGui.QFrame):
 
         else:
             event.ignore()
-                    
-        
+
+
     def highlight(self, on=True):
         """ highlight(on: bool) -> None
         Highlight the cell as if being selected
-        
+
         """
         if on:
             self.innerRubberBand.setGeometry(self.rect())
@@ -1175,19 +1208,19 @@ class QCellManipulator(QtGui.QFrame):
             self.innerRubberBand.hide()
 
     def updateVersion(self):
-        """ updateVersion() -> None        
+        """ updateVersion() -> None
         Use the performed action of this cell to add back a new
         version to the version tree
-        
+
         """
-        spreadsheetController = spreadsheet_controller.spreadsheetController
+        from .spreadsheet_controller import spreadsheetController
         builderWindow = spreadsheetController.getBuilderWindow()
         if builderWindow:
             info = self.cellInfo[0].getCellPipelineInfo(self.cellInfo[1],
                                                         self.cellInfo[2])
             if info:
                 info = info[0]
-                view = builderWindow.ensureController(info['controller'])
+                view = builderWindow.ensureVistrail(info['locator'])
                 if view:
                     controller = view.controller
                     controller.change_selected_version(info['version'])
@@ -1195,18 +1228,18 @@ class QCellManipulator(QtGui.QFrame):
                     # controller.performBulkActions(info['actions'])
 
     def locateVersion(self):
-        """ locateVersion() -> None        
+        """ locateVersion() -> None
         Select the version node on the version that has generated this cell
-        
+
         """
-        spreadsheetController = spreadsheet_controller.spreadsheetController
+        from .spreadsheet_controller import spreadsheetController
         builderWindow = spreadsheetController.getBuilderWindow()
         if builderWindow:
             info = self.cellInfo[0].getCellPipelineInfo(self.cellInfo[1],
                                                         self.cellInfo[2])
             if info:
                 info = info[0]
-                view = builderWindow.ensureController(info['controller'])
+                view = builderWindow.ensureVistrail(info['locator'])
                 if view:
                     view.version_selected(info['version'], True)
                     view.version_view.select_current_version()
@@ -1218,18 +1251,17 @@ class QCellManipulator(QtGui.QFrame):
                     view.history_selected()
                     view.activateWindow()
 
-################################################################################
 
 class QCellDragLabel(QtGui.QLabel):
     """
     QCellDragLabel is a pixmap label allowing users to drag it to
     another cell manipulator
-    
+
     """
     def __init__(self, pixmap, parent=None):
         """ QCellDragLabel(pixmap: QPixmap, parent: QWidget) -> QCellDragLabel
         Construct the pixmap label
-        
+
         """
         QtGui.QLabel.__init__(self, parent)
         self.setMargin(0)
@@ -1242,27 +1274,37 @@ class QCellDragLabel(QtGui.QLabel):
         self.startPos = None
         self.cellInfo = (None, -1, -1)
         self.action = None
-        
+
     def updateCellInfo(self, cellInfo):
         """ updateCellInfo(cellInfo: tuple) -> None
         Update cellInfo for mime data while dragging
-        
+
         """
         self.cellInfo = cellInfo
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
         Store the start position for drag event
-        
+
         """
         self.startPos = QtCore.QPoint(event.pos())
         QtGui.QLabel.mousePressEvent(self, event)
 
+    def mouseReleaseEvent(self, event):
+        """ mouseReleaseEvent(event: QMouseEvent) -> None
+        Note that dragging ended
+
+        """
+        self.startPos = None
+
     def mouseMoveEvent(self, event):
         """ mouseMoveEvent(event: QMouseEvent) -> None
         Prepare to drag
-        
+
         """
+        if self.startPos is None:
+            return
+
         p = event.pos() - self.startPos
         if p.manhattanLength()>=QtGui.QApplication.startDragDistance():
             drag = QtGui.QDrag(self)
@@ -1272,5 +1314,5 @@ class QCellDragLabel(QtGui.QLabel):
             data.manipulator = self.parent()
             drag.setMimeData(data)
             drag.setHotSpot(self.cursorPixmap.rect().center())
-            drag.setPixmap(self.cursorPixmap)            
+            drag.setPixmap(self.cursorPixmap)
             drag.start(QtCore.Qt.MoveAction)

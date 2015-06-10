@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED B Y THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED B Y THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from __future__ import division
 
 import errno
 import json
@@ -82,9 +85,11 @@ def _eintr_retry_call(func, *args):
             raise
 
 
-def add_tool(path):
+def _add_tool(path):
     # first create classes
     tool_name = os.path.basename(path)
+    if isinstance(tool_name, unicode):
+        tool_name = tool_name.encode('utf-8')
     if not tool_name.endswith(SUFFIX): # pragma: no cover
         return
     (tool_name, _) = os.path.splitext(tool_name)
@@ -105,6 +110,7 @@ def add_tool(path):
         # add all arguments as an unordered list
         args = [self.conf['command']]
         file_std = 'options' in self.conf and 'std_using_files' in self.conf['options']
+        fail_with_cmd = 'options' in self.conf and 'fail_with_cmd' in self.conf['options']
         setOutput = [] # (name, File) - set File contents as output for name
         open_files = []
         stdin = None
@@ -243,7 +249,10 @@ def add_tool(path):
             else:
                 kwargs['stderr'] = subprocess.PIPE
 
-        return_code = self.conf.get('return_code', None)
+        if fail_with_cmd:
+            return_code = 0
+        else:
+            return_code = self.conf.get('return_code', None)
 
         env = {}
         # 0. add defaults
@@ -330,7 +339,7 @@ def add_tool(path):
             f.close()
 
         if not file_std:
-            if stdout and "stdout" in self.conf:
+            if "stdout" in self.conf:
                 name, type, options = self.conf["stdout"]
                 type = type.lower()
                 if "file" == type:
@@ -344,7 +353,7 @@ def add_tool(path):
                     self.set_output(name, stdout)
                 else: # pragma: no cover
                     raise ValueError
-            if stderr and "stderr" in self.conf:
+            if "stderr" in self.conf:
                 name, type, options = self.conf["stderr"]
                 type = type.lower()
                 if "file" == type:
@@ -364,10 +373,10 @@ def add_tool(path):
     d = """This module is a wrapper for the command line tool '%s'""" % \
         conf['command']
     # create module
-    M = new_module(CLTools, tool_name,{"compute": compute,
-                                           "conf": conf,
-                                           "tool_name": tool_name,
-                                           "__doc__": d})
+    M = new_module(CLTools, tool_name, {"compute": compute,
+                                        "conf": conf,
+                                        "tool_name": tool_name,
+                                        "__doc__": d})
     reg = vistrails.core.modules.module_registry.get_module_registry()
     reg.add_module(M, package=identifiers.identifier,
                    package_version=identifiers.version)
@@ -407,6 +416,16 @@ def add_tool(path):
     cl_tools[tool_name] = M
 
 
+def add_tool(path):
+    try:
+        _add_tool(path)
+    except Exception as exc:  # pragma: no cover
+        import traceback
+        debug.critical("Package CLTools failed to create module "
+           "from '%s': %s" % (path, exc),
+           traceback.format_exc())
+
+
 def initialize(*args, **keywords):
     reload_scripts(initial=True)
 
@@ -417,9 +436,15 @@ def remove_all_scripts():
         del cl_tools[tool_name]
         reg.delete_module(identifiers.identifier, tool_name)
 
-def reload_scripts(initial=False):
+def reload_scripts(initial=False, name=None):
+    reg = vistrails.core.modules.module_registry.get_module_registry()
     if not initial:
-        remove_all_scripts()
+        if name is None:
+            remove_all_scripts()
+        else:
+            del cl_tools[name]
+            reg.delete_module(identifiers.identifier, name)
+
     if "CLTools" == identifiers.name:
         # this is the original package
         location = os.path.join(vistrails.core.system.current_dot_vistrails(),
@@ -430,25 +455,25 @@ def reload_scripts(initial=False):
                 debug.log("Creating CLTools directory...")
                 os.mkdir(location)
             except Exception, e:
-                debug.critical("""Could not create CLTools directory. Make
- sure '%s' does not exist and parent directory is writable""" % location, e)
+                debug.critical("Could not create CLTools directory. Make "
+                               "sure '%s' does not exist and parent directory "
+                               "is writable" % location,
+                               e)
                 sys.exit(1)
-    else: # pragma: no cover
+    else:  # pragma: no cover
         # this is a standalone package so modules are placed in this directory
         location = os.path.dirname(__file__)
 
     if initial:
-        reg = vistrails.core.modules.module_registry.get_module_registry()
         reg.add_module(CLTools, abstract=True)
-    for path in os.listdir(location):
-        if path.endswith(SUFFIX): # pragma: no branch
-            try:
+    if name is None:
+        for path in os.listdir(location):
+            if path.endswith(SUFFIX):  # pragma: no branch
                 add_tool(os.path.join(location, path))
-            except Exception as exc: # pragma: no cover
-                import traceback
-                debug.critical("Package CLTools failed to create module "
-                   "from '%s': %s" % (os.path.join(location, path), exc),
-                   traceback.format_exc())
+    else:
+        path = os.path.join(location, name + SUFFIX)
+        if os.path.exists(path):
+            add_tool(path)
 
     if not initial:
         from vistrails.core.interpreter.cached import CachedInterpreter
@@ -489,6 +514,20 @@ def finalize():
     pass
 
 
+def contextMenuName(name):
+    if "CLTools" == name:
+        return "Reload All Scripts"
+    else:
+        return "Reload Script"
+
+
+def callContextMenu(name):
+    if "CLTools" == name:
+        reload_scripts()
+    else:
+        reload_scripts(name=name)
+
+
 ###############################################################################
 
 import unittest
@@ -508,7 +547,7 @@ class TestCLTools(unittest.TestCase):
         for name in os.listdir(cls.testdir):
             if not name.endswith(SUFFIX):
                 continue
-            add_tool(os.path.join(cls.testdir, name))
+            _add_tool(os.path.join(cls.testdir, name))
             toolname = os.path.splitext(name)[0]
             cls._tools[toolname] = cl_tools[toolname]
         cls._old_dir = os.getcwd()
@@ -520,11 +559,12 @@ class TestCLTools(unittest.TestCase):
         reload_scripts()
 
     def do_the_test(self, toolname):
-        with intercept_results(self._tools['intern_cltools_1'],
+        with intercept_results(
+                self._tools[toolname],
                 'return_code', 'f_out', 'stdout') as (
                 return_code, f_out, stdout):
             self.assertFalse(execute([
-                    ('intern_cltools_1', 'org.vistrails.vistrails.cltools', [
+                    (toolname, 'org.vistrails.vistrails.cltools', [
                         ('f_in', [('File', self.testdir + '/test_1.cltest')]),
                         ('chars', [('List', '["a", "b", "c"]')]),
                         ('false', [('Boolean', 'False')]),

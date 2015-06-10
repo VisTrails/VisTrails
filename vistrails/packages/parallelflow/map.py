@@ -1,27 +1,64 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
+from __future__ import division
+
 import vistrails.core.db.action
-import vistrails.db.versions
+from vistrails.core.db.locator import XMLFileLocator
+from vistrails.core.db.io import serialize, unserialize
+from vistrails.core import debug
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.log.group_exec import GroupExec
+from vistrails.core.log.machine import Machine
+from vistrails.core.log.module_exec import ModuleExec
+from vistrails.core.modules.basic_modules import Constant
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.utils
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, InvalidOutput
-from vistrails.core.modules.basic_modules import NotCacheable, Constant
-from vistrails.core.vistrail.pipeline import Pipeline
+    InvalidOutput
 from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
-from vistrails.core.db.locator import XMLFileLocator
-from vistrails.core.vistrail.controller import VistrailController
-from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.db.io import serialize, unserialize
-from vistrails.core.log.module_exec import ModuleExec
-from vistrails.core.log.group_exec import GroupExec
-from vistrails.core.log.machine import Machine
-from vistrails.core.utils import xor, long2bytes
 from vistrails.db.domain import IdScope
+import vistrails.db.versions
 
-from base64 import b16encode, b16decode
 import copy
 import inspect
 from itertools import izip
@@ -115,7 +152,6 @@ def execute_wf(wf, output_port):
 
         # Get the output value
         output = None
-        serializable = None
         if not execution_errors:
             executed_module, = execution[0][0].executed
             executed_module = execution[0][0].objects[executed_module]
@@ -124,16 +160,12 @@ def execute_wf(wf, output_port):
             except ModuleError:
                 errors.append("Output port not found: %s" % output_port)
                 return dict(errors=errors)
-            reg = vistrails.core.modules.module_registry.get_module_registry()
-            base_classes = inspect.getmro(type(output))
-            if Module in base_classes:
-                serializable = reg.get_descriptor(type(output)).sigstring
-                output = output.serialize()
+            if isinstance(output, Module):
+                raise TypeError("Output value is a Module instance")
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
                     output=output,
-                    serializable=serializable,
                     xml_log=xml_log,
                     machine_log=machine_log)
     finally:
@@ -308,8 +340,8 @@ class Map(Module):
         try:
             rc = get_client()
         except Exception, error:
-            raise ModuleError(self, "Exception while loading IPython: "
-                              "%s" % error)
+            raise ModuleError(self, "Exception while loading IPython: %s" %
+                              debug.format_exception(error))
         if rc is None:
             raise ModuleError(self, "Couldn't get an IPython connection")
         engines = rc.ids
@@ -390,19 +422,10 @@ class Map(Module):
         # setting success color
         module.logging.signalSuccess(module)
 
-        import vistrails.core.modules.module_registry
         reg = vistrails.core.modules.module_registry.get_module_registry()
         self.result = []
         for map_execution in map_result:
-            serializable = map_execution['serializable']
-            output = None
-            if not serializable:
-                output = map_execution['output']
-            else:
-                d_tuple = vistrails.core.modules.utils.parse_descriptor_string(serializable)
-                d = reg.get_descriptor_by_name(*d_tuple)
-                module_klass = d.module
-                output = module_klass().deserialize(map_execution['output'])
+            output = map_execution['output']
             self.result.append(output)
 
         # including execution logs

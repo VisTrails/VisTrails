@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.db.versions.v1_0_4.domain import DBVistrail, DBVistrailVariable, \
                                       DBWorkflow, DBLog, DBRegistry, \
                                       DBAdd, DBChange, DBDelete, \
@@ -43,7 +46,9 @@ from vistrails.db.versions.v1_0_4.domain import DBVistrail, DBVistrailVariable, 
                                       DBActionAnnotation, DBStartup, \
                                       DBConfigKey, DBConfigBool, DBConfigStr, \
                                       DBConfigInt, DBConfigFloat, \
-                                      DBConfiguration, DBStartupPackage
+                                      DBConfiguration, DBStartupPackage, \
+                                      DBLoopIteration, DBLoopExec, \
+                                      DBModuleExec, DBGroupExec
 
 from vistrails.db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString
@@ -87,7 +92,87 @@ def translateWorkflow(_workflow):
     return workflow
 
 def translateLog(_log):
-    translate_dict = {}
+    id_scope = _log.id_scope
+    def update_loop_execs(old_obj, translate_dict):
+        if len(old_obj.db_loop_execs) == 0:
+            return []
+        # create new LoopExec and add existing as LoopIteration's
+        ts_start = None
+        ts_end = None
+        new_iters = []
+        for loop_exec in old_obj.db_loop_execs:
+            item_execs = []
+            for item_exec in loop_exec.db_item_execs:
+                if item_exec.vtType == DBModuleExec.vtType:
+                    item_execs.append(DBModuleExec.update_version(item_exec,
+                                                                  translate_dict))
+                if item_exec.vtType == DBGroupExec.vtType:
+                    item_execs.append(DBGroupExec.update_version(item_exec,
+                                                                 translate_dict))
+                # skip DBLoopExecs
+            new_iter = DBLoopIteration(item_execs=item_execs,
+                                       id=id_scope.getNewId(DBLoopIteration.vtType),
+                                       ts_start=loop_exec.db_ts_start,
+                                       ts_end=loop_exec.db_ts_end,
+                                       iteration=loop_exec.db_iteration,
+                                       completed=loop_exec.db_completed,
+                                       error=loop_exec.db_error)
+            new_iters.append(new_iter)
+            if ts_start is None or ts_start > loop_exec.db_ts_start:
+                ts_start = loop_exec.db_ts_start
+            if ts_end is None or ts_end < loop_exec.db_ts_end:
+                ts_end = loop_exec.db_ts_end
+        return [DBLoopExec(id=id_scope.getNewId(DBLoopExec.vtType),
+                                       ts_start=ts_start,
+                                       ts_end=ts_end,
+                                       loop_iterations=new_iters)]
+
+    def update_item_execs(old_obj, translate_dict):
+        # remove loop_execs and add them as loop_iterations under a single loop_exec
+        new_objs = []
+        ts_start = None
+        ts_end = None
+        new_iters = []
+        for obj in old_obj.db_item_execs:
+            if obj.vtType == DBModuleExec.vtType:
+                new_objs.append(DBModuleExec.update_version(obj,
+                                                            translate_dict))
+            if obj.vtType == DBGroupExec.vtType:
+                new_objs.append(DBGroupExec.update_version(obj,
+                                                           translate_dict))
+            if obj.vtType == DBLoopExec.vtType:
+                item_execs = []
+                for item_exec in obj.db_item_execs:
+                    if item_exec.vtType == DBModuleExec.vtType:
+                        item_execs.append(DBModuleExec.update_version(item_exec,
+                                                                      translate_dict))
+                    if item_exec.vtType == DBGroupExec.vtType:
+                        item_execs.append(DBGroupExec.update_version(item_exec,
+                                                                     translate_dict))
+                    # skip DBLoopExecs
+                new_iter = DBLoopIteration(item_execs=item_execs,
+                                           id=id_scope.getNewId(DBLoopIteration.vtType),
+                                           ts_start=obj.db_ts_start,
+                                           ts_end=obj.db_ts_end,
+                                           iteration=obj.db_iteration,
+                                           completed=obj.db_completed,
+                                           error=obj.db_error)
+                new_iters.append(new_iter)
+                if ts_start is None or ts_start > obj.db_ts_start:
+                    ts_start = obj.db_ts_start
+                if ts_end is None or ts_end < obj.db_ts_end:
+                    ts_end = obj.db_ts_end
+        if len(new_iters):
+            new_objs.append(DBLoopExec(id=id_scope.getNewId(DBLoopExec.vtType),
+                                       ts_start=ts_start,
+                                       ts_end=ts_end,
+                                       loop_iterations=new_iters))
+        return new_objs
+
+        
+        return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
+    translate_dict = {'DBModuleExec': {'loop_execs': update_loop_execs},
+                      'DBGroupExec': {'item_execs': update_item_execs}}
     log = DBLog.update_version(_log, translate_dict)
     log.db_version = '1.0.4'
     return log

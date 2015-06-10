@@ -1,3 +1,40 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2013-2014, NYU-Poly.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
+from __future__ import division
+
 try:
     import numpy
 except ImportError: # pragma: no cover
@@ -88,7 +125,6 @@ class JoinedTables(TableObject):
 
     def compute_row_map(self):
         def build_key_dict(table, key_col):
-            key_dict = {}
             column = table.get_column(key_col)
             if self.case_sensitive:
                 key_dict = dict((utf8(val).strip(), i)
@@ -296,6 +332,7 @@ class SelectFromTable(Table):
         selected_table = TableObject(columns, len(matched_rows), table.names)
         self.set_output('value', selected_table)
 
+
 class AggregatedTable(TableObject):
     def __init__(self, table, op, col, group_col):
         self.table = table
@@ -324,6 +361,7 @@ class AggregatedTable(TableObject):
         def average(value_iter):
             # value_iter can only be used once
             sum = 0
+            count = 0
             for count, v in enumerate(value_iter):
                 sum += v
             return sum / (count+1)
@@ -342,7 +380,8 @@ class AggregatedTable(TableObject):
                 return [op_map[self.op](col[idx] for idx in x[1])
                         for x in self.agg_rows]
             else:
-                raise ValueError('Unknown operation: "%s"' % op)
+                raise ValueError('Unknown operation: "%s"' % self.op)
+
 
 class AggregateColumn(Table):
     _input_ports = [('table', 'Table'),

@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -37,43 +38,33 @@
 # File for displaying a vtkRenderWindow in a Qt's QWidget ported from
 # VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
 ################################################################################
+from __future__ import division
+
 import vtk
 import os
 from PyQt4 import QtCore, QtGui
 import sip
 from vistrails.core import system
-from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation, SpreadsheetMode
+from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, SpreadsheetMode
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-import gc
 from vistrails.gui.qt import qt_super
 import vistrails.core.db.action
-from vistrails.core.vistrail.action import Action
-from vistrails.core.vistrail.port import Port
-from vistrails.core.vistrail import module
-from vistrails.core.vistrail import connection
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
-from vistrails.core.vistrail.location import Location
 from vistrails.core.modules.vistrails_module import ModuleError
-import copy
 
 from identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
 
 class vtkRendererToSpreadsheet(SpreadsheetMode):
-    @classmethod
-    def can_compute(cls):
-        return SpreadsheetMode.can_compute()
-
-    def compute_output(self, output_module, configuration=None):
-        renderers = output_module.force_get_input_list('value')
-        handlers = output_module.force_get_input_list('interactionHandler')
+    def compute_output(self, output_module, configuration):
+        d = dict([(c(), c.obj) for c in output_module.inputPorts['value']])
+        for ren, m in d.iteritems():
+            ren.module_id = m.moduleInfo['moduleId']
+        renderers = output_module.force_get_input('value') or []
         style = output_module.force_get_input('interactorStyle')
         picker = output_module.force_get_input('picker')
-        input_ports = (renderers, None, handlers, style, picker)
+        input_ports = (renderers, None, [], style, picker)
         self.cellWidget = self.display_and_wait(output_module, configuration,
                                                 QVTKWidget, input_ports)
 
@@ -82,6 +73,12 @@ class VTKCell(SpreadsheetCell):
     VTKCell is a VisTrails Module that can display vtkRenderWindow inside a cell
     
     """
+    _input_ports = [("Location", "spreadsheet:CellLocation"),
+                    ("AddRenderer", "vtkRenderer", {'depth':1}),
+                    ("SetRenderView", "vtkRenderView", {'depth':1}),
+                    ("InteractionHandler", "vtkInteractionHandler", {'depth':1}),
+                    ("InteractorStyle", "vtkInteractorStyle"),
+                    ("AddPicker", "vtkAbstractPicker")]
 
     def __init__(self):
         SpreadsheetCell.__init__(self)
@@ -91,16 +88,21 @@ class VTKCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the vtkRenderer to the actual rendering widget
         """
-        renderers = self.force_get_input_list('AddRenderer')
-        renderViews = self.force_get_input_list('SetRenderView')
+        # Set module_id on wrapped renderers
+        if self.has_input('AddRenderer'):
+            d = dict([(c(), c.obj) for c in self.inputPorts['AddRenderer']])
+            for ren, m in d.iteritems():
+                ren.module_id = m.moduleInfo['moduleId']
+        renderers = self.force_get_input('AddRenderer', [])
+        renderViews = self.force_get_input('SetRenderView', [])
         if len(renderViews)>1:
             raise ModuleError(self, 'There can only be one vtkRenderView '
                               'per cell')
         if len(renderViews)==1 and len(renderers)>0:
             raise ModuleError(self, 'Cannot set both vtkRenderView '
                               'and vtkRenderer to a cell')
-        renderView = self.force_get_input('SetRenderView')
-        iHandlers = self.force_get_input_list('InteractionHandler')
+        renderView = renderViews[0] if renderViews else None
+        iHandlers = self.force_get_input('InteractionHandler', [])
         iStyle = self.force_get_input('InteractorStyle')
         picker = self.force_get_input('AddPicker')
         self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
@@ -174,7 +176,7 @@ class QVTKWidget(QCellWidget):
         self.iHandlers = []
         self.setAnimationEnabled(True)
         self.renderer_maps = {}
-        
+
     def removeObserversFromInteractorStyle(self):
         """ removeObserversFromInteractorStyle() -> None        
         Remove all python binding from interactor style observers for
@@ -243,18 +245,25 @@ class QVTKWidget(QCellWidget):
 
         (renderers, renderView, self.iHandlers, iStyle, picker) = inputPorts
         if renderView:
-            renderView.vtkInstance.SetupRenderWindow(renWin)
+            renderView.vtkInstance.SetRenderWindow(renWin)
+            renderView.vtkInstance.ResetCamera()
+            self.addObserversToInteractorStyle()
             renderers = [renderView.vtkInstance.GetRenderer()]
         self.renderer_maps = {}
         self.usecameras = False
-        if cameralist != None and len(cameralist) == len(renderers):
+        if cameralist is not None and len(cameralist) == len(renderers):
             self.usecameras = True
         j = 0
         for renderer in renderers:
             if renderView==None:
-                vtkInstance = renderer.vtkInstance
+                vtkInstance = renderer
+                # Check deprecated vtkInstance
+                if hasattr(renderer, 'vtkInstance'):
+                    vtkInstance = renderer.vtkInstance
+                    # Old scripts may call this without setting module_id
+                    if hasattr(renderer, 'module_id'):
+                        self.renderer_maps[id(vtkInstance)] = renderer.module_id
                 renWin.AddRenderer(vtkInstance)
-                self.renderer_maps[vtkInstance] = renderer.vt_module_id
             else:
                 vtkInstance = renderer
             if hasattr(vtkInstance, 'IsActiveCameraCreated'):
@@ -268,21 +277,33 @@ class QVTKWidget(QCellWidget):
             
         iren = renWin.GetInteractor()
         if picker:
-            iren.SetPicker(picker.vtkInstance)
-            
+            if hasattr(picker, 'vtkInstance'):
+                picker = picker.vtkInstance
+            iren.SetPicker(picker)
+
         # Update interactor style
         self.removeObserversFromInteractorStyle()
         if renderView==None:
             if iStyle==None:
                 iStyleInstance = vtk.vtkInteractorStyleTrackballCamera()
             else:
-                iStyleInstance = iStyle.vtkInstance
+                iStyleInstance = iStyle
+                # Check deprecated vtkInstance
+                if hasattr(iStyleInstance, 'vtkInstance'):
+                    iStyleInstance = iStyleInstance.vtkInstance
             iren.SetInteractorStyle(iStyleInstance)
         self.addObserversToInteractorStyle()
         
-        for iHandler in self.iHandlers:
+        for i in xrange(len(self.iHandlers)):
+            iHandler = self.iHandlers[i]
+            if hasattr(iHandler, 'vtkInstance'):
+                iHandler = iHandler.vtkInstance
+                self.iHandler[i] = iHandler
             if iHandler.observer:
-                iHandler.observer.vtkInstance.SetInteractor(iren)
+                observer = iHandler.observer
+                if hasattr(observer, 'vtkInstance'):
+                    observer = observer.vtkInstance
+                observer.SetInteractor(iren)
         renWin.Render()
 
         # Capture window into history for playback
@@ -324,20 +345,26 @@ class QVTKWidget(QCellWidget):
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
             if system.systemType=='Linux':
+                display = None
                 try:
-                    vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
+                    display = int(QtGui.QX11Info.display())
                 except TypeError:
-                    #This was change for PyQt4.2
-                    if isinstance(QtGui.QX11Info.display(),QtGui.Display):
+                    # This was changed for PyQt4.2
+                    if isinstance(QtGui.QX11Info.display(), QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
-                        vp = '_%s_void_p' % (hex(display)[2:])
-                v = vtk.vtkVersion()
-                version = [v.GetVTKMajorVersion(),
-                           v.GetVTKMinorVersion(),
-                           v.GetVTKBuildVersion()]
-                if version < [5, 7, 0]:
-                    vp = vp + '\0x00'                
-                self.mRenWin.SetDisplayId(vp)
+                if display is not None:
+                    v = vtk.vtkVersion()
+                    version = [v.GetVTKMajorVersion(),
+                               v.GetVTKMinorVersion(),
+                               v.GetVTKBuildVersion()]
+                    display = hex(display)[2:]
+                    if version < [5, 7, 0]:
+                        vp = ('_%s_void_p\0x00' % display)
+                    elif version < [6, 2, 0]:
+                        vp = ('_%s_void_p' % display)
+                    else:
+                        vp = ('_%s_p_void' % display)
+                    self.mRenWin.SetDisplayId(vp)
                 self.resizeWindow(1,1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
             if self.isVisible():
@@ -652,10 +679,10 @@ class QVTKWidget(QCellWidget):
         if not keysym:
             keysym = self.qt_key_to_key_sym(e.key())
 
-        # Ignore 'q' or 'e' or Ctrl-anykey
+        # Ignore Ctrl-anykey
         ctrl = (e.modifiers()&QtCore.Qt.ControlModifier)
         shift = (e.modifiers()&QtCore.Qt.ShiftModifier)
-        if (keysym in ['q','e'] or ctrl):
+        if ctrl:
             e.ignore()
             return
         
@@ -732,7 +759,7 @@ class QVTKWidget(QCellWidget):
         Convert Qt key code into key name
         
         """
-        handler = {QtCore.Qt.Key_Backspace:"BackSpace",
+        handler = {QtCore.Qt.Key_Backspace:"Backspace",
                    QtCore.Qt.Key_Tab:"Tab",
                    QtCore.Qt.Key_Backtab:"Tab",
                    QtCore.Qt.Key_Return:"Return",
@@ -1030,13 +1057,13 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
             cpos = cam.GetPosition()
             cfol = cam.GetFocalPoint()
             cup = cam.GetViewUp()
-            rendererId = cellWidget.renderer_maps[ren]
             # Looking for SetActiveCamera()
             camera = None
+            rendererId = cellWidget.renderer_maps[id(ren)]
             renderer = pipeline.modules[rendererId]
             for c in pipeline.connections.values():
                 if c.destination.moduleId==rendererId:
-                    if c.destination.name=='SetActiveCamera':
+                    if c.destination.name=='ActiveCamera':
                         camera = pipeline.modules[c.source.moduleId]
                         break
             
@@ -1050,7 +1077,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                 # Connect camera to renderer
                 camera_conn = controller.create_connection(
                         camera, 'Instance',
-                        renderer, 'SetActiveCamera')
+                        renderer, 'ActiveCamera')
                 ops.append(('add', camera_conn))
             # update functions
             def convert_to_str(arglist):
@@ -1058,9 +1085,9 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                 for arg in arglist:
                     new_arglist.append(str(arg))
                 return new_arglist
-            functions = [('SetPosition', convert_to_str(cpos)),
-                         ('SetFocalPoint', convert_to_str(cfol)),
-                         ('SetViewUp', convert_to_str(cup))]
+            functions = [('Position', convert_to_str(cpos)),
+                         ('FocalPoint', convert_to_str(cfol)),
+                         ('ViewUp', convert_to_str(cup))]
             ops.extend(controller.update_functions_ops(camera, functions))
 
         action = vistrails.core.db.action.create_action(ops)
@@ -1101,25 +1128,4 @@ class QVTKWidgetToolBar(QCellToolBar):
         self.addAnimationButtons()
         self.appendAction(QVTKWidgetSaveCamera(self))
 
-def registerSelf():
-    """ registerSelf() -> None
-    Registry module with the registry
-    """
-    from base_module import vtkRendererOutput
-    vtkRendererOutput.register_output_mode(vtkRendererToSpreadsheet)
-
-    registry = get_module_registry()
-    registry.add_module(VTKCell)
-    registry.add_input_port(VTKCell, "Location", CellLocation)
-    from vistrails.core import debug
-    for (port,module) in [("AddRenderer",'vtkRenderer'),
-                          ("SetRenderView",'vtkRenderView'),
-                          ("InteractionHandler",'vtkInteractionHandler'),
-                          ("InteractorStyle", 'vtkInteractorStyle'),
-                          ("AddPicker",'vtkAbstractPicker')]:
-        try:
-            registry.add_input_port(VTKCell, port,
-                                    '(%s:%s)' % (vtk_pkg_identifier, module))
-        except Exception, e:
-            debug.warning("Got an exception adding VTKCell's %s input "
-                          "port" % port, e)
+_modules = [VTKCell,]

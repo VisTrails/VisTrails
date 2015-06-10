@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -52,6 +53,8 @@ The original paper is:
 
 """
 
+from __future__ import division
+
 class TreeLW(object):
     """
     The input to the algorithm must be a tree
@@ -70,7 +73,7 @@ class TreeLW(object):
         self.nodes.append(newNode)
 
         # add
-        if parentNode != None:
+        if parentNode is not None:
             parentNode.addChild(newNode)
 
         # update max level
@@ -78,7 +81,7 @@ class TreeLW(object):
         return newNode
 
     def changeParentOfNodeWithNoParent(self, parentNode, childNode):
-        if childNode.parent != None:
+        if childNode.parent is not None:
             raise ValueError("Node already has a parent")
 
         parentNode.addChild(childNode)
@@ -88,12 +91,12 @@ class TreeLW(object):
         self.maxLevel = max(self.maxLevel, maxLevel)
 
     def __dfsUpdateLevel(self, node):
-        if node.parent == None:
+        if node.parent is None:
             node.level = 0
         else:
             node.level = node.parent.level + 1
         maxLevel = node.level
-        for child in node.childs:
+        for child in node.children:
             maxLevel = max(maxLevel, self.__dfsUpdateLevel(child))
         return maxLevel
 
@@ -140,13 +143,13 @@ class KeepBoundingBox(object):
         self.size = 0
 
     def addPoint(self,x,y):
-        if self.minx == None or self.minx > x:
+        if self.minx is None or self.minx > x:
             self.minx = x
-        if self.miny == None or self.miny > y:
+        if self.miny is None or self.miny > y:
             self.miny = y
-        if self.maxx == None or self.maxx < x:
+        if self.maxx is None or self.maxx < x:
             self.maxx = x
-        if self.maxy == None or self.maxy < y:
+        if self.maxy is None or self.maxy < y:
             self.maxy = y
         self.size = self.size + 1
 
@@ -168,7 +171,7 @@ class NodeLW(object):
         self.height = height
         self.object = object
 
-        self.childs = []
+        self.children = []
 
         self.parent = None
         self.index = 0
@@ -190,40 +193,40 @@ class NodeLW(object):
         self.y = 0
         
     def getNumChilds(self):
-        return len(self.childs)
+        return len(self.children)
         
     def hasChild(self):
-        return len(self.childs) > 0
+        return bool(self.children)
 
     def addChild(self, node):
-        self.childs.append(node)
-        node.index = len(self.childs) - 1
+        self.children.append(node)
+        node.index = len(self.children) - 1
         node.parent = self
         node.level = self.level + 1
 
     def isLeaf(self):
-        return len(self.childs) == 0
+        return not self.children
 
     def leftChild(self):
-        return self.childs[0]
+        return self.children[0]
 
     def rightChild(self):
-        return self.childs[len(self.childs)-1]
+        return self.children[-1]
 
     def leftSibling(self):
         if self.index > 0:
-            return self.parent.childs[self.index-1]
+            return self.parent.children[self.index-1]
         else:
             return None
 
     def leftMostSibling(self):
-        if self.parent != None:
-            return self.parent.childs[0]
+        if self.parent is not None:
+            return self.parent.children[0]
         else:
             return self
 
     def isSiblingOf(self, v):
-        return self.parent == v.parent and self.parent != None
+        return self.parent == v.parent and self.parent is not None
 
 class TreeLayoutLW(object):
 
@@ -304,13 +307,13 @@ class TreeLayoutLW(object):
         if v.isLeaf():
             v.prelim = 0
             w = v.leftSibling()
-            if w != None:
+            if w is not None:
                 v.prelim = w.prelim + self.gap(w,v)
 
         else:
             
             defaultAncestor = v.leftChild()
-            for w in v.childs:
+            for w in v.children:
                 self.firstWalk(w)
                 defaultAncestor = self.apportion(w, defaultAncestor)
             self.executeShifts(v)
@@ -318,7 +321,7 @@ class TreeLayoutLW(object):
             midpoint = (v.leftChild().prelim + v.rightChild().prelim) / 2.0
 
             w = v.leftSibling()
-            if w != None:
+            if w is not None:
                 v.prelim = w.prelim + self.gap(w,v)
                 v.mod = v.prelim - midpoint
             else:
@@ -344,7 +347,7 @@ class TreeLayoutLW(object):
 
         """
         w = v.leftSibling()
-        if w != None:
+        if w is not None:
             # p stands for + or plus (right subtree)
             # m stands for - or minus (left subtree)
             # i stands for inside
@@ -358,7 +361,7 @@ class TreeLayoutLW(object):
             sop = vop.mod
             sim = vim.mod
             som = vom.mod
-            while self.nextRight(vim) != None and self.nextLeft(vip) != None:
+            while self.nextRight(vim) is not None and self.nextLeft(vip) is not None:
                 
                 vim = self.nextRight(vim)
                 vip = self.nextLeft(vip)
@@ -379,11 +382,11 @@ class TreeLayoutLW(object):
                 som += vom.mod
                 sop += vop.mod
 
-            if self.nextRight(vim) != None and self.nextRight(vop) == None:            
+            if self.nextRight(vim) is not None and self.nextRight(vop) is None:
                 vop.thread = self.nextRight(vim)
                 vop.mod += sim - sop
 
-            if self.nextLeft(vip) != None and self.nextLeft(vom) == None:            
+            if self.nextLeft(vip) is not None and self.nextLeft(vom) is None:
                 vom.thread = self.nextLeft(vip)
                 vom.mod += sip - som
                 defaultAncestor = v
@@ -414,7 +417,7 @@ class TreeLayoutLW(object):
         shift = 0
         change = 0
         for i in xrange(v.getNumChilds()-1,-1,-1):
-            w = v.childs[i]
+            w = v.children[i]
             w.prelim += shift
             w.mod += shift
             change += w.change
@@ -428,7 +431,7 @@ class TreeLayoutLW(object):
 
     def secondWalk(self,  v, m):
         v.x = v.prelim + m
-        for w in v.childs:
+        for w in v.children:
             self.secondWalk(w, m + v.mod)
 
 # graph

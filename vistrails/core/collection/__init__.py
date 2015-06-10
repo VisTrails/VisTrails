@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import glob
 import os
 import sqlite3
@@ -45,11 +48,10 @@ from thumbnail import ThumbnailEntity
 from mashup import MashupEntity
 from parameter_exploration import ParameterExplorationEntity
 
-from vistrails.core.db.locator import ZIPFileLocator, DBLocator, FileLocator, BaseLocator
+from vistrails.core.db.locator import FileLocator, BaseLocator
 from vistrails.core.db.io import load_vistrail
 import vistrails.core.system
 import vistrails.db.services.io
-from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
 
 schema = ["create table entity(id integer primary key, type integer, "
@@ -84,7 +86,8 @@ class Collection(object):
             self.conn = sqlite3.connect(self.database)
             try:
                 cur = self.conn.cursor()
-                [cur.execute(s) for s in schema]
+                for s in schema:
+                    cur.execute(s)
                 self.conn.commit()
             except Exception, e:
                 debug.critical("Could not create vistrail index schema", e)
@@ -329,7 +332,7 @@ class Collection(object):
         """ Check if entity with this url exist """
         locator = BaseLocator.from_url(url)
         if locator.is_valid():
-                return True
+            return True
         return False
 
     def updateVistrail(self, url, vistrail=None):
@@ -363,32 +366,3 @@ class Collection(object):
             # probably an unsaved vistrail
             pass
 #            debug.critical("Locator is not valid!")
-
-def main():
-    import sys
-    sys.path.append('/home/tommy/git/vistrails/vistrails')
-
-    # vistrail = load_vistrail(ZIPFileLocator('/vistrails/examples/spx.vt'))[0]
-#    db_locator = DBLocator('vistrails.sci.utah.edu', 3306,
-#                           'vistrails', 'vistrails', '8edLj4',
-#                           obj_id=9, obj_type='vistrail')
-    # vistrail = load_vistrail(db_locator)[0]
-    c = Collection('/home/tommy/git/vistrails/vistrails/core/collection/test.db')
-    c.clear()
-    c.update_from_directory('/home/tommy/git/vistrails/examples')
-#    c.update_from_database(db_locator)
-
-    # entity = c.create_vistrail_entity(vistrail)
-    c.entities = {}
-    c.load_entities()
-#    print c.entities[2].url
-#    locator = BaseLocator.from_url(c.entities[2].url)
-#    c.entities[1].description = 'blah blah blah'
-#    c.save_entity(c.entities[1])
-#    print locator.to_url()
-    # c.load_entities()
-
-#    print BaseLocator.from_url('/vistrails/examples/spx.xml').to_url()
-
-if __name__ == '__main__':
-    main()

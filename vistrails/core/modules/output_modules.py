@@ -1,23 +1,65 @@
-import ast
-import copy
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+##############################################################################
+
+from __future__ import division
+
+from copy import copy
 import os
 import sys
 import unittest
+import warnings
 
-from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, ConfigURL, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
+from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
-from vistrails.core.modules.config import IPort, OPort, ModuleSettings
+from vistrails.core.modules.config import IPort, ModuleSettings
 import vistrails.core.system
 
 class OutputMode(object):
     mode_type = None
-    priority = -1
+    priority = -1  # -1 prevents the mode from being selected automatically
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         return False
 
-    def compute_output(self, output_module, configuration=None):
+    @classmethod
+    def get_config(cls):
+        return cls.config_cls
+
+    def compute_output(self, output_module, configuration):
         raise NotImplementedError("Subclass of OutputMode should implement "
                                   "this")
 
@@ -81,10 +123,6 @@ class OutputModeConfig(dict):
         fields = field_dict.values()
         fields.sort()
         return fields
-
-    @classmethod
-    def get_local_fields(cls):
-        return sorted(cls._fields)
 
     @classmethod
     def get_default(cls, k):
@@ -176,13 +214,15 @@ class OutputModule(NotCacheable, Module):
     @classmethod
     def ensure_mode_dict(cls):
         if '_output_modes_dict' not in cls.__dict__:
+            cls._output_modes_dict = {}
             if '_output_modes' in cls.__dict__:
-                cls._output_modes_dict = \
-                                dict((mcls.mode_type, (mcls, mcls.priority))
-                                     for mcls in cls._output_modes)
-            else:
-                cls._output_modes_dict = {}
-            
+                for mcls in cls._output_modes:
+                    if isinstance(mcls, tuple):
+                        mcls, prio = mcls
+                    else:
+                        prio = mcls.priority
+                    cls._output_modes_dict[mcls.mode_type] = mcls, prio
+
     @classmethod
     def register_output_mode(cls, mode_cls, priority=None):
         if mode_cls.mode_type is None:
@@ -230,9 +270,15 @@ class OutputModule(NotCacheable, Module):
         mode_dict = {}
         for c in reversed(cls_list):
             mode_dict.update(c._output_modes_dict)
-        mode_list = [c for c, _ in reversed(sorted(mode_dict.itervalues(), 
-                                                   key=lambda x: x[1]))]
-        return mode_list
+
+        # Iterator over (mode_cls, priority)
+        modes = mode_dict.itervalues()
+        # Drop if priority < 0
+        modes = ((c, p) for (c, p) in modes if p >= 0)
+        # Sort by descending priority
+        modes = sorted(modes, key=lambda x: -x[1])
+        # Build list of mode_cls (drop priority)
+        return [c for c, _ in modes]
 
     @classmethod
     def get_mode_tree(cls):
@@ -249,8 +295,8 @@ class OutputModule(NotCacheable, Module):
         for c in reversed(cls_list):
             c.ensure_mode_dict()
 
-    def get_mode_config(self, mode_cls):
-        mode_config_cls = mode_cls.config_cls
+    def get_mode_config(self, mode):
+        mode_config_cls = mode.get_config()
         mode_config_dict = {}
         configuration = self.force_get_input('configuration')
         if configuration is not None:
@@ -296,22 +342,22 @@ class OutputModule(NotCacheable, Module):
             raise ModuleError(self, "No output mode is valid, output cannot "
                               "be generated")
 
-        mode_config = self.get_mode_config(mode_cls)
         mode = mode_cls()
+        mode_config = self.get_mode_config(mode)
         self.annotate({"output_mode": mode.mode_type})
         mode.compute_output(self, mode_config)
-                
+
 class StdoutModeConfig(OutputModeConfig):
     mode_type = "stdout"
     _fields = []
 
 class StdoutMode(OutputMode):
     mode_type = "stdout"
-    priority = 2
+    priority = 200
     config_cls = StdoutModeConfig
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         return True
 
 class FileModeConfig(OutputModeConfig):
@@ -325,20 +371,40 @@ class FileModeConfig(OutputModeConfig):
                ConfigField('overwrite', True, bool),
                ConfigField('seriesPadding', 3, int),
                ConfigField('seriesStart', 0, int),
-               ConfigField('format', None, str)]
+               ConfigField('format', None, str, widget_type='combo')]
 
 class FileMode(OutputMode):
     mode_type = "file"
-    priority = 1
+    priority = 100
     config_cls = FileModeConfig
     formats = []
     
-    # need to reset this after each execution!
+    # TODO: need to reset this after each execution!
     series_next = 0
 
-    @classmethod
-    def can_compute(cls):
+    @staticmethod
+    def can_compute():
         return True
+
+    @classmethod
+    def get_config(cls):
+        if '_config_cls_with_formats' in cls.__dict__:
+            return cls.__dict__['_config_cls_with_formats']
+        else:
+            dct = {}
+            orig_config_cls = super(FileMode, cls).get_config()
+            format_field = orig_config_cls.get_field('format')
+            if format_field.widget_type == 'combo':
+                format_field = copy(format_field)
+                opts = dict(format_field.widget_options)
+                opts['allowed_values'] = cls.get_formats()
+                format_field.widget_options = opts
+                dct['_fields'] = [format_field]
+            config_cls = type('%s_WithFormats' % orig_config_cls.__name__,
+                              (orig_config_cls,),
+                              dct)
+            cls._config_cls_with_formats = config_cls
+            return config_cls
 
     @classmethod
     def get_formats(cls):
@@ -450,11 +516,15 @@ class FileMode(OutputMode):
                 raise IOError('File "%s" exists and overwrite is False' % full_path)
 
         return full_path
-        
+
 class FileToFileMode(FileMode):
-    def compute_output(self, output_module, configuration=None):
+    default_file_extension = None
+
+    def compute_output(self, output_module, configuration):
         old_fname = output_module.get_input('value').name
-        full_path = self.get_filename(configuration)
+        full_path = self.get_filename(configuration,
+                                      suffix=(os.path.splitext(old_fname)[1] or
+                                              self.default_file_extension))
         # we know we are in overwrite mode because it would have been
         # flagged otherwise
         if os.path.exists(full_path):
@@ -471,19 +541,19 @@ class FileToFileMode(FileMode):
             raise ModuleError(output_module, msg)
 
 class FileToStdoutMode(StdoutMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         fname = output_module.get_input('value').name
         with open(fname, 'r') as f:
             for line in f:
                 sys.stdout.write(line)
 
 class GenericToStdoutMode(StdoutMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
         print >>sys.stdout, value
 
 class GenericToFileMode(FileMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
         filename = self.get_filename(configuration)
         with open(filename, 'w') as f:
@@ -495,25 +565,83 @@ class GenericOutput(OutputModule):
 
 class FileOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
-    # should set file as a higher priority here...
     _input_ports = [('value', 'File')]
-    _output_modes = [FileToStdoutMode, FileToFileMode]
+    # Stdout is low priority, probably a bad plan
+    _output_modes = [(FileToStdoutMode, 50), (FileToFileMode, 200)]
 
 class ImageFileModeConfig(FileModeConfig):
-    mode_type = "imageFile"
+    mode_type = "file"
     _fields = [ConfigField('width', 800, int),
                ConfigField('height', 600, int)]
 
 class ImageFileMode(FileMode):
     config_cls = ImageFileModeConfig
-    mode_type = "imageFile"
+    mode_type = "file"
 
-class RichTextOutput(OutputModule):
+class ImageOutput(FileOutput):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
-    # need specific spreadsheet richtext mode here
-    pass
+    _input_ports = [('value', 'File')]
+    # FileToStdoutMode is disabled, since it's definitely binary
+    _output_modes = [FileToFileMode, (FileToStdoutMode, -1)]
 
-_modules = [OutputModule, GenericOutput, FileOutput]
+class IPythonModeConfig(OutputModeConfig):
+    mode_type = "ipython"
+    _fields = []
+
+class IPythonMode(OutputMode):
+    mode_type = "ipython"
+    priority = 400
+    config_cls = IPythonModeConfig
+
+    # Set this to enable/disable notebook integration
+    notebook_override = None
+
+    @classmethod
+    def can_compute(cls):
+        if cls.notebook_override is not None:
+            return cls.notebook_override
+        try:
+            import IPython.core.display
+            from IPython import get_ipython
+            from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
+        except ImportError:
+            return False
+        else:
+            ip = get_ipython()
+            if ip is None or not isinstance(ip, ZMQInteractiveShell):
+                return False
+            warnings.warn("Looks like we're running from the notebook; "
+                          "automatically enabling IPythonMode.\n"
+                          "If this is right, please call "
+                          "vistrails.ipython_mode(True) so that this keeps "
+                          "working in the future (and this warning doesn't "
+                          "show).")
+            return True
+
+    def compute_output(self, output_module, configuration):
+        from IPython.core.display import display
+
+        value = output_module.get_input('value')
+        display(value)
+
+class IPythonHtmlMode(IPythonMode):
+    mode_type = "ipython"
+
+    def compute_output(self, output_module, configuration):
+        from IPython.core.display import display, HTML
+
+        value = output_module.get_input('value')
+        display(HTML(filename=value.name))
+
+class HtmlToFileMode(FileToFileMode):
+    default_file_extension = '.html'
+
+class RichTextOutput(FileOutput):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _input_ports = [('value', 'File')]
+    _output_modes = [HtmlToFileMode, (FileToStdoutMode, 50), IPythonHtmlMode]
+
+_modules = [OutputModule, GenericOutput, FileOutput, ImageOutput, RichTextOutput]
 
 # need to put WebOutput, ImageOutput, RichTextOutput, SVGOutput, etc. elsewhere
 

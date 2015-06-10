@@ -1,51 +1,52 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """ Wrapper for Hadoop Streaming to use with Python mapper/reducer,
 cache files, etc...  """
 
-import copy
-from vistrails.core.interpreter.job import JobMixin, JobMonitor
-from vistrails.core.modules.basic_modules import File, String
-from vistrails.core.modules.config import IPort, OPort
-from vistrails.core.modules.vistrails_module import NotCacheable, ModuleError
-from base import HadoopBaseModule
-from remoteq.core.stack import select_machine, end_machine, use_machine, \
-                                                                current_machine
-from remoteq.batch.commandline import Subshell
+from __future__ import division
 
 import os.path
+
+from vistrails.core.modules.basic_modules import File, String
+from vistrails.core.modules.config import IPort, OPort, ModuleSettings
+from vistrails.core.modules.vistrails_module import ModuleError
+from base import HadoopBaseModule
+from remoteq.core.stack import use_machine
+from remoteq.batch.commandline import Subshell
+
 ################################################################################
 class HadoopStreaming(HadoopBaseModule):
     """
@@ -53,6 +54,7 @@ class HadoopStreaming(HadoopBaseModule):
     customized Python Mapper/Reducer/Combiner
     
     """
+    _settings = ModuleSettings(namespace='hadoop')
     _input_ports = [IPort('Mapper',       File),
                     IPort('Reducer',      File),
                     IPort('Combiner',     File),
@@ -73,7 +75,7 @@ class HadoopStreaming(HadoopBaseModule):
         self.job = None
         self.job_machine = None
 
-    def readInputs(self):
+    def job_read_inputs(self):
         p = {}
         self.localMapper = self.force_get_input('Mapper')
         self.localReducer = self.force_get_input('Reducer')
@@ -82,7 +84,7 @@ class HadoopStreaming(HadoopBaseModule):
         if p['workdir']==None:
             p['workdir'] = ".vistrails-hadoop"
         p['job_identifier'] = self.force_get_input('Identifier')
-        if p['job_identifier'] == None:
+        if p['job_identifier'] is None:
             raise ModuleError(self, 'Job Identifier is required')
         p['input'] = self.force_get_input('Input')
         p['output'] = self.force_get_input('Output')
@@ -100,7 +102,7 @@ class HadoopStreaming(HadoopBaseModule):
                             working_directory=p['workdir'],
                             identifier=p['job_identifier'])
 
-    def startJob(self, p):
+    def job_start(self, p):
         self.createJob(p)
         if not self.job_machine.remote.isdir(p['workdir']):
             self.job_machine.remote.mkdir(p['workdir'])
@@ -165,12 +167,12 @@ class HadoopStreaming(HadoopBaseModule):
                                   p['job_identifier'], self.job_machine)
         return p
 
-    def getMonitor(self, p):
+    def job_get_handle(self, p):
         if not self.job:
             self.createJob(p)
         return self.job
 
-    def finishJob(self, p):
+    def job_finish(self, p):
         r = {}
         r['output'] = p['output']
         r['workdir'] = p['workdir']
@@ -182,7 +184,7 @@ class HadoopStreaming(HadoopBaseModule):
             raise ModuleError(self, error)
         return r
 
-    def setResults(self, p):
+    def job_set_results(self, p):
         self.set_output('Output', p['output'])
         self.set_output('Machine', self.job_machine)
 
@@ -205,6 +207,7 @@ class URICreator(HadoopBaseModule):
     The class for caching HDFS file onto the TaskNode local drive
     
     """
+    _settings = ModuleSettings(namespace='hadoop')
     _input_ports = [IPort('HDFS File/URI', String),
                     IPort('Symlink',       String),
                     IPort('Machine',        
@@ -216,7 +219,7 @@ class URICreator(HadoopBaseModule):
 
     def compute(self):
         machine = self.get_machine()
-        jm = JobMonitor.getInstance()
+        jm = self.job_monitor()
         id = self.signature
         job = jm.getCache(id)
         if not job:
@@ -230,7 +233,7 @@ class URICreator(HadoopBaseModule):
             uri += '#' + symlink
             d = {'uri':uri}
             self.set_job_machine(d, machine)
-            jm.setCache(id, d, self.getName())
+            jm.setCache(id, d, self.job_name())
             job = jm.getCache(id)
         self.set_output('URI', job.parameters['uri'])
         self.set_output('Machine', machine)

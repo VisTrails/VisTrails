@@ -1,40 +1,43 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """ This common widgets using on the interface of VisTrails. These are
 only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
+from __future__ import division
+
 import os
 
 from PyQt4 import QtCore, QtGui
@@ -479,46 +482,7 @@ class QStringEdit(QtGui.QFrame):
                                                      '(*.*)')
         if fileName:
             self.setText(fileName)
-        
-###############################################################################
 
-class MultiLineWidget(StandardConstantWidget):
-    def __init__(self, contents, contentType, parent=None):
-        """__init__(contents: str, contentType: str, parent: QWidget) ->
-                                             StandardConstantWidget
-        Initialize the line edit with its contents. Content type is limited
-        to 'int', 'float', and 'string'
-        
-        """
-        StandardConstantWidget.__init__(self, parent)
-
-    def update_parent(self):
-        pass
-     
-    def keyPressEvent(self, event):
-        """ keyPressEvent(event) -> None       
-        If this is a string line edit, we can use Ctrl+Enter to enter
-        the file name
-
-        """
-        k = event.key()
-        s = event.modifiers()
-        if ((k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return) and
-            s & QtCore.Qt.ShiftModifier):
-            event.accept()
-            if self.contentIsString and self.multiLines:
-                fileNames = QtGui.QFileDialog.getOpenFileNames(self,
-                                                               'Use Filename '
-                                                               'as Value...',
-                                                               self.text(),
-                                                               'All files '
-                                                               '(*.*)')
-                fileName = fileNames.join(',')
-                if fileName:
-                    self.setText(fileName)
-                    return
-        QtGui.QLineEdit.keyPressEvent(self,event)
-        
 ###############################################################################
 
 class QSearchEditBox(QtGui.QComboBox):
@@ -713,101 +677,6 @@ class QSearchBox(QtGui.QWidget):
         self.manualResetEnabled = boolVal
         self.resetButton.setEnabled((self.getCurrentText() != '') or
                                     self.manualResetEnabled)
-
-###############################################################################
-
-class QTabBarDetachButton(QtGui.QAbstractButton):
-    """QTabBarDetachButton is a special button to be added to a tab
-    
-    """
-    def __init__(self, parent):
-        QtGui.QAbstractButton.__init__(self)
-        self.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.setCursor(QtCore.Qt.ArrowCursor)
-        self.setToolTip("Detach Tab")
-        self.setIcon(CurrentTheme.DETACH_TAB_ICON)
-        self.activePixmap = self.icon().pixmap(self.sizeHint(),
-                                               mode=QtGui.QIcon.Active)
-        self.normalPixmap = self.icon().pixmap(self.sizeHint(),
-                                               mode=QtGui.QIcon.Normal)
-        
-        self.resize(self.sizeHint())
-        
-    def sizeHint(self):
-        self.ensurePolished()
-        size = QtCore.QSize()
-        if not self.icon().isNull():
-            iconSize = self.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize, 
-                                                None, self)
-            sz = self.icon().actualSize(QtCore.QSize(iconSize, iconSize))
-            size = max(sz.width(), sz.height())
-        
-        return QtCore.QSize(size, size)
-    
-    def enterEvent(self, event):
-        if self.isEnabled():
-            icon = QtGui.QIcon(self.activePixmap)
-            self.setIcon(icon)
-            self.update()
-        else:
-            icon = QtGui.QIcon(self.normalPixmap)
-            self.setIcon(icon)
-        QtGui.QAbstractButton.enterEvent(self, event)
-        
-    def leaveEvent(self, event):
-        icon = QtGui.QIcon(self.normalPixmap)
-        self.setIcon(icon)
-        if self.isEnabled():
-            self.update()
-        QtGui.QAbstractButton.leaveEvent(self, event)
-        
-    def closePosition(self):
-        tb = self.parent()
-        if isinstance(tb, QtGui.QTabBar):
-            close_position = self.style().styleHint(QtGui.QStyle.SH_TabBar_CloseButtonPosition,
-                                                  None, tb)
-            return close_position
-        return -1
-    
-    def otherPosition(self):
-        tb = self.parent()
-        if isinstance(tb, QtGui.QTabBar):
-            close_position = self.closePosition()
-            if close_position == QtGui.QTabBar.LeftSide:
-                position = QtGui.QTabBar.RightSide
-            else:
-                position = QtGui.QTabBar.LeftSide
-            return position
-        return -1
-            
-    def paintEvent(self, event):
-        p = QtGui.QPainter(self)
-        opt = QtGui.QStyleOptionToolButton()
-        opt.init(self)
-        opt.state |= QtGui.QStyle.State_AutoRaise
-        if (self.isEnabled() and self.underMouse() and 
-            not self.isChecked() and not self.isDown()):
-            opt.state |= QtGui.QStyle.State_Raised
-        if self.isChecked():
-            opt.state |= QtGui.QStyle.State_On
-        if self.isDown():
-            opt.state |= QtGui.QStyle.State_Sunken
-        tb = self.parent()
-        if isinstance(tb, QtGui.QTabBar):
-            index = tb.currentIndex()
-            position = self.otherPosition()
-            if tb.tabButton(index, position) == self:
-                opt.state |= QtGui.QStyle.State_Selected
-            opt.icon = self.icon()
-            opt.subControls = QtGui.QStyle.SC_None
-            opt.activeSubControls = QtGui.QStyle.SC_None
-            opt.features = QtGui.QStyleOptionToolButton.None
-            opt.arrowType = QtCore.Qt.NoArrow
-            size = self.style().pixelMetric(QtGui.QStyle.PM_SmallIconSize, 
-                                                None, self)
-            opt.iconSize = QtCore.QSize(size,size)
-            self.style().drawComplexControl(QtGui.QStyle.CC_ToolButton, opt, p, 
-                                            self)
 
 ###############################################################################
 

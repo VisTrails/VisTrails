@@ -1,46 +1,45 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import copy
+from __future__ import division
+
 import os
-import shutil
 import sys
-import tempfile
 import weakref
 import warnings
 
-from vistrails.core import command_line
 from vistrails.core import debug
 from vistrails.core import keychain
 from vistrails.core import system
@@ -54,10 +53,9 @@ import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.packagemanager import PackageManager
-from vistrails.core.startup import VistrailsStartup, StartupPackage
+from vistrails.core.startup import VistrailsStartup
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.utils import InstanceObject, VistrailsWarning
-from vistrails.core.utils.uxml import enter_named_element
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.controller import VistrailController
@@ -72,7 +70,6 @@ def finalize_vistrails(app):
     vistrails.core.interpreter.cached.CachedInterpreter.cleanup()
 
 def get_vistrails_application():
-    global VistrailsApplication
     if VistrailsApplication is not None:
         return VistrailsApplication()
     return None
@@ -96,214 +93,21 @@ class VistrailsApplicationInterface(object):
         self._initialized = False
         self.notifications = {}
 
-    def setup_options(self, args=[]):
-        """ setup_options() -> None
-        Check and store all command-line arguments
-        
-        """
-        pass
-
-#         add = command_line.CommandLineParser.add_option
-#         add("-S", "--startup", action="store", type="str", default=None,
-#             dest="dotVistrails",
-#             help="Set startup file (default is ~/.vistrails)")
-#         add("-?", action="help",
-#             help="show this help message and exit")
-#         add("-v", "--version", action="callback",
-#             callback=lambda option, opt, value, parser: self.printVersion(),
-#             help="print version information and quit")
-#         add("-V", "--verbose", action="store", type="int", default=None,
-#             dest="verbose", help="set verboseness level (0--2, "
-#             "default=0, higher means more verbose)")
-#         add("-n", "--nosplash", action="store_false",
-#             default = None,
-#             help="don't display splash on startup")
-#         add("-c", "--cache", action="store", type="int", default=None,
-#             dest="cache", help="enable/disable caching")
-#         add("-m", "--movies", action="store", type="int", default=None,
-#             dest="movies", help="set automatic movie creation on spreadsheet "
-#             "(0 or 1, default=1. Set this to zero to work around vtk bug with "
-#             "offscreen renderer and opengl texture3d mappers)")
-#         add("-s", "--multiheads", action="store_true",
-#             default = None,
-#             help="display the builder and spreadsheet on different screens "
-#             "(if available)")
-#         add("-x", "--maximized", action="store_true",
-#             default = None,
-#             help="Maximize VisTrails windows at startup")
-#         add("-b", "--noninteractive", action="store_true",
-#             default = None,
-#             help="run in non-interactive mode")
-#         add("-e", "--dumpcells", action="store", dest="dumpcells",
-#             default = None,
-#             help="when running in non-interactive mode, directory to dump "
-#             "spreadsheet cells before exiting")
-#         add("-p", "--pdf", action="store_true",
-#             default = None,
-#             help="dump files in pdf format (non-interactive mode only)")
-#         add("-l", "--nologger", action="store_true",
-#             default = None,
-#             help="disable the logging")
-#         add('--no-logfile', action='store_true',
-#             dest='nologfile',
-#             default=None,
-#             help="Disable the log file (output still happens in terminal)")
-#         add("-d", "--debugsignals", action="store_true",
-#             default = None,
-#             help="debug Qt Signals")
-#         add("-a", "--parameters", action="store", dest="parameters",
-#             help="workflow parameter settings (non-interactive mode only)")
-#         add("-t", "--host", action="store", dest="host",
-#             help="hostname or ip address of database server")
-#         add("-r", "--port", action="store", type="int", default=3306,
-#             dest="port", help="database port")
-#         add("-f", "--db", action="store", dest="db",
-#             help="database name")
-#         add("-u", "--user", action="store", dest="user",
-#             help="database username")
-#         add("-i", "--showspreadsheetonly", action="store_true",
-#             default = None,
-#             help="only the spreadsheet will be shown. This implies -w was given.\
-# The builder window can be accessed by a spreadsheet menu option.")
-#         add("-w", "--executeworkflows", action="store_true",
-#             default = None,
-#             help="The workflows will be executed")
-#         add("-F", "--fixedcells", action="store_true",
-#             default = None,
-#             help="Use a fixed spreadsheet cell size of 200*180")
-#         add("-I", "--workflowinfo", action="store",
-#             default = None,
-#             help=("Save workflow graph and spec in specified directory "
-#                   "(only valid in console mode)."))
-#         add("-E", "--reviewmode", action="store_true",
-#             default = None,
-#             help="Show the spreadsheet in the reviewing mode")
-#         add("-q", "--quickstart", action="store",
-#             help="Start VisTrails using the specified static registry")
-#         add("-D", "--detachHistoryView", action="store_true",
-#             help="Detach the history view from the builder windows")
-#         add("-P", "--parameterExploration", action="store_true",
-#             help="Execute Parameter Exploration")
-#         add("-G", "--workflowgraph", action="store",
-#             default = None,
-#             help=("Save workflow graph in specified directory without running "
-#                   "the workflow (only valid in console mode)."))
-#         add("-U", "--evolutiongraph", action="store",
-#             default = None,
-#             help=("Save evolution graph in specified directory without running "
-#                   "any workflow (only valid in console mode)."))
-#         add("-g", "--noSingleInstance", action="store_true",
-#             help=("Run VisTrails without the single instance restriction."))
-#         add("--no-bundleinstall", action='store_false',
-#             dest='installBundles',
-#             help=("Do not try to install missing Python packages "
-#                   "automatically"))
-#         add("--runJob", action="store",
-#             help=("Run job with specified id."))
-#         add("--listJobs", action="store_true",
-#             help=("List all jobs."))
-#         add('--spawned-mode', '--spawned', action='store_true',
-#             dest='spawned',
-#             help=("Do not use the .vistrails directory, and load packages "
-#                   "automatically when needed"))
-#
-#         if args != None:
-#             command_line.CommandLineParser.parse_options(args=args)
-#         else:
-#             command_line.CommandLineParser.parse_options()
-
-    def printVersion(self):
-        """ printVersion() -> None
-        Print version of Vistrail and exit
-        
-        """
-        print system.about_string()
-        sys.exit(0)
-
-    def read_options(self):
+    def read_options(self, args=None):
         """ read_options() -> None
         Read arguments from the command line
         
         """
-        
+        if args is None:
+            args = sys.argv[1:]
+
         parser = vistrails.core.configuration.build_default_parser()
         command_line_config = vistrails.core.configuration.ConfigurationObject()
         try:
-            parser.parse_args(sys.argv[1:], namespace=command_line_config)
-        except SystemError, e:
+            parser.parse_args(args, namespace=command_line_config)
+        except SystemError:
             print "GOT SYSTEM ERROR!"
-            import traceback
-            traceback.print_exc()
-        # get = command_line.CommandLineParser().get_option
-        # if get('nosplash')!=None:
-        #     command_line_config.showSplash = bool(get('nosplash'))
-        # # if get('debugsignals')!=None:
-        # #     command_line_config.debugSignals = bool(get('debugsignals'))
-        # if get('dotVistrails')!=None:
-        #     command_line_config.dotVistrails = get('dotVistrails')
-        # if get('multiheads')!=None:
-        #     command_line_config.multiHeads = bool(get('multiheads'))
-        # if get('maximized')!=None:
-        #     command_line_config.maximizeWindows = bool(get('maximized'))
-        # if get('movies')!=None:
-        #     command_line_config.showMovies = bool(get('movies'))
-        # if get('cache')!=None:
-        #     command_line_config.useCache = bool(get('cache'))
-        # if get('verbose')!=None:
-        #     command_line_config.verbosenessLevel = get('verbose')
-        # if get('fixedcells') != None:
-        #     command_line_config.fixedSpreadsheetCells = str(get('fixedcells'))
-        # if get('noninteractive')!=None:
-        #     command_line_config.interactiveMode = \
-        #                                           not bool(get('noninteractive'))
-        #     if get('workflowinfo') != None:
-        #         command_line_config.workflowInfo = str(get('workflowinfo'))
-        #     if get('dumpcells') != None:
-        #         command_line_config.spreadsheetDumpCells = get('dumpcells')
-        #     if get('pdf') != None:
-        #         command_line_config.spreadsheetDumpPDF = get('pdf')
-        #     if get('workflowgraph') != None:
-        #         command_line_config.workflowGraph = str(get('workflowgraph'))
-        #     if get('evolutiongraph') != None:
-        #         command_line_config.evolutionGraph = str(get('evolutiongraph'))
-        # if get('executeworkflows') != None:
-        #     command_line_config.executeWorkflows = \
-        #                                     bool(get('executeworkflows'))
-        # if get('showspreadsheetonly') != None:
-        #     command_line_config.showSpreadsheetOnly = \
-        #                                     bool(get('showspreadsheetonly'))
-        #     # asking to show only the spreadsheet will force the workflows to
-        #     # be executed
-        #     if get('reviewmode') != None:
-        #         command_line_config.reviewMode = bool(get('reviewmode'))
-
-        #     if command_line_config.showSpreadsheetOnly and not command_line_config.reviewMode:
-        #         command_line_config.execute = True
-            
-        # self.temp_db_options = InstanceObject(host=get('host'),
-        #                                          port=get('port'),
-        #                                          db=get('db'),
-        #                                          user=get('user'),
-        #                                          parameters=get('parameters')
-        #                                          )
-        # if get('nologger')!=None:
-        #     command_line_config.nologger = bool(get('nologger'))
-        # if get('quickstart') != None:
-        #     command_line_config.staticRegistry = str(get('quickstart'))
-        # if get('parameterExploration')!= None:
-        #     command_line_config.parameterExploration = \
-        #         str(get('parameterExploration'))
-        # if get('detachHistoryView')!= None:
-        #     command_line_config.detachHistoryView = bool(get('detachHistoryView'))
-        # if get('noSingleInstance')!=None:
-        #     command_line_config.singleInstance = not bool(get('noSingleInstance'))
-        # if get('installBundles')!=None:
-        #     command_line_config.installBundles = bool(get('installBundles'))
-        # if get('runJob')!=None:
-        #     self.temp_configuration.jobRun = get('runJob')
-        # if get('listJobs')!=None:
-        #     self.temp_configuration.jobList = bool(get('listJobs'))
-        # self.input = command_line.CommandLineParser().positional_arguments()
+            debug.print_exc()
 
         self.input = command_line_config.vistrails
         if len(self.input) == 0:
@@ -337,8 +141,6 @@ class VistrailsApplicationInterface(object):
         """
         warnings.simplefilter('once', VistrailsWarning, append=True)
 
-        self.setup_options(args)
-
         # options_dict overrides startup configuration
         if options_dict is not None:
             options_config = ConfigurationObject(**options_dict)
@@ -346,7 +148,7 @@ class VistrailsApplicationInterface(object):
             options_config = None
 
         # command line options override both
-        command_line_config = self.read_options()
+        command_line_config = self.read_options(args)
 
         # startup takes care of all configurations
         self.startup = VistrailsStartup(options_config, command_line_config)
@@ -356,16 +158,6 @@ class VistrailsApplicationInterface(object):
             self.temp_configuration)
 
         # now we want to open vistrails and point to a specific version
-        # we will store the version in temp options as it doesn't
-        # need to be persistent. We will do the same to database
-        # information passed in the command line
-        self.temp_db_options = InstanceObject(host=None,
-                                           port=None,
-                                           db=None,
-                                           user=None,
-                                           vt_id=None,
-                                           parameters=None
-                                           ) 
 
         self.check_all_requirements()
 
@@ -385,14 +177,6 @@ class VistrailsApplicationInterface(object):
                 'linux-ubuntu': 'python-scipy',
                 'linux-fedora': 'scipy',
                 'pip': 'scipy'})
-
-    def get_python_environment(self):
-        """get_python_environment(): returns an environment that includes
-        local definitions from startup.py. Should only be called after
-        self.init()
-
-        """
-        return self._python_environment
 
     def destroy(self):
         """ destroy() -> None
@@ -435,13 +219,13 @@ class VistrailsApplicationInterface(object):
                     name = str(data[0])
                 # will try to convert version to int
                 # if it fails, it's a tag name
+                #maybe a tag name contains ':' in its name
+                #so we need to bring it back together
+                rest = ":".join(data[1:])
                 try:
-                    #maybe a tag name contains ':' in its name
-                    #so we need to bring it back together
-                    rest = ":".join(data[1:])
                     version = int(rest)
                 except ValueError:
-                    version = str(rest)
+                    version = rest
             elif len(data) == 1:
                 if use_filename and os.path.isfile(str(data[0])):
                     name = str(data[0])
@@ -452,7 +236,7 @@ class VistrailsApplicationInterface(object):
     def process_interactive_input(self):
         pe = None
         usedb = False
-        if self.temp_db_options.host:
+        if self.temp_configuration.check('host'):
             usedb = True
         if self.input:
             #check if versions are embedded in the filename
@@ -468,14 +252,15 @@ class VistrailsApplicationInterface(object):
                     # it can be either a FileLocator or a DBLocator
                     
                 elif usedb:
-                    locator = DBLocator(host=self.temp_db_options.host,
-                                        port=self.temp_db_options.port,
-                                        database=self.temp_db_options.db,
-                                        user='',
-                                        passwd='',
-                                        obj_id=f_name,
-                                        obj_type=None,
-                                        connection_id=None)
+                    locator = DBLocator(
+                           host=self.temp_configuration.check('host'),
+                           port=self.temp_configuration.check('port') or 3306,
+                           database=self.temp_configuration.check('db'),
+                           user='',
+                           passwd='',
+                           obj_id=f_name,
+                           obj_type=None,
+                           connection_id=None)
                 if locator:
                     if self.temp_configuration.check('parameterExploration'):
                         pe = version
@@ -489,7 +274,7 @@ class VistrailsApplicationInterface(object):
                             # version number
                             if locator._vtag != '':
                                 version = locator._vtag
-                    execute = self.temp_configuration.execute
+                    execute = self.temp_configuration.check('execute')
                     mashuptrail = None
                     mashupversion = None
                     if hasattr(locator, '_mshptrail'):
@@ -554,9 +339,9 @@ class VistrailsApplicationInterface(object):
                     #print "  m: ", m
                     m(*args)
                 except Exception, e:
-                    import traceback
-                    traceback.print_exc()
-       
+                    debug.unexpected_exception(e)
+                    debug.print_exc()
+
     def showBuilderWindow(self):
         pass
  
@@ -574,7 +359,7 @@ class VistrailsApplicationInterface(object):
         """
         raise NotImplementedError("Subclass must implement ensure_vistrail")
 
-    def select_version(self, version=None):
+    def select_version(self, version):
         """select_version changes the version of the currently open vistrail
         to the specified version.
 
@@ -620,11 +405,11 @@ class VistrailsApplicationInterface(object):
         if controller is None:
             # vistrail is not already open
             try:
-                loaded_objs = vistrails.core.db.io.load_vistrail(locator, False)
+                loaded_objs = vistrails.core.db.io.load_vistrail(locator, is_abstraction)
                 controller = self.add_vistrail(loaded_objs[0], locator, 
                                                *loaded_objs[1:])
                 if locator.is_untitled():
-                    return True
+                    return controller
                 controller.is_abstraction = is_abstraction
                 thumb_cache = ThumbnailCache.getInstance()
                 controller.vistrail.thumbnails = controller.find_thumbnails(
@@ -639,57 +424,48 @@ class VistrailsApplicationInterface(object):
                 if not controller.is_abstraction:
                     collection.add_to_workspace(entity)
                 collection.commit()
-            except VistrailsDBException, e:
-                import traceback
-                debug.critical("Exception from the database",
-                               traceback.format_exc())
+            except VistrailsDBException as e:
+                debug.unexpected_exception(e)
+                debug.critical("Exception from the database: %s" % e,
+                               debug.format_exc())
                 return None
-            except Exception, e:
-                #debug.critical('An error has occurred', e)
-                #print "An error has occurred", str(e)
-                raise
 
         version = self.convert_version(version)
         if version is None:
             controller.select_latest_version()
             version = controller.current_version
         self.select_version(version)
-        return True
-        
+        return controller
+
     def open_workflow(self, locator):
         if isinstance(locator, basestring):
             locator = BaseLocator.from_url(locator)
 
-        vistrail = Vistrail()
+        new_locator = UntitledLocator()
+        controller = self.open_vistrail(new_locator)
         try:
             if locator is None:
                 return False
-            if locator is not None:
-                workflow = locator.load(Pipeline)
-                action_list = []
-                for module in workflow.module_list:
-                    action_list.append(('add', module))
-                for connection in workflow.connection_list:
-                    action_list.append(('add', connection))
-                action = vistrails.core.db.action.create_action(action_list)
-                vistrail.add_action(action, 0L)
-                vistrail.update_id_scope()
-                vistrail.addTag("Imported workflow", action.id)
-
-                # FIXME might need different locator?                
-                controller = self.add_vistrail(vistrail, locator)
-        except VistrailsDBException, e:
-            import traceback
-            debug.critical("Exception from the database",
-                           traceback.format_exc())
+            workflow = locator.load(Pipeline)
+            action_list = []
+            for module in workflow.module_list:
+                action_list.append(('add', module))
+            for connection in workflow.connection_list:
+                action_list.append(('add', connection))
+            action = vistrails.core.db.action.create_action(action_list)
+            controller.add_new_action(action)
+            controller.perform_action(action)
+            controller.vistrail.set_tag(action.id, "Imported workflow")
+            controller.change_selected_version(action.id)
+        except VistrailsDBException as e:
+            debug.unexpected_exception(e)
+            debug.critical("Exception from the database: %s" % e,
+                           debug.format_exc())
             return None
-        except Exception, e:
-            #debug.critical('An error has occurred', e)
-            raise
 
         controller.select_latest_version()
         controller.set_changed(True)
-        return True
+        return controller
 
     def save_vistrail(self, locator=None, controller=None, export=False):
         if controller is None:
@@ -710,8 +486,7 @@ class VistrailsApplicationInterface(object):
             controller.write_vistrail(locator, export=export)
         except Exception, e:
             debug.unexpected_exception(e)
-            import traceback
-            debug.critical("Failed to save vistrail", traceback.format_exc())
+            debug.critical("Failed to save vistrail", debug.format_exc())
             raise
         if export:
             return controller.locator
@@ -733,8 +508,7 @@ class VistrailsApplicationInterface(object):
             collection.add_to_workspace(entity)
             collection.commit()
         except Exception, e:
-            import traceback
-            debug.critical('Failed to index vistrail', traceback.format_exc())
+            debug.critical('Failed to index vistrail', debug.format_exc())
         return controller.locator
 
     def close_vistrail(self, locator=None, controller=None):
@@ -760,7 +534,8 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
     def init(self, options_dict=None, args=[]):
         VistrailsApplicationInterface.init(self, options_dict=options_dict, 
                                            args=args)
-        self.package_manager.initialize_packages()
+        self.package_manager.initialize_packages(
+                report_missing_dependencies=not self.startup.first_run)
 
     def is_running_gui(self):
         return False
@@ -769,13 +544,14 @@ class VistrailsCoreApplication(VistrailsApplicationInterface):
         return self._cur_controller
     get_controller = get_current_controller
 
-    def add_vistrail(self, *objs):
-        (vistrail, locator, abstraction_files, thumbnail_files, mashups) = objs
+    def add_vistrail(self, vistrail, locator,
+            abstraction_files=None,  thumbnail_files=None, mashups=None):
+        objs = vistrail, locator, abstraction_files, thumbnail_files, mashups
         controller = VistrailController(*objs)
         self._controllers[locator] = controller
         self._cur_controller = controller
         return self._cur_controller
-        
+
     def remove_vistrail(self, locator=None):
         if locator is None and self._cur_controller is not None:
             locator = self._cur_controller.locator

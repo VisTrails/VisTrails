@@ -9,16 +9,20 @@
 # It uses py2app to build the bundle and
 # DMG Canvas - http://www.araelium.com/dmgcanvas/ to generate the dmg
 
+cd "$(dirname "$0")"
+
 if [ $# != 1 ]; then
 echo "Usage: make_app volname"
 exit 0
 fi
 VOL="$1"
 DMG="$VOL.dmg"
-ALPS_VERSION="2.2.b2-r7289"
+ALPS_VERSION="2.2.b3-r7568"
 ALPS_URL="http://archive.comp-phys.org/software/vistrails/"
 ALPS_FILE="alps-vistrails-${ALPS_VERSION}-macosx-10.6.tar.gz"
 echo "removing build and dist folders..."
+# Update release info from CHANGELOG
+../common/prepare_release.py
 rm -rf dist/ build/
 echo "removing old bundle..."
 rm -f ${DMG}
@@ -42,10 +46,9 @@ install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.dylib dist/
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.6.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5.6.dylib
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5_hl.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5_hl.dylib
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5_hl.6.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5_hl.6.dylib 
-echo "copying git executable..."
-cp Input/git dist/VisTrails.app/Contents/MacOS/
 echo "copying qt.conf..."
 cp Input/qt.conf dist/VisTrails.app/Contents/Resources/
+echo "copying plugins..."
 echo "copying plugins..."
 cp -r Input/plugins/* dist/VisTrails.app/Contents/MacOS
 if [ ! -e "Input/alps_libs/${ALPS_FILE}" ]
@@ -58,9 +61,9 @@ tar -xzf Input/alps_libs/${ALPS_FILE} -C dist/
 echo "copying example files..."
 cp -r ../../../examples dist/
 echo "copying README file..."
-cp Input/README dist/
+cp ../../../CHANGELOG dist/README
 echo "copying LICENSE file..."
-cp Input/LICENSE dist/
+cp ../../../LICENSE dist/
 echo "copying VisTrails.command file..."
 cp Input/VisTrails.command dist/
 echo "copying CLToolsWizard.command file..."
@@ -72,10 +75,12 @@ mkdir dist/scripts
 rsync -a ../.. dist/scripts/ --exclude dist
 echo "copying GDAL's resource files..."
 cp -r /Library/Frameworks/GDAL.framework/Versions/1.8/Resources/gdal dist/VisTrails.app/Contents/Frameworks/GDAL.framework/Versions/1.8/Resources/
-echo "Building User's Guide and adding it distribution"
-#make sure that build_usersguide is configured for this step
+echo "Downloading User's Guide and adding it distribution"
+
+#Tries to build the usersguide if sphinx and latex are available. Otherwise,
+#downloads it, so make sure that the online usersguide is updated
 mkdir dist/doc
-python ../../build_usersguide.py
+python ../../get_usersguide.py dist/doc/
 echo "packing everything inside the VisTrails folder..."
 mkdir dist/VisTrails
 mv dist/VisTrails.app dist/VisTrails/

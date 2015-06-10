@@ -14,9 +14,14 @@ python-dateutil
 scipy
 scp
 Sphinx
+sphinx-argparse
 SQLAlchemy
 suds
 unittest2
 VTK
 xlrd
 xlwt
+scikit-learn
+nose
+file_archive>=0.6
+tej

@@ -1,40 +1,43 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 # Check for testing
 """ This module defines the class Module 
 """
+from __future__ import division
+
 import copy
 from itertools import izip
 import weakref
@@ -151,6 +154,7 @@ class Module(DBModule):
     # CONSTANTS
         
     VISTRAIL_VAR_ANNOTATION = '__vistrail_var__'
+    INLINE_WIDGET_ANNOTATION = '__inline_widgets__'
 
     ##########################################################################
 
@@ -182,6 +186,8 @@ class Module(DBModule):
         return self.db_has_function_with_id(f_id)
     def get_function_by_real_id(self, f_id):
         return self.db_get_function_by_id(f_id)
+    def delete_function_by_real_id(self, f_id):
+        self.db_delete_function(self.db_get_function_by_id(f_id))
 
     def add_annotation(self, annotation):
         self.db_add_annotation(annotation)
@@ -239,7 +245,7 @@ class Module(DBModule):
     input_port_specs = property(_get_input_port_specs)
     def _get_output_port_specs(self):
         return sorted(self._output_port_specs, 
-                      key=lambda x: (x.sort_key, x.id), reverse=True)
+                      key=lambda x: (x.sort_key, x.id))
     output_port_specs = property(_get_output_port_specs)
 
     def _get_descriptor_info(self):
@@ -261,6 +267,18 @@ class Module(DBModule):
         self._module_descriptor = weakref.ref(descriptor)
     module_descriptor = property(_get_module_descriptor, 
                                  _set_module_descriptor)
+
+    def _get_editable_input_ports(self):
+        if self.has_annotation_with_key(Module.INLINE_WIDGET_ANNOTATION):
+            values = self.get_annotation_by_key(
+                             Module.INLINE_WIDGET_ANNOTATION).value.split(',')
+            return set() if values == [''] else set(values)
+        elif get_module_registry(
+                   ).is_constant_module(self.module_descriptor.module):
+            # Show value by default on constant modules
+            return set(['value'])
+        return set()
+    editable_input_ports = property(_get_editable_input_ports)
 
     def get_port_spec(self, port_name, port_type):
         """get_port_spec(port_name: str, port_type: str: ['input' | 'output'])

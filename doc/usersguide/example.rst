@@ -48,6 +48,7 @@ Intermediate Concepts and VisTrails Packages
 .. toctree::
    :maxdepth: 2
 
+   parameter_widgets
    controlflow
    cfassistant
    list_handling
@@ -55,6 +56,8 @@ Intermediate Concepts and VisTrails Packages
    parallelflow
    database
    example_webservices
-   persistence
+   example_itk
+   persistent_archive
    vistrails_server
    latex
+   example_scikit_learn

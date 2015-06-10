@@ -1,55 +1,54 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtGui, QtCore
 from vistrails.core import get_vistrails_application
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package
+from vistrails.core.requirements import MissingRequirement
 from vistrails.core.system import get_vistrails_basic_pkg_id
-from vistrails.core.utils import InvalidPipeline
-from vistrails.core.utils.uxml import (named_elements,
-                             elements_filter, enter_named_element)
 from vistrails.gui.configuration import QConfigurationWidget, \
     QConfigurationPane
 from vistrails.gui.module_palette import QModulePalette
 from vistrails.gui.modules.output_configuration import OutputModeConfigurationWidget
-from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration, base_config
 from vistrails.core import debug
-import os.path
 
 ##############################################################################
 
@@ -107,8 +106,9 @@ class QPackageConfigurationDialog(QtGui.QDialog):
 
     def reset_configuration(self):
         self._package.reset_configuration()
-        conf = self._package.configuration
-        self._configuration_widget.configuration_changed(conf)
+        self._configuration_widget.configuration_changed(
+                self._package.persistent_configuration,
+                self._package.configuration)
 
     def close_dialog(self):
         self.done(0)
@@ -319,7 +319,8 @@ class QPackagesWidget(QtGui.QWidget):
             palette.setUpdatesEnabled(False)
             try:
                 pm.late_enable_package(codepath)
-            except Package.InitializationFailed, e:
+            except (Package.InitializationFailed, MissingRequirement), e:
+                debug.unexpected_exception(e)
                 debug.critical("Initialization of package '%s' failed" %
                                codepath,
                                e)
@@ -570,9 +571,10 @@ class QOutputConfigurationPane(QtGui.QWidget):
         sublist = reg.get_descriptor_subclasses(output_d)
         modes = {}
         for d in sublist:
-            if hasattr(d.module, '_output_modes'):
-                for mode in d.module._output_modes:
-                    modes[mode.mode_type] = mode
+            if hasattr(d.module, '_output_modes_dict'):
+                for mode_type, (mode, _) in (d.module._output_modes_dict
+                                                     .iteritems()):
+                    modes[mode_type] = mode
 
         found_modes = set()
         for mode_type, mode in modes.iteritems():
@@ -587,7 +589,7 @@ class QOutputConfigurationPane(QtGui.QWidget):
                 self.inner_layout.addWidget(widget)
                 self.mode_widgets[mode_type] = widget
         
-        for mode_type, widget in self.mode_widgets.iteritems():
+        for mode_type, widget in self.mode_widgets.items():
             if mode_type not in found_modes:
                 self.inner_layout.removeWidget(self.mode_widgets[mode_type])
                 del self.mode_widgets[mode_type]
@@ -598,6 +600,8 @@ class QOutputConfigurationPane(QtGui.QWidget):
             for k2, v in v_dict.iteritems():
                 k = "%s.%s" % (k1, k2)
                 self.persistent_config.outputDefaultSettings.set_deep_value(
+                    k, v, True)
+                self.temp_config.outputDefaultSettings.set_deep_value(
                     k, v, True)
 
 class QPreferencesDialog(QtGui.QDialog):
@@ -686,7 +690,6 @@ class QPreferencesDialog(QtGui.QDialog):
         we guarantee the changes were saved before VisTrails crashes.
         
         """
-        from PyQt4 import QtCore
         from vistrails.gui.application import get_vistrails_application
         get_vistrails_application().save_configuration()
 
@@ -708,25 +711,31 @@ class TestPreferencesDialog(unittest.TestCase):
         prefs = builder.preferencesDialog
         packages = prefs._packages_tab
         prefs._tab_widget.setCurrentWidget(packages)
+        QtGui.QApplication.processEvents()
 
         # check if package is loaded
         av = packages._available_packages_list
-        for item in av.findItems(pkg, QtCore.Qt.MatchExactly):
-            av.setCurrentItem(item)
-            QtGui.QApplication.processEvents()
-            packages.enable_current_package()
-            QtGui.QApplication.processEvents()
+        item, = av.findItems(pkg, QtCore.Qt.MatchExactly)
+        av.setCurrentItem(item)
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
+        packages.enable_current_package()
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
 
         inst = packages._enabled_packages_list
-        for item in inst.findItems(pkg, QtCore.Qt.MatchExactly):
-            inst.setCurrentItem(item)
-            QtGui.QApplication.processEvents()
-            packages.disable_current_package()
-            QtGui.QApplication.processEvents()
+        item, = inst.findItems(pkg, QtCore.Qt.MatchExactly)
+        inst.setCurrentItem(item)
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
+        packages.disable_current_package()
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
 
         # force delayed calls
         packages.populate_lists()
         packages.select_package_after_update_slot(pkg)
+        QtGui.QApplication.processEvents()
         QtGui.QApplication.processEvents()
 
         # This does not work because the selection is delayed
@@ -738,5 +747,5 @@ class TestPreferencesDialog(unittest.TestCase):
 
         # check if configuration has been written correctly
         startup = _app.startup
-        self.assertTrue(pkg in startup.disabled_packages)
-        self.assertTrue(pkg not in startup.enabled_packages)
+        self.assertIn(pkg, startup.disabled_packages)
+        self.assertNotIn(pkg, startup.enabled_packages)

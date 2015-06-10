@@ -1,39 +1,42 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """basic_modules defines basic VisTrails Modules that are used in most
 pipelines."""
+from __future__ import division
+
 import vistrails.core.cache.hasher
 from vistrails.core.debug import format_exception
 from vistrails.core.modules.module_registry import get_module_registry
@@ -41,7 +44,7 @@ from vistrails.core.modules.vistrails_module import Module, new_module, \
     Converter, NotCacheable, ModuleError
 from vistrails.core.modules.config import ConstantWidgetConfig, \
     QueryWidgetConfig, ParamExpWidgetConfig, ModuleSettings, IPort, OPort, \
-    CIPort, COPort
+    CIPort
 import vistrails.core.system
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
@@ -49,6 +52,7 @@ from vistrails.core import debug
 from abc import ABCMeta
 from ast import literal_eval
 from itertools import izip
+import mimetypes
 import os
 import pickle
 import re
@@ -73,6 +77,38 @@ old_identifiers = ['edu.utah.sci.vistrails.basic']
 constant_config_path = "vistrails.gui.modules.constant_configuration"
 query_config_path = "vistrails.gui.modules.query_configuration"
 paramexp_config_path = "vistrails.gui.modules.paramexplore"
+
+def get_port_name(port):
+    if hasattr(port, 'name'):
+        return port.name
+    else:
+        return port[0]
+
+class meta_add_value_ports(type):
+    def __new__(cls, name, bases, dct):
+        """This metaclass adds the 'value' input and output ports.
+        """
+        mod = type.__new__(cls, name, bases, dct)
+
+        if '_input_ports' in mod.__dict__:
+            input_ports = mod._input_ports
+            if not any(get_port_name(port_info) == 'value'
+                       for port_info in input_ports):
+                mod._input_ports = [('value', mod)]
+                mod._input_ports.extend(input_ports)
+        else:
+            mod._input_ports = [('value', mod)]
+
+        if '_output_ports' in mod.__dict__:
+            output_ports = mod._output_ports
+            if not any(get_port_name(port_info) == 'value'
+                       for port_info in output_ports):
+                mod._output_ports = [('value', mod)]
+                mod._output_ports.extend(output_ports)
+        else:
+            mod._output_ports = [('value', mod)]
+
+        return mod
 
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
@@ -111,6 +147,8 @@ class Constant(Module):
     _settings = ModuleSettings(abstract=True)
     _output_ports = [OPort("value_as_string", "String")]
 
+    __metaclass__ = meta_add_value_ports
+
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
         input value."""
@@ -124,12 +162,6 @@ class Constant(Module):
     def setValue(self, v):
         self.set_output("value", self.translate_to_python(v))
         self.upToDate = True
-        
-    def serialize(self):
-        return self.outputPorts['value_as_string']
-    
-    def deserialize(self, v):
-        return self.translate_to_python(v)
 
     @staticmethod
     def translate_to_string(v):
@@ -176,20 +208,12 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
         d["translate_to_python"] = py_conversion
     elif base_class == Constant:
         raise ValueError("Must specify translate_to_python for constant")
-    else:
-        d["translate_to_python"] = staticmethod(base_class.translate_to_python)
     if validation is not None:
         d["validate"] = validation
     elif base_class == Constant:
         raise ValueError("Must specify validation for constant")
-    else:
-        d["validate"] = staticmethod(base_class.validate)
     if default_value is not None:
         d["default_value"] = default_value
-    elif base_class == Constant:
-        d["default_value"] = None
-    else:
-        d["default_value"] = base_class.default_value
 
     if str_conversion is not None:
         d['translate_to_string'] = str_conversion
@@ -208,91 +232,135 @@ def new_constant(name, py_conversion=None, default_value=None, validation=None,
     m._output_ports = [('value', m)]
     return m
 
-def bool_conv(x):
-    s = str(x).upper()
-    if s == 'TRUE':
-        return True
-    if s == 'FALSE':
+class Boolean(Constant):
+    _settings = ModuleSettings(
+            constant_widget='%s:BooleanWidget' % constant_config_path)
+    default_value = False
+
+    @staticmethod
+    def translate_to_python(x):
+        s = x.upper()
+        if s == 'TRUE':
+            return True
+        if s == 'FALSE':
+            return False
+        raise ValueError('Boolean from String in VisTrails should be either '
+                         '"true" or "false", got "%s" instead' % x)
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, bool)
+
+class Float(Constant):
+    _settings = ModuleSettings(constant_widgets=[
+        QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
+        ParamExpWidgetConfig('%s:FloatExploreWidget' % paramexp_config_path)])
+    default_value = 0.0
+
+    @staticmethod
+    def translate_to_python(x):
+        return float(x)
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, (int, long, float))
+
+    @staticmethod
+    def query_compute(value_a, value_b, query_method):
+        value_a = float(value_a)
+        value_b = float(value_b)
+        if query_method == '==' or query_method is None:
+            return (value_a == value_b)
+        elif query_method == '<':
+            return (value_a < value_b)
+        elif query_method == '>':
+            return (value_a > value_b)
+        elif query_method == '<=':
+            return (value_a <= value_b)
+        elif query_method == '>=':
+            return (value_a >= value_b)
+
+class Integer(Float):
+    _settings = ModuleSettings(constant_widgets=[
+        QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
+        ParamExpWidgetConfig('%s:IntegerExploreWidget' % paramexp_config_path)])
+    default_value = 0
+
+    @staticmethod
+    def translate_to_python(x):
+        if x.startswith('0x'):
+            return int(x, 16)
+        else:
+            return int(x)
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, (int, long))
+
+class String(Constant):
+    _settings = ModuleSettings(
+            configure_widget="vistrails.gui.modules.string_configure:TextConfigurationWidget",
+            constant_widgets=[
+                 ConstantWidgetConfig('%s:MultiLineStringWidget' % constant_config_path,
+                                      widget_type='multiline'),
+                 QueryWidgetConfig('%s:StringQueryWidget' % query_config_path)])
+    _output_ports = [OPort("value_as_string", "String", optional=True)]
+    default_value = ""
+
+    @staticmethod
+    def translate_to_python(x):
+        assert isinstance(x, (str, unicode))
+        return str(x)
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, str)
+
+    @staticmethod
+    def query_compute(value_a, value_b, query_method):
+        if query_method == '*[]*' or query_method is None:
+            return (value_b in value_a)
+        elif query_method == '==':
+            return (value_a == value_b)
+        elif query_method == '=~':
+            try:
+                m = re.match(value_b, value_a)
+                if m is not None:
+                    return (m.end() ==len(value_a))
+            except re.error:
+                pass
         return False
-    raise ValueError('Boolean from String in VisTrails should be either \
-"true" or "false", got "%s" instead' % x)
 
-def int_conv(x):
-    if x.startswith('0x'):
-        return int(x, 16)
-    else:
-        return int(x)
-
-@staticmethod
-def numeric_compare(value_a, value_b, query_method):
-    value_a = float(value_a)
-    value_b = float(value_b)
-    if query_method == '==' or query_method is None:
-        return (value_a == value_b)
-    elif query_method == '<':
-        return (value_a < value_b)
-    elif query_method == '>':
-        return (value_a > value_b)
-    elif query_method == '<=':
-        return (value_a <= value_b)
-    elif query_method == '>=':
-        return (value_a >= value_b)
-
-@staticmethod
-def string_compare(value_a, value_b, query_method):
-    if query_method == '*[]*' or query_method is None:
-        return (value_b in value_a)
-    elif query_method == '==':
-        return (value_a == value_b)
-    elif query_method == '=~':
-        try:
-            m = re.match(value_b, value_a)
-            if m is not None:
-                return (m.end() ==len(value_a))
-        except re.error:
-            pass
-    return False
-
-Boolean = new_constant('Boolean' , staticmethod(bool_conv),
-                       False, staticmethod(lambda x: isinstance(x, bool)))
-Boolean._settings = ModuleSettings(constant_widget=('%s:BooleanWidget' % \
-                                                    constant_config_path))
-Float   = new_constant('Float'   , staticmethod(float), 0.0, 
-                       staticmethod(lambda x: isinstance(x, (int, long, float))),
-                       query_compute=numeric_compare)
-Float._settings = ModuleSettings(constant_widgets=[
-    QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
-    ParamExpWidgetConfig('%s:FloatExploreWidget' % paramexp_config_path)])
-Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
-                       staticmethod(lambda x: isinstance(x, (int, long))),
-                       base_class=Float,
-                       query_compute=numeric_compare)
-Integer._settings = ModuleSettings(constant_widgets=[
-    QueryWidgetConfig('%s:NumericQueryWidget' % query_config_path),
-    ParamExpWidgetConfig('%s:IntegerExploreWidget' % paramexp_config_path)])
-
-String  = new_constant('String'  , staticmethod(str), "", 
-                       staticmethod(lambda x: isinstance(x, str)),
-                       query_compute=string_compare)
-String._settings = ModuleSettings(configure_widget=
-            "vistrails.gui.modules.string_configure:TextConfigurationWidget",
-                                  constant_widgets=[
-                        ConstantWidgetConfig('%s:MultiLineStringWidget' % \
-                                             constant_config_path, 
-                                             widget_type='multiline'),
-                        QueryWidgetConfig('%s:StringQueryWidget' % \
-                                          query_config_path)])
-String._output_ports.append(OPort("value_as_string", "String", optional=True))
-    
 ##############################################################################
+
+# Rich display for IPython
+try:
+    from IPython import display
+except ImportError:
+    display = None
 
 class PathObject(object):
     def __init__(self, name):
         self.name = name
+        self._ipython_repr = None
 
     def __repr__(self):
         return "PathObject(%r)" % self.name
     __str__ = __repr__
+
+    def __getattr__(self, name):
+        if name.startswith('_repr_') and name.endswith('_'):
+            if self._ipython_repr is None:
+                filetype, encoding = mimetypes.guess_type(self.name)
+                if not filetype:
+                    self._ipython_repr = False
+                elif filetype.startswith('image/'):
+                    self._ipython_repr = display.Image(filename=self.name)
+                else:
+                    self._ipython_repr = False
+            elif self._ipython_repr is not False:
+                return getattr(self._ipython_repr, name)
+        raise AttributeError
 
 class Path(Constant):
     _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" % \
@@ -482,12 +550,12 @@ class FileSink(NotCacheable, Module):
                         counter += 1
                     try:
                         vistrails.core.system.link_or_copy(input_file.name, filename)
-                    except OSError:
-                        msg = "Could not publish file '%s' \n   on  '%s': %s" % \
-                               (full_path, filename, e)
+                    except OSError, e:
+                        msg = "Could not publish file '%s' \n   on  '%s':" % (
+                                full_path, filename)
                         # I am not sure whether we should raise an error
                         # I will just print a warning for now (Emanuele)
-                        debug.warning("%s" % msg)
+                        debug.warning("%s" % msg, e)
 
 class DirectorySink(NotCacheable, Module):
     """DirectorySink takes a directory and writes it to a
@@ -690,10 +758,29 @@ class StandardOutput(NotCacheable, Module):
     mostly as a debugging device."""
 
     _input_ports = [IPort("value", 'Variant')]
-    
+
     def compute(self):
         v = self.get_input("value")
-        print v
+        if isinstance(v, PathObject):
+            try:
+                fp = open(v.name, 'rb')
+            except IOError:
+                print v
+            else:
+                try:
+                    CHUNKSIZE = 2048
+                    chunk = fp.read(CHUNKSIZE)
+                    if chunk:
+                        sys.stdout.write(chunk)
+                        while len(chunk) == CHUNKSIZE:
+                            chunk = fp.read(CHUNKSIZE)
+                            if chunk:
+                                sys.stdout.write(chunk)
+                        sys.stdout.write('\n')
+                finally:
+                    fp.close()
+        else:
+            print v
 
 ##############################################################################
 
@@ -753,7 +840,6 @@ class Untuple(Module):
 
 ##############################################################################
 
-# TODO: Create a better Module for ConcatenateString.
 class ConcatenateString(Module):
     """ConcatenateString takes many strings as input and produces the
     concatenation as output. Useful for constructing filenames, for
@@ -763,19 +849,14 @@ class ConcatenateString(Module):
     future."""
 
     fieldCount = 4
-    _input_ports = [IPort("str%d" % (i+1), "String") 
-                    for i in xrange(fieldCount)]
+    _input_ports = [IPort("str%d" % i, "String")
+                    for i in xrange(1, 1 + fieldCount)]
     _output_ports = [OPort("value", "String")]
 
     def compute(self):
-        result = ""
-        for i in xrange(self.fieldCount):
-            v = i+1
-            port = "str%s" % v
-            if self.has_input(port):
-                inp = self.get_input(port)
-                result += inp
-        self.set_output("value", result)
+        result = "".join(self.force_get_input('str%d' % i, '')
+                         for i in xrange(1, 1 + self.fieldCount))
+        self.set_output('value', result)
 
 ##############################################################################
 
@@ -809,7 +890,7 @@ class List(Constant):
     _settings = ModuleSettings(configure_widget=
         "vistrails.gui.modules.list_configuration:ListConfigurationWidget")
     _input_ports = [IPort("value", "List"),
-                    IPort("head", "Variant"),
+                    IPort("head", "Variant", depth=1),
                     IPort("tail", "List")]
     _output_ports = [OPort("value", "List")]
 
@@ -855,7 +936,7 @@ class List(Constant):
             middle = self.outputPorts['value']
             got_value = True
         if self.has_input('head'):
-            head = self.get_input_list('head')
+            head = self.get_input('head')
             got_value = True
         if self.input_ports_order:
             items = [self.get_input(p)
@@ -871,29 +952,32 @@ class List(Constant):
 
 ##############################################################################
 # Dictionary
-                    
-def dict_conv(v):
-    v_dict = literal_eval(v)
-    return v_dict
 
-def dict_compute(self):
-    d = {}
-    if self.has_input('value'):
-        Constant.compute(self)
-        d.update(self.outputPorts['value'])
-    if self.has_input('addPair'):
-        pairs_list = self.get_input_list('addPair')
-        d.update(pairs_list)
-    if self.has_input('addPairs'):
-        d.update(self.get_input('addPairs'))
-        
-    self.set_output("value", d)
-        
-Dictionary = new_constant('Dictionary', staticmethod(dict_conv),
-                          {}, staticmethod(lambda x: isinstance(x, dict)),
-                          compute=dict_compute)
-Dictionary._input_ports.extend([CIPort("addPair", "Module, Module"),
-                                IPort("addPairs", "List")])
+class Dictionary(Constant):
+    default_value = {}
+    _input_ports = [CIPort("addPair", "Module, Module"),
+                    IPort("addPairs", "List")]
+
+    @staticmethod
+    def translate_to_python(v):
+        return literal_eval(v)
+
+    @staticmethod
+    def validate(x):
+        return isinstance(x, dict)
+
+    def compute(self):
+        d = {}
+        if self.has_input('value'):
+            Constant.compute(self)
+            d.update(self.outputPorts['value'])
+        if self.has_input('addPair'):
+            pairs_list = self.get_input_list('addPair')
+            d.update(pairs_list)
+        if self.has_input('addPairs'):
+            d.update(self.get_input('addPairs'))
+
+        self.set_output("value", d)
 
 ##############################################################################
 
@@ -963,7 +1047,7 @@ class CodeRunnerMixin(object):
         exec code_str + '\n' in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
-                if locals_.get(k) != None:
+                if locals_.get(k) is not None:
                     self.set_output(k, locals_[k])
 
 ##############################################################################
@@ -989,91 +1073,6 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
 
     def compute(self):
         s = urllib.unquote(str(self.get_input('source')))
-        self.run_code(s, use_input=True, use_output=True)
-
-##############################################################################
-
-class SmartSource(CodeRunnerMixin, NotCacheable, Module):
-    _settings = ModuleSettings(
-        configure_widget=("vistrails.gui.modules.python_source_configure:"
-                             "PythonSourceConfigurationWidget"))
-    _input_ports = [IPort('source', 'String', optional=True, default="")]
-
-    def run_code(self, code_str,
-                 use_input=False,
-                 use_output=False):
-        import vistrails.core.packagemanager
-        def fail(msg):
-            raise ModuleError(self, msg)
-        def cache_this():
-            self.is_cacheable = lambda *args, **kwargs: True
-        locals_ = locals()
-
-        def smart_input_entry(k):
-            v = self.get_input(k)
-            if isinstance(v, Module) and hasattr(v, 'get_source'):
-                v = v.get_source()
-            return (k, v)
-
-        def get_mro(v):
-            # Tries to get the mro from strange class hierarchies like VTK's
-            try:
-                return v.mro()
-            except AttributeError:
-                def yield_all(v):
-                    b = v.__bases__
-                    yield v
-                    for base in b:
-                        g = yield_all(base)
-                        while 1: yield g.next()
-                return [x for x in yield_all(v)]
-            
-        if use_input:
-            inputDict = dict([smart_input_entry(k)
-                              for k in self.inputPorts])
-            locals_.update(inputDict)
-        if use_output:
-            for output_portname in self.output_ports_order:
-                locals_[output_portname] = None
-        _m = vistrails.core.packagemanager.get_package_manager()
-        locals_.update({'fail': fail,
-                        'package_manager': _m,
-                        'cache_this': cache_this,
-                        'self': self})
-        del locals_['source']
-        exec code_str in locals_, locals_
-        if use_output:
-            oports = self.registry.get_descriptor(SmartSource).output_ports
-            for k in self.output_ports_order:
-                if locals_.get(k) != None:
-                    v = locals_[k]
-                    spec = oports.get(k, None)
-
-                    if spec:
-                        # See explanation of algo in doc/smart_source_resolution_algo.txt
-                        # changed from spec.types()[0]
-                        port_vistrail_base_class = spec.descriptors()[0].module
-                        mro = get_mro(type(v))
-                        source_types = self.registry.python_source_types
-                        found = False
-                        for python_class in mro:
-                            if python_class in source_types:
-                                vistrail_classes = [x for x in source_types[python_class]
-                                                    if issubclass(x, port_vistrail_base_class)]
-                                if len(vistrail_classes) == 0:
-                                    # FIXME better error handling
-                                    raise ModuleError(self, "Module Registry inconsistent")
-                                vt_class = vistrail_classes[0]
-                                found = True
-                                break
-                        if found:
-                            vt_instance = vt_class()
-                            vt_instance.set_source(v)
-                            v = vt_instance
-                    self.set_output(k, v)
-
-    def compute(self):
-        s = urllib.unquote(str(self.force_get_input('source', '')))
         self.run_code(s, use_input=True, use_output=True)
 
 ##############################################################################
@@ -1267,7 +1266,11 @@ class AssertEqual(Module):
         values = (self.get_input('value1'),
                   self.get_input('value2'))
         if values[0] != values[1]:
-            raise ModuleError(self, "AssertEqual: values are different",
+            reprs = tuple(repr(v) for v in values)
+            reprs = tuple('%s...' % v[:17] if len(v) > 20 else v
+                          for v in reprs)
+            raise ModuleError(self, "AssertEqual: values are different: "
+                                    "%r, %r" % reprs,
                               abort=True)
 
 ##############################################################################
@@ -1336,14 +1339,13 @@ _modules = [Module, Converter, Constant, Boolean, Float, Integer, String, List,
             Path, File, Directory, OutputPath,
             FileSink, DirectorySink, WriteFile, ReadFile, StandardOutput,
             Tuple, Untuple, ConcatenateString, Not, Dictionary, Null, Variant,
-            Unpickle, PythonSource, SmartSource, Unzip, UnzipDirectory, Color,
+            Unpickle, PythonSource, Unzip, UnzipDirectory, Color,
             Round, TupleToList, Assert, AssertEqual, StringFormat]
 
 def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
     import vistrails.core.modules.output_modules
-    global _modules
     _modules.extend(vistrails.core.modules.sub_module._modules)
     _modules.extend(vistrails.core.modules.output_modules._modules)
 
@@ -1872,3 +1874,27 @@ class TestStringFormat(unittest.TestCase):
                         _0=('String', 'hello'), _1=('String', 'dear'),
                         _2=('String', 'world'), _3=('Float', '1.333333333'),
                         ponc=('String', '!'))
+
+
+class TestConstantMetaclass(unittest.TestCase):
+    def test_meta(self):
+        """Tests the __metaclass__ for Constant.
+        """
+        mod1_in = [('value', 'basic:String'), IPort('other', 'basic:Float')]
+        mod1_out = [('someport', 'basic:Integer')]
+        class Mod1(Constant):
+            _input_ports = mod1_in
+            _output_ports = mod1_out
+        self.assertEqual(Mod1._input_ports, mod1_in)
+        self.assertEqual(Mod1._output_ports, [('value', Mod1)] + mod1_out)
+
+        mod2_in = [('another', 'basic:String')]
+        class Mod2(Mod1):
+            _input_ports = mod2_in
+        self.assertEqual(Mod2._input_ports, [('value', Mod2)] + mod2_in)
+        self.assertEqual(Mod2._output_ports, [('value', Mod2)])
+
+        class Mod3(Mod1):
+            _output_ports = []
+        self.assertEqual(Mod3._input_ports, [('value', Mod3)])
+        self.assertEqual(Mod3._output_ports, [('value', Mod3)])

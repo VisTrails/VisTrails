@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from __future__ import division
 
 import base64
 import copy
@@ -43,7 +46,6 @@ from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core import debug
 import vistrails.core.interpreter.base
 from vistrails.core.interpreter.base import AbortExecution
-from vistrails.core.interpreter.job import JobMonitor
 import vistrails.core.interpreter.utils
 from vistrails.core.log.controller import DummyLogController
 from vistrails.core.modules.basic_modules import identifier as basic_pkg, \
@@ -55,6 +57,7 @@ from vistrails.core.modules.vistrails_module import ModuleBreakpoint, \
 from vistrails.core.utils import DummyView
 import vistrails.core.system
 import vistrails.core.vistrail.pipeline
+
 
 ###############################################################################
 
@@ -122,20 +125,15 @@ class ViewUpdatingLogController(object):
             ) -> None
             Report module as suspended
         """
-        # update job monitor because this may be an oldStyle job
-        jm = JobMonitor.getInstance()
+        # update job monitor because this may be an old-style job
+        jm = obj.job_monitor()
         reg = get_module_registry()
         name = reg.get_descriptor(obj.__class__).name
-        i = "%s" % self.remap_id(obj.id)
         iteration = self.log.get_iteration_from_module(obj)
         if iteration is not None:
-            name = name + '/' + str(iteration)
-            i = i + '/' + str(iteration)
+            name += '/%d' % iteration
         # add to parent list for computing the module tree later
         error.name = name
-        # if signature is not set we use the module identifier
-        if not error.signature:
-            error.signature = obj.signature
         jm.addParent(error)
 
     def end_update(self, obj, error=None, errorTrace=None,
@@ -197,6 +195,9 @@ class ViewUpdatingLogController(object):
 
 ###############################################################################
 
+Variant_desc = None
+InputPort_desc = None
+
 class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
 
     def __init__(self):
@@ -210,7 +211,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self._file_pool = FilePool()
         self._persistent_pipeline = vistrails.core.vistrail.pipeline.Pipeline()
         self._objects = {}
-        self._executed = {}
         self.filePool = self._file_pool
         self._streams = []
 
@@ -220,7 +220,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         for obj in self._objects.itervalues():
             obj.clear()
         self._objects = {}
-        self._executed = {}
 
     def __del__(self):
         self.clear()
@@ -261,6 +260,23 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                    for mod in self._persistent_pipeline.module_list
                    if mod.module_descriptor.identifier == identifier]
         self.clean_modules(modules)
+
+    def make_connection(self, conn, src, dst):
+        """make_connection(self, conn, src, dst)
+        Builds a execution-time connection between modules.
+
+        """
+        iport = conn.destination.name
+        oport = conn.source.name
+        src.enable_output_port(oport)
+        src.load_type_check_descs()
+        if isinstance(src, src.InputPort_desc.module):
+            typecheck = [False]
+        else:
+            typecheck = src.get_type_checks(conn.source.spec)
+        dst.set_input_port(iport,
+                           ModuleConnector(src, oport, conn.source.spec,
+                                           typecheck))
 
     def setup_pipeline(self, pipeline, **kwargs):
         """setup_pipeline(controller, pipeline, locator, currentVersion,
@@ -406,7 +422,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             conn = self._persistent_pipeline.connections[persistent_id]
             src = self._objects[conn.sourceId]
             dst = self._objects[conn.destinationId]
-            conn.makeConnection(src, dst)
+            self.make_connection(conn, src, dst)
 
         if self.done_summon_hook:
             self.done_summon_hook(self._persistent_pipeline, self._objects)

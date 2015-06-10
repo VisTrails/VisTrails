@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -37,14 +38,14 @@ its subclasses.
 
 """
 
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
-from vistrails.core.configuration import ConfigPath
+from vistrails.core.configuration import ConfigPath, ConfigField
 from vistrails.core.modules.basic_modules import Dictionary
-from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
-    QFileChooserToolButton, QDirectoryChooserToolButton
+from vistrails.gui.common_widgets import QDirectoryChooserToolButton
 from vistrails.gui.modules.module_configure import StandardModuleConfigurationWidget
-from vistrails.gui.utils import YES_BUTTON, NO_BUTTON, show_question, show_warning
 
 class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
     def __init__(self, module, controller, parent=None):
@@ -99,6 +100,7 @@ class OutputModuleConfigurationWidget(StandardModuleConfigurationWidget):
         # do we want to add a manual config mode for modes that have
         # neither been set before nor are registered?
         # DK: not now...
+        layout.addStretch(5)
         scroll_area = QtGui.QScrollArea()
         inner_widget =  QtGui.QWidget()
         inner_widget.setLayout(layout)
@@ -194,7 +196,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
                 self.add_field(group_layout, dummy_field, mode_config,
                                         k)
         else:
-            for field in mode.config_cls.get_all_fields():
+            for field in mode.get_config().get_all_fields():
                 self.add_field(group_layout, field, mode_config, 
                                mode.mode_type)
         self.setLayout(group_layout)
@@ -233,13 +235,16 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         self.field_widgets[config_key] = widget
 
     def reset_field(self, widget, field, mode_config, mode_type):
-        config_key = (mode_type, field.name)
         if mode_config is not None and field.name in mode_config:
             config_val = mode_config[field.name]
         else:
             config_val = field.default_val
 
-        config_desc = field.name
+        if field.widget_type == "checkbox":
+            config_val = bool(config_val)
+        self.set_value(widget, field, config_val)
+
+    def set_value(self, widget, field, val):
         widget_type = field.widget_type
         if widget_type is None:
             if field.val_type == bool:
@@ -250,14 +255,13 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
                 widget_type = "lineedit"
 
         if widget_type == "combo":
-            self.set_combo_value(widget, config_val)
+            self.set_combo_value(widget, val, field)
         elif widget_type == "lineedit":
-            self.set_line_edit_value(widget, config_val)
+            self.set_line_edit_value(widget, val)
         elif widget_type == "pathedit":
-            self.set_path_edit_value(widget, config_val)
+            self.set_path_edit_value(widget, val)
         else:
-            config_val = bool(config_val)
-            self.set_checkbox_value(widget, config_val)
+            self.set_checkbox_value(widget, val)
 
     def add_checkbox(self, layout, field, config_key, config_desc, config_val):
         cb = QtGui.QCheckBox(config_desc)
@@ -266,7 +270,7 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         layout.addWidget(cb, row, 1)
 
         def call_field_changed(val):
-            self.field_changed(config_key, field, val)
+            self.field_changed(config_key, field, val, config_val)
         cb.toggled.connect(call_field_changed)
         return cb
 
@@ -290,9 +294,10 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         self.set_line_edit_value(line_edit, config_val)
         layout.addWidget(line_edit, row, 1)
 
-        def call_field_changed(val):
-            self.field_changed(config_key, field, val)
-        line_edit.textEdited.connect(call_field_changed)
+        def call_field_changed():
+            val = line_edit.text()
+            self.field_changed(config_key, field, val, config_val)
+        line_edit.editingFinished.connect(call_field_changed)
         return line_edit
 
     def set_line_edit_value(self, line_edit, config_val):
@@ -333,9 +338,10 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         path_edit.setLayout(sub_layout)
         layout.addWidget(path_edit, row, 1)
 
-        def call_field_changed(val):
-            self.field_changed(config_key, field, val)
-        line_edit.textEdited.connect(call_field_changed)
+        def call_field_changed():
+            val = line_edit.text()
+            self.field_changed(config_key, field, val, config_val)
+        line_edit.editingFinished.connect(call_field_changed)
         return path_edit
 
     def set_path_edit_value(self, path_edit, config_val):
@@ -368,17 +374,21 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
                 entries = values
             for entry in entries:
                 combo.addItem(entry)
-        self.set_combo_value(combo, config_val)
-        laout.addWidget(combo, row, 1)
+        self.set_combo_value(combo, config_val, field)
+        layout.addWidget(combo, row, 1)
 
         def call_field_changed(val):
             if inv_remap is not None:
                 val = inv_remap[val]
-            self.field_changed(config_key, field, val)
+            self.field_changed(config_key, field, val, config_val)
         combo.currentIndexChanged[unicode].connect(call_field_changed)
         return combo
 
-    def set_combo_value(self, combo, config_val):
+    def set_combo_value(self, combo, config_val, field):
+        options = {}
+        if field.widget_options is not None:
+            options = field.widget_options
+
         if "allowed_values" in options:
             if "remap" in options:
                 remap = options["remap"]
@@ -389,11 +399,16 @@ class OutputModeConfigurationWidget(QtGui.QGroupBox):
         else:
             combo.setCurrentIndex(-1)
 
-    def field_changed(self, config_key, field, val):
-        if config_key[0] not in self._changed_config:
-            self._changed_config[config_key[0]] = {}
+    def field_changed(self, config_key, field, val, orig_val):
         # TODO support arbitrary nesting?
-        val = field.from_string(val)
-        self._changed_config[config_key[0]][config_key[1]] = val
-        self._changed_fields[config_key] = field
-        self.fieldChanged.emit(self)
+        try:
+            val = field.from_string(val)
+            if config_key[0] not in self._changed_config:
+                self._changed_config[config_key[0]] = {}
+            self._changed_config[config_key[0]][config_key[1]] = val
+            self._changed_fields[config_key] = field
+            self.fieldChanged.emit(self)
+        except:
+            widget = self.field_widgets[config_key]
+            self.set_value(widget, field, orig_val)
+

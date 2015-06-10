@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -36,6 +37,8 @@
 This module describes a theme structure for VisTrails GUI. It
 specifies colors, background images and other measurements
 """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core.utils.color import ColorByName
@@ -307,18 +310,25 @@ class DefaultTheme(DefaultCoreTheme):
     
         #### FONTS ####        
         # Font for module text
-        self.MODULE_FONT = QtGui.QFont("Arial", 14, QtGui.QFont.Bold)
+        # Use fixed dpi to get same font size on all platforms
+        def fixDPI(i):
+            return i*72//QtGui.QApplication.desktop().logicalDpiY()
+        GRAPHICS_FONT = "Arial"
+        self.MODULE_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(14), QtGui.QFont.Bold)
         self.MODULE_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_FONT)
-        self.MODULE_DESC_FONT = QtGui.QFont("Arial", 12)
+        self.MODULE_DESC_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(12))
         self.MODULE_DESC_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_DESC_FONT)
+        self.MODULE_EDIT_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(10))
+        self.MODULE_EDIT_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_EDIT_FONT)
     
         # Font for version text
-        self.VERSION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Bold)
+        self.VERSION_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(15), QtGui.QFont.Bold)
         self.VERSION_FONT_METRIC = QtGui.QFontMetrics(self.VERSION_FONT)
-        self.VERSION_DESCRIPTION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Normal, 
-                                                    True)
+        self.VERSION_DESCRIPTION_FONT = QtGui.QFont(GRAPHICS_FONT, fixDPI(15),
+                                                    QtGui.QFont.Normal, True)
         self.VERSION_DESCRIPTION_FONT_METRIC = \
             QtGui.QFontMetrics(self.VERSION_DESCRIPTION_FONT)
+
         self.VERSION_PROPERTIES_FONT = QtGui.QFont("Arial", 12)
         self.VERSION_PROPERTIES_FONT_METRIC = \
             QtGui.QFontMetrics(self.VERSION_PROPERTIES_FONT)
@@ -641,6 +651,9 @@ class DefaultTheme(DefaultCoreTheme):
         self.PIP_FRAME_COLOR = QtGui.QColor(
             *(ColorByName.get_int('yellow_light')))
 
+        # Color for invalid parameter frames
+        self.PARAM_INVALID_COLOR = QtGui.QColor('#efef00')
+
         # Color of selected methods in the modules method area
         self.METHOD_SELECT_COLOR = QtGui.QColor(
             *ColorByName.get_int('yellow_light'))
@@ -735,8 +748,6 @@ def initializeCurrentTheme():
     Assign the current theme to the default theme
     
     """
-    global CurrentTheme
-    
     CurrentTheme.setTheme(get_current_theme())
 
 global CurrentTheme

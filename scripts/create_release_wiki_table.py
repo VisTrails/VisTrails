@@ -6,12 +6,11 @@ wiki page
 """
 from datetime import date
 #Release version
-VT_VERSION = "2.1.3"
-VT_REVISION = "8262f078ed3b"
-
+VT_VERSION = "2.2.1"
+VT_REVISION = "c366dbcb640c"
 #Sourceforge information
 SF_ROOT_URL = "http://downloads.sourceforge.net/project/vistrails/vistrails/"
-SF_FOLDER_NAME = "v2.1.1"
+SF_FOLDER_NAME = "v2.2.1"
 SF_DOWNLOAD_URL = "%s%s"%(SF_ROOT_URL,SF_FOLDER_NAME)
 #binaries names
 MAC_64_BIN = "vistrails-mac-10.6-intel-%s-%s.dmg"%(VT_VERSION, VT_REVISION)
@@ -22,11 +21,11 @@ ALL_PLAT_SRC = "vistrails-src-%s-%s.tar.gz"%(VT_VERSION, VT_REVISION)
 USERSGUIDE = "VisTrails.pdf"
 
 #sizes
-MAC_64_SIZE = "182.3 MB"
-WIN_32_SIZE = "125.3 MB"
-WIN_64_SIZE = "150 MB"
-ALL_PLAT_SIZE = "19.2 MB"
-USERSGUIDE_SIZE = "8.7 MB"
+MAC_64_SIZE = "270.2 MB"
+WIN_32_SIZE = "173.9 MB"
+WIN_64_SIZE = "234.6 MB"
+ALL_PLAT_SIZE = "22.3 MB"
+USERSGUIDE_SIZE = "8.9 MB"
 
 def create_text():
     today = date.today().strftime("%Y-%m-%d")

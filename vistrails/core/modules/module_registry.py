@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from itertools import izip, chain
 from ast import literal_eval
 import collections
@@ -51,7 +54,9 @@ from vistrails.core.modules.config import ConstantWidgetConfig, \
 import vistrails.core.modules.vistrails_module
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.package import Package
+from vistrails.core.requirements import MissingRequirement
 import vistrails.core.modules.utils
+from vistrails.core.modules.utils import create_port_spec_item_string
 from vistrails.core.utils import VistrailsInternalError, memo_method, \
     InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
     all, profile, versions_increasing, InvalidPipeline, VistrailsDeprecation
@@ -245,9 +250,6 @@ class ModuleRegistrySignals(object):
 
 # !!!!!! DEPRECATED !!!!!!
 # Use get_module_registry()
-global registry, add_module, add_input_port, has_input_port, add_output_port, \
-    set_current_package, get_descriptor_by_name, get_module_by_name, \
-    get_descriptor
 registry                 = None
 add_module               = None
 add_input_port           = None
@@ -285,6 +287,7 @@ class ModuleRegistryException(Exception):
 
         return "RegistryException: %s%s%s" % (self._identifier,
                                               p_version_str, m_str)
+    __repr__ = __str__
 
     def __eq__(self, other):
         return type(self) == type(other) and \
@@ -319,6 +322,7 @@ class MissingPackage(ModuleRegistryException):
 
     def __str__(self):
         return "Missing package: %s" % self._identifier
+    __repr__ = __str__
 
     def _get_module_id(self):
         return None
@@ -336,6 +340,7 @@ class MissingModule(ModuleRegistryException):
     def __str__(self):
         return "Missing module %s in package %s" % (self._module_name,
                                                     self._package_name)
+    __repr__ = __str__
 
 class MissingPackageVersion(ModuleRegistryException):
     def __init__(self, identifier, version):
@@ -345,6 +350,7 @@ class MissingPackageVersion(ModuleRegistryException):
     def __str__(self):
         return "Missing version %s of package %s" % \
             (self._package_version, self._identifier)
+    __repr__ = __str__
 
 class MissingModuleVersion(ModuleRegistryException):
     def __init__(self, identifier, name, namespace, module_version, 
@@ -355,6 +361,7 @@ class MissingModuleVersion(ModuleRegistryException):
     def __str__(self):
         return "Missing version %s of module %s from package %s" % \
             (self._module_version, self._module_name, self._package_name)
+    __repr__ = __str__
 
 class AmbiguousResolution(ModuleRegistryException):
     def __init__(self, name, namespace, matches):
@@ -366,6 +373,7 @@ class AmbiguousResolution(ModuleRegistryException):
         return ("Ambiguous resolution of module %s.  Could resolve to:\n%s" % \
                     (self._module_name, 
                      ',\n'.join(str(m) for m in self.matches)))
+    __repr__ = __str__
 
 class MissingPort(ModuleRegistryException):
     def __init__(self, descriptor, port_name, port_type):
@@ -380,6 +388,7 @@ class MissingPort(ModuleRegistryException):
         return "Missing %s port %s from module %s in package %s" % \
             (self._port_type, self._port_name, self._module_name, 
              self._package_name)
+    __repr__ = __str__
 
 class PortMismatch(MissingPort):
     def __init__(self, identifier, name, namespace, port_name, port_type, port_sigstring):
@@ -397,6 +406,7 @@ class PortMismatch(MissingPort):
                 " in module %s of package %s") % \
                 (self._port_type.capitalize(), self._port_name,
                  self._port_sigstring, self._module_name, self._package_name)
+    __repr__ = __str__
 
 class PortsIncompatible(ModuleRegistryException):
 
@@ -428,6 +438,7 @@ class PortsIncompatible(ModuleRegistryException):
                                                        out_name,
                                                        self._input_port,
                                                        in_name))
+    __repr__ = __str__
 
 class DuplicateModule(ModuleRegistryException):
     def __init__(self, old_descriptor, new_identifier, new_name, 
@@ -448,6 +459,7 @@ class DuplicateModule(ModuleRegistryException):
                 "%s in package %s") % \
                 (self._module_name, self._package_name, old_name, 
                  self.old_descriptor.identifier)
+    __repr__ = __str__
 
 class DuplicateIdentifier(ModuleRegistryException):
     def __init__(self, identifier, name, namespace=None,
@@ -458,6 +470,7 @@ class DuplicateIdentifier(ModuleRegistryException):
     def __str__(self):
         return "There is already a module %s in package %s" % \
             (self._module_name, self._package_name)
+    __repr__ = __str__
 
 class InvalidPortSpec(ModuleRegistryException):
     def __init__(self, descriptor, port_name, port_type, exc):
@@ -474,6 +487,7 @@ class InvalidPortSpec(ModuleRegistryException):
                 'has bad specification\n  %s' % \
             (self._port_type, self._port_name, self._module_name,
              self._package_name, str(self._exc)))
+    __repr__ = __str__
 
 class MissingBaseClass(Exception):
     def __init__(self, base):
@@ -482,6 +496,7 @@ class MissingBaseClass(Exception):
 
     def __str__(self):
         return "Base class has not been registered : %s" % (self._base.__name__)
+    __repr__ = __str__
 
 class ModuleRegistry(DBRegistry):
     """ModuleRegistry serves as a registry of VisTrails modules.
@@ -641,24 +656,7 @@ class ModuleRegistry(DBRegistry):
         # this can be slow
         self.setup_indices()
 
-    def create_default_package(self):
-        basic_pkg = get_vistrails_basic_pkg_id()
-        default_codepath = os.path.join(vistrails_root_directory(), 
-                                        "core", "modules", "basic_modules.py")
-        self._default_package = \
-            Package(id=self.idScope.getNewId(Package.vtType),
-                    codepath=default_codepath,
-                    load_configuration=False,
-                    identifier=basic_pkg,
-                    name='Basic Modules',
-                    version=vistrails_version(),
-                    description="Basic modules for VisTrails")
-        # FIXME need to serialize old_identifiers!
-        self._default_package.old_identifiers = ['edu.utah.sci.vistrails.basic']
-        self.add_package(self._default_package)
-        return self._default_package
-
-    def has_abs_upgrade(self, identifier, name, namespace='', 
+    def has_abs_upgrade(self, identifier, name, namespace='',
                         package_version='', module_version=''):
 
         # if this fails, we want to raise the exception
@@ -686,28 +684,6 @@ class ModuleRegistry(DBRegistry):
 
     ##########################################################################
     # Per-module registry functions
-
-    def add_hierarchy(self, global_registry, module):
-        # a per-module registry needs to have all the module hierarchy
-        # registered there so that add_module doesn't fail with
-        # missing base class. We do _NOT_ add the ports, so watch out!
-        
-        reg = global_registry
-        d = reg.get_descriptor_by_name(module.package, module.name, 
-                                       module.namespace)
-        # we exclude the first module in the hierarchy because it's Module
-        # which we know exists (constructor adds)
-        hierarchy = reg.get_module_hierarchy(d)
-        for desc in reversed(hierarchy[:-1]):
-            old_base = desc.base_descriptor
-            base_descriptor = self.get_descriptor_by_name(old_base.package,
-                                                          old_base.name,
-                                                          old_base.namespace)
-            # FIXME: this package_version should live on descriptor?
-            package = self.get_package_by_name(desc.package)
-            self.update_registry(base_descriptor, desc.module, desc.package, 
-                                 desc.name, desc.namespace, package.version,
-                                 desc.version)
 
     def get_package_by_name(self, identifier, package_version=''):
         package_version = package_version or ''
@@ -779,32 +755,27 @@ class ModuleRegistry(DBRegistry):
 
         try:
             package = self.packages[identifier]
-            if package_version:
-                package_version_key = (identifier, package_version)
-                package = self.package_versions[package_version_key]
-            if not module_version:
-                descriptor = package.descriptors[(name, namespace)]
-            else:
-                descriptor_version_key = (name, namespace, module_version)
+        except KeyError:
+            raise MissingPackage(identifier)
+        if package_version:
+            try:
+                package = self.package_versions[(identifier, package_version)]
+            except KeyError:
+                raise MissingPackageVersion(identifier, package_version)
+        try:
+            descriptor = package.descriptors[(name, namespace)]
+        except KeyError:
+            raise MissingModule(identifier, name, namespace,
+                                package_version)
+        if module_version:
+            descriptor_version_key = (name, namespace, module_version)
+            try:
                 descriptor = \
                     package.descriptor_versions[descriptor_version_key]
-            return descriptor
-        except KeyError:
-            if identifier not in self.packages:
-                raise MissingPackage(identifier)
-            elif (name, namespace) not in package.descriptors:
-                raise MissingModule(identifier, name, namespace, 
-                                    package_version)
-            elif package_version and \
-                    package_version_key not in self.package_versions:
-                raise MissingPackageVersion(identifier, package_version)
-            elif module_version and descriptor_version_key not in \
-                    package.descriptor_versions:
+            except KeyError:
                 raise MissingModuleVersion(identifier, name, namespace,
                                            module_version, package_version)
-            else:
-                raise ModuleRegistryException(identifier, name, namespace,
-                                              package_version, module_version)
+        return descriptor
 
     def get_similar_descriptor(self, identifier, name, namespace=None,
                                package_version=None, module_version=None):
@@ -817,10 +788,6 @@ class ModuleRegistry(DBRegistry):
         except MissingModuleVersion:
             return self.get_similar_descriptor(identifier, name, namespace,
                                                package_version, None)
-#         except Exception:
-#             raise
-
-        return None
             
     def get_descriptor(self, module):
         """get_descriptor(module: class) -> ModuleDescriptor
@@ -1008,89 +975,106 @@ class ModuleRegistry(DBRegistry):
                 # match
                 retval = desc.module.translate_to_string(val)
         return retval
-            
+
+    def decode_port(self, port_info, simple_t, compound_t, deprecated_t,
+                    is_input):
+        if (not isinstance(port_info, simple_t) and
+                not isinstance(port_info, compound_t)):
+            port_name = port_info[0]
+            port_sig = port_info[1]
+            if len(port_info) > 2:
+                if isinstance(port_info[2], dict):
+                    port_info = compound_t(port_info[0],
+                                                port_info[1],
+                                                **port_info[2])
+
+                else:
+                    dep_port_info = deprecated_t(*port_info)
+                    port_info = \
+                        compound_t(**dep_port_info._asdict())
+            else:
+                port_info = compound_t(*port_info)
+
+        # convert simple ports to compound ones
+        kwargs = port_info._asdict()
+        port_name = kwargs.pop('name')
+        port_sig = kwargs.pop('signature')
+        if is_input and isinstance(port_info, simple_t):
+            kwargs['labels'] = [kwargs.pop('label')]
+            kwargs['defaults'] = [kwargs.pop('default')]
+            kwargs['values'] = [kwargs.pop('values')]
+            kwargs['entry_types'] = [kwargs.pop('entry_type')]
+        elif isinstance(port_info, compound_t):
+            # have compound port
+            port_items = kwargs.pop('items')
+            if port_items is not None:
+                sig_items = []
+                labels = []
+                defaults = []
+                values = []
+                entry_types = []
+                for item in port_info.items:
+                    if not isinstance(item.signature,
+                                      basestring):
+                        d = self.get_descriptor(item.signature)
+                        sig_items.append(create_port_spec_item_string(
+                            d.package, d.name, d.namespace))
+                    else:
+                        sig_items.append(item.signature)
+                    labels.append(item.label)
+                    defaults.append(item.default)
+                    values.append(item.values)
+                    entry_types.append(item.entry_type)
+                kwargs['signature'] = ','.join(sig_items)
+                if is_input:
+                    kwargs['labels'] = labels
+                    kwargs['defaults'] = defaults
+                    kwargs['values'] = values
+                    kwargs['entry_types'] = entry_types
+
+        return port_name, port_sig, kwargs
+
+    def decode_input_port(self, port_info):
+        return self.decode_port(
+                port_info,
+                InputPort, CompoundInputPort, DeprecatedInputPort,
+                True)
+
+    def decode_output_port(self, port_info):
+        return self.decode_port(
+                port_info,
+                OutputPort, CompoundOutputPort, OutputPort,
+                False)
+
     def auto_add_ports(self, module):
         """auto_add_ports(module or (module, kwargs)): add
         input/output ports to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
-        create_psi_string = \
-                    vistrails.core.modules.utils.create_port_spec_item_string
-        for (port_key, adder_f, simple_t, compound_t, deprecated_t, is_input) \
-            in [('_input_ports', self.add_input_port, InputPort, 
-                 CompoundInputPort, DeprecatedInputPort, True),
-                ('_output_ports', self.add_output_port, OutputPort, 
-                 CompoundOutputPort, OutputPort, False)]:
-            if port_key in module.__dict__:
-                for port_info in module.__dict__[port_key]:
-                    added = False
-                    port_name = None
-                    port_sig = None
-                    try:
-                        if not isinstance(port_info, simple_t) and \
-                           not isinstance(port_info, compound_t):
-                            port_name = port_info[0]
-                            port_sig = port_info[1]
-                            if len(port_info) > 2:
-                                if isinstance(port_info[2], dict):
-                                    port_info = compound_t(port_info[0],
-                                                                port_info[1],
-                                                                **port_info[2])
+        if '_input_ports' in module.__dict__:
+            for port_info in module._input_ports:
+                try:
+                    name, sig, kwargs = self.decode_input_port(port_info)
+                    self.add_input_port(module, name, sig, **kwargs)
+                except Exception, e:
+                    debug.unexpected_exception(e)
+                    debug.critical('Failed to add input port "%s" to module '
+                                   '"%s"' % (name, module.__name__),
+                                   e)
+                    raise
 
-                                else:
-                                    dep_port_info = deprecated_t(*port_info)
-                                    port_info = \
-                                        compound_t(**dep_port_info._asdict())
-                            else:
-                                port_info = compound_t(*port_info)
+        if '_output_ports' in module.__dict__:
+            for port_info in module._output_ports:
+                try:
+                    name, sig, kwargs = self.decode_output_port(port_info)
+                    self.add_output_port(module, name, sig, **kwargs)
+                except Exception, e:
+                    debug.unexpected_exception(e)
+                    debug.critical('Failed to add output port "%s" to module '
+                                   '"%s"' % (name, module.__name__),
+                                   e)
+                    raise
 
-                        # convert simple ports to compound ones
-                        kwargs = port_info._asdict()
-                        port_name = kwargs.pop('name')
-                        port_sig = kwargs.pop('signature')
-                        if is_input and isinstance(port_info, simple_t):
-                            kwargs['labels'] = [kwargs.pop('label')]
-                            kwargs['defaults'] = [kwargs.pop('default')]
-                            kwargs['values'] = [kwargs.pop('values')]
-                            kwargs['entry_types'] = [kwargs.pop('entry_type')]
-                        elif isinstance(port_info, compound_t):
-                            # have compound port
-                            port_items = kwargs.pop('items')
-                            if port_items is not None:
-                                sig_items = []
-                                labels = []
-                                defaults = []
-                                values = []
-                                entry_types = []
-                                for item in port_info.items:
-                                    if not isinstance(item.signature, 
-                                                      basestring):
-                                        d = self.get_descriptor(item.signature)
-                                        sig_items.append(create_psi_string(
-                                            d.package, d.name, d.namespace))
-                                    else:
-                                        sig_items.append(item.signature)
-                                    labels.append(item.label)
-                                    defaults.append(item.default)
-                                    values.append(item.values)
-                                    entry_types.append(item.entry_type)
-                                kwargs['signature'] = ','.join(sig_items)
-                                if is_input:
-                                    kwargs['labels'] = labels
-                                    kwargs['defaults'] = defaults
-                                    kwargs['values'] = values
-                                    kwargs['entry_types'] = entry_types
-
-                        # add the port
-                        adder_f(module, port_name, port_sig, **kwargs)
-                        added = True
-                    except Exception, e:
-                        debug.critical('Failed to add port "%s" to '
-                                       'module "%s"' % (port_name, 
-                                                        module.__name__),
-                                       e)
-                        raise
-                        
     def auto_add_module(self, module):
         """auto_add_module(module or (module, kwargs)): add module
         to registry. Don't call this directly - it is
@@ -1181,7 +1165,7 @@ class ModuleRegistry(DBRegistry):
 
         if identifier is None:
             raise VistrailsInternalError("No package is currently being "
-                                         "loaded and arugment 'package' is "
+                                         "loaded and argument 'package' is "
                                          "not specified.")
 
         package = self.package_versions[(identifier, package_version)]
@@ -1621,11 +1605,13 @@ class ModuleRegistry(DBRegistry):
                           optional, sort_key, None, None, None, None, 
                           docstring, shape, min_conns, max_conns, depth)
 
-    def create_package(self, codepath, load_configuration=True):
+    def create_package(self, codepath, load_configuration=True, prefix=None):
         package_id = self.idScope.getNewId(Package.vtType)
         package = Package(id=package_id,
                           codepath=codepath,
                           load_configuration=load_configuration)
+        if prefix is not None:
+            package.prefix = prefix
         return package
 
     def initialize_package(self, package):
@@ -1682,12 +1668,15 @@ class ModuleRegistry(DBRegistry):
                     if hasattr(descriptor, 'module'):
                         self.auto_add_ports(descriptor.module)
                         added_descriptors.add(descriptor)
+        except MissingRequirement:
+            raise
         except Exception, e:
             raise package.InitializationFailed(package, 
                                                [traceback.format_exc()])
+        finally:
+            self.set_current_package(None)
 
         # The package might have decided to rename itself, let's store that
-        self.set_current_package(None)
         debug.splashMessage("Initializing " + package.codepath + '... done.')
         package._initialized = True 
 
@@ -2045,7 +2034,9 @@ class ModuleRegistry(DBRegistry):
     def get_configuration_widget(self, identifier, name, namespace):
         descriptor = self.get_descriptor_by_name(identifier, name, namespace)
         package = self.get_package_by_name(identifier)
-        prefix = package.prefix + package.codepath
+        prefix = None
+        if package.prefix is not None and package.codepath is not None:
+            prefix = package.prefix + package.codepath
         cls = descriptor.configuration_widget()
         return vistrails.core.modules.utils.load_cls(cls, prefix)
 
@@ -2170,13 +2161,11 @@ class ModuleRegistry(DBRegistry):
 # get_descriptor           = registry.get_descriptor
 
 def get_module_registry():
-    global registry
     if not registry:
         raise VistrailsInternalError("Registry not constructed yet.")
     return registry
 
 def module_registry_loaded():
-    global registry
     return registry is not None
 
 ##############################################################################

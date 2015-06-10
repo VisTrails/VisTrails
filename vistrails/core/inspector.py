@@ -1,42 +1,43 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 
 """Helper classes for inspecting vistrails/pipelines at runtime"""
-from vistrails.core.vistrail.pipeline import Pipeline
+from __future__ import division
+
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.system import get_vistrails_default_pkg_prefix
 ################################################################################
 
 class PipelineInspector(object):
@@ -149,36 +150,45 @@ class PipelineInspector(object):
         Inspect the pipeline to see how many cells is needed
         
         """
-        registry = get_module_registry()
         self.spreadsheet_cells = []
-        if not pipeline: return
+        if not pipeline:
+            return
+
+        registry = get_module_registry()
+        # Sometimes we run without the spreadsheet!
+        if not registry.has_module('org.vistrails.vistrails.spreadsheet',
+                                   'SpreadsheetCell'):
+            return
+        cell_desc = registry.get_descriptor_by_name(
+                'org.vistrails.vistrails.spreadsheet',
+                'SpreadsheetCell')
+        output_desc = registry.get_descriptor_by_name(
+                'org.vistrails.vistrails.basic',
+                'OutputModule')
 
         def find_spreadsheet_cells(pipeline, root_id=None):
             if root_id is None:
                 root_id = []
-            # Sometimes we run without the spreadsheet!
-            spreadsheet_pkg = \
-                '%s.spreadsheet' % get_vistrails_default_pkg_prefix()
-            if registry.has_module(spreadsheet_pkg, 'SpreadsheetCell'):
-                # First pass to check cells types
-                cellType = \
-                    registry.get_descriptor_by_name(spreadsheet_pkg,
-                                                    'SpreadsheetCell').module
-                for mId, module in pipeline.modules.iteritems():
-                    desc = registry.get_descriptor_by_name(module.package, 
-                                                           module.name, 
-                                                           module.namespace)
-                    if issubclass(desc.module, cellType):
+            for mId, module in pipeline.modules.iteritems():
+                desc = registry.get_descriptor_by_name(module.package,
+                                                       module.name,
+                                                       module.namespace)
+                # SpreadsheetCell subclasses
+                if registry.is_descriptor_subclass(desc, cell_desc):
+                    self.spreadsheet_cells.append(root_id + [mId])
+                # Output modules with a 'spreadsheet' mode
+                elif registry.is_descriptor_subclass(desc, output_desc):
+                    if desc.module.get_mode_class('spreadsheet') is not None:
                         self.spreadsheet_cells.append(root_id + [mId])
 
             for subworkflow_id in self.find_subworkflows(pipeline):
                 subworkflow = pipeline.modules[subworkflow_id]
                 if subworkflow.pipeline is not None:
-                    find_spreadsheet_cells(subworkflow.pipeline, 
+                    find_spreadsheet_cells(subworkflow.pipeline,
                                            root_id + [subworkflow_id])
 
         find_spreadsheet_cells(pipeline)
-    
+
     def find_subworkflows(self, pipeline):
         if not pipeline: 
             return

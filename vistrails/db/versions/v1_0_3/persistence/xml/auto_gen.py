@@ -1,39 +1,42 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
+
+from __future__ import division
 
 from vistrails.core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
@@ -2315,8 +2318,14 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         ts_start = self.convertFromStr(data, 'datetime')
         data = node.get('tsEnd', None)
         ts_end = self.convertFromStr(data, 'datetime')
+        data = node.get('iteration', None)
+        iteration = self.convertFromStr(data, 'int')
+        data = node.get('completed', None)
+        completed = self.convertFromStr(data, 'int')
+        data = node.get('error', None)
+        error = self.convertFromStr(data, 'str')
         
-        loop_iterations = []
+        item_execs = []
         
         # read children
         for child in node.getchildren():
@@ -2324,18 +2333,27 @@ class DBLoopExecXMLDAOBase(XMLDAO):
                 child_tag = child.tag.split("}")[1]
             else:
                 child_tag = child.tag
-            if child_tag == 'loopIteration':
-                _data = self.getDao('loop_iteration').fromXML(child)
-                loop_iterations.append(_data)
+            if child_tag == 'moduleExec':
+                _data = self.getDao('module_exec').fromXML(child)
+                item_execs.append(_data)
+            elif child_tag == 'groupExec':
+                _data = self.getDao('group_exec').fromXML(child)
+                item_execs.append(_data)
+            elif child_tag == 'loopExec':
+                _data = self.getDao('loop_exec').fromXML(child)
+                item_execs.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBLoopExec(id=id,
+        obj = DBLoopExec(item_execs=item_execs,
+                         id=id,
                          ts_start=ts_start,
                          ts_end=ts_end,
-                         loop_iterations=loop_iterations)
+                         iteration=iteration,
+                         completed=completed,
+                         error=error)
         obj.is_dirty = False
         return obj
     
@@ -2347,13 +2365,22 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         node.set('id',self.convertToStr(loop_exec.db_id, 'long'))
         node.set('tsStart',self.convertToStr(loop_exec.db_ts_start, 'datetime'))
         node.set('tsEnd',self.convertToStr(loop_exec.db_ts_end, 'datetime'))
+        node.set('iteration',self.convertToStr(loop_exec.db_iteration, 'int'))
+        node.set('completed',self.convertToStr(loop_exec.db_completed, 'int'))
+        node.set('error',self.convertToStr(loop_exec.db_error, 'str'))
         
         # set elements
-        loop_iterations = loop_exec.db_loop_iterations
-        for loop_iteration in loop_iterations:
-            if (loop_iterations is not None) and (loop_iterations != ""):
-                childNode = ElementTree.SubElement(node, 'loopIteration')
-                self.getDao('loop_iteration').toXML(loop_iteration, childNode)
+        item_execs = loop_exec.db_item_execs
+        for item_exec in item_execs:
+            if item_exec.vtType == 'module_exec':
+                childNode = ElementTree.SubElement(node, 'moduleExec')
+                self.getDao('module_exec').toXML(item_exec, childNode)
+            elif item_exec.vtType == 'group_exec':
+                childNode = ElementTree.SubElement(node, 'groupExec')
+                self.getDao('group_exec').toXML(item_exec, childNode)
+            elif item_exec.vtType == 'loop_exec':
+                childNode = ElementTree.SubElement(node, 'loopExec')
+                self.getDao('loop_exec').toXML(item_exec, childNode)
         
         return node
 
@@ -3014,6 +3041,7 @@ class DBLogXMLDAOBase(XMLDAO):
         vistrail_id = self.convertFromStr(data, 'long')
         
         workflow_execs = []
+        machines = []
         
         # read children
         for child in node.getchildren():
@@ -3024,6 +3052,9 @@ class DBLogXMLDAOBase(XMLDAO):
             if child_tag == 'workflowExec':
                 _data = self.getDao('workflow_exec').fromXML(child)
                 workflow_execs.append(_data)
+            elif child_tag == 'machine':
+                _data = self.getDao('machine').fromXML(child)
+                machines.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
@@ -3033,6 +3064,7 @@ class DBLogXMLDAOBase(XMLDAO):
                     version=version,
                     name=name,
                     workflow_execs=workflow_execs,
+                    machines=machines,
                     vistrail_id=vistrail_id)
         obj.is_dirty = False
         return obj
@@ -3053,95 +3085,11 @@ class DBLogXMLDAOBase(XMLDAO):
             if (workflow_execs is not None) and (workflow_execs != ""):
                 childNode = ElementTree.SubElement(node, 'workflowExec')
                 self.getDao('workflow_exec').toXML(workflow_exec, childNode)
-        
-        return node
-
-class DBLoopIterationXMLDAOBase(XMLDAO):
-
-    def __init__(self, daoList):
-        self.daoList = daoList
-
-    def getDao(self, dao):
-        return self.daoList[dao]
-
-    def fromXML(self, node):
-        if node.tag[0] == "{":
-            node_tag = node.tag.split("}")[1]
-        else:
-            node_tag = node.tag
-        if node_tag != 'loopIteration':
-            return None
-        
-        # read attributes
-        data = node.get('id', None)
-        id = self.convertFromStr(data, 'long')
-        data = node.get('tsStart', None)
-        ts_start = self.convertFromStr(data, 'datetime')
-        data = node.get('tsEnd', None)
-        ts_end = self.convertFromStr(data, 'datetime')
-        data = node.get('iteration', None)
-        iteration = self.convertFromStr(data, 'int')
-        data = node.get('completed', None)
-        completed = self.convertFromStr(data, 'int')
-        data = node.get('error', None)
-        error = self.convertFromStr(data, 'str')
-        
-        item_execs = []
-        
-        # read children
-        for child in node.getchildren():
-            if child.tag[0] == "{":
-                child_tag = child.tag.split("}")[1]
-            else:
-                child_tag = child.tag
-            if child_tag == 'moduleExec':
-                _data = self.getDao('module_exec').fromXML(child)
-                item_execs.append(_data)
-            elif child_tag == 'groupExec':
-                _data = self.getDao('group_exec').fromXML(child)
-                item_execs.append(_data)
-            elif child_tag == 'loopExec':
-                _data = self.getDao('loop_exec').fromXML(child)
-                item_execs.append(_data)
-            elif child.text is None or child.text.strip() == '':
-                pass
-            else:
-                print '*** ERROR *** tag = %s' % child.tag
-        
-        obj = DBLoopIteration(item_execs=item_execs,
-                              id=id,
-                              ts_start=ts_start,
-                              ts_end=ts_end,
-                              iteration=iteration,
-                              completed=completed,
-                              error=error)
-        obj.is_dirty = False
-        return obj
-    
-    def toXML(self, loop_iteration, node=None):
-        if node is None:
-            node = ElementTree.Element('loopIteration')
-        
-        # set attributes
-        node.set('id',self.convertToStr(loop_iteration.db_id, 'long'))
-        node.set('tsStart',self.convertToStr(loop_iteration.db_ts_start, 'datetime'))
-        node.set('tsEnd',self.convertToStr(loop_iteration.db_ts_end, 'datetime'))
-        node.set('iteration',self.convertToStr(loop_iteration.db_iteration, 'int'))
-        node.set('completed',self.convertToStr(loop_iteration.db_completed, 'int'))
-        node.set('error',self.convertToStr(loop_iteration.db_error, 'str'))
-        
-        # set elements
-        item_execs = loop_iteration.db_item_execs
-        for item_exec in item_execs:
-            if item_exec.vtType == 'module_exec':
-                childNode = ElementTree.SubElement(node, 'moduleExec')
-                self.getDao('module_exec').toXML(item_exec, childNode)
-            elif item_exec.vtType == 'group_exec':
-                childNode = ElementTree.SubElement(node, 'groupExec')
-                self.getDao('group_exec').toXML(item_exec, childNode)
-            elif item_exec.vtType == 'loop_exec':
-                childNode = ElementTree.SubElement(node, 'loopExec')
-                self.getDao('loop_exec').toXML(item_exec, childNode)
+        machines = log.db_machines
+        for machine in machines:
+            if (machines is not None) and (machines != ""):
+                childNode = ElementTree.SubElement(node, 'machine')
+                self.getDao('machine').toXML(machine, childNode)
         
         return node
 
@@ -3319,7 +3267,6 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         name = self.convertFromStr(data, 'str')
         
         annotations = []
-        machines = []
         item_execs = []
         
         # read children
@@ -3331,9 +3278,6 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             if child_tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
-            elif child_tag == 'machine':
-                _data = self.getDao('machine').fromXML(child)
-                machines.append(_data)
             elif child_tag == 'moduleExec':
                 _data = self.getDao('module_exec').fromXML(child)
                 item_execs.append(_data)
@@ -3361,8 +3305,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
                              parent_version=parent_version,
                              completed=completed,
                              name=name,
-                             annotations=annotations,
-                             machines=machines)
+                             annotations=annotations)
         obj.is_dirty = False
         return obj
     
@@ -3390,11 +3333,6 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
             if (annotations is not None) and (annotations != ""):
                 childNode = ElementTree.SubElement(node, 'annotation')
                 self.getDao('annotation').toXML(annotation, childNode)
-        machines = workflow_exec.db_machines
-        for machine in machines:
-            if (machines is not None) and (machines != ""):
-                childNode = ElementTree.SubElement(node, 'machine')
-                self.getDao('machine').toXML(machine, childNode)
         item_execs = workflow_exec.db_item_execs
         for item_exec in item_execs:
             if item_exec.vtType == 'module_exec':
@@ -5752,6 +5690,8 @@ class DBParameterExplorationXMLDAOBase(XMLDAO):
         action_id = self.convertFromStr(data, 'long')
         data = node.get('name', None)
         name = self.convertFromStr(data, 'str')
+        data = node.get('date', None)
+        date = self.convertFromStr(data, 'datetime')
         data = node.get('user', None)
         user = self.convertFromStr(data, 'str')
         data = node.get('dims', None)
@@ -5778,6 +5718,7 @@ class DBParameterExplorationXMLDAOBase(XMLDAO):
         obj = DBParameterExploration(id=id,
                                      action_id=action_id,
                                      name=name,
+                                     date=date,
                                      user=user,
                                      dims=dims,
                                      layout=layout,
@@ -5793,6 +5734,7 @@ class DBParameterExplorationXMLDAOBase(XMLDAO):
         node.set('id',self.convertToStr(parameter_exploration.db_id, 'long'))
         node.set('actionId',self.convertToStr(parameter_exploration.db_action_id, 'long'))
         node.set('name',self.convertToStr(parameter_exploration.db_name, 'str'))
+        node.set('date',self.convertToStr(parameter_exploration.db_date, 'datetime'))
         node.set('user',self.convertToStr(parameter_exploration.db_user, 'str'))
         node.set('dims',self.convertToStr(parameter_exploration.db_dims, 'str'))
         node.set('layout',self.convertToStr(parameter_exploration.db_layout, 'str'))
@@ -6307,8 +6249,6 @@ class XMLDAOListBase(dict):
             self['opm_artifact'] = DBOpmArtifactXMLDAOBase(self)
         if 'log' not in self:
             self['log'] = DBLogXMLDAOBase(self)
-        if 'loop_iteration' not in self:
-            self['loop_iteration'] = DBLoopIterationXMLDAOBase(self)
         if 'opm_process_id_cause' not in self:
             self['opm_process_id_cause'] = DBOpmProcessIdCauseXMLDAOBase(self)
         if 'opm_artifacts' not in self:

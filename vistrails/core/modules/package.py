@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import copy
 import inspect
 import os
@@ -42,10 +45,9 @@ import traceback
 import vistrails
 from vistrails.core import debug
 from vistrails.core import get_vistrails_application
-from vistrails.core.configuration import ConfigurationObject
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.utils import versions_increasing, VistrailsInternalError
-from vistrails.core.utils.uxml import (named_elements, enter_named_element)
 from vistrails.db.domain import DBPackage
 
 
@@ -260,9 +262,9 @@ class Package(DBPackage):
     ##########################################################################
     # Methods
 
-    _python_lib_regex = re.compile(r'python[0-9.]+[a-z]?/lib/(vistrails)?',
+    _python_lib_regex = re.compile(r'python[0-9.]+[a-z]?/lib/(?!vistrails)',
                                    re.IGNORECASE)
-    _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/(vistrails)?',
+    _lib_python_regex = re.compile(r'lib/python[0-9.]+[a-z]?/(?!vistrails)',
                                    re.IGNORECASE)
     def import_override(self, orig_import,
                         name, globals, locals, fromlist, level,
@@ -286,9 +288,8 @@ class Package(DBPackage):
                 return True
             if os.sep != '/':
                 pkg_fname = pkg_fname.replace(os.sep, '/')
-            m1 = self._python_lib_regex.search(pkg_fname)
-            m2 = self._lib_python_regex.search(pkg_fname)
-            return (m1 and not m1.group(0)) or (m2 and not m2.group(0))
+            return (self._python_lib_regex.search(pkg_fname) or
+                    self._lib_python_regex.search(pkg_fname))
 
         sys_modules = sys.modules.keys()
 
@@ -318,8 +319,8 @@ class Package(DBPackage):
                         self._imports_are_good = False
                         debug.warning(
                             "In package '%s', Please use the 'vistrails.' "
-                            "prefix when importing vistrails packages." %
-                            (self.identifier or self.codepath))
+                            "prefix when importing vistrails packages (%s)" %
+                            (self.identifier or self.codepath, name))
                     fixed = pkg
                     name = "vistrails." + name
                     break
@@ -351,9 +352,6 @@ class Package(DBPackage):
 
     def get_py_deps(self):
         return self.py_dependencies
-
-    def remove_py_deps(self, deps):
-        self.py_dependencies.difference_update(deps)
 
     def load(self, prefix=None):
         """load(module=None). Loads package's module.
@@ -458,10 +456,11 @@ class Package(DBPackage):
     def unload(self):
         for path in self.py_dependencies:
             if path not in sys.modules:
-                # print "skipping %s" % path
                 pass
-            else:
-                # print 'deleting path:', path, path in sys.modules
+            elif not getattr(get_vistrails_configuration(),
+                             'dontUnloadModules',
+                             False):
+                debug.debug("deleting from sys.modules: %s" % path)
                 del sys.modules[path]
         self.py_dependencies.clear()
         self._loaded = False
@@ -501,9 +500,11 @@ class Package(DBPackage):
             return (hasattr(self.init_module, 'can_handle_identifier') and
                     self.init_module.can_handle_identifier(identifier))
         except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Got exception calling %s's can_handle_identifier: "
-                           "%s: %s" % (self.name,
-                                       type(e).__name__, ', '.join(e.args)))
+                           "%s\n%s" % (self.name,
+                                       debug.format_exception(e),
+                                       traceback.format_exc()))
             return False
 
     def can_handle_vt_file(self, name):
@@ -513,9 +514,11 @@ class Package(DBPackage):
             return (hasattr(self.init_module, 'can_handle_vt_file') and
                     self.init_module.can_handle_vt_file(name))
         except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Got exception calling %s's can_handle_vt_file: "
-                           "%s: %s" % (self.name,
-                                       type(e).__name__, ', '.join(e.args)))
+                           "%s\n%s" % (self.name,
+                                       debug.format_exception(e),
+                                       traceback.format_exc()))
             return False
 
     def can_handle_missing_modules(self):
@@ -578,18 +581,22 @@ class Package(DBPackage):
             try:
                 self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
             except Exception, e:
+                debug.unexpected_exception(e)
                 debug.critical("Got exception in %s's loadVistrailFileHook(): "
-                               "%s: %s" % (self.name, type(e).__name__,
-                                           ', '.join(e.args)))
+                               "%s\n%s" % (self.name,
+                                           debug.format_exception(e),
+                                           traceback.format_exc()))
 
     def saveVistrailFileHook(self, vistrail, tmp_dir):
         if hasattr(self._init_module, 'saveVistrailFileHook'):
             try:
                 self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
             except Exception, e:
+                debug.unexpected_exception(e)
                 debug.critical("Got exception in %s's saveVistrailFileHook(): "
-                               "%s: %s" % (self.name, type(e).__name__,
-                                           ', '.join(e.args)))
+                               "%s\n%s" % (self.name,
+                                           debug.format_exception(e),
+                                           traceback.format_exc()))
 
     def check_requirements(self):
         try:
@@ -608,8 +615,10 @@ class Package(DBPackage):
             try:
                 return callable_()
             except Exception, e:
-                debug.critical("Couldn't load menu items for %s: %s: %s" % (
-                               self.name, type(e).__name__, ', '.join(e.args)))
+                debug.unexpected_exception(e)
+                debug.critical("Couldn't load menu items for %s: %s\n%s" % (
+                               self.name, debug.format_exception(e),
+                               traceback.format_exc()))
 
     def finalize(self):
         if not self._initialized:
@@ -623,8 +632,10 @@ class Package(DBPackage):
             try:
                 callable_()
             except Exception, e:
-                debug.critical("Couldn't finalize %s: %s: %s" % (
-                               self.name, type(e).__name__, ', '.join(e.args)))
+                debug.unexpected_exception(e)
+                debug.critical("Couldn't finalize %s: %s\n%s" % (
+                               self.name, debug.format_exception(e),
+                               traceback.format_exc()))
         # Save configuration
         if self.load_configuration and self.configuration is not None:
             self.persist_configuration()
@@ -634,24 +645,25 @@ class Package(DBPackage):
         self._initialized = False
 
     def dependencies(self):
+        deps = []
         try:
             callable_ = self._module.package_dependencies
         except AttributeError:
-            deps = []
+            pass
         else:
             try:
                 deps = callable_()
             except Exception, e:
-                debug.critical("Couldn't get dependencies of %s: %s: %s" % (
-                               self.name, type(e).__name__, ', '.join(e.args)))
+                debug.critical(
+                        "Couldn't get dependencies of %s: %s\n%s" % (
+                            self.name, debug.format_exception(e),
+                            traceback.format_exc()))
+                deps = []
 
         if self._module is not None and \
                 hasattr(self._module, '_dependencies'):
             deps.extend(self._module._dependencies)
         return deps
-
-    def loaded(self):
-        return self._loaded
 
     def initialized(self):
         return self._initialized
@@ -702,9 +714,5 @@ class Package(DBPackage):
         """
         self.configuration = copy.copy(self._default_configuration)
         if self.load_configuration:
-            self.persisted_configuration = copy.copy(self.configuration)
+            self.persistent_configuration = copy.copy(self.configuration)
             self.persist_configuration(True)
-
-    def set_enabled(self, enabled=True):
-        get_vistrails_application().startup.set_package_enabled(self.codepath, 
-                                                                enabled)

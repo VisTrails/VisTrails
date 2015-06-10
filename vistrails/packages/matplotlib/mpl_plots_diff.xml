@@ -534,6 +534,9 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
       <outputPortSpec arg="baseline" compute_name="baseline" name="baselineProperties" port_type="__property__" property_key="2" property_type="matplotlib.lines.Line2D" />
     </value>
   </addPortSpec>
+  <changeModule attr="output_type" code_ref="matplotlib.pyplot.broken_barh">
+    <value>object</value>
+  </changeModule>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.broken_barh" port="yrange" type="input">
     <value>(ymin, ywidth)</value>
   </changePortSpec>

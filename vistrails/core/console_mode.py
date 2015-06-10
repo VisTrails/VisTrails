@@ -1,41 +1,43 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """ Module used when running  vistrails uninteractively """
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 import os.path
-import uuid
+import unittest
+
 from vistrails.core.application import is_running_gui
 from vistrails.core.configuration import get_vistrails_configuration
 import vistrails.core.interpreter.default
@@ -43,16 +45,16 @@ import vistrails.core.db.io
 from vistrails.core.db.io import load_vistrail
 from vistrails.core.db.locator import XMLFileLocator, ZIPFileLocator
 from vistrails.core import debug
-from vistrails.core.interpreter.job import JobMonitor, Workflow as JobWorkflow
-from vistrails.core.utils import VistrailsInternalError, expression
+import vistrails.core.interpreter.cached
+from vistrails.core.vistrail.job import Workflow as JobWorkflow
+import vistrails.core.vistrail.pipeline
+from vistrails.core.utils import VistrailsInternalError
 from vistrails.core.vistrail.controller import VistrailController
-from vistrails.core.vistrail.vistrail import Vistrail
-
 import vistrails.core.packagemanager
 import vistrails.core.system
-import unittest
 import vistrails.core.vistrail
 import vistrails.db
+
 
 ################################################################################
     
@@ -72,7 +74,7 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
     result = []
     for locator, workflow in w_list:
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-        controller = VistrailController(v, locator, abstractions, thumbnails, 
+        controller = VistrailController(v, locator, abstractions, thumbnails,
                                         mashups, auto_save=update_vistrail)
         if isinstance(workflow, basestring):
             version = v.get_version_number(workflow)
@@ -119,20 +121,20 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
             if conf.has('thumbs'):
                 conf.thumbs.autoSave = False
         
-        jobMonitor = JobMonitor.getInstance()
+        jobMonitor = controller.jobMonitor
         current_workflow = jobMonitor.currentWorkflow()
         if not current_workflow:
-            for job in jobMonitor._running_workflows.itervalues():
+            for job in jobMonitor.workflows.itervalues():
                 try:
                     job_version = int(job.version)
                 except ValueError:
                     job_version =  v.get_version_number(job.version)
-                if version == job_version and locator.to_url() == job.vistrail:
+                if version == job_version:
                     current_workflow = job
                     jobMonitor.startWorkflow(job)
             if not current_workflow:
-                current_workflow = JobWorkflow(locator.to_url(), version)
-                jobMonitor.getInstance().startWorkflow(current_workflow)
+                current_workflow = JobWorkflow(version)
+                jobMonitor.startWorkflow(current_workflow)
 
         try:
             (results, _) = \
@@ -154,12 +156,12 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
         if update_vistrail:
             controller.write_vistrail(locator)
         result.append(run)
-        if current_workflow.modules:
+        if current_workflow.jobs:
             if current_workflow.completed():
                 run.job = "COMPLETED"
             else:
                 run.job = "RUNNING: %s" % current_workflow.id
-                for job in current_workflow.modules.itervalues():
+                for job in current_workflow.jobs.itervalues():
                     if not job.finished:
                         run.job += "\n  %s %s %s" % (job.start, job.name, job.description())
             print run.job
@@ -234,19 +236,19 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
                 controller = GUIVistrailController(v, locator, abstractions, 
                                                    thumbnails, mashups)
                 if tree_info is not None:
-                        from vistrails.gui.version_view import QVersionTreeView
-                        version_view = QVersionTreeView()
-                        version_view.scene().setupScene(controller)
-                        if pdf:
-                            base_fname = "graph_%s.pdf" % locator.short_filename
-                            filename = os.path.join(tree_info, base_fname)
-                            version_view.scene().saveToPDF(filename)
-                        else:
-                            base_fname = "graph_%s.png" % locator.short_filename
-                            filename = os.path.join(tree_info, base_fname)
-                            version_view.scene().saveToPNG(filename)
-                        del version_view
-                        result.append((True, ""))
+                    from vistrails.gui.version_view import QVersionTreeView
+                    version_view = QVersionTreeView()
+                    version_view.scene().setupScene(controller)
+                    if pdf:
+                        base_fname = "graph_%s.pdf" % locator.short_filename
+                        filename = os.path.join(tree_info, base_fname)
+                        version_view.scene().saveToPDF(filename)
+                    else:
+                        base_fname = "graph_%s.png" % locator.short_filename
+                        filename = os.path.join(tree_info, base_fname)
+                        version_view.scene().saveToPNG(filename)
+                    del version_view
+                    result.append((True, ""))
             except Exception, e:
                 result.append((False, debug.format_exception(e)))
     else:
@@ -299,9 +301,8 @@ def run_parameter_exploration(locator, pe_id, extra_info = {},
             controller.executeParameterExploration(pe, extra_info=extra_info,
                                                    showProgress=False)
         except Exception, e:
-            import traceback
             return (locator, pe_id,
-                    debug.format_exception(e), traceback.format_exc())
+                    debug.format_exception(e), debug.format_exc())
 
 def run_parameter_explorations(w_list, extra_info = {},
                        reason="Console Mode Parameter Exploration Execution"):

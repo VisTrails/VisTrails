@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 import glob
@@ -206,7 +209,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
     def add_file(self):
         s = QtGui.QFileDialog.getOpenFileName(
                     self, "Choose a file",
-                    "", "Vistrail files (*.vt *.xml)");
+                    "", "Vistrail files (*.vt *.xml)")
         if str(s):
             locator = FileLocator(str(s))
             url = locator.to_url()
@@ -218,7 +221,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
     def add_dir(self):
         s = QtGui.QFileDialog.getExistingDirectory(
                     self, "Choose a directory",
-                    "", QtGui.QFileDialog.ShowDirsOnly);
+                    "", QtGui.QFileDialog.ShowDirsOnly)
         if str(s):
             self.update_from_directory(str(s))
         
@@ -394,7 +397,6 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
 class QWorkflowEntityItem(QBrowserWidgetItem):
     def get_vistrail(self):
         parent = self.parent()
-        QVistrailEntityItem
         while parent and type(parent) != QVistrailEntityItem:
             parent = parent.parent()
         return parent
@@ -798,7 +800,7 @@ class QVistrailList(QtGui.QTreeWidget):
         Expand/Collapse top-level item when the mouse is pressed
         
         """
-        if item and item.parent() == None:
+        if item and item.parent() is None:
             self.setItemExpanded(item, not self.isItemExpanded(item))
             
     def search_result_selected(self, view, version):
@@ -1186,7 +1188,10 @@ class QVistrailList(QtGui.QTreeWidget):
             item.pe_to_item[pe_entity.url] = childItem
             item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
 
-        self.make_tree(item) if self.isTreeView else self.make_list(item)
+        if self.isTreeView:
+            self.make_tree(item)
+        else:
+            self.make_list(item)
 
     def execution_updated(self):
         """ Add new executions to workflow """
@@ -1290,7 +1295,10 @@ class QVistrailList(QtGui.QTreeWidget):
         item.mashupsItem.setHidden(not item.mashupsItem.childCount())
         item.paramExplorationsItem.setHidden(
                              not item.paramExplorationsItem.childCount())
-        self.make_tree(item) if self.isTreeView else self.make_list(item)
+        if self.isTreeView:
+            self.make_tree(item)
+        else:
+            self.make_list(item)
         self.item_changed(item, None)
         self.updateHideExecutions()
 
@@ -1321,7 +1329,10 @@ class QVistrailList(QtGui.QTreeWidget):
         if entity and not self.collection.is_temp_entity(entity) and \
                 not vistrail_window.is_abstraction:
             item = QVistrailEntityItem(entity)
-            self.make_tree(item) if self.isTreeView else self.make_list(item)
+            if self.isTreeView:
+                self.make_tree(item)
+            else:
+                self.make_list(item)
             self.closedFilesItem.addChild(item)
             item.setText(0, entity.name)
         self.updateHideExecutions()

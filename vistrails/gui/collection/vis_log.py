@@ -1,38 +1,41 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """ This modules builds a widget to visualize workflow execution logs """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.log.module_exec import ModuleExec
@@ -53,7 +56,7 @@ import vistrails.core.db.io
 class QExecutionItem(QtGui.QTreeWidgetItem):
     """
     QExecutionItem represents a workflow or module execution.
-    
+
     """
     def __init__(self, execution, parent=None, prev=None):
         QtGui.QTreeWidgetItem.__init__(self, parent)
@@ -71,7 +74,7 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
                 brush = CurrentTheme.SUCCESS_MODULE_BRUSH
             else:
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
-                
+
             if execution.db_name:
                 self.setText(0, execution.db_name)
             else:
@@ -133,12 +136,28 @@ class QExecutionItem(QtGui.QTreeWidgetItem):
                 brush = CurrentTheme.ERROR_MODULE_BRUSH
             self.setText(0, 'Iteration #%s' % execution.iteration)
 
-        self.setText(1, '%s' % execution.ts_start)
-        self.setText(2, '%s' % execution.ts_end)
+        self.setText(1, execution.ts_start.strftime(
+                    '%H:%M %d/%m').replace(' 0', ' ').replace('/0', '/'))
+        self.setData(1, QtCore.Qt.UserRole, str(execution.ts_start))
+        #self.setText(2, '%s' % execution.ts_end) end is hidden
         pixmap = QtGui.QPixmap(10,10)
         pixmap.fill(brush.color())
         icon = QtGui.QIcon(pixmap)
         self.setIcon(0, icon)
+
+
+    def __lt__( self, other ):
+
+        tree = self.treeWidget()
+        if ( not tree ):
+            column = 0
+        else:
+            column = tree.sortColumn()
+
+        if column != 1: # only use special sorting for date
+            return super(QExecutionItem, self).__lt__(other)
+
+        return self.data(1, QtCore.Qt.UserRole) < other.data(1, QtCore.Qt.UserRole)
 
 class QExecutionListWidget(QtGui.QTreeWidget):
     """
@@ -148,8 +167,9 @@ class QExecutionListWidget(QtGui.QTreeWidget):
     def __init__(self, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.setColumnCount(3)
-        self.setHeaderLabels(['Pipeline', 'Start', 'End'])
+        self.setColumnCount(2)
+        self.setHeaderLabels(['Pipeline', 'Start']) # end is hidden
+        self.header().setDefaultSectionSize(200)
         self.sortByColumn(1, QtCore.Qt.AscendingOrder)
         self.setSortingEnabled(True)
 
@@ -223,6 +243,7 @@ class QLegendWidget(QtGui.QWidget):
 class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        self.controller = None
         self.execution = None
         self.parentItem = None
         self.set_title("Log Details")
@@ -266,9 +287,15 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
                                                self.openVersionAction)
 
     def openVersion(self):
-        if not hasattr(self.parentItem, 'item'):
+
+        parent = self.executionList.selectedItems()
+        if len(parent) != 1:
             return
-        version = self.parentItem.item.wf_item.parent_version
+        parent = parent[0]
+        while not isinstance(parent.execution, WorkflowExec):
+            parent = parent.parent()
+
+        version = parent.execution.parent_version
         from vistrails.gui.vistrails_window import _app
         _app.get_current_view().version_selected(version, True)
         self.controller.recompute_terse_graph()
@@ -311,6 +338,9 @@ class QLogDetails(QtGui.QWidget, QVistrailsPaletteInterface):
 
     def set_controller(self, controller):
         #print '@@@@ QLogDetails calling set_controller'
+        if self.controller == controller:
+            return
+
         self.controller = controller
         self.executionList.controller = self.controller
         if self.controller is not None:
@@ -456,7 +486,7 @@ class QLogView(QPipelineView):
                 item = self.scene().selectedItems()[0]
                 self.notify_app(self.parentItem, item.execution)
         elif self.execution != self.parentItem.execution:
-                self.notify_app(self.parentItem, self.parentItem.execution)
+            self.notify_app(self.parentItem, self.parentItem.execution)
 
     def set_exec_by_id(self, exec_id):
         if not self.log:

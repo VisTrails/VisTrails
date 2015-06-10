@@ -1,39 +1,39 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-
-from __future__ import with_statement
+from __future__ import division, with_statement
 
 from vistrails.core.bundles import py_import
 
@@ -512,15 +512,17 @@ def open_vistrail_from_xml(filename):
     try:
         daoList = getVersionDAO(version)
         vistrail = daoList.open_from_xml(filename, DBVistrail.vtType, tree)
+        if vistrail is None:
+            raise VistrailsDBException("Couldn't read vistrail from XML")
         vistrail = translate_vistrail(vistrail, version)
         vistrails.db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
         if str(e).startswith('VistrailsDBException: Cannot find DAO for'):
-            msg = "This vistrail was created by a newer version of VisTrails "
-            msg += "and cannot be opened."
-            raise VistrailsDBException(msg)
+            raise VistrailsDBException(
+                "This vistrail was created by a newer version of VisTrails "
+                "and cannot be opened.")
         raise e
-        
+
     return vistrail
 
 def open_vistrail_bundle_from_zip_xml(filename):
@@ -620,9 +622,8 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
             save_vistrail_to_xml(abs, fname)
             abstractions.append(fname)
     except Exception, e:
-        import traceback
         debug.critical('Could not load abstraction from database: %s' % str(e),
-                                              traceback.format_exc())
+                       debug.format_exc())
     # open mashuptrails from db
     mashuptrails = []
     try:
@@ -630,9 +631,8 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
             mashup = open_mashuptrail_from_db(db_connection, mashup_id)
             mashuptrails.append(mashup)
     except Exception, e:
-        import traceback
         debug.critical('Could not load mashuptrail from database: %s' % str(e),
-                                              traceback.format_exc())
+                       debug.format_exc())
     thumbnails = open_thumbnails_from_db(db_connection, DBVistrail.vtType,
                                          vistrail_id, tmp_dir)
     return SaveBundle(DBVistrail.vtType, vistrail, log,
@@ -926,6 +926,8 @@ def open_workflow_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
     workflow = daoList.open_from_xml(filename, DBWorkflow.vtType, tree)
+    if workflow is None:
+        raise VistrailsDBException("Couldn't read workflow from XML")
     workflow = translate_workflow(workflow, version)
     vistrails.db.services.workflow.update_id_scope(workflow)
     return workflow
@@ -1188,6 +1190,8 @@ def open_registry_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
     registry = daoList.open_from_xml(filename, DBRegistry.vtType, tree)
+    if registry is None:
+        raise VistrailsDBException("Couldn't read registry from XML")
     registry = translate_registry(registry, version)
     vistrails.db.services.registry.update_id_scope(registry)
     return registry
@@ -1262,60 +1266,6 @@ def save_registry_bundle_to_db(save_bundle, db_connection, do_copy=False,
 
 ##############################################################################
 # Abstraction I/O
-
-def open_abstraction_from_db(db_connection, id, lock=False):
-    """open_abstraction_from_db(db_connection, id : long: lock: bool) 
-         -> DBAbstraction 
-    DEPRECATED
-    """
-    if db_connection is None:
-        msg = "Need to call open_db_connection() before reading"
-        raise VistrailsDBException(msg)
-    abstraction = read_sql_objects(db_connection, DBAbstraction.vtType, 
-                                   id, lock)[0]
-
-    # not sure where this really should be done...
-    # problem is that db reads the add ops, then change ops, then delete ops
-    # need them ordered by their id
-    for db_action in abstraction.db_get_actions():
-        db_action.db_operations.sort(key=lambda x: x.db_id)
-    vistrails.db.services.abstraction.update_id_scope(abstraction)
-    return abstraction
-
-def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
-    """ DEPRECATED """
-    trans = db_connection.begin()
-    if abstraction.db_last_modified is None:
-        do_copy = True
-    if not do_copy:
-        match_id = get_matching_abstraction_id(db_connection, abstraction)
-        # FIXME remove print
-        #print 'match_id:', match_id
-        if match_id is not None:
-            abstraction.db_id = match_id
-            abstraction.is_new = False
-        else:
-            do_copy = True
-        new_time = get_db_object_modification_time(db_connection, 
-                                                   abstraction.db_id,
-                                                   DBAbstraction.vtType)
-        if new_time > abstraction.db_last_modified:
-            # need synchronization
-            # FIXME remove print
-            #print '*** doing synchronization ***'
-            old_abstraction = open_abstraction_from_db(db_connection, 
-                                                       abstraction.db_id,
-                                                       True)
-            # the "old" one is modified and changes integrated
-            vistrails.db.services.vistrail.synchronize(old_abstraction, abstraction,
-                                             0L)
-            abstraction = old_abstraction
-    if do_copy:
-        abstraction.db_id = None
-    abstraction.db_last_modified = get_current_time(db_connection)
-    write_sql_objects(db_connection, [abstraction], do_copy)
-    trans.commit()
-    return abstraction
 
 def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
     """save_abstraction_to_db(abs: DBVistrail, db_connection) -> None
