@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 from vistrails.db.versions.v2_0_0.domain import DBVistrail, \
-    DBWorkflow, DBLog, DBRegistry, DBStartup, IdScope
+    DBWorkflow, DBLog, DBRegistry, DBStartup, DBAction, IdScope
 
 import unittest
 
@@ -56,6 +56,12 @@ def translateVistrail(_vistrail):
         if action.db_prevId == 0:
             action.db_prevId = DBVistrail.ROOT_VERSION
 
+    # remap upgrade annotations
+    for ann in vistrail.db_actionAnnotations[:]:
+        if ann.db_key == "__upgrade__": # vistrails.core.vistrail.vistrail.Vistrail.UPDATE_ANNOTATION
+            vistrail.db_delete_actionAnnotation(ann)
+            ann.db_value = "%s" % id_remap[(DBAction.vtType, long(ann.db_value))]
+            vistrail.db_add_actionAnnotation(ann)
     return vistrail
 
 def translateWorkflow(_workflow):
