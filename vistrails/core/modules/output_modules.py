@@ -608,15 +608,16 @@ class IPythonMode(OutputMode):
             return False
         else:
             ip = get_ipython()
-            if ip is None or not isinstance(ip, ZMQInteractiveShell):
-                return False
-            warnings.warn("Looks like we're running from the notebook; "
-                          "automatically enabling IPythonMode.\n"
-                          "If this is right, please call "
-                          "vistrails.ipython_mode(True) so that this keeps "
-                          "working in the future (and this warning doesn't "
-                          "show).")
-            return True
+            if ip is not None and isinstance(ip, ZMQInteractiveShell):
+                warnings.warn(
+                        "Looks like you might be running from IPython; you "
+                        "might want to call\nvistrails.ipython_mode(True) to "
+                        "enable IPythonMode, allowing output modules to\n"
+                        "render to the notebook.\n"
+                        "If this is wrong, please call "
+                        "vistrails.ipython_mode(False) to get rid of this\n"
+                        "warning.")
+            return False
 
     def compute_output(self, output_module, configuration):
         from IPython.core.display import display
