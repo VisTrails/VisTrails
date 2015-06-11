@@ -191,7 +191,7 @@ def default_open_db_connection(config):
         raise VistrailsDBException("Unable to open db connection: %s" % str(e))
     return connection
 
-def get_db_version_from_db(db_connection):
+def get_db_version_from_db(db_connection, fail=False):
     sqlalchemy = get_sqlalchemy()
 
     if isinstance(db_connection, sqlalchemy.engine.interfaces.Connectable):
@@ -202,6 +202,8 @@ def get_db_version_from_db(db_connection):
         version = c.fetchone()[0]
         return version
     except Exception, e:
+        if fail:
+            raise
         debug.warning('Cannot obtain current db version, using current (%s). '
                       'Exception: "%s"' % (currentVersion, str(e)))
     finally:

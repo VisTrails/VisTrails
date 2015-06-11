@@ -38,8 +38,8 @@
 import os
 import sys
 import tempfile
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(
-                os.path.abspath(__file__))), 'vistrails'))
+sys.path.append(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__))))
 from vistrails.db.services import io
 from vistrails.db.versions import currentVersion
 from db_utils import parse_db_cmd_line
@@ -122,7 +122,11 @@ if __name__ == '__main__':
     new_version = None
     if options['v']:
         new_version = options['v']
+    if options['d']:
+        tmp_dir = options['d']
+    else:
+        tmp_dir = None
 
     vistrails.core.application.init()
 
-    update_db(config, new_version, options['d'], options['e']) 
+    update_db(config, new_version, tmp_dir, options['e'])

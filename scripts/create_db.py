@@ -44,20 +44,18 @@ from db_utils import parse_db_cmd_line
 
 def create_db(config, version=None):
     db_connection = io.default_open_db_connection(config)
+    clean = False
     try:
-        io.get_version_from_db(db_connection)
-        raise Exception("Database already exists. Delete or upgrade it")
-    except AttributeError:
+        io.get_db_version_from_db(db_connection, True)
+    except Exception:
         # asssume we don't have anything in the database
-        pass
+        clean = True
+    if not clean:
+        raise Exception("Database already exists. Delete or upgrade it")
 
     if version is not None:
         config['version'] = version
     db_connection = io.open_db_connection(config)
-    # utils = io.get_sql_utils(version)
-    # db_connection = utils.open_db_connection(config)
-    # db_connection.__vt_db_version__ = version
-
     io.create_db_tables(db_connection)
     io.close_db_connection(db_connection)
 
