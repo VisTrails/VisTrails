@@ -50,48 +50,31 @@ def get_nonempty_list(elem):
     else:
         return [elem]
 
-def expand_port_specs(port_specs, pkg_identifier=None):
-    if pkg_identifier is None:
-        pkg_identifier = identifier
-    reg = get_module_registry()
-    out_specs = []
-    for port_spec in port_specs:
-        if len(port_spec) == 2:
-            out_specs.append((port_spec[0],
-                              reg.expand_port_spec_string(port_spec[1],
-                                                          pkg_identifier)))
-        elif len(port_spec) == 3:
-            out_specs.append((port_spec[0],
-                              reg.expand_port_spec_string(port_spec[1],
-                                                          pkg_identifier),
-                              port_spec[2]))
-    return out_specs
-
 
 class VariableSource(Module):
-    _input_ports = expand_port_specs([("file", "basic:File"),
-                                      ("url", "basic:String")])
-    _output_ports = expand_port_specs([("variables", "basic:List"),
-                                       ("dimensions", "basic:List"),
-                                       ("attributes", "basic:List")])
+    _input_ports = [("file", "basic:File"),
+                    ("url", "basic:String")]
+    _output_ports = [("variables", "basic:List"),
+                     ("dimensions", "basic:List"),
+                     ("attributes", "basic:List")]
 
 
 class CDMSVariable(Module):
 
-    _input_ports = expand_port_specs([("file", "basic:File"),
-                                      ("url", "basic:String"),
-                                      ("source", "VariableSource"),
-                                      ("name", "basic:String"),
-                                      ("load", "basic:Boolean"),
-                                      ("axes", "basic:String"),
-                                      ("axesOperations", "basic:String"),
-                                      ("varNameInFile", "basic:String"),
-                                      ("attributes", "basic:Dictionary"),
-                                      ("axisAttributes", "basic:Dictionary"),
-                                      ("setTimeBounds", "basic:String")])
-    _output_ports = expand_port_specs([("attributes", "basic:Dictionary"),
-                                       ("dimensions", "basic:List"),
-                                       ("self", "CDMSVariable")])
+    _input_ports = [("file", "basic:File"),
+                    ("url", "basic:String"),
+                    ("source", "VariableSource"),
+                    ("name", "basic:String"),
+                    ("load", "basic:Boolean"),
+                    ("axes", "basic:String"),
+                    ("axesOperations", "basic:String"),
+                    ("varNameInFile", "basic:String"),
+                    ("attributes", "basic:Dictionary"),
+                    ("axisAttributes", "basic:Dictionary"),
+                    ("setTimeBounds", "basic:String")]
+    _output_ports = [("attributes", "basic:Dictionary"),
+                     ("dimensions", "basic:List"),
+                     ("self", "CDMSVariable")]
 
     def __init__(self, filename=None, url=None, source=None, name=None, \
                      load=False, varNameInFile=None, axes=None, \
@@ -292,15 +275,15 @@ class CDMSVariable(Module):
         return var
 
 class CDMSVariableOperation(Module):
-    _input_ports = expand_port_specs([("varname", "basic:String"),
-                                      ("python_command", "basic:String"),
-                                      ("axes", "basic:String"),
-                                      ("axesOperations", "basic:String"),
-                                      ("attributes", "basic:Dictionary"),
-                                      ("axisAttributes", "basic:Dictionary"),
-                                      ("timeBounds", "basic:String")])
+    _input_ports = [("varname", "basic:String"),
+                    ("python_command", "basic:String"),
+                    ("axes", "basic:String"),
+                    ("axesOperations", "basic:String"),
+                    ("attributes", "basic:Dictionary"),
+                    ("axisAttributes", "basic:Dictionary"),
+                    ("timeBounds", "basic:String")]
 
-    _output_ports = expand_port_specs([("output_var", "CDMSVariable")])
+    _output_ports = [("output_var", "CDMSVariable")]
 
     def __init__(self, varname=None, python_command=None, axes=None,
                  axesOperations=None, attributes=None, axisAttributes=None,
@@ -417,8 +400,7 @@ class CDMSVariableOperation(Module):
 
 
 class CDMSUnaryVariableOperation(CDMSVariableOperation):
-    _input_ports = expand_port_specs([("input_var", "CDMSVariable")
-                                      ])
+    _input_ports = [("input_var", "CDMSVariable")]
     def __init__(self, varname=None, python_command=None, axes=None,
                  axesOperations=None, attributes=None, axisAttributes=None,
                  timeBounds=None ):
@@ -466,9 +448,8 @@ class CDMSUnaryVariableOperation(CDMSVariableOperation):
         self.var = vars[0]
 
 class CDMSBinaryVariableOperation(CDMSVariableOperation):
-    _input_ports = expand_port_specs([("input_var1", "CDMSVariable"),
-                                      ("input_var2", "CDMSVariable")
-                                      ])
+    _input_ports = [("input_var1", "CDMSVariable"),
+                    ("input_var2", "CDMSVariable")]
     def __init__(self, varname=None, python_command=None, axes=None,
                  axesOperations=None, attributes=None, axisAttributes=None,
                  timeBounds=None ):
@@ -521,11 +502,10 @@ class CDMSBinaryVariableOperation(CDMSVariableOperation):
 
 class CDMSGrowerOperation(CDMSBinaryVariableOperation):
 
-    _input_ports = expand_port_specs([("varname2", "basic:String")])
+    _input_ports = [("varname2", "basic:String")]
 
-    _output_ports = expand_port_specs([("output_var", "CDMSVariable"),
-                                      ("output_var2", "CDMSVariable")
-                                      ])
+    _output_ports = [("output_var", "CDMSVariable"),
+                    ("output_var2", "CDMSVariable")]
 
     def compute(self):
         if not self.hasInputFromPort('input_var1'):
@@ -586,8 +566,7 @@ class CDMSGrowerOperation(CDMSBinaryVariableOperation):
         return var
 
 class CDMSNaryVariableOperation(CDMSVariableOperation):
-    _input_ports = expand_port_specs([("input_vars", "CDMSVariable"),
-                                      ])
+    _input_ports = [("input_vars", "CDMSVariable")]
     def __init__(self, varname=None, python_command=None, axes=None,
                  axesOperations=None, attributes=None, axisAttributes=None,
                  timeBounds=None ):
@@ -634,19 +613,19 @@ class CDMSNaryVariableOperation(CDMSVariableOperation):
         return var
 
 class CDMSPlot(Module, NotCacheable):
-    _input_ports = expand_port_specs([("variable", "CDMSVariable")])
+    _input_ports = [("variable", "CDMSVariable")]
 
     def __init__(self):
         Module.__init__(self)
         self.var = None
 
 class CDMS3DPlot(CDMSPlot):
-    _input_ports = expand_port_specs([("variable", "CDMSVariable"),
-                                      ("variable2", "CDMSVariable", True),
-                                      ("plotOrder", "basic:Integer", True),
-                                      ("graphicsMethodName", "basic:String"),
-                                      ("template", "basic:String") ])
-    _output_ports = expand_port_specs([("self", "CDMS3DPlot")])
+    _input_ports = [("variable", "CDMSVariable"),
+                    ("variable2", "CDMSVariable", True),
+                    ("plotOrder", "basic:Integer", True),
+                    ("graphicsMethodName", "basic:String"),
+                    ("template", "basic:String") ]
+    _output_ports = [("self", "CDMS3DPlot")]
 
     gm_attributes = [ 'projection' ]
 
@@ -748,30 +727,30 @@ class CDMS3DPlot(CDMSPlot):
 #        return InstanceObject(**attribs)
 
 class CDMS2DPlot(CDMSPlot):
-    _input_ports = expand_port_specs([("variable", "CDMSVariable"),
-                                      ("variable2", "CDMSVariable", True),
-                                      ("plotOrder", "basic:Integer", True),
-                                      ("graphicsMethodName", "basic:String"),
-                                      ("template", "basic:String"),
-                                      ('datawc_calendar', 'basic:Integer', True),
-                                      ('datawc_timeunits', 'basic:String', True),
-                                      ('datawc_x1', 'basic:Float', True),
-                                      ('datawc_x2', 'basic:Float', True),
-                                      ('datawc_y1', 'basic:Float', True),
-                                      ('datawc_y2', 'basic:Float', True),
-                                      ('xticlabels1', 'basic:String', True),
-                                      ('xticlabels2', 'basic:String', True),
-                                      ('yticlabels1', 'basic:String', True),
-                                      ('yticlabels2', 'basic:String', True),
-                                      ('xmtics1', 'basic:String', True),
-                                      ('xmtics2', 'basic:String', True),
-                                      ('ymtics1', 'basic:String', True),
-                                      ('ymtics2', 'basic:String', True),
-                                      ('projection', 'basic:String', True),
-                                      ('continents', 'basic:Integer', True),
-                                      ('ratio', 'basic:String', True),
-                                      ("colorMap", "CDMSColorMap", True)])
-    _output_ports = expand_port_specs([("self", "CDMS2DPlot")])
+    _input_ports = [("variable", "CDMSVariable"),
+                    ("variable2", "CDMSVariable", True),
+                    ("plotOrder", "basic:Integer", True),
+                    ("graphicsMethodName", "basic:String"),
+                    ("template", "basic:String"),
+                    ('datawc_calendar', 'basic:Integer', True),
+                    ('datawc_timeunits', 'basic:String', True),
+                    ('datawc_x1', 'basic:Float', True),
+                    ('datawc_x2', 'basic:Float', True),
+                    ('datawc_y1', 'basic:Float', True),
+                    ('datawc_y2', 'basic:Float', True),
+                    ('xticlabels1', 'basic:String', True),
+                    ('xticlabels2', 'basic:String', True),
+                    ('yticlabels1', 'basic:String', True),
+                    ('yticlabels2', 'basic:String', True),
+                    ('xmtics1', 'basic:String', True),
+                    ('xmtics2', 'basic:String', True),
+                    ('ymtics1', 'basic:String', True),
+                    ('ymtics2', 'basic:String', True),
+                    ('projection', 'basic:String', True),
+                    ('continents', 'basic:Integer', True),
+                    ('ratio', 'basic:String', True),
+                    ("colorMap", "CDMSColorMap", True)]
+    _output_ports = [("self", "CDMS2DPlot")]
 
     gm_attributes = [ 'datawc_calendar', 'datawc_timeunits',
                       'datawc_x1', 'datawc_x2', 'datawc_y1', 'datawc_y2',
@@ -861,26 +840,26 @@ class CDMS2DPlot(CDMSPlot):
 #        return InstanceObject(**attribs)
 
 class CDMSTDMarker(Module):
-    _input_ports = expand_port_specs([("status", "basic:List", True),
-                                      ("line", "basic:List", True),
-                                      ("id", "basic:List", True),
-                                      ("id_size", "basic:List", True),
-                                      ("id_color", "basic:List", True),
-                                      ("id_font", "basic:List", True),
-                                      ("symbol", "basic:List", True),
-                                      ("color", "basic:List", True),
-                                      ("size", "basic:List", True),
-                                      ("xoffset", "basic:List", True),
-                                      ("yoffset", "basic:List", True),
-                                      ("linecolor", "basic:List", True),
-                                      ("line_size", "basic:List", True),
-                                      ("line_type", "basic:List", True)])
-    _output_ports = expand_port_specs([("self", "CDMSTDMarker")])
+    _input_ports = [("status", "basic:List", True),
+                    ("line", "basic:List", True),
+                    ("id", "basic:List", True),
+                    ("id_size", "basic:List", True),
+                    ("id_color", "basic:List", True),
+                    ("id_font", "basic:List", True),
+                    ("symbol", "basic:List", True),
+                    ("color", "basic:List", True),
+                    ("size", "basic:List", True),
+                    ("xoffset", "basic:List", True),
+                    ("yoffset", "basic:List", True),
+                    ("linecolor", "basic:List", True),
+                    ("line_size", "basic:List", True),
+                    ("line_type", "basic:List", True)]
+    _output_ports = [("self", "CDMSTDMarker")]
 
 class CDMSColorMap(Module):
-    _input_ports = expand_port_specs([("colorMapName", "basic:String"),
-                                      ("colorCells", "basic:List")])
-    _output_ports = expand_port_specs([("self", "CDMSColorMap")])
+    _input_ports = [("colorMapName", "basic:String"),
+                    ("colorCells", "basic:List")]
+    _output_ports = [("self", "CDMSColorMap")]
 
     def __init__(self):
         Module.__init__(self)
@@ -893,7 +872,7 @@ class CDMSColorMap(Module):
         self.setResult("self", self)
 
 class CDMSCell(SpreadsheetCell):
-    _input_ports = expand_port_specs([("plot", "CDMSPlot")])
+    _input_ports = [("plot", "CDMSPlot")]
     def __init__(self,*args,**kargs):
         SpreadsheetCell.__init__(self)
     def compute(self):
@@ -1143,29 +1122,28 @@ _modules = [VariableSource,
 
 def get_input_ports(plot_type):
     if plot_type == "Boxfill":
-        return expand_port_specs([('boxfill_type', 'basic:String', True),
-                                  ('color_1', 'basic:Integer', True),
-                                  ('color_2', 'basic:Integer', True),
-                                  ('levels', 'basic:List', True),
-                                  ('ext_1', 'basic:Boolean', True),
-                                  ('ext_2', 'basic:Boolean', True),
-                                  ('fillareacolors', 'basic:List', True),
-                                  ('fillareaindices', 'basic:List', True),
-                                  ('fillareastyle', 'basic:String', True),
-                                  ('legend', 'basic:String', True),
-                                  ('level_1', 'basic:Float', True),
-                                  ('level_2', 'basic:Float', True),
-                                  ('missing', 'basic:Integer', True),
-                                  ('xaxisconvert', 'basic:String', True),
-                                  ('yaxisconvert', 'basic:String', True),
-                                  ])
+        return [('boxfill_type', 'basic:String', True),
+                ('color_1', 'basic:Integer', True),
+                ('color_2', 'basic:Integer', True),
+                ('levels', 'basic:List', True),
+                ('ext_1', 'basic:Boolean', True),
+                ('ext_2', 'basic:Boolean', True),
+                ('fillareacolors', 'basic:List', True),
+                ('fillareaindices', 'basic:List', True),
+                ('fillareastyle', 'basic:String', True),
+                ('legend', 'basic:String', True),
+                ('level_1', 'basic:Float', True),
+                ('level_2', 'basic:Float', True),
+                ('missing', 'basic:Integer', True),
+                ('xaxisconvert', 'basic:String', True),
+                ('yaxisconvert', 'basic:String', True)]
     elif ( plot_type == "3D_Scalar" ) or ( plot_type == "3D_Dual_Scalar" ):
         from DV3D.ConfigurationFunctions import ConfigManager
         from DV3D.DV3DPlot import PlotButtonNames
         cfgManager = ConfigManager()
         parameterList = cfgManager.getParameterList( extras=PlotButtonNames + [ 'axes' ])
         port_specs = [ ( pname, 'basic:String', True ) for pname in parameterList ]
-        return expand_port_specs( port_specs )
+        return port_specs
 
     elif plot_type == "3D_Vector":
         from DV3D.ConfigurationFunctions import ConfigManager
@@ -1173,114 +1151,105 @@ def get_input_ports(plot_type):
         cfgManager = ConfigManager()
         parameterList = cfgManager.getParameterList( extras=PlotButtonNames + [ 'axes' ] )
         port_specs = [ ( pname, 'basic:String', True ) for pname in parameterList ]
-        return expand_port_specs( port_specs )
+        return port_specs
 
     elif plot_type == "Isofill":
-        return expand_port_specs([('levels', 'basic:List', True),
-                                  ('ext_1', 'basic:Boolean', True),
-                                  ('ext_2', 'basic:Boolean', True),
-                                  ('fillareacolors', 'basic:List', True),
-                                  ('fillareaindices', 'basic:List', True),
-                                  ('fillareastyle', 'basic:String', True),
-                                  ('legend', 'basic:String', True),
-                                  ('missing', 'basic:Integer', True),
-                                  ('xaxisconvert', 'basic:String', True),
-                                  ('yaxisconvert', 'basic:String', True),
-                                  ])
+        return [('levels', 'basic:List', True),
+                ('ext_1', 'basic:Boolean', True),
+                ('ext_2', 'basic:Boolean', True),
+                ('fillareacolors', 'basic:List', True),
+                ('fillareaindices', 'basic:List', True),
+                ('fillareastyle', 'basic:String', True),
+                ('legend', 'basic:String', True),
+                ('missing', 'basic:Integer', True),
+                ('xaxisconvert', 'basic:String', True),
+                ('yaxisconvert', 'basic:String', True)]
     elif plot_type == "Isoline":
-        return expand_port_specs([('label', 'basic:String', True),
-                                  ('levels', 'basic:List', True),
-                                  ('ext_1', 'basic:Boolean', True),
-                                  ('ext_2', 'basic:Boolean', True),
-                                  ('level', 'basic:List', True),
-                                  ('line', 'basic:List', True),
-                                  ('linecolors', 'basic:List', True),
-                                  ('xaxisconvert', 'basic:String', True),
-                                  ('yaxisconvert', 'basic:String', True),
-                                  ('linewidths', 'basic:List', True),
-                                  ('text', 'basic:List', True),
-                                  ('textcolors', 'basic:List', True),
-                                  ('clockwise', 'basic:List', True),
-                                  ('scale', 'basic:List', True),
-                                  ('angle', 'basic:List', True),
-                                  ('spacing', 'basic:List', True)
-                                  ])
+        return [('label', 'basic:String', True),
+                ('levels', 'basic:List', True),
+                ('ext_1', 'basic:Boolean', True),
+                ('ext_2', 'basic:Boolean', True),
+                ('level', 'basic:List', True),
+                ('line', 'basic:List', True),
+                ('linecolors', 'basic:List', True),
+                ('xaxisconvert', 'basic:String', True),
+                ('yaxisconvert', 'basic:String', True),
+                ('linewidths', 'basic:List', True),
+                ('text', 'basic:List', True),
+                ('textcolors', 'basic:List', True),
+                ('clockwise', 'basic:List', True),
+                ('scale', 'basic:List', True),
+                ('angle', 'basic:List', True),
+                ('spacing', 'basic:List', True)]
     elif plot_type == "Meshfill":
-        return expand_port_specs([('levels', 'basic:List', True),
-                                  ('ext_1', 'basic:Boolean', True),
-                                  ('ext_2', 'basic:Boolean', True),
-                                  ('fillareacolors', 'basic:List', True),
-                                  ('fillareaindices', 'basic:List', True),
-                                  ('fillareastyle', 'basic:String', True),
-                                  ('legend', 'basic:String', True),
-                                  ('xaxisconvert', 'basic:String', True),
-                                  ('yaxisconvert', 'basic:String', True),
-                                  ('missing', 'basic:Integer', True),
-                                  ('mesh', 'basic:String', True),
-                                  ('wrap', 'basic:List', True)
-                                  ])
+        return [('levels', 'basic:List', True),
+                ('ext_1', 'basic:Boolean', True),
+                ('ext_2', 'basic:Boolean', True),
+                ('fillareacolors', 'basic:List', True),
+                ('fillareaindices', 'basic:List', True),
+                ('fillareastyle', 'basic:String', True),
+                ('legend', 'basic:String', True),
+                ('xaxisconvert', 'basic:String', True),
+                ('yaxisconvert', 'basic:String', True),
+                ('missing', 'basic:Integer', True),
+                ('mesh', 'basic:String', True),
+                ('wrap', 'basic:List', True)]
     elif plot_type == "Scatter":
-        return expand_port_specs([('markercolor', 'basic:Integer', True),
-                                  ('marker', 'basic:String', True),
-                                  ('markersize', 'basic:Integer', True),
-                                  ('xaxisconvert', 'basic:String', True),
-                                  ('yaxisconvert', 'basic:String', True),
-                                  ])
+        return [('markercolor', 'basic:Integer', True),
+                ('marker', 'basic:String', True),
+                ('markersize', 'basic:Integer', True),
+                ('xaxisconvert', 'basic:String', True),
+                ('yaxisconvert', 'basic:String', True)]
     elif plot_type == "Vector":
-        return expand_port_specs([('scale', 'basic:Float', True),
-                                  ('alignment', 'basic:String', True),
-                                  ('type', 'basic:String', True),
-                                  ('reference', 'basic:Float', True),
-                                  ('linecolor', 'basic:Integer', True),
-                                  ('line', 'basic:String', True),
-                                  ('linewidth', 'basic:Integer', True),
-                                  ('xaxisconvert', 'basic:String', True),
-                                  ('yaxisconvert', 'basic:String', True),
-                                  ])
+        return [('scale', 'basic:Float', True),
+                ('alignment', 'basic:String', True),
+                ('type', 'basic:String', True),
+                ('reference', 'basic:Float', True),
+                ('linecolor', 'basic:Integer', True),
+                ('line', 'basic:String', True),
+                ('linewidth', 'basic:Integer', True),
+                ('xaxisconvert', 'basic:String', True),
+                ('yaxisconvert', 'basic:String', True)]
     elif plot_type == "XvsY":
-        return expand_port_specs([('linecolor', 'basic:Integer', True),
-                                  ('line', 'basic:String', True),
-                                  ('linewidth', 'basic:Integer', True),
-                                  ('markercolor', 'basic:Integer', True),
-                                  ('marker', 'basic:String', True),
-                                  ('markersize', 'basic:Integer', True),
-                                  ('xaxisconvert', 'basic:String', True),
-                                  ('yaxisconvert', 'basic:String', True),
-                                  ])
+        return [('linecolor', 'basic:Integer', True),
+                ('line', 'basic:String', True),
+                ('linewidth', 'basic:Integer', True),
+                ('markercolor', 'basic:Integer', True),
+                ('marker', 'basic:String', True),
+                ('markersize', 'basic:Integer', True),
+                ('xaxisconvert', 'basic:String', True),
+                ('yaxisconvert', 'basic:String', True)]
     elif plot_type == "Xyvsy":
-        return expand_port_specs([('linecolor', 'basic:Integer', True),
-                                  ('line', 'basic:String', True),
-                                  ('linewidth', 'basic:Integer', True),
-                                  ('markercolor', 'basic:Integer', True),
-                                  ('marker', 'basic:String', True),
-                                  ('markersize', 'basic:Integer', True),
-                                  ('yaxisconvert', 'basic:String', True),
-                                  ])
+        return [('linecolor', 'basic:Integer', True),
+                ('line', 'basic:String', True),
+                ('linewidth', 'basic:Integer', True),
+                ('markercolor', 'basic:Integer', True),
+                ('marker', 'basic:String', True),
+                ('markersize', 'basic:Integer', True),
+                ('yaxisconvert', 'basic:String', True)]
     elif plot_type == "Yxvsx":
-        return expand_port_specs([('linecolor', 'basic:Integer', True),
-                                  ('line', 'basic:String', True),
-                                  ('linewidth', 'basic:Integer', True),
-                                  ('markercolor', 'basic:Integer', True),
-                                  ('marker', 'basic:String', True),
-                                  ('markersize', 'basic:Integer', True),
-                                  ('xaxisconvert', 'basic:String', True),
-                                  ])
+        return [('linecolor', 'basic:Integer', True),
+                ('line', 'basic:String', True),
+                ('linewidth', 'basic:Integer', True),
+                ('markercolor', 'basic:Integer', True),
+                ('marker', 'basic:String', True),
+                ('markersize', 'basic:Integer', True),
+                ('xaxisconvert', 'basic:String', True)]
     elif plot_type=="Taylordiagram":
-        return expand_port_specs([('detail', 'basic:Integer', True),
-                                  ('max', 'basic:Integer', True),
-                                  ('quadrans', 'basic:Integer', True),
-                                  ('skillColor', 'basic:String', True),
-                                  ('skillValues', 'basic:List', True),
-                                  ('skillDrawLabels', 'basic:String', True),
-                                  ('skillCoefficient', 'basic:List', True),
-                                  ('referencevalue', 'basic:Float', True),
-                                  ('arrowlength', 'basic:Float', True),
-                                  ('arrowangle', 'basic:Float', True),
-                                  ('arrowbase', 'basic:Float', True),
-                                  ('cmtics1', 'basic:String', True),
-                                  ('cticlabels1', 'basic:String', True),
-                                  ('Marker', 'basic:String', True),
-                                  ])
+        return [('detail', 'basic:Integer', True),
+                ('max', 'basic:Integer', True),
+                ('quadrans', 'basic:Integer', True),
+                ('skillColor', 'basic:String', True),
+                ('skillValues', 'basic:List', True),
+                ('skillDrawLabels', 'basic:String', True),
+                ('skillCoefficient', 'basic:List', True),
+                ('referencevalue', 'basic:Float', True),
+                ('arrowlength', 'basic:Float', True),
+                ('arrowangle', 'basic:Float', True),
+                ('arrowbase', 'basic:Float', True),
+                ('cmtics1', 'basic:String', True),
+                ('cticlabels1', 'basic:String', True),
+                ('Marker', 'basic:String', True)]
     else:
         return []
 def get_gm_attributes(plot_type):
