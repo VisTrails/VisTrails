@@ -46,7 +46,7 @@ from vistrails.db.versions.v1_0_5.persistence.xml.auto_gen import XMLDAOListBase
 from vistrails.db.versions.v1_0_5.persistence.sql.auto_gen import SQLDAOListBase
 from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
 
-from vistrails.core.system import get_elementtree_library
+from vistrails.core.system import get_elementtree_library, vistrails_root_directory
 from vistrails.db import VistrailsDBException
 from vistrails.db.versions.v1_0_5 import version as my_version
 from vistrails.db.versions.v1_0_5.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
@@ -368,6 +368,10 @@ class DAOList(dict):
             return None
 
 import unittest
+import difflib
+import os
+import sys
+import tempfile
 
 class TestPersistence(unittest.TestCase):
 
@@ -380,7 +384,8 @@ class TestPersistence(unittest.TestCase):
         SQLDAO.engine = sqlalchemy.create_engine(test_db)
         SQLDAO.metadata.create_all(SQLDAO.engine)
 
-        in_fname = '/vistrails/tmp/terminator/vistrail'
+        in_fname = os.path.join(vistrails_root_directory(),
+                                'tests/resources/terminator-vt.xml')
         vt1 = dao_list.open_from_xml(in_fname, DBVistrail.vtType)
         conn = SQLDAO.engine.connect()
         trans = conn.begin()
@@ -393,9 +398,21 @@ class TestPersistence(unittest.TestCase):
             a.db_operations.sort(key=lambda x: x.db_id)
             a.db_annotations.sort(key=lambda x: x.db_id)
         vt2.db_actionAnnotations.sort(key=lambda x: x.db_id)
-        dao_list.save_to_xml(vt2, '/vistrails/tmp/terminator/vistrail.out', {})
+
+        (h, out_fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
+        os.close(h)
+        dao_list.save_to_xml(vt2, out_fname, {})
+
+        in_lines = open(in_fname, 'U').readlines()
+        out_lines = open(out_fname, 'U').readlines()
+
+        diff = difflib.unified_diff(in_lines, out_lines, in_fname, out_fname)
+        sys.stdout.writelines(diff)
 
         # cleanup
+
+        os.unlink(out_fname)
+
         trans = conn.begin()
         SQLDAO.metadata.drop_all(conn)
         trans.commit()
@@ -403,7 +420,6 @@ class TestPersistence(unittest.TestCase):
     def test_save_vistrail_mysql(self):
         test_db = 'mysql+mysqldb://vt_test@localhost/vt_test'
         self.run_sql_save_vistrail(test_db)
-        # FIXME should drop table?
 
     def test_save_vistrail_sqlite3(self):
         import os
