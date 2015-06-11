@@ -41,9 +41,14 @@ def unexpand_home_path(fullpath):
         return os.path.join('~', fullpath[len(homepath):])
     return fullpath
 
-def getNonEmptyList( elem ):
-    if isinstance( elem, ( list, tuple ) ): return elem if ( len( elem ) > 0 ) else None
-    return [ elem ] if elem else None
+def get_nonempty_list(elem):
+    # FIXME: get rid of that, or explain. It makes no sense...
+    if not elem:
+        return None
+    elif isinstance(elem, (list, tuple)):
+        return elem
+    else:
+        return [elem]
 
 def expand_port_specs(port_specs, pkg_identifier=None):
     if pkg_identifier is None:
@@ -690,7 +695,7 @@ class CDMS3DPlot(CDMSPlot):
                 if isinstance( value, str ):
                     try: value = ast.literal_eval( value )
                     except ValueError: pass
-                values = getNonEmptyList( value )
+                values = get_nonempty_list( value )
                 if values <> None:
 #                    print "Set PORT %s value: " % str(attr), str( values )
                     for value in values:
