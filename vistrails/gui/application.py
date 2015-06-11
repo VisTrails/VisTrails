@@ -218,9 +218,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         vistrails.gui.theme.initializeCurrentTheme()
         VistrailsApplicationInterface.init(self, optionsDict, args)
         
-        if self.temp_configuration.check('jobInfo') or \
-           self.temp_configuration.check('jobList'):
-            self.temp_configuration.batch = True
+        batch_flags = ['jobRun', 'jobList', 'addBundleData',
+                       'deleteBundleData', 'listBundleData']
+        for flag in batch_flags:
+            if self.temp_configuration.check(flag):
+                self.temp_configuration.batch = True
+            continue
 
         # singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
@@ -537,6 +540,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                     return self.printJobs(locator)
                 if self.temp_configuration.check('jobInfo'):
                     return self.printJob(locator, version)
+                if self.temp_configuration.check('addBundleData'):
+                    return self.addBundleData(locator, version)
+                if self.temp_configuration.check('deleteBundleData'):
+                    return self.deleteBundleData(locator, version)
+                if self.temp_configuration.check('listBundleData'):
+                    return self.listBundleData(locator, version)
 
                 w_list.append((locator, version))
                 vt_list.append(locator)
@@ -593,9 +602,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             return True
 
     def printJobs(self, locator):
-        (v, abstractions, thumbnails, mashups)  = load_vistrail(locator)
-        controller = VistrailController(v, locator, abstractions, thumbnails,
-                                        mashups, auto_save=False)
+        bundle = load_vistrail(locator)
+        controller = VistrailController(bundle=bundle, locator=locator,
+                                        auto_save=False)
         text = "### Workflows with jobs ###\n"
         text += "workflow | start date | status\n"
         text += '\n'.join(
@@ -607,9 +616,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return text
 
     def printJob(self, locator, version):
-        (v, abstractions, thumbnails, mashups)  = load_vistrail(locator)
-        controller = VistrailController(v, locator, abstractions, thumbnails,
-                                        mashups, auto_save=False)
+        bundle = load_vistrail(locator)
+        controller = VistrailController(bundle=bundle, locator=locator,
+                                        auto_save=False)
         text = "### Jobs in workflow ###\n"
         text += "name | start date | status\n"
         workflow = [wf for wf in controller.jobMonitor.workflows.itervalues()
@@ -625,6 +634,41 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                           "FINISHED" if i.finished else "RUNNING")
              for i in workflow.jobs.values()])
         print text
+        return text
+
+    def addBundleData(self, locator, version):
+        bundle = load_vistrail(locator)
+        controller = VistrailController(bundle=bundle, locator=locator,
+                                        auto_save=False)
+        text = controller.add_bundle_data(version)
+        controller.write_vistrail(locator)
+        print "Added bundle data"
+        print "-----------------"
+        for name, path in text:
+            print name, path
+        return text
+
+    def listBundleData(self, locator, version):
+        bundle = load_vistrail(locator)
+        controller = VistrailController(bundle=bundle, locator=locator,
+                                        auto_save=False)
+        text = controller.list_bundle_data(version)
+        print "Data files in bundle"
+        print "--------------------"
+        for name, path in text:
+            print name, path
+        return text
+
+    def deleteBundleData(self, locator, version):
+        bundle = load_vistrail(locator)
+        controller = VistrailController(bundle=bundle, locator=locator,
+                                        auto_save=False)
+        text = controller.delete_bundle_data(version)
+        controller.write_vistrail(locator)
+        print "Deleted bundle data"
+        print "-------------------"
+        for name, path in text:
+            print name, path
         return text
 
     def setIcon(self):

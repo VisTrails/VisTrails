@@ -208,6 +208,10 @@ def translate_registry(registry, version=None, target_version=None):
     return translate_object(registry, 'translateRegistry', version, 
                             target_version)
 
+def translate_mashup(mashup, version=None, target_version=None):
+    return translate_object(mashup, 'translateMashup', version,
+                            target_version)
+
 def translate_startup(startup, version=None, target_version=None):
     return translate_object(startup, 'translateStartup', version,
                             target_version)

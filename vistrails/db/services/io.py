@@ -63,6 +63,8 @@ from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DB
     DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
     DBMashuptrail, DBStartup
 import vistrails.db.services.abstraction
+from vistrails.db.services.bundle import DefaultVistrailsZIPSerializer , WorkflowXMLSerializer, BundleObj, \
+    VistrailBundle, WorkflowBundle, LogBundle, RegistryBundle
 import vistrails.db.services.log
 import vistrails.db.services.opm
 import vistrails.db.services.prov
@@ -409,19 +411,18 @@ def open_bundle_from_zip_xml(bundle_type, filename):
         raise VistrailsDBException("cannot open bundle of type '%s' from zip" %\
                                        bundle_type)
 
-def save_bundle_to_zip_xml(save_bundle, filename, tmp_dir=None, version=None):
-    bundle_type = save_bundle.bundle_type
-    if bundle_type == DBVistrail.vtType:
-        return save_vistrail_bundle_to_zip_xml(save_bundle, filename, tmp_dir, version)
-    elif bundle_type == DBLog.vtType:
-        return save_log_bundle_to_xml(save_bundle, filename, version)
-    elif bundle_type == DBWorkflow.vtType:
-        return save_workflow_bundle_to_xml(save_bundle, filename, version)
-    elif bundle_type == DBRegistry.vtType:
-        return save_registry_bundle_to_xml(save_bundle, filename, version)
+def save_bundle_to_zip_xml(bundle, filename, tmp_dir=None, version=None):
+    if isinstance(bundle, VistrailBundle):
+        return save_vistrail_bundle_to_zip_xml(bundle, filename, tmp_dir, version)
+    elif isinstance(bundle, LogBundle):
+        return save_log_bundle_to_xml(bundle, filename, version)
+    elif isinstance(bundle, WorkflowBundle):
+        return save_workflow_bundle_to_xml(bundle, filename, version)
+    elif isinstance(bundle, RegistryBundle):
+        return save_registry_bundle_to_xml(bundle, filename, version)
     else:
         raise VistrailsDBException("cannot save bundle of type '%s' to zip" % \
-                                       bundle_type)
+                                       type(bundle).__name__)
 
 def open_bundle_from_db(bundle_type, connection, primary_obj_id, tmp_dir=None):
     if bundle_type == DBVistrail.vtType:
@@ -531,81 +532,19 @@ def open_vistrail_from_xml(filename):
     return vistrail
 
 def open_vistrail_bundle_from_zip_xml(filename):
-    """open_vistrail_bundle_from_zip_xml(filename) -> SaveBundle
+    """open_vistrail_bundle_from_zip_xml(filename) -> (Bundle, vt_save_dir)
     Open a vistrail from a zip compressed format.
     It expects that the vistrail file inside archive has name 'vistrail',
     the log inside archive has name 'log',
-    abstractions inside archive have prefix 'abstraction_',
+    abstractions inside archive have prefix 'abstraction_' in 'abstractions' dir,
     and thumbnails inside archive are '.png' files in 'thumbs' dir
 
     """
+
     vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
-
-    z = zipfile.ZipFile(filename)
-    try:
-        z.extractall(vt_save_dir)
-    finally:
-        z.close()
-
-    vistrail = None
-    log = None
-    log_fname = None
-    abstraction_files = []
-    unknown_files = []
-    thumbnail_files = []
-    mashups = []
-    try:
-        for root, dirs, files in os.walk(vt_save_dir):
-            for fname in files:
-                if fname == 'vistrail' and root == vt_save_dir:
-                    vistrail = open_vistrail_from_xml(os.path.join(root, fname))
-                elif fname == 'log' and root == vt_save_dir:
-                    # FIXME read log to get execution info
-                    # right now, just ignore the file
-                    log = None 
-                    log_fname = os.path.join(root, fname)
-                    # log = open_log_from_xml(os.path.join(root, fname))
-                    # objs.append(DBLog.vtType, log)
-                elif fname.startswith('abstraction_'):
-                    abstraction_file = os.path.join(root, fname)
-                    abstraction_files.append(abstraction_file)
-                elif (fname.endswith('.png') and
-                      root == os.path.join(vt_save_dir,'thumbs')):
-                    thumbnail_file = os.path.join(root, fname)
-                    thumbnail_files.append(thumbnail_file)
-                elif root == os.path.join(vt_save_dir,'mashups'):
-                    mashup_file = os.path.join(root, fname)
-                    mashup = open_mashuptrail_from_xml(mashup_file)
-                    mashups.append(mashup)
-                else:
-                    handled = False
-                    from vistrails.core.packagemanager import get_package_manager
-                    pm = get_package_manager()
-                    for package in pm.enabled_package_list():
-                        if package.can_handle_vt_file(fname):
-                            handled = True
-                            continue
-                    if not handled:
-                        unknown_files.append(os.path.join(root, fname))
-    except OSError, e:
-        raise VistrailsDBException("Error when reading vt file")
-    if len(unknown_files) > 0:
-        raise VistrailsDBException("Unknown files in vt file: %s" % \
-                                       unknown_files)
-    if vistrail is None:
-        raise VistrailsDBException("vt file does not contain vistrail")
-    vistrail.db_log_filename = log_fname
-
-    # call package hooks
-    from vistrails.core.packagemanager import get_package_manager
-    pm = get_package_manager()
-    for package in pm.enabled_package_list():
-        package.loadVistrailFileHook(vistrail, vt_save_dir)
-
-    save_bundle = SaveBundle(DBVistrail.vtType, vistrail, log, 
-                             abstractions=abstraction_files, 
-                             thumbnails=thumbnail_files, mashups=mashups)
-    return (save_bundle, vt_save_dir)
+    serializer = DefaultVistrailsZIPSerializer(dir_path=vt_save_dir)
+    bundle = serializer.load(filename)
+    return (bundle, vt_save_dir)
 
 def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
     """open_vistrail_bundle_from_db(db_connection, id: long, tmp_dir: str) -> SaveBundle
@@ -687,12 +626,12 @@ def save_vistrail_to_xml(vistrail, filename, version=None):
     vistrail.db_currentVersion = current_action
     return vistrail
 
-def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, version=None):
-    """save_vistrail_bundle_to_zip_xml(save_bundle: SaveBundle, filename: str,
+def save_vistrail_bundle_to_zip_xml(bundle, filename, vt_save_dir=None, version=None):
+    """save_vistrail_bundle_to_zip_xml(bundle: Bundle, filename: str,
                                 vt_save_dir: str, version: str)
-         -> (save_bundle: SaveBundle, vt_save_dir: str)
+         -> (bundle: Bundle, vt_save_dir: str)
 
-    save_bundle: a SaveBundle object containing vistrail data to save
+    bundle: a Bundle object containing vistrail data to save
     filename: filename to save to
     vt_save_dir: directory storing any previous files
 
@@ -701,127 +640,16 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
 
     """
 
-    if save_bundle.vistrail is None:
+    if bundle.vistrail is None:
         raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
                                    'bundle does not contain a vistrail')
     if not vt_save_dir:
         vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
-    # abstractions are saved in the root of the zip file
-    # abstraction_dir = os.path.join(vt_save_dir, 'abstractions')
-    #thumbnails and mashups have their own folder
-    thumbnail_dir = os.path.join(vt_save_dir, 'thumbs')
-    mashup_dir = os.path.join(vt_save_dir, 'mashups')
-    
-    # Save Vistrail
-    xml_fname = os.path.join(vt_save_dir, 'vistrail')
-    save_vistrail_to_xml(save_bundle.vistrail, xml_fname, version)
 
-    # Save Log
-    if save_bundle.vistrail.db_log_filename is not None:
-        xml_fname = os.path.join(vt_save_dir, 'log')
-        if save_bundle.vistrail.db_log_filename != xml_fname:
-            shutil.copyfile(save_bundle.vistrail.db_log_filename, xml_fname)
-            save_bundle.vistrail.db_log_filename = xml_fname
+    serializer = DefaultVistrailsZIPSerializer(dir_path=vt_save_dir, bundle=bundle)
+    serializer.save(filename)
 
-    if save_bundle.log is not None:
-        xml_fname = os.path.join(vt_save_dir, 'log')
-        save_log_to_xml(save_bundle.log, xml_fname, version, True)
-        save_bundle.vistrail.db_log_filename = xml_fname
-
-    # Save Abstractions
-    saved_abstractions = []
-    for obj in save_bundle.abstractions:
-        if isinstance(obj, basestring):
-            # FIXME we should have an abstraction directory here instead
-            # of the abstraction_ prefix...
-            if not os.path.basename(obj).startswith('abstraction_'):
-                obj_fname = 'abstraction_' + os.path.basename(obj)
-            else:
-                obj_fname = os.path.basename(obj)
-            # xml_fname = os.path.join(abstraction_dir, obj_fname)
-            xml_fname = os.path.join(vt_save_dir, obj_fname)
-            saved_abstractions.append(xml_fname)
-            # if not os.path.exists(abstraction_dir):
-            #     os.mkdir(abstraction_dir)
-            # print "obj:", obj
-            # print "xml_fname:", xml_fname
-            if obj != xml_fname:
-                # print 'copying %s -> %s' % (obj, xml_fname)
-                try:
-                    shutil.copyfile(obj, xml_fname)
-                except Exception, e:
-                    saved_abstractions.pop()
-                    debug.critical('copying %s -> %s failed: %s' % \
-                                       (obj, xml_fname, str(e)))
-        else:
-            raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
-                                       'abstraction list entry must be a filename')
-    # Save Thumbnails
-    saved_thumbnails = []
-    for obj in save_bundle.thumbnails:
-        if isinstance(obj, basestring):
-            obj_fname = os.path.basename(obj)
-            png_fname = os.path.join(thumbnail_dir, obj_fname)
-            saved_thumbnails.append(png_fname)
-            if not os.path.exists(thumbnail_dir):
-                os.mkdir(thumbnail_dir)
-            
-            try:
-                shutil.copyfile(obj, png_fname)
-            except shutil.Error, e:
-                #files are the same no need to show warning
-                saved_thumbnails.pop()
-            except IOError, e2:
-                saved_thumbnails.pop()
-                debug.warning('copying thumbnail %s -> %s failed: %s' % \
-                              (obj, png_fname, str(e2)))
-        else:
-            raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
-                                       'thumbnail list entry must be a filename')
-    # Save Mashups
-    saved_mashups = []
-    #print " mashups:"
-    if len(save_bundle.mashups) > 0 and not os.path.exists(mashup_dir):
-        os.mkdir(mashup_dir)
-    for obj in save_bundle.mashups:
-        #print "  ", obj
-        try:
-            xml_fname = os.path.join(mashup_dir, str(obj.id))
-            save_mashuptrail_to_xml(obj, xml_fname)
-            saved_mashups.append(obj)
-        except Exception, e:
-            raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
-                                       'when saving mashup: %s'%str(e))
-
-    # call package hooks
-    # it will fail if package manager has not been constructed yet
-    try:
-        from vistrails.core.packagemanager import get_package_manager
-        pm = get_package_manager()
-        for package in pm.enabled_package_list():
-            package.saveVistrailFileHook(save_bundle.vistrail, vt_save_dir)
-    except Exception, e:
-        debug.warning("Could not call package hooks", str(e))
-    tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
-    tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
-
-    z = zipfile.ZipFile(tmp_zip_file, 'w')
-    try:
-        with Chdir(vt_save_dir):
-            # zip current directory
-            for root, dirs, files in os.walk('.'):
-                for f in files:
-                    z.write(os.path.join(root, f))
-        z.close()
-        shutil.copyfile(tmp_zip_file, filename)
-    finally:
-        os.unlink(tmp_zip_file)
-        os.rmdir(tmp_zip_dir)
-    save_bundle = SaveBundle(save_bundle.bundle_type, save_bundle.vistrail,
-                             save_bundle.log, thumbnails=saved_thumbnails,
-                             abstractions=saved_abstractions,
-                             mashups=saved_mashups)
-    return (save_bundle, vt_save_dir)
+    return (bundle, vt_save_dir)
 
 def save_vistrail_bundle_to_db(save_bundle, db_connection, do_copy=False, version=None, save_wfs=True):
     if save_bundle.vistrail is None:
@@ -927,15 +755,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None,
 
 def open_workflow_from_xml(filename):
     """open_workflow_from_xml(filename) -> DBWorkflow"""
-    tree = ElementTree.parse(filename)
-    version = get_version_for_xml(tree.getroot())
-    daoList = getVersionDAO(version)
-    workflow = daoList.open_from_xml(filename, DBWorkflow.vtType, tree)
-    if workflow is None:
-        raise VistrailsDBException("Couldn't read workflow from XML")
-    workflow = translate_workflow(workflow, version)
-    vistrails.db.services.workflow.update_id_scope(workflow)
-    return workflow
+    return WorkflowXMLSerializer().load(filename).obj
 
 def open_workflow_from_db(db_connection, id, lock=False, version=None):
     """open_workflow_from_db(db_connection, id : long: lock: bool, 
@@ -955,6 +775,7 @@ def open_workflow_from_db(db_connection, id, lock=False, version=None):
     return workflow
     
 def save_workflow_to_xml(workflow, filename, version=None):
+
     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
             'xsi:schemaLocation': 'http://www.vistrails.org/workflow.xsd'
             }
@@ -962,19 +783,17 @@ def save_workflow_to_xml(workflow, filename, version=None):
         version = currentVersion
     if not workflow.db_version:
         workflow.db_version = currentVersion
-    workflow = translate_workflow(workflow, workflow.db_version, version)
+    serializer = WorkflowXMLSerializer()
+    obj = BundleObj(workflow, os.path.basename(filename))
+    serializer.save(obj, os.path.dirname(filename))
+    return obj.obj
 
-    daoList = getVersionDAO(version)
-    daoList.save_to_xml(workflow, filename, tags, version)
-    workflow = translate_workflow(workflow, version)
-    return workflow
-
-def save_workflow_bundle_to_xml(save_bundle, filename, version=None):
-    if save_bundle.workflow is None:
+def save_workflow_bundle_to_xml(bundle, filename, version=None):
+    if bundle.workflow is None:
         raise VistrailsDBException('save_workflow_bundle_to_xml failed, '
                                    'bundle does not contain a workflow')
-    workflow = save_workflow_to_xml(save_bundle.workflow, filename, version)
-    return SaveBundle(DBWorkflow.vtType, workflow=workflow)
+    bundle.workflow.obj = save_workflow_to_xml(bundle.workflow.obj, filename, version)
+    return bundle
 
 def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
     if db_connection is None:

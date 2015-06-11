@@ -124,7 +124,8 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def __init__(self, vistrail=None, locator=None, abstractions=None,
                  thumbnails=None, mashups=None, pipeline_view=None, 
-                 id_scope=None, set_log_on_vt=True, auto_save=True, name=''):
+                 id_scope=None, set_log_on_vt=True, auto_save=True, name='',
+                 bundle=None):
         """ VistrailController(vistrail: Vistrail, 
                                locator: BaseLocator,
                                abstractions: [<filename strings>],
@@ -176,7 +177,7 @@ class VistrailController(QtCore.QObject, BaseController):
         #self.num_versions_always_shown = 1
         BaseController.__init__(self, vistrail, locator, abstractions, 
                                 thumbnails, mashups, id_scope, set_log_on_vt, 
-                                auto_save)
+                                auto_save, bundle)
 
     def _get_current_pipeline_scene(self):
         return self.current_pipeline_view.scene()

@@ -266,29 +266,18 @@ class VistrailsApplicationInterface(object):
                         pe = version
                         version = None
                     else:
-                        if hasattr(locator, '_vnode') and \
-                                locator._vnode is not None:
-                            version = locator._vnode
-                        if hasattr(locator,'_vtag'):
-                            # if a tag is set, it should be used instead of the
-                            # version number
-                            if locator._vtag != '':
-                                version = locator._vtag
+                        version = locator.version
                     execute = self.temp_configuration.check('execute')
-                    mashuptrail = None
-                    mashupversion = None
-                    if hasattr(locator, '_mshptrail'):
-                        mashuptrail = locator._mshptrail
-                    if hasattr(locator, '_mshpversion'):
-                        mashupversion = locator._mshpversion
-                        if mashupversion:
-                            execute = True
+                    mashup_trail = locator.mashuptrail
+                    mashup_version = locator.mashupVersion
+                    if mashup_version:
+                        execute = True
                     if self.temp_configuration.showWindow:
                         self.showBuilderWindow()
                     self.builderWindow.open_vistrail_without_prompt(locator,
                                                                     version, execute,
-                                                                    mashuptrail=mashuptrail, 
-                                                                    mashupVersion=mashupversion)
+                                                                    mashuptrail=mashup_trail, 
+                                                                    mashupVersion=mashup_version)
 
                     if self.temp_configuration.check('parameterExploration'):
                         self.builderWindow.executeParameterExploration(pe)
@@ -405,9 +394,8 @@ class VistrailsApplicationInterface(object):
         if controller is None:
             # vistrail is not already open
             try:
-                loaded_objs = vistrails.core.db.io.load_vistrail(locator, is_abstraction)
-                controller = self.add_vistrail(loaded_objs[0], locator, 
-                                               *loaded_objs[1:])
+                bundle = vistrails.core.db.io.load_vistrail(locator, False)
+                controller = self.add_vistrail(bundle, locator)
                 if locator.is_untitled():
                     return controller
                 controller.is_abstraction = is_abstraction

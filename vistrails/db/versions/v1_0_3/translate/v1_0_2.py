@@ -313,10 +313,10 @@ class TestTranslate(unittest.TestCase):
         from vistrails.db.services.io import open_bundle_from_zip_xml
         from vistrails.core.system import vistrails_root_directory
         import os
-        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
+        (bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
                         os.path.join(vistrails_root_directory(),
                         'tests/resources/paramexp-1.0.2.vt'))
-        vistrail = translateVistrail(save_bundle.vistrail)
+        vistrail = translateVistrail(bundle.vistrail.obj)
         pes = vistrail.db_get_parameter_explorations()
         self.assertEqual(len(pes), 1)
         funs = pes[0].db_functions
@@ -330,10 +330,10 @@ class TestTranslate(unittest.TestCase):
         from vistrails.db.services.io import open_bundle_from_zip_xml
         from vistrails.core.system import vistrails_root_directory
         import os
-        (save_bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
+        (bundle, vt_save_dir) = open_bundle_from_zip_xml(DBVistrail.vtType, \
                         os.path.join(vistrails_root_directory(),
                         'tests/resources/visvar-1.0.2.vt'))
-        vistrail = translateVistrail(save_bundle.vistrail)
+        vistrail = translateVistrail(bundle.vistrail.obj)
         visvars = vistrail.db_vistrailVariables
         self.assertEqual(len(visvars), 2)
         self.assertNotEqual(visvars[0].db_name, visvars[1].db_name)

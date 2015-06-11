@@ -60,6 +60,7 @@ _simple_docs = {}
 _usage_args = set()
 
 _simple_documentation = """
+addBundleData: Add data files to vistrail bundle
 autoConnect: Automatically connect dragged in modules
 autoSave: Automatically save backup vistrails every two minutes
 batch: Run in batch mode instead of interactive mode
@@ -69,6 +70,7 @@ db: The name for the database to load the vistrail from
 dbDefault: Save vistrails in a database by default
 debugLevel: How much information should VisTrails log
 defaultFileType: Default file type/extension for vistrails (.vt or .xml)
+deleteBundleData: Delete data files in vistrail bundle
 detachHistoryView: Show the version tree in a separate window
 dotVistrails: User configuration directory
 enablePackagesSilently: Automatically enable packages when needed
@@ -88,6 +90,7 @@ jobCheckInterval: How often to check for jobs (in seconds)
 jobList: List running workflows
 jobInfo: List jobs in running workflow
 loadPackages: Whether to load the packages enabled in the configuration file
+listBundleData: List data files in vistrail bundle
 logDir: Log files directory
 maxRecentVistrails: Number of recent vistrails
 maximizeWindows: VisTrails windows should be maximized
@@ -113,7 +116,6 @@ showDebugPopups: Always bring debug messages to the front
 showInlineParameterWidgets: Show editable parameters inside modules
 showScrollbars: Show scrollbars on the version tree and workflow canvases
 showSplash: Show VisTrails splash screen during startup
-showSpreadsheetOnly: Hides the VisTrails main window
 showVariantErrors: Show error when variant input value doesn't match type during execution
 showWindow: Show the main window
 singleInstance: Do not allow more than one instance of VisTrails to run at once
@@ -142,6 +144,11 @@ withWorkflow: Output the workflow graph as an image
 """
 
 _documentation = """
+addBundleData: Boolean
+
+    Add data files to vistrail bundle. Specify the file to add
+    or a directory to add files from.
+
 autoConnect: Boolean
 
     Try to automatically connect a newly dragged in module to the rest
@@ -162,6 +169,11 @@ cache: Boolean
 dataDir: Path
 
     The location that VisTrails uses as a default directory for data.
+
+deleteBundleData: Boolean
+
+    Delete data files in vistrail bundle. Specify file or
+    a directory to delete all files in that directory.
 
 db: String
 
@@ -260,6 +272,11 @@ jobInfo: Boolean
 loadPackages: Boolean
 
     Whether to load the packages enabled in the configuration file
+
+listBundleData:
+
+   List data files in vistrail bundle. Specify path to
+   only list files matching that path.
 
 logDir: Path
 
@@ -412,10 +429,6 @@ showScrollbars: Boolean
 showSplash: Boolean
 
     Whether the VisTrails splash screen should be shown on startup.
-
-showSpreadsheetOnly: Boolean
-
-    Whether the VisTrails main window should be hidden.
 
 showVariantErrors: Boolean
 
@@ -751,6 +764,10 @@ base_config = {
      ConfigField('jobAutorun', False, bool),
      ConfigField('jobList', False, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField('jobInfo', False, bool, ConfigType.COMMAND_LINE_FLAG)],
+    "BundleData":
+    [ConfigField("addBundleData", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("deleteBundleData", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("listBundleData", False, bool, ConfigType.COMMAND_LINE_FLAG)],
 }
 
 # FIXME make sure that the platform-specific configs are added!
