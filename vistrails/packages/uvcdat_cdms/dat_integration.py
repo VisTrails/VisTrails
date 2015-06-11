@@ -3,8 +3,7 @@ import cdms2.error
 
 from PyQt4 import QtCore, QtGui
 
-from dat.packages import Plot, DataPort, \
-    Variable, FileVariableLoader, VariableOperation, OperationArgument, \
+from dat.packages import Plot, DataPort, Variable, FileVariableLoader, \
     translate, derive_varname
 
 
@@ -15,6 +14,7 @@ _ = translate('packages.uvcdat_cdms')
 
 # Builds a DAT variable from a data file
 variable_type = 'gov.llnl.uvcdat.cdms:CDMSVariable'
+
 
 def build_variable(filename, varname):
     var = Variable(type=variable_type)
@@ -27,9 +27,11 @@ def build_variable(filename, varname):
     var.select_output_port(varmod, 'self')
     return var
 
+
 ########################################
 # Defines a plot from a subworkflow file
 #
+
 _plots = [
     Plot(name="3D_Scalar",
          subworkflow='{package_dir}/dat-plots/CDMS3D_Scalar.xml',
@@ -38,9 +40,11 @@ _plots = [
                          multiple_values=True)])
 ]
 
+
 ########################################
 # Defines a variable loader
 #
+
 class CDMSLoader(FileVariableLoader):
     """Loads a VTK dataset.
     """
@@ -57,7 +61,6 @@ class CDMSLoader(FileVariableLoader):
         self.filename = filename
 
         f = cdms2.open(filename)
-        names = sorted(f.variables)
 
         self._name_field = QtGui.QComboBox()
         for name in sorted(f.variables):
@@ -83,6 +86,7 @@ class CDMSLoader(FileVariableLoader):
 
     def get_default_variable_name(self):
         return self._varname
+
 
 _variable_loaders = {
     CDMSLoader: _("CDAT data"),

@@ -4,10 +4,11 @@ import sip
 import vtk
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-from vistrails.core import system
 import vistrails.core.db.action
+from vistrails.core import system
 from vistrails.gui.qt import qt_super
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
+    QCellToolBar
 
 
 class QVTKWidget(QCellWidget):
@@ -18,7 +19,7 @@ class QVTKWidget(QCellWidget):
     """
     save_formats = ["PNG image (*.png)", "PDF files (*.pdf)"]
 
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(), **args ):
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags(), **args):
         """ QVTKWidget(parent: QWidget, f: WindowFlags) -> QVTKWidget
         Initialize QVTKWidget with a toolbar with its own device
         context
@@ -29,7 +30,7 @@ class QVTKWidget(QCellWidget):
         self.interacting = None
         self.mRenWin = None
         self.iren = None
-        self.createInteractor = args.get( 'createInteractor', True )
+        self.createInteractor = args.get('createInteractor', True)
         self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setMouseTracking(True)
@@ -87,7 +88,7 @@ class QVTKWidget(QCellWidget):
 
         QCellWidget.deleteLater(self)
 
-    def updateContents(self, inputPorts, cameralist = None):
+    def updateContents(self, inputPorts, cameralist=None):
         """ updateContents(inputPorts: tuple)
         Updates the cell contents with new vtkRenderer
 
@@ -111,14 +112,15 @@ class QVTKWidget(QCellWidget):
             renderers = [renderView.vtkInstance.GetRenderer()]
         self.renderer_maps = {}
         self.usecameras = False
-        if cameralist != None and len(cameralist) == len(renderers):
+        if cameralist is not None and len(cameralist) == len(renderers):
             self.usecameras = True
         j = 0
         for renderer in renderers:
-            if renderView==None:
+            if renderView is None:
                 vtkInstance = renderer.vtkInstance
                 renWin.AddRenderer(vtkInstance)
-                self.renderer_maps[vtkInstance] = renderer.moduleInfo['moduleId']
+                self.renderer_maps[vtkInstance] = \
+                    renderer.moduleInfo['moduleId']
             else:
                 vtkInstance = renderer
             if hasattr(vtkInstance, 'IsActiveCameraCreated'):
@@ -135,8 +137,8 @@ class QVTKWidget(QCellWidget):
 
         # Update interactor style
         self.removeObserversFromInteractorStyle()
-        if renderView==None:
-            if iStyle==None:
+        if renderView is None:
+            if iStyle is None:
                 iStyleInstance = vtk.vtkInteractorStyleTrackballCamera()
             else:
                 iStyleInstance = iStyle.vtkInstance
@@ -166,7 +168,7 @@ class QVTKWidget(QCellWidget):
 
         return self.mRenWin
 
-    def SetRenderWindow(self,w):
+    def SetRenderWindow(self, w):
         """ SetRenderWindow(w: vtkRenderWindow)
         Set a new render window to QVTKWidget and initialize the
         interactor as well
@@ -176,7 +178,7 @@ class QVTKWidget(QCellWidget):
             return
 
         if self.mRenWin:
-            if system.systemType!='Linux':
+            if system.systemType != 'Linux':
                 self.mRenWin.SetInteractor(None)
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
@@ -187,7 +189,7 @@ class QVTKWidget(QCellWidget):
             self.mRenWin.Register(None)
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
-            if system.systemType=='Linux':
+            if system.systemType == 'Linux':
                 try:
                     display = int(QtGui.QX11Info.display())
                 except TypeError:
@@ -206,7 +208,7 @@ class QVTKWidget(QCellWidget):
                 else:
                     vp = ('_%s_p_void' % display)
                 self.mRenWin.SetDisplayId(vp)
-                self.resizeWindow(1,1)
+                self.resizeWindow(1, 1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
             if self.isVisible():
                 self.mRenWin.Start()
@@ -237,18 +239,18 @@ class QVTKWidget(QCellWidget):
 
         """
 #        print "Window Event: %s"  % ( str(e) )
-        if e.type()==QtCore.QEvent.ParentAboutToChange:
+        if e.type() == QtCore.QEvent.ParentAboutToChange:
             if self.mRenWin:
                 if self.mRenWin.GetMapped():
                     self.mRenWin.Finalize()
         else:
-            if e.type()==QtCore.QEvent.ParentChange:
+            if e.type() == QtCore.QEvent.ParentChange:
                 if self.mRenWin:
                     self.mRenWin.SetWindowInfo(str(int(self.winId())))
                     if self.isVisible():
                         self.mRenWin.Start()
 
-        if QtCore.QObject.event(self,e):
+        if QtCore.QObject.event(self, e):
             return 1
 
         if e.type() == QtCore.QEvent.KeyPress:
@@ -284,7 +286,8 @@ class QVTKWidget(QCellWidget):
         self.mRenWin.Modified()
         if self.mRenWin.GetInteractor():
             self.mRenWin.GetInteractor().UpdateSize(width, height)
-            self.mRenWin.GetInteractor().InvokeEvent(vtk.vtkCommand.ConfigureEvent)
+            self.mRenWin.GetInteractor().InvokeEvent(
+                vtk.vtkCommand.ConfigureEvent)
 
     def resizeEvent(self, e):
         """ resizeEvent(e: QEvent) -> None
@@ -301,7 +304,7 @@ class QVTKWidget(QCellWidget):
         else:
             self.mRenWin.Render()
 
-    def moveEvent(self,e):
+    def moveEvent(self, e):
         """ moveEvent(e: QEvent) -> None
         Echo the move event into vtkRenderWindow
 
@@ -310,7 +313,7 @@ class QVTKWidget(QCellWidget):
         if not self.mRenWin:
             return
 
-        self.mRenWin.SetPosition(self.x(),self.y())
+        self.mRenWin.SetPosition(self.x(), self.y())
 
     def paintEngine(self):
         """ paintEngine() -> QPaintEngine
@@ -339,7 +342,7 @@ class QVTKWidget(QCellWidget):
         else:
             self.mRenWin.Render()
 
-    def SelectActiveRenderer(self,iren):
+    def SelectActiveRenderer(self, iren):
         """ SelectActiveRenderer(iren: vtkRenderWindowIteractor) -> None
         Only make the vtkRenderer below the mouse cursor active
 
@@ -351,7 +354,7 @@ class QVTKWidget(QCellWidget):
             ren = rens.GetNextItem()
             ren.SetInteractive(ren.IsInViewport(epos[0], epos[1]))
 
-    def mousePressEvent(self,e):
+    def mousePressEvent(self, e):
         """ mousePressEvent(e: QMouseEvent) -> None
         Echo mouse event to vtkRenderWindowwInteractor
 
@@ -359,20 +362,20 @@ class QVTKWidget(QCellWidget):
         if (not self.iren) or (not self.iren.GetEnabled()):
             return
 
-
         ctrl = bool(e.modifiers() & QtCore.Qt.ControlModifier)
 
-        isDoubleClick = e.type()==QtCore.QEvent.MouseButtonDblClick
+        isDoubleClick = e.type() == QtCore.QEvent.MouseButtonDblClick
 
-        self.iren.SetEventInformationFlipY(e.x(),e.y(),
-                                      ctrl,
-                                      bool(e.modifiers()&QtCore.Qt.ShiftModifier),
-                                      chr(0),
-                                      isDoubleClick,
-                                      None)
-        invoke = {QtCore.Qt.LeftButton:"LeftButtonPressEvent",
-                  QtCore.Qt.MidButton:"MiddleButtonPressEvent",
-                  QtCore.Qt.RightButton:"RightButtonPressEvent"}
+        self.iren.SetEventInformationFlipY(
+            e.x(), e.y(),
+            ctrl,
+            bool(e.modifiers() & QtCore.Qt.ShiftModifier),
+            chr(0),
+            isDoubleClick,
+            None)
+        invoke = {QtCore.Qt.LeftButton: "LeftButtonPressEvent",
+                  QtCore.Qt.MidButton: "MiddleButtonPressEvent",
+                  QtCore.Qt.RightButton: "RightButtonPressEvent"}
 
         self.SelectActiveRenderer(self.iren)
 
@@ -384,8 +387,7 @@ class QVTKWidget(QCellWidget):
         if e.button() in invoke:
             self.iren.InvokeEvent(invoke[e.button()])
 
-
-    def mouseMoveEvent(self,e):
+    def mouseMoveEvent(self, e):
         """ mouseMoveEvent(e: QMouseEvent) -> None
         Echo mouse event to vtkRenderWindowwInteractor
 
@@ -393,17 +395,17 @@ class QVTKWidget(QCellWidget):
         if (not self.iren) or (not self.iren.GetEnabled()):
             return
 
-
         ctrl = bool(e.modifiers() & QtCore.Qt.ControlModifier)
 
-        self.iren.SetEventInformationFlipY(e.x(),e.y(),
-                                      ctrl,
-                                      bool(e.modifiers()&QtCore.Qt.ShiftModifier),
-                                      chr(0), 0, None)
+        self.iren.SetEventInformationFlipY(
+            e.x(), e.y(),
+            ctrl,
+            bool(e.modifiers() & QtCore.Qt.ShiftModifier),
+            chr(0), 0, None)
 
         self.iren.InvokeEvent("MouseMoveEvent")
 
-    def enterEvent(self,e):
+    def enterEvent(self, e):
         """ enterEvent(e: QEvent) -> None
         Echo mouse event to vtkRenderWindowwInteractor
 
@@ -414,7 +416,7 @@ class QVTKWidget(QCellWidget):
 
         self.iren.InvokeEvent("EnterEvent")
 
-    def leaveEvent(self,e):
+    def leaveEvent(self, e):
         """ leaveEvent(e: QEvent) -> None
         Echo mouse event to vtkRenderWindowwInteractor
 
@@ -425,7 +427,7 @@ class QVTKWidget(QCellWidget):
 
         self.iren.InvokeEvent("LeaveEvent")
 
-    def mouseReleaseEvent(self,e):
+    def mouseReleaseEvent(self, e):
         """ mouseReleaseEvent(e: QEvent) -> None
         Echo mouse event to vtkRenderWindowwInteractor
 
@@ -434,24 +436,24 @@ class QVTKWidget(QCellWidget):
         if (not self.iren) or (not self.iren.GetEnabled()):
             return
 
-
         ctrl = bool(e.modifiers() & QtCore.Qt.ControlModifier)
 
-        self.iren.SetEventInformationFlipY(e.x(),e.y(),
-                                      ctrl,
-                                      bool(e.modifiers()&QtCore.Qt.ShiftModifier),
-                                      chr(0),0,None)
+        self.iren.SetEventInformationFlipY(
+            e.x(), e.y(),
+            ctrl,
+            bool(e.modifiers() & QtCore.Qt.ShiftModifier),
+            chr(0), 0, None)
 
-        invoke = {QtCore.Qt.LeftButton:"LeftButtonReleaseEvent",
-                  QtCore.Qt.MidButton:"MiddleButtonReleaseEvent",
-                  QtCore.Qt.RightButton:"RightButtonReleaseEvent"}
+        invoke = {QtCore.Qt.LeftButton: "LeftButtonReleaseEvent",
+                  QtCore.Qt.MidButton: "MiddleButtonReleaseEvent",
+                  QtCore.Qt.RightButton: "RightButtonReleaseEvent"}
 
         self.interacting = None
 
         if e.button() in invoke:
             self.iren.InvokeEvent(invoke[e.button()])
 
-    def keyPressEvent(self,e):
+    def keyPressEvent(self, e):
         """ keyPressEvent(e: QKeyEvent) -> None
         Disallow 'quit' key in vtkRenderWindowwInteractor and sync the others
 
@@ -460,7 +462,7 @@ class QVTKWidget(QCellWidget):
             return
 
         ascii_key = None
-        if e.text().length()>0:
+        if e.text().length() > 0:
             ascii_key = e.text().toLatin1()[0]
         else:
             ascii_key = chr(0)
@@ -471,23 +473,21 @@ class QVTKWidget(QCellWidget):
             keysym = self.qt_key_to_key_sym(e.key())
 
         # Ignore Ctrl-anykey
-
         ctrl = bool(e.modifiers() & QtCore.Qt.ControlModifier)
-
-        shift = bool(e.modifiers()&QtCore.Qt.ShiftModifier)
+        shift = bool(e.modifiers() & QtCore.Qt.ShiftModifier)
         if ctrl:
             e.ignore()
             return
 
-        self.iren.SetKeyEventInformation(ctrl,shift,ascii_key, e.count(), keysym)
+        self.iren.SetKeyEventInformation(ctrl, shift, ascii_key, e.count(),
+                                         keysym)
 
         self.iren.InvokeEvent("KeyPressEvent")
 
         if ascii_key:
             self.iren.InvokeEvent("CharEvent")
 
-
-    def keyReleaseEvent(self,e):
+    def keyReleaseEvent(self, e):
         """ keyReleaseEvent(e: QKeyEvent) -> None
         Disallow 'quit' key in vtkRenderWindowwInteractor and sync the others
 
@@ -496,7 +496,7 @@ class QVTKWidget(QCellWidget):
             return
 
         ascii_key = None
-        if e.text().length()>0:
+        if e.text().length() > 0:
             ascii_key = e.text().toLatin1()[0]
         else:
             ascii_key = chr(0)
@@ -509,16 +509,17 @@ class QVTKWidget(QCellWidget):
         # Ignore 'q' or 'e' or Ctrl-anykey
 
         ctrl = bool(e.modifiers() & QtCore.Qt.ControlModifier)
-        shift = bool(e.modifiers()&QtCore.Qt.ShiftModifier)
-        if (keysym in ['q','e'] or ctrl):
+        shift = bool(e.modifiers() & QtCore.Qt.ShiftModifier)
+        if keysym in ['q', 'e'] or ctrl:
             e.ignore()
             return
 
-        self.iren.SetKeyEventInformation(ctrl, shift, ascii_key, e.count(), keysym)
+        self.iren.SetKeyEventInformation(ctrl, shift, ascii_key, e.count(),
+                                         keysym)
 
         self.iren.InvokeEvent("KeyReleaseEvent")
 
-    def wheelEvent(self,e):
+    def wheelEvent(self, e):
         """ wheelEvent(e: QWheelEvent) -> None
         Zoom in/out while scrolling the mouse
 
@@ -528,33 +529,34 @@ class QVTKWidget(QCellWidget):
             return
 
         ctrl = bool(e.modifiers() & QtCore.Qt.ControlModifier)
-        self.iren.SetEventInformationFlipY(e.x(),e.y(),
-                                      ctrl,
-                                      bool(e.modifiers()&QtCore.Qt.ShiftModifier),
-                                      chr(0),0,None)
+        self.iren.SetEventInformationFlipY(
+            e.x(), e.y(),
+            ctrl,
+            bool(e.modifiers() & QtCore.Qt.ShiftModifier),
+            chr(0), 0, None)
 
         self.SelectActiveRenderer(self.iren)
 
-        if e.delta()>0:
+        if e.delta() > 0:
             self.iren.InvokeEvent("MouseWheelForwardEvent")
         else:
             self.iren.InvokeEvent("MouseWheelBackwardEvent")
 
-    def focusInEvent(self,e):
+    def focusInEvent(self, e):
         """ focusInEvent(e: QFocusEvent) -> None
         Ignore focus event
 
         """
         pass
 
-    def focusOutEvent(self,e):
+    def focusOutEvent(self, e):
         """ focusOutEvent(e: QFocusEvent) -> None
         Ignore focus event
 
         """
         pass
 
-    def contextMenuEvent(self,e):
+    def contextMenuEvent(self, e):
         """ contextMenuEvent(e: QContextMenuEvent) -> None
         Make sure to get the right mouse position for the context menu
         event, i.e. also the right click
@@ -565,11 +567,12 @@ class QVTKWidget(QCellWidget):
 
         ctrl = int(e.modifiers() & QtCore.Qt.ControlModifier)
 
-        shift = int(e.modifiers()&QtCore.Qt.ShiftModifier)
-        self.iren.SetEventInformationFlipY(e.x(),e.y(),ctrl,shift,chr(0),0,None)
+        shift = int(e.modifiers() & QtCore.Qt.ShiftModifier)
+        self.iren.SetEventInformationFlipY(e.x(), e.y(),
+                                           ctrl, shift, chr(0), 0, None)
         self.iren.InvokeEvent("ContextMenuEvent")
 
-    def ascii_to_key_sym(self,i):
+    def ascii_to_key_sym(self, i):
         """ ascii_to_key_sym(i: int) -> str
         Convert ASCII code into key name
 
@@ -577,100 +580,100 @@ class QVTKWidget(QCellWidget):
         global AsciiToKeySymTable
         return AsciiToKeySymTable[i]
 
-    def qt_key_to_key_sym(self,i):
+    def qt_key_to_key_sym(self, i):
         """ qt_key_to_key_sym(i: QtCore.Qt.Keycode) -> str
         Convert Qt key code into key name
 
         """
-        handler = {QtCore.Qt.Key_Backspace:"Backspace",
-                   QtCore.Qt.Key_Tab:"Tab",
-                   QtCore.Qt.Key_Backtab:"Tab",
-                   QtCore.Qt.Key_Return:"Return",
-                   QtCore.Qt.Key_Enter:"Return",
-                   QtCore.Qt.Key_Shift:"Shift_L",
-                   QtCore.Qt.Key_Control:"Control_L",
-                   QtCore.Qt.Key_Alt:"Alt_L",
-                   QtCore.Qt.Key_Pause:"Pause",
-                   QtCore.Qt.Key_CapsLock:"Caps_Lock",
-                   QtCore.Qt.Key_Escape:"Escape",
-                   QtCore.Qt.Key_Space:"space",
-                   QtCore.Qt.Key_End:"End",
-                   QtCore.Qt.Key_Home:"Home",
-                   QtCore.Qt.Key_Left:"Left",
-                   QtCore.Qt.Key_Up:"Up",
-                   QtCore.Qt.Key_Right:"Right",
-                   QtCore.Qt.Key_Down:"Down",
-                   QtCore.Qt.Key_SysReq:"Snapshot",
-                   QtCore.Qt.Key_Insert:"Insert",
-                   QtCore.Qt.Key_Delete:"Delete",
-                   QtCore.Qt.Key_Help:"Help",
-                   QtCore.Qt.Key_0:"0",
-                   QtCore.Qt.Key_1:"1",
-                   QtCore.Qt.Key_2:"2",
-                   QtCore.Qt.Key_3:"3",
-                   QtCore.Qt.Key_4:"4",
-                   QtCore.Qt.Key_5:"5",
-                   QtCore.Qt.Key_6:"6",
-                   QtCore.Qt.Key_7:"7",
-                   QtCore.Qt.Key_8:"8",
-                   QtCore.Qt.Key_9:"9",
-                   QtCore.Qt.Key_A:"a",
-                   QtCore.Qt.Key_B:"b",
-                   QtCore.Qt.Key_C:"c",
-                   QtCore.Qt.Key_D:"d",
-                   QtCore.Qt.Key_E:"e",
-                   QtCore.Qt.Key_F:"f",
-                   QtCore.Qt.Key_G:"g",
-                   QtCore.Qt.Key_H:"h",
-                   QtCore.Qt.Key_I:"i",
-                   QtCore.Qt.Key_J:"h",
-                   QtCore.Qt.Key_K:"k",
-                   QtCore.Qt.Key_L:"l",
-                   QtCore.Qt.Key_M:"m",
-                   QtCore.Qt.Key_N:"n",
-                   QtCore.Qt.Key_O:"o",
-                   QtCore.Qt.Key_P:"p",
-                   QtCore.Qt.Key_Q:"q",
-                   QtCore.Qt.Key_R:"r",
-                   QtCore.Qt.Key_S:"s",
-                   QtCore.Qt.Key_T:"t",
-                   QtCore.Qt.Key_U:"u",
-                   QtCore.Qt.Key_V:"v",
-                   QtCore.Qt.Key_W:"w",
-                   QtCore.Qt.Key_X:"x",
-                   QtCore.Qt.Key_Y:"y",
-                   QtCore.Qt.Key_Z:"z",
-                   QtCore.Qt.Key_Asterisk:"asterisk",
-                   QtCore.Qt.Key_Plus:"plus",
-                   QtCore.Qt.Key_Minus:"minus",
-                   QtCore.Qt.Key_Period:"period",
-                   QtCore.Qt.Key_Slash:"slash",
-                   QtCore.Qt.Key_F1:"F1",
-                   QtCore.Qt.Key_F2:"F2",
-                   QtCore.Qt.Key_F3:"F3",
-                   QtCore.Qt.Key_F4:"F4",
-                   QtCore.Qt.Key_F5:"F5",
-                   QtCore.Qt.Key_F6:"F6",
-                   QtCore.Qt.Key_F7:"F7",
-                   QtCore.Qt.Key_F8:"F8",
-                   QtCore.Qt.Key_F9:"F9",
-                   QtCore.Qt.Key_F10:"F10",
-                   QtCore.Qt.Key_F11:"F11",
-                   QtCore.Qt.Key_F12:"F12",
-                   QtCore.Qt.Key_F13:"F13",
-                   QtCore.Qt.Key_F14:"F14",
-                   QtCore.Qt.Key_F15:"F15",
-                   QtCore.Qt.Key_F16:"F16",
-                   QtCore.Qt.Key_F17:"F17",
-                   QtCore.Qt.Key_F18:"F18",
-                   QtCore.Qt.Key_F19:"F19",
-                   QtCore.Qt.Key_F20:"F20",
-                   QtCore.Qt.Key_F21:"F21",
-                   QtCore.Qt.Key_F22:"F22",
-                   QtCore.Qt.Key_F23:"F23",
-                   QtCore.Qt.Key_F24:"F24",
-                   QtCore.Qt.Key_NumLock:"Num_Lock",
-                   QtCore.Qt.Key_ScrollLock:"Scroll_Lock"}
+        handler = {QtCore.Qt.Key_Backspace: "Backspace",
+                   QtCore.Qt.Key_Tab: "Tab",
+                   QtCore.Qt.Key_Backtab: "Tab",
+                   QtCore.Qt.Key_Return: "Return",
+                   QtCore.Qt.Key_Enter: "Return",
+                   QtCore.Qt.Key_Shift: "Shift_L",
+                   QtCore.Qt.Key_Control: "Control_L",
+                   QtCore.Qt.Key_Alt: "Alt_L",
+                   QtCore.Qt.Key_Pause: "Pause",
+                   QtCore.Qt.Key_CapsLock: "Caps_Lock",
+                   QtCore.Qt.Key_Escape: "Escape",
+                   QtCore.Qt.Key_Space: "space",
+                   QtCore.Qt.Key_End: "End",
+                   QtCore.Qt.Key_Home: "Home",
+                   QtCore.Qt.Key_Left: "Left",
+                   QtCore.Qt.Key_Up: "Up",
+                   QtCore.Qt.Key_Right: "Right",
+                   QtCore.Qt.Key_Down: "Down",
+                   QtCore.Qt.Key_SysReq: "Snapshot",
+                   QtCore.Qt.Key_Insert: "Insert",
+                   QtCore.Qt.Key_Delete: "Delete",
+                   QtCore.Qt.Key_Help: "Help",
+                   QtCore.Qt.Key_0: "0",
+                   QtCore.Qt.Key_1: "1",
+                   QtCore.Qt.Key_2: "2",
+                   QtCore.Qt.Key_3: "3",
+                   QtCore.Qt.Key_4: "4",
+                   QtCore.Qt.Key_5: "5",
+                   QtCore.Qt.Key_6: "6",
+                   QtCore.Qt.Key_7: "7",
+                   QtCore.Qt.Key_8: "8",
+                   QtCore.Qt.Key_9: "9",
+                   QtCore.Qt.Key_A: "a",
+                   QtCore.Qt.Key_B: "b",
+                   QtCore.Qt.Key_C: "c",
+                   QtCore.Qt.Key_D: "d",
+                   QtCore.Qt.Key_E: "e",
+                   QtCore.Qt.Key_F: "f",
+                   QtCore.Qt.Key_G: "g",
+                   QtCore.Qt.Key_H: "h",
+                   QtCore.Qt.Key_I: "i",
+                   QtCore.Qt.Key_J: "h",
+                   QtCore.Qt.Key_K: "k",
+                   QtCore.Qt.Key_L: "l",
+                   QtCore.Qt.Key_M: "m",
+                   QtCore.Qt.Key_N: "n",
+                   QtCore.Qt.Key_O: "o",
+                   QtCore.Qt.Key_P: "p",
+                   QtCore.Qt.Key_Q: "q",
+                   QtCore.Qt.Key_R: "r",
+                   QtCore.Qt.Key_S: "s",
+                   QtCore.Qt.Key_T: "t",
+                   QtCore.Qt.Key_U: "u",
+                   QtCore.Qt.Key_V: "v",
+                   QtCore.Qt.Key_W: "w",
+                   QtCore.Qt.Key_X: "x",
+                   QtCore.Qt.Key_Y: "y",
+                   QtCore.Qt.Key_Z: "z",
+                   QtCore.Qt.Key_Asterisk: "asterisk",
+                   QtCore.Qt.Key_Plus: "plus",
+                   QtCore.Qt.Key_Minus: "minus",
+                   QtCore.Qt.Key_Period: "period",
+                   QtCore.Qt.Key_Slash: "slash",
+                   QtCore.Qt.Key_F1: "F1",
+                   QtCore.Qt.Key_F2: "F2",
+                   QtCore.Qt.Key_F3: "F3",
+                   QtCore.Qt.Key_F4: "F4",
+                   QtCore.Qt.Key_F5: "F5",
+                   QtCore.Qt.Key_F6: "F6",
+                   QtCore.Qt.Key_F7: "F7",
+                   QtCore.Qt.Key_F8: "F8",
+                   QtCore.Qt.Key_F9: "F9",
+                   QtCore.Qt.Key_F10: "F10",
+                   QtCore.Qt.Key_F11: "F11",
+                   QtCore.Qt.Key_F12: "F12",
+                   QtCore.Qt.Key_F13: "F13",
+                   QtCore.Qt.Key_F14: "F14",
+                   QtCore.Qt.Key_F15: "F15",
+                   QtCore.Qt.Key_F16: "F16",
+                   QtCore.Qt.Key_F17: "F17",
+                   QtCore.Qt.Key_F18: "F18",
+                   QtCore.Qt.Key_F19: "F19",
+                   QtCore.Qt.Key_F20: "F20",
+                   QtCore.Qt.Key_F21: "F21",
+                   QtCore.Qt.Key_F22: "F22",
+                   QtCore.Qt.Key_F23: "F23",
+                   QtCore.Qt.Key_F24: "F24",
+                   QtCore.Qt.Key_NumLock: "Num_Lock",
+                   QtCore.Qt.Key_ScrollLock: "Scroll_Lock"}
         if i in handler:
             return handler[i]
         else:
@@ -694,7 +697,7 @@ class QVTKWidget(QCellWidget):
 
         """
         epos = list(iren.GetEventPosition())
-        if epos[1]<0:
+        if epos[1] < 0:
             epos[1] = -epos[1]
         rens = iren.GetRenderWindow().GetRenderers()
         rens.InitTraversal()
@@ -712,7 +715,7 @@ class QVTKWidget(QCellWidget):
         p = self.parent()
         while p:
             if hasattr(p, 'isSheetTabWidget'):
-                if p.isSheetTabWidget()==True:
+                if p.isSheetTabWidget():
                     return p
             p = p.parent()
         return None
@@ -751,9 +754,9 @@ class QVTKWidget(QCellWidget):
         Make sure interactions sync across selected renderers
 
         """
-        if name=='MouseWheelForwardEvent':
+        if name == 'MouseWheelForwardEvent':
             istyle.OnMouseWheelForward()
-        if name=='MouseWheelBackwardEvent':
+        if name == 'MouseWheelBackwardEvent':
             istyle.OnMouseWheelBackward()
         ren = self.interacting
         if not ren:
@@ -764,10 +767,10 @@ class QVTKWidget(QCellWidget):
             cfol = cam.GetFocalPoint()
             cup = cam.GetViewUp()
             for cell in self.getSelectedCellWidgets():
-                if cell!=self and hasattr(cell, 'getRendererList'):
+                if cell != self and hasattr(cell, 'getRendererList'):
                     rens = cell.getRendererList()
                     for r in rens:
-                        if r!=ren:
+                        if r != ren:
                             dcam = r.GetActiveCamera()
                             dcam.SetPosition(cpos)
                             dcam.SetFocalPoint(cfol)
@@ -782,10 +785,11 @@ class QVTKWidget(QCellWidget):
         """
         iren = istyle.GetInteractor()
         ren = self.interacting
-        if not ren: ren = self.getActiveRenderer(iren)
+        if not ren:
+            ren = self.getActiveRenderer(iren)
         if ren:
             keyCode = iren.GetKeyCode()
-            if keyCode in ['w','W','s','S','r','R','p','P']:
+            if keyCode in ['w', 'W', 's', 'S', 'r', 'R', 'p', 'P']:
                 for cell in self.getSelectedCellWidgets():
                     if hasattr(cell, 'GetInteractor'):
                         selectedIren = cell.GetInteractor()
@@ -854,47 +858,46 @@ class QVTKWidget(QCellWidget):
         else:
             self.saveToPNG(filename)
 
-AsciiToKeySymTable = ( None, None, None, None, None, None, None,
-                       None, None,
-                       "Tab", None, None, None, None, None, None,
-                       None, None, None, None, None, None,
-                       None, None, None, None, None, None,
-                       None, None, None, None,
-                       "space", "exclam", "quotedbl", "numbersign",
-                       "dollar", "percent", "ampersand", "quoteright",
-                       "parenleft", "parenright", "asterisk", "plus",
-                       "comma", "minus", "period", "slash",
-                       "0", "1", "2", "3", "4", "5", "6", "7",
-                       "8", "9", "colon", "semicolon", "less", "equal",
-                       "greater", "question",
-                       "at", "A", "B", "C", "D", "E", "F", "G",
-                       "H", "I", "J", "K", "L", "M", "N", "O",
-                       "P", "Q", "R", "S", "T", "U", "V", "W",
-                       "X", "Y", "Z", "bracketleft",
-                       "backslash", "bracketright", "asciicircum",
-                       "underscore",
-                       "quoteleft", "a", "b", "c", "d", "e", "f", "g",
-                       "h", "i", "j", "k", "l", "m", "n", "o",
-                       "p", "q", "r", "s", "t", "u", "v", "w",
-                       "x", "y", "z", "braceleft", "bar", "braceright",
-                       "asciitilde", "Delete",
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None, None, None)
-
+AsciiToKeySymTable = (None, None, None, None, None, None, None,
+                      None, None,
+                      "Tab", None, None, None, None, None, None,
+                      None, None, None, None, None, None,
+                      None, None, None, None, None, None,
+                      None, None, None, None,
+                      "space", "exclam", "quotedbl", "numbersign",
+                      "dollar", "percent", "ampersand", "quoteright",
+                      "parenleft", "parenright", "asterisk", "plus",
+                      "comma", "minus", "period", "slash",
+                      "0", "1", "2", "3", "4", "5", "6", "7",
+                      "8", "9", "colon", "semicolon", "less", "equal",
+                      "greater", "question",
+                      "at", "A", "B", "C", "D", "E", "F", "G",
+                      "H", "I", "J", "K", "L", "M", "N", "O",
+                      "P", "Q", "R", "S", "T", "U", "V", "W",
+                      "X", "Y", "Z", "bracketleft",
+                      "backslash", "bracketright", "asciicircum",
+                      "underscore",
+                      "quoteleft", "a", "b", "c", "d", "e", "f", "g",
+                      "h", "i", "j", "k", "l", "m", "n", "o",
+                      "p", "q", "r", "s", "t", "u", "v", "w",
+                      "x", "y", "z", "braceleft", "bar", "braceright",
+                      "asciitilde", "Delete",
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None,
+                      None, None, None, None, None, None, None, None)
 
 
 class QVTKWidgetToolBar(QCellToolBar):
@@ -910,6 +913,7 @@ class QVTKWidgetToolBar(QCellToolBar):
         """
         self.addAnimationButtons()
         self.appendAction(QVTKWidgetSaveCamera(self))
+
 
 class QVTKWidgetSaveCamera(QtGui.QAction):
     """
@@ -942,8 +946,8 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
             camera = None
             renderer = pipeline.modules[rendererId]
             for c in pipeline.connections.values():
-                if c.destination.moduleId==rendererId:
-                    if c.destination.name=='SetActiveCamera':
+                if c.destination.moduleId == rendererId:
+                    if c.destination.name == 'SetActiveCamera':
                         camera = pipeline.modules[c.source.moduleId]
                         break
 
@@ -959,6 +963,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                                            renderer,
                                                            'SetActiveCamera')
                 ops.append(('add', camera_conn))
+
             # update functions
             def convert_to_str(arglist):
                 new_arglist = []
