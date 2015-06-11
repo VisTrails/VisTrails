@@ -25,13 +25,20 @@ import vtk
 canvas = None
 original_gm_attributes = {}
 
-def getHomeRelativePath( fullpath ):
-    if not fullpath or not os.path.isabs( fullpath ): return fullpath
-    homepath = os.path.expanduser('~')
-    commonpath = os.path.commonprefix( [ homepath, fullpath ] )
-    if (len(commonpath) > 1) and os.path.exists( commonpath ):
-        relpath = os.path.relpath( fullpath, homepath )
-        return '/'.join( [ '~', relpath ] )
+
+def unexpand_home_path(fullpath):
+    """Replaces home path with ~ in the given filename, if it lies under it.
+
+    >>> unexpand_home_path('/home/user/some/path')
+    '~/some/path'
+    >>> unexpand_home_path('/usr/local/path')
+    '/usr/local/path'
+    """
+    if not fullpath or not os.path.isabs(fullpath):
+        return fullpath
+    homepath = os.path.expanduser('~') + '/'
+    if fullpath.startswith(homepath):
+        return os.path.join('~', fullpath[len(homepath):])
     return fullpath
 
 def getNonEmptyList( elem ):
@@ -92,7 +99,7 @@ class CDMSVariable(Module):
         self.name = name
         self.load = load
         self.file = self.filename
-        self.relativizePaths()
+        self.relativize_paths()
 
         self.axes = axes
         self.axesOperations = axesOperations
@@ -107,9 +114,9 @@ class CDMSVariable(Module):
         else:
             self.varname = varNameInFile
 
-    def relativizePaths(self):
-        self.file = getHomeRelativePath( self.file )
-        self.url = getHomeRelativePath( self.url )
+    def relativize_paths(self):
+        self.file = unexpand_home_path( self.file )
+        self.url = unexpand_home_path( self.url )
 
     def get_port_values(self):
         if not self.hasInputFromPort("file") and not self.hasInputFromPort("url") and not self.hasInputFromPort("source"):
@@ -123,7 +130,7 @@ class CDMSVariable(Module):
             self.source = self.getInputFromPort("source")
         self.name = self.getInputFromPort("name")
         self.load = self.forceGetInputFromPort("load", False)
-        self.relativizePaths()
+        self.relativize_paths()
 
     def __copy__(self):
         """__copy__() -> CDMSVariable - Returns a clone of itself"""
