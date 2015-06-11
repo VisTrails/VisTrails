@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -517,7 +518,8 @@ class DBConfigKey(object):
     def db_delete_name(self, name):
         self._db_name = None
     
-
+    def getPrimaryKey(self):
+        return self._db_name
 
 class DBMashupAlias(object):
 
@@ -7544,8 +7546,8 @@ class DBConfiguration(object):
         else:
             test_obj.assertEqual(len(self.db_config_keys), 
                                  len(other.db_config_keys))
-            for obj1, obj2 in izip(self.db_config_keys, 
-                                   other.db_config_keys):
+            for obj1, obj2 in izip(sorted(self.db_config_keys, key=lambda x: x.db_name), 
+                                   sorted(other.db_config_keys, key=lambda x: x.db_name)):
                 obj1.deep_eq_test(obj2, test_obj, alternate_tests)
 
     @staticmethod
@@ -7608,12 +7610,28 @@ class DBConfiguration(object):
         self.db_config_keys_name_index[config_key.db_name] = config_key
     def db_change_config_key(self, config_key):
         self.is_dirty = True
-        self._db_config_keys.append(config_key)
+        found = False
+        for i in xrange(len(self._db_config_keys)):
+            if self._db_config_keys[i].db_name == config_key.db_name:
+                self._db_config_keys[i] = config_key
+                found = True
+                break
+        if not found:
+            self._db_config_keys.append(config_key)
         self.db_config_keys_name_index[config_key.db_name] = config_key
     def db_delete_config_key(self, config_key):
         self.is_dirty = True
-        raise Exception('Cannot delete a non-keyed object')
+        for i in xrange(len(self._db_config_keys)):
+            if self._db_config_keys[i].db_name == config_key.db_name:
+                if not self._db_config_keys[i].is_new:
+                    self.db_deleted_config_keys.append(self._db_config_keys[i])
+                del self._db_config_keys[i]
+                break
+        del self.db_config_keys_name_index[config_key.db_name]
     def db_get_config_key(self, key):
+        for i in xrange(len(self._db_config_keys)):
+            if self._db_config_keys[i].db_name == key:
+                return self._db_config_keys[i]
         return None
     def db_get_config_key_by_name(self, key):
         return self.db_config_keys_name_index[key]
