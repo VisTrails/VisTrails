@@ -744,6 +744,8 @@ class DBLocator(BaseLocator):
         self._hash = ''
         self.kwargs = kwargs
         self._obj_id = self.kwargs.get('obj_id', None)
+        if self._obj_id is not None:
+            self._obj_id = long(self._obj_id)
         self._obj_type = self.kwargs.get('obj_type', None)
         self._conn_id = self.kwargs.get('connection_id', None)
         self._vnode = self.kwargs.get('version_node', None)
@@ -883,6 +885,8 @@ class DBLocator(BaseLocator):
         save_bundle = io.save_bundle_to_db(save_bundle, connection, do_copy, version)
         primary_obj = save_bundle.get_primary_obj()
         self._obj_id = primary_obj.db_id
+        if self._obj_id is not None:
+            self._obj_id = long(self._obj_id)
         self._obj_type = primary_obj.vtType
         for obj in save_bundle.get_db_objs():
             obj.locator = self
@@ -1077,7 +1081,7 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                long(self._obj_id) == long(other._obj_id) and
+                self._obj_id == other._obj_id and
                 self._obj_type == other._obj_type)
 
     def __ne__(self, other):
