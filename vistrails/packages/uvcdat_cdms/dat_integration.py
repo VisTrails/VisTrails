@@ -29,16 +29,33 @@ def build_variable(filename, varname):
 
 
 ########################################
-# Defines a plot from a subworkflow file
+# Defines plots
 #
 
-_plots = [
-    Plot(name="3D_Scalar",
-         subworkflow='{package_dir}/dat-plots/CDMS3D_Scalar.xml',
-         description=_("3D_Scalar/default plot"),
-         ports=[DataPort(name='variable', type=variable_type,
-                         multiple_values=True)])
-]
+_plots = []
+
+def make_callback(plot_type):
+    def callback():
+        return ('python_lists', [
+            ('InputPort', 'org.vistrails.vistrails.basic', [
+                ('name', [('String', 'variable')]),
+                ('spec', [('String', 'gov.llnl.uvcdat.cdms:CDMSVariable')]),
+            ]),
+            ('CDMS' + plot_type, 'gov.llnl.uvcdat.cdms', []),
+            ('CDMSCell', 'gov.llnl.uvcdat.cdms', []),
+        ], [
+            (0, 'InternalPipe', 1, 'variable'),
+            (1, 'self', 2, 'plot'),
+        ])
+    return callback
+
+for plot_type in ('Boxfill', 'Isofill', 'Isoline', 'Meshfill',
+                  'Scatter', 'Taylordiagram', 'Vector',
+                  'XvsY', 'Xyvsy', 'Yxvsx',
+                  '3D_Scalar', '3D_Dual_Scalar', '3D_Vector'):
+    _plots.append(Plot(plot_type, callback=make_callback(plot_type), ports=[
+        DataPort(name='variable',
+                 type='gov.llnl.uvcdat.cdms:CDMSVariable')]))
 
 
 ########################################
