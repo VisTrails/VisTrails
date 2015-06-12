@@ -1389,50 +1389,19 @@ def get_canvas():
         canvas = vcs.init()
     return canvas
 
-for plot_type in ['Boxfill', 'Isofill', 'Isoline', 'Meshfill',
-                  'Scatter', 'Taylordiagram', 'Vector', 'XvsY',
-                  'Xyvsy', 'Yxvsx']:
-    def get_init_method():
-        def __init__(self):
-            CDMS2DPlot.__init__(self)
-            #self.plot_type = pt
-        return __init__
 
-    def get_is_cacheable_method():
-        def is_cacheable(self):
-            return False
-        return is_cacheable
+for superklass, typeslist in (
+        (CDMS2DPlot, ('Boxfill', 'Isofill', 'Isoline', 'Meshfill',
+                      'Scatter', 'Taylordiagram', 'Vector',
+                      'XvsY', 'Xyvsy', 'Yxvsx')),
+        (CDMS3DPlot, ('3D_Scalar', '3D_Dual_Scalar', '3D_Vector'))):
+    for plot_type in typeslist:
+        klass = type('CDMS' + plot_type, (superklass,),
+                     {'plot_type': plot_type,
+                      '_input_ports': get_input_ports(plot_type),
+                      'gm_attributes': get_gm_attributes(plot_type)})
 
-    klass = type('CDMS' + plot_type, (CDMS2DPlot,),
-                 {'__init__': get_init_method(),
-                  'plot_type': plot_type,
-                  '_input_ports': get_input_ports(plot_type),
-                  'gm_attributes': get_gm_attributes(plot_type),
-                  'is_cacheable': get_is_cacheable_method()})
-
-    _modules.append((klass, {}))
-
-
-for plot_type in ['3D_Scalar', '3D_Dual_Scalar', '3D_Vector']:
-
-    def get_init_method():
-        def __init__(self):
-            CDMS3DPlot.__init__(self)
-        return __init__
-
-    def get_is_cacheable_method():
-        def is_cacheable(self):
-            return False
-        return is_cacheable
-
-    klass = type('CDMS' + plot_type, (CDMS3DPlot,),
-                 {'__init__': get_init_method(),
-                  'plot_type': plot_type,
-                  '_input_ports': get_input_ports(plot_type),
-                  'gm_attributes': get_gm_attributes(plot_type),
-                  'is_cacheable': get_is_cacheable_method()})
-
-    _modules.append((klass, {}))
+        _modules.append(klass)
 
 
 def initialize(*args, **keywords):
