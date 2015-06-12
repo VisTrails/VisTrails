@@ -755,7 +755,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None,
 
 def open_workflow_from_xml(filename):
     """open_workflow_from_xml(filename) -> DBWorkflow"""
-    return WorkflowXMLSerializer().load(filename).obj
+    return WorkflowXMLSerializer().load(filename)
 
 def open_workflow_from_db(db_connection, id, lock=False, version=None):
     """open_workflow_from_db(db_connection, id : long: lock: bool, 
@@ -786,13 +786,14 @@ def save_workflow_to_xml(workflow, filename, version=None):
     serializer = WorkflowXMLSerializer()
     obj = BundleObj(workflow, os.path.basename(filename))
     serializer.save(obj, os.path.dirname(filename))
-    return obj.obj
+    return obj
 
 def save_workflow_bundle_to_xml(bundle, filename, version=None):
+    # FIXME What is the purpose of this in the bundle system?
     if bundle.workflow is None:
         raise VistrailsDBException('save_workflow_bundle_to_xml failed, '
                                    'bundle does not contain a workflow')
-    bundle.workflow.obj = save_workflow_to_xml(bundle.workflow.obj, filename, version)
+    bundle.workflow = save_workflow_to_xml(bundle.workflow, filename, version)
     return bundle
 
 def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):

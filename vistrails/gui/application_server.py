@@ -565,7 +565,7 @@ class RequestHandler(object):
                                 obj_type=None,
                                 connection_id=None)
             bundle = io.load_vistrail(locator)
-            vistrail = bundle.vistrail.obj
+            vistrail = bundle.vistrail
 
             # get server packages
             local_packages = [x.identifier for x in \
@@ -642,7 +642,7 @@ class RequestHandler(object):
                             connection_id=None)
 
         bundle = io.load_vistrail(locator)
-        vistrail = bundle.vistrail.obj
+        vistrail = bundle.vistrail
         from vistrails.core.vistrail.controller import VistrailController as BaseController
         c = BaseController()
         c.set_vistrail(bundle=bundle, locator=locator)
@@ -1101,7 +1101,7 @@ class RequestHandler(object):
                                 connection_id=None)
 
             bundle = io.load_vistrail(locator)
-            v = bundle.vistrail.obj
+            v = bundle.vistrail
             if v.has_tag_str(vt_tag):
                 version = v.get_tag_str(vt_tag).action_id
             self.server_logger.info("Answer: %s" % version)
@@ -1136,7 +1136,7 @@ class RequestHandler(object):
                                 connection_id=None)
 
             bundle = io.load_vistrail(locator)
-            v = bundle.vistrail.obj
+            v = bundle.vistrail
             result = io.serialize(v)
             return (result, 1)
         except xmlrpclib.ProtocolError, err:
@@ -1167,7 +1167,7 @@ class RequestHandler(object):
                                 connection_id=None)
 
             bundle = io.load_vistrail(locator)
-            v = bundle.vistrail.obj
+            v = bundle.vistrail
             p = v.getPipeline(long(version))
             if p:
                 result = io.serialize(p)
@@ -1616,7 +1616,7 @@ class RequestHandler(object):
                                 connection_id=None)
 
             bundle = io.load_vistrail(locator)
-            v = bundle.vistrail.obj
+            v = bundle.vistrail
             p = v.getPipeline(long(version))
             if p:
                 vistrail = Vistrail()

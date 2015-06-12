@@ -34,7 +34,7 @@
 ###############################################################################
 from vistrails.db.versions.v1_0_5.domain import DBVistrail, \
     DBWorkflow, DBLog, DBRegistry, IdScope, DBAbstraction, \
-    DBModule, DBGroup, DBStartup
+    DBModule, DBGroup, DBStartup, DBMashuptrail
 
 def update_workflow(old_obj, translate_dict):
     return DBWorkflow.update_version(old_obj.db_workflow, translate_dict)
@@ -50,6 +50,12 @@ def translateWorkflow(_workflow):
     workflow = DBWorkflow.update_version(_workflow, translate_dict)
     workflow.db_version = '1.0.5'
     return workflow
+
+def translateMashup(_mashup):
+    translate_dict = {}
+    mashup = DBMashuptrail.update_version(_mashup, translate_dict)
+    mashup.db_version = '1.0.5'
+    return mashup
 
 def translateLog(_log):
     translate_dict = {}

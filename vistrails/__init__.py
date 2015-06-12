@@ -54,5 +54,5 @@ if not hasattr(unittest, 'skipIf'):
                      "upgrade Python or\ninstall unittest2, else VisTrails "
                      "might fail because of missing symbols.\n")
 
-
-from vistrails.core.api import *
+# FIXME circular import in tests since tests import vistrails.core.debug
+# from vistrails.core.api import *

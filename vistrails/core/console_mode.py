@@ -74,10 +74,10 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
     result = []
     for locator, workflow in w_list:
         bundle = load_vistrail(locator)
-        (v, abstractions, thumbnails, mashups) = (bundle.vistrail.obj,
-                                        [a.obj for a in bundle.abstractions],
-                                        [t.obj for t in bundle.thumbnails],
-                                        [m.obj for m in bundle.mashups])
+        (v, abstractions, thumbnails, mashups) = (bundle.vistrail,
+                                                  bundle.abstractions,
+                                                  bundle.thumbnails,
+                                                  bundle.mashups)
         controller = VistrailController(bundle=bundle, locator=locator,
                                         auto_save=update_vistrail)
         if isinstance(workflow, basestring):

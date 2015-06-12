@@ -78,7 +78,7 @@ class BundleObjDictionary(object):
     def __init__(self):
         self._objs = {}
         # Which types should have single objects
-        self.single_types = ['vistrail', 'log', 'job']
+        self.single_types = set()
 
     def _translate_args(self, obj):
         """ obj can be a BundleObj, tuple or type.
@@ -97,10 +97,19 @@ class BundleObjDictionary(object):
             obj_id = None
         return (obj_type, obj_id)
 
+    def set_single_type(self, obj_type, is_single=True):
+        if is_single:
+            self.single_types.add(obj_type)
+        else:
+            self.single_types.discard(obj_type)
+
     def has_entry(self, obj_type, obj_id):
         if obj_type in self._objs:
             return obj_id in self._objs[obj_type]
         return False
+
+    def has_entries(self, obj_type):
+        return obj_type in self._objs
 
     def add_entry(self, obj, value):
         obj_type, obj_id = self._translate_args(obj)
@@ -130,6 +139,11 @@ class BundleObjDictionary(object):
             raise VistrailsDBException('Entry does not exist.')
         return self._objs[obj_type][obj_id]
 
+    def get_values(self, obj_type):
+        """ get_values(obj_type: basestring) -> [BundleObj]
+        """
+        return self._objs[obj_type].values()
+
     def get_items(self):
         """ returns all BundleObj:s in bundle as a (type, id, value) list
         """
@@ -154,8 +168,17 @@ class Bundle(BundleObjDictionary):
             raise VistrailsDBException('Can only change BundleObj objects.')
         self.change_entry(obj, obj)
 
-    def get_object(self, obj_type, obj_id=None):
+    def get_bundle_obj(self, obj_type, obj_id=None):
         return self.get_value((obj_type, obj_id))
+
+    def get_bundle_objs(self, obj_type):
+        return self.get_values(obj_type)
+
+    def get_object(self, obj_type, obj_id=None):
+        return self.get_bundle_obj(obj_type, obj_id).obj
+
+    def get_objects(self, obj_type):
+        return [bo.obj for bo in self.get_bundle_objs(obj_type)]
 
     def get_primary_obj(self):
         raise NotImplementedError("Subclass must implement get_primary_obj")
@@ -169,23 +192,37 @@ class Bundle(BundleObjDictionary):
         """ Returns the default bundleobj(s) of the specified type or None
         """
         if item.endswith('s'):
-            if item[:-1] in self._objs:
+            if BundleObjDictionary.has_entries(self, item[:-1]):
                 # return all of them
-                return self._objs[item[:-1]].values()
+                return [bo.obj for bo in BundleObjDictionary.get_values(self, item[:-1])]
             return []
-        if self.has_entry(item, None):
-            return self.get_object(item)
+        if BundleObjDictionary.has_entry(self, item, None):
+            return BundleObjDictionary.get_value(self, (item, None)).obj
         return None
 
 class VistrailBundle(Bundle):
+    def __init__(self):
+        Bundle.__init__(self)
+        self.set_single_type("vistrail")
+        self.set_single_type("log")
+        self.set_single_type("job")
+
     def get_primary_obj(self):
         return self.get_object(DBVistrail.vtType)
 
 class WorkflowBundle(Bundle):
+    def __init__(self):
+        Bundle.__init__(self)
+        self.set_single_type("log")
+
     def get_primary_obj(self):
         return self.get_object(DBWorkflow.vtType)
 
 class LogBundle(Bundle):
+    def __init__(self):
+        Bundle.__init__(self)
+        self.set_single_type("log")
+
     def get_primary_obj(self):
         return self.get_object(DBLog.vtType)
 
@@ -194,9 +231,9 @@ class RegistryBundle(Bundle):
         return self.get_object(DBRegistry.vtType)
 
 class BundleSerializer(object):
-    BundleType = VistrailBundle
-    def __init__(self, bundle=None):
+    def __init__(self, bundle=None, bundle_cls=VistrailBundle):
         self._bundle = bundle
+        self._bundle_cls = bundle_cls
         # _serializers[obj_key][serializer_type] = cls
         self._serializers = {}
 
@@ -293,8 +330,8 @@ class FileRefSerializer(FileSerializer):
         if inner_dir_name:
             full_dir = os.path.dirname(filename)
             if not full_dir.endswith(inner_dir_name):
-                raise VistrailsDBException('Expected "%s" to end with "%s".' % \
-                                           (filename, inner_dir_name))
+                debug.warning('Expected "%s" to live in "%s" subdir.' %
+                              (filename, inner_dir_name))
         obj_id = os.path.basename(filename)
         obj = BundleObj(filename, obj_type, obj_id)
         return obj
@@ -334,14 +371,25 @@ class AbstractionFileSerializer(FileRefSerializer):
     """
     @classmethod
     def load(cls, filename):
-        return super(AbstractionFileSerializer, cls).load(cls, filename, 
+        return super(AbstractionFileSerializer, cls).load(filename,
                                                           'abstraction', 
                                                           'abstractions')
 
     @classmethod
     def save(cls, obj, rootdir):
-        return super(AbstractionFileSerializer, cls).save(cls, obj, rootdir, 
+        return super(AbstractionFileSerializer, cls).save(obj, rootdir,
                                                           'abstractions')
+
+class JobFileSerializer(FileSerializer):
+    """ Serializes jobs in a file.
+    """
+    @classmethod
+    def load(cls, filename):
+        return super(JobFileSerializer, cls).load(filename, 'job')
+
+    @classmethod
+    def save(cls, obj, rootdir):
+        return super(JobFileSerializer, cls).save(obj, rootdir)
 
 class XMLFileSerializer(FileSerializer):
     """ Serializes vistrails objects as xml files.
@@ -626,26 +674,6 @@ class LogXMLSerializer(XMLAppendSerializer):
     @classmethod
     def get_inner_objs(cls, vt_obj):
         return vt_obj.db_workflow_execs
-
-
-class JobFileSerializer(FileSerializer):
-    """ Serializes jobs in a file.
-    """
-    @classmethod
-    def load(cls, filename):
-        if not os.path.exists(filename):
-            raise VistrailsDBException('Cannot open file "%s".' % filename)
-        with open(filename, 'rb') as f:
-            obj = BundleObj(f.read(), 'job')
-            return obj
-
-    @classmethod
-    def save(cls, obj, rootdir):
-        fname = os.path.join(rootdir, 'job')
-        with open(fname, 'wb') as f:
-            f.write(obj.obj)
-        return fname
-
 
 class DataFileSerializer(FileRefSerializer):
     """ Serializes a data file to the data/ directory
@@ -1003,7 +1031,7 @@ class DirectorySerializer(BundleSerializer):
         if dir_path is None:
             dir_path = self._dir_path
         if self._bundle is None:
-            self._bundle = self.BundleType()
+            self._bundle = self._bundle_cls()
         self.load_manifest(dir_path)
         for obj_type, obj_id, fname in self._manifest.get_items():
             serializer = self.get_serializer(obj_type, 
@@ -1219,7 +1247,7 @@ class DBSerializer(BundleSerializer):
         if bundle_id is None:
             bundle_id = self._bundle_id
         if self._bundle is None:
-            self._bundle = Bundle()
+            self._bundle = self._bundle_cls()
         self.load_manifest(connection_obj, bundle_id)
 
         c = connection_obj.get_connection().cursor()

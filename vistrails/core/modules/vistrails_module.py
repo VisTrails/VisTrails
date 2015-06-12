@@ -1841,7 +1841,7 @@ class TestImplicitLooping(unittest.TestCase):
             locator = FileLocator(os.path.abspath(filename))
 
             bundle = load_vistrail(locator)
-            v = bundle.vistrail.obj
+            v = bundle.vistrail
             w_list = []
             for version, _ in v.get_tagMap().iteritems():
                 w_list.append((locator,version))

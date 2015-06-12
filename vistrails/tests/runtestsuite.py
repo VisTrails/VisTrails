@@ -517,10 +517,10 @@ if test_examples:
             print filename
             locator = vistrails.core.db.locator.FileLocator(os.path.abspath(filename))
             bundle = vistrails.core.db.io.load_vistrail(locator)
-            (v, abstractions, thumbnails, mashups) = (bundle.vistrail.obj,
-                                        [a.obj for a in bundle.abstractions],
-                                        [t.obj for t in bundle.thumbnails],
-                                        [m.obj for m in bundle.mashups])
+            (v, abstractions, thumbnails, mashups) = (bundle.vistrail,
+                                        bundle.abstraction,
+                                        bundle.thumbnails,
+                                        bundle.mashups)
             w_list = []
             for version,tag in v.get_tagMap().iteritems():
                 if tag not in VT_EXAMPLES[vtfile]:

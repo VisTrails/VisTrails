@@ -248,11 +248,11 @@ class VistrailController(object):
             self.bundle = bundle
             # Use bundle objects as default
             (vistrail, abstractions, thumbnails, mashups, jobs) = \
-                (vistrail or bundle.vistrail.obj,
-                 abstractions or [a.obj for a in bundle.abstractions],
-                 thumbnails or [t.obj for t in bundle.thumbnails],
-                 mashups or [m.obj for m in bundle.mashups],
-                 bundle.job and bundle.job.obj)
+                (vistrail or bundle.vistrail,
+                 abstractions or bundle.abstractions,
+                 thumbnails or bundle.thumbnails,
+                 mashups or bundle.mashups,
+                 bundle.job)
 
         if vistrail:
             self.vistrail = vistrail
@@ -3982,7 +3982,7 @@ class VistrailController(object):
         if export:
             bundle.add_object(BundleObj(self.vistrail.do_copy()))
             if isinstance(locator, vistrails.core.db.locator.DBLocator):
-                bundle.vistrail.obj.db_log_filename = None
+                bundle.vistrail.db_log_filename = None
         else:
             bundle.add_object(BundleObj(self.vistrail))
 
@@ -4057,7 +4057,7 @@ class VistrailController(object):
                 self.locator = locator
 
             bundle = locator.save_as(bundle, version)
-            new_vistrail = bundle.vistrail.obj
+            new_vistrail = bundle.vistrail
             if isinstance(locator, vistrails.core.db.locator.DBLocator):
                 new_vistrail.db_log_filename = None
                 locator.kwargs['obj_id'] = new_vistrail.db_id
@@ -4068,7 +4068,7 @@ class VistrailController(object):
                 # self.unload_abstractions()
                 # Load all abstractions from new namespaces
                 self.ensure_abstractions_loaded(new_vistrail,
-                                                [a.obj for a in bundle.abstractions])
+                                                bundle.abstractions)
                 self.set_file_name(locator.name)
                 if old_locator and not export:
                     old_locator.clean_temporaries()
@@ -4078,10 +4078,10 @@ class VistrailController(object):
                                              from_root=True)
         else:
             bundle = self.locator.save(bundle)
-            new_vistrail = bundle.vistrail.obj
+            new_vistrail = bundle.vistrail
             # Load any abstractions that were given new namespaces
             self.ensure_abstractions_loaded(new_vistrail,
-                                            [a.obj for a in bundle.abstractions])
+                                            bundle.abstractions)
 
         # FIXME abstractions only work with FileLocators right now
         if is_abstraction:
@@ -4364,7 +4364,7 @@ class VistrailController(object):
         if not self.bundle:
             raise VistrailsInternalError('Bundle does not exist')
         matches = []
-        for obj in self.bundle.datas:
+        for obj in self.bundle.get_bundle_objs("data"):
             if not path or obj.id.startswith(path):
                 # FIXME: Does this work on windows? Use rpaths?
                 matches.append(obj)
