@@ -122,8 +122,8 @@ def getVersionDAO(version=None):
     return persistence.DAOList()
 
 def get_version_path(version, target_version):
-    old_tuple = version.split('.')
-    new_tuple = target_version.split('.')
+    old_tuple = get_version_tuple(version)
+    new_tuple = get_version_tuple(target_version)
     used_map = version_map
     for i, j in izip(old_tuple, new_tuple):
         if i < j:
@@ -153,8 +153,8 @@ def translate_object(obj, method_name, version=None, target_version=None):
             get_version_name(start_version)
         return __import__(translate_dir, {}, {}, [''])
 
-    old_tuple = version.split('.')
-    new_tuple = target_version.split('.')
+    old_tuple = get_version_tuple(version)
+    new_tuple = get_version_tuple(target_version)
     map = version_map
     for i, j in izip(old_tuple, new_tuple):
         if i < j:
@@ -217,7 +217,14 @@ def translate_startup(startup, version=None, target_version=None):
                             target_version)
 
 def get_version_name(version_no):
+    while len(version_no.split('.')) < 3:
+        version_no = version_no + '.0'
     return 'v' + version_no.replace('.', '_')
+
+def get_version_tuple(version_no):
+    while len(version_no.split('.')) < 3:
+        version_no = version_no + '.0'
+    return version_no.split('.')
 
 def getVersionSchemaDir(version=None):
     if version is None:
