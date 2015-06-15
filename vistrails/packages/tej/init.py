@@ -174,7 +174,7 @@ class BaseSubmitJob(JobMixin, Module):
         """Reads the input ports.
         """
         return {'destination': self.get_input('queue').destination_string,
-                'queue': str(self.get_input('queue').queue),
+                'queue': unicode(self.get_input('queue').queue),
                 'job_id': self.make_id()}
 
     def job_start(self, params):
