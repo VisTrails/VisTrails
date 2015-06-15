@@ -46,6 +46,7 @@ from vistrails.core.configuration import ConfigurationObject, ConfigField, Confi
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
 from vistrails.core.modules.config import IPort, ModuleSettings
 import vistrails.core.system
+from vistrails.core.utils import new_type
 
 class OutputMode(object):
     mode_type = None
@@ -400,9 +401,9 @@ class FileMode(OutputMode):
                 opts['allowed_values'] = cls.get_formats()
                 format_field.widget_options = opts
                 dct['_fields'] = [format_field]
-            config_cls = type('%s_WithFormats' % orig_config_cls.__name__,
-                              (orig_config_cls,),
-                              dct)
+            config_cls = new_type('%s_WithFormats' % orig_config_cls.__name__,
+                                  (orig_config_cls,),
+                                  dct)
             cls._config_cls_with_formats = config_cls
             return config_cls
 
