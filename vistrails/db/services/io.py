@@ -50,7 +50,6 @@ from vistrails.core.system import get_elementtree_library, temporary_directory,\
      execute_cmdline, systemType, get_executable_path, strftime
 from vistrails.core.bundles import py_import
 from vistrails.core.utils import Chdir
-from vistrails.core.mashup.mashup_trail import Mashuptrail
 from vistrails.core.modules.sub_module import get_cur_abs_namespace,\
     parse_abstraction_name, read_vistrail_from_db
 import vistrails.core.requirements
@@ -63,8 +62,8 @@ from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DB
     DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
     DBMashuptrail, DBStartup
 import vistrails.db.services.abstraction
-from vistrails.db.services.bundle import DefaultVistrailsZIPSerializer , WorkflowXMLSerializer, BundleObj, \
-    VistrailBundle, WorkflowBundle, LogBundle, RegistryBundle
+from vistrails.db.services.bundle import DefaultVistrailsZIPSerializer , WorkflowXMLSerializer, \
+    BundleObj, VistrailBundle, WorkflowBundle, LogBundle, RegistryBundle
 import vistrails.db.services.log
 import vistrails.db.services.opm
 import vistrails.db.services.prov
@@ -1205,19 +1204,9 @@ def open_mashuptrail_from_xml(filename):
     """open_mashuptrail_from_xml(filename) -> Mashuptrail"""
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
-    # this is here because initially the version in the mashuptrail file was 
-    # independent of VisTrails schema version. So if the version was "0.1.0" we
-    # can safely upgrade it directly to 1.0.3 as it was the first version when
-    # the mashuptrail started to use the same vistrails schema version
-    old_version = version
-    if version == "0.1.0":
-        version = "1.0.3"
     try:
         daoList = getVersionDAO(version)
         mashuptrail = daoList.open_from_xml(filename, DBMashuptrail.vtType, tree)
-        if old_version == "0.1.0":
-            mashuptrail.db_version = version
-        Mashuptrail.convert(mashuptrail)
         mashuptrail.currentVersion = mashuptrail.getLatestVersion()
         mashuptrail.updateIdScope()
     except VistrailsDBException, e:
@@ -1249,7 +1238,6 @@ def open_mashuptrail_from_db(db_connection, mashup_id, lock=False):
     try:
         daoList = getVersionDAO(version)
         mashuptrail = daoList.open_from_db(db_connection, DBMashuptrail.vtType, mashup_id, lock)
-        Mashuptrail.convert(mashuptrail)
         mashuptrail.currentVersion = mashuptrail.getLatestVersion()
         mashuptrail.updateIdScope()
     except VistrailsDBException, e:
@@ -1306,8 +1294,8 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
 def open_startup_from_xml(filename):
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
-    if version == '0.1':
-        version = '1.0.3'
+    # if version == '0.1':
+    #     version = '1.0.3'
     daoList = getVersionDAO(version)
     startup = daoList.open_from_xml(filename, DBStartup.vtType, tree)
     # need this for translation...
@@ -1685,20 +1673,23 @@ class TestTranslations(unittest.TestCase):
         # return '/vistrails/src/git/examples/terminator.vt'
 
     def run_vistrail_translation_test(self, version):
-        (bundle, tmp_save_dir) = \
-                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        bundle = None
         try:
+            s = DefaultVistrailsZIPSerializer(self.get_filename())
+            bundle = s.load()
             vt1 = bundle.vistrail
             vt2 = translate_vistrail(vt1, currentVersion, version)
             vt2 = translate_vistrail(vt2, version, currentVersion)
             vt1.deep_eq_test(vt2, self, get_alternate_tests(version))
         finally:
-            close_zip_xml(tmp_save_dir)
-            
+            if bundle is not None:
+                bundle.cleanup()
+
     def run_workflow_translation_test(self, version):
-        (bundle, tmp_save_dir) = \
-                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        bundle = None
         try:
+            s = DefaultVistrailsZIPSerializer(self.get_filename())
+            bundle = s.load()
             vt = bundle.vistrail
             # 258 is Image Slices HW in terminator.vt
             # 20 is the executed version in test_basics.vt
@@ -1709,20 +1700,22 @@ class TestTranslations(unittest.TestCase):
             wf2 = translate_workflow(wf2, version, currentVersion)
             wf1.deep_eq_test(wf2, self, get_alternate_tests(version))
         finally:
-            close_zip_xml(tmp_save_dir)
+            if bundle is not None:
+                bundle.cleanup()
 
     def run_log_translation_test(self, version):
-        (bundle, tmp_save_dir) = \
-                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        bundle = None
         try:
-            log1 = open_log_from_xml(bundle.vistrail.db_log_filename, True)
-            # FIXME may need to update db_version in open_log_from_xml?
+            s = DefaultVistrailsZIPSerializer(self.get_filename())
+            bundle = s.load()
+            log1 = bundle.log # lazy load here
             log1.db_version = '1.0.5'
             log2 = translate_log(log1, currentVersion, version)
             log2 = translate_log(log2, version, currentVersion)
             log1.deep_eq_test(log2, self, get_alternate_tests(version))
         finally:
-            close_zip_xml(tmp_save_dir)
+            if bundle is not None:
+                bundle.cleanup()
 
     def run_registry_translation_test(self, version):
         from vistrails.core.modules.module_registry import get_module_registry

@@ -470,17 +470,8 @@ class XMLFileSerializer(FileSerializer):
                                            (filename, inner_dir_name))
         tree = ElementTree.parse(filename)
         version = cls.get_version_for_xml(tree.getroot())
-        # this is here because initially the version in the mashuptrail file was
-        # independent of VisTrails schema version. So if the version was "0.1.0" we
-        # can safely upgrade it directly to 1.0.3 as it was the first version when
-        # the mashuptrail started to use the same vistrails schema
-        old_version = version
-        if obj_type == 'mashuptrail' and version == "0.1.0":
-            version = "1.0.3"
         daoList = vistrails.db.versions.getVersionDAO(version)
         vt_obj = daoList.open_from_xml(filename, obj_type, tree)
-        if obj_type == 'mashuptrail' and old_version == "0.1.0":
-            vt_obj.db_version = version
         vt_obj = vistrails.db.versions.translate_object(vt_obj, translator_f,
                                                         version)
         obj_id = cls.get_obj_id(vt_obj)
@@ -646,6 +637,24 @@ class RegistryXMLSerializer(XMLFileSerializer):
     @classmethod
     def get_obj_path(cls, vt_obj):
         return "log"
+
+class StartupXMLSerializer(XMLFileSerializer):
+    """ Serializes preferences to a file
+    """
+    @classmethod
+    def load(cls, filename):
+        obj = super(StartupXMLSerializer, cls).load(filename,
+                                                    DBStartup.vtType,
+                                                    "translateStartup")
+        return obj
+
+    @classmethod
+    def save(cls, obj, filename, version):
+        version = vistrails.db.versions.currentVersion
+        return super(StartupXMLSerializer, cls).save(cls, obj, filename,
+                                                     version,
+                                    "http://www.vistrails.org/startup.xsd",
+                                                     "translateStartup")
 
 class XMLAppendSerializer(XMLFileSerializer):
     """ Serializes files containing xml fragments

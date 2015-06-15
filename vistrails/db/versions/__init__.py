@@ -61,6 +61,7 @@ version_map = {
     '1.0.0': '1.0.1',
     '1.0.1': '1.0.2',
     '1.0.2': '1.0.3',
+    '0.1.0': '1.0.3', # for startup and mashups
     '1.0.3': '1.0.4',
     '1.0.4': '1.0.5',
     }
@@ -146,6 +147,8 @@ def translate_object(obj, method_name, version=None, target_version=None):
         version = obj.version
     if target_version is None:
         target_version = currentVersion
+    version = get_full_version_str(version)
+    target_version = get_full_version_str(target_version)
 
     def get_translate_module(map, start_version, end_version):
         translate_dir = 'vistrails.db.versions.' + \
@@ -216,15 +219,16 @@ def translate_startup(startup, version=None, target_version=None):
     return translate_object(startup, 'translateStartup', version,
                             target_version)
 
+def get_full_version_str(version_str):
+    while len(version_str.split('.')) < 3:
+        version_str = version_str + '.0'
+    return version_str
+
 def get_version_name(version_no):
-    while len(version_no.split('.')) < 3:
-        version_no = version_no + '.0'
-    return 'v' + version_no.replace('.', '_')
+    return 'v' + get_full_version_str(version_no).replace('.', '_')
 
 def get_version_tuple(version_no):
-    while len(version_no.split('.')) < 3:
-        version_no = version_no + '.0'
-    return version_no.split('.')
+    return get_full_version_str(version_no).split('.')
 
 def getVersionSchemaDir(version=None):
     if version is None:
