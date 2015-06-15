@@ -163,17 +163,17 @@ class TransferFunction(object):
         if node is None:
             node = ElementTree.Element('transfer_function')
             
-        node.set('min_range', str(self._min_range))
-        node.set('max_range', str(self._max_range))
+        node.set('min_range', unicode(self._min_range))
+        node.set('max_range', unicode(self._max_range))
         for pt in self._pts:
             ptNode = ElementTree.SubElement(node, 'point')
-            ptNode.set('scalar', str(pt[0]))
-            ptNode.set('opacity', str(pt[1]))
+            ptNode.set('scalar', unicode(pt[0]))
+            ptNode.set('opacity', unicode(pt[1]))
             color = pt[2]
             colorNode = ElementTree.SubElement(ptNode, 'color')
-            colorNode.set('R', str(color[0]))
-            colorNode.set('G', str(color[1]))
-            colorNode.set('B', str(color[2]))
+            colorNode.set('R', unicode(color[0]))
+            colorNode.set('G', unicode(color[1]))
+            colorNode.set('B', unicode(color[2]))
             
         return ElementTree.tostring(node)
    

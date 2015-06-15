@@ -91,7 +91,7 @@ def render_to_image(output_filename, vtk_format, renderer, w, h):
         widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
         widget.resize(w, h)
         widget.show()
-        window.SetWindowInfo(str(int(widget.winId())))
+        window.SetWindowInfo(unicode(int(widget.winId())))
 
     window.AddRenderer(renderer)
     window.Render()
@@ -189,7 +189,7 @@ def initialize():
     # vtk-VTKVERSION-spec-PKGVERSION.xml
     spec_name = os.path.join(current_dot_vistrails(),
                              'vtk-%s-spec-%s.xml' %
-                             ('_'.join([str(v) for v in vtk_version]),
+                             ('_'.join([unicode(v) for v in vtk_version]),
                               package_version.replace('.', '_')))
     # TODO: how to patch with diff/merge
     if not os.path.exists(spec_name):

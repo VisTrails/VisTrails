@@ -40,6 +40,7 @@ from itertools import izip
 from vistrails.core.debug import format_exc
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
+from vistrails.core.utils import new_type
 
 from .common import convert_input, convert_output, get_input_spec, get_output_spec
 
@@ -227,6 +228,6 @@ def gen_class_module(spec, lib, klasses, **module_settings):
          '_lib': lib}
 
     superklass = klasses.get(spec.superklass, BaseClassModule)
-    new_klass = type(str(spec.module_name), (superklass,), d)
+    new_klass = new_type(spec.module_name, (superklass,), d)
     klasses[spec.module_name] = new_klass
     return new_klass

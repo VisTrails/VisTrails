@@ -60,7 +60,7 @@ class VTKRenderOffscreen(Module):
             widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
             widget.resize(w, h)
             widget.show()
-            window.SetWindowInfo(str(int(widget.winId())))    
+            window.SetWindowInfo(unicode(int(widget.winId())))
        
         window.AddRenderer(r)
 #        window.Start()

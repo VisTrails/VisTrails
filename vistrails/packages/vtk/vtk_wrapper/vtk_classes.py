@@ -161,7 +161,7 @@ def patch_methods(base_module, cls):
             widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
             widget.resize(w, h)
             widget.show()
-            window.SetWindowInfo(str(int(widget.winId())))
+            window.SetWindowInfo(unicode(int(widget.winId())))
 
         window.AddRenderer(vtkRenderer.vtkInstance)
         window.Render()
