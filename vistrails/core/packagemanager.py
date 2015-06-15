@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -46,14 +47,14 @@ import sys
 import warnings
 
 from vistrails.core import debug, get_vistrails_application, system
-from vistrails.core.configuration import ConfigurationObject
+from vistrails.core.configuration import ConfigurationObject, \
+    get_vistrails_configuration
 import vistrails.core.data_structures.graph
-import vistrails.core.db.io
-from vistrails.core.modules.module_registry import ModuleRegistry, \
-                                         MissingPackage, MissingPackageVersion
+from vistrails.core.modules.module_registry import MissingPackage, \
+    MissingPackageVersion
 from vistrails.core.modules.package import Package
 from vistrails.core.requirements import MissingRequirement
-from vistrails.core.utils import VistrailsInternalError, InstanceObject, \
+from vistrails.core.utils import VistrailsInternalError, \
     versions_increasing, VistrailsDeprecation
 import vistrails.packages
 
@@ -123,7 +124,6 @@ class PackageManager(object):
         if self._userpackages is not None:
             return self._userpackages
         # Imports user packages directory
-        conf = self._startup.temp_configuration
         old_sys_path = copy.copy(sys.path)
         userPackageDir = system.get_vistrails_directory('userPackageDir')
         if userPackageDir is not None:
@@ -182,8 +182,23 @@ class PackageManager(object):
         # Compute the list of available packages, _available_packages
         self.build_available_package_names_list()
 
-        for pkg in self._startup.enabled_packages.itervalues():
-            self.add_package(pkg.name, prefix=pkg.prefix)
+        if get_vistrails_configuration().loadPackages:
+            for pkg in self._startup.enabled_packages.itervalues():
+                self.add_package(pkg.name, prefix=pkg.prefix)
+        else:
+            try:
+                basic_pkg = self._startup.enabled_packages['basic_modules']
+            except KeyError:
+                pass
+            else:
+                self.add_package(basic_pkg.name, prefix=basic_pkg.prefix)
+
+            try:
+                abs_pkg = self._startup.enabled_packages['abstraction']
+            except KeyError:
+                pass
+            else:
+                self.add_package(abs_pkg.name, prefix=abs_pkg.prefix)
 
     def _import_override(self,
                          name, globals={}, locals={}, fromlist=[], level=-1):
@@ -574,8 +589,11 @@ class PackageManager(object):
                     prefix = self._default_prefix_dict.get(package.codepath)
                 package.load(prefix)
             except Package.LoadFailed, e:
-                debug.critical("Package %s failed to load and will be "
-                               "disabled" % package.name, e)
+                debug.critical(
+                        "Package %s failed to load and will be disabled" % (
+                            package.name or
+                            ("<codepath %s>" % package.codepath)),
+                        e)
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list

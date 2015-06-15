@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -1051,7 +1052,61 @@ class Vistrail(DBVistrail):
                 except AttributeError, e:
                     debug.unexpected_exception(e)
         return package_list
-                    
+
+    def get_base_upgrade_version(self, version):
+        """Finds the base version in the upgrade chain.
+        """
+        # TODO: use this in search_upgrade_versions(), once the map is cached
+        upgrade_rev_map = {}
+        for ann in self.action_annotations:
+            if ann.key == Vistrail.UPGRADE_ANNOTATION:
+                upgrade_rev_map[int(ann.value)] = ann.action_id
+
+        while version in upgrade_rev_map:
+            version = upgrade_rev_map[version]
+        return version
+
+    def search_upgrade_versions(self, base_version, getter,
+                                start_at_base=None):
+        """Search all upgrades from a version for a specific value.
+
+        :param base_version: version from which to search (upgrades from this
+        version will be recursively searched)
+        :param getter: function that returns the value you are looking for, or
+        None to continue searching
+        :param start_at_base: if None (default), start from given version, then
+        if nothing is found start again from original version. If True, search
+        from the original action (the one that's not an upgrade). If False, go
+        down from given version only.
+        :returns: The result from getter, or None if all upgrades were exhausted
+        """
+        # TODO: cache these maps somewhere
+        upgrade_map = {}
+        upgrade_rev_map = {}
+        for ann in self.action_annotations:
+            if ann.key == Vistrail.UPGRADE_ANNOTATION:
+                upgrade_map[ann.action_id] = int(ann.value)
+                upgrade_rev_map[int(ann.value)] = ann.action_id
+
+        if start_at_base is True:
+            while base_version in upgrade_rev_map:
+                base_version = upgrade_rev_map[base_version]
+
+        version = base_version
+        walked_versions = set()
+        while version is not None and version not in walked_versions:
+            ret = getter(self, version, base_version)
+            if ret is not None:
+                return ret
+            walked_versions.add(version)
+            version = upgrade_map.get(version)
+            if version is None and start_at_base is None:
+                start_at_base = True
+                version = base_version
+                while version in upgrade_rev_map:
+                    version = upgrade_rev_map[version]
+        return None
+
 
 ##############################################################################
 

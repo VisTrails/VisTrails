@@ -1,34 +1,35 @@
 ##############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -76,6 +77,7 @@ executionLog: Track execution provenance when running workflows
 fileDir: Default vistrail directory
 fixedSpreadsheetCells: Draw spreadsheet cells at a fixed size
 handlerDontAsk: Do not ask about extension handling at startup
+hideUpgrades: Don't show upgrade nodes in the version tree
 host: The hostname for the database to load the vistrail from
 installBundles: Install missing Python dependencies
 installBundlesWithPip: Use pip to install missing Python dependencies
@@ -84,6 +86,7 @@ jobAutorun: Run jobs automatically when they finish
 jobCheckInterval: How often to check for jobs (in seconds)
 jobList: List running workflows
 jobInfo: List jobs in running workflow
+loadPackages: Whether to load the packages enabled in the configuration file
 logDir: Log files directory
 maxRecentVistrails: Number of recent vistrails
 maximizeWindows: VisTrails windows should be maximized
@@ -216,6 +219,10 @@ handlerDontAsk: Boolean
 
     Do not ask about extension handling at startup (Linux only).
 
+hideUpgrades: Boolean
+
+    Don't show the "upgrade" nodes in the version tree.
+
 host: URL
 
     The hostname for the database to load the vistrail from.
@@ -248,6 +255,10 @@ jobList: Boolean
 jobInfo: Boolean
 
     List jobs in running workflow
+
+loadPackages: Boolean
+
+    Whether to load the packages enabled in the configuration file
 
 logDir: Path
 
@@ -666,6 +677,8 @@ base_config = {
     [ConfigField('upgrades', True, bool, ConfigType.ON_OFF),
      ConfigField('migrateTags', False, bool, ConfigType.ON_OFF,
                  depends_on="upgrades"),
+     ConfigField('hideUpgrades', True, bool, ConfigType.ON_OFF,
+                 depends_on='upgrades'),
      ConfigField('upgradeDelay', True, bool, ConfigType.ON_OFF,
                  depends_on="upgrades"),
      ConfigField('upgradeModuleFailPrompt', True, bool, ConfigType.ON_OFF,
@@ -703,6 +716,7 @@ base_config = {
          ConfigField('cacheSize', 20, int, widget_type='thumbnailcache')])],
     "Packages":
     [ConfigField('enablePackagesSilently', False, bool, ConfigType.ON_OFF),
+     ConfigField('loadPackages', True, bool, ConfigType.ON_OFF),
      ConfigField('installBundles', True, bool, ConfigType.ON_OFF),
      ConfigField('installBundlesWithPip', False, bool, ConfigType.ON_OFF,
                  depends_on="installBundles"),
@@ -731,7 +745,9 @@ base_config = {
      ConfigField('isRunningGUI', True, bool, ConfigType.INTERNAL),
      ConfigField('spawned', False, bool, ConfigType.INTERNAL),
      ConfigField('rootDirectory', None, ConfigPath, ConfigType.INTERNAL),
-     ConfigField('developerDebugger', False, bool, ConfigType.INTERNAL)],
+     ConfigField('developerDebugger', False, bool, ConfigType.INTERNAL),
+     ConfigField('dontUnloadModules', False, bool, ConfigType.INTERNAL),
+     ConfigField('bundleDeclinedList', '', str, ConfigType.INTERNAL)],
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),

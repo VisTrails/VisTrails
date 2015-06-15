@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -41,29 +42,18 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
-from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException, MissingModuleVersion, MissingPackage, PortMismatch
-from vistrails.core.system import get_vistrails_default_pkg_prefix, \
-    get_vistrails_basic_pkg_id
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
-from vistrails.core.utils import expression, append_to_dict_of_lists
-from vistrails.core.utils.uxml import named_elements
-from vistrails.core.vistrail.abstraction import Abstraction
-from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
-from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.module_control_param import ModuleControlParam
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
 from vistrails.core.vistrail.plugin_data import PluginData
-from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
 import vistrails.core.vistrail.action
-from vistrails.core.utils import profile, InvalidPipeline
+from vistrails.core.utils import InvalidPipeline
 
-from xml.dom.minidom import getDOMImplementation, parseString
 import copy
 
 import unittest
@@ -1334,7 +1324,7 @@ class TestPipeline(unittest.TestCase):
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
-            m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
+            m.package = 'org.vistrails.vistrails.pythoncalc'
             m.functions.append(f1())
             m.control_parameters.append(cp1())
             return m
@@ -1353,7 +1343,7 @@ class TestPipeline(unittest.TestCase):
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
-            m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
+            m.package = 'org.vistrails.vistrails.pythoncalc'
             m.functions.append(f1())
             return m
         m1 = module1(p)
@@ -1563,7 +1553,7 @@ class TestPipeline(unittest.TestCase):
     def test_module_signature(self):
         """Tests signatures for modules with similar (but not equal)
         parameter specs."""
-        pycalc_pkg = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
+        pycalc_pkg = 'org.vistrails.vistrails.pythoncalc'
         p1 = Pipeline()
         p1_functions = [ModuleFunction(name='value1',
                                        parameters=[ModuleParam(type='Float',
@@ -1612,8 +1602,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.add_module(Module(name='CacheBug', 
-                            package='%s.console_mode_test' % \
-                             get_vistrails_default_pkg_prefix(),
+                            package='org.vistrails.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
 
@@ -1635,8 +1624,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.add_module(Module(name='CacheBug', 
-                            package='%s.console_mode_test' % \
-                             get_vistrails_default_pkg_prefix(),
+                            package='org.vistrails.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
         unicode(p1)

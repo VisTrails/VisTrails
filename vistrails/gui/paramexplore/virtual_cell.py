@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -189,7 +190,6 @@ def assembleThumbnails(images, name, background='#000000'):
     maxSheet = max(i[2] for i in images) + 1
     
     w = h = 0
-    sizeX = sizeY = 0
     sheets = []
     painter = QtGui.QPainter()
     
@@ -368,7 +368,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         """
         while True:
             item = self.layout().takeAt(0)
-            if item==None:
+            if item is None:
                 break
             self.disconnect(item.widget(),
                             QtCore.SIGNAL('finishedDragAndDrop'),
@@ -423,7 +423,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         for i in xrange(len(visibleRows)):
             for c in xrange(self.numCell):
                 label = self.cells[visibleRows[i]][c]
-                if label.type==None:
+                if label.type is None:
                     label.type = ''
                 self.cells[i][c].setCellData(label.type, label.id)
 
@@ -440,7 +440,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         for i in xrange(len(visibleCols)):
             for r in xrange(self.numCell):
                 label = self.cells[r][visibleCols[i]]
-                if label.type==None:
+                if label.type is None:
                     label.type = ''
                 self.cells[r][i].setCellData(label.type, label.id)
 
@@ -549,7 +549,7 @@ class QVirtualCellLabel(QtGui.QLabel):
         painter = QtGui.QPainter()
         painter.begin(image)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        if self.type==None:
+        if self.type is None:
             painter.setPen(QtCore.Qt.NoPen)
             painter.setBrush(QtCore.Qt.NoBrush)
         else:
@@ -563,7 +563,7 @@ class QVirtualCellLabel(QtGui.QLabel):
                                             image.height()-1), 25, 25)
 
         painter.setFont(font)
-        if self.type!=None:
+        if self.type is not None:
             painter.drawText(QtCore.QRect(QtCore.QPoint(6, 6), size),
                              QtCore.Qt.AlignCenter | QtCore.Qt.TextWrapAnywhere,
                              split_camel_case(self.type))
@@ -663,13 +663,3 @@ class TestCamelCase(unittest.TestCase):
                          u'\xC9ML\nParser')
         self.assertEqual(split_camel_case(u'v\xC9MLParser'),
                          u'v\n\xC9ML\nParser')
-
-if __name__=="__main__":
-    import sys
-    import vistrails.gui.theme
-    app = QtGui.QApplication(sys.argv)
-    vistrails.gui.theme.initializeCurrentTheme()
-    vc = QVirtualCellConfiguration()
-    vc.configVirtualCells(['VTKCell', 'ImageViewerCell', 'RichTextCell'])
-    vc.show()
-    sys.exit(app.exec_())

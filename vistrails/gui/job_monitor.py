@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -39,7 +40,9 @@ import time
 
 from PyQt4 import QtCore, QtGui
 
-from vistrails.core import debug, configuration
+from vistrails.core import debug
+from vistrails.core.configuration import get_vistrails_configuration, \
+    get_vistrails_persistent_configuration
 from vistrails.core.modules.vistrails_module import ModuleSuspended
 from vistrails.gui import theme
 from vistrails.gui.common_widgets import QDockPushButton
@@ -117,8 +120,8 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.interval.setEditable(True)
         self.interval.editTextChanged.connect(self.set_refresh)
         self.interval.setValidator(QNumberValidator())
-        conf = configuration.get_vistrails_configuration()
-        self.interval.setEditText(unicode(conf.jobCheckInterval))
+        conf = get_vistrails_configuration()
+        self.interval.setEditText('%d' % conf.jobCheckInterval)
         buttonsLayout.addWidget(self.interval)
 
         self.autorun = QtGui.QCheckBox("Automatic re-execution")
@@ -147,7 +150,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         controllers = [view.controller for view in _app.getAllViews()]
         for c in self.widgets.keys():
             if c not in controllers:
-                self.jobView.takeTopLevelItem(self.widgets[c])
+                self.jobView.takeTopLevelItem(self.jobView.indexOfTopLevelItem(self.widgets[c]))
                 del self.widgets[c]
 
         if not controller:
@@ -158,13 +161,13 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             item = QVistrailItem(controller)
             self.jobView.addTopLevelItem(item)
             self.jobView.expandAll()
-            self.widgets[controller] = self.jobView.indexOfTopLevelItem(item)
+            self.widgets[controller] = item
             if item.childCount() > 0:
                 self.set_visible(True)
 
     def autorunToggled(self, value):
-        conf = configuration.get_vistrails_configuration()
-        conf.jobAutorun = value
+        get_vistrails_configuration().jobAutorun = value
+        get_vistrails_persistent_configuration().jobAutorun = value
 
     def set_refresh(self, refresh=0):
         """Changes the timer time.
@@ -187,8 +190,8 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             if self.timer_id:
                 self.killTimer(self.timer_id)
                 self.timer_id = None
-        conf = configuration.get_vistrails_configuration()
-        conf.jobCheckInterval = refresh
+        get_vistrails_configuration().jobCheckInterval = refresh
+        get_vistrails_persistent_configuration().jobCheckInterval = refresh
         self.updating_now = False
 
     def update_jobs(self):
@@ -285,7 +288,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         QtGui.QTreeWidgetItem.__init__(self, parent,
                                        [self.locator.short_name, ''])
         self.setIcon(0, theme.get_current_theme().HISTORY_ICON)
-        self.setToolTip(0, self.locator.name)
+        self.setToolTip(0, self.locator.to_url())
         self.workflowItems = {}
         self.load_running_jobs()
 
@@ -411,7 +414,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         workflow_item.updateJobs()
         progress = self.controller.progress
 
-        conf = configuration.get_vistrails_configuration()
+        conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
         if interval and not conf.jobAutorun and not progress.suspended:
             # we should keep checking the job

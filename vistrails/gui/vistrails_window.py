@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -38,42 +39,32 @@ from __future__ import division
 
 from PyQt4 import QtCore, QtGui
 import copy
-from itertools import izip
-import operator
 
-from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import (get_vistrails_configuration,
                                 get_vistrails_persistent_configuration)
 from vistrails.core.db.locator import FileLocator, XMLFileLocator, DBLocator, \
     UntitledLocator
-from vistrails.core.db.io import load_vistrail
 from vistrails.core.interpreter.cached import CachedInterpreter
-from vistrails.core.modules.module_registry import ModuleRegistry, \
-                                         ModuleRegistryException
 from vistrails.core.recent_vistrails import RecentVistrailList
 import vistrails.core.system
 import vistrails.core.db.action
-from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.system import vistrails_default_file_type
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.collection import Collection
 from vistrails.core import debug
 
 from vistrails.gui.application import get_vistrails_application
 from vistrails.gui.preferences import QPreferencesDialog
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.common_widgets import QToolWindow
-from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.repository import QRepositoryDialog
-from vistrails.gui.theme import initializeCurrentTheme, CurrentTheme
+from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import build_custom_window
 from vistrails.gui.vistrail_view import QVistrailView
 from vistrails.gui import merge_gui
 from vistrails.gui.vistrail_variables import QVistrailVariables
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-from vistrails.gui.mashups.mashup_app import QMashupAppMainWindow
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.gui.paramexplore.pe_view import QParamExploreView
 from vistrails.gui.mashups.alias_inspector import QAliasInspector
@@ -892,7 +883,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.connect(QtGui.QApplication.clipboard(),
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboard_changed)
-        self.connect(QtGui.QApplication.instance(), 
+        self.connect(QtGui.QApplication.instance(),
                      QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"),
                      self.applicationFocusChanged)
 
@@ -1031,10 +1022,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         from vistrails.gui.collection.vis_log import QLogDetails
         from vistrails.gui.mashups.mashups_inspector import QMashupsInspector
         from vistrails.gui.mashups.alias_parameter_view import QAliasParameterView
-        from vistrails.gui.publishing import QLatexAssistant, QVersionEmbed
+        from vistrails.gui.publishing import QVersionEmbed
         self.palettes = []
         self.palette_window = None
-        
+
         self.palette_layout = \
             [(self.UPPER_LEFT_DOCK_AREA,
               [((QWorkspaceWindow,True),
@@ -1044,9 +1035,7 @@ class QVistrailsWindow(QVistrailViewWindow):
              (self.LOWER_LEFT_DOCK_AREA,
               [(QModulePalette, True),
                ((QParamExploreInspector, False),
-                (('pipeline_changed', 'set_pipeline'),
-                 ('exploration_changed', 'set_exploration'),
-                 ('controller_changed', 'set_controller'))),
+                (('controller_changed', 'set_controller'),)),
                ((QMashupsInspector, False),
                 (('controller_changed', 'updateVistrailController'),
                  ('mshpcontroller_changed', 'updateMshpController'),
@@ -1064,8 +1053,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module'))),
                ((QParameterView, False),
-                (('controller_changed', 'set_controller'),
-                 ('pipeline_changed', 'set_pipeline'))),
+                (('pipeline_changed', 'set_pipeline'),
+                 ('controller_changed', 'set_controller'))),
                ((QLogDetails, False),
                 (('controller_changed', 'set_controller'),
                  ('execution_updated', 'execution_updated'),
@@ -1592,7 +1581,6 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.view_changed(view)
         self.reset_toolbar_for_view(view)
         self.qactions['history'].trigger()
-        view.version_view.zoomToFit()
         return view.controller
 
     def remove_vistrail(self, locator):
@@ -1645,11 +1633,11 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         locator = locator_class.load_from_gui(self, Vistrail.vtType)
         if locator:
+            version = None
             if not self.getViewFromLocator(locator):
                 if locator.has_temporaries():
                     if not locator_class.prompt_autosave(self):
                         locator.clean_temporaries()
-                version = None
             if hasattr(locator,'_vtag'):
                 # if a tag is set, it should be used instead of the
                 # version number
@@ -1666,7 +1654,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 mashupversion = locator._mshpversion
                 if mashupversion:
                     execute = True
-            self.open_vistrail_without_prompt(locator, version, 
+            self.open_vistrail_without_prompt(locator, version,
                                               mashuptrail=mashuptrail,
                                               mashupVersion=mashupversion,
                                               execute_workflow=execute)
@@ -1829,8 +1817,13 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.import_workflow(DBLocator)
 
     def open_workflow(self, locator):
-        get_vistrails_application().open_workflow(locator)
         self.close_first_vistrail_if_necessary()
+        get_vistrails_application().open_workflow(locator)
+        view = self.get_current_view()
+        view.controller.recompute_terse_graph()
+        view.controller.invalidate_version_tree()
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        QWorkspaceWindow.instance().add_vt_window(view)
         self.qactions['pipeline'].trigger()
     
     def close_vistrail(self, current_view=None, quiet=False):
@@ -2460,7 +2453,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                                        "This subworkflow is from a package and "
                                        "cannot be modified.  You can create an "
                                        "editable copy in 'My Subworkflows' "
-                                       "using 'Edit->Import Subworkflow'")
+                                       "using 'Workflow->Import Subworkflow'")
     def merge_vistrail(self):
         action = self.sender()
         if action:
@@ -2485,13 +2478,15 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         vistrails.db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
         vistrail = s1.vistrail
-        vistrail.locator = None
+        vistrail.locator = UntitledLocator()
         vistrail.set_defaults()
         view = self.create_view(vistrail, None)
         # FIXME need to figure out what to do with this !!!
         view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
         view.controller.set_changed(True)
         self.view_changed(view)
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        QWorkspaceWindow.instance().add_vt_window(view)
         self.reset_toolbar_for_view(view)
         self.qactions['history'].trigger()
         view.version_view.scene().fitToView(view.version_view, True)

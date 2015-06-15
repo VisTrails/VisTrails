@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -607,10 +608,10 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """
         self.scene().clearSelection()
         self.parentItem().setSelected(True)
+        self.ungrabMouse()
         self.contextMenuEvent(event)
         event.accept()
-        self.ungrabMouse()
-        
+
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
         Captures context menu event.
@@ -1554,7 +1555,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
         # Update output ports
         [x, y] = self.nextOutputPortPos
-        for port in outputPorts:            
+        for port in reversed(outputPorts):
             self.outputPorts[port] = self.createPortItem(port, x, y)
             x -= t.PORT_WIDTH + t.MODULE_PORT_SPACE
         self.nextOutputPortPos = [x, y]
@@ -2127,8 +2128,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if srcModule.module.is_vistrail_var():
             connectionItem.hide()
             var_uuid = srcModule.module.get_vistrail_var()
-            dstPortItem.addVistrailVar(
-                self.controller.get_vistrail_variable_by_uuid(var_uuid))
             dstPortItem.addVistrailVar(var_uuid)
         self.update_connections([srcModule.id, dstModule.id])
         return connectionItem
@@ -2752,7 +2751,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def update_connections(self, modules=None):
         if self.skip_update:
             return
-        if self.controller.current_pipeline.is_valid:
+        if (self.controller.current_pipeline and
+            self.controller.current_pipeline.is_valid):
             for module_id, list_depth in \
                     self.controller.current_pipeline.mark_list_depth(modules):
                 if module_id in self.modules:
@@ -3539,6 +3539,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         self.set_title('Pipeline')
         self.controller = None
         self.detachable = True
+        self._view_fitted = False
 
     def set_default_layout(self):
         from vistrails.gui.module_palette import QModulePalette
@@ -3713,6 +3714,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return self.controller
 
     def version_changed(self):
+        self._view_fitted = False
         self.scene().setupScene(self.controller.current_pipeline)
 
     def run_control_flow_assist(self):
@@ -3746,6 +3748,12 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
     def paintModuleToPixmap(self, module_item):
         m = self.matrix()
         return module_item.paintToPixmap(m.m11(), m.m22())
+
+    def viewSelected(self):
+        if not self._view_fitted and self.isVisible():
+            # We only do this once after a version_changed() call
+            self.zoomToFit()
+            self._view_fitted = True
 
 ################################################################################
 # Testing

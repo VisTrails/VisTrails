@@ -2,35 +2,36 @@
 # pragma: no testimport
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -178,6 +179,11 @@ from vistrails.core.packagemanager import get_package_manager
 # after vistrails
 import unittest
 
+# reinitializing arguments and options so VisTrails does not try parsing them
+sys.argv = sys.argv[:1]
+vistrails.gui.application.VistrailsApplicationSingleton.use_event_filter = \
+        False
+
 
 root_directory = os.path.realpath(vistrails_root_directory())
 
@@ -238,9 +244,6 @@ def module_filter(name):
     return False
 
 ###############################################################################
-# reinitializing arguments and options so VisTrails does not try parsing them
-sys.argv = sys.argv[:1]
-
 # creates the app so that testing can happen
 
 # We need the windows so we can test events, etc.
@@ -252,7 +255,8 @@ optionsDict = {
         'enablePackagesSilently': True,
         'handlerDontAsk': True,
         'developerDebugger': debug_mode,
-        'debugLevel': vistrails_verbose
+        'debugLevel': vistrails_verbose,
+        'dontUnloadModules': True,
     }
 if dotVistrails:
     optionsDict['dotVistrails'] = dotVistrails
@@ -421,8 +425,13 @@ if compare_use_vtk:
         a = removeAlpha(prev)
         b = removeAlpha(next)
         idiff = vtk.vtkImageDifference()
-        idiff.SetInput(a)
-        idiff.SetImage(b)
+        if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= \
+           LooseVersion('6.0.0'):
+            idiff.SetInputData(a)
+            idiff.SetImageData(b)
+        else:
+            idiff.SetInput(a)
+            idiff.SetImage(b)
         idiff.Update()
         return idiff.GetThresholdedError()
 else:

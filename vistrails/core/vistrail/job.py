@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -348,7 +349,7 @@ class JobMonitor(object):
             Sets a callback when receiving commands
 
         """
-        self.callback = weakref.proxy(callback)
+        self.callback = weakref.ref(callback)
 
     ###########################################################################
     # Running Workflows
@@ -426,8 +427,8 @@ class JobMonitor(object):
                     delete = False
             if delete:
                 del self.jobs[job_id]
-        if self.callback:
-            self.callback.deleteWorkflow(id)
+        if self.callback is not None and self.callback() is not None:
+            self.callback().deleteWorkflow(id)
 
     def deleteJob(self, id):
         """ deleteJob(id: str, parent_id: str) -> None
@@ -437,8 +438,8 @@ class JobMonitor(object):
         for wf in self.workflows.itervalues():
             if id in wf.jobs:
                 del wf.jobs[id]
-        if self.callback:
-            self.callback.deleteJob(id)
+        if self.callback is not None and self.callback() is not None:
+            self.callback().deleteJob(id)
 
     ###########################################################################
     # _current_workflow methods
@@ -458,8 +459,8 @@ class JobMonitor(object):
                             self._current_workflow)
         workflow.reset()
         self._current_workflow = workflow
-        if self.callback:
-            self.callback.startWorkflow(workflow)
+        if self.callback is not None and self.callback() is not None:
+            self.callback().startWorkflow(workflow)
 
     def addJobRec(self, obj, parent_id=None):
         workflow = self.currentWorkflow()
@@ -504,8 +505,8 @@ class JobMonitor(object):
         for job in workflow.jobs.values():
             if not job.finished and not job.updated:
                 job.finish()
-        if self.callback:
-            self.callback.finishWorkflow(workflow)
+        if self.callback is not None and self.callback() is not None:
+            self.callback().finishWorkflow(workflow)
         self._current_workflow = None
 
     def addJob(self, id, params=None, name='', finished=False):
@@ -534,8 +535,8 @@ class JobMonitor(object):
             workflow.jobs[id] = job
             # we add workflows permanently if they have at least one job
             self.workflows[workflow.id] = workflow
-        if self.callback:
-            self.callback.addJob(self.getJob(id))
+        if self.callback is not None and self.callback() is not None:
+            self.callback().addJob(self.getJob(id))
 
     def addParent(self, error):
         """ addParent(id: str, name: str, finished: bool) -> None
@@ -565,8 +566,8 @@ class JobMonitor(object):
                 raise ModuleSuspended(module, 'Job is running',
                                       handle=handle)
         job = self.getJob(id)
-        if self.callback:
-            self.callback.checkJob(module, id, handle)
+        if self.callback is not None and self.callback() is not None:
+            self.callback().checkJob(module, id, handle)
             return
 
         conf = get_vistrails_configuration()

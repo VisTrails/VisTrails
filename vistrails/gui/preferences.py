@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -41,18 +42,13 @@ from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.package import Package
 from vistrails.core.requirements import MissingRequirement
 from vistrails.core.system import get_vistrails_basic_pkg_id
-from vistrails.core.utils import InvalidPipeline
-from vistrails.core.utils.uxml import (named_elements,
-                             elements_filter, enter_named_element)
 from vistrails.gui.configuration import QConfigurationWidget, \
     QConfigurationPane
 from vistrails.gui.module_palette import QModulePalette
 from vistrails.gui.modules.output_configuration import OutputModeConfigurationWidget
-from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.core.configuration import get_vistrails_persistent_configuration, \
     get_vistrails_configuration, base_config
 from vistrails.core import debug
-import os.path
 
 ##############################################################################
 
@@ -324,6 +320,7 @@ class QPackagesWidget(QtGui.QWidget):
             try:
                 pm.late_enable_package(codepath)
             except (Package.InitializationFailed, MissingRequirement), e:
+                debug.unexpected_exception(e)
                 debug.critical("Initialization of package '%s' failed" %
                                codepath,
                                e)
@@ -574,9 +571,10 @@ class QOutputConfigurationPane(QtGui.QWidget):
         sublist = reg.get_descriptor_subclasses(output_d)
         modes = {}
         for d in sublist:
-            if hasattr(d.module, '_output_modes'):
-                for mode in d.module._output_modes:
-                    modes[mode.mode_type] = mode
+            if hasattr(d.module, '_output_modes_dict'):
+                for mode_type, (mode, _) in (d.module._output_modes_dict
+                                                     .iteritems()):
+                    modes[mode_type] = mode
 
         found_modes = set()
         for mode_type, mode in modes.iteritems():

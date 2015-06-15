@@ -1,3 +1,38 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2013-2014, NYU-Poly.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
 from __future__ import division
 
 try:
@@ -7,7 +42,8 @@ except ImportError: # pragma: no cover
 
 from vistrails.core.modules.basic_modules import List, ListType
 from vistrails.core.modules.config import ModuleSettings
-from vistrails.core.modules.output_modules import OutputModule, FileMode
+from vistrails.core.modules.output_modules import OutputModule, FileMode, \
+    IPythonMode
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     Converter
 
@@ -194,12 +230,12 @@ class ExtractColumn(Module):
                     column_names=table.names,
                     name=self.force_get_input('column_name', None),
                     index=self.force_get_input('column_index', None))
+
+            self.set_output('value', table.get_column(
+                    column_idx,
+                    self.get_input('numeric', allow_default=True)))
         except ValueError, e:
             raise ModuleError(self, e.message)
-
-        self.set_output('value', table.get_column(
-                column_idx,
-                self.get_input('numeric', allow_default=True)))
 
 
 class BuildTable(Module):
@@ -268,6 +304,7 @@ class SingleColumnTable(Converter):
     """
     _input_ports = [('in_value', List)]
     _output_ports = [('out_value', Table)]
+
     def compute(self):
         column = self.get_input('in_value')
         if not isinstance(column, ListType):
@@ -277,9 +314,10 @@ class SingleColumnTable(Converter):
                 len(column),            # nb_rows
                 ['converted_list']))    # names
 
-class TableToFileMode(FileMode):
-    formats = ['html']
-    def write_html(self, table):
+
+class HtmlRendererMixin(object):
+    @staticmethod
+    def make_html(table):
         document = ['<!DOCTYPE html>\n'
                     '<html>\n  <head>\n'
                     '    <meta http-equiv="Content-type" content="text/html; '
@@ -312,16 +350,46 @@ class TableToFileMode(FileMode):
 
         return ''.join(document)
 
-    def compute_output(self, output_module, configuration=None):
-        value = output_module.get_input("value")
+
+class TableToFileMode(FileMode, HtmlRendererMixin):
+    formats = ['html', 'csv']
+
+    def write_html(self, table, configuration):
         filename = self.get_filename(configuration, suffix='.html')
         with open(filename, 'wb') as fp:
-            fp.write(self.write_html(value))
+            fp.write(self.make_html(table))
+
+    def write_csv(self, table, configuration):
+        from .write.write_csv import WriteCSV
+
+        filename = self.get_filename(configuration, suffix='.csv')
+        WriteCSV.write(filename, table)
+
+    def compute_output(self, output_module, configuration):
+        value = output_module.get_input("value")
+        format = configuration.get('format', 'html').lower()
+        try:
+            func = getattr(self, 'write_%s' % format)
+        except AttributeError:
+            raise AttributeError("TableToFileMode: unknown format %s" % format)
+        else:
+            func(value, configuration)
+
+
+class TableToIPythonMode(IPythonMode, HtmlRendererMixin):
+    def compute_output(self, output_module, configuration):
+        from IPython.core.display import display, HTML
+
+        table = output_module.get_input('value')
+        html = self.make_html(table)
+        display(HTML(data=html))
+
 
 class TableOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
     _input_ports = [('value', 'Table')]
-    _output_modes = [TableToFileMode]
+    _output_modes = [TableToFileMode, TableToIPythonMode]
+
 
 _modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable,
             (SingleColumnTable, {'hide_descriptor': True}),

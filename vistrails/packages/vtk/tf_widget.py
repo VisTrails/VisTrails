@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -51,8 +52,6 @@ import copy
 import StringIO
 import unittest
 ElementTree = get_elementtree_library()
-
-from .identifiers import identifier as vtk_pkg_identifier
 
 ################################################################################
 # etc
@@ -164,17 +163,17 @@ class TransferFunction(object):
         if node is None:
             node = ElementTree.Element('transfer_function')
             
-        node.set('min_range', unicode(self._min_range))
-        node.set('max_range', unicode(self._max_range))
+        node.set('min_range', str(self._min_range))
+        node.set('max_range', str(self._max_range))
         for pt in self._pts:
             ptNode = ElementTree.SubElement(node, 'point')
-            ptNode.set('scalar', unicode(pt[0]))
-            ptNode.set('opacity', unicode(pt[1]))
+            ptNode.set('scalar', str(pt[0]))
+            ptNode.set('opacity', str(pt[1]))
             color = pt[2]
             colorNode = ElementTree.SubElement(ptNode, 'color')
-            colorNode.set('R', unicode(color[0]))
-            colorNode.set('G', unicode(color[1]))
-            colorNode.set('B', unicode(color[2]))
+            colorNode.set('R', str(color[0]))
+            colorNode.set('G', str(color[1]))
+            colorNode.set('B', str(color[2]))
             
         return ElementTree.tostring(node)
    
@@ -213,6 +212,8 @@ class TransferFunction(object):
                                  float(colorNode.get('G','0.0')),
                                  float(colorNode.get('B','0.0')))
                         break
+                else:
+                    assert "'point' node has no 'color' child"
                 tf._pts.append((scalar,opacity,color))
         tf._pts.sort()
         return tf
@@ -542,6 +543,7 @@ class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
         # restore y axis inversion
         self.setTransform(QtGui.QTransform(1, 0, 0, -1, 0, GLOBAL_SCALE))
         self.setTransformOriginPoint(0, GLOBAL_SCALE)
+        self.reset_transfer_function(self._tf)
 
     def boundingRect(self):
         return QtCore.QRectF(0.0, 0.0, GLOBAL_SCALE, GLOBAL_SCALE)
@@ -690,17 +692,29 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
 
 class vtkScaledTransferFunction(Module):
 
+    # FIXME Add documentation
+    _input_ports = [
+        ['Input', 'vtkAlgorithmOutput'],
+        ['Dataset', 'vtkDataObject'],
+        ['Range', '(basic:Float, basic:Float)'],
+        ['TransferFunction', 'TransferFunction']]
+
+    _output_ports = [
+        ['TransferFunction', 'TransferFunction'],
+        ['vtkPiecewiseFunction', 'vtkPiecewiseFunction'],
+        ['vtkColorTransferFunction', 'vtkColorTransferFunction']]
+
     def compute(self):
         reg = get_module_registry()
         tf = self.get_input('TransferFunction')
         new_tf = copy.copy(tf)
         if self.has_input('Input'):
             port = self.get_input('Input')
-            algo = port.vtkInstance.GetProducer()
-            output = algo.GetOutput(port.vtkInstance.GetIndex())
+            algo = port.GetProducer()
+            output = algo.GetOutput(port.GetIndex())
             (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
         elif self.has_input('Dataset'):
-            algo = self.get_input('Dataset').vtkInstance
+            algo = self.get_input('Dataset')
             output = algo
             (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
         else:
@@ -708,17 +722,9 @@ class vtkScaledTransferFunction(Module):
 
         self.set_output('TransferFunction', new_tf)
         (of,cf) = new_tf.get_vtk_transfer_functions()
-
-        of_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
-                                               'vtkPiecewiseFunction').module()
-        of_module.vtkInstance  = of
-
-        cf_module = reg.get_descriptor_by_name(vtk_pkg_identifier, 
-                                               'vtkColorTransferFunction').module()
-        cf_module.vtkInstance  = cf
-
-        self.set_output('vtkPicewiseFunction', of_module)
-        self.set_output('vtkColorTransferFunction', cf_module)
+        
+        self.set_output('vtkPicewiseFunction', of)
+        self.set_output('vtkColorTransferFunction', cf)
 
 class TransferFunctionConstant(Constant):
     default_value = default_tf
@@ -741,11 +747,6 @@ class TransferFunctionConstant(Constant):
 
 ##############################################################################
 
-def initialize():
-    reg = get_module_registry()
-    reg.add_module(TransferFunctionConstant, name='TransferFunction')
-
-##############################################################################
 class TestTransferFunction(unittest.TestCase):
     def test_serialization(self):
         tf = TransferFunction()
@@ -767,6 +768,10 @@ class TestTransferFunction(unittest.TestCase):
         assert tf == tf1
         assert tf == tf2
         assert tf1 == tf2
-        
+
+TransferFunctionConstant.__name__ = "TransferFunction"
+
+_modules = [TransferFunctionConstant, vtkScaledTransferFunction]
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -51,6 +52,7 @@ from vistrails.core.utils import unquote, InstanceObject
 from abc import ABCMeta
 from ast import literal_eval
 from itertools import izip
+import mimetypes
 import os
 import pickle
 import re
@@ -336,13 +338,32 @@ class String(Constant):
 
 ##############################################################################
 
+# Rich display for IPython
+try:
+    from IPython import display
+except ImportError:
+    display = None
+
 class PathObject(object):
     def __init__(self, name):
         self.name = name
+        self._ipython_repr = None
 
     def __repr__(self):
         return "PathObject(%r)" % self.name
     __str__ = __repr__
+
+    def __getattr__(self, name):
+        if name.startswith('_repr_') and name.endswith('_'):
+            if self._ipython_repr is None:
+                filetype, encoding = mimetypes.guess_type(self.name)
+                if filetype and filetype.startswith('image/'):
+                    self._ipython_repr = display.Image(filename=self.name)
+                else:
+                    self._ipython_repr = False
+            if self._ipython_repr is not False:
+                return getattr(self._ipython_repr, name)
+        raise AttributeError
 
 class Path(Constant):
     _settings = ModuleSettings(constant_widget=("%s:PathChooserWidget" % \
@@ -738,10 +759,29 @@ class StandardOutput(NotCacheable, Module):
     mostly as a debugging device."""
 
     _input_ports = [IPort("value", 'Variant')]
-    
+
     def compute(self):
         v = self.get_input("value")
-        print v
+        if isinstance(v, PathObject):
+            try:
+                fp = open(v.name, 'rb')
+            except IOError:
+                print v
+            else:
+                try:
+                    CHUNKSIZE = 2048
+                    chunk = fp.read(CHUNKSIZE)
+                    if chunk:
+                        sys.stdout.write(chunk)
+                        while len(chunk) == CHUNKSIZE:
+                            chunk = fp.read(CHUNKSIZE)
+                            if chunk:
+                                sys.stdout.write(chunk)
+                        sys.stdout.write('\n')
+                finally:
+                    fp.close()
+        else:
+            print v
 
 ##############################################################################
 

@@ -1,34 +1,35 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
@@ -41,7 +42,6 @@ from __future__ import division
 from PyQt4 import QtCore, QtGui
 from vistrails.core.inspector import PipelineInspector
 from vistrails.core.modules.module_registry import get_module_registry
-from vistrails.core.modules.basic_modules import Constant
 from vistrails.gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
 from vistrails.gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
@@ -125,6 +125,12 @@ class QParameterView(QtGui.QWidget, QVistrailsPaletteInterface):
         else:
             self.pipeline_view.scene().clear()
         self.pipeline_view.updateAnnotatedIds(pipeline)
+        # this ensures the correct pipeline is set when updating exploration
+        self.get_palette().set_pipeline(pipeline)
+
+    def get_palette(self):
+        from vistrails.gui.paramexplore.pe_inspector import QParamExploreInspector
+        return QParamExploreInspector.instance()
 
 class QParameterWidget(QSearchTreeWindow):
     """
@@ -190,8 +196,8 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                       value=v,
                                       spec=port_spec_item,
                                       is_alias=True)
-                aliasItem = QParameterTreeWidgetItem((alias, [pInfo]),
-                                                     aliasRoot, label)
+                QParameterTreeWidgetItem((alias, [pInfo]),
+                                         aliasRoot, label)
             aliasRoot.setExpanded(True)
 
         vistrailVarsRoot = QParameterTreeWidgetItem(None, self,
@@ -215,7 +221,6 @@ class QParameterTreeWidget(QSearchTreeWidget):
                 if not port_spec:
                     debug.critical("Not port_spec for value in module %s" % module)
                     continue
-                port_spec_items = port_spec.port_spec_items
 
                 if not controller.has_vistrail_variable_with_uuid(
                                         module.get_vistrail_var()):
@@ -232,9 +237,9 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                        spec=port_spec.port_spec_items[pId],
                                        is_alias=False)
                          for pId in xrange(len(port_spec.port_spec_items))]
-                mItem = QParameterTreeWidgetItem((vv.name, pList),
-                                                 vistrailVarsRoot,
-                                                 label)
+                QParameterTreeWidgetItem((vv.name, pList),
+                                         vistrailVarsRoot,
+                                         label)
                 continue
                 
             function_names = {}
@@ -259,7 +264,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     
                     try:
                         port_spec = function.get_spec('input')
-                    except Exception, e:
+                    except Exception:
                         debug.critical("get_spec failed: %s %s %s" % \
                                        (module, function, function.sigstring))
                         continue
@@ -272,12 +277,12 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                            is_alias=False)
                              for pId in xrange(len(function.params))]
                     mName = module.name
-                    if moduleItem.parameter!=None:
+                    if moduleItem.parameter is not None:
                         mName += '(%d)' % moduleItem.parameter
                     fName = '%s :: %s' % (mName, function.name)
-                    mItem = QParameterTreeWidgetItem((fName, pList),
-                                                     moduleItem,
-                                                     label)
+                    QParameterTreeWidgetItem((fName, pList),
+                                             moduleItem,
+                                             label)
             # Add available parameters
             if module.is_valid:
                 for port_spec in module.destinationPorts():
@@ -308,12 +313,12 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                            is_alias=False)
                              for pId in xrange(len(port_spec.port_spec_items))]
                     mName = module.name
-                    if moduleItem.parameter!=None:
+                    if moduleItem.parameter is not None:
                         mName += '(%d)' % moduleItem.parameter
                     fName = '%s :: %s' % (mName, port_spec.name)
-                    mItem = QParameterTreeWidgetItem((fName, pList),
-                                                     moduleItem,
-                                                     label, False)
+                    QParameterTreeWidgetItem((fName, pList),
+                                             moduleItem,
+                                             label, False)
             if moduleItem:
                 moduleItem.setExpanded(True)
         self.toggleUnsetParameters(self.showUnsetParameters)
@@ -350,7 +355,7 @@ class QParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
         
         """
         model = index.model()
-        if model.parent(index).isValid()==False:
+        if not model.parent(index).isValid():
             style = self.treeView.style()
             r = option.rect
             textrect = QtCore.QRect(r.left() + 10,
