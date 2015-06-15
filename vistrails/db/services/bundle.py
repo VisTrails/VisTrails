@@ -391,6 +391,17 @@ class JobFileSerializer(FileSerializer):
     def save(cls, obj, rootdir):
         return super(JobFileSerializer, cls).save(obj, rootdir)
 
+class DataFileSerializer(FileRefSerializer):
+    """ Serializes a data file to the data/ directory
+    """
+    @classmethod
+    def load(cls, filename):
+        return super(DataFileSerializer, cls).load(filename, 'data', 'data')
+
+    @classmethod
+    def save(cls, obj, rootdir):
+        return super(DataFileSerializer, cls).save(obj, rootdir, 'data')
+
 class XMLFileSerializer(FileSerializer):
     """ Serializes vistrails objects as xml files.
     """
@@ -674,25 +685,6 @@ class LogXMLSerializer(XMLAppendSerializer):
     @classmethod
     def get_inner_objs(cls, vt_obj):
         return vt_obj.db_workflow_execs
-
-class DataFileSerializer(FileRefSerializer):
-    """ Serializes a data file to the data/ directory
-    """
-    @classmethod
-    def load(cls, filename):
-        return BundleObj(filename, 'data')
-
-    @classmethod
-    def save(cls, obj, rootdir):
-        fname = os.path.join(rootdir, os.path.join('data', obj.id))
-        if obj.obj != fname:
-            # Create intermediary directories
-            path = os.path.dirname(fname)
-            if not os.path.isdir(path):
-                os.makedirs(path)
-            if obj.obj != fname:
-                shutil.copyfile(obj.obj, fname)
-        return fname
 
 class DBDataSerializer(Serializer):
     SCHEMA = """
