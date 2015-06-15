@@ -34,6 +34,7 @@
 ###############################################################################
 
 import copy
+from functools import partial
 import json
 import zipfile
 
@@ -59,7 +60,7 @@ class BundleObj(object):
     """
 
     def __init__(self, obj, obj_type=None, id=None, changed=False):
-        self.obj = obj
+        self._obj = obj
         if obj_type is None:
             if hasattr(obj, 'vtType'):
                 self.obj_type = obj.vtType
@@ -70,6 +71,29 @@ class BundleObj(object):
             self.obj_type = obj_type
         self.id = id
         self.changed = changed
+
+    def _get_obj(self):
+        return self._obj
+    def _set_obj(self, obj):
+        self._obj = obj
+    obj = property(_get_obj, _set_obj)
+
+class LazyBundleObj(BundleObj):
+    def __init__(self, load_f, obj_type, id, changed=False):
+        BundleObj.__init__(self, None, obj_type, id, changed)
+        self._loaded = False
+        self.load_f = load_f
+
+    def _get_obj(self):
+        if not self._loaded:
+            self._obj = self.load_f().obj
+            self._loaded = True
+        return self._obj
+    def _set_obj(self, obj):
+        # if we have object in memory, it's loaded
+        self._loaded = True
+        self._obj = obj
+    obj = property(_get_obj, _set_obj)
 
 class BundleObjDictionary(object):
     """ class for storing objects in a dictionary
@@ -154,6 +178,9 @@ class Bundle(BundleObjDictionary):
     """ Assume a bundle contains a set of objects.  If an object is a list
         or dictionary, we serialize these to a directory.
     """
+    def __init__(self):
+        BundleObjDictionary.__init__(self)
+        self._serializer = None
 
     def add_object(self, obj):
         if not isinstance(obj, BundleObj):
@@ -167,6 +194,14 @@ class Bundle(BundleObjDictionary):
         if not isinstance(obj, BundleObj):
             raise VistrailsDBException('Can only change BundleObj objects.')
         self.change_entry(obj, obj)
+
+    def add_lazy_object(self, obj):
+        if not isinstance(obj, LazyBundleObj):
+            raise VistrailsDBException('Can only add LazyBundleObj objects.')
+        self.add_entry((obj.obj_type, obj.id), obj)
+
+    def remove_lazy_object(self, obj):
+        self.remove_entry(obj)
 
     def get_bundle_obj(self, obj_type, obj_id=None):
         return self.get_value((obj_type, obj_id))
@@ -199,6 +234,16 @@ class Bundle(BundleObjDictionary):
         if BundleObjDictionary.has_entry(self, item, None):
             return BundleObjDictionary.get_value(self, (item, None)).obj
         return None
+
+    def _get_serializer(self):
+        return self._serializer
+    def _set_serializer(self, s):
+        self._serializer = s
+    serializer = property(_get_serializer, _set_serializer)
+
+    def cleanup(self):
+        if self.serializer is not None:
+            self.serializer.cleanup()
 
 class VistrailBundle(Bundle):
     def __init__(self):
@@ -236,6 +281,8 @@ class BundleSerializer(object):
         self._bundle_cls = bundle_cls
         # _serializers[obj_key][serializer_type] = cls
         self._serializers = {}
+        self._lazy_serializers = set()
+        self.lazy = True
 
     def load(self, *args, **kwargs):
         raise NotImplementedError("Subclass must implement load.")
@@ -245,8 +292,11 @@ class BundleSerializer(object):
 
     def cleanup(self):
         pass
- 
-    def add_serializer(self, obj_key, cls):
+
+    def set_lazy_loading(self, lazy):
+        self.lazy = lazy
+
+    def add_serializer(self, obj_key, cls, is_lazy=False):
         serializer_type = cls.get_serializer_type()
         if obj_key not in self._serializers:
             self._serializers[obj_key] = {}
@@ -256,6 +306,9 @@ class BundleSerializer(object):
                                        (serializer_type, obj_key))
             
         self._serializers[obj_key][serializer_type] = cls
+
+        if is_lazy:
+            self._lazy_serializers.add((obj_key, serializer_type))
 
     def remove_serializer(self, obj_key, serializer_type):
         if obj_key not in self._serializers or \
@@ -272,6 +325,9 @@ class BundleSerializer(object):
                                        'for "%s" registered.' % 
                                        (serializer_type, obj_key))
         return self._serializers[obj_key][serializer_type]
+
+    def is_lazy(self, obj_key, serializer_type):
+        return (obj_key, serializer_type) in self._lazy_serializers
 
 class Serializer(object):
     @classmethod
@@ -513,7 +569,11 @@ class VistrailXMLSerializer(XMLFileSerializer):
 
     @classmethod
     def get_obj_id(cls, vt_obj):
-        return 'vistrail'
+        return None
+
+    @classmethod
+    def get_obj_path(cls, vt_obj):
+        return "vistrail"
 
 class WorkflowXMLSerializer(XMLFileSerializer):
     """ Serializes a workflow as an xml file
@@ -581,7 +641,11 @@ class RegistryXMLSerializer(XMLFileSerializer):
 
     @classmethod
     def get_obj_id(cls, vt_obj):
-        return 'registry'
+        return None
+
+    @classmethod
+    def get_obj_path(cls, vt_obj):
+        return "log"
 
 class XMLAppendSerializer(XMLFileSerializer):
     """ Serializes files containing xml fragments
@@ -629,7 +693,7 @@ class XMLAppendSerializer(XMLFileSerializer):
         for inner_obj in cls.get_inner_objs(vt_obj):
             cur_id = inner_obj.db_id
             inner_obj.db_id = -1
-            inner_bundle_obj = BundleObj(inner_obj, DBWorkflowExec.vtType, -1)
+            inner_bundle_obj = BundleObj(inner_obj, inner_obj.vtType, -1)
             XMLAppendSerializer.save_file(inner_bundle_obj, 
                                           file_obj, version, 
                                           schema, translator_f)
@@ -648,7 +712,6 @@ class XMLAppendSerializer(XMLFileSerializer):
     @classmethod
     def get_inner_obj(cls, vt_obj):
         raise NotImplementedError("Subclass must implment get_inner_obj")
-
 
 class LogXMLSerializer(XMLAppendSerializer):
     """ Serializes log as a file containing xml fragments
@@ -676,6 +739,10 @@ class LogXMLSerializer(XMLAppendSerializer):
 
     @classmethod
     def get_obj_id(cls, obj):
+        return None
+
+    @classmethod
+    def get_obj_path(cls, vt_obj):
         return "log"
 
     @classmethod
@@ -945,7 +1012,9 @@ class Manifest(BundleObjDictionary):
     def get_value(self, obj_type, obj_id=None):
         return BundleObjDictionary.get_value(self, (obj_type, obj_id))
 
-    def get_items(self):
+    def get_items(self, allow_none=False):
+        if allow_none:
+            return BundleObjDictionary.get_items(self)
         return [(i1, i2 if i2 else "", i3)
                 for (i1, i2, i3) in BundleObjDictionary.get_items(self)]
 
@@ -1025,17 +1094,25 @@ class DirectorySerializer(BundleSerializer):
         if self._bundle is None:
             self._bundle = self._bundle_cls()
         self.load_manifest(dir_path)
-        for obj_type, obj_id, fname in self._manifest.get_items():
+        for obj_type, obj_id, fname in self._manifest.get_items(allow_none=True):
             serializer = self.get_serializer(obj_type, 
                                         FileSerializer.get_serializer_type())
             path = os.path.join(dir_path, fname)
-            obj = serializer.load(path)
-            if obj is not None:
-                if obj.id is None:
-                    obj.id = obj_id
-                if obj.obj_type is None:
-                    obj.obj_type = obj_type
-                self._bundle.add_object(obj)
+            if self.lazy and self.is_lazy(obj_type,
+                                          FileSerializer.get_serializer_type()):
+                # For lazy, must have obj type and id correct
+                lazy_obj = LazyBundleObj(lambda s=serializer,p=path: s.load(p),
+                                         obj_type, obj_id)
+                self._bundle.add_lazy_object(lazy_obj)
+            else:
+                obj = serializer.load(path)
+                if obj is not None:
+                    if obj.id is None:
+                        obj.id = obj_id
+                    if obj.obj_type is None:
+                        obj.obj_type = obj_type
+                    self._bundle.add_object(obj)
+        self._bundle.serializer = self
         return self._bundle
 
     def save(self, dir_path=None, overwrite=None):
@@ -1090,6 +1167,7 @@ class DirectorySerializer(BundleSerializer):
             if f[len(dir_path):] not in manifest_files:
                 os.unlink(f)
         self._manifest.save()
+        self._bundle.serializer = self
 
     def cleanup(self):
         pass
@@ -1247,17 +1325,25 @@ class DBSerializer(BundleSerializer):
         rows = c.fetchall()
         self._name = rows[0][0]
 
-        for obj_type, obj_id, db_id in self._manifest.get_items():
+        for obj_type, obj_id, db_id in self._manifest.get_items(allow_none=True):
             serializer = self.get_serializer(obj_type, 
                                         DBDataSerializer.get_serializer_type())
-            obj = serializer.load(db_id, connection_obj)
-            if obj is not None:
-                if obj.id is None:
-                    obj.id = obj_id
-                if obj.obj_type is None:
-                    obj.obj_type = obj_type
-                self._bundle.add_object(obj)
+            if self.lazy and self.is_lazy(obj_type,
+                                          DBDataSerializer.get_serializer_type()):
+                # For lazy, must have obj type and id correct
+                lazy_obj = LazyBundleObj(lambda s=serializer,i=db_id,c=connection_obj: s.load(i,c),
+                                         obj_type, obj_id)
+                self._bundle.add_lazy_object(lazy_obj)
+            else:
+                obj = serializer.load(db_id, connection_obj)
+                if obj is not None:
+                    if obj.id is None:
+                        obj.id = obj_id
+                    if obj.obj_type is None:
+                        obj.obj_type = obj_type
+                    self._bundle.add_object(obj)
 
+        self._bundle.serializer = self
         return self._bundle
 
     def save(self, connection_obj=None, bundle_id=None, name=None,
@@ -1298,13 +1384,14 @@ class DBSerializer(BundleSerializer):
                       (self._name,))
         self._manifest.save()
         connection_obj.get_connection().commit()
+        self._bundle.serializer = self
 
 class DefaultVistrailsDirSerializer(DirectorySerializer):
     def __init__(self, dir_path, bundle=None, overwrite=False, *args, **kwargs):
         DirectorySerializer.__init__(self, dir_path, bundle, overwrite, 
                                  *args, **kwargs)
         self.add_serializer("vistrail", VistrailXMLSerializer)
-        self.add_serializer("log", LogXMLSerializer)
+        self.add_serializer("log", LogXMLSerializer, True)
         self.add_serializer("mashup", MashupXMLSerializer)
         self.add_serializer("thumbnail", ThumbnailFileSerializer)
         self.add_serializer("abstraction", AbstractionFileSerializer)    
@@ -1317,7 +1404,7 @@ class DefaultVistrailsZIPSerializer(ZIPSerializer):
         ZIPSerializer.__init__(self, file_path, dir_path, bundle, overwrite,
                                *args, **kwargs)
         self.add_serializer("vistrail", VistrailXMLSerializer)
-        self.add_serializer("log", LogXMLSerializer)
+        self.add_serializer("log", LogXMLSerializer, True)
         self.add_serializer("mashup", MashupXMLSerializer)
         self.add_serializer("thumbnail", ThumbnailFileSerializer)
         self.add_serializer("abstraction", AbstractionFileSerializer)    
@@ -1468,9 +1555,9 @@ class TestBundles(unittest.TestCase):
     def compare_bundles(self, b1, b2):
         self.assertEqual(len(b1.get_items()), len(b2.get_items()))
         for obj_type, obj_id, obj in b1.get_items():
-            obj2 = b2.get_object(obj_type, obj_id)
+            obj2 = b2.get_bundle_obj(obj_type, obj_id)
             # not ideal, but fails when trying to compare objs without __eq__
-            self.assertEqual(obj.__class__, obj2.__class__)
+            self.assertEqual(obj.obj.__class__, obj2.obj.__class__)
             # self.assertEqual(str(obj.obj), str(obj2.obj))
 
     def test_dir_bundle(self):
@@ -1609,8 +1696,8 @@ class TestBundles(unittest.TestCase):
         from vistrails.db.domain import DBLog
 
         b = Bundle()
-        b.add_object(BundleObj(DBVistrail(), None, 'vistrail'))
-        b.add_object(BundleObj(DBLog(), None, 'log'))
+        b.add_object(BundleObj(DBVistrail(), None, None))
+        b.add_object(BundleObj(DBLog(), None, None))
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
         b.add_object(BundleObj(fname1, 'thumbnail', 'info.png'))
         fname2 = os.path.join(resource_directory(), 'images', 'left.png')
