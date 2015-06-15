@@ -441,7 +441,7 @@ class DBLocator(_DBLocator, CoreLocator):
                 self._db == other._db and
                 self._user == other._user and
                 #self._name == other._name and
-                long(self._obj_id) == long(other._obj_id) and
+                self._obj_id == other._obj_id and
                 self._obj_type == other._obj_type)
 
     ##########################################################################

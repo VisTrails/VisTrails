@@ -57,7 +57,7 @@ from identifiers import identifier as vtk_pkg_identifier
 ################################################################################
 
 class vtkRendererToSpreadsheet(SpreadsheetMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         d = dict([(c(), c.obj) for c in output_module.inputPorts['value']])
         for ren, m in d.iteritems():
             ren.module_id = m.moduleInfo['moduleId']

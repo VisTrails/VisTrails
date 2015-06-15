@@ -43,7 +43,7 @@ from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell, \
 from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 
 class TableToSpreadsheetMode(SpreadsheetMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         table = output_module.get_input('value')
         self.display_and_wait(output_module, configuration,
                               TableCellWidget, (table,))

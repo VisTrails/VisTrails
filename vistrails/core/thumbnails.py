@@ -49,8 +49,7 @@ import mimetypes
 # Remove line below when it is fixed here: http://bugs.python.org/issue15207
 mimetypes.init(files=[])
 from vistrails.core import debug, system
-from vistrails.core.configuration import get_vistrails_configuration, \
-      get_vistrails_persistent_configuration
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.utils import VistrailsInternalError
 
 ############################################################################

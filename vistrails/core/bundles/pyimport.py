@@ -99,6 +99,9 @@ def py_import(module_name, dependency_dictionary, store_in_config=False):
             ignored_packages.discard(module_name)
         else:
             ignored_packages.add(module_name)
+        setattr(get_vistrails_configuration(),
+                'bundleDeclinedList',
+                ';'.join(sorted(ignored_packages)))
         setattr(get_vistrails_persistent_configuration(),
                 'bundleDeclinedList',
                 ';'.join(sorted(ignored_packages)))
