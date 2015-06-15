@@ -83,7 +83,7 @@ class QueryCondition(Constant):
 
     @staticmethod
     def translate_to_string(cond):
-        return str(cond)
+        return unicode(cond)
 
     @staticmethod
     def validate(cond):
