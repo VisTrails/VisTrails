@@ -74,7 +74,7 @@ class ConstantWidgetMixin(object):
 
     def update_parent(self):
         newContents = self.contents()
-        
+
         if newContents != self._last_contents:
             if self.parent() and hasattr(self.parent(), 'updateMethod'):
                 self.parent().updateMethod()
@@ -85,12 +85,15 @@ class ConstantWidgetBase(ConstantWidgetMixin):
     class FocusFilter(QtCore.QObject):
         def __init__(self, cwidget):
             QtCore.QObject.__init__(self, cwidget)
+            self.__focused = False
             self.__cwidget = cwidget
 
         def eventFilter(self, o, event):
-            if event.type() == QtCore.QEvent.FocusIn:
+            if not self.__focused and event.type() == QtCore.QEvent.FocusIn:
+                self.__focused = True
                 self.__cwidget._focus_in(event)
-            elif event.type() == QtCore.QEvent.FocusOut:
+            elif self.__focused and event.type() == QtCore.QEvent.FocusOut:
+                self.__focused = False
                 self.__cwidget._focus_out(event)
             return False
 
