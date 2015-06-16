@@ -51,7 +51,8 @@ def write_workflow_to_python(pipeline, filename):
         code_preludes = []
         if (not hasattr(module_class, 'to_python_script') or
                 module_class.to_python_script is None):
-            debug.critical("Module %s cannot be converted to Python")
+            debug.critical("Module %s cannot be converted to Python" %
+                           module.name)
             code = ("# <Missing code>\n"
                     "# %s doesn't define a function to_python_script()\n"
                     "# VisTrails cannot currently export such modules\n" %
