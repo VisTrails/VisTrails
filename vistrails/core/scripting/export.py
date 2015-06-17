@@ -6,16 +6,16 @@ a standalone Python script.
 
 from __future__ import division, unicode_literals
 
-import io
-
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.scripting.scripts import make_unique, Script
 from vistrails.core.scripting.utils import utf8
 
 
-def write_workflow_to_python(pipeline, filename):
+def write_workflow_to_python(pipeline):
     """Writes a pipeline to a Python source file.
+
+    :returns: An iterable over the lines (as unicode) of the generated script.
     """
     # The set of all currently bound symbols in the resulting script's global
     # scope
@@ -184,11 +184,7 @@ def write_workflow_to_python(pipeline, filename):
         text.append(unicode(code))
         print("Total new vars: %r" % (all_vars - old_all_vars,))
 
-    print("Writing to file")
-    f = io.open(filename, 'w', encoding='utf-8', newline='\n')
-    f.write('\n'.join(text))
-    f.write('\n')
-    f.close()
+    return text
 
 
 ###############################################################################
@@ -199,7 +195,6 @@ import unittest
 class TestExport(unittest.TestCase):
     def do_export(self, filename, expected_source):
         import os
-        import tempfile
         from vistrails.core.db.locator import FileLocator
         from vistrails.core.system import vistrails_root_directory
         from vistrails.core.vistrail.pipeline import Pipeline
@@ -209,15 +204,8 @@ class TestExport(unittest.TestCase):
                                            filename))
         pipeline = locator.load(Pipeline)
 
-        fd, temp = tempfile.mkstemp(prefix='vt_py_', suffix='.py')
-        os.close(fd)
-        try:
-            write_workflow_to_python(pipeline, temp)
-            with open(temp, 'rb') as fp:
-                self.assertEqual(fp.read(),
-                                 utf8(expected_source).encode('ascii'))
-        finally:
-            os.remove(temp)
+        self.assertEqual('\n'.join(write_workflow_to_python(pipeline)) + '\n',
+                         expected_source)
 
     def test_sources(self):
         self.do_export('script_sources.xml', """\

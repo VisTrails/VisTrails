@@ -36,6 +36,7 @@
 from __future__ import division
 
 import copy
+import io
 from itertools import izip
 import os
 import uuid
@@ -4076,7 +4077,10 @@ class VistrailController(object):
     def write_workflow_to_python(self, filename):
         if not self.current_pipeline:
             return
-        write_workflow_to_python(self.current_pipeline, filename)
+        with io.open(filename, 'w', encoding='utf-8', newline='\n') as f:
+            for l in write_workflow_to_python(self.current_pipeline):
+                f.write(l)
+                f.write('\n')
 
     def import_python_script(self, filename):
         from vistrails.core.scripting.import_ import read_workflow_from_python
