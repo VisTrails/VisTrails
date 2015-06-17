@@ -36,8 +36,6 @@
 
 from __future__ import division
 
-import copy
-import math
 import os
 import uuid
 
@@ -48,6 +46,7 @@ from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 import vistrails.core.db.action
+import vistrails.core.db.io
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
@@ -323,11 +322,11 @@ class VistrailController(QtCore.QObject, BaseController):
             if app and app.view == self.vistrail_view:
                 app.close()
 
-
     ##########################################################################
     # Actions, etc
     
-    def perform_action(self, action, quiet=None):
+    def perform_action(self, action, do_validate=True, raise_exception=False,
+                       quiet=None):
         """ performAction(action: Action, quiet=None) -> timestep
 
         performs given action on current pipeline.
@@ -341,7 +340,9 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         if action is not None:
-            BaseController.perform_action(self,action)
+            BaseController.perform_action(self, action,
+                                          do_validate=do_validate,
+                                          raise_exception=raise_exception)
 
             if quiet is None:
                 if not self.quiet:
@@ -368,11 +369,6 @@ class VistrailController(QtCore.QObject, BaseController):
             self.recompute_terse_graph()
 
     ##########################################################################
-
-    def add_module(self, x, y, identifier, name, namespace='', 
-                   internal_version=-1):
-        return BaseController.add_module(self, identifier, name, namespace, x, y,
-                                         internal_version)
 
     def create_abstraction_with_prompt(self, module_ids, connection_ids, 
                                        name=""):
@@ -1380,9 +1376,10 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
                                         pipeline_view=DummyView(),
                                         auto_save=False)
         controller.change_selected_version(0L)
-        module = controller.add_module(0.0,0.0, 
-                        vistrails.core.system.get_vistrails_basic_pkg_id(), 
-                        'ConcatenateString')
+        module = controller.add_module(
+                vistrails.core.system.get_vistrails_basic_pkg_id(),
+                'ConcatenateString',
+                0.0, 0.0)
         functions = [('str1', ['foo'], -1, True),
                      ('str2', ['bar'], -1, True)]
         controller.update_functions(module, functions)
