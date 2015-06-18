@@ -736,7 +736,6 @@ class CDMS3DPlot(CDMSPlot):
 
     @classmethod
     def get_initial_values(cls, gmName):
-        global original_gm_attributes
         return original_gm_attributes[cls.plot_type][gmName]
 
     @classmethod
@@ -857,7 +856,6 @@ class CDMS2DPlot(CDMSPlot):
 
     @classmethod
     def get_initial_values(cls, gmName):
-        global original_gm_attributes
         return original_gm_attributes[cls.plot_type][gmName]
 
 
@@ -1405,7 +1403,6 @@ for superklass, typeslist in (
 
 
 def initialize(*args, **keywords):
-    global original_gm_attributes
     canvas = get_canvas()
 #    app = QtGui.QApplication.instance()
 #    app.connect( app,  QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"), canvas.applicationFocusChanged )
