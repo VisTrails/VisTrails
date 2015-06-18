@@ -23,7 +23,6 @@ from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 from vistrails.packages.uvcdat_cdms.vtk_classes import QVTKWidget
 
 
-canvas = None
 original_gm_attributes = {}
 
 
@@ -675,7 +674,6 @@ class CDMS3DPlot(CDMSPlot):
 
     def compute(self):
         import vcs
-#        from packages.uvcdat_cdms.init import get_canvas
         self.var = self.getInputFromPort('variable').var
         self.setResult("self", self)
         self.graphics_method_name = self.forceGetInputFromPort(
@@ -698,7 +696,6 @@ class CDMS3DPlot(CDMSPlot):
         #cell_coords = CDMSPipelineHelper.getCellLoc(pipeline)
 
         gm = vcs.elements[self.plot_type.lower()][self.graphics_method_name]
-#        canvas = get_canvas()
         for attr in self.gm_attributes:
             if self.hasInputFromPort(attr):
                 value = self.getInputFromPort(attr)
@@ -722,9 +719,8 @@ class CDMS3DPlot(CDMSPlot):
         if gmName is None:
             gmName = self.graphics_method_name
         if self.plot_type is not None:
-            canvas = get_canvas()
             method_name = "get" + str(self.plot_type).lower()
-            gm = getattr(canvas, method_name)(gmName)
+            gm = getattr(global_canvas, method_name)(gmName)
             for attr in self.gm_attributes:
                 setattr(self, attr, getattr(gm, attr))
                 self.default_values[attr] = getattr(gm, attr)
@@ -732,7 +728,7 @@ class CDMS3DPlot(CDMSPlot):
     @staticmethod
     def get_canvas_graphics_method(plotType, gmName):
         method_name = "get" + str(plotType).lower()
-        return getattr(get_canvas(), method_name)(gmName)
+        return getattr(global_canvas, method_name)(gmName)
 
     @classmethod
     def get_initial_values(cls, gmName):
@@ -842,9 +838,8 @@ class CDMS2DPlot(CDMSPlot):
         if gmName is None:
             gmName = self.graphics_method_name
         if self.plot_type is not None:
-            canvas = get_canvas()
             method_name = "get" + str(self.plot_type).lower()
-            gm = getattr(canvas, method_name)(gmName)
+            gm = getattr(global_canvas, method_name)(gmName)
             for attr in self.gm_attributes:
                 setattr(self, attr, getattr(gm, attr))
                 self.default_values[attr] = getattr(gm, attr)
@@ -852,7 +847,7 @@ class CDMS2DPlot(CDMSPlot):
     @staticmethod
     def get_canvas_graphics_method(plotType, gmName):
         method_name = "get" + str(plotType).lower()
-        return getattr(get_canvas(), method_name)(gmName)
+        return getattr(global_canvas, method_name)(gmName)
 
     @classmethod
     def get_initial_values(cls, gmName):
@@ -1381,11 +1376,7 @@ def get_gm_attributes(plot_type):
                       plot_type)
 
 
-def get_canvas():
-    global canvas
-    if canvas is None:
-        canvas = vcs.init()
-    return canvas
+global_canvas = vcs.init()
 
 
 for superklass, typeslist in (
@@ -1403,19 +1394,15 @@ for superklass, typeslist in (
 
 
 def initialize(*args, **keywords):
-    canvas = get_canvas()
-#    app = QtGui.QApplication.instance()
-#    app.connect( app,  QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"), canvas.applicationFocusChanged )
-
     for plot_type in ['Boxfill', 'Isofill', 'Isoline', 'Meshfill', 'Scatter',
                       'Taylordiagram', 'Vector', 'XvsY', 'Xyvsy', 'Yxvsx',
                       '3D_Dual_Scalar', '3D_Scalar', '3D_Vector']:
         method_name = "get" + plot_type.lower()
         attributes = get_gm_attributes(plot_type)
-        gms = canvas.listelements(str(plot_type).lower())
+        gms = global_canvas.listelements(str(plot_type).lower())
         original_gm_attributes[plot_type] = {}
         for gmname in gms:
-            gm = getattr(canvas, method_name)(gmname)
+            gm = getattr(global_canvas, method_name)(gmname)
             attrs = {}
             for attr in attributes:
                 attrs[attr] = getattr(gm, attr)
