@@ -869,10 +869,6 @@ class CDMS3DPlot(CDMSPlot):
         return getattr(global_canvas, method_name)(gmName)
 
     @classmethod
-    def get_initial_values(cls, gmName):
-        return original_gm_attributes[cls.plot_type][gmName]
-
-    @classmethod
     def addPlotPorts(cls):
         from vcs.dv3d import Gfdv3d
         plist = Gfdv3d.getParameterList()
@@ -986,10 +982,6 @@ class CDMS2DPlot(CDMSPlot):
     def get_canvas_graphics_method(plotType, gmName):
         method_name = "get" + str(plotType).lower()
         return getattr(global_canvas, method_name)(gmName)
-
-    @classmethod
-    def get_initial_values(cls, gmName):
-        return original_gm_attributes[cls.plot_type][gmName]
 
 
 class CDMSTDMarker(Module):
