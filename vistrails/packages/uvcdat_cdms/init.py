@@ -15,7 +15,6 @@ from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     NotCacheable
-from vistrails.core.utils import InstanceObject
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
 from vistrails.packages.spreadsheet.spreadsheet_controller import \
     spreadsheetController
@@ -188,7 +187,7 @@ for plot_type in ['Boxfill', 'Isofill', 'Isoline', 'Meshfill', 'Scatter',
                 attrs[attr] = 'dot'
             elif attr == 'max' and attrs[attr] is None:
                 attrs[attr] = 1
-        original_gm_attributes[plot_type][gmname] = InstanceObject(**attrs)
+        original_gm_attributes[plot_type][gmname] = attrs
 
 
 class VariableSource(Module):
