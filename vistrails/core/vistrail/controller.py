@@ -93,7 +93,7 @@ from vistrails.core.theme import DefaultCoreTheme
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import IdScope, DBWorkflowExec
 from vistrails.db.services.bundle import VistrailBundle, BundleObj, \
-    LogXMLSerializer, WorkflowBundle, LogBundle, RegistryBundle
+    WorkflowBundle, LogBundle, RegistryBundle
 from vistrails.db.services.io import create_temp_folder, remove_temp_folder
 from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
 from vistrails.db.services.vistrail import getSharedRoot
@@ -4027,6 +4027,7 @@ class VistrailController(object):
                     log.db_add_workflow_exec(workflow_exec)
             elif self.vistrail.db_log_filename:
                 # Add entries from file
+                # FIXME shouldn't need this here...
                 vt_log = LogXMLSerializer.load(self.vistrail.db_log_filename)
                 for workflow_exec in vt_log.workflow_execs:
                     workflow_exec.db_id = \

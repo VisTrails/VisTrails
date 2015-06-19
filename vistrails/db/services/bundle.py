@@ -33,15 +33,11 @@
 ##
 ###############################################################################
 
-import copy
-from functools import partial
-import json
 import zipfile
 
 from vistrails.core import debug
 import vistrails.core.requirements
-from vistrails.core.system import execute_cmdline, systemType, \
-    get_executable_path, get_elementtree_library
+from vistrails.core.system import get_elementtree_library
 from vistrails.core.utils import Chdir
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import DBLog, DBVistrail, DBWorkflowExec,\
@@ -276,13 +272,14 @@ class RegistryBundle(Bundle):
         return self.get_object(DBRegistry.vtType)
 
 class BundleSerializer(object):
-    def __init__(self, bundle=None, bundle_cls=VistrailBundle):
+    def __init__(self, version=None, bundle=None, bundle_cls=VistrailBundle):
         self._bundle = bundle
         self._bundle_cls = bundle_cls
         # _serializers[obj_key][serializer_type] = cls
         self._serializers = {}
         self._lazy_serializers = set()
         self.lazy = True
+        self.version = version
 
     def load(self, *args, **kwargs):
         raise NotImplementedError("Subclass must implement load.")
@@ -330,12 +327,10 @@ class BundleSerializer(object):
         return (obj_key, serializer_type) in self._lazy_serializers
 
 class Serializer(object):
-    @classmethod
-    def load(cls, *args, **kwargs):
+    def load(self, *args, **kwargs):
         raise NotImplementedError("Subclass must implement load.")
 
-    @classmethod
-    def save(cls, *args, **kwargs):
+    def save(self, *args, **kwargs):
         raise NotImplementedError("Subclass must implement save.")
 
 class FileSerializer(Serializer):
@@ -343,13 +338,40 @@ class FileSerializer(Serializer):
         Serializes the contents of a file using a root directory
         and obj.id as file name
     """
+    def __init__(self, obj_type='data', inner_dir_name=None):
+        self.obj_type = obj_type
+        self.inner_dir_name = inner_dir_name
 
     @classmethod
     def get_serializer_type(cls):
         return 'file'
 
-    @classmethod
-    def load(cls, filename):
+    def check_inner_dir(self, filename):
+        if self.inner_dir_name:
+            full_dir = os.path.dirname(filename)
+            if not full_dir.endswith(self.inner_dir_name):
+                import traceback
+                traceback.print_stack()
+                debug.warning('Expected "%s" to live in "%s" subdir.' %
+                              (filename, self.inner_dir_name))
+
+    def get_inner_dir(self, rootdir):
+        if self.inner_dir_name:
+            inner_dir = os.path.join(rootdir, self.inner_dir_name)
+            if os.path.exists(inner_dir):
+                if not os.path.isdir(inner_dir):
+                    raise VistrailsDBException("%s exists and is not a "
+                                               "directory" % self.inner_dir_name)
+            else:
+                os.mkdir(inner_dir)
+            return inner_dir
+        else:
+            return rootdir
+
+    def get_basename(self, obj):
+        return obj.id
+
+    def load(self, filename):
         """
         :param filename: Full path to file in bundle
         :return: BundleObj
@@ -358,409 +380,429 @@ class FileSerializer(Serializer):
             raise VistrailsDBException('Cannot open file "%s".' % filename)
         with open(filename, 'rb') as f:
             data = f.read()
-            obj = BundleObj(data, 'data')
+            obj = BundleObj(data, self.obj_type)
             return obj
     
-    @classmethod
-    def save(cls, obj, rootdir):
+    def save(self, obj, path):
         """
         :param obj: BundleObj
-        :param rootdir: Root directory of bundle
+        :param path: full path to write file to
         :return: full path to written file
         """
-        fname = os.path.join(rootdir, obj.id)
-        with open(fname, 'wb') as f:
+        with open(path, 'wb') as f:
             f.write(obj.obj)
-        return fname
 
 class FileRefSerializer(FileSerializer):
     """ Serializes the reference to a file using a root directory,
         a inner directory, and obj.id as file name.
     """
+    def __init__(self, obj_type, inner_dir_name=None):
+        FileSerializer.__init__(self, obj_type, inner_dir_name)
 
-    @classmethod
-    def load(cls, filename, obj_type, inner_dir_name=None):
+    def load(self, filename):
         """ Create a BundleObj containing a reference to a file
             If inner dir name is specified, filename must contain it
         """
-        if inner_dir_name:
-            full_dir = os.path.dirname(filename)
-            if not full_dir.endswith(inner_dir_name):
-                debug.warning('Expected "%s" to live in "%s" subdir.' %
-                              (filename, inner_dir_name))
         obj_id = os.path.basename(filename)
-        obj = BundleObj(filename, obj_type, obj_id)
+        obj = BundleObj(filename, self.obj_type, obj_id)
         return obj
 
-    @classmethod
-    def save(cls, obj, rootdir, inner_dir_name=None):
+    def save(self, obj, path):
         """ Saves the referenced file to the new location
         """
-        if inner_dir_name:
-            inner_dir = os.path.join(rootdir, inner_dir_name)
-            if os.path.exists(inner_dir):
-                if not os.path.isdir(inner_dir):
-                    raise VistrailsDBException("%s exists and is not a "
-                                               "directory" % inner_dir_name)
-            else:
-                os.mkdir(inner_dir)
-            rootdir = inner_dir
-        fname = os.path.join(rootdir, obj.id)
-        if obj.obj != fname:
-            shutil.copyfile(obj.obj, fname)
-        return fname
+        # FIXME check for changed content (e.g. overwrite?)
+        if obj.obj != path:
+            shutil.copyfile(obj.obj, path)
 
-class ThumbnailFileSerializer(FileRefSerializer):
-    """ Serializes thumbnails as file references to the "thumbs" folder.
-    """
-    @classmethod
-    def load(cls, filename):
-        return super(ThumbnailFileSerializer, cls).load(filename, 'thumbnail', 
-                                                        'thumbs')
-
-    @classmethod
-    def save(cls, obj, rootdir):
-        return super(ThumbnailFileSerializer, cls).save(obj, rootdir, 'thumbs')
-
-class AbstractionFileSerializer(FileRefSerializer):
-    """ Serializes abstractions as file references to the "abstractions" folder.
-    """
-    @classmethod
-    def load(cls, filename):
-        return super(AbstractionFileSerializer, cls).load(filename,
-                                                          'abstraction', 
-                                                          'abstractions')
-
-    @classmethod
-    def save(cls, obj, rootdir):
-        return super(AbstractionFileSerializer, cls).save(obj, rootdir,
-                                                          'abstractions')
-
-class JobFileSerializer(FileSerializer):
-    """ Serializes jobs in a file.
-    """
-    @classmethod
-    def load(cls, filename):
-        return super(JobFileSerializer, cls).load(filename, 'job')
-
-    @classmethod
-    def save(cls, obj, rootdir):
-        return super(JobFileSerializer, cls).save(obj, rootdir)
-
-class DataFileSerializer(FileRefSerializer):
-    """ Serializes a data file to the data/ directory
-    """
-    @classmethod
-    def load(cls, filename):
-        return super(DataFileSerializer, cls).load(filename, 'data', 'data')
-
-    @classmethod
-    def save(cls, obj, rootdir):
-        return super(DataFileSerializer, cls).save(obj, rootdir, 'data')
+# class ThumbnailFileSerializer(FileRefSerializer):
+#     """ Serializes thumbnails as file references to the "thumbs" folder.
+#     """
+#     def __init__(self):
+#         FileRefSerializer.__init__(self, 'thumbnail', 'thumbs')
+#
+#     def load(self, filename):
+#         return FileRefSerializer.load(self, filename, 'thumbnail',
+#                                                         'thumbs')
+#
+#     def save(self, obj, rootdir):
+#         return FileRefSerializer.save(self, obj, rootdir, 'thumbs')
+#
+# class AbstractionFileSerializer(FileRefSerializer):
+#     """ Serializes abstractions as file references to the "abstractions" folder.
+#     """
+#     @classmethod
+#     def load(cls, filename):
+#         return super(AbstractionFileSerializer, cls).load(filename,
+#                                                           'abstraction',
+#                                                           'abstractions')
+#
+#     @classmethod
+#     def save(cls, obj, rootdir):
+#         return super(AbstractionFileSerializer, cls).save(obj, rootdir,
+#                                                           'abstractions')
+#
+# class JobFileSerializer(FileSerializer):
+#     """ Serializes jobs in a file.
+#     """
+#     @classmethod
+#     def load(cls, filename):
+#         return super(JobFileSerializer, cls).load(filename, 'job')
+#
+#     @classmethod
+#     def save(cls, obj, rootdir):
+#         return super(JobFileSerializer, cls).save(obj, rootdir)
+#
+# class DataFileSerializer(FileRefSerializer):
+#     """ Serializes a data file to the data/ directory
+#     """
+#     @classmethod
+#     def load(cls, filename):
+#         return super(DataFileSerializer, cls).load(filename, 'data', 'data')
+#
+#     @classmethod
+#     def save(cls, obj, rootdir):
+#         return super(DataFileSerializer, cls).save(obj, rootdir, 'data')
 
 class XMLFileSerializer(FileSerializer):
     """ Serializes vistrails objects as xml files.
     """
-    @classmethod
-    def load(cls, filename, obj_type, translator_f, inner_dir_name=None):
-        if inner_dir_name:
-            full_dir = os.path.dirname(filename)
-            if not full_dir.endswith(inner_dir_name):
-                raise VistrailsDBException('Expected "%s" to end with "%s".' % \
-                                           (filename, inner_dir_name))
+    def __init__(self, obj_type, schema, translator_f, obj_path_as_type=False,
+                 do_id_update=False, inner_dir_name=None):
+        FileSerializer.__init__(self, obj_type, inner_dir_name)
+        self.translator_f = translator_f
+        self.xml_tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+                         'xsi:schemaLocation': schema}
+        self.obj_path_as_type = obj_path_as_type
+
+    def load(self, filename):
+        self.check_inner_dir(filename)
         tree = ElementTree.parse(filename)
-        version = cls.get_version_for_xml(tree.getroot())
+        version = self.get_version_for_xml(tree.getroot())
         daoList = vistrails.db.versions.getVersionDAO(version)
-        vt_obj = daoList.open_from_xml(filename, obj_type, tree)
-        vt_obj = vistrails.db.versions.translate_object(vt_obj, translator_f,
-                                                        version)
-        obj_id = cls.get_obj_id(vt_obj)
-        obj = BundleObj(vt_obj, obj_type, obj_id)
-        return obj
+        obj = daoList.open_from_xml(filename, self.obj_type, tree)
+        obj = vistrails.db.versions.translate_object(obj, self.translator_f,
+                                                     version)
+        obj_id = self.get_obj_id(obj)
+        b_obj = BundleObj(obj, self.obj_type, obj_id)
+        return b_obj
 
-    @classmethod
-    def save(cls, obj, rootdir, version, schema, translator_f, 
-             inner_dir_name=None):
-        if inner_dir_name:
-            inner_dir = os.path.join(rootdir, inner_dir_name)
-            if os.path.exists(inner_dir):
-                if not os.path.isdir(inner_dir):
-                    raise VistrailsDBException("%s exists and is not a "
-                                               "directory" % inner_dir_name)
-            else:
-                os.mkdir(inner_dir)
-            rootdir = inner_dir
-        vt_obj = obj.obj
-        obj_path = cls.get_obj_path(vt_obj)
-        filename = os.path.join(rootdir, obj_path)
-        obj = cls.save_file(obj, filename, version, schema, translator_f)
-        return filename
+    def save(self, b_obj, path, version=None):
+        obj = b_obj.obj
+        b_obj = self.save_file(b_obj, path, version)
 
-    @classmethod
-    def save_file(cls, obj, file_obj, version, schema, translator_f, 
-                  inner_dir_name=None):
-        vt_obj = obj.obj
-        tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-                'xsi:schemaLocation': schema}
+    def save_file(self, b_obj, file_obj, version=None):
+        vt_obj = b_obj.obj
         if version is None:
             version = vistrails.db.versions.currentVersion
         if not hasattr(vt_obj, 'db_version') or not vt_obj.db_version:
             vt_obj.db_version = vistrails.db.versions.currentVersion
-        vt_obj = vistrails.db.versions.translate_object(vt_obj, translator_f, 
-                                                        vt_obj.db_version, 
+        vt_obj = vistrails.db.versions.translate_object(vt_obj,
+                                                        self.translator_f,
+                                                        vt_obj.db_version,
                                                         version)
 
         daoList = vistrails.db.versions.getVersionDAO(version)
-        daoList.save_to_xml(vt_obj, file_obj, tags, version)
-        vt_obj = vistrails.db.versions.translate_object(vt_obj, translator_f, 
+        daoList.save_to_xml(vt_obj, file_obj, self.xml_tags, version)
+        vt_obj = vistrails.db.versions.translate_object(vt_obj,
+                                                        self.translator_f,
                                                         version)
-        obj.obj = vt_obj
-        cls.finish_save(vt_obj)
-        return obj
+        b_obj.obj = vt_obj
+        self.finish_save(vt_obj)
+        return b_obj
 
-    @classmethod
-    def get_version_for_xml(cls, root):
+    # @classmethod
+    # def load_xml(cls, filename, obj_type, tree):
+    #     if tree is None:
+    #         tree = ElementTree.parse(filename)
+    #     obj = cls.read_xml_object(obj_type, tree.getroot())
+    #     return obj
+    #
+    # @classmethod
+    # def read_xml_object(cls, obj_type, node):
+    #     raise NotImplementedError("Subclass must implement read_xml_object.")
+    #
+    # @classmethod
+    # def write_xml_object(cls, obj, node=None):
+    #     raise NotImplementedError("Subclass must implement write_xml_object.")
+    #
+    # @classmethod
+    # def save_xml(cls, obj, filename, tags, version=None):
+    #     """save_to_xml(obj : object, filename: str, tags: dict,
+    #                    version: str) -> None
+    #
+    #     """
+    #     root = cls.write_xml_object(obj)
+    #     if version is None:
+    #         version = my_version
+    #     root.set('version', version)
+    #     for k, v in tags.iteritems():
+    #         root.set(k, v)
+    #     tree = ElementTree.ElementTree(root)
+    #     self.write_xml_file(filename, tree)
+
+    def get_version_for_xml(self, root):
         version = root.get('version', None)
         if version is not None:
             return version
         msg = "Cannot find version information"
         raise VistrailsDBException(msg)
         
-    @classmethod
-    def get_obj_path(cls, vt_obj):
+    def get_basename(self, vt_obj):
         """Return the id by default."""
-        return cls.get_obj_id(vt_obj)
+        if self.obj_path_as_type:
+            return self.obj_type
+        else:
+            return self.get_obj_id(vt_obj)
 
-    @classmethod
-    def get_obj_id(cls, vt_obj):
-        return vt_obj.id
+    def get_obj_id(self, vt_obj):
+        if self.obj_path_as_type:
+            return None
+        else:
+            return vt_obj.id
 
-    @classmethod
-    def finish_save(cls, vt_obj):
+    def finish_load(self, b_obj):
+        if self.do_id_update:
+            service_mod = __import__("vistrails.db.services.%s" %
+                                     b_obj.obj_type)
+            service_mod.update_id_scope(b_obj.obj)
+
+    def finish_save(self, vt_obj):
         pass
 
-class VistrailXMLSerializer(XMLFileSerializer):
-    """ Serializes the vistrail as 'vistrail'
-    """
-
-    @classmethod
-    def load(cls, filename):
-        obj = super(VistrailXMLSerializer, cls).load(filename, 
-                                                     DBVistrail.vtType,
-                                                     "translateVistrail")
-        vistrails.db.services.vistrail.update_id_scope(obj.obj)
-        return obj
-
-    @classmethod
-    def save(cls, obj, rootdir):
-        version = vistrails.db.versions.currentVersion
-        return super(VistrailXMLSerializer, cls).save(obj, rootdir, version, 
-                                    "http://www.vistrails.org/vistrail.xsd",
-                                                      "translateVistrail")
-
-    @classmethod
-    def get_obj_id(cls, vt_obj):
-        return None
-
-    @classmethod
-    def get_obj_path(cls, vt_obj):
-        return "vistrail"
-
+# class VistrailXMLSerializer(XMLFileSerializer):
+#     """ Serializes the vistrail as 'vistrail'
+#     """
+#
+#     @classmethod
+#     def load(cls, filename):
+#         obj = super(VistrailXMLSerializer, cls).load(filename,
+#                                                      DBVistrail.vtType,
+#                                                      "translateVistrail")
+#         vistrails.db.services.vistrail.update_id_scope(obj.obj)
+#         return obj
+#
+#     @classmethod
+#     def save(cls, obj, rootdir):
+#         version = vistrails.db.versions.currentVersion
+#         return super(VistrailXMLSerializer, cls).save(obj, rootdir, version,
+#                                     "http://www.vistrails.org/vistrail.xsd",
+#                                                       "translateVistrail")
+#
+#     @classmethod
+#     def get_obj_id(cls, vt_obj):
+#         return None
+#
+#     @classmethod
+#     def get_obj_path(cls, vt_obj):
+#         return "vistrail"
+#
 class WorkflowXMLSerializer(XMLFileSerializer):
     """ Serializes a workflow as an xml file
     """
 
-    @classmethod
-    def load(cls, filename):
-        obj = super(WorkflowXMLSerializer, cls).load(filename,
-                                                     DBWorkflow.vtType,
-                                                     "translateWorkflow")
-        vistrails.db.services.workflow.update_id_scope(obj.obj)
-        return obj
+    def __init__(self, obj_type, schema, translator_f, obj_path_as_type=False,
+                 do_id_update=False, inner_dir_name=None):
+        WorkflowXMLSerializer.__init__(self,
+                                       DBWorkflow.vtType,
+                                       "http://www.vistrails.org/workflow.xsd",
+                                        "translateWorkflow",
+                                       True, True)
 
-    @classmethod
-    def save(cls, obj, rootdir):
-        version = vistrails.db.versions.currentVersion
-        return super(WorkflowXMLSerializer, cls).save(obj, rootdir, version,
-                                    "http://www.vistrails.org/workflow.xsd",
-                                                      "translateWorkflow")
-
-
-class MashupXMLSerializer(XMLFileSerializer):
-    """ Serializes mashuptrails to the 'mashups' folder
-    """
-
-    @classmethod
-    def load(cls, filename):
-        obj = super(MashupXMLSerializer, cls).load(filename,
-                                                  DBMashuptrail.vtType,
-                                                  "translateMashup", "mashups")
-        if obj:
-            # mashuptrail is called 'mashup' in the bundle
-            obj.obj_type = 'mashup'
-        return obj
-
-    @classmethod
-    def save(cls, obj, rootdir):
-        version = vistrails.db.versions.currentVersion
-        return super(MashupXMLSerializer, cls).save(obj, rootdir, version, 
-                                    "http://www.vistrails.org/mashup.xsd",
-                                                  "translateMashup",
-                                                  "mashups")
-    @classmethod
-    def get_obj_id(cls, vt_obj):
-        return vt_obj.db_name
-
-class RegistryXMLSerializer(XMLFileSerializer):
-    """ Serializes the registry to a file
-    """
-    @classmethod
-    def load(cls, filename):
-        obj = super(RegistryXMLSerializer, cls).load(filename, 
-                                                     DBRegistry.vtType, 
-                                                     "translateRegistry")
-        vistrails.db.services.registry.update_id_scope(obj.obj)
-        return obj
-
-    @classmethod
-    def save(cls, obj, filename, version):
-        version = vistrails.db.versions.currentVersion
-        return super(RegistryXMLSerializer, cls).save(cls, obj, filename,
-                                                      version,
-                                    "http://www.vistrails.org/registry.xsd",
-                                                      "translateRegistry")
-
-    @classmethod
-    def get_obj_id(cls, vt_obj):
-        return None
-
-    @classmethod
-    def get_obj_path(cls, vt_obj):
-        return "log"
-
-class StartupXMLSerializer(XMLFileSerializer):
-    """ Serializes preferences to a file
-    """
-    @classmethod
-    def load(cls, filename):
-        obj = super(StartupXMLSerializer, cls).load(filename,
-                                                    DBStartup.vtType,
-                                                    "translateStartup")
-        return obj
-
-    @classmethod
-    def save(cls, obj, filename, version):
-        version = vistrails.db.versions.currentVersion
-        return super(StartupXMLSerializer, cls).save(cls, obj, filename,
-                                                     version,
-                                    "http://www.vistrails.org/startup.xsd",
-                                                     "translateStartup")
+#
+# class MashupXMLSerializer(XMLFileSerializer):
+#     """ Serializes mashuptrails to the 'mashups' folder
+#     """
+#
+#     @classmethod
+#     def load(cls, filename):
+#         obj = super(MashupXMLSerializer, cls).load(filename,
+#                                                   DBMashuptrail.vtType,
+#                                                   "translateMashup", "mashups")
+#         if obj:
+#             # mashuptrail is called 'mashup' in the bundle
+#             obj.obj_type = 'mashup'
+#         return obj
+#
+#     @classmethod
+#     def save(cls, obj, rootdir):
+#         version = vistrails.db.versions.currentVersion
+#         return super(MashupXMLSerializer, cls).save(obj, rootdir, version,
+#                                     "http://www.vistrails.org/mashup.xsd",
+#                                                   "translateMashup",
+#                                                   "mashups")
+#     @classmethod
+#     def get_obj_id(cls, vt_obj):
+#         return vt_obj.db_name
+#
+# class RegistryXMLSerializer(XMLFileSerializer):
+#     """ Serializes the registry to a file
+#     """
+#     @classmethod
+#     def load(cls, filename):
+#         obj = super(RegistryXMLSerializer, cls).load(filename,
+#                                                      DBRegistry.vtType,
+#                                                      "translateRegistry")
+#         vistrails.db.services.registry.update_id_scope(obj.obj)
+#         return obj
+#
+#     @classmethod
+#     def save(cls, obj, filename, version):
+#         version = vistrails.db.versions.currentVersion
+#         return super(RegistryXMLSerializer, cls).save(cls, obj, filename,
+#                                                       version,
+#                                     "http://www.vistrails.org/registry.xsd",
+#                                                       "translateRegistry")
+#
+#     @classmethod
+#     def get_obj_id(cls, vt_obj):
+#         return None
+#
+#     @classmethod
+#     def get_obj_path(cls, vt_obj):
+#         return "log"
+#
+# class StartupXMLSerializer(XMLFileSerializer):
+#     """ Serializes preferences to a file
+#     """
+#     @classmethod
+#     def load(cls, filename):
+#         obj = super(StartupXMLSerializer, cls).load(filename,
+#                                                     DBStartup.vtType,
+#                                                     "translateStartup")
+#         return obj
+#
+#     @classmethod
+#     def save(cls, obj, filename, version):
+#         version = vistrails.db.versions.currentVersion
+#         return super(StartupXMLSerializer, cls).save(cls, obj, filename,
+#                                                      version,
+#                                     "http://www.vistrails.org/startup.xsd",
+#                                                      "translateStartup")
 
 class XMLAppendSerializer(XMLFileSerializer):
     """ Serializes files containing xml fragments
     """
+    def __init__(self, obj_type, schema, translator_f, inner_obj_type,
+                 obj_path_as_type=False, do_id_update=False, xml_tag=None,
+                 inner_dir_name=None):
+        XMLFileSerializer.__init__(self, obj_type, schema, translator_f,
+                                   obj_path_as_type, do_id_update,
+                                   inner_dir_name)
+        self.inner_obj_type = inner_obj_type
+        if xml_tag is not None:
+            self.xml_tag = xml_tag
+        else:
+            self.xml_tag = obj_type
 
-    @classmethod
-    def load(cls, filename, obj_type, obj_tag, inner_obj_type, translator_f):
+    def load(self, filename):
         parser = ElementTree.XMLTreeBuilder()
-        parser.feed("<%s>\n" % obj_tag)
+        parser.feed("<%s>\n" % self.xml_tag)
         f = open(filename, "rb")
         parser.feed(f.read())
-        parser.feed("</%s>\n" % obj_tag)
+        parser.feed("</%s>\n" % self.xml_tag)
         root = parser.close()
         obj_list = []
         for node in root:
-            version = cls.get_version_for_xml(node)
+            version = self.get_version_for_xml(node)
             daoList = vistrails.db.versions.getVersionDAO(version)
-            inner_obj = daoList.read_xml_object(inner_obj_type, node)
+            inner_obj = daoList.read_xml_object(self.inner_obj_type, node)
             currentVersion = vistrails.db.versions.currentVersion
             if version != currentVersion:
                 # if version is wrong, dump this into a dummy object, 
                 # then translate, then get inner_obj back
-                vt_obj = cls.create_obj()
-                vistrails.db.versions.translate_object(vt_obj, translator_f, 
+                vt_obj = self.create_obj()
+                vistrails.db.versions.translate_object(vt_obj, self.translator_f,
                                                        currentVersion, version)
-                cls.add_inner_obj(vt_obj, inner_obj)
+                self.add_inner_obj(vt_obj, inner_obj)
                 vt_obj = vistrails.db.versions.translate_object(vt_obj, 
-                                                                translator_f, 
+                                                                self.translator_f,
                                                                 version)
-                inner_obj = cls.get_inner_objs(vt_obj)[0]
+                inner_obj = self.get_inner_objs(vt_obj)[0]
             obj_list.append(inner_obj)
-        vt_obj = cls.create_obj(obj_list)
-        obj_id = cls.get_obj_id(vt_obj)
-        obj = BundleObj(vt_obj, obj_type, obj_id)
-        return obj
+        vt_obj = self.create_obj(obj_list)
+        obj_id = self.get_obj_id(vt_obj)
+        b_obj = BundleObj(vt_obj, self.obj_type, obj_id)
+        return b_obj
 
-    @classmethod
-    def save(cls, obj, rootdir, version, schema, translator_f):
+    def save(self, obj, path, version=None):
         """Here, we assume that obj.obj is a **list**"""
 
         vt_obj = obj.obj
-        obj_path = cls.get_obj_path(obj)
-        filename = os.path.join(rootdir, obj_path)
-        file_obj = open(filename, 'ab')
-        for inner_obj in cls.get_inner_objs(vt_obj):
+        # FIXME really want version to be whichever version is serializing...
+        if version is None:
+            version = vistrails.db.versions.currentVersion
+        file_obj = open(path, 'ab')
+        for inner_obj in self.get_inner_objs(vt_obj):
             cur_id = inner_obj.db_id
             inner_obj.db_id = -1
             inner_bundle_obj = BundleObj(inner_obj, inner_obj.vtType, -1)
             XMLAppendSerializer.save_file(inner_bundle_obj, 
                                           file_obj, version, 
-                                          schema, translator_f)
+                                          self.xml_tags, self.translator_f)
             inner_obj.db_id = cur_id
-        vistrails.db.versions.translate_object(obj, translator_f, version)
-        return filename
+        vistrails.db.versions.translate_object(vt_obj, self.translator_f, version)
 
-    @classmethod
-    def create_obj(cls, inner_obj_list):
+#         if inner_obj_list:
+#             return DBLog(workflow_execs=inner_obj_list)
+#         return DBLog()
+#
+#     @classmethod
+#     def add_inner_obj(cls, vt_obj, inner_obj):
+#         vt_obj.db_add_workflow_exec(inner_obj)
+#
+#     @classmethod
+#     def get_inner_objs(cls, vt_obj):
+#         return vt_obj.db_workflow_execs
+
+
+    def create_obj(self, inner_obj_list=None):
         raise NotImplementedError("Subclass must implement create_obj")
 
-    @classmethod
-    def add_inner_obj(cls, vt_obj, inner_obj):
+    def add_inner_obj(self, vt_obj, inner_obj):
         raise NotImplementedError("Subclass must implement add_inner_obj")
 
-    @classmethod
-    def get_inner_obj(cls, vt_obj):
+    def get_inner_objs(self, vt_obj):
         raise NotImplementedError("Subclass must implment get_inner_obj")
 
-class LogXMLSerializer(XMLAppendSerializer):
-    """ Serializes log as a file containing xml fragments
-    """
-    @classmethod
-    def load(cls, filename):
-        obj = super(LogXMLSerializer, cls).load(filename, DBLog.vtType, 'log',
-                                                DBWorkflowExec.vtType,
-                                                "translateLog")
-        vistrails.db.services.log.update_ids(obj.obj)
-        return obj
-
-    @classmethod
-    def save(cls, obj, rootdir):
-        version = vistrails.db.versions.currentVersion
-        return super(LogXMLSerializer, cls).save(obj, rootdir, version,
-                                                 "http://www.vistrails.org/log.xsd",
-                                                 "translateLog")
-        
-    @classmethod
-    def create_obj(cls, inner_obj_list=None):
-        if inner_obj_list:
-            return DBLog(workflow_execs=inner_obj_list)
-        return DBLog()
-
-    @classmethod
-    def get_obj_id(cls, obj):
-        return None
-
-    @classmethod
-    def get_obj_path(cls, vt_obj):
-        return "log"
-
-    @classmethod
-    def add_inner_obj(cls, vt_obj, inner_obj):
-        vt_obj.db_add_workflow_exec(inner_obj)
-
-    @classmethod
-    def get_inner_objs(cls, vt_obj):
-        return vt_obj.db_workflow_execs
+# class LogXMLSerializer(XMLAppendSerializer):
+#     """ Serializes log as a file containing xml fragments
+#     """
+#     @classmethod
+#     def load(cls, filename):
+#         obj = super(LogXMLSerializer, cls).load(filename, DBLog.vtType, 'log',
+#                                                 DBWorkflowExec.vtType,
+#                                                 "translateLog")
+#         vistrails.db.services.log.update_ids(obj.obj)
+#         return obj
+#
+#     @classmethod
+#     def save(cls, obj, rootdir):
+#         version = vistrails.db.versions.currentVersion
+#         return super(LogXMLSerializer, cls).save(obj, rootdir, version,
+#                                                  "http://www.vistrails.org/log.xsd",
+#                                                  "translateLog")
+#
+#     @classmethod
+#     def get_obj_id(cls, obj):
+#         return None
+#
+#     @classmethod
+#     def get_obj_path(cls, vt_obj):
+#         return "log"
+#
+#     @classmethod
+#     def create_obj(cls, inner_obj_list=None):
+#         if inner_obj_list:
+#             return DBLog(workflow_execs=inner_obj_list)
+#         return DBLog()
+#
+#     @classmethod
+#     def add_inner_obj(cls, vt_obj, inner_obj):
+#         vt_obj.db_add_workflow_exec(inner_obj)
+#
+#     @classmethod
+#     def get_inner_objs(cls, vt_obj):
+#         return vt_obj.db_workflow_execs
 
 class DBDataSerializer(Serializer):
     SCHEMA = """
@@ -1000,6 +1042,9 @@ class WorkflowDBSerializer(BaseDBSerializer):
 class Manifest(BundleObjDictionary):
     """ Contains a dictionary of objects contained in the bundle
     """
+    def __init__(self, version=None):
+        BundleObjDictionary.__init__(self)
+        self.version = version
 
     def load(self):
         raise NotImplementedError("Subclass must define load.")
@@ -1031,18 +1076,25 @@ class FileManifest(Manifest):
     """ Stores manifest as a tab-separated file
     """
 
-    def __init__(self, fname=None):
-        Manifest.__init__(self)
+    def __init__(self, version=None, fname=None):
+        Manifest.__init__(self, version)
         self._fname = fname
 
     def load(self):
         with open(self._fname, 'rU') as f:
+            header = f.next()
+            header_arr = header.split('\t')
+            if header_arr[0].strip() != "VTBUNDLE":
+                raise VistrailsDBException("Not a VisTrails bundle")
+            if len(header_arr) > 1 and header_arr[1].strip() != "":
+                self.version = header_arr[1].strip()
             for line in f:
                 args = line.strip().split('\t')
                 self.add_entry(*args)
     
     def save(self):
         with open(self._fname, 'w') as f:
+            print >>f, "VTBUNDLE\t" + self.version
             for obj_type, obj_id, fname in sorted(self.get_items()):
                 print >>f, obj_type + "\t" + obj_id + "\t" + fname
 
@@ -1051,8 +1103,8 @@ class DirectorySerializer(BundleSerializer):
 
     """
 
-    def __init__(self, dir_path, bundle=None, overwrite=False, *args, **kwargs):
-        BundleSerializer.__init__(self, bundle, *args, **kwargs)
+    def __init__(self, dir_path, version=None, bundle=None, overwrite=False, *args, **kwargs):
+        BundleSerializer.__init__(self, version, bundle, *args, **kwargs)
         self._dir_path = dir_path
         self._manifest = None
         self._overwrite = overwrite
@@ -1062,7 +1114,7 @@ class DirectorySerializer(BundleSerializer):
             dir_path = self._dir_path
         if fname is None:
             fname = os.path.join(dir_path, "MANIFEST")
-        self._manifest = FileManifest(fname)
+        self._manifest = FileManifest(self.version, fname)
 
     def compute_manifest(self, dir_path=None, fname=None):
         """ Creates manifest from old bundle files
@@ -1070,7 +1122,7 @@ class DirectorySerializer(BundleSerializer):
 
         if dir_path is None:
             dir_path = self._dir_path
-        self._manifest = FileManifest()
+        self._manifest = FileManifest(self.version)
 
         for root, dirs, files in os.walk(dir_path):
             for fname in files:
@@ -1104,9 +1156,11 @@ class DirectorySerializer(BundleSerializer):
             self._bundle = self._bundle_cls()
         self.load_manifest(dir_path)
         for obj_type, obj_id, fname in self._manifest.get_items(allow_none=True):
-            serializer = self.get_serializer(obj_type, 
+            serializer = self.get_serializer(obj_type,
                                         FileSerializer.get_serializer_type())
-            path = os.path.join(dir_path, fname)
+            path = os.path.join(dir_path, serializer.inner_dir_name or "",
+                                fname)
+            serializer.check_inner_dir(path)
             if self.lazy and self.is_lazy(obj_type,
                                           FileSerializer.get_serializer_type()):
                 # For lazy, must have obj type and id correct
@@ -1127,6 +1181,7 @@ class DirectorySerializer(BundleSerializer):
     def save(self, dir_path=None, overwrite=None):
         if dir_path is None:
             dir_path = self._dir_path
+
         if overwrite is None:
             overwrite = self._overwrite
         if self._manifest is None:
@@ -1139,7 +1194,8 @@ class DirectorySerializer(BundleSerializer):
                                                'exists and overwrite is '
                                                'off.' % dir_path)
                 for path, subdirs, fnames in os.walk(dir_path):
-                    all_files.extend(os.path.join(path, fname) for fname in fnames)
+                    all_files.extend(os.path.join(path, fname)
+                                     for fname in fnames)
             elif not overwrite:
                 raise VistrailsDBException('Directory "%s" already '
                                            'exists and overwrite is '
@@ -1155,23 +1211,29 @@ class DirectorySerializer(BundleSerializer):
 
         for obj_type, obj_id, obj in self._bundle.get_items():
             try:
-                serializer = self.get_serializer(obj_type, 
+                serializer = self.get_serializer(obj_type,
                                         FileSerializer.get_serializer_type())
-                if not dir_path.endswith(os.sep):
-                    dir_path = dir_path + os.sep
-                else:
-                    dir_path = dir_path
-                path = serializer.save(obj, dir_path)
-                fname = path[len(dir_path):]
+                fname = serializer.get_basename(obj)
+                path = os.path.join(serializer.get_inner_dir(dir_path),
+                                    fname)
+                print "SAVING", obj.obj_type, "TO", path
+                serializer.save(obj, path)
                 self._manifest.add_entry(obj_type, obj_id, fname)
             except VistrailsDBException:
                 # cannot serialize object
                 print 'cannot serialize obj', obj_type
                 debug.warning('Cannot serialize object(s) of type "%s"' % \
                               obj_type)
+
         # remove files not in MANIFEST
+        # FIXME looks like this would not remove abstraction/vistrail if
+        # vistrail also existed
         manifest_files = [i[2] for i in self._manifest.get_items()]
         manifest_files.append('MANIFEST')
+        if not dir_path.endswith(os.sep):
+            dir_path = dir_path + os.sep
+        else:
+            dir_path = dir_path
         for f in all_files:
             if f[len(dir_path):] not in manifest_files:
                 os.unlink(f)
@@ -1185,9 +1247,9 @@ class ZIPSerializer(DirectorySerializer):
     """ a zipped version of a directory bundle
     """
 
-    def __init__(self, file_path=None, dir_path=None, bundle=None, overwrite=False,
+    def __init__(self, file_path=None, dir_path=None, version=None, bundle=None, overwrite=False,
                  *args, **kwargs):
-        DirectorySerializer.__init__(self, dir_path, bundle, *args, **kwargs)
+        DirectorySerializer.__init__(self, dir_path, version, bundle, *args, **kwargs)
         self._file_path = file_path
 
     def load(self, file_path=None):
@@ -1245,6 +1307,7 @@ class DBManifest(Manifest):
     SCHEMA = """
     CREATE TABLE manifest(
         bundle_id int not null,
+        bundle_version char(15),
         obj_type varchar(255),
         obj_id varchar(255),
         db_id int not null,
@@ -1255,14 +1318,17 @@ class DBManifest(Manifest):
     #  engine=InnoDB;
     DROP_SCHEMA = """DROP TABLE IF EXISTS manifest;"""
 
-    STMTS = {"load": ("SELECT obj_type, obj_id, db_id FROM manifest "
+    STMTS = {"get_version": ("SELECT bundle_version FROM manifest "
+                             "WHERE bundle_id=%s LIMIT 1;"),
+             "load": ("SELECT obj_type, obj_id, db_id FROM manifest "
                       "WHERE bundle_id=%s;"),
              "delete": "DELETE FROM manifest WHERE bundle_id=%s;",
-             "insert": ("INSERT INTO manifest (bundle_id, obj_type, "
-                        "obj_id, db_id) VALUES (%s, %s, %s, %s);")}
+             "insert": ("INSERT INTO manifest (bundle_id, "
+                        "bundle_version, obj_type, obj_id, db_id) "
+                        "VALUES (%s, %s, %s, %s, %s);")}
 
-    def __init__(self, connection_obj, bundle_id=None):
-        Manifest.__init__(self)
+    def __init__(self, connection_obj, version=None, bundle_id=None):
+        Manifest.__init__(self, version)
         self._connection_obj = connection_obj
         self._bundle_id = bundle_id
         self._obj_db_ids = BundleObjDictionary()
@@ -1272,6 +1338,9 @@ class DBManifest(Manifest):
 
     def load(self):
         c = self._connection_obj.get_connection().cursor()
+        c.execute(self._connection_obj.format_stmt(self.STMTS["get_version"]),
+                  (self._bundle_id,))
+        self.version = c.fetchone()[0]
         c.execute(self._connection_obj.format_stmt(self.STMTS["load"]), 
                   (self._bundle_id,))
         rows = c.fetchall()
@@ -1283,7 +1352,7 @@ class DBManifest(Manifest):
         c.execute(self._connection_obj.format_stmt(self.STMTS["delete"]), 
                   (self._bundle_id,))
         c.executemany(self._connection_obj.format_stmt(self.STMTS["insert"]),
-                      [(self._bundle_id,) + item 
+                      [(self._bundle_id, self.version) + item
                        for item in sorted(self.get_items())])
 
 class DBSerializer(BundleSerializer):
@@ -1302,9 +1371,9 @@ class DBSerializer(BundleSerializer):
              "insert": "INSERT INTO bundle (name) VALUES (%s);",
              "update": "UPDATE bundle SET name=%s WHERE id=%s;"}
 
-    def __init__(self, connection_obj, bundle_id=None, name="", bundle=None,
+    def __init__(self, connection_obj, version=None, bundle_id=None, name="", bundle=None,
                  overwrite=False, *args, **kwargs):
-        BundleSerializer.__init__(self, bundle, *args, **kwargs)
+        BundleSerializer.__init__(self, version, bundle, *args, **kwargs)
         self._connection_obj = connection_obj
         self._name = name
         self._bundle_id = bundle_id
@@ -1314,7 +1383,7 @@ class DBSerializer(BundleSerializer):
     def create_manifest(self, connection_obj=None, bundle_id=None):
         if connection_obj is None:
             connection_obj = self._connection_obj
-        self._manifest = DBManifest(connection_obj, bundle_id)
+        self._manifest = DBManifest(connection_obj, self.version, bundle_id)
 
     def load_manifest(self, connection_obj=None, bundle_id=None):
         self.create_manifest(connection_obj, bundle_id)
@@ -1396,22 +1465,28 @@ class DBSerializer(BundleSerializer):
         self._bundle.serializer = self
 
 class DefaultVistrailsDirSerializer(DirectorySerializer):
-    def __init__(self, dir_path, bundle=None, overwrite=False, *args, **kwargs):
-        DirectorySerializer.__init__(self, dir_path, bundle, overwrite, 
-                                 *args, **kwargs)
+    def __init__(self, dir_path, version=None, bundle=None, overwrite=False,
+                 *args, **kwargs):
+        if version is None:
+            version = vistrails.db.versions.currentVersion
+        DirectorySerializer.__init__(self, dir_path, version,
+                                     bundle, overwrite,
+                                     *args, **kwargs)
         self.add_serializer("vistrail", VistrailXMLSerializer)
         self.add_serializer("log", LogXMLSerializer, True)
         self.add_serializer("mashup", MashupXMLSerializer)
-        self.add_serializer("thumbnail", ThumbnailFileSerializer)
-        self.add_serializer("abstraction", AbstractionFileSerializer)    
-        self.add_serializer("job", JobFileSerializer)
-        self.add_serializer("data", DataFileSerializer)
+        self.add_serializer("thumbnail", FileRefSerializer('thumbnail', 'thumbnails'))
+        self.add_serializer("abstraction", FileRefSerializer('abstraction', 'abstractions'))
+        self.add_serializer("job", FileRefSerializer('job'))
+        self.add_serializer("data", FileRefSerializer('data', 'data'))
 
 class DefaultVistrailsZIPSerializer(ZIPSerializer):
-    def __init__(self, file_path=None, dir_path=None, bundle=None, overwrite=False,
-                 *args, **kwargs):
-        ZIPSerializer.__init__(self, file_path, dir_path, bundle, overwrite,
-                               *args, **kwargs)
+    def __init__(self, file_path=None, dir_path=None, version=None, bundle=None,
+                 overwrite=False, *args, **kwargs):
+        if version is None:
+            version = vistrails.db.versions.currentVersion
+        ZIPSerializer.__init__(self, file_path, dir_path, version, bundle,
+                               overwrite, *args, **kwargs)
         self.add_serializer("vistrail", VistrailXMLSerializer)
         self.add_serializer("log", LogXMLSerializer, True)
         self.add_serializer("mashup", MashupXMLSerializer)
@@ -1421,10 +1496,12 @@ class DefaultVistrailsZIPSerializer(ZIPSerializer):
         self.add_serializer("data", DataFileSerializer)
 
 class DefaultVistrailsDBSerializer(DBSerializer):
-    def __init__(self, connection_obj, bundle_id=None, name="", bundle=None,
-                 overwrite=False, *args, **kwargs):
-        DBSerializer.__init__(self, connection_obj, bundle_id, name, bundle,
-                              overwrite, *args, **kwargs)
+    def __init__(self, connection_obj, version=None, bundle_id=None, name="",
+                 bundle=None, overwrite=False, *args, **kwargs):
+        if version is None:
+            version = vistrails.db.versions.currentVersion
+        DBSerializer.__init__(self, connection_obj, version, bundle_id, name,
+                              bundle, overwrite, *args, **kwargs)
         self.add_serializer("vistrail", VistrailDBSerializer)
 
 class NoManifestMixin(object):
@@ -1531,7 +1608,7 @@ class TestBundles(unittest.TestCase):
     def test_manifest_file(self):
         d = tempfile.mkdtemp(prefix='vt_bundle_test')
         try:
-            manifest = FileManifest(os.path.join(d, 'MANIFEST'))
+            manifest = FileManifest('1.0.0', os.path.join(d, 'MANIFEST'))
             paths = [('vistrail', None, 'vistrail.xml'),
                      ('thumbnail', 'abc', 'thumbs/abc.png'),
                      ('thumbnail', 'def', 'thumbs/def.png')]
@@ -1540,7 +1617,7 @@ class TestBundles(unittest.TestCase):
             manifest.save()
             self.assertTrue(os.path.exists(os.path.join(d, "MANIFEST")))
 
-            manifest2 = FileManifest(os.path.join(d, 'MANIFEST'))
+            manifest2 = FileManifest('1.0.0', os.path.join(d, 'MANIFEST'))
             manifest2.load()
             for p in paths:
                 self.assertTrue(manifest2.has_entry(p[0], p[1]))
@@ -1574,11 +1651,11 @@ class TestBundles(unittest.TestCase):
         inner_d = os.path.join(d, 'mybundle')
         try:
             b1 = self.create_bundle()
-            s1 = DirectorySerializer(inner_d, b1)
+            s1 = DirectorySerializer(inner_d, '1.0.0', b1)
             s1.add_serializer('data', FileSerializer)
             s1.save()
 
-            s2 = DirectorySerializer(inner_d)
+            s2 = DirectorySerializer(inner_d, '1.0.0')
             s2.add_serializer('data', FileSerializer)
             b2 = s2.load()
 
@@ -1594,11 +1671,11 @@ class TestBundles(unittest.TestCase):
         s2 = None
         try:
             b1 = self.create_bundle()
-            s1 = ZIPSerializer(fname, bundle=b1)
+            s1 = ZIPSerializer(fname, version='1.0.0', bundle=b1)
             s1.add_serializer('data', FileSerializer)
             s1.save()
 
-            s2 = ZIPSerializer(fname)
+            s2 = ZIPSerializer(fname, version='1.0.0')
             s2.add_serializer('data', FileSerializer)
             b2 = s2.load()
             
@@ -1633,7 +1710,7 @@ class TestBundles(unittest.TestCase):
         c.execute(connection_obj.format_stmt(DBManifest.SCHEMA))
         
         try:
-            manifest = DBManifest(connection_obj, 0)
+            manifest = DBManifest(connection_obj, '1.0.0', 0)
 
             entries = [('vistrail', None, 0),
                        ('thumbnail', 'abc', 23),
@@ -1642,7 +1719,7 @@ class TestBundles(unittest.TestCase):
                 manifest.add_entry(*e)
             manifest.save()
 
-            manifest2 = DBManifest(connection_obj, 0)
+            manifest2 = DBManifest(connection_obj, '1.0.0', 0)
             manifest2.load()
             for e in entries:
                 self.assertTrue(manifest2.has_entry(e[0], e[1]))
@@ -1721,7 +1798,7 @@ class TestBundles(unittest.TestCase):
         s2 = None
         try:
             b1 = self.create_vt_bundle()
-            s1 = DefaultVistrailsDirSerializer(inner_d, b1)
+            s1 = DefaultVistrailsDirSerializer(inner_d, bundle=b1)
             s1.save()
 
             s2 = DefaultVistrailsDirSerializer(inner_d)
@@ -1762,7 +1839,7 @@ class TestBundles(unittest.TestCase):
         try:
             s1 = NoManifestDirSerializer('/vistrails/tmp/terminator')
             b1 = s1.load()
-            s2 = DefaultVistrailsDirSerializer(inner_d, b1)
+            s2 = DefaultVistrailsDirSerializer(inner_d, bundle=b1)
             s2.save()
         finally:
             shutil.rmtree(d)

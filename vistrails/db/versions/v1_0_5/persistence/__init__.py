@@ -48,14 +48,68 @@ from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
 
 from vistrails.core.system import get_elementtree_library, vistrails_root_directory
 from vistrails.db import VistrailsDBException
+from vistrails.db.services.bundle import Bundle, BundleObj, XMLFileSerializer, \
+    XMLAppendSerializer,FileRefSerializer, DirectorySerializer
 from vistrails.db.versions.v1_0_5 import version as my_version
 from vistrails.db.versions.v1_0_5.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
-    DBRegistry, DBMashuptrail
+    DBRegistry, DBMashuptrail, DBWorkflowExec
 
 root_set = set([DBVistrail.vtType, DBWorkflow.vtType, 
                 DBLog.vtType, DBRegistry.vtType, DBMashuptrail.vtType])
 
 ElementTree = get_elementtree_library()
+
+class LogXMLSerializer(XMLAppendSerializer):
+    def __init__(self):
+        XMLAppendSerializer.__init__(self, DBLog.vtType,
+                                     "http://www.vistrails.org/log.xsd",
+                                     "translateLog",
+                                     DBWorkflowExec.vtType,
+                                     True, True)
+
+    def create_obj(self, inner_obj_list=None):
+        if inner_obj_list is not None:
+            return DBLog(workflow_execs=inner_obj_list)
+        else:
+            return DBLog()
+
+    def get_inner_objs(self, vt_obj):
+        return vt_obj.db_workflow_execs
+
+    def add_inner_obj(self, vt_obj, inner_obj):
+        vt_obj.db_add_workflow_exec(inner_obj)
+
+class MashupXMLSerializer(XMLFileSerializer):
+    def __init__(self):
+        XMLFileSerializer.__init__(self, DBMashuptrail.vtType,
+                                   "http://www.vistrails.org/mashup.xsd",
+                                   "translateMashup",
+                                   inner_dir_name="mashups")
+
+    def finish_load(self, b_obj):
+        b_obj.obj_type = "mashup"
+
+    def get_obj_id(self, vt_obj):
+        return vt_obj.db_name
+
+def dir_serializer(dir_path, version=None, bundle=None):
+    if version is None:
+        version = my_version
+    s = DirectorySerializer(dir_path, version, bundle)
+    s.add_serializer("vistrail",
+                     XMLFileSerializer(DBVistrail.vtType,
+                                       "http://www.vistrails.org/vistrail.xsd",
+                                       "translateVistrail",
+                                       True, True)),
+    s.add_serializer("log", LogXMLSerializer(), is_lazy=True)
+    s.add_serializer("mashup", MashupXMLSerializer())
+    s.add_serializer("thumbnail", FileRefSerializer("thumbnail",
+                                                    "thumbnails"))
+    s.add_serializer("abstraction", FileRefSerializer('abstraction', 'abstractions'))
+    s.add_serializer("job", FileRefSerializer('job'))
+    s.add_serializer("data", FileRefSerializer('data', 'data'))
+
+    return s
 
 class DAOList(dict):
     def __init__(self):
@@ -371,6 +425,7 @@ import unittest
 import difflib
 import os
 import sys
+import shutil
 import tempfile
 
 class TestPersistence(unittest.TestCase):
@@ -431,6 +486,44 @@ class TestPersistence(unittest.TestCase):
             self.run_sql_save_vistrail(test_db)
         finally:
             os.unlink(fname)
-        
+
+    def compare_bundles(self, b1, b2):
+        self.assertEqual(len(b1.get_items()), len(b2.get_items()))
+        for obj_type, obj_id, obj in b1.get_items():
+            obj2 = b2.get_bundle_obj(obj_type, obj_id)
+            # not ideal, but fails when trying to compare objs without __eq__
+            self.assertEqual(obj.obj.__class__, obj2.obj.__class__)
+            # self.assertEqual(str(obj.obj), str(obj2.obj))
+
+    def create_vt_bundle(self):
+        from vistrails.core.system import resource_directory
+        b = Bundle()
+        b.add_object(BundleObj(DBVistrail(), None, None))
+        b.add_object(BundleObj(DBLog(), None, None))
+        fname1 = os.path.join(resource_directory(), 'images', 'info.png')
+        b.add_object(BundleObj(fname1, 'thumbnail', 'info.png'))
+        fname2 = os.path.join(resource_directory(), 'images', 'left.png')
+        b.add_object(BundleObj(fname2, 'thumbnail', 'left.png'))
+        return b
+
+    def test_vt_dir_bundle(self):
+        d = tempfile.mkdtemp(prefix='vtbundle_test')
+        inner_d = os.path.join(d, 'mybundle')
+
+        s1 = None
+        s2 = None
+        try:
+            b1 = self.create_vt_bundle()
+            s1 = dir_serializer(inner_d, bundle=b1)
+            s1.save()
+
+            s2 = dir_serializer(inner_d)
+            s2.set_lazy_loading(False)
+            b2 = s2.load()
+
+            self.compare_bundles(b1, b2)
+        finally:
+            shutil.rmtree(d)
+
 if __name__ == '__main__':
     unittest.main()
