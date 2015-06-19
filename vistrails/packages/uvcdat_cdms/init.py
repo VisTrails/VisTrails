@@ -23,9 +23,6 @@ from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 from vistrails.packages.uvcdat_cdms.vtk_classes import QVTKWidget
 
 
-original_gm_attributes = {}
-
-
 def unexpand_home_path(fullpath):
     """Replaces home path with ~ in the given filename, if it lies under it.
 
@@ -50,6 +47,148 @@ def get_nonempty_list(elem):
         return elem
     else:
         return [elem]
+
+
+def get_gm_attributes(plot_type):
+    """Return the list of "graphics method attributes" for a given plot type.
+    """
+    if plot_type == "Boxfill":
+        return ['boxfill_type', 'color_1', 'color_2', 'datawc_calendar',
+                'datawc_timeunits', 'datawc_x1', 'datawc_x2', 'datawc_y1',
+                'datawc_y2', 'levels', 'ext_1', 'ext_2', 'fillareacolors',
+                'fillareaindices', 'fillareastyle', 'legend', 'level_1',
+                'level_2', 'missing', 'projection', 'xaxisconvert', 'xmtics1',
+                'xmtics2', 'xticlabels1', 'xticlabels2', 'yaxisconvert',
+                'ymtics1', 'ymtics2', 'yticlabels1', 'yticlabels2']
+
+    elif plot_type == "3D_Scalar" or plot_type == "3D_Dual_Scalar":
+        from DV3D.ConfigurationFunctions import ConfigManager
+        from DV3D.DV3DPlot import PlotButtonNames
+        cfgManager = ConfigManager()
+        parameterList = cfgManager.getParameterList(extras=(['axes'] +
+                                                            PlotButtonNames))
+        return parameterList
+
+    elif plot_type == "3D_Vector":
+        from DV3D.ConfigurationFunctions import ConfigManager
+        from DV3D.DV3DPlot import PlotButtonNames
+        cfgManager = ConfigManager()
+        parameterList = cfgManager.getParameterList(extras=(['axes'] +
+                                                            PlotButtonNames))
+        return parameterList
+
+    elif plot_type == "Isofill":
+        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
+                'datawc_x2', 'datawc_y1', 'datawc_y2', 'levels', 'ext_1',
+                'ext_2', 'fillareacolors', 'fillareaindices', 'fillareastyle',
+                'legend', 'missing', 'projection', 'xaxisconvert', 'xmtics1',
+                'xmtics2', 'xticlabels1', 'xticlabels2', 'yaxisconvert',
+                'ymtics1', 'ymtics2', 'yticlabels1', 'yticlabels2']
+
+    elif plot_type == "Isoline":
+        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
+                'datawc_x2', 'datawc_y1', 'datawc_y2', 'projection',
+                'xaxisconvert', 'xmtics1', 'xmtics2', 'xticlabels1',
+                'xticlabels2', 'yaxisconvert', 'ymtics1', 'ymtics2',
+                'yticlabels1', 'yticlabels2', 'label', 'level', 'levels',
+                'line', 'linecolors', 'linewidths', 'text', 'textcolors',
+                'clockwise', 'scale', 'angle', 'spacing']
+    elif plot_type == "Meshfill":
+        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
+                'datawc_x2', 'datawc_y1', 'datawc_y2', 'levels', 'ext_1',
+                'ext_2', 'fillareacolors', 'fillareaindices', 'fillareastyle',
+                'legend', 'missing', 'projection', 'xaxisconvert', 'xmtics1',
+                'xmtics2', 'xticlabels1', 'xticlabels2', 'yaxisconvert',
+                'ymtics1', 'ymtics2', 'yticlabels1', 'yticlabels2', 'mesh',
+                'wrap']
+    elif plot_type == "Scatter":
+        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
+                'datawc_x2', 'datawc_y1', 'datawc_y2', 'markercolor', 'marker',
+                'markersize', 'projection', 'xaxisconvert', 'xmtics1',
+                'xmtics2', 'xticlabels1', 'xticlabels2', 'yaxisconvert',
+                'ymtics1', 'ymtics2', 'yticlabels1', 'yticlabels2']
+    elif plot_type == "Vector":
+        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
+                'datawc_x2', 'datawc_y1', 'datawc_y2', 'linecolor', 'line',
+                'linewidth', 'scale', 'alignment', 'type', 'reference',
+                'projection', 'xaxisconvert', 'xmtics1', 'xmtics2',
+                'xticlabels1', 'xticlabels2', 'yaxisconvert', 'ymtics1',
+                'ymtics2', 'yticlabels1', 'yticlabels2']
+    elif plot_type == "XvsY":
+        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
+                'datawc_x2', 'datawc_y1', 'datawc_y2', 'linecolor', 'line',
+                'linewidth', 'markercolor', 'marker', 'markersize',
+                'projection', 'xaxisconvert', 'xmtics1', 'xmtics2',
+                'xticlabels1', 'xticlabels2', 'yaxisconvert', 'ymtics1',
+                'ymtics2', 'yticlabels1', 'yticlabels2']
+    elif plot_type == "Xyvsy":
+        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
+                'datawc_x2', 'datawc_y1', 'datawc_y2', 'linecolor', 'line',
+                'linewidth', 'markercolor', 'marker', 'markersize',
+                'projection', 'xmtics1', 'xmtics2', 'xticlabels1',
+                'xticlabels2', 'yaxisconvert', 'ymtics1', 'ymtics2',
+                'yticlabels1', 'yticlabels2']
+    elif plot_type == "Yxvsx":
+        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
+                'datawc_x2', 'datawc_y1', 'datawc_y2', 'linecolor', 'line',
+                'linewidth', 'markercolor', 'marker', 'markersize',
+                'projection', 'xmtics1', 'xmtics2', 'xticlabels1',
+                'xticlabels2', 'xaxisconvert', 'ymtics1', 'ymtics2',
+                'yticlabels1', 'yticlabels2']
+    elif plot_type == "Taylordiagram":
+        return ['detail', 'max', 'quadrans', 'skillValues', 'skillColor',
+                'skillDrawLabels', 'skillCoefficient', 'referencevalue',
+                'arrowlength', 'arrowangle', 'arrowbase', 'xmtics1',
+                'xticlabels1', 'ymtics1', 'yticlabels1', 'cmtics1',
+                'cticlabels1', 'Marker']
+    else:
+        debug.warning("Unable to get gm attributes for plot type %s" %
+                      plot_type)
+
+
+# Some VCS operations can only be called on a canvas, we create a global one
+# that will not be used for plotting, only to get various attributes
+# FIXME vcs: These should probably be accessible globally, without a Canvas
+global_canvas = vcs.init()
+
+
+# List of default attributes for a plot type and graphics method
+# This is used by DAT to set the default values on a newly created plot
+# TODO: make DAT use it
+# FIXME: there is no easy way to change all of these when changing graphics
+# FIXME: method. But it looks like they don't depend on the GM, only the plot
+# FIXME: type...
+# FIXME: also, should probably just be the module's default values
+# FIXME: This is insane and we probably just want to get rid of it
+original_gm_attributes = {}
+
+for plot_type in ['Boxfill', 'Isofill', 'Isoline', 'Meshfill', 'Scatter',
+                  'Taylordiagram', 'Vector', 'XvsY', 'Xyvsy', 'Yxvsx',
+                  '3D_Dual_Scalar', '3D_Scalar', '3D_Vector']:
+    method_name = "get" + plot_type.lower()
+    attributes = get_gm_attributes(plot_type)
+    gms = global_canvas.listelements(str(plot_type).lower())
+    original_gm_attributes[plot_type] = {}
+    for gmname in gms:
+        gm = getattr(global_canvas, method_name)(gmname)
+        attrs = {}
+        for attr in attributes:
+            attrs[attr] = getattr(gm, attr)
+            if attr == 'linecolor' and attrs[attr] is None:
+                attrs[attr] = 241
+            elif attr == 'linewidth' and attrs[attr] is None:
+                attrs[attr] = 1
+            elif attr == 'line' and attrs[attr] is None:
+                attrs[attr] = 'solid'
+            elif attr == 'markercolor' and attrs[attr] is None:
+                attrs[attr] = 241
+            elif attr == 'markersize' and attrs[attr] is None:
+                attrs[attr] = 1
+            elif attr == 'marker' and attrs[attr] is None:
+                attrs[attr] = 'dot'
+            elif attr == 'max' and attrs[attr] is None:
+                attrs[attr] = 1
+        original_gm_attributes[plot_type][gmname] = InstanceObject(**attrs)
 
 
 class VariableSource(Module):
@@ -1281,104 +1420,6 @@ def get_input_ports(plot_type):
         return []
 
 
-def get_gm_attributes(plot_type):
-    if plot_type == "Boxfill":
-        return ['boxfill_type', 'color_1', 'color_2', 'datawc_calendar',
-                'datawc_timeunits', 'datawc_x1', 'datawc_x2', 'datawc_y1',
-                'datawc_y2', 'levels', 'ext_1', 'ext_2', 'fillareacolors',
-                'fillareaindices', 'fillareastyle', 'legend', 'level_1',
-                'level_2', 'missing', 'projection', 'xaxisconvert', 'xmtics1',
-                'xmtics2', 'xticlabels1', 'xticlabels2', 'yaxisconvert',
-                'ymtics1', 'ymtics2', 'yticlabels1', 'yticlabels2']
-
-    elif plot_type == "3D_Scalar" or plot_type == "3D_Dual_Scalar":
-        from DV3D.ConfigurationFunctions import ConfigManager
-        from DV3D.DV3DPlot import PlotButtonNames
-        cfgManager = ConfigManager()
-        parameterList = cfgManager.getParameterList(extras=(['axes'] +
-                                                            PlotButtonNames))
-        return parameterList
-
-    elif plot_type == "3D_Vector":
-        from DV3D.ConfigurationFunctions import ConfigManager
-        from DV3D.DV3DPlot import PlotButtonNames
-        cfgManager = ConfigManager()
-        parameterList = cfgManager.getParameterList(extras=(['axes'] +
-                                                            PlotButtonNames))
-        return parameterList
-
-    elif plot_type == "Isofill":
-        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
-                'datawc_x2', 'datawc_y1', 'datawc_y2', 'levels', 'ext_1',
-                'ext_2', 'fillareacolors', 'fillareaindices', 'fillareastyle',
-                'legend', 'missing', 'projection', 'xaxisconvert', 'xmtics1',
-                'xmtics2', 'xticlabels1', 'xticlabels2', 'yaxisconvert',
-                'ymtics1', 'ymtics2', 'yticlabels1', 'yticlabels2']
-
-    elif plot_type == "Isoline":
-        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
-                'datawc_x2', 'datawc_y1', 'datawc_y2', 'projection',
-                'xaxisconvert', 'xmtics1', 'xmtics2', 'xticlabels1',
-                'xticlabels2', 'yaxisconvert', 'ymtics1', 'ymtics2',
-                'yticlabels1', 'yticlabels2', 'label', 'level', 'levels',
-                'line', 'linecolors', 'linewidths', 'text', 'textcolors',
-                'clockwise', 'scale', 'angle', 'spacing']
-    elif plot_type == "Meshfill":
-        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
-                'datawc_x2', 'datawc_y1', 'datawc_y2', 'levels', 'ext_1',
-                'ext_2', 'fillareacolors', 'fillareaindices', 'fillareastyle',
-                'legend', 'missing', 'projection', 'xaxisconvert', 'xmtics1',
-                'xmtics2', 'xticlabels1', 'xticlabels2', 'yaxisconvert',
-                'ymtics1', 'ymtics2', 'yticlabels1', 'yticlabels2', 'mesh',
-                'wrap']
-    elif plot_type == "Scatter":
-        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
-                'datawc_x2', 'datawc_y1', 'datawc_y2', 'markercolor', 'marker',
-                'markersize', 'projection', 'xaxisconvert', 'xmtics1',
-                'xmtics2', 'xticlabels1', 'xticlabels2', 'yaxisconvert',
-                'ymtics1', 'ymtics2', 'yticlabels1', 'yticlabels2']
-    elif plot_type == "Vector":
-        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
-                'datawc_x2', 'datawc_y1', 'datawc_y2', 'linecolor', 'line',
-                'linewidth', 'scale', 'alignment', 'type', 'reference',
-                'projection', 'xaxisconvert', 'xmtics1', 'xmtics2',
-                'xticlabels1', 'xticlabels2', 'yaxisconvert', 'ymtics1',
-                'ymtics2', 'yticlabels1', 'yticlabels2']
-    elif plot_type == "XvsY":
-        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
-                'datawc_x2', 'datawc_y1', 'datawc_y2', 'linecolor', 'line',
-                'linewidth', 'markercolor', 'marker', 'markersize',
-                'projection', 'xaxisconvert', 'xmtics1', 'xmtics2',
-                'xticlabels1', 'xticlabels2', 'yaxisconvert', 'ymtics1',
-                'ymtics2', 'yticlabels1', 'yticlabels2']
-    elif plot_type == "Xyvsy":
-        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
-                'datawc_x2', 'datawc_y1', 'datawc_y2', 'linecolor', 'line',
-                'linewidth', 'markercolor', 'marker', 'markersize',
-                'projection', 'xmtics1', 'xmtics2', 'xticlabels1',
-                'xticlabels2', 'yaxisconvert', 'ymtics1', 'ymtics2',
-                'yticlabels1', 'yticlabels2']
-    elif plot_type == "Yxvsx":
-        return ['datawc_calendar', 'datawc_timeunits', 'datawc_x1',
-                'datawc_x2', 'datawc_y1', 'datawc_y2', 'linecolor', 'line',
-                'linewidth', 'markercolor', 'marker', 'markersize',
-                'projection', 'xmtics1', 'xmtics2', 'xticlabels1',
-                'xticlabels2', 'xaxisconvert', 'ymtics1', 'ymtics2',
-                'yticlabels1', 'yticlabels2']
-    elif plot_type == "Taylordiagram":
-        return ['detail', 'max', 'quadrans', 'skillValues', 'skillColor',
-                'skillDrawLabels', 'skillCoefficient', 'referencevalue',
-                'arrowlength', 'arrowangle', 'arrowbase', 'xmtics1',
-                'xticlabels1', 'ymtics1', 'yticlabels1', 'cmtics1',
-                'cticlabels1', 'Marker']
-    else:
-        debug.warning("Unable to get gm attributes for plot type %s" %
-                      plot_type)
-
-
-global_canvas = vcs.init()
-
-
 for superklass, typeslist in (
         (CDMS2DPlot, ('Boxfill', 'Isofill', 'Isoline', 'Meshfill',
                       'Scatter', 'Taylordiagram', 'Vector',
@@ -1391,36 +1432,6 @@ for superklass, typeslist in (
                       'gm_attributes': get_gm_attributes(plot_type)})
 
         _modules.append(klass)
-
-
-def initialize(*args, **keywords):
-    for plot_type in ['Boxfill', 'Isofill', 'Isoline', 'Meshfill', 'Scatter',
-                      'Taylordiagram', 'Vector', 'XvsY', 'Xyvsy', 'Yxvsx',
-                      '3D_Dual_Scalar', '3D_Scalar', '3D_Vector']:
-        method_name = "get" + plot_type.lower()
-        attributes = get_gm_attributes(plot_type)
-        gms = global_canvas.listelements(str(plot_type).lower())
-        original_gm_attributes[plot_type] = {}
-        for gmname in gms:
-            gm = getattr(global_canvas, method_name)(gmname)
-            attrs = {}
-            for attr in attributes:
-                attrs[attr] = getattr(gm, attr)
-                if attr == 'linecolor' and attrs[attr] is None:
-                    attrs[attr] = 241
-                elif attr == 'linewidth' and attrs[attr] is None:
-                    attrs[attr] = 1
-                elif attr == 'line' and attrs[attr] is None:
-                    attrs[attr] = 'solid'
-                elif attr == 'markercolor' and attrs[attr] is None:
-                    attrs[attr] = 241
-                elif attr == 'markersize' and attrs[attr] is None:
-                    attrs[attr] = 1
-                elif attr == 'marker' and attrs[attr] is None:
-                    attrs[attr] = 'dot'
-                elif attr == 'max' and attrs[attr] is None:
-                    attrs[attr] = 1
-            original_gm_attributes[plot_type][gmname] = InstanceObject(**attrs)
 
 
 try:
