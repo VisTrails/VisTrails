@@ -1277,29 +1277,28 @@ _modules = [VariableSource,
 
 def get_input_ports(plot_type):
     if plot_type == "Boxfill":
-        return [('boxfill_type', 'basic:String', True),
-                ('color_1', 'basic:Integer', True),
-                ('color_2', 'basic:Integer', True),
-                ('levels', 'basic:List', True),
-                ('ext_1', 'basic:Boolean', True),
-                ('ext_2', 'basic:Boolean', True),
-                ('fillareacolors', 'basic:List', True),
-                ('fillareaindices', 'basic:List', True),
-                ('fillareastyle', 'basic:String', True),
-                ('legend', 'basic:String', True),
-                ('level_1', 'basic:Float', True),
-                ('level_2', 'basic:Float', True),
-                ('missing', 'basic:Integer', True),
-                ('xaxisconvert', 'basic:String', True),
-                ('yaxisconvert', 'basic:String', True)]
+        ports = [('boxfill_type', 'basic:String', True),
+                 ('color_1', 'basic:Integer', True),
+                 ('color_2', 'basic:Integer', True),
+                 ('levels', 'basic:List', True),
+                 ('ext_1', 'basic:Boolean', True),
+                 ('ext_2', 'basic:Boolean', True),
+                 ('fillareacolors', 'basic:List', True),
+                 ('fillareaindices', 'basic:List', True),
+                 ('fillareastyle', 'basic:String', True),
+                 ('legend', 'basic:String', True),
+                 ('level_1', 'basic:Float', True),
+                 ('level_2', 'basic:Float', True),
+                 ('missing', 'basic:Integer', True),
+                 ('xaxisconvert', 'basic:String', True),
+                 ('yaxisconvert', 'basic:String', True)]
     elif (plot_type == "3D_Scalar") or (plot_type == "3D_Dual_Scalar"):
         from DV3D.ConfigurationFunctions import ConfigManager
         from DV3D.DV3DPlot import PlotButtonNames
         cfgManager = ConfigManager()
         parameterList = cfgManager.getParameterList(extras=(PlotButtonNames +
                                                             ['axes']))
-        port_specs = [(pname, 'basic:String', True) for pname in parameterList]
-        return port_specs
+        ports = [(pname, 'basic:String', True) for pname in parameterList]
 
     elif plot_type == "3D_Vector":
         from DV3D.ConfigurationFunctions import ConfigManager
@@ -1307,108 +1306,113 @@ def get_input_ports(plot_type):
         cfgManager = ConfigManager()
         parameterList = cfgManager.getParameterList(extras=(PlotButtonNames +
                                                             ['axes']))
-        port_specs = [(pname, 'basic:String', True) for pname in parameterList]
-        return port_specs
+        ports = [(pname, 'basic:String', True) for pname in parameterList]
 
     elif plot_type == "Isofill":
-        return [('levels', 'basic:List', True),
-                ('ext_1', 'basic:Boolean', True),
-                ('ext_2', 'basic:Boolean', True),
-                ('fillareacolors', 'basic:List', True),
-                ('fillareaindices', 'basic:List', True),
-                ('fillareastyle', 'basic:String', True),
-                ('legend', 'basic:String', True),
-                ('missing', 'basic:Integer', True),
-                ('xaxisconvert', 'basic:String', True),
-                ('yaxisconvert', 'basic:String', True)]
+        ports = [('levels', 'basic:List', True),
+                 ('ext_1', 'basic:Boolean', True),
+                 ('ext_2', 'basic:Boolean', True),
+                 ('fillareacolors', 'basic:List', True),
+                 ('fillareaindices', 'basic:List', True),
+                 ('fillareastyle', 'basic:String', True),
+                 ('legend', 'basic:String', True),
+                 ('missing', 'basic:Integer', True),
+                 ('xaxisconvert', 'basic:String', True),
+                 ('yaxisconvert', 'basic:String', True)]
     elif plot_type == "Isoline":
-        return [('label', 'basic:String', True),
-                ('levels', 'basic:List', True),
-                ('ext_1', 'basic:Boolean', True),
-                ('ext_2', 'basic:Boolean', True),
-                ('level', 'basic:List', True),
-                ('line', 'basic:List', True),
-                ('linecolors', 'basic:List', True),
-                ('xaxisconvert', 'basic:String', True),
-                ('yaxisconvert', 'basic:String', True),
-                ('linewidths', 'basic:List', True),
-                ('text', 'basic:List', True),
-                ('textcolors', 'basic:List', True),
-                ('clockwise', 'basic:List', True),
-                ('scale', 'basic:List', True),
-                ('angle', 'basic:List', True),
-                ('spacing', 'basic:List', True)]
+        ports = [('label', 'basic:String', True),
+                 ('levels', 'basic:List', True),
+                 ('ext_1', 'basic:Boolean', True),
+                 ('ext_2', 'basic:Boolean', True),
+                 ('level', 'basic:List', True),
+                 ('line', 'basic:List', True),
+                 ('linecolors', 'basic:List', True),
+                 ('xaxisconvert', 'basic:String', True),
+                 ('yaxisconvert', 'basic:String', True),
+                 ('linewidths', 'basic:List', True),
+                 ('text', 'basic:List', True),
+                 ('textcolors', 'basic:List', True),
+                 ('clockwise', 'basic:List', True),
+                 ('scale', 'basic:List', True),
+                 ('angle', 'basic:List', True),
+                 ('spacing', 'basic:List', True)]
     elif plot_type == "Meshfill":
-        return [('levels', 'basic:List', True),
-                ('ext_1', 'basic:Boolean', True),
-                ('ext_2', 'basic:Boolean', True),
-                ('fillareacolors', 'basic:List', True),
-                ('fillareaindices', 'basic:List', True),
-                ('fillareastyle', 'basic:String', True),
-                ('legend', 'basic:String', True),
-                ('xaxisconvert', 'basic:String', True),
-                ('yaxisconvert', 'basic:String', True),
-                ('missing', 'basic:Integer', True),
-                ('mesh', 'basic:String', True),
-                ('wrap', 'basic:List', True)]
+        ports = [('levels', 'basic:List', True),
+                 ('ext_1', 'basic:Boolean', True),
+                 ('ext_2', 'basic:Boolean', True),
+                 ('fillareacolors', 'basic:List', True),
+                 ('fillareaindices', 'basic:List', True),
+                 ('fillareastyle', 'basic:String', True),
+                 ('legend', 'basic:String', True),
+                 ('xaxisconvert', 'basic:String', True),
+                 ('yaxisconvert', 'basic:String', True),
+                 ('missing', 'basic:Integer', True),
+                 ('mesh', 'basic:String', True),
+                 ('wrap', 'basic:List', True)]
     elif plot_type == "Scatter":
-        return [('markercolor', 'basic:Integer', True),
-                ('marker', 'basic:String', True),
-                ('markersize', 'basic:Integer', True),
-                ('xaxisconvert', 'basic:String', True),
-                ('yaxisconvert', 'basic:String', True)]
+        ports = [('markercolor', 'basic:Integer', True),
+                 ('marker', 'basic:String', True),
+                 ('markersize', 'basic:Integer', True),
+                 ('xaxisconvert', 'basic:String', True),
+                 ('yaxisconvert', 'basic:String', True)]
     elif plot_type == "Vector":
-        return [('scale', 'basic:Float', True),
-                ('alignment', 'basic:String', True),
-                ('type', 'basic:String', True),
-                ('reference', 'basic:Float', True),
-                ('linecolor', 'basic:Integer', True),
-                ('line', 'basic:String', True),
-                ('linewidth', 'basic:Integer', True),
-                ('xaxisconvert', 'basic:String', True),
-                ('yaxisconvert', 'basic:String', True)]
+        ports = [('scale', 'basic:Float', True),
+                 ('alignment', 'basic:String', True),
+                 ('type', 'basic:String', True),
+                 ('reference', 'basic:Float', True),
+                 ('linecolor', 'basic:Integer', True),
+                 ('line', 'basic:String', True),
+                 ('linewidth', 'basic:Integer', True),
+                 ('xaxisconvert', 'basic:String', True),
+                 ('yaxisconvert', 'basic:String', True)]
     elif plot_type == "XvsY":
-        return [('linecolor', 'basic:Integer', True),
-                ('line', 'basic:String', True),
-                ('linewidth', 'basic:Integer', True),
-                ('markercolor', 'basic:Integer', True),
-                ('marker', 'basic:String', True),
-                ('markersize', 'basic:Integer', True),
-                ('xaxisconvert', 'basic:String', True),
-                ('yaxisconvert', 'basic:String', True)]
+        ports = [('linecolor', 'basic:Integer', True),
+                 ('line', 'basic:String', True),
+                 ('linewidth', 'basic:Integer', True),
+                 ('markercolor', 'basic:Integer', True),
+                 ('marker', 'basic:String', True),
+                 ('markersize', 'basic:Integer', True),
+                 ('xaxisconvert', 'basic:String', True),
+                 ('yaxisconvert', 'basic:String', True)]
     elif plot_type == "Xyvsy":
-        return [('linecolor', 'basic:Integer', True),
-                ('line', 'basic:String', True),
-                ('linewidth', 'basic:Integer', True),
-                ('markercolor', 'basic:Integer', True),
-                ('marker', 'basic:String', True),
-                ('markersize', 'basic:Integer', True),
-                ('yaxisconvert', 'basic:String', True)]
+        ports = [('linecolor', 'basic:Integer', True),
+                 ('line', 'basic:String', True),
+                 ('linewidth', 'basic:Integer', True),
+                 ('markercolor', 'basic:Integer', True),
+                 ('marker', 'basic:String', True),
+                 ('markersize', 'basic:Integer', True),
+                 ('yaxisconvert', 'basic:String', True)]
     elif plot_type == "Yxvsx":
-        return [('linecolor', 'basic:Integer', True),
-                ('line', 'basic:String', True),
-                ('linewidth', 'basic:Integer', True),
-                ('markercolor', 'basic:Integer', True),
-                ('marker', 'basic:String', True),
-                ('markersize', 'basic:Integer', True),
-                ('xaxisconvert', 'basic:String', True)]
+        ports = [('linecolor', 'basic:Integer', True),
+                 ('line', 'basic:String', True),
+                 ('linewidth', 'basic:Integer', True),
+                 ('markercolor', 'basic:Integer', True),
+                 ('marker', 'basic:String', True),
+                 ('markersize', 'basic:Integer', True),
+                 ('xaxisconvert', 'basic:String', True)]
     elif plot_type == "Taylordiagram":
-        return [('detail', 'basic:Integer', True),
-                ('max', 'basic:Integer', True),
-                ('quadrans', 'basic:Integer', True),
-                ('skillColor', 'basic:String', True),
-                ('skillValues', 'basic:List', True),
-                ('skillDrawLabels', 'basic:String', True),
-                ('skillCoefficient', 'basic:List', True),
-                ('referencevalue', 'basic:Float', True),
-                ('arrowlength', 'basic:Float', True),
-                ('arrowangle', 'basic:Float', True),
-                ('arrowbase', 'basic:Float', True),
-                ('cmtics1', 'basic:String', True),
-                ('cticlabels1', 'basic:String', True),
-                ('Marker', 'basic:String', True)]
+        ports = [('detail', 'basic:Integer', True),
+                 ('max', 'basic:Integer', True),
+                 ('quadrans', 'basic:Integer', True),
+                 ('skillColor', 'basic:String', True),
+                 ('skillValues', 'basic:List', True),
+                 ('skillDrawLabels', 'basic:String', True),
+                 ('skillCoefficient', 'basic:List', True),
+                 ('referencevalue', 'basic:Float', True),
+                 ('arrowlength', 'basic:Float', True),
+                 ('arrowangle', 'basic:Float', True),
+                 ('arrowbase', 'basic:Float', True),
+                 ('cmtics1', 'basic:String', True),
+                 ('cticlabels1', 'basic:String', True),
+                 ('Marker', 'basic:String', True)]
     else:
-        return []
+        ports = []
+
+    gms = [('graphicsMethodName', 'basic:String',
+            {'entry_types': ['enum'],
+             'values': [repr(original_gm_attributes[plot_type].keys())]})]
+
+    return gms + ports
 
 
 for superklass, typeslist in (
