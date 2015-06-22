@@ -1410,7 +1410,8 @@ def get_input_ports(plot_type):
 
     gms = [('graphicsMethodName', 'basic:String',
             {'entry_types': ['enum'],
-             'values': [repr(original_gm_attributes[plot_type].keys())]})]
+             'values': [repr(original_gm_attributes[plot_type].keys())],
+             'defaults': ['default']})]
 
     return gms + ports
 
