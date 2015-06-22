@@ -3,6 +3,8 @@ import cdms2.error
 
 from PyQt4 import QtCore, QtGui
 
+import axesWidgets
+
 from dat.packages import Plot, DataPort, Variable, FileVariableLoader, \
     translate, derive_varname
 from dat.vistrails_interface import ConstantPort
@@ -17,12 +19,29 @@ _ = translate('packages.uvcdat_cdms')
 variable_type = 'gov.llnl.uvcdat.cdms:CDMSVariable'
 
 
-def build_variable(filename, varname):
+def build_variable(filename, varname, axes_kwargs):
     var = Variable(type=variable_type)
     # We use the high-level interface to build the variable pipeline
     varmod = var.add_module(variable_type)
     varmod.add_function('file', 'basic:File', filename)
     varmod.add_function('name', 'basic:String', varname)
+
+    def get_kwargs_str(kwargs_dict):
+        kwargs_str = ""
+        for k, v in kwargs_dict.iteritems():
+            if k == 'order':
+                o = kwargs_dict[k]
+                skip = True
+                for i in range(len(o)):
+                    if int(o[i])!=i:
+                        skip = False
+                        break
+                if skip:
+                    continue
+            kwargs_str += "%s=%s," % (k, repr(v))
+        return kwargs_str
+    varmod.add_function('axes', 'basic:String', get_kwargs_str(axes_kwargs))
+
     # We select the 'self' output port of the CDMSVariable module as the port
     # that will be connected to plots when this variable is used
     var.select_output_port(varmod, 'self')
@@ -90,10 +109,23 @@ class CDMSLoader(FileVariableLoader):
         self.connect(self._name_field,
                      QtCore.SIGNAL('currentIndexChanged(const QString&)'),
                      self._var_changed)
-        self._var_changed(self._name_field.currentText())
 
         layout = QtGui.QFormLayout()
         layout.addRow(_("Variable &name:"), self._name_field)
+
+        # dimensions
+        self.dims=QtGui.QFrame()
+        self.dimsLayout=QtGui.QVBoxLayout()
+        self.dims.setLayout( self.dimsLayout )
+        layout.addRow(_("&Dimensions:"), self.dims)
+        # Axes
+        axisList = axesWidgets.QAxisList(f, self._name_field.currentText(), self)
+        axisList.setupVariableAxes()
+        self.axisListHolder = axisList
+        self.fillDimensionsWidget(axisList)
+
+        self._var_changed(self._name_field.currentText())
+
         self.setLayout(layout)
 
     def _var_changed(self, varname):
@@ -102,13 +134,52 @@ class CDMSLoader(FileVariableLoader):
                                        suffix='_%s' % varname.decode('utf-8'))
         self.default_variable_name_changed(self._varname)
 
+        # Axes
+        f = cdms2.open(self.filename)
+        axisList = axesWidgets.QAxisList(f, varname, self)
+        axisList.setupVariableAxes()
+        self.axisListHolder = axisList
+        self.fillDimensionsWidget(axisList)
+
     def load(self):
         varname = self._name_field.currentText().encode('utf-8')
-        return build_variable(self.filename, varname)
+        return build_variable(self.filename, varname, self.generateKwArgs())
 
     def get_default_variable_name(self):
         return self._varname
 
+    def clearDimensionsWidget(self):
+        if not self.axisListHolder is None:
+            self.axisListHolder.destroy()
+        it = self.dimsLayout.takeAt(0)
+        if it: 
+            it.widget().deleteLater()
+    ##             it.widget().destroy()
+#            self.dimsLayout.removeItem(it)
+            del(it)
+
+    def fillDimensionsWidget(self,axisList):
+        self.clearDimensionsWidget()
+        self.axisListHolder = axisList
+        self.dimsLayout.insertWidget(0,axisList)
+        #self.updateVarInfo(axisList)
+        self.dims.update()
+        #self.update()
+
+    def generateKwArgs(self, axisList=None):
+        """ Generate and return the variable axes keyword arguments """
+        if axisList is None:
+            axisList = self.dimsLayout.itemAt(0).widget()
+
+        kwargs = {}
+        for axisWidget in axisList.getAxisWidgets():
+            if not axisWidget.isHidden():
+                kwargs[axisWidget.axis.id] = axisWidget.getCurrentValues()
+
+        # Generate additional args
+        #kwargs['squeeze'] = 0
+        kwargs['order'] = axisList.getAxesOrderString()
+        return kwargs
 
 _variable_loaders = {
     CDMSLoader: _("CDAT data"),
