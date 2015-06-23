@@ -362,6 +362,12 @@ class CDMSVariable(Module):
         if self.timeBounds is not None:
             var = self.applySetTimeBounds(var, self.timeBounds)
 
+        # FIXME: Works around variableoperations modules
+        if self.axes is not None:
+            try:
+                var = eval("var(%s)" % self.axes)
+            except Exception, e:
+                raise ModuleError(self, "Invalid 'axes' specification: %s" % e)
         return var
 
     def compute(self):
