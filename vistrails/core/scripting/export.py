@@ -53,10 +53,11 @@ def write_workflow_to_python(pipeline):
                 module_class.to_python_script is None):
             debug.critical("Module %s cannot be converted to Python" %
                            module.name)
-            code = ("# <Missing code>\n"
-                    "# %s doesn't define a function to_python_script()\n"
-                    "# VisTrails cannot currently export such modules\n" %
-                    module.name)
+            code = Script("# <Missing code>\n"
+                          "# %s doesn't define a function to_python_script()\n"
+                          "# VisTrails cannot currently export such modules" %
+                          module.name,
+                          'variables', 'variables')
         else:
             # Call the module to get the base code
             code = module_class.to_python_script(module)
