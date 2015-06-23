@@ -51,6 +51,7 @@ from __future__ import division
 from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
+from vistrails.core.data_structures.graph import GraphContainsCycles
 from vistrails.core.db.action import create_action
 from vistrails.core.system import systemType
 from vistrails.core.modules.module_registry import get_module_registry, \
@@ -2081,7 +2082,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def addModule(self, module, moduleBrush=None):
         """ addModule(module: Module, moduleBrush: QBrush) -> QGraphicsModuleItem
         Add a module to the scene
-        
+
         """
         moduleItem = QGraphicsModuleItem(None)
         if self.controller and self.controller.search:
@@ -2623,13 +2624,20 @@ class QPipelineScene(QInteractiveGraphicsScene):
         else:
             src_port_item = tmp_connection_item.snapPortItem
             dst_port_item = tmp_connection_item.startPortItem
-        
+
         if src_port_item.parentItem().id < 0 or start_is_src:
             src_module_id = module.id
             dst_module_id = dst_port_item.parentItem().id
         else:
             src_module_id = src_port_item.parentItem().id
             dst_module_id = module.id
+
+        graph = copy.copy(self.controller.current_pipeline.graph)
+        graph.add_edge(src_module_id, dst_module_id)
+        try:
+            graph.dfs(raise_if_cyclic=True)
+        except GraphContainsCycles:
+            return False
 
         reg = get_module_registry()
 
@@ -2676,12 +2684,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.addConnection(conn1)
             self.addConnection(conn2)
 
+        return True
+
     def addConnectionFromTmp(self, tmp_connection_item, module, start_is_src):
-        self.createConnectionFromTmp(tmp_connection_item, module, start_is_src)
+        result = self.createConnectionFromTmp(tmp_connection_item, module,
+                                              start_is_src)
         self.reset_module_colors()
         self._old_connection_ids = \
             set(self.controller.current_pipeline.connections)
         self._old_module_ids = set(self.controller.current_pipeline.modules)
+        return result
 
     def add_module_event(self, event, data):
         """Adds a new module from a drop event"""
