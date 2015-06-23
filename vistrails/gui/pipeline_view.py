@@ -1072,7 +1072,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.invalid = False
         self._module_shape = None
         self._original_module_shape = None
-        self._old_connection_ids = None
         self.errorTrace = None
         self.is_breakpoint = False
         self._needs_state_updated = True
@@ -2057,6 +2056,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.noUpdate = False
         self.installEventFilter(self)
         self.pipeline_tab = None
+        # These are the IDs currently present in the scene, used to update it
+        # faster when switching pipelines via setupScene()
         self._old_module_ids = set()
         self._old_connection_ids = set()
         self._var_selected_port = None
@@ -2198,9 +2199,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         selected = self.modules[m_id].isSelected()
         depending_connections = \
             [c_id for c_id in self.modules[m_id].dependingConnectionItems()]
-        # old_depending_connections = self.modules[m_id]._old_connection_ids
         
-        #when configuring a python source, maybe connections were deleted
+        # when configuring a python source, maybe connections were deleted
         # but are not in the current pipeline. So we need to check the depending
         # connections of the module just before the configure. 
         for c_id in depending_connections:
