@@ -1,5 +1,10 @@
 RELEASE NOTES
 -------------
+Release Name: v2.2.2 build ??? from v2.2 branch
+
+Bug fixes:
+ - prevents introducing cycles in pipeline view (#1097)
+
 Release Name: v2.2.1 build c366dbcb640c from v2.2 branch
 
 Bug fixes:
