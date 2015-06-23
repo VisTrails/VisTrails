@@ -51,6 +51,13 @@ from vistrails.core.utils import all
 class GraphException(Exception):
     pass
 
+class GraphContainsCycles(GraphException):
+    def __init__(self, v1, v2):
+        self.back_edge = (v1, v2)
+    def __str__(self):
+        return ("Graph contains cycles: back edge %s encountered" %
+                (self.back_edge,))
+
 class Graph(object):
     """Graph holds a graph with possible multiple edges. The
     datastructures are all dictionary-based, so datatypes more general than ints
@@ -403,12 +410,8 @@ class Graph(object):
                     visited.add(to)
         return parent
 
-    class GraphContainsCycles(GraphException):
-        def __init__(self, v1, v2):
-            self.back_edge = (v1, v2)
-        def __str__(self):
-            return ("Graph contains cycles: back edge %s encountered" %
-                    self.back_edge)
+    # For legacy reasons, moved after 2.2.1
+    GraphContainsCycles = GraphContainsCycles
 
     def dfs(self,
             vertex_set=None,
@@ -456,7 +459,7 @@ class Graph(object):
                 if leave_vertex:
                     leave_vertex(w)
             elif edgetype == back and raise_if_cyclic:
-                raise self.GraphContainsCycles(v, w)
+                raise GraphContainsCycles(v, w)
 
         visited = set()
         gray = set()
@@ -557,7 +560,7 @@ class Graph(object):
         try:
             x.vertices_topological_sort()
             return True
-        except self.GraphContainsCycles:
+        except GraphContainsCycles:
             return False
 
     ##########################################################################
@@ -866,7 +869,7 @@ class TestGraph(unittest.TestCase):
         g.add_edge(0, 1)
         g.add_edge(1, 2)
         g.add_edge(2, 0)
-        with self.assertRaises(Graph.GraphContainsCycles):
+        with self.assertRaises(GraphContainsCycles):
             g.dfs(raise_if_cyclic=True)
 
     def test_call_inverse(self):
