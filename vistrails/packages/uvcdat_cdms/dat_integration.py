@@ -35,10 +35,11 @@ def build_variable(filename, varname):
 
 _plots = []
 
-def make_callback(plot_type):
-    def callback():
-        graphics_method = 'default'
-        return ('python_lists', [
+for plot_type in ('Boxfill', 'Isofill', 'Isoline', 'Meshfill',
+                  'Scatter', 'Taylordiagram', 'Vector',
+                  'XvsY', 'Xyvsy', 'Yxvsx',
+                  '3D_Scalar', '3D_Dual_Scalar', '3D_Vector'):
+    pipeline = ('python_lists', [
             ('InputPort', 'org.vistrails.vistrails.basic', [
                 ('name', [('String', 'variable')]),
                 ('spec', [('String', 'gov.llnl.uvcdat.cdms:CDMSVariable')]),
@@ -46,7 +47,7 @@ def make_callback(plot_type):
             ('InputPort', 'org.vistrails.vistrails.basic', [
                 ('name', [('String', 'graphics method')]),
                 ('spec', [('String', 'basic:String')]),
-                ('Default', [('String', graphics_method)]),
+                ('Default', [('String', 'default')]),
             ]),
             ('CDMS' + plot_type, 'gov.llnl.uvcdat.cdms', []),
             ('CDMSCell', 'gov.llnl.uvcdat.cdms', []),
@@ -55,13 +56,7 @@ def make_callback(plot_type):
             (1, 'InternalPipe', 2, 'graphicsMethodName'),
             (2, 'self', 3, 'plot'),
         ])
-    return callback
-
-for plot_type in ('Boxfill', 'Isofill', 'Isoline', 'Meshfill',
-                  'Scatter', 'Taylordiagram', 'Vector',
-                  'XvsY', 'Xyvsy', 'Yxvsx',
-                  '3D_Scalar', '3D_Dual_Scalar', '3D_Vector'):
-    _plots.append(Plot(plot_type, callback=make_callback(plot_type), ports=[
+    _plots.append(Plot(plot_type, pipeline=pipeline, ports=[
         DataPort(name='variable',
                  type='gov.llnl.uvcdat.cdms:CDMSVariable'),
         ConstantPort(name='graphics method',
