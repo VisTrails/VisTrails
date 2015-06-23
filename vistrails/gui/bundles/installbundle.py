@@ -264,6 +264,7 @@ def install(dependency_dictionary):
     files = (dependency_dictionary.get(distro) or
              dependency_dictionary.get('pip'))
     if not files:
+        debug.warning("No source for bundle on this platform")
         return None
     can_install = (('pip' in dependency_dictionary and pip_installed) or
                    distro in dependency_dictionary)
