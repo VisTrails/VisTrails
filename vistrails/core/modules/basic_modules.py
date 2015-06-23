@@ -48,6 +48,7 @@ from vistrails.core.modules.config import ConstantWidgetConfig, \
 import vistrails.core.system
 from vistrails.core.utils import InstanceObject
 from vistrails.core import debug
+from vistrails.core.scripting import Script
 
 from abc import ABCMeta
 from ast import literal_eval
@@ -179,6 +180,36 @@ class Constant(Module):
         elif query_method == '!=':
             return (value_a != value_b)
         return False
+
+    @classmethod
+    def to_python_script(cls, module):
+        for f in module.functions:
+            if f.name == 'value':
+                assert len(f.parameters) == 1
+                value = f.parameters[0].strValue
+                code = u"value = %r" % cls.translate_to_python(value)
+                return Script(code, inputs={}, outputs={'value': u'value'})
+        raise ValueError("Constant module has no value set")
+
+    @classmethod
+    def from_python_script(cls, script, pos, iports):
+        import redbaron
+
+        node = script[pos]
+
+        if (isinstance(node, redbaron.AssignmentNode) and
+                isinstance(node.target, redbaron.NameNode)):
+            # Python code
+            value = node.value.dumps()
+            # Live object
+            value = literal_eval(value)
+            # Serialized
+            value = cls.translate_to_string(value)
+            return pos, (cls,
+                         {'value': ('const', value)},
+                         {'value': ('var', node.target.value)})
+
+        return None
 
 def new_constant(name, py_conversion=None, default_value=None, validation=None,
                  widget_type=None,
@@ -352,13 +383,11 @@ class PathObject(object):
         if name.startswith('_repr_') and name.endswith('_'):
             if self._ipython_repr is None:
                 filetype, encoding = mimetypes.guess_type(self.name)
-                if not filetype:
-                    self._ipython_repr = False
-                elif filetype.startswith('image/'):
+                if filetype and filetype.startswith('image/'):
                     self._ipython_repr = display.Image(filename=self.name)
                 else:
                     self._ipython_repr = False
-            elif self._ipython_repr is not False:
+            if self._ipython_repr is not False:
                 return getattr(self._ipython_repr, name)
         raise AttributeError
 
@@ -782,6 +811,27 @@ class StandardOutput(NotCacheable, Module):
         else:
             print v
 
+    @staticmethod
+    def to_python_script(module):
+        return Script("print value", 'variables', {})
+
+    @classmethod
+    def from_python_script(cls, script, pos, iports):
+        import redbaron
+
+        node = script[pos]
+
+        if isinstance(node, redbaron.PrintNode) and len(node.value) == 1:
+            value, = node.value
+            # Useless parens
+            if isinstance(value, redbaron.AssociativeParenthesisNode):
+                value = value.value
+            if isinstance(value, redbaron.NameNode):
+                return pos, (cls, {'value': ('var', value.value)}, {})
+            elif isinstance(value, redbaron.StringNode):
+                return pos, (cls, {'value': ('const', value.value)}, {})
+        return None
+
 ##############################################################################
 
 # Tuple will be reasonably magic right now. We'll integrate it better
@@ -950,6 +1000,92 @@ class List(Constant):
             self.get_input('value')
         self.set_output('value', head + middle + items + tail)
 
+    @staticmethod
+    def to_python_script(module):
+        set_ports = set(f.name for f in module.functions)
+        set_ports.update(
+                port
+                for port, nb in module.connected_input_ports.iteritems()
+                if nb > 0)
+        inputs = {}
+        add = []
+        if 'head' in set_ports:
+            inputs['head'] = u'head'  # TODO : depth=1 here...
+            add.append(u'[head]')
+        if 'value' in set_ports:
+            inputs['value'] = u'middle'
+            add.append(u'middle')
+        items = [p.name for p in module.input_port_specs]
+        if items:
+            add_items = u'[%s]' % ', '.join((u'i_%s' % i) for i in items)
+            inputs.update((i, u'i_%s' % i) for i in items)
+            add.append(add_items)
+        if 'tail' in set_ports:
+            inputs['tail'] = u'tail'
+            add.append(u'tail')
+        if add:
+            code = u'value = %s' % u' + '.join(add)
+        else:
+            code = u'[]'
+        return Script(code, inputs=inputs, outputs={'value': u'value'})
+
+    @classmethod
+    def from_python_script(cls, script, pos, iports):
+        import redbaron
+        from vistrails.core.scripting import import_
+
+        node = script[pos]
+
+        if not isinstance(node, redbaron.AssignmentNode):
+            return None
+        output = node.target.value
+
+        items = []
+        def add(item):
+            if (isinstance(item, redbaron.BinaryOperatorNode) and
+                    item.value == '+'):
+                add(item.first)
+                add(item.second)
+            elif isinstance(item, (redbaron.NameNode, redbaron.ListNode)):
+                items.append(item)
+            else:
+                raise import_.Mismatch
+        add(node.value)
+
+        inputs = {}
+        portspecs = []
+        variant = 'org.vistrails.vistrails.basic:Variant'
+
+        if (items and isinstance(items[0], redbaron.ListNode) and
+                len(items[0].value) == 1):
+            v = items.pop(0).value[0]
+            if isinstance(v, redbaron.NameNode):
+                inputs['head'] = 'var', v.value
+            else:
+                inputs['head'] = 'const', v.dumps()
+        if items and isinstance(items[0], redbaron.NameNode):
+            v = items.pop(0)
+            inputs['value'] = 'var', v.value
+        if items and isinstance(items[0], redbaron.ListNode):
+            for i, v in enumerate(items.pop(0).value):
+                name = 'item%d' % i
+                portspecs.append(('input', name, variant))
+                if isinstance(v, redbaron.NameNode):
+                    inputs[name] = 'var', v.value
+                else:
+                    inputs[name] = 'const', v.value
+        if items and isinstance(items[0], redbaron.NameNode):
+            v = items.pop(0)
+            inputs['value'] = 'var', v.value
+
+        if items:
+            return None
+
+        return pos, (cls,
+                     inputs,
+                     {'value': ('var', output)},
+                     portspecs)
+
 ##############################################################################
 # Dictionary
 
@@ -1074,6 +1210,14 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     def compute(self):
         s = urllib.unquote(str(self.get_input('source')))
         self.run_code(s, use_input=True, use_output=True)
+
+    @staticmethod
+    def to_python_script(module):
+        for f in module.functions:
+            if f.name == 'source':
+                code = urllib.unquote(str(f.parameters[0].strValue))
+                return Script(code, inputs='variables', outputs='variables')
+        return ''
 
 ##############################################################################
 

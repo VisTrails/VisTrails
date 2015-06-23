@@ -1,3 +1,5 @@
+from __future__ import division
+
 from PyQt4 import QtGui
 
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
