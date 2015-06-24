@@ -135,9 +135,12 @@ class VistrailsViewerWindow(StoreViewerWindow):
                     break
 
 
-store = get_default_store()
-viewer = VistrailsViewerWindow(store)
+_viewer = None
 
 
 def show_viewer():
-    viewer.show()
+    global _viewer
+    if _viewer is None:
+        store = get_default_store()
+        _viewer = VistrailsViewerWindow(store)
+    _viewer.show()

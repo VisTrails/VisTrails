@@ -122,7 +122,8 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
 
 def PythonEditor(parent=None):
     try:
-        py_import('PyQt4.Qsci', {'linux-ubuntu': 'python-qscintilla2'})
+        py_import('PyQt4.Qsci', {'linux-debian': 'python-qscintilla2',
+                                 'linux-ubuntu': 'python-qscintilla2'})
     except ImportError:
         return OldPythonEditor(parent)
     else:

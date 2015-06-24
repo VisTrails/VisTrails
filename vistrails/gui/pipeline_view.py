@@ -2752,7 +2752,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if self.skip_update:
             return
         if (self.controller.current_pipeline and
-            self.controller.current_pipeline.is_valid):
+                self.controller.current_pipeline.is_valid):
             for module_id, list_depth in \
                     self.controller.current_pipeline.mark_list_depth(modules):
                 if module_id in self.modules:
@@ -2760,7 +2760,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         for c in self.connections.itervalues():
             c.setupConnection()
 
-    
     def delete_tmp_module(self):
         if self.tmp_module_item is not None:
             self.removeItem(self.tmp_module_item)
