@@ -2765,10 +2765,17 @@ class QPipelineScene(QInteractiveGraphicsScene):
             return
         if (self.controller.current_pipeline and
                 self.controller.current_pipeline.is_valid):
-            for module_id, list_depth in \
-                    self.controller.current_pipeline.mark_list_depth(modules):
-                if module_id in self.modules:
-                    self.modules[module_id].module.list_depth = list_depth
+            try:
+                depths = \
+                    self.controller.current_pipeline.mark_list_depth(modules)
+            except GraphContainsCycles:
+                # Pipeline is invalid, we don't really care that the depths are
+                # not right
+                pass
+            else:
+                for module_id, list_depth in depths:
+                    if module_id in self.modules:
+                        self.modules[module_id].module.list_depth = list_depth
         for c in self.connections.itervalues():
             c.setupConnection()
 

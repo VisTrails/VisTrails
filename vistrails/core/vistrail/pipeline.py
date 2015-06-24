@@ -1125,8 +1125,10 @@ class Pipeline(DBWorkflow):
 
         """
         result = []
-        is_upstream = module_ids
+        is_upstream = bool(module_ids)
+        # Might raise GraphContainsCycles
         for module_id in self.graph.vertices_topological_sort():
+            # Skip until we find a module that's in module_ids
             if is_upstream:
                 if module_id in module_ids:
                     is_upstream = False
