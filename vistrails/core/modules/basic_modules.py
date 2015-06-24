@@ -374,8 +374,8 @@ class Path(Constant):
     _input_ports = [IPort("value", "Path"),
                     IPort("name", "String", optional=True),
                     IPort("relative_to", "String", optional=True,
-                          default='vtfile', entry_type='enum',
-                          values=['vtfile', 'vistrails', 'cwd'])]
+                          default='absolute', entry_type='enum',
+                          values=['absolute', 'vtfile', 'vistrails', 'cwd'])]
     _output_ports = [OPort("value", "Path")]
 
     @staticmethod
@@ -401,17 +401,21 @@ class Path(Constant):
             relative_to = self.get_input('relative_to')
             if os.path.isabs(n):
                 pass
+            elif relative_to == 'absolute':
+                raise ModuleError(
+                        self,
+                        "Path is not absolute")
             elif relative_to == 'vtfile':
                 locator = self.moduleInfo['locator']
                 if not locator.to_url().startswith('file://'):
                     raise ModuleError(self, "Locator does not refer to a file")
                 n = os.path.join(os.path.dirname(locator.name), n)
             elif relative_to == 'cwd':
-                pass  # Don't alter path
+                n = os.path.abspath(n)
             elif relative_to == 'vistrails':
-                n = os.path.join(
+                n = os.path.abspath(os.path.join(
                         vistrails.core.system.vistrails_root_directory(),
-                        n)
+                        n))
             else:
                 raise ModuleError(
                         self,
@@ -1726,10 +1730,10 @@ class TestNumericConversions(unittest.TestCase):
 class TestUnzip(unittest.TestCase):
     def test_unzip_file(self):
         from vistrails.tests.utils import execute, intercept_result
-        from vistrails.core.system import vistrails_root_directory
-        zipfile = os.path.join(vistrails_root_directory(),
-                               'tests', 'resources',
-                               'test_archive.zip')
+        zipfile = os.path.join(
+            vistrails.core.system.vistrails_root_directory(),
+            'tests', 'resources',
+            'test_archive.zip')
         with intercept_result(Unzip, 'file') as outfiles:
             self.assertFalse(execute([
                     ('Unzip', 'org.vistrails.vistrails.basic', [
@@ -1743,10 +1747,10 @@ class TestUnzip(unittest.TestCase):
 
     def test_unzip_all(self):
         from vistrails.tests.utils import execute, intercept_result
-        from vistrails.core.system import vistrails_root_directory
-        zipfile = os.path.join(vistrails_root_directory(),
-                               'tests', 'resources',
-                               'test_archive.zip')
+        zipfile = os.path.join(
+            vistrails.core.system.vistrails_root_directory(),
+            'tests', 'resources',
+            'test_archive.zip')
         with intercept_result(UnzipDirectory, 'directory') as outdir:
             self.assertFalse(execute([
                     ('UnzipDirectory', 'org.vistrails.vistrails.basic', [
