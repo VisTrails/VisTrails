@@ -37,7 +37,7 @@
 pipelines."""
 from __future__ import division
 
-import vistrails.core.cache.hasher
+from vistrails.core.cache.hasher import Hasher
 from vistrails.core.debug import format_exception
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.vistrails_module import Module, new_module, \
@@ -434,6 +434,7 @@ class Path(Constant):
 Path.default_value = PathObject('')
 
 def path_parameter_hasher(p):
+    # Here 'p' is a constant parameter, therefore relative_to is 'absolute'
     def get_mtime(path):
         t = int(os.path.getmtime(path))
         if os.path.isdir(path):
@@ -443,7 +444,7 @@ def path_parameter_hasher(p):
                     t = max(t, get_mtime(subpath))
         return t
 
-    h = vistrails.core.cache.hasher.Hasher.parameter_signature(p)
+    h = Hasher.parameter_signature(p)
     try:
         # FIXME: This will break with aliases - I don't really care that much
         t = get_mtime(p.strValue)
@@ -454,11 +455,47 @@ def path_parameter_hasher(p):
     hasher.update(str(t))
     return hasher.digest()
 
+def path_module_hasher(pipeline, module, constant_hasher_map):
+    # If 'value' is set, just hash normally (it's an absolute path)
+    # If not, look at relative_to: if it's 'absolute' or not set, hash normally
+    # If it's one of the other values, hash the relevant info. If it's an input
+    # connection, hash everything just in case, and emit a warning
+    if ('value' in module.connected_input_ports or
+            any(f.name == 'value' for f in module.functions)):
+        return Hasher.module_signature(module, constant_hasher_map)
+    else:
+        rel_to = None
+        for function in module.functions:
+            if function.name == 'relative_to':
+                rel_to = function.parameters[0].strValue
+                break
+        hasher = sha_hash()
+        hasher.update(Hasher.module_signature(module,
+                                              constant_hasher_map))
+        if rel_to == 'absolute':
+            pass
+        elif rel_to == 'vtfile':
+            pass  # TODO: where do I get this from, at the hasher level!?
+        elif rel_to == 'cwd':
+            hasher.update('\0')
+            hasher.update(os.getcwd())
+        elif rel_to == 'vistrails':
+            hasher.update('\0')
+            hasher.update(vistrails.core.system.vistrails_root_directory())
+        elif 'relative_to' in module.connected_input_ports:
+            # No choice, hash everything
+            hasher.update('\0')
+            hasher.update(vistrails.core.system.vistrails_root_directory())
+            hasher.update('\0')
+            hasher.update(os.getcwd())
+        return hasher.digest()
+
 class File(Path):
     """File is a VisTrails Module that represents a file stored on a
     file system local to the machine where VisTrails is running."""
 
     _settings = ModuleSettings(constant_signature=path_parameter_hasher,
+                               signature=path_module_hasher,
                                constant_widget=("%s:FileChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "File"),
@@ -478,6 +515,7 @@ class File(Path):
 class Directory(Path):
 
     _settings = ModuleSettings(constant_signature=path_parameter_hasher,
+                               signature=path_module_hasher,
                                constant_widget=("%s:DirectoryChooserWidget" %
                                                 constant_config_path))
     _input_ports = [IPort("value", "Directory"),
