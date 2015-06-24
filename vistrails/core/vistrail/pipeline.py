@@ -442,7 +442,7 @@ class Pipeline(DBWorkflow):
             if self.graph.in_degree(old_conn.destinationId) < 1:
                 connected_input_ports = \
                     self.modules[old_conn.destinationId].connected_input_ports
-                connected_input_ports.discard(conn.destination.name)
+                connected_input_ports.discard(old_conn.destination.name)
 
         if old_id in self._connection_signatures:
             del self._connection_signatures[old_id]
