@@ -40,6 +40,7 @@ initializations to the theme, packages and the builder...
 from __future__ import division
 
 from ast import literal_eval
+import copy
 import os.path
 import getpass
 import re
@@ -772,7 +773,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 try:
                     # Execute using persistent configuration + new temp configuration
                     old_temp_conf = self.temp_configuration
-                    self.startup.temp_configuration = self.configuration.__copy__()
+                    self.startup.temp_configuration = copy.copy(self.configuration)
                     self.temp_configuration.update(conf_options)
 
                     interactive = not self.temp_configuration.check('batch')
