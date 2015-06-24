@@ -353,9 +353,9 @@ def build_vistrails_cmd_line_db(path_to_vistrails, path_to_python,
         useroption = []
     #dump tree and workflow graph
     if wgraph:
-        graphoption = ['-E', '--with-workflow', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
+        graphoption = ['-E', '--output-pipeline-graph', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
     elif tree:
-        graphoption = ['-E', '--with-version-tree', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
+        graphoption = ['-E', '--output-version-tree', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
     else:
         graphoption = ['-p', 'file.dir=%s'%os.path.abspath(path_to_figures)]
     #don't select a workflow
@@ -391,9 +391,9 @@ def build_vistrails_cmd_line_file(path_to_vistrails, path_to_python,
         pdfoption = []
     #dump tree and workflow graph
     if wgraph:
-        graphoption = ['-E', '--with-workflow', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
+        graphoption = ['-E', '--output-pipeline-graph', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
     elif tree:
-        graphoption = ['-E', '--with-version-tree', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
+        graphoption = ['-E', '--output-version-tree', '-o', '%s'%os.path.abspath(path_to_figures)] + pdfoption
     else:
         graphoption = ['-p', 'file.dir=%s'%os.path.abspath(path_to_figures)]
     #don't select a workflow

@@ -531,7 +531,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 output_dir = None
 
             errs = []
-            if self.temp_configuration.check('withWorkflow'):
+            if self.temp_configuration.check('outputPipelineGraph'):
                 results = vistrails.core.console_mode.get_wf_graph(w_list, output_dir,
                                                                    self.temp_configuration.graphsAsPdf)
                 for r in results:
@@ -540,7 +540,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                     r[1])
                         debug.critical("*** Error in get_wf_graph: %s" % r[1])
             
-            if self.temp_configuration.check('withVersionTree'):
+            if self.temp_configuration.check('outputVersionTree'):
                 results = vistrails.core.console_mode.get_vt_graph(vt_list, output_dir,
                                                                    self.temp_configuration.graphsAsPdf)
                 for r in results:

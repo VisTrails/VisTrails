@@ -137,8 +137,8 @@ userPackageDir: Local packages directory
 viewOnLoad: Whether to show pipeline or history view when opening vistrail
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
-withVersionTree: Output the version tree as an image
-withWorkflow: Output the workflow graph as an image
+outputVersionTree: Output the version tree as an image
+outputPipelineGraph: Output the workflow graph as an image
 """
 
 _documentation = """
@@ -525,11 +525,11 @@ webRepositoryUser: String
     The default username for logging into a VisTrails web repository
     like crowdLabs.
 
-withVersionTree: Boolean
+outputVersionTree: Boolean
 
     Output the version tree as an image.
 
-withWorkflow: Boolean
+outputPipelineGraph: Boolean
 
     Output the workflow graph as an image.
 
@@ -630,8 +630,8 @@ base_config = {
      ConfigField("parameterExploration", False, bool,
                  ConfigType.COMMAND_LINE_FLAG),
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("withWorkflow", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("outputVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("outputPipelineGraph", False, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG)],
     "Database":
     [ConfigField("host", None, ConfigURL, ConfigType.COMMAND_LINE),
