@@ -69,7 +69,7 @@ except ImportError:
 
 ###############################################################################
 
-version = '2.1.1'
+version = '2.1.2'
 name = 'Basic Modules'
 identifier = 'org.vistrails.vistrails.basic'
 old_identifiers = ['edu.utah.sci.vistrails.basic']
@@ -1406,8 +1406,13 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         ops.append(('add', new_conn_2))
         return ops
 
+    def add_cwd(fname, module):
+        new_function = controller.create_function(module, 'relative_to',
+                                                  ['cwd'])
+        return [('add', new_function, 'module', module.id)]
+
     module_remap = {'FileSink':
-    [(None, '1.6', None,
+                        [(None, '1.6', None,
                           {'dst_port_remap':
                                {'overrideFile': 'overwrite',
                                 'outputName': outputName_remap},
@@ -1439,6 +1444,18 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                         [(None, '2.1.1', None, {})],
                     'Converter':
                         [(None, '2.1.1', None, {})],
+                    'Path':
+                        [(None, '2.1.2', None,
+                          {'dst_port_remap': {None: add_cwd}})],
+                    'File':
+                        [(None, '2.1.2', None,
+                          {'dst_port_remap': {None: add_cwd}})],
+                    'Directory':
+                        [(None, '2.1.2', None,
+                          {'dst_port_remap': {None: add_cwd}})],
+                    'OutputPath':
+                        [(None, '2.1.2', None,
+                          {'dst_port_remap': {None: add_cwd}})],
                     }
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
