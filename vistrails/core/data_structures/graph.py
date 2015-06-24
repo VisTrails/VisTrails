@@ -35,18 +35,15 @@
 ###############################################################################
 from __future__ import division
 
-import math
-import random
 import copy
+import random
+import unittest
 
 from itertools import imap, chain, izip
 
-from vistrails.core.utils import all
 from vistrails.core.data_structures.queue import Queue
 from vistrails.core.data_structures.stack import Stack
-
-import unittest
-import random
+from vistrails.core.utils import all
 
 ################################################################################
 # Graph
@@ -58,9 +55,8 @@ class Graph(object):
     """Graph holds a graph with possible multiple edges. The
     datastructures are all dictionary-based, so datatypes more general than ints
     can be used. For example:
-    
-    >>> import graph
-    >>> g = graph.Graph()
+
+    >>> g = Graph()
     >>> g.add_vertex('foo')
     >>> g.add_vertex('bar')
     >>> g.add_edge('foo', 'bar', 'edge_foo')
@@ -424,7 +420,7 @@ class Graph(object):
         Performs a depth-first search on a graph and returns three dictionaries with
         relevant information. If vertex_set is not None, then it is used as
         the list of ids to perform the DFS on.
-        
+
         See CLRS p. 541.
 
         enter_vertex, when present, is called just before visiting a vertex
@@ -437,46 +433,31 @@ class Graph(object):
         if not vertex_set:
             vertex_set = self.vertices
 
-        # Ugly ugly python
-        # http://mail.python.org/pipermail/python-list/2006-April/378964.html
-
-        # We cannot explicitly "del data":
-        # http://www.python.org/dev/peps/pep-0227/
-
-        class Closure(object):
-            
-            def clear(self):
-                del self.discovery
-                del self.parent
-                del self.finish
-                del self.t
-        
         # Straight CLRS p.541
-        data = Closure()
-        data.discovery = {} # d in CLRS
-        data.parent = {} # \pi in CLRS
-        data.finish = {}  # f in CLRS
-        data.t = 0
+        discovery = {} # d in CLRS
+        parents = {} # \pi in CLRS
+        finish = {}  # f in CLRS
+        t = [0]
 
         (enter, leave, back, other) = xrange(4)
 
         # inspired by http://www.ics.uci.edu/~eppstein/PADS/DFS.py
 
         def handle(v, w, edgetype):
-            data.t += 1
+            t[0] += 1
             if edgetype == enter:
-                data.discovery[v] = data.t
+                discovery[v] = t[0]
                 if enter_vertex:
                     enter_vertex(w)
                 if v != w:
-                    data.parent[w] = v
+                    parents[w] = v
             elif edgetype == leave:
-                data.finish[w] = data.t
+                finish[w] = t[0]
                 if leave_vertex:
                     leave_vertex(w)
             elif edgetype == back and raise_if_cyclic:
                 raise self.GraphContainsCycles(v, w)
-        
+
         visited = set()
         gray = set()
         # helper function to build stack structure
@@ -508,9 +489,7 @@ class Graph(object):
                             handle(stack.top()[0], parent, leave)
                 handle(vertex, vertex, leave)
 
-        result = (data.discovery, data.parent, data.finish)
-        data.clear()
-        return result
+        return discovery, parents, finish
 
     class VertexHasNoParentError(GraphException):
         def __init__(self, v):
