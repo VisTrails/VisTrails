@@ -1124,16 +1124,10 @@ class Pipeline(DBWorkflow):
         affects downstream. This slightly increases performance.
 
         """
+        # TODO: module_ids is currently ignored, this is potentially suboptimal
         result = []
-        is_upstream = bool(module_ids)
         # Might raise GraphContainsCycles
         for module_id in self.graph.vertices_topological_sort():
-            # Skip until we find a module that's in module_ids
-            if is_upstream:
-                if module_id in module_ids:
-                    is_upstream = False
-                else:
-                    continue
             module = self.get_module_by_id(module_id)
             module.list_depth = 0
             ports = []
