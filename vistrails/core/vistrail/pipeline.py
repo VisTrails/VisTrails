@@ -40,7 +40,7 @@ from __future__ import division
 from vistrails.core.cache.hasher import Hasher
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.data_structures.graph import Graph
+from vistrails.core.data_structures.graph import Graph, GraphContainsCycles
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException, MissingModuleVersion, MissingPackage, PortMismatch
@@ -853,6 +853,12 @@ class Pipeline(DBWorkflow):
         except InvalidPipeline, e:
             exceptions.update(e.get_exception_set())
 
+        # check for cycles
+        try:
+            self.graph.dfs(raise_if_cyclic=True)
+        except GraphContainsCycles, e:
+            exceptions.add(e)
+
         # do this before we check connection specs because it is
         # possible that a subpipeline invalidates the module, meaning
         # we shouldn't check the connection specs
@@ -1118,14 +1124,10 @@ class Pipeline(DBWorkflow):
         affects downstream. This slightly increases performance.
 
         """
+        # TODO: module_ids is currently ignored, this is potentially suboptimal
         result = []
-        is_upstream = module_ids
+        # Might raise GraphContainsCycles
         for module_id in self.graph.vertices_topological_sort():
-            if is_upstream:
-                if module_id in module_ids:
-                    is_upstream = False
-                else:
-                    continue
             module = self.get_module_by_id(module_id)
             module.list_depth = 0
             ports = []
