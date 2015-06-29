@@ -1114,7 +1114,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 log = self.log
             opm_graph = OpmGraph(log=log, 
                                  version=self.current_version,
-                                 workflow=self.current_pipeline,
+                                 workflow=self.vistrail.getPipeline(self.current_version),
                                  registry=get_module_registry())
             locator.save_as(opm_graph)
             
@@ -1127,7 +1127,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 log = self.log
             prov_document = ProvDocument(log=log, 
                                          version=self.current_version,
-                                         workflow=self.current_pipeline,
+                                         workflow=self.vistrail.getPipeline(self.current_version),
                                          registry=get_module_registry())
             locator.save_as(prov_document)
 
