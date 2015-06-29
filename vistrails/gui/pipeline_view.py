@@ -3592,16 +3592,20 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return False
     
     def execute(self, target=None):
-        # reset job view
-        if target is not None:
-            self.controller.execute_user_workflow(
-                    sinks=[target],
-                    reason="Execute specific module")
+        try:
+            if target is not None:
+                self.controller.execute_user_workflow(
+                        sinks=[target],
+                        reason="Execute specific module")
+            else:
+                self.controller.execute_user_workflow()
+        except Exception, e:
+            debug.unexpected_exception(e)
+            debug.critical("Error executing workflow: %s" % debug.format_exception(e))
         else:
-            self.controller.execute_user_workflow()
-        from vistrails.gui.vistrails_window import _app
-        _app.notify('execution_updated')
-        
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('execution_updated')
+
     def publish_to_web(self):
         from vistrails.gui.publishing import QVersionEmbed
         panel = QVersionEmbed.instance()
