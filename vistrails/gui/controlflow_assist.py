@@ -176,7 +176,8 @@ class QControlFlowAssistDialog(QtGui.QDialog):
                 self.connection_ids.remove(connection.id)
                 self.controller.delete_connection(connection.id)
             group_inport_module = self.controller.add_module(bm_identifier, 'InputPort',
-                                                             input_module.location.x-offset[input_module], input_module.location.y)
+                                                             x=input_module.location.x-offset[input_module],
+                                                             y=input_module.location.y)
             io_modules.append(group_inport_module)
             offset[input_module] += 130
             for p in group_inport_module.sourcePorts():
@@ -192,7 +193,8 @@ class QControlFlowAssistDialog(QtGui.QDialog):
             self.connection_ids.remove(connection.id)
             self.controller.delete_connection(connection.id)
         group_outport_module = self.controller.add_module(bm_identifier, 'OutputPort',
-                                                          output_module.location.x+halfwidth+75, output_module.location.y)
+                                                          x=output_module.location.x+halfwidth+75,
+                                                          y=output_module.location.y)
         io_modules.append(group_outport_module)
         for p in group_outport_module.destinationPorts():
             if p.name == 'InternalPipe':
@@ -210,7 +212,8 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         
         # Add Map module
         map_module = self.controller.add_module(cf_identifier, 'Map',
-                                                inner_group.location.x-120, inner_group.location.y)
+                                                x=inner_group.location.x-120,
+                                                y=inner_group.location.y)
         io_modules.append(map_module)
         
         # Get group 'self' port object
@@ -221,7 +224,8 @@ class QControlFlowAssistDialog(QtGui.QDialog):
         
         # Add PythonSource
         py_source_module = self.controller.add_module(bm_identifier, 'PythonSource',
-                                                      inner_group.location.x, inner_group.location.y+75)
+                                                      x=inner_group.location.x,
+                                                      y=inner_group.location.y+75)
         io_modules.append(py_source_module)
         group_type = '('+bm_identifier+':Group)'
         bool_type = '('+bm_identifier+':Boolean)'
@@ -306,7 +310,8 @@ print 'InputList: %%s' %% InputList
         offset = 165
         for port_type, port_name, list_type, sortkey in add_input_ports:
             group_inport_module = self.controller.add_module(bm_identifier, 'InputPort',
-                                                             py_source_module.location.x-offset, py_source_module.location.y+75)
+                                                             x=py_source_module.location.x-offset,
+                                                             y=py_source_module.location.y+75)
             if (port_type, port_name) in [('input', 'UseCartesianProduct'), ('input', 'UserDefinedInputList')]:
                 self.controller.update_ports_and_functions(group_inport_module.id, [], [], [('optional', [True])])
             io_modules.append(group_inport_module)
@@ -320,7 +325,8 @@ print 'InputList: %%s' %% InputList
         
         # Create and connect OutputPort from Map to force it to exist on group
         group_outport_module = self.controller.add_module(bm_identifier, 'OutputPort',
-                                                          map_module.location.x, map_module.location.y-75)
+                                                          x=map_module.location.x,
+                                                          y=map_module.location.y-75)
         io_modules.append(group_outport_module)
         output_portspec = map_module.get_port_spec('Result', 'output')
         for p in group_outport_module.destinationPorts():
