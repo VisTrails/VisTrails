@@ -271,6 +271,10 @@ def create_opm(workflow, version, log, reg):
             # need to have process that extracts artifacts for each iteration
             input_list_artifact = found_input_ports['InputList']
             result_artifact = found_output_ports.get('Result', None)
+            # if InputPort or OutputPort is a Connection we cannot do anything
+            if (found_input_ports['InputPort'].vtType == DBConnection.vtType or
+                found_input_ports['OutputPort'].vtType == DBConnection.vtType):
+                return
             input_port_list = \
                 literal_eval(found_input_ports['InputPort'].db_parameters[0].db_val)
             output_port = \
