@@ -291,50 +291,51 @@ def create_opm(workflow, version, log, reg):
                 j_process = create_process_manual('Join', account, id_scope)
                 processes.append(j_process)
             for loop_exec in item_exec.db_loop_execs:
-                loop_up_artifacts = {}
-                loop_down_artifacts = {}
-                for input_name in input_port_list:
-                    port_spec = DBPortSpec(id=-1,
-                                           name=input_name,
-                                           type='output')
-                    s_artifact = \
-                        create_artifact_from_port_spec(port_spec, account, 
-                                                       id_scope)
-                    artifacts.append(s_artifact)
-                    dependencies.append(create_was_generated_by(s_artifact,
-                                                                s_process,
-                                                                account,
-                                                                id_scope))
-                    if input_name not in loop_up_artifacts:
-                        loop_up_artifacts[input_name] = []
-                    loop_up_artifacts[input_name].append(s_artifact)
-
-                # process output_port
-                if loop_exec.db_completed == 1:
-                    port_spec = DBPortSpec(id=-1,
-                                           name=output_port,
-                                           type='output')
-                    o_artifact = \
-                            create_artifact_from_port_spec(port_spec, account, 
+                for loop_iteration in loop_exec.db_loop_iterations:
+                    loop_up_artifacts = {}
+                    loop_down_artifacts = {}
+                    for input_name in input_port_list:
+                        port_spec = DBPortSpec(id=-1,
+                                               name=input_name,
+                                               type='output')
+                        s_artifact = \
+                            create_artifact_from_port_spec(port_spec, account,
                                                            id_scope)
-                    artifacts.append(o_artifact)
-                    if output_port not in loop_down_artifacts:
-                        loop_down_artifacts[output_port] = []
-                    loop_down_artifacts[output_port].append(o_artifact)
+                        artifacts.append(s_artifact)
+                        dependencies.append(create_was_generated_by(s_artifact,
+                                                                    s_process,
+                                                                    account,
+                                                                    id_scope))
+                        if input_name not in loop_up_artifacts:
+                            loop_up_artifacts[input_name] = []
+                        loop_up_artifacts[input_name].append(s_artifact)
 
-                if result_artifact is not None:
-                    dependencies.append(create_used(j_process, o_artifact, 
-                                                    account, id_scope))
-                                                
-                # now process a loop_exec
-                for child_exec in loop_exec.db_item_execs:
-                    do_create_process(workflow, child_exec, account, 
-                                      module_processes)
-                for child_exec in loop_exec.db_item_execs:
-                    process_exec(child_exec, workflow, account, upstream_lookup,
-                                 downstream_lookup, depth+1, conn_artifacts,
-                                 function_artifacts, module_processes,
-                                 loop_up_artifacts, loop_down_artifacts, True)
+                    # process output_port
+                    if loop_iteration.db_completed == 1:
+                        port_spec = DBPortSpec(id=-1,
+                                               name=output_port,
+                                               type='output')
+                        o_artifact = \
+                                create_artifact_from_port_spec(port_spec, account,
+                                                               id_scope)
+                        artifacts.append(o_artifact)
+                        if output_port not in loop_down_artifacts:
+                            loop_down_artifacts[output_port] = []
+                        loop_down_artifacts[output_port].append(o_artifact)
+
+                    if result_artifact is not None:
+                        dependencies.append(create_used(j_process, o_artifact,
+                                                        account, id_scope))
+
+                    # now process a loop_exec
+                    for child_exec in loop_iteration.db_item_execs:
+                        do_create_process(workflow, child_exec, account,
+                                          module_processes)
+                    for child_exec in loop_iteration.db_item_execs:
+                        process_exec(child_exec, workflow, account, upstream_lookup,
+                                     downstream_lookup, depth+1, conn_artifacts,
+                                     function_artifacts, module_processes,
+                                     loop_up_artifacts, loop_down_artifacts, True)
 
             # need to set Return artifact and connect j_process to it
             if result_artifact is not None:
