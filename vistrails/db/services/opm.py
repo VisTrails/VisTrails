@@ -151,15 +151,19 @@ def create_opm(workflow, version, log, reg):
         module_processes[module.db_id] = (module, process)
 
     def get_package(reg, pkg_identifier, pkg_version=''):
-        if not pkg_version:
-            # spin and get current package
-            for pkg in reg.db_packages:
-                if pkg.db_identifier == pkg_identifier:
-                    break
-                pkg = None
-        else:
-            pkg = reg.db_packages_identifier_index[(pkg_identifier,
-                                                    pkg_version)]
+        if pkg_version:
+            try:
+                return reg.db_packages_identifier_index[(pkg_identifier,
+                                                         pkg_version)]
+            except:
+                print (("Warning: Version '%s' package '%s' "
+                        "is not in the registry") %
+                       (pkg_version, pkg_identifier))
+        # spin and get current package
+        for pkg in reg.db_packages:
+            if pkg.db_identifier == pkg_identifier:
+                break
+            pkg = None
         return pkg
 
     def process_exec(item_exec, workflow, account, upstream_lookup,
