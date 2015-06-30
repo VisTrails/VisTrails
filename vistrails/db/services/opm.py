@@ -144,8 +144,8 @@ def create_opm(workflow, version, log, reg):
         print 'adding process', process.db_id,
         if hasattr(item_exec, 'db_module_name'):
             print item_exec.db_module_name
-        elif hasattr(item_exec, 'db_group_nane'):
-            print item_exec.db_module_name
+        elif hasattr(item_exec, 'db_group_name'):
+            print item_exec.db_group_name
         processes.append(process)
         module = workflow.db_modules_id_index[item_exec.db_module_id]
         module_processes[module.db_id] = (module, process)
