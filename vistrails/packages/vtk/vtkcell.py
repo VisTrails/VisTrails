@@ -348,10 +348,17 @@ class QVTKWidget(QCellWidget):
                 display = None
                 try:
                     display = int(QtGui.QX11Info.display())
+                    display = hex(display)[2:]
                 except TypeError:
                     # This was changed for PyQt4.2
                     if isinstance(QtGui.QX11Info.display(), QtGui.Display):
                         display = sip.unwrapinstance(QtGui.QX11Info.display())
+                        display = hex(display)[2:]
+                except AttributeError:
+                    # Qt5 does not have QX11Info
+                    visApp = QtCore.QCoreApplication.instance()
+                    display = visApp.desktop().screenNumber()
+                    print "dissed", display
                 if display is not None:
                     v = vtk.vtkVersion()
                     version = [v.GetVTKMajorVersion(),
