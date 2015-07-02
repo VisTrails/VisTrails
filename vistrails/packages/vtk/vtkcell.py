@@ -483,8 +483,10 @@ class QVTKWidget(QCellWidget):
         """
         if system.systemType in ['Windows', 'Microsoft']:
             return None
-        else:
-            return QCellWidget.paintEngine(self)
+        # Qt5 does not use paintEngine, but VTK still calls it?
+        # So we need to disable it
+        #else:
+        #    return QCellWidget.paintEngine(self)
 
     def paintEvent(self, e):
         """ paintEvent(e: QPaintEvent) -> None
