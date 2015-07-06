@@ -93,8 +93,8 @@ class Vistrail(DBVistrail):
     def __init__(self, locator=None):
         DBVistrail.__init__(self)
 
-        self.locator = locator
         self.set_defaults()
+        self.locator = locator
 
     def __copy__(self):
         """ __copy__() -> Vistrail - Returns a clone of itself """ 
@@ -113,11 +113,13 @@ class Vistrail(DBVistrail):
             self.currentVersion = -1
             self.savedQueries = []
             self.is_abstraction = False
+            self.locator = None
         else:
             self.changed = other.changed
             self.currentVersion = other.currentVersion
             self.savedQueries = copy.copy(other.savedQueries)
             self.is_abstraction = other.is_abstraction
+            self.locator = other.locator
 
         # object to keep explicit expanded 
         # version tree always updated
