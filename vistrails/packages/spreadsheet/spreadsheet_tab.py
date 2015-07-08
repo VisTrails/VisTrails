@@ -105,6 +105,10 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         self.addAction(self.sheetTab.tabWidget.saveAction())
         self.addWidget(self.rowCountSpinBox())
         self.addWidget(self.colCountSpinBox())
+        self.connect(self.addAction(QtGui.QIcon(":/images/equal-sizes.png"),
+                                    "Reset sizes",),
+                     QtCore.SIGNAL('triggered()'),
+                     self.resetCellSizes)
         self.addAction(self.sheetTab.tabWidget.exportSheetToImageAction())
         self.addSeparator()
         self.layout().setSpacing(2)
@@ -139,6 +143,9 @@ class StandardWidgetToolBar(QtGui.QToolBar):
                          QtCore.SIGNAL('editingFinished()'),
                          self.sheetTab.colSpinBoxChanged)
         return self.colSpinBox
+
+    def resetCellSizes(self):
+        self.sheetTab.sheet.stretchCells()
 
     def setCellToolBar(self, cellToolBar):
         """ setCellToolBar(cellToolBar: QToolBar) -> None
