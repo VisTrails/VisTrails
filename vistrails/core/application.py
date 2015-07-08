@@ -37,7 +37,6 @@ from __future__ import division
 
 import os
 import sys
-import weakref
 import warnings
 
 from vistrails.core import debug
@@ -71,12 +70,12 @@ def finalize_vistrails(app):
 
 def get_vistrails_application():
     if VistrailsApplication is not None:
-        return VistrailsApplication()
+        return VistrailsApplication
     return None
 
 def set_vistrails_application(app):
     global VistrailsApplication
-    VistrailsApplication = weakref.ref(app, finalize_vistrails)
+    VistrailsApplication = app
 
 def is_running_gui():
     app = get_vistrails_application()
