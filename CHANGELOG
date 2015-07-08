@@ -1,16 +1,24 @@
 RELEASE NOTES
 -------------
-Release Name: v2.2.2 build ??? from v2.2 branch
+
+Release Name: v2.2.2 build f82afe43c098 from v2.2 branch
 
 Bug fixes:
  - prevents introducing cycles in pipeline view (#1097)
+ - Fixes to subworkflows
+   - Fixes subworkflows failing to execute (#1065)
+   - Fixes not being able to remove local subworkflows (#1101)
+   - Fixes upgrading to a newer local subworkflow
+ - Fixes OPM and PROV export (#1076) (#1075)
+ - Fixes executable documents (#1088)
+ - Fixed generating pipeline and version tree graphs
 
-Release Name: v2.2.1 build c366dbcb640c from v2.2 branch
+From Release: v2.2.1 build c366dbcb640c from v2.2 branch
 
 Bug fixes:
  - parameter exploration failed on cells upgraded to output modules (#1063)
 
-Release Name: v2.2 build 7a19c29b8322 from master branch
+From Release: v2.2 build 7a19c29b8322 from v2.2 branch
 
 Enhancements:
  - zip/unzip binaries no longer needed (#862)
