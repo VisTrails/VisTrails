@@ -1,10 +1,9 @@
 RELEASE NOTES
 -------------
 
-Release Name: v2.2.1 build f82afe43c098 from v2.2 branch
+Release Name: v2.2.2 build f82afe43c098 from v2.2 branch
 
 Bug fixes:
- - parameter exploration failed on cells upgraded to output modules (#1063)
  - prevents introducing cycles in pipeline view (#1097)
  - Fixes to subworkflows
    - Fixes subworkflows failing to execute (#1065)
@@ -14,7 +13,12 @@ Bug fixes:
  - Fixes executable documents (#1088)
  - Fixed generating pipeline and version tree graphs
 
-Previous Release: v2.2 build 7a19c29b8322 from v2.2 branch
+From Release: v2.2.1 build c366dbcb640c from v2.2 branch
+
+Bug fixes:
+ - parameter exploration failed on cells upgraded to output modules (#1063)
+
+From Release: v2.2 build 7a19c29b8322 from v2.2 branch
 
 Enhancements:
  - zip/unzip binaries no longer needed (#862)
