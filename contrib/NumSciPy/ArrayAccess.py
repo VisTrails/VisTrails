@@ -10,12 +10,12 @@ class ArrayAccess(object):
 class GetShape(Module, ArrayAccess):
     """ Get the size of each dimension of an N-dimensional array"""
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         sh = a.get_shape()
         dims = len(sh)
         for i in xrange(dims):
             pname = "dim" + str(i)
-            self.setResult(pname, sh[i])
+            self.set_output(pname, sh[i])
 
     @classmethod
     def register(cls, reg, basic):
@@ -33,11 +33,11 @@ class GetShape(Module, ArrayAccess):
 class GetReals(Module, ArrayAccess):
     """ Get the real component of a complex array """
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         b = a.get_reals()
         out = NDArray()
         out.set_array(b)
-        self.setResult("Real Component", out)
+        self.set_output("Real Component", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -49,11 +49,11 @@ class GetReals(Module, ArrayAccess):
 class GetImaginaries(Module, ArrayAccess):
     """ Get the imaginary component of a complex array """
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         b = a.get_imaginary()
         out = NDArray()
         out.set_array(b)
-        self.setResult("Im Component", out)
+        self.set_output("Im Component", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -64,8 +64,8 @@ class GetImaginaries(Module, ArrayAccess):
 class GetMax(Module, ArrayAccess):
     """ Get the maximal value from an array """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        self.setResult("Max", float(a.get_max()))
+        a = self.get_input("Array")
+        self.set_output("Max", float(a.get_max()))
 
     @classmethod
     def register(cls, reg, basic):
@@ -76,11 +76,11 @@ class GetMax(Module, ArrayAccess):
 class GetMean(Module, ArrayAccess):
     """ Get the mean value of an array """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        axis = self.forceGetInputFromPort("Axis")
+        a = self.get_input("Array")
+        axis = self.force_get_input("Axis")
         out = NDArray()
         out.set_array(numpy.array(a.get_mean(axis)))
-        self.setResult("Mean", out)
+        self.set_output("Mean", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -92,8 +92,8 @@ class GetMean(Module, ArrayAccess):
 class GetMin(Module, ArrayAccess):
     """ Get the smallest value in an array """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        self.setResult("Min", float(a.get_min()))
+        a = self.get_input("Array")
+        self.set_output("Min", float(a.get_min()))
 
     @classmethod
     def register(cls, reg, basic):
@@ -104,10 +104,10 @@ class GetMin(Module, ArrayAccess):
 class GetDiagonal(Module, ArrayAccess):
     """ Get an array representing the values on the diagonal of the input array """
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         out = NDArray()
         out.set_array(a.get_diagonal())
-        self.setResult("Diagonal", out)
+        self.set_output("Diagonal", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -118,12 +118,12 @@ class GetDiagonal(Module, ArrayAccess):
 class GetArrayAsType(Module, ArrayAccess):
     """ Cast the array to the given type """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        t = self.getInputFromPort("Type")
+        a = self.get_input("Array")
+        t = self.get_input("Type")
         t.setValue("0")
         out = NDArray()
         out.set_array(a.get_array_as_type(type(t.value)))
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -135,10 +135,10 @@ class GetArrayAsType(Module, ArrayAccess):
 class GetConjugate(Module, ArrayAccess):
     """ Get the complex conjugate of the input array """
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         out = NDArray()
         out.set_array(a.get_conjugate())
-        self.setResult("Conjugate", out)
+        self.set_output("Conjugate", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -149,10 +149,10 @@ class GetConjugate(Module, ArrayAccess):
 class GetFlattenedArray(Module, ArrayAccess):
     """ Get a flattened representation of the input array"""
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         out = NDArray()
         out.set_array(a.get_flattened())
-        self.setResult("Flat Array", out)
+        self.set_output("Flat Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -163,13 +163,13 @@ class GetFlattenedArray(Module, ArrayAccess):
 class GetField(Module, ArrayAccess):
     """ Get a field from an array given the output datatype and offset into the array"""
     def compute(self):
-        a = self.getInputFromPort("Array")
-        dt = self.getInputFromPort("DType")
+        a = self.get_input("Array")
+        dt = self.get_input("DType")
         dt.setValue("0")
-        o = self.getInputFromPort("Offset")
+        o = self.get_input("Offset")
         out = NDArray()
         out.set_array(a.get_field(type(dt.value), o))
-        self.setResult("Field", out)
+        self.set_output("Field", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -182,8 +182,8 @@ class GetField(Module, ArrayAccess):
 class ToScalar(Module, ArrayAccess):
     """ Return an array of size 1 to a scalar """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        self.setResult("Item", float(a.get_item()))
+        a = self.get_input("Array")
+        self.set_output("Item", float(a.get_item()))
 
     @classmethod
     def register(cls, reg, basic):
@@ -194,8 +194,8 @@ class ToScalar(Module, ArrayAccess):
 class GetMemoryFootprint(Module, ArrayAccess):
     """ Return the amount of system memory consumed by the array """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        self.setResult("Size", int(a.get_mem_size()))
+        a = self.get_input("Array")
+        self.set_output("Size", int(a.get_mem_size()))
 
     @classmethod
     def register(cls, reg, basic):
@@ -206,8 +206,8 @@ class GetMemoryFootprint(Module, ArrayAccess):
 class GetArrayRank(Module, ArrayAccess):
     """ Get the rank of the array """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        self.setResult("Rank", int(a.get_num_dims()))
+        a = self.get_input("Array")
+        self.set_output("Rank", int(a.get_num_dims()))
 
     @classmethod
     def register(cls, reg, basic):
@@ -218,10 +218,10 @@ class GetArrayRank(Module, ArrayAccess):
 class GetNonZeroEntries(Module, ArrayAccess):
     """ Get an array consisting of the indices to all non-zero entries of the input array."""
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         out = NDArray()
         out.set_array(a.get_nonzero_indices())
-        self.setResult("Entries", out)
+        self.set_output("Entries", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -232,8 +232,8 @@ class GetNonZeroEntries(Module, ArrayAccess):
 class GetArraySize(Module, ArrayAccess):
     """ Get the number of entries in an array """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        self.setResult("Size", a.get_num_elements())
+        a = self.get_input("Array")
+        self.set_output("Size", a.get_num_elements())
 
     @classmethod
     def register(cls, reg, basic):
@@ -244,10 +244,10 @@ class GetArraySize(Module, ArrayAccess):
 class GetTranspose(Module, ArrayAccess):
     """ Get the transpose of the array """
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         out = NDArray()
         out.set_array(a.get_transpose())
-        self.setResult("Transpose", out)
+        self.set_output("Transpose", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -258,11 +258,11 @@ class GetTranspose(Module, ArrayAccess):
 class GetRowRange(Module, ArrayAccess):
     """ Get a set of rows from the input array """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        s = self.getInputFromPort("Start")
-        e = self.getInputFromPort("End")
+        a = self.get_input("Array")
+        s = self.get_input("Start")
+        e = self.get_input("End")
         out = NDArray()
-        if self.forceGetInputFromPort("One Indexed"):
+        if self.force_get_input("One Indexed"):
             s = s-1
             e = e-1
 
@@ -274,7 +274,7 @@ class GetRowRange(Module, ArrayAccess):
 
         out.set_domain_name(a.get_domain_name())
         out.set_range_name(a.get_range_name())
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -289,15 +289,15 @@ class GetRowRange(Module, ArrayAccess):
 class GetRows(Module, ArrayAccess):
     """ Get a set of rows from the input array defined by a list of indexes """
     def compute(self):
-        l = self.forceGetInputFromPort("Index List")
+        l = self.force_get_input("Index List")
         if l == None:
-            l = self.forceGetInputListFromPort("Indexes")
+            l = self.force_get_input_list("Indexes")
 
         if l == None or len(l) == 0:
             raise ModuleError("No indexes provided")
 
         l.sort()
-        inp = self.getInputFromPort("Array")
+        inp = self.get_input("Array")
         in_ar = inp.get_array()
         out_ar = in_ar[l[0],::]
         for i in range(1,len(l)):
@@ -310,8 +310,8 @@ class GetRows(Module, ArrayAccess):
         out.set_array(out_ar)
         out_order = NDArray()
         out_order.set_array(numpy.array(l))
-        self.setResult("Output Array", out)
-        self.setResult("Output Order", out_order)
+        self.set_output("Output Array", out)
+        self.set_output("Output Order", out_order)
         
     @classmethod
     def register(cls, reg, basic):
@@ -325,12 +325,12 @@ class GetRows(Module, ArrayAccess):
 class GetColumnRange(Module, ArrayAccess):
     """ Get a set of columns from the input array """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        s = self.getInputFromPort("Start")
-        e = self.getInputFromPort("End")
+        a = self.get_input("Array")
+        s = self.get_input("Start")
+        e = self.get_input("End")
         out = NDArray()
         out.set_array(a.get_col_range(s, e-1))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):

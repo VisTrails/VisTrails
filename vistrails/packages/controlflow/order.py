@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput
 import copy
 
@@ -47,16 +50,59 @@ class ExecuteInOrder(Module):
     modules.
     """
 
-    def updateUpstream(self):
+    def update_upstream(self):
         # don't do update until compute!
         pass
 
     def compute(self):
-        # do updateUpstream as compute, but sort by key
+        # do update_upstream as compute, but sort by key
         for _, connectorList in sorted(self.inputPorts.iteritems()):
             for connector in connectorList:
                 connector.obj.update()
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
                 if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(iport, connector)
+                    self.remove_input_connector(iport, connector)
+
+
+###############################################################################
+
+import unittest
+
+from vistrails.tests.utils import capture_stdout, execute
+
+
+class TestOrder(unittest.TestCase):
+    def test_1(self):
+        with capture_stdout() as output:
+            self.assertFalse(execute([
+                    ('StandardOutput', 'org.vistrails.vistrails.basic', [
+                        ('value', [('String', 'one')]),
+                    ]),
+                    ('StandardOutput', 'org.vistrails.vistrails.basic', [
+                        ('value', [('String', 'two')]),
+                    ]),
+                    ('ExecuteInOrder', 'org.vistrails.vistrails.control_flow', []),
+                ],
+                [
+                    (0, 'self', 2, 'module1'),
+                    (1, 'self', 2, 'module2'),
+                ]))
+        self.assertEqual(output, ['one', 'two'])
+
+    def test_2(self):
+        with capture_stdout() as output:
+            self.assertFalse(execute([
+                    ('StandardOutput', 'org.vistrails.vistrails.basic', [
+                        ('value', [('String', 'two')]),
+                    ]),
+                    ('StandardOutput', 'org.vistrails.vistrails.basic', [
+                        ('value', [('String', 'one')]),
+                    ]),
+                    ('ExecuteInOrder', 'org.vistrails.vistrails.control_flow', []),
+                ],
+                [
+                    (1, 'self', 2, 'module1'),
+                    (0, 'self', 2, 'module2'),
+                ]))
+        self.assertEqual(output, ['one', 'two'])

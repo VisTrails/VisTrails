@@ -1,36 +1,40 @@
 ###############################################################################
 ##
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from __future__ import division
 
 import matplotlib
 matplotlib.use('Qt4Agg', warn=False)
@@ -40,7 +44,7 @@ import vistrails.core.db.action
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.operation import AddOp
 
-from bases import _modules as _base_modules
+from bases import _modules as _base_modules, MplFigureOutput
 from plots import _modules as _plot_modules
 from artists import _modules as _artist_modules
 from identifiers import identifier
@@ -54,8 +58,9 @@ def initialize(*args, **kwargs):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     if reg.has_module('org.vistrails.vistrails.spreadsheet',
                       'SpreadsheetCell'):
-        from figure_cell import MplFigureCell
+        from figure_cell import MplFigureCell, MplFigureToSpreadsheet
         _modules.append(MplFigureCell)
+        MplFigureOutput.register_output_mode(MplFigureToSpreadsheet)
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
@@ -128,6 +133,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     to_properties = []
     to_axes = []
     old_figure = (None, None)
+    props_name = None
     if module.name == 'MplScatterplot':
         props_name = 'MplPathCollectionProperties'
         props_input = 'pathCollectionProperties'
@@ -145,12 +151,13 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         old_loc = module.location
         old_figure = find_figure(module)
 
-    module_remap = {'MplPlot': 
+    module_remap = {'MplPlot':
                     [(None, '1.0.0', 'MplSource',
                       {'dst_port_remap': {'source': 'source',
                                           'Hide Toolbar': None},
-                       'src_port_remap': {'source': 'self'}})],
-                    'MplFigure': 
+                       'src_port_remap': {'source': 'value',
+                                          'self': 'value'}})],
+                    'MplFigure':
                     [(None, '1.0.0', None,
                       {'dst_port_remap': {'Script': 'addPlot'},
                        'src_port_remap': {'FigureManager': 'self',
@@ -166,8 +173,9 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                           'facecolor': None,
                                           'title': None,
                                           'xlabel': None,
-                                          'ylabel': None},
-                       'src_port_remap': {'source': 'self'}})],
+                                          'ylabel': None,
+                                          'self': 'value'},
+                       'src_port_remap': {'source': 'value'}})],
                     'MplHistogram':
                     [(None, '1.0.0', 'MplHist',
                       {'dst_port_remap': {'columnData': 'x',
@@ -175,9 +183,19 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                           'facecolor': None,
                                           'title': None,
                                           'xlabel': None,
-                                          'ylabel': None},
-                       'src_port_remap': {'source': 'self'}})],
+                                          'ylabel': None,
+                                          'self': 'value'},
+                       'src_port_remap': {'source': 'value'}})],
                 }
+
+    # '1.0.2' -> '1.0.3' changes 'self' output port to 'value'
+    module_remap.setdefault('MplSource', []).append(
+                (None, '1.0.3', None, {
+                 'src_port_remap': {'self': 'value'}}))
+    if module.name in (m.__name__ for m in _plot_modules + _artist_modules):
+        module_remap.setdefault(module.name, []).append(
+                (None, '1.0.3', None, {
+                 'src_port_remap': {'self': 'value'}}))
 
     action_list = []
     if old_figure[1] is not None and \
@@ -188,13 +206,26 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         action = vistrails.core.db.action.create_action([('delete', conn)])
         action_list.append(action)
 
-    normal_actions = UpgradeWorkflowHandler.remap_module(controller, module_id, 
-                                                        pipeline, module_remap)
+    try:
+        from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
+    except ImportError:
+        pass
+    else:
+        module_remap = upgrade_cell_to_output(
+                module_remap, module_id, pipeline,
+                'MplFigureCell', 'MplFigureOutput',
+                '1.0.5', 'figure')
+
+    normal_actions = UpgradeWorkflowHandler.remap_module(
+            controller, module_id, pipeline, module_remap)
     action_list.extend(normal_actions)
 
     more_ops = []
     if any(p in inputs[0] or p in inputs[1] for p in to_properties):
         # create props module
+        if props_name is None:
+            raise RuntimeError("properties module needed for unknown module "
+                               "%s" % module.name)
         desc = reg.get_descriptor_by_name(identifier, props_name)
         props_module = \
             controller.create_module_from_descriptor(desc,
@@ -261,9 +292,5 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                                          fig_module,
                                          'axesProperties')
         more_ops.append(('add', new_conn))
-    
-    # for action in action_list:
-    #     for op in action.operations:
-    #         print "@+>:", op
+
     return action_list
-            

@@ -1,0 +1,63 @@
+<startup version="0.1">
+  <configuration>
+    <key name="nologger">
+      <bool value="True"/>
+    </key>
+    <key name="shell">
+      <configuration>
+        <key name="font_face">
+  	  <str value="Bitstream Vera mono"/>
+        </key>
+        <key name="font_size">
+	  <int value="9"/>
+        </key>
+      </configuration>
+    </key>
+    <key name="showMovies">
+      <bool value="False"/>
+    </key>
+    <!-- test dirname changes -->
+    <key name="userPackageDirectory">
+      <str value="${startup_dir}/userpackages"/>
+    </key>
+    <key name="logFile">
+      <str value="${startup_dir}/vistrails.log"/>
+    </key>
+    <key name="abstractionsDirectory">
+      <str value="/path/to/subworkflows"/>
+    </key>
+    <key name="subworkflowsDir">
+      <str value="subworkflows"/>
+    </key>
+    <key name="thumbs">
+      <configuration>
+	<key name="cacheDirectory">
+	  <str value="/path/to/thumbs"/>
+	</key>
+      </configuration>
+    </key>
+    <key name="fixedSpreadsheetCells">
+      <bool value="True"/>
+    </key>
+    <key name="spreadsheetDumpPDF">
+      <bool value="False"/>
+    </key>
+  </configuration>
+  <packages>
+    <package name="vtk"/>
+    <package name="pythonCalc"/>
+    <package name="spreadsheet"/>
+    <package name="dialogs"/>
+    <package name="URL"/>
+    <package name="controlflow"/>
+    <package name="tabledata"/>
+    <package name="afront">
+      <configuration>
+	<key name="debug">
+	  <bool value="True"/>
+	</key>
+      </configuration>
+    </package>
+  </packages>
+  <disabledpackages/>
+</startup>

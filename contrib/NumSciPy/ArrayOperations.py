@@ -11,20 +11,20 @@ class ArrayReshape(ArrayOperationModule, Module):
     of elements in the array must remain the same before and after
     reshaping. """
     def compute(self):
-	a = self.getInputFromPort("Array")
-        dims = self.getInputFromPort("Dims")
+	a = self.get_input("Array")
+        dims = self.get_input("Dims")
         newdims = []
 	
 	for i in xrange(dims):
 	    pname = "dim" + str(i)
-	    newdims.append(self.getInputFromPort(pname))
+	    newdims.append(self.get_input(pname))
 
         try:
             a.reshape(tuple(newdims))
         except:
             raise ModuleError("Could not assign new shape.  Be sure the number of elements remains constant")
         
-        self.setResult("Array Output", a.copy())
+        self.set_output("Array Output", a.copy())
 
     @classmethod
     def register(cls, reg, basic):
@@ -45,11 +45,11 @@ class ArrayCumulativeSum(ArrayOperationModule, Module):
     flattened array of the same size as the input where each element
     of the array serves as the cumulative sum up until that point."""
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         b = a.cumulative_sum()
         out = NDArray()
         out.set_array(b)
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
         
     @classmethod
     def register(cls, reg, basic):
@@ -60,11 +60,11 @@ class ArrayCumulativeSum(ArrayOperationModule, Module):
 class ArrayScalarMultiply(ArrayOperationModule, Module):
     """ Multiply the input array with a given scalar """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        b = self.getInputFromPort("Scalar")
+        a = self.get_input("Array")
+        b = self.get_input("Scalar")
         out = NDArray()
         out.set_array(a.get_array() * b)
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -91,18 +91,18 @@ class ArraySort(ArrayOperationModule, Module):
          heapsort  - good worst-case performance, unstable
     """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        if self.hasInputFromPort("Axis"):
-            self.axis = self.getInputFromPort("Axis")
-        if self.hasInputFromPort("Sort"):
-            self.kind = self.getInputFromPort("Sort")
-        if self.hasInputFromPort("Order"):
-            self.order = self.getInputFromPort("Order")
+        a = self.get_input("Array")
+        if self.has_input("Axis"):
+            self.axis = self.get_input("Axis")
+        if self.has_input("Sort"):
+            self.kind = self.get_input("Sort")
+        if self.has_input("Order"):
+            self.order = self.get_input("Order")
 
         b = a.sort_array(axis=self.axis, kind=self.kind, order=self.order)
         out = NDArray()
         out.set_array(b.copy())
-        self.setResult("Sorted Array", out)
+        self.set_output("Sorted Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -118,11 +118,11 @@ class ArrayCumulativeProduct(ArrayOperationModule, Module):
     a flattened array of the same size as the input where each element of
     the array serves as the cumulative product up until that point"""
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         b = a.cumulative_product()
         out = NDArray()
         out.set_array(b)
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -134,14 +134,14 @@ class ArrayFill(ArrayOperationModule, Module):
     """ Fill the input array with the given value. If no value is given
     it is filled with 0.0"""
     def compute(self):
-        a = self.getInputFromPort("Array")
-        if self.hasInputFromPort("Value"):
-            val = self.getInputFromPort("Value")
+        a = self.get_input("Array")
+        if self.has_input("Value"):
+            val = self.get_input("Value")
         else:
             val = 0.
             
         a.fill_array(val)
-        self.setResult("Array Output", a)
+        self.set_output("Array Output", a)
 
     @classmethod
     def register(cls, reg, basic):
@@ -158,13 +158,13 @@ class ArrayResize(ArrayOperationModule, Module):
     If the shape is smaller, the input array will be cropped appropriately.
     """
     def compute(self):
-	a = self.getInputFromPort("Array")
-        dims = self.getInputFromPort("Dims")
+	a = self.get_input("Array")
+        dims = self.get_input("Dims")
         newdims = []
 	
 	for i in xrange(dims):
 	    pname = "dim" + str(i)
-	    newdims.append(self.getInputFromPort(pname))
+	    newdims.append(self.get_input(pname))
 
         try:
             t = tuple(newdims)
@@ -174,7 +174,7 @@ class ArrayResize(ArrayOperationModule, Module):
         except:
             raise ModuleError("Could not assign new shape.")
         
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -196,21 +196,21 @@ class ArrayExtractRegion(ArrayOperationModule, Module):
     dimension and starting and ending indices """
     def compute(self):
         import operator
-        a = self.getInputFromPort("Array")
-        dims = self.getInputFromPort("Dims")
+        a = self.get_input("Array")
+        dims = self.get_input("Dims")
         a_dims = len(a.get_shape())
         if dims > a_dims:
             raise ModuleError("Output Dimensionality larger than Input Dimensionality")
 
         slices = []
         for i in xrange(dims):
-            (start, stop) = self.getInputFromPort("dim"+str(i))
+            (start, stop) = self.get_input("dim"+str(i))
             slices.append(slice(start, stop))
 
         ar = operator.__getitem__(a.get_array(), tuple(slices))
         out = NDArray()
         out.set_array(ar)
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
         
     @classmethod
     def register(cls, reg, basic):
@@ -231,10 +231,10 @@ class ArrayExtractRegion(ArrayOperationModule, Module):
 class ArrayRavel(ArrayOperationModule, Module):
     """ Get a 1D array containing the elements of the input array"""
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         b = NDArray()
         b.set_array(a.ravel().copy())
-        self.setResult("Array Output", b)
+        self.set_output("Array Output", b)
 
     @classmethod
     def register(cls, reg, basic):
@@ -251,13 +251,13 @@ class ArrayRound(ArrayOperationModule, Module):
         self.decimals = 0
 
     def compute(self):
-        a = self.getInputFromPort("Array")
-        if self.hasInputFromPort("Decimals"):
-            self.decimals = self.getInputFromPort("Decimals")
+        a = self.get_input("Array")
+        if self.has_input("Decimals"):
+            self.decimals = self.get_input("Decimals")
 
         out = NDArray()
         out.set_array(a.round(precision=self.decimals))
-        self.setResult("Array Output", out)
+        self.set_output("Array Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -273,13 +273,13 @@ class ArrayGetSigma(ArrayOperationModule, Module):
         self.axis=None
 
     def compute(self):
-        a = self.getInputFromPort("Array")
-        if self.hasInputFromPort("Axis"):
-            self.axis = self.getInputFromPort("Axis")
+        a = self.get_input("Array")
+        if self.has_input("Axis"):
+            self.axis = self.get_input("Axis")
 
         out = NDArray()
         out.set_array(a.get_standard_deviation(self.axis))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -291,8 +291,8 @@ class ArrayGetSigma(ArrayOperationModule, Module):
 class ArraySum(ArrayOperationModule, Module):
     """ Get the sum of all elements in the input array """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        self.setResult("Array Sum", float(a.get_sum()))
+        a = self.get_input("Array")
+        self.set_output("Array Sum", float(a.get_sum()))
 
     @classmethod
     def register(cls, reg, basic):
@@ -303,11 +303,11 @@ class ArraySum(ArrayOperationModule, Module):
 class ArrayElementMultiply(ArrayOperationModule, Module):
     """ Perform an element-wise multiply on the elements of two arrays """
     def compute(self):
-        a1 = self.getInputFromPort("Array1")
-        a2 = self.getInputFromPort("Array2")
+        a1 = self.get_input("Array1")
+        a2 = self.get_input("Array2")
         out = NDArray()
         out.set_array(a1.get_array() * a2.get_array())
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -322,23 +322,23 @@ class ArraySetElement(ArrayOperationModule, Module):
         Please note that this module creates a copy of the input to operate
         on to preserve the original array data. """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        if self.hasInputFromPort("Scalar Value"):
-            self.v = self.getInputFromPort("Scalar Value")
+        a = self.get_input("Array")
+        if self.has_input("Scalar Value"):
+            self.v = self.get_input("Scalar Value")
         else:
-            self.v = self.getInputFromPort("Value Array")
+            self.v = self.get_input("Value Array")
 
-        if self.hasInputFromPort("Single Index"):
-            self.ind = self.getInputFromPort("Single Index")
+        if self.has_input("Single Index"):
+            self.ind = self.get_input("Single Index")
         else:
-            self.ind = self.getInputFromPort("Index Array")
+            self.ind = self.get_input("Index Array")
 
         out_a = a.copy()
         
         out_a.put(self.ind, self.v)
         out = NDArray()
         out.set_array(out_a)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -352,11 +352,11 @@ class ArraySetElement(ArrayOperationModule, Module):
 class ArrayVariance(ArrayOperationModule, Module):
     """ Calculate the variance of the elements of an array """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        if self.hasInputFromPort("Axis"):
-            self.setResult("Variance", float(a.get_variance(axis=self.getInputFromPort("Axis"))))
+        a = self.get_input("Array")
+        if self.has_input("Axis"):
+            self.set_output("Variance", float(a.get_variance(axis=self.get_input("Axis"))))
         else:
-            self.setResult("Variance", float(a.get_variance()))
+            self.set_output("Variance", float(a.get_variance()))
 
     @classmethod
     def register(cls, reg, basic):
@@ -377,23 +377,23 @@ class ArrayTrace(ArrayOperationModule, Module):
         Offset = 0
     """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        if self.hasInputFromPort("Axis1"):
-            self.axis1 = self.getInputFromPort("Axis1")
+        a = self.get_input("Array")
+        if self.has_input("Axis1"):
+            self.axis1 = self.get_input("Axis1")
         else:
             self.axis1 = 0
 
-        if self.hasInputFromPort("Axis2"):
-            self.axis2 = self.getInputFromPort("Axis2")
+        if self.has_input("Axis2"):
+            self.axis2 = self.get_input("Axis2")
         else:
             self.axis2 = 1
 
-        if self.hasInputFromPort("Offset"):
-            self.offset = self.getInputFromPort("Offset")
+        if self.has_input("Offset"):
+            self.offset = self.get_input("Offset")
         else:
             self.offset = 0
 
-        self.setResult("Trace", float(a.get_trace(self.offset, self.axis1, self.axis2)))
+        self.set_output("Trace", float(a.get_trace(self.offset, self.axis1, self.axis2)))
 
     @classmethod
     def register(cls, reg, basic):
@@ -409,12 +409,12 @@ class ArraySwapAxes(ArrayOperationModule, Module):
     given axes swapped.
     """
     def compute(self):
-        a = self.getInputFromPort("Array")
-        a1 = self.getInputFromPort("Axis1")
-        a2 = self.getInputFromPort("Axis2")
+        a = self.get_input("Array")
+        a1 = self.get_input("Axis1")
+        a2 = self.get_input("Axis2")
         out = NDArray()
         out.set_array(a.swap_axes(a1, a2).copy())
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -427,10 +427,10 @@ class ArraySwapAxes(ArrayOperationModule, Module):
 class ArraySqueeze(ArrayOperationModule, Module):
     """ Eliminate all length-1 dimensions in the input array. """
     def compute(self):
-        a = self.getInputFromPort("Array")
+        a = self.get_input("Array")
         out = NDArray()
         out.set_array(a.get_array().squeeze().copy())
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -441,15 +441,15 @@ class ArraySqueeze(ArrayOperationModule, Module):
 class ArrayAdd(ArrayOperationModule, Module):
     """ Add two arrays of the same size and shape """
     def compute(self):
-        a1 = self.getInputFromPort("Array One").get_array()
-        a2 = self.getInputFromPort("Array Two").get_array()
+        a1 = self.get_input("Array One").get_array()
+        a2 = self.get_input("Array Two").get_array()
 
         if a1.shape != a2.shape:
             raise ModuleError("Cannot add arrays with different shapes")
 
         out = NDArray()
         out.set_array(a1 + a2)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -461,12 +461,12 @@ class ArrayAdd(ArrayOperationModule, Module):
 class ArrayScalarAdd(ArrayOperationModule, Module):
     """ Add two arrays of the same size and shape """
     def compute(self):
-        a1 = self.getInputFromPort("Array One").get_array()
-        s = self.getInputFromPort("Scalar")
+        a1 = self.get_input("Array One").get_array()
+        s = self.get_input("Scalar")
 
         out = NDArray()
         out.set_array(a1 + s)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -478,10 +478,10 @@ class ArrayScalarAdd(ArrayOperationModule, Module):
 class ArrayLog10(ArrayOperationModule, Module):
     """ Take the base-10 log of each element in the input array """
     def compute(self):
-        a = self.getInputFromPort("Array").get_array()
+        a = self.get_input("Array").get_array()
         out = NDArray()
         out.set_array(numpy.log10(a))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -495,11 +495,11 @@ class ArrayAtan2(ArrayOperationModule,  Module):
     Imaginaries:  Imaginary components of complex vectors
     """
     def compute(self):
-        r = self.getInputFromPort("Reals").get_array()
-        i = self.getInputFromPort("Imaginaries").get_array()
+        r = self.get_input("Reals").get_array()
+        i = self.get_input("Imaginaries").get_array()
         out = NDArray()
         out.set_array(numpy.arctan2(r,i))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -511,10 +511,10 @@ class ArrayAtan2(ArrayOperationModule,  Module):
 class ArraySqrt(ArrayOperationModule, Module):
     """ Calculate the element-wise square root of the input array """
     def compute(self):
-        a = self.getInputFromPort("Input Array").get_array()
+        a = self.get_input("Input Array").get_array()
         out = NDArray()
         out.set_array(numpy.sqrt(a))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -525,14 +525,14 @@ class ArraySqrt(ArrayOperationModule, Module):
 class ArrayThreshold(ArrayOperationModule, Module):
     """ Threshold the array keeping only the values above the scalar value, v. """
     def compute(self):
-        in_ar = self.getInputFromPort("Input Array").get_array()
-        v = self.getInputFromPort("Value")
-        r = self.forceGetInputFromPort("Replacement")
+        in_ar = self.get_input("Input Array").get_array()
+        v = self.get_input("Value")
+        r = self.force_get_input("Replacement")
         if r == None:
             r = 0.
         out = NDArray()
         out.set_array(numpy.where(in_ar > v, in_ar, r))
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -546,10 +546,10 @@ class ArrayWindow(ArrayOperationModule, Module):
     """ Threshold the array from both above and below, keeping only
     the values within the window. """
     def compute(self):
-        in_ar = self.getInputFromPort("Input Array").get_array()
-        lo = self.forceGetInputFromPort("Lower Bound")
-        hi = self.forceGetInputFromPort("Upper Bound")
-        r = self.forceGetInputFromPort("Replacement")
+        in_ar = self.get_input("Input Array").get_array()
+        lo = self.force_get_input("Lower Bound")
+        hi = self.force_get_input("Upper Bound")
+        r = self.force_get_input("Replacement")
         if r == None:
             r = 0.
         if lo == None:
@@ -561,7 +561,7 @@ class ArrayWindow(ArrayOperationModule, Module):
         o = numpy.where(in_ar >= lo, in_ar, r)
         o = numpy.where(o <= hi, o, r)
         out.set_array(o)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -575,9 +575,9 @@ class ArrayWindow(ArrayOperationModule, Module):
 class ArrayNormalize(ArrayOperationModule, Module):
     """ Normalize the input array """
     def compute(self):
-        in_ar = self.getInputFromPort("Input Array").get_array()
+        in_ar = self.get_input("Input Array").get_array()
         ar = numpy.zeros(in_ar.shape)
-        if self.forceGetInputFromPort("Planes"):
+        if self.force_get_input("Planes"):
             for i in range(in_ar.shape[0]):
                 p = in_ar[i] - in_ar[i].min()
                 ar[i] = p / p.max()
@@ -587,7 +587,7 @@ class ArrayNormalize(ArrayOperationModule, Module):
             
         out = NDArray()
         out.set_array(ar)
-        self.setResult("Output Array", out)
+        self.set_output("Output Array", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -599,26 +599,26 @@ class ArrayNormalize(ArrayOperationModule, Module):
 class ArrayName(ArrayOperationModule, Module):
     """ Assign a name or label to the entries of an array """
     def compute(self):
-        in_ar = self.getInputFromPort("Input Array")
-        gen_name = self.forceGetInputFromPort("Name")
-        one_index = self.forceGetInputFromPort("One Indexed")
+        in_ar = self.get_input("Input Array")
+        gen_name = self.force_get_input("Name")
+        one_index = self.force_get_input("One Indexed")
         if gen_name:
             in_ar.set_name(gen_name, index=one_index)
 
-        name_list = self.forceGetInputListFromPort("Row Name")
+        name_list = self.force_get_input_list("Row Name")
         if name_list != None:
             for (i,n) in name_list:
                 in_ar.set_row_name(n, i)
 
-        dname = self.forceGetInputFromPort("Domain Name")
+        dname = self.force_get_input("Domain Name")
         if dname:
             in_ar.set_domain_name(dname)
 
-        rname = self.forceGetInputFromPort("Range Name")
+        rname = self.force_get_input("Range Name")
         if rname:
             in_ar.set_range_name(rname)
 
-        self.setResult("Output Array", in_ar)
+        self.set_output("Output Array", in_ar)
 
     @classmethod
     def register(cls, reg, basic):

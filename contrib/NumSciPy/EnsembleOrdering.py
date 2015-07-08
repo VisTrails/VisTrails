@@ -13,7 +13,7 @@ class EnsembleModule(object):
 
 class ComputeDistance(EnsembleModule, Module):
     def compute(self):
-        vol = self.getInputFromPort("Signals").get_array()
+        vol = self.get_input("Signals").get_array()
         num_im = vol.shape[0]
 
         out_ar = numpy.zeros((num_im, num_im))
@@ -31,7 +31,7 @@ class ComputeDistance(EnsembleModule, Module):
 
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -43,8 +43,8 @@ class OrderByIndexes(EnsembleModule, Module):
     """ Order the inputs using an array containing the
     indexes they should appear in """
     def compute(self):
-        vol = self.getInputFromPort("Signals")
-        inds = self.getInputFromPort("Indexes")
+        vol = self.get_input("Signals")
+        inds = self.get_input("Indexes")
 
         sh = vol.get_shape()
         vol = vol.get_array()
@@ -59,7 +59,7 @@ class OrderByIndexes(EnsembleModule, Module):
 
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -98,10 +98,10 @@ class OrderByCorrelation(EnsembleModule, Module):
         
     def compute(self):
         ts = time.time()
-        vol = self.getInputFromPort("Signals")
-        ind = self.getInputFromPort("Key Slice")
-        if self.hasInputFromPort("Normalize"):
-            self.normalize = self.getInputFromPort("Normalize")
+        vol = self.get_input("Signals")
+        ind = self.get_input("Key Slice")
+        if self.has_input("Normalize"):
+            self.normalize = self.get_input("Normalize")
         else:
             self.normalize = False
 
@@ -113,7 +113,7 @@ class OrderByCorrelation(EnsembleModule, Module):
                 sl = sl / sl.max()
                 vol_ar[i] = sl
 
-        pos = self.forceGetInputFromPort("Key Position")
+        pos = self.force_get_input("Key Position")
             
         key_slice = vol_ar[ind]
         (r,c) = key_slice.shape
@@ -181,9 +181,9 @@ class OrderByCorrelation(EnsembleModule, Module):
 
         out_key = NDArray()
         out_key.set_array(key_slice_out)
-        self.setResult("Output Key Slice", out_key)
-        self.setResult("Output Volume", out_vol)
-        self.setResult("Output Correlation", out_cor)
+        self.set_output("Output Key Slice", out_key)
+        self.set_output("Output Volume", out_vol)
+        self.set_output("Output Correlation", out_cor)
 
     @classmethod
     def register(cls, reg, basic):
@@ -231,9 +231,9 @@ class OrderByProgressiveCorrelation(EnsembleModule, Module):
         return val
     
     def compute(self):
-        vol = self.getInputFromPort("Signals").get_array()
-        ind = self.getInputFromPort("Key Slice")
-        normalize = self.forceGetInputFromPort("Normalize")
+        vol = self.get_input("Signals").get_array()
+        ind = self.get_input("Key Slice")
+        normalize = self.force_get_input("Normalize")
 
         if normalize:
             for i in range(vol.shape[0]):
@@ -284,8 +284,8 @@ class OrderByProgressiveCorrelation(EnsembleModule, Module):
         out_cor = NDArray()
         out_cor.set_array(cor_ar)
 
-        self.setResult("Output Signals", out)
-        self.setResult("Output Correlations", out_cor)
+        self.set_output("Output Signals", out)
+        self.set_output("Output Correlations", out_cor)
 
     @classmethod
     def register(cls, reg, basic):

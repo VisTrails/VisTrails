@@ -13,8 +13,8 @@ val = ${t_ps.translations}(val)\
 <%def name="get_port_val(spec, t_ps)">\
         % if t_ps.required:
         % if t_ps.has_alternate_versions():
-        if self.hasInputFromPort('${t_ps.name}'):
-            val = self.getInputFromPort('${t_ps.name}')
+        if self.has_input('${t_ps.name}'):
+            val = self.get_input('${t_ps.name}')
             % if t_ps.translations:
             ${do_translate(spec, t_ps)}
             % endif
@@ -24,8 +24,8 @@ val = ${t_ps.translations}(val)\
             kwargs['${t_ps.arg}'] = val
             % endif
         % for alt_ps in t_ps.alternate_specs:
-        elif self.hasInputFromPort('${alt_ps.name}'):
-            val = self.getInputFromPort('${alt_ps.name}')
+        elif self.has_input('${alt_ps.name}'):
+            val = self.get_input('${alt_ps.name}')
             % if alt_ps.translations:
             ${do_translate(spec, alt_ps)}
             % endif
@@ -39,7 +39,7 @@ val = ${t_ps.translations}(val)\
             raise ModuleError(self, 'Must set one of "${t_ps.name}", ' \
                                   '${', '.join('"%s"' % alt_ps.name for alt_ps in t_ps.alternate_specs)}')
         % else:
-        val = self.getInputFromPort('${t_ps.name}')
+        val = self.get_input('${t_ps.name}')
         % if t_ps.in_args:
         args.append(val)
         % elif t_ps.in_kwargs:
@@ -50,8 +50,8 @@ val = ${t_ps.translations}(val)\
         % endif
         % endif
         % else:
-        if self.hasInputFromPort('${t_ps.name}'):
-            val = self.getInputFromPort('${t_ps.name}')
+        if self.has_input('${t_ps.name}'):
+            val = self.get_input('${t_ps.name}')
             % if t_ps.translations:
             ${do_translate(spec, t_ps)}
             % endif
@@ -61,8 +61,8 @@ val = ${t_ps.translations}(val)\
             kwargs['${t_ps.arg}'] = val
             % endif
         % for alt_ps in t_ps.alternate_specs:
-        elif self.hasInputFromPort('${alt_ps.name}'):
-            val = self.getInputFromPort('${alt_ps.name}')
+        elif self.has_input('${alt_ps.name}'):
+            val = self.get_input('${alt_ps.name}')
             % if alt_ps.translations:
             ${do_translate(spec, alt_ps)}
             % endif
@@ -117,15 +117,13 @@ class ${spec.name}(${spec.superklass}):
         ]
 
     _output_ports = [
-        ("self", "(${spec.name})"),
-        % for ps in spec.output_port_specs:
-        % if not ps.is_property():
-              ("${ps.name}", "${ps.get_port_type()}",
-                ${ps.get_port_attrs()}),
+        ("value", "(${spec.name})"),
+        % if any(not ps.is_property() for ps in spec.output_port_specs):
+            # (this plot has additional output which are not exposed as ports
+            # right now)
         % endif
-        % endfor
         ]
-    
+
     % if spec.get_init():
     ${spec.get_init()}
     % endif
@@ -141,25 +139,29 @@ ${get_port_val(spec, ps)}\
         kwargs = {}
         % for ps in spec.port_specs:
         % if ps.is_property():
-        if self.hasInputFromPort('${ps.name}'):
-            properties = self.getInputFromPort('${ps.name}')
+        if self.has_input('${ps.name}'):
+            properties = self.get_input('${ps.name}')
             properties.update_kwargs(kwargs)
         % elif not ps.hide and not ps.in_args and ps.in_kwargs:
 ${get_port_val(spec, ps)}\
         % endif
         % endfor
 
+        self.set_output('value', lambda figure: self.plot_figure(figure,
+                                                                 args, kwargs))
+
+    def plot_figure(self, figure, args, kwargs):
         % if spec.get_compute_before():
         ${spec.get_compute_before()}
         % endif
         % if spec.get_compute_inner():
         ${spec.get_compute_inner()}
         % elif spec.output_type is None:
-        ${spec.code_ref}(*args, **kwargs)        
+        ${spec.code_ref}(*args, **kwargs)
         % elif spec.output_type == "object":
         ${spec.get_returned_output_port_specs()[0].compute_name} = ${spec.code_ref}(*args, **kwargs)
         % else:
-        output = ${spec.code_ref}(*args, **kwargs)        
+        output = ${spec.code_ref}(*args, **kwargs)
         % endif
         % if spec.get_compute_after():
         ${spec.get_compute_after()}
@@ -176,8 +178,8 @@ ${get_port_val(spec, ps)}\
         % endif
         % for ps in spec.output_port_specs:
         % if ps.is_property():
-        if self.hasInputFromPort('${ps.name}'):
-            properties = self.getInputFromPort('${ps.name}')
+        if self.has_input('${ps.name}'):
+            properties = self.get_input('${ps.name}')
             % if ps.compute_parent:
             % if spec.get_output_port_spec(ps.compute_parent).plural:
             for obj in ${spec.get_output_port_spec(ps.compute_parent).compute_name}:
@@ -186,23 +188,17 @@ ${get_port_val(spec, ps)}\
             if ${spec.get_output_port_spec(ps.compute_parent).compute_name}.${ps.compute_name} is not None:
                 properties.update(${spec.get_output_port_spec(ps.compute_parent).compute_name}.${ps.compute_name})
             % endif
-            ## % if ps.plural:
-            ## for obj in ${ps.compute_name}:
-            ##     properties.update(obj)
-            ## % else:
-            ## properties.update(${ps.compute_name})
-            ## % endif
             % else:
             if ${ps.compute_name} is not None:
                 properties.update_props(${ps.compute_name})
             % endif
         % else:
-        self.setResult('${ps.name}', ${ps.compute_name})
+        self.set_output('${ps.name}', ${ps.compute_name})
         % endif
         % endfor
 
-% endfor        
-          
+% endfor
+
 _modules = [
 % for spec in specs.module_specs:
             ${spec.name},

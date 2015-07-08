@@ -1,8 +1,45 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
 from __future__ import division
 
 import colorsys
 from string import Template
 
+from vistrails.core.modules.config import IPort, OPort, ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError, Module
 from vistrails.core.utils import InstanceObject
 # FIXME make package imports better
@@ -27,9 +64,9 @@ def convert_color(c):
 class TitlesMixin(object):
     def get_titles(self, table=None, default_col=None):
         if table is None:
-            table = self.getInputFromPort("table")
-        title_col_idx = self.forceGetInputFromPort('titleColIdx')
-        title_col_name = self.forceGetInputFromPort('titleColName')
+            table = self.get_input("table")
+        title_col_idx = self.force_get_input('titleColIdx')
+        title_col_name = self.force_get_input('titleColName')
         print "title_col_idx:", title_col_idx
         print "title_col_name:", title_col_name
 
@@ -48,30 +85,31 @@ class TitlesMixin(object):
         return None
 
 class GMapVis(Module, OptionsMixin):
-    _input_ports = [('table', 'tabledata:Table'),
-                    ('latitudeColIdx', 'basic:Integer', {
-                        'optional': True, 'defaults': "['0']"}),
-                    ('latitudeColName', 'basic:String', {'optional': True}),
-                    ('longitudeColIdx', 'basic:Integer', {
-                        'optional': True, 'defaults': "['1']"}),
-                    ('longitudeColName', 'basic:String', {'optional': True})]
-    _output_ports = [('self', 'GMapVis')]
+    _input_ports = [IPort('table', 'tabledata:Table'),
+                    IPort('latitudeColIdx', 'basic:Integer', optional=True,
+                          default=0),
+                    IPort('latitudeColName', 'basic:String', optional=True),
+                    IPort('longitudeColIdx', 'basic:Integer', optional=True,
+                          default=1),
+                    IPort('longitudeColName', 'basic:String', optional=True)]
+    _output_ports = [OPort('self', 'GMapVis')]
+    _settings = ModuleSettings(abstract=True)
 
     def get_positions(self, table=None):
         if table is None:
-            table = self.getInputFromPort("table")
+            table = self.get_input("table")
         
-        lat_col_idx = self.forceGetInputFromPort('latitudeColIdx')
-        lat_col_name = self.forceGetInputFromPort('latitudeColName')
-        lng_col_idx = self.forceGetInputFromPort('longitudeColIdx')
-        lng_col_name = self.forceGetInputFromPort('longitudeColName')
+        lat_col_idx = self.force_get_input('latitudeColIdx')
+        lat_col_name = self.force_get_input('latitudeColName')
+        lng_col_idx = self.force_get_input('longitudeColIdx')
+        lng_col_name = self.force_get_input('longitudeColName')
         if lat_col_idx is None and lat_col_name is None:
-            lat_idx = self.getInputFromPort('latitudeColIdx') # default 0
+            lat_idx = self.get_input('latitudeColIdx') # default 0
         else:
             lat_idx = choose_column(table.columns, table.names, 
                                     lat_col_name, lat_col_idx)
         if lng_col_idx is None and lng_col_name is None:
-            lng_idx = self.getInputFromPort('longitudeColIdx') # default 1
+            lng_idx = self.get_input('longitudeColIdx') # default 1
         else:
             lng_idx = choose_column(table.columns, table.names, 
                                     lng_col_name, lng_col_idx)
@@ -100,9 +138,9 @@ class GMapMarkers(GMapVis, TitlesMixin):
   }
 """)
     SPECS = ['flat']
-    _input_ports = [("flat", "basic:Boolean", {'optional': True}),
-                    ('titleColIdx', 'basic:Integer', {'optional': True}),
-                    ('titleColName', 'basic:String', {'optional': True})]
+    _input_ports = [IPort("flat", "basic:Boolean", optional=True),
+                    IPort('titleColIdx', 'basic:Integer', optional=True),
+                    IPort('titleColName', 'basic:String', optional=True)]
     
     def compute(self):
         (positions, center) = self.get_positions()
@@ -114,19 +152,20 @@ class GMapMarkers(GMapVis, TitlesMixin):
                 "marker_titles": titles}
         
         vis_data = GMapVisData([], self.TEMPLATE, data, center)
-        self.setResult("self", vis_data)
+        self.set_output("self", vis_data)
 
 class GMapValueVis(GMapVis):
-    _input_ports = [('valueColIdx', 'basic:Integer', {
-                        'optional': True, 'defaults': "['2']"}),
-                    ('valueColName', 'basic:String', {'optional': True})]
+    _input_ports = [IPort('valueColIdx', 'basic:Integer', optional=True,
+                          default=2),
+                    IPort('valueColName', 'basic:String', optional=True),]
+    _settings = ModuleSettings(abstract=True)
     def get_values(self, table=None):
         if table is None:
-            table = self.getInputFromPort("table")
-        value_col_idx = self.forceGetInputFromPort("valueColIdx")
-        value_col_name = self.forceGetInputFromPort("valueColName")
+            table = self.get_input("table")
+        value_col_idx = self.force_get_input("valueColIdx")
+        value_col_name = self.force_get_input("valueColName")
         if value_col_idx is None and value_col_name is None:
-            value_idx = self.getInputFromPort("valueColIdx") # default 2
+            value_idx = self.get_input("valueColIdx") # default 2
         else:
             value_idx = choose_column(table.columns, table.names, 
                                       value_col_name, value_col_idx)
@@ -151,14 +190,13 @@ class GMapCircles(GMapValueVis):
              'strokeWeight', 
              'strokeOpacity',
              'fillOpacity']
-    _input_ports = [("strokeColor", "basic:Color", {
-                        'optional': True,
-                        'defaults': "['0,0,0']"}),
-                    ("strokeWeight", "basic:Integer", {'optional': True}),
-                    ("strokeOpacity", "basic:Float", {'optional': True}),
-                    ("fillColor", "basic:Color", {'optional': True}),
-                    ("fillOpacity", "basic:Float", {'optional': True}),
-                    ("scale", "basic:Float", {'optional': True})]
+    _input_ports = [IPort("strokeColor", "basic:Color", optional=True,
+                          default=InstanceObject(tuple=(0,0,0))),
+                    IPort("strokeWeight", "basic:Integer", optional=True),
+                    IPort("strokeOpacity", "basic:Float", optional=True),
+                    IPort("fillColor", "basic:Color", optional=True),
+                    IPort("fillOpacity", "basic:Float", optional=True),
+                    IPort("scale", "basic:Float", optional=True)]
     
     def compute(self):
         (positions, center) = self.get_positions()
@@ -169,7 +207,7 @@ class GMapCircles(GMapValueVis):
         data = {"circle_options": circle_options,
                 "circle_data": circle_data}
         vis_data = GMapVisData([], self.TEMPLATE, data, center)
-        self.setResult("self", vis_data)
+        self.set_output("self", vis_data)
 
 class GMapSymbols(GMapValueVis, TitlesMixin):
     TEMPLATE = Template("""
@@ -198,30 +236,27 @@ class GMapSymbols(GMapValueVis, TitlesMixin):
              'strokeOpacity',
              ('fillOpacity', None, True),
              ('scale', None, True)]
-    _input_ports = [("strokeColor", "basic:Color", {
-                        'optional': True,
-                        'defaults': "['0,0,0']"}),
-                    ("strokeWeight", "basic:Integer", {
-                        'optional': True, 'defaults': "['1']"}),
-                    ("strokeOpacity", "basic:Float", {'optional': True}),
-                    ("fillStartColor", "basic:Color", {
-                        'optional': True,
-                        'defaults': "['1,1,1']"}),
-                    ("fillEndColor", "basic:Color", {
-                        'optional': True,
-                        'defaults': "['1,0,0']"}),
-                    ("fillOpacity", "basic:Float", {'optional': True,
-                                                    'defaults': "['1.0']"}),
-                    ("scale", "basic:Float", {'optional': True,
-                                              'defaults': "['5.0']"}),
-                    ('titleColIdx', 'basic:Integer', {'optional': True}),
-                    ('titleColName', 'basic:String', {'optional': True}),
-                    ("allowLegacy", "basic:Boolean", {
-                        'optional': True, 'defaults': "['False']"})]
+    _input_ports = [IPort("strokeColor", "basic:Color", optional=True,
+                          default=InstanceObject(tuple=(0,0,0))),
+                    IPort("strokeWeight", "basic:Integer", optional=True,
+                          default=1),
+                    IPort("strokeOpacity", "basic:Float", optional=True),
+                    IPort("fillStartColor", "basic:Color", optional=True,
+                          default=InstanceObject(tuple=(1,1,1))),
+                    IPort("fillEndColor", "basic:Color", optional=True,
+                          default=InstanceObject(tuple=(1,0,0))),
+                    IPort("fillOpacity", "basic:Float", optional=True,
+                          default=1.0),
+                    IPort("scale", "basic:Float", optional=True,
+                          default=5.0),
+                    IPort('titleColIdx', 'basic:Integer', optional=True),
+                    IPort('titleColName', 'basic:String', optional=True),
+                    IPort("allowLegacy", "basic:Boolean", optional=True,
+                          default=False)]
 
     def compute(self):
         (positions, center) = self.get_positions()
-        legacy = self.getInputFromPort("allowLegacy")
+        legacy = self.get_input("allowLegacy")
         use_values = True
         try:
             values = [float(x) for x in self.get_values()]
@@ -278,7 +313,7 @@ class GMapSymbols(GMapValueVis, TitlesMixin):
                 "symbol_titles": symbol_titles,
                 "use_values": use_values}
         vis_data = GMapVisData([], self.TEMPLATE, data, center)
-        self.setResult("self", vis_data)
+        self.set_output("self", vis_data)
 
 class GMapHeatmap(GMapValueVis):
     TEMPLATE = Template("""
@@ -293,12 +328,12 @@ class GMapHeatmap(GMapValueVis):
              'maxIntensity',
              'opacity',
              'radius']
-    _input_ports = [("dissipating", "basic:Boolean", {'optional': True,
-                                                      'defaults': "['True']"}),
-                    ("maxIntensity", "basic:Float", {'optional': True}),
-                    ("opacity", "basic:Float", {'optional': True,
-                                                'defaults': "['0.6']"}),
-                    ("radius", "basic:Float", {'optional': True})]
+    _input_ports = [IPort("dissipating", "basic:Boolean", optional=True,
+                          default=True),
+                    IPort("maxIntensity", "basic:Float", optional=True),
+                    IPort("opacity", "basic:Float", optional=True,
+                     default=0.6),
+                    IPort("radius", "basic:Float", optional=True)]
     
     def compute(self):
         (positions, center) = self.get_positions()
@@ -310,7 +345,7 @@ class GMapHeatmap(GMapValueVis):
         data = {"heatmap_data": heatmap_data,
                 "heatmap_options": heatmap_options}
         vis_data = GMapVisData([], self.TEMPLATE, data, center)
-        self.setResult("self", vis_data)
+        self.set_output("self", vis_data)
 
-_modules = [(GMapVis, {'abstract': True}), (GMapValueVis, {'abstract': True}),
-            GMapMarkers, GMapCircles, GMapSymbols, GMapHeatmap]
+_modules = [GMapVis, GMapMarkers, GMapValueVis, GMapCircles, GMapSymbols,
+            GMapHeatmap]

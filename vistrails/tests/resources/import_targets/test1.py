@@ -1,3 +1,4 @@
+# pragma: no testimport
 try:
     import core.packagemanager
 except ImportError:

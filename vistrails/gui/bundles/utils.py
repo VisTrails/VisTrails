@@ -1,39 +1,42 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 
 """Utility functions for core.bundles"""
+from __future__ import division
+
 from vistrails.core import debug
 import vistrails.core.system
 import os
@@ -78,7 +81,7 @@ def guess_graphical_sudo():
     else:
         debug.warning("Could not find a graphical sudo-like command.")
 
-        if vistrails.core.system.get_executable_path('sudo'):
+        if vistrails.core.system.executable_is_in_path('sudo'):
             debug.warning("Will use regular sudo")
             return "sudo -E %s", False
         else:
@@ -116,7 +119,7 @@ def _guess_suse():
     try:
         tokens = open('/etc/SuSE-release').readline()[-1].split()
         return tokens[0] == 'SUSE'
-    except:
+    except (IOError, IndexError):
         return False
 _system_guesser.add_test(_guess_suse, 'linux-suse')
 
@@ -140,11 +143,15 @@ _system_guesser.add_test(_guess_windows, 'windows')
 ##############################################################################
 
 def guess_system():
-    """guess_system will try to identify which system you're running. Result
-will be a string describing the system. This is more discriminating than
-Linux/OSX/Windows: We'll try to figure out whether you're running SuSE, Debian,
-Ubuntu, RedHat, fink, darwinports, etc.
+    """guess_system will try to identify which system you're
+    running. Result will be a string describing the system. This is
+    more discriminating than Linux/OSX/Windows: We'll try to figure
+    out whether you're running SuSE, Debian, Ubuntu, RedHat, fink,
+    darwinports, etc.
 
-Currently, we only support SuSE, Debian, Ubuntu and Fedora. However, we only
-have actual bundle installing for Debian, Ubuntu and Fedora."""
+    Currently, we only support SuSE, Debian, Ubuntu and
+    Fedora. However, we only have actual bundle installing for Debian,
+    Ubuntu and Fedora.
+
+    """
     return _system_guesser.guess_system()

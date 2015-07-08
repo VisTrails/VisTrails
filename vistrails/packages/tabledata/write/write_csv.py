@@ -1,3 +1,38 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2013-2014, NYU-Poly.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
 from __future__ import division
 
 from itertools import izip
@@ -25,11 +60,12 @@ class WriteCSV(Module):
 
     @staticmethod
     def write(fname, table, delimiter=';', write_header=True):
+        cols = [table.get_column(i) for i in xrange(table.columns)]
+
         with open(fname, 'w') as fp:
             if write_header and table.names is not None:
                 fp.write(delimiter.join(table.names) + '\n')
 
-            cols = [table.get_column(i) for i in xrange(table.columns)]
             line = 0
             for l in izip(*cols):
                 fp.write(delimiter.join(str(e) for e in l) + '\n')
@@ -38,13 +74,13 @@ class WriteCSV(Module):
         return line
 
     def compute(self):
-        table = self.getInputFromPort('table')
-        delimiter = self.getInputFromPort('delimiter')
+        table = self.get_input('table')
+        delimiter = self.get_input('delimiter')
         fileobj = self.interpreter.filePool.create_file(suffix='.csv')
         fname = fileobj.name
 
         with open(fname, 'w') as fp:
-            write_header = self.forceGetInputFromPort('write_header')
+            write_header = self.force_get_input('write_header')
             if write_header is not False:
                 if table.names is None:
                     if write_header is True:  # pragma: no cover
@@ -66,7 +102,7 @@ class WriteCSV(Module):
                 debug.warning("WriteCSV wrote %d lines instead of expected "
                               "%d" % (nb_lines, rows))
 
-        self.setResult('file', fileobj)
+        self.set_output('file', fileobj)
 
 
 _modules = [WriteCSV]

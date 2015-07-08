@@ -1,63 +1,61 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import with_statement
+from __future__ import division, with_statement
 
 from datetime import datetime
 from vistrails.core import debug
 from vistrails.core.bundles import py_import
-from vistrails.core.system import get_elementtree_library, temporary_directory,\
-     execute_cmdline, systemType, get_executable_path
+from vistrails.core.system import get_elementtree_library, strftime
 from vistrails.core.utils import Chdir
-from vistrails.core.log.log import Log
 from vistrails.core.mashup.mashup_trail import Mashuptrail
 from vistrails.core.modules.sub_module import get_cur_abs_namespace,\
     parse_abstraction_name, read_vistrail_from_db
 
 import vistrails.core.requirements
 
-import sys
-import os
 import os.path
 import shutil
 import tempfile
 import copy
+import zipfile
 
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
     DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
-    DBMashuptrail
+    DBMashuptrail, DBStartup
 import vistrails.db.services.abstraction
 import vistrails.db.services.log
 import vistrails.db.services.opm
@@ -66,7 +64,7 @@ import vistrails.db.services.registry
 import vistrails.db.services.workflow
 import vistrails.db.services.vistrail
 from vistrails.db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
-    translate_vistrail, translate_workflow, translate_log, translate_registry
+    translate_vistrail, translate_workflow, translate_log, translate_registry, translate_startup
 
 import unittest
 import vistrails.core.system
@@ -248,7 +246,7 @@ def translate_to_tbl_name(obj_type):
     return map[obj_type]
 
 def date_to_str(date):
-    return date.strftime('%Y-%m-%d %H:%M:%S')
+    return strftime(date, '%Y-%m-%d %H:%M:%S')
 
 def get_db_object_list(config, obj_type):
     
@@ -690,15 +688,17 @@ def open_vistrail_from_xml(filename):
     try:
         daoList = getVersionDAO(version)
         vistrail = daoList.open_from_xml(filename, DBVistrail.vtType, tree)
+        if vistrail is None:
+            raise VistrailsDBException("Couldn't read vistrail from XML")
         vistrail = translate_vistrail(vistrail, version)
         vistrails.db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
         if str(e).startswith('VistrailsDBException: Cannot find DAO for'):
-            msg = "This vistrail was created by a newer version of VisTrails "
-            msg += "and cannot be opened."
-            raise VistrailsDBException(msg)
+            raise VistrailsDBException(
+                "This vistrail was created by a newer version of VisTrails "
+                "and cannot be opened.")
         raise e
-        
+
     return vistrail
 
 def open_vistrail_bundle_from_zip_xml(filename):
@@ -710,16 +710,13 @@ def open_vistrail_bundle_from_zip_xml(filename):
     and thumbnails inside archive are '.png' files in 'thumbs' dir
 
     """
-
-    vistrails.core.requirements.require_executable('unzip')
-
     vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
-    output = []
-    cmdline = ['unzip', '-q','-o','-d', vt_save_dir, filename]
-    result = execute_cmdline(cmdline, output)
 
-    if result != 0 and len(output) != 0:
-        raise VistrailsDBException("Unzip of '%s' failed" % filename)
+    z = zipfile.ZipFile(filename)
+    try:
+        z.extractall(vt_save_dir)
+    finally:
+        z.close()
 
     vistrail = None
     log = None
@@ -801,9 +798,8 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
             save_vistrail_to_xml(abs, fname)
             abstractions.append(fname)
     except Exception, e:
-        import traceback
         debug.critical('Could not load abstraction from database: %s' % str(e),
-                                              traceback.format_exc())
+                       debug.format_exc())
     # open mashuptrails from db
     mashuptrails = []
     try:
@@ -811,9 +807,8 @@ def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
             mashup = open_mashuptrail_from_db(db_connection, mashup_id)
             mashuptrails.append(mashup)
     except Exception, e:
-        import traceback
         debug.critical('Could not load mashuptrail from database: %s' % str(e),
-                                              traceback.format_exc())
+                       debug.format_exc())
     thumbnails = open_thumbnails_from_db(db_connection, DBVistrail.vtType,
                                          vistrail_id, tmp_dir)
     return SaveBundle(DBVistrail.vtType, vistrail, log,
@@ -874,10 +869,8 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
 
     Generates a zip compressed version of vistrail.
     It raises an Exception if there was an error.
-    
-    """
 
-    vistrails.core.requirements.require_executable('zip')
+    """
 
     if save_bundle.vistrail is None:
         raise VistrailsDBException('save_vistrail_bundle_to_zip_xml failed, '
@@ -982,27 +975,15 @@ def save_vistrail_bundle_to_zip_xml(save_bundle, filename, vt_save_dir=None, ver
         debug.warning("Could not call package hooks", str(e))
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
-    output = []
-    rel_vt_save_dir = os.path.split(vt_save_dir)[1]
 
-    # on windows, we assume zip.exe is in the current directory when
-    # running from the binary install
-    zipcmd = 'zip'
-    if systemType in ['Windows', 'Microsoft']:
-        zipcmd = get_executable_path('zip.exe')
-        if not zipcmd or not os.path.exists(zipcmd):
-            zipcmd = 'zip.exe' #assume zip is in path
-    cmdline = [zipcmd, '-r', '-q', tmp_zip_file, '.']
+    z = zipfile.ZipFile(tmp_zip_file, 'w')
     try:
-        #if we want that directories are also stored in the zip file
-        # we need to run from the vt directory
         with Chdir(vt_save_dir):
-            result = execute_cmdline(cmdline,output)
-        #print result, output
-        if result != 0 or len(output) != 0:
-            for line in output:
-                if line.find('deflated') == -1:
-                    raise VistrailsDBException(" ".join(output))
+            # zip current directory
+            for root, dirs, files in os.walk('.'):
+                for f in files:
+                    z.write(os.path.join(root, f))
+        z.close()
         shutil.copyfile(tmp_zip_file, filename)
     finally:
         os.unlink(tmp_zip_file)
@@ -1118,6 +1099,8 @@ def open_workflow_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
     workflow = daoList.open_from_xml(filename, DBWorkflow.vtType, tree)
+    if workflow is None:
+        raise VistrailsDBException("Couldn't read workflow from XML")
     workflow = translate_workflow(workflow, version)
     vistrails.db.services.workflow.update_id_scope(workflow)
     return workflow
@@ -1396,6 +1379,8 @@ def open_registry_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
     registry = daoList.open_from_xml(filename, DBRegistry.vtType, tree)
+    if registry is None:
+        raise VistrailsDBException("Couldn't read registry from XML")
     registry = translate_registry(registry, version)
     vistrails.db.services.registry.update_id_scope(registry)
     return registry
@@ -1470,60 +1455,6 @@ def save_registry_bundle_to_db(save_bundle, db_connection, do_copy=False,
 
 ##############################################################################
 # Abstraction I/O
-
-def open_abstraction_from_db(db_connection, id, lock=False):
-    """open_abstraction_from_db(db_connection, id : long: lock: bool) 
-         -> DBAbstraction 
-    DEPRECATED
-    """
-    if db_connection is None:
-        msg = "Need to call open_db_connection() before reading"
-        raise VistrailsDBException(msg)
-    abstraction = read_sql_objects(db_connection, DBAbstraction.vtType, 
-                                   id, lock)[0]
-
-    # not sure where this really should be done...
-    # problem is that db reads the add ops, then change ops, then delete ops
-    # need them ordered by their id
-    for db_action in abstraction.db_get_actions():
-        db_action.db_operations.sort(key=lambda x: x.db_id)
-    vistrails.db.services.abstraction.update_id_scope(abstraction)
-    return abstraction
-
-def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
-    """ DEPRECATED """
-    db_connection.begin()
-    if abstraction.db_last_modified is None:
-        do_copy = True
-    if not do_copy:
-        match_id = get_matching_abstraction_id(db_connection, abstraction)
-        # FIXME remove print
-        #print 'match_id:', match_id
-        if match_id is not None:
-            abstraction.db_id = match_id
-            abstraction.is_new = False
-        else:
-            do_copy = True
-        new_time = get_db_object_modification_time(db_connection, 
-                                                   abstraction.db_id,
-                                                   DBAbstraction.vtType)
-        if new_time > abstraction.db_last_modified:
-            # need synchronization
-            # FIXME remove print
-            #print '*** doing synchronization ***'
-            old_abstraction = open_abstraction_from_db(db_connection, 
-                                                       abstraction.db_id,
-                                                       True)
-            # the "old" one is modified and changes integrated
-            vistrails.db.services.vistrail.synchronize(old_abstraction, abstraction,
-                                             0L)
-            abstraction = old_abstraction
-    if do_copy:
-        abstraction.db_id = None
-    abstraction.db_last_modified = get_current_time(db_connection)
-    write_sql_objects(db_connection, [abstraction], do_copy)
-    db_connection.commit()
-    return abstraction
 
 def save_abstractions_to_db(abstractions, vt_id, db_connection, do_copy=False):
     """save_abstraction_to_db(abs: DBVistrail, db_connection) -> None
@@ -1683,7 +1614,7 @@ def save_thumbnails_to_db(absfnames, db_connection):
             image_file = open(absfname, 'rb')
             image_bytes = image_file.read()
             image_file.close()
-            c.execute(prepared_statement, (os.path.basename(absfname), image_bytes, get_current_time(db_connection).strftime('%Y-%m-%d %H:%M:%S')))
+            c.execute(prepared_statement, (os.path.basename(absfname), image_bytes, strftime(get_current_time(db_connection), '%Y-%m-%d %H:%M:%S')))
             db_connection.commit()
         c.close()
     except IOError, e:
@@ -1797,6 +1728,34 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
         except Exception, e:
             debug.critical('Could not save mashuptrail to db: %s' % str(e))
 
+def open_startup_from_xml(filename):
+    tree = ElementTree.parse(filename)
+    version = get_version_for_xml(tree.getroot())
+    if version == '0.1':
+        version = '1.0.3'
+    daoList = getVersionDAO(version)
+    startup = daoList.open_from_xml(filename, DBStartup.vtType, tree)
+    # need this for translation...
+    startup._filename = filename
+    startup = translate_startup(startup, version)
+    # vistrails.db.services.startup.update_id_scope(startup)
+    return startup
+
+def save_startup_to_xml(startup, filename, version=None):
+    tags = {}
+    if version is None:
+        version = currentVersion
+    if not startup.db_version:
+        startup.db_version = currentVersion
+    # FIXME add translation, etc.
+    # startup = translate_startup(startup, startup.db_version, version)
+
+    daoList = getVersionDAO(version)
+    daoList.save_to_xml(startup, filename, tags, version)
+    # startup = translate_startup(startup, version)
+    return startup
+    
+
 ##############################################################################
 # I/O Utilities
 
@@ -1833,7 +1792,7 @@ def get_current_time(db_connection=None):
             if row:
                 # FIXME MySQL versus sqlite3
                 timestamp = row[0]
-                # timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+                # timestamp = strptime(row[0], '%Y-%m-%d %H:%M:%S')
             c.close()
         except get_db_lib().Error, e:
             debug.critical("Logger Error %d: %s" % (e.args[0], e.args[1]))

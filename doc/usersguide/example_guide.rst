@@ -9,6 +9,13 @@ Module Descriptions and Examples
 VisTrails VTK modules
 =====================
 
+Most VTK modules in VisTrails represents VTK classes. Inputs and outputs are based on class methods. A warning, in VTK it is sometimes important to call input methods in the correct order. This order is not preserved in the parameter list in VisTrails, but will still be used during execution. Method names may differ in VisTrails:
+
+* Most Set/Get prefixes have been removed.
+* SetXToY-style methods are reduced to single SetX names with a list selection.
+* Methods without parameters are replaced by booleans (that need to be set to True).
+* VTK6's SetInputData-style names are used even for VTK5.
+
 Although most VTK modules in VisTrails would be familiar to vtk users, or at least in the vtk documentation, there are a few modules that VisTrails introduces.  They are used as follows:
 
 * **PythonSource** - Although a PythonSource is in the Basic Modules list rather than VTK, it is mentioned here for convenience.  This module allows you write python statements to be executed as part of the workflow.  See Section :ref:`sec-pythonsource` for more information.
@@ -16,8 +23,6 @@ Although most VTK modules in VisTrails would be familiar to vtk users, or at lea
 * **VTKCell** - VTKCell is a VisTrails module that can display a vtkRenderWindow inside a cell.  Simply pass it a vtkRenderer and any additional optional inputs, and it will display the results in the spreadsheet.
 
 * **VTKRenderOffscreen** - Takes the output of a vtkRenderer and produces a PNG image of size width X height.  Default values of width and height are 512.  The output can then be written to a file using a FileSink.
-
-* **VTKViewCell** - This is similar to the VTKCell except that you pass it a vtkRenderView.
 
 * **vtkInspectors: vtkDataArrayInspector, vtkDataSetAttributesInspector, vtkDataSetInspector, vtkPolyDataInspector** - These inspectors were created to allow easy access to information that is not otherwise exposed by module ports, but would be accessible through vtk objects.  This information includes: normals, scalars, tensors, and vectors as well as statistical information such as bounds, center, length, max, min.  Looking at the output ports of these inspectors gives an idea of the information available.
 
@@ -46,6 +51,8 @@ Modules and Corresponding Examples
 ==================================
 
 Here we provide a list of the .vt files in the examples directory that use the following modules:
+
+Warning, this list is out-of-date and some examples may have been removed.
 
 .. index:: 
    pair: modules; list of examples

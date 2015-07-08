@@ -1,39 +1,43 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-import vistrails.core.modules.module_registry
+
+from __future__ import division
+
 from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.modules.config import IPort, OPort
 
 ###############################################################################
 # PythonCalc
@@ -49,7 +53,28 @@ from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 class PythonCalc(Module):
     """PythonCalc is a module that performs simple arithmetic operations
-on its inputs."""
+    on its inputs.
+
+    """
+
+    # You need to report the ports the module wants to make
+    # available. This is done by creating _input_ports and
+    # _output_ports lists composed of InputPort (IPort) and OutputPort
+    # (OPort) objects. These are simple ports that take only one
+    # value. We'll see in later tutorials how to create compound ports
+    # which can take a tuple of values.  Each port must specify its
+    # name and signature.  The signature specifies the package
+    # (e.g. "basic" which is shorthand for
+    # "org.vistrails.vistrails.basic") and module (e.g. "Float").
+    # Note that the third input port (op) has two other arguments.
+    # The "enum" entry_type specifies that there are a set of options
+    # the user should choose from, and the values then specifies those
+    # options.
+    _input_ports = [IPort(name="value1", signature="basic:Float"),
+                    IPort(name="value2", signature="basic:Float"),
+                    IPort(name="op", signature="basic:String",
+                          entry_type="enum", values=["+", "-", "*", "/"])]
+    _output_ports = [OPort(name="value", signature="basic:Float")]
 
     # This constructor is strictly unnecessary. However, some modules
     # might want to initialize per-object data. When implementing your
@@ -62,22 +87,22 @@ on its inputs."""
     # will be executed directly. VisTrails does not use the return
     # value of this method.
     def compute(self):
-        # getInputFromPort is a method defined in Module that returns
+        # get_input is a method defined in Module that returns
         # the value stored at an input port. If there's no value
         # stored on the port, the method will return None.
-        v1 = self.getInputFromPort("value1")
-        v2 = self.getInputFromPort("value2")
+        v1 = self.get_input("value1")
+        v2 = self.get_input("value2")
 
-        # You should call setResult to store the appropriate results
+        # You should call set_output to store the appropriate results
         # on the ports.  In this case, we are only storing a
         # floating-point result, so we can use the number types
         # directly. For more complicated data, you should
         # return an instance of a VisTrails Module. This will be made
         # clear in further examples that use these more complicated data.
-        self.setResult("value", self.op(v1, v2))
+        self.set_output("value", self.op(v1, v2))
 
     def op(self, v1, v2):
-        op = self.getInputFromPort("op")
+        op = self.get_input("op")
         if op == '+':
             return v1 + v2
         elif op == '-':
@@ -92,36 +117,6 @@ on its inputs."""
         # function.
         raise ModuleError(self, "unrecognized operation: '%s'" % op)
 
-###############################################################################
-# the function initialize is called for each package, after all
-# packages have been loaded. It is used to register the module with
-# the VisTrails runtime.
-
-def initialize(*args, **keywords):
-
-    # We'll first create a local alias for the module_registry so that
-    # we can refer to it in a shorter way.
-    reg = vistrails.core.modules.module_registry.get_module_registry()
-
-    # VisTrails cannot currently automatically detect your derived
-    # classes, and the ports that they support as input and
-    # output. Because of this, you as a module developer need to let
-    # VisTrails know that you created a new module. This is done by calling
-    # function addModule:
-    reg.add_module(PythonCalc)
-
-    # In a similar way, you need to report the ports the module wants
-    # to make available. This is done by calling addInputPort and
-    # addOutputPort appropriately. These calls only show how to set up
-    # one-parameter ports. We'll see in later tutorials how to set up
-    # multiple-parameter plots.
-    reg.add_input_port(PythonCalc, "value1",
-                       (vistrails.core.modules.basic_modules.Float, 'the first argument'))
-    reg.add_input_port(PythonCalc, "value2",
-                       (vistrails.core.modules.basic_modules.Float, 'the second argument'))
-    reg.add_input_port(PythonCalc, "op",
-                       (vistrails.core.modules.basic_modules.String, 'the operation'),
-                       entry_types=['enum'], values=["['+', '-', '*', '/']"])
-    reg.add_output_port(PythonCalc, "value",
-                        (vistrails.core.modules.basic_modules.Float, 'the result'))
-
+# VisTrails will only load the modules specified in the _modules list.
+# This list contains all of the modules a package defines.
+_modules = [PythonCalc,]

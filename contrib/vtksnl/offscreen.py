@@ -28,10 +28,10 @@ from core.modules.basic_modules import File, Integer
 class VTKRenderOffscreen(Module):
 
     def compute(self):
-        r = self.getInputFromPort("renderer").vtkInstance
+        r = self.get_input("renderer").vtkInstance
         window = vtksnl.vtkRenderWindow()
-        w = self.forceGetInputFromPort("width", 512)
-        h = self.forceGetInputFromPort("height", 512)
+        w = self.force_get_input("width", 512)
+        h = self.force_get_input("height", 512)
         window.OffScreenRenderingOn()
         window.SetSize(w, h)
         # r.ResetCamera()
@@ -47,7 +47,7 @@ class VTKRenderOffscreen(Module):
         writer.SetFileName(output.name)
         writer.Write()
         window.Finalize()
-        self.setResult("image", output)
+        self.set_output("image", output)
 
 def register_self():
     registry = get_module_registry()

@@ -57,29 +57,29 @@ out_class = """class %s(Module):
 
 compute = """
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+        if self.has_input("Input PixelType"):
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+        if self.has_input("Output PixelType"):
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+        if self.has_input("Dimension"):
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
             """
 if has_kernel:
     compute += """
-        kernel = self.getInputFromPort("Kernel")
+        kernel = self.get_input("Kernel")
         """
 
 compute += """
@@ -91,13 +91,13 @@ for param in filter_values:
     #check if default value is set
     if type(filter_values[param][1]).__name__ != "NoneType":
         compute += """
-        if self.hasInputFromPort("%s"):
-            %s = self.getInputFromPort("%s")
+        if self.has_input("%s"):
+            %s = self.get_input("%s")
         else:
             %s = %d\n"""%(SplitCap(param), param, SplitCap(param), param, filter_values[param][1])
     else:
         compute += """
-        %s = self.getInputFromPort("%s")\n"""%(param, SplitCap(param))
+        %s = self.get_input("%s")\n"""%(param, SplitCap(param))
 
 if has_kernel:
     compute += """
@@ -123,9 +123,9 @@ compute += """
         outIm.setDim(dim)
 
         #set results
-        self.setResult("Output Image", outIm)
-        self.setResult("Filter", self)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Filter", self)
+        self.set_output("Output PixelType", outPixelType)
 """
 register = """
     @classmethod

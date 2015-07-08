@@ -201,34 +201,34 @@ class Predictor(Constant):
                      ('value_as_string', '(edu.utah.sci.vistrails.basic:String)', True)]
 
     def compute(self):
-        if (self.hasInputFromPort("ResampleMethod")):
-            resampleMethod = self.getInputFromPort("ResampleMethod")
+        if (self.has_input("ResampleMethod")):
+            resampleMethod = self.get_input("ResampleMethod")
             if resampleMethod.lower() not in ['nearestneighbor', 'bilinear', 'cubic', 'cubicspline', 'lanczos']:
                 raise ModuleError(self, 
                                   "Resample Method not one of 'nearestneighbor', 'bilinear', 'cubic', 'cubicspline', or 'lanczos'")
         else:
             resampleMethod = 'Bilinear'
         
-        if (self.hasInputFromPort("AggregationMethod")):
-            aggregationMethod = self.getInputFromPort("AggregationMethod")
-            if self.getInputFromPort("AggregationMethod").lower() not in ['mean', 'max', 'min', 'majority', 'none']:
+        if (self.has_input("AggregationMethod")):
+            aggregationMethod = self.get_input("AggregationMethod")
+            if self.get_input("AggregationMethod").lower() not in ['mean', 'max', 'min', 'majority', 'none']:
                 raise ModuleError(self, "No Aggregation Method specified")
         else:
             aggregationMethod = "Mean"
         
-        if (self.hasInputFromPort("categorical")):
-            if self.getInputFromPort("categorical") == True:
+        if (self.has_input("categorical")):
+            if self.get_input("categorical") == True:
                 categorical = '1'
             else:
                 categorical = '0'
         else:
             categorical = '0'
         
-        if (self.hasInputFromPort("file")):
-            inFile = utils.getRasterName(self.getInputFromPort("file").name)
+        if (self.has_input("file")):
+            inFile = utils.getRasterName(self.get_input("file").name)
         else:
             raise ModuleError(self, "No input file specified")
-        self.setResult('value', (inFile, categorical, resampleMethod, aggregationMethod))
+        self.set_output('value', (inFile, categorical, resampleMethod, aggregationMethod))
    
 class PredictorList(Constant):
     '''
@@ -254,8 +254,8 @@ class PredictorList(Constant):
         return type(x) == list
 
     def compute(self):
-        p_list = self.forceGetInputListFromPort("addPredictor")
-        v = self.forceGetInputFromPort("value", [])
+        p_list = self.force_get_input_list("addPredictor")
+        v = self.force_get_input("value", [])
         
         b = self.validate(v)
         if not b:
@@ -265,8 +265,8 @@ class PredictorList(Constant):
         else:
             f_list = v
         p_list += f_list
-        #self.setResult("value", p_list)
-        self.setResult("value", v)     
+        #self.set_output("value", p_list)
+        self.set_output("value", v)     
 
 class PredictorListFile(Module):
     '''
@@ -322,14 +322,14 @@ class PredictorListFile(Module):
         return type(x) == list
 
     def compute(self):
-        if not (self.hasInputFromPort("csvFileList") or
-                self.hasInputFromPort("addPredictor")):
+        if not (self.has_input("csvFileList") or
+                self.has_input("addPredictor")):
             raise ModuleError(self, "No inputs or CSV file provided")
 
         output_fname = utils.mknextfile(prefix='PredictorList_', suffix='.csv')
-        if (self.hasInputFromPort("csvFileList") and 
-            os.path.exists(self.getInputFromPort("csvFileList").name)):
-            shutil.copy(self.getInputFromPort("csvFileList").name, 
+        if (self.has_input("csvFileList") and 
+            os.path.exists(self.get_input("csvFileList").name)):
+            shutil.copy(self.get_input("csvFileList").name, 
                 output_fname)
             csv_writer = csv.writer(open(output_fname, 'ab'))
         else:
@@ -337,15 +337,15 @@ class PredictorListFile(Module):
             csv_writer = csv.writer(open(output_fname, 'wb'))
             csv_writer.writerow(["file", "Resampling", "Aggregation"])
         
-        if self.hasInputFromPort("addPredictor"):
-            p_list = self.forceGetInputListFromPort("addPredictor")
+        if self.has_input("addPredictor"):
+            p_list = self.force_get_input_list("addPredictor")
             for p in p_list:
-                if p.hasInputFromPort('resampleMethod'):
-                    resMethod = p.getInputFromPort('resampleMethod')
+                if p.has_input('resampleMethod'):
+                    resMethod = p.get_input('resampleMethod')
                 else:
                     resMethod = "NearestNeighbor"
-                if p.hasInputFromPort('aggregationMethod'):
-                    aggMethod = p.getInputFromPort('aggregationMethod')
+                if p.has_input('aggregationMethod'):
+                    aggMethod = p.get_input('aggregationMethod')
                 else:
                     aggMethod = "Mean"  
                 csv_writer.writerow([os.path.normpath(p.name), resMethod, aggMethod])
@@ -353,7 +353,7 @@ class PredictorListFile(Module):
         del csv_writer
         
         output_file = utils.create_file_module(output_fname)
-        self.setResult('RastersWithPARCInfoCSV', output_file)
+        self.set_output('RastersWithPARCInfoCSV', output_file)
         
 class TemplateLayer(Path):
     '''
@@ -373,8 +373,8 @@ class TemplateLayer(Path):
     _output_ports = [('value', '(gov.usgs.sahm:TemplateLayer:DataInput)'),
                      ('value_as_string', '(edu.utah.sci.vistrails.basic:String)', True)]
 #    def compute(self):
-#        output_file = create_file_module(self.forceGetInputFromPort('FilePath', []))
-#        self.setResult('value', output_file)
+#        output_file = create_file_module(self.force_get_input('FilePath', []))
+#        self.set_output('value', output_file)
 
 #class SingleInputPredictor(Predictor):
 #    pass
@@ -465,22 +465,22 @@ class ApplyModel(Module):
     
     def compute(self):
         
-        workspace = self.forceGetInputFromPort('modelWorkspace').name
+        workspace = self.force_get_input('modelWorkspace').name
         output_dname = utils.mknextdir(prefix='AppliedModel_')
-        if self.hasInputFromPort('projectionTarget'):
-            mdsFile = self.forceGetInputFromPort('projectionTarget').name
+        if self.has_input('projectionTarget'):
+            mdsFile = self.force_get_input('projectionTarget').name
             args = "ws=" + '"' + workspace + '"' + " c=" + '"' + mdsFile + '"' + " o=" + '"' + output_dname + '"'
         else:
             args = "ws=" + '"' + workspace + '"' + " o=" + '"' + output_dname + '"'
         
-        if self.hasInputFromPort('makeBinMap'):
-            makeBinMap = self.forceGetInputFromPort('makeBinMap')
+        if self.has_input('makeBinMap'):
+            makeBinMap = self.force_get_input('makeBinMap')
             args += ' mbt=' + str(makeBinMap).upper()
         else:
             args += ' mbt=TRUE'
             
-        if self.hasInputFromPort('makeProbabilityMap'):
-            makeProbabilityMap = self.forceGetInputFromPort('makeProbabilityMap')
+        if self.has_input('makeProbabilityMap'):
+            makeProbabilityMap = self.force_get_input('makeProbabilityMap')
             args += ' mpt=' + str(makeProbabilityMap).upper()
         else:
              args += ' mpt=TRUE'
@@ -493,7 +493,7 @@ class ApplyModel(Module):
         if os.path.exists(input_fname):
             utils.tif_to_color_jpeg(input_fname, output_fname, color_breaks_csv)
             output_file1 = utils.create_file_module(output_fname)
-            self.setResult('ProbabilityMap', output_file1)
+            self.set_output('ProbabilityMap', output_file1)
         else:
             msg = "Expected output from ApplyModel was not found."
             msg += "\nThis likely indicates problems with the inputs to the R module."
@@ -503,7 +503,7 @@ class ApplyModel(Module):
         if  os.path.exists(os.path.join(output_dname, "bin_map.tif")):
             outFileName = os.path.join(output_dname, "bin_map.tif")
             output_file2 = utils.create_file_module(outFileName)
-            self.setResult('BinaryMap', output_file2)
+            self.set_output('BinaryMap', output_file2)
         
 class Model(Module):
     '''
@@ -535,7 +535,7 @@ class Model(Module):
         
         output_dname = utils.mknextdir(prefix=ModelAbbrev + 'output_')
         argsDict = utils.map_ports(self, self.port_map)
-        mdsFile = self.forceGetInputFromPort('mdsFile').name
+        mdsFile = self.force_get_input('mdsFile').name
         
         args = ''
         for k, v in argsDict.iteritems():
@@ -545,25 +545,25 @@ class Model(Module):
                 args += ' ' + '='.join([str(k),str(v)])
         args += " o=" + '"' + output_dname + '"'
         args += " rc=" + utils.MDSresponseCol(mdsFile)
-#        if self.hasInputFromPort('makeBinMap'):
-#            makeBinMap = self.forceGetInputFromPort('makeBinMap')
+#        if self.has_input('makeBinMap'):
+#            makeBinMap = self.force_get_input('makeBinMap')
 #            args += ' mbt=' + str(makeBinMap).upper()
 #        else:
 #            makeBinMap = True
 #            args += ' mbt=TRUE'
 #            
-#        if self.hasInputFromPort('makeProbabilityMap'):
-#            makeProbabilityMap = self.forceGetInputFromPort('makeProbabilityMap')
+#        if self.has_input('makeProbabilityMap'):
+#            makeProbabilityMap = self.force_get_input('makeProbabilityMap')
 #            args += ' mpt=' + str(makeProbabilityMap).upper()
 #        else:
 #            makeProbabilityMap = True
 #            args += ' mpt=TRUE'  
 #        
-#        if self.hasInputFromPort('seed'):
-#            args += ' seed=' + str(self.forceGetInputFromPort('seed'))
+#        if self.has_input('seed'):
+#            args += ' seed=' + str(self.force_get_input('seed'))
 #        
-#        if self.hasInputFromPort('someParam'):
-#            x = self.forceGetInputFromPort('someParam')
+#        if self.has_input('someParam'):
+#            x = self.force_get_input('someParam')
 #            if x > 1:
 #                msg = "Expected output from " + ModelAbbrev + " was not found."
 #                msg += "\nThis likely indicates problems with the inputs to the R module."
@@ -578,7 +578,7 @@ class Model(Module):
         if os.path.exists(input_fname):
 #            utils.tif_to_color_jpeg(input_fname, output_fname, color_breaks_csv)
 #            output_file4 = utils.create_file_module(output_fname)
-            self.setResult('ProbabilityMap', input_fname)
+            self.set_output('ProbabilityMap', input_fname)
         elif (argsDict.has_key('mpt') and argsDict['mpt'] == True) or \
             not argsDict.has_key('mpt'):
             msg = "Expected output from " + ModelAbbrev + " was not found."
@@ -591,25 +591,25 @@ class Model(Module):
             not argsDict.has_key('mbt'):
             outFileName = os.path.join(output_dname, ModelAbbrev + "_bin_map.tif")
             output_file1 = utils.create_file_module(outFileName)
-            self.setResult('BinaryMap', output_file1)
+            self.set_output('BinaryMap', output_file1)
         
         outFileName = os.path.join(output_dname, ModelAbbrev + "_output.txt")
         output_file2 = utils.create_file_module(outFileName)
-        self.setResult('Text_Output', output_file2)
+        self.set_output('Text_Output', output_file2)
         
         outFileName = os.path.join(output_dname, ModelAbbrev + "_auc_plot.jpg")
 #        print "out auc: ", outFileName
         output_file3 = utils.create_file_module(outFileName)
-        self.setResult('AUC_plot', output_file3)
+        self.set_output('AUC_plot', output_file3)
         
         outFileName = os.path.join(output_dname, ModelAbbrev + "_response_curves.pdf")
         output_file5 = utils.create_file_module(outFileName)
-        self.setResult('ResponseCurves', output_file5)
+        self.set_output('ResponseCurves', output_file5)
         
         outFileName = os.path.join(output_dname, "modelWorkspace")
 #        print "out auc: ", outFileName
         output_file6 = utils.create_file_module(outFileName)
-        self.setResult('modelWorkspace', output_file6)
+        self.set_output('modelWorkspace', output_file6)
         
         writetolog("Finished " + ModelAbbrev   +  " builder\n", True, True) 
         
@@ -777,7 +777,7 @@ class MDSBuilder(Module):
         
         #allow multiple CSV of inputs to be provided.  
         #if more than one then combine into a single CSV before sending to MDSBuilder
-        inputs_csvs = self.forceGetInputListFromPort('RastersWithPARCInfoCSV')
+        inputs_csvs = self.force_get_input_list('RastersWithPARCInfoCSV')
         if len(inputs_csvs) == 0:
             raise ModuleError(self, "Must supply at least one 'RastersWithPARCInfoCSV'/nThis is the output from the PARC module")
         if len(inputs_csvs) > 1:
@@ -806,7 +806,7 @@ class MDSBuilder(Module):
 
         output_file = utils.create_file_module(ourMDSBuilder.outputMDS)
         
-        self.setResult('mdsFile', output_file)
+        self.set_output('mdsFile', output_file)
 
 class FieldDataAggregateAndWeight(Module):
     '''
@@ -840,7 +840,7 @@ class FieldDataAggregateAndWeight(Module):
         
         output_file = utils.create_file_module(output_fname)
         writetolog("Finished running FieldDataQuery", True)
-        self.setResult('fieldData', output_file)
+        self.set_output('fieldData', output_file)
 
 class PARC(Module):
     '''
@@ -916,8 +916,8 @@ class PARC(Module):
         
         ourPARC.out_dir = output_dname
 
-        if self.hasInputFromPort("multipleCores"):
-             if self.getInputFromPort("multipleCores"):
+        if self.has_input("multipleCores"):
+             if self.get_input("multipleCores"):
                 ourPARC.multicores = "True"
 
         workingCSV = utils.mknextfile(prefix='tmpFilesToPARC_', suffix='.csv')
@@ -925,8 +925,8 @@ class PARC(Module):
 
         #append additional inputs to the existing CSV if one was supplied
         #otherwise start a new CSV
-        if self.hasInputFromPort("RastersWithPARCInfoCSV"):
-            inputCSV = self.forceGetInputFromPort("RastersWithPARCInfoCSV").name
+        if self.has_input("RastersWithPARCInfoCSV"):
+            inputCSV = self.force_get_input("RastersWithPARCInfoCSV").name
             shutil.copy(inputCSV, workingCSV)
             f = open(workingCSV, "ab")
             csvWriter = csv.writer(f)
@@ -935,21 +935,21 @@ class PARC(Module):
             csvWriter = csv.writer(f)
             csvWriter.writerow(["FilePath", "Categorical", "Resampling", "Aggregation"])
         
-        if self.hasInputFromPort("PredictorList"):
-            predictor_lists = self.forceGetInputListFromPort('PredictorList')
+        if self.has_input("PredictorList"):
+            predictor_lists = self.force_get_input_list('PredictorList')
             for predictor_list in predictor_lists:
                 for predictor in predictor_list:
                     csvWriter.writerow(list(predictor))
         
-        if self.hasInputFromPort("predictor"):
-            predictor_list = self.forceGetInputListFromPort('predictor')
+        if self.has_input("predictor"):
+            predictor_list = self.force_get_input_list('predictor')
             for predictor in predictor_list:
                 csvWriter.writerow(list(predictor))
         f.close()
         del csvWriter
         ourPARC.inputs_CSV = workingCSV
-        ourPARC.template = self.forceGetInputFromPort('templateLayer').name
-        writetolog('    template layer = ' + self.forceGetInputFromPort('templateLayer').name)
+        ourPARC.template = self.force_get_input('templateLayer').name
+        writetolog('    template layer = ' + self.force_get_input('templateLayer').name)
         writetolog("    output_dname=" + output_dname, False, False)
         writetolog("    workingCSV=" + workingCSV, False, False)
         try:
@@ -969,7 +969,7 @@ class PARC(Module):
         
         
         writetolog("Finished running PARC", True)
-        self.setResult('RastersWithPARCInfoCSV', output_file)
+        self.set_output('RastersWithPARCInfoCSV', output_file)
         
 
 class RasterFormatConverter(Module):
@@ -1022,19 +1022,19 @@ class RasterFormatConverter(Module):
     def compute(self):
         writetolog("\nRunning TiffConverter", True)
         ourRFC = RFC.FormatConverter()
-        if self.hasInputFromPort('inputMDS'):
-            ourRFC.MDSFile = self.forceGetInputFromPort('inputMDS').name
-        elif self.hasInputFromPort('inputDir'):
-            ourRFC.inputDir = self.forceGetInputFromPort('inputDir').name
+        if self.has_input('inputMDS'):
+            ourRFC.MDSFile = self.force_get_input('inputMDS').name
+        elif self.has_input('inputDir'):
+            ourRFC.inputDir = self.force_get_input('inputDir').name
             
-        if self.hasInputFromPort('format'):
-            format = self.forceGetInputFromPort('format')
+        if self.has_input('format'):
+            format = self.force_get_input('format')
             if format == '':
                 format = 'asc'
             ourRFC.format = format
              
-        if self.hasInputFromPort("multipleCores"):
-             if self.getInputFromPort("multipleCores"):
+        if self.has_input("multipleCores"):
+             if self.get_input("multipleCores"):
                 ourRFC.multicores = "True"
         
         ourRFC.outputDir = utils.mknextdir(prefix='ConvertedRasters_')
@@ -1052,7 +1052,7 @@ class RasterFormatConverter(Module):
         
         
         outputDir = utils.create_dir_module(ourRFC.outputDir)
-        self.setResult('outputDir', outputDir)
+        self.set_output('outputDir', outputDir)
         writetolog("\nFinished running TiffConverter", True)
         
 class TestTrainingSplit(Module):
@@ -1105,27 +1105,27 @@ class TestTrainingSplit(Module):
     _output_ports = [("outputMDS", "(gov.usgs.sahm:MergedDataSet:Other)")]
     
     def compute(self):
-        if self.hasInputFromPort('trainingProportion'):
+        if self.has_input('trainingProportion'):
             print 'real input'
         writetolog("\nGenerating Test Training split ", True)
-        inputMDS = utils.dir_path_value(self.forceGetInputFromPort('inputMDS', []))
+        inputMDS = utils.dir_path_value(self.force_get_input('inputMDS', []))
         outputMDS = utils.mknextfile(prefix='TestTrainingSplit_', suffix='.csv')
 
         global models_path
         
         args = "i=" + '"' + inputMDS + '"' + " o=" + '"' + outputMDS + '"'
         args += " rc=" + utils.MDSresponseCol(inputMDS) 
-        if (self.hasInputFromPort("trainingProportion")):
+        if (self.has_input("trainingProportion")):
             try:
-                trainingProportion = float(self.getInputFromPort("trainingProportion"))
+                trainingProportion = float(self.get_input("trainingProportion"))
                 if trainingProportion <= 0 or trainingProportion > 1:
                     raise ModuleError(self, "Train Proportion (trainProp) must be a number between 0 and 1 excluding 0")
                 args += " p=" + str(trainingProportion)
             except:
                 raise ModuleError(self, "Train Proportion (trainProp) must be a number between 0 and 1 excluding 0")
-        if (self.hasInputFromPort("RatioPresAbs")):
+        if (self.has_input("RatioPresAbs")):
             try:
-                RatioPresAbs = float(self.getInputFromPort("RatioPresAbs"))
+                RatioPresAbs = float(self.get_input("RatioPresAbs"))
                 if RatioPresAbs <= 0:
                     raise ModuleError(self, "The ratio of presence to absence (RatioPresAbs) must be a number greater than 0") 
                 args += " m=" + str(trainingProportion) 
@@ -1142,7 +1142,7 @@ class TestTrainingSplit(Module):
             msg = "Problem encountered generating Test Training split.  Expected output file not found."
             writetolog(msg, False)
             raise ModuleError(self, msg)
-        self.setResult("outputMDS", output_file)
+        self.set_output("outputMDS", output_file)
         
 class CovariateCorrelationAndSelection(Module):
     '''
@@ -1183,8 +1183,8 @@ class CovariateCorrelationAndSelection(Module):
 
     def compute(self):
         writetolog("\nOpening Select Predictors Layers widget", True)
-        inputMDS = utils.dir_path_value(self.forceGetInputFromPort('inputMDS'))
-        selectionName = self.forceGetInputFromPort('selectionName', 'initial')
+        inputMDS = utils.dir_path_value(self.force_get_input('inputMDS'))
+        selectionName = self.force_get_input('selectionName', 'initial')
 #        outputMDS = utils.mknextfile(prefix='SelectPredictorsLayers_' + selectionName + "_", suffix='.csv')
 #        displayJPEG = utils.mknextfile(prefix='PredictorCorrelation_' + selectionName + "_", suffix='.jpg')
         global session_dir
@@ -1202,7 +1202,7 @@ class CovariateCorrelationAndSelection(Module):
 
         output_file = utils.create_file_module(outputMDS)
         writetolog("Finished Select Predictors Layers widget", True)
-        self.setResult("outputMDS", output_file)
+        self.set_output("outputMDS", output_file)
 
     def callDisplayMDS(self, inputMDS, outputMDS, displayJPEG):
         dialog = SelectListDialog(inputMDS, outputMDS, displayJPEG, configuration.r_path)
@@ -1303,10 +1303,10 @@ class ProjectionLayers(Module):
         
         writetolog("\nRunning make Projection Layers", True)
         
-        inputCSV = self.forceGetInputFromPort('RastersWithPARCInfoCSV').name
+        inputCSV = self.force_get_input('RastersWithPARCInfoCSV').name
     
-        if self.hasInputFromPort('templateLayer'):
-            template = self.forceGetInputFromPort('templateLayer').name
+        if self.has_input('templateLayer'):
+            template = self.force_get_input('templateLayer').name
         else:
             template = '' #we'll get a template below
             
@@ -1314,8 +1314,8 @@ class ProjectionLayers(Module):
         climargs = {}
         
         for input in ['model', 'scenario', 'year']:
-            if self.hasInputFromPort(input):
-                climargs[input] = self.forceGetInputFromPort(input)
+            if self.has_input(input):
+                climargs[input] = self.force_get_input(input)
         if climargs <> {} and climargs.keys() <> ['model', 'scenario', 'year']:
             #they did not add in one of each, Not going to fly
             raise ModuleError(self, "All of model, scenario, and year must be supplied if any are used.")
@@ -1325,8 +1325,8 @@ class ProjectionLayers(Module):
                            os.path.join('I:\WorldClim_Future_Climate\RenamedBILs', 
                                         climargs['model'], climargs['scenario'], climargs['year'])])
         
-        if self.hasInputFromPort('directoryCrosswalkCSV'):
-            crosswalkCSV = csv.reader(open(self.forceGetInputFromPort('directoryCrosswalkCSV'), 'r'))
+        if self.has_input('directoryCrosswalkCSV'):
+            crosswalkCSV = csv.reader(open(self.force_get_input('directoryCrosswalkCSV'), 'r'))
             header = crosswalkCSV
             for row in crosswalkCSV:
                 fromto.append(row[0], row[1])
@@ -1393,7 +1393,7 @@ class ProjectionLayers(Module):
         outCSV.writerow(outHeader3)
         
         output_file = utils.create_file_module(outputMDS)
-        self.setResult("MDS", output_file)
+        self.set_output("MDS", output_file)
         writetolog("Finished Select Projection Layers widget", True)
 
 #class ClimateModel(String):
@@ -1438,7 +1438,7 @@ class MAXENT(Module):
         ourMaxent = MaxentRunner.MAXENTRunner()
         ourMaxent.outputDir = utils.mknextdir(prefix='maxentFiles_')
         
-        ourMaxent.inputMDS = self.forceGetInputFromPort('inputMDS').name
+        ourMaxent.inputMDS = self.force_get_input('inputMDS').name
         
         ourMaxent.maxentpath = maxent_path
         
@@ -1448,8 +1448,8 @@ class MAXENT(Module):
         for port in self._input_ports:
             #print port
             if port[0] <> 'inputMDS' and port[0] <> 'projectionlayers':
-                if self.hasInputFromPort(port[0]):
-                    port_val = self.getInputFromPort(port[0])
+                if self.has_input(port[0]):
+                    port_val = self.get_input(port[0])
                     if port[1] == "(edu.utah.sci.vistrails.basic:Boolean)":
                         port_val = str(port_val).lower()
                     elif (port[1] == "(edu.utah.sci.vistrails.basic:Path)" or \
@@ -1469,8 +1469,8 @@ class MAXENT(Module):
                         argWriter.writerow([port[0], default])
                     except KeyError:
                         pass
-        if self.hasInputFromPort('projectionlayers'):
-            value = self.forceGetInputListFromPort('projectionlayers')
+        if self.has_input('projectionlayers'):
+            value = self.force_get_input_list('projectionlayers')
             projlayers = ','.join([path.name for path in value])
             argWriter.writerow(['projectionlayers', projlayers])
             
@@ -1487,17 +1487,17 @@ class MAXENT(Module):
          #set outputs
         lambdasfile = os.path.join(ourMaxent.outputDir, ourMaxent.args["species_name"] + ".lambdas")
         output_file = utils.create_file_module(lambdasfile)
-        self.setResult("lambdas", output_file)
+        self.set_output("lambdas", output_file)
         
         
         rocfile = os.path.join(ourMaxent.outputDir, 'plots', ourMaxent.args["species_name"] + "_roc.png")
         output_file = utils.create_file_module(rocfile)
-        self.setResult("roc", output_file)
+        self.set_output("roc", output_file)
 
         htmlfile = os.path.join(ourMaxent.outputDir, ourMaxent.args["species_name"] + ".html")
         print htmlfile
         output_file = utils.create_file_module(htmlfile)
-        self.setResult("report", output_file)
+        self.set_output("report", output_file)
 
         writetolog("Finished Maxent widget", True)
         
@@ -1556,7 +1556,7 @@ def load_max_ent_params():
 #        self.cellWidget = None
 #
 #    def compute(self):
-#        renderView = self.forceGetInputFromPort('SetRenderView')
+#        renderView = self.force_get_input('SetRenderView')
 #        if renderView==None:
 #            raise ModuleError(self, 'A vtkRenderView input is required.')
 #        self.cellWidget = self.displayAndWait(QVTKViewWidget, (renderView,))
@@ -1576,13 +1576,13 @@ def load_max_ent_params():
 #        self.qgis_obj = None
 #
 #    def compute(self):
-#        fname = self.getInputFromPort('file').name
-#        if self.hasInputFromPort('name'):
-#            name = self.getInputFromPort('name')
+#        fname = self.get_input('file').name
+#        if self.has_input('name'):
+#            name = self.get_input('name')
 #        else:
 #            name = os.path.splitext(os.path.basename(fname))[0]
 #        self.qgis_obj = qgis.core.QgsRasterLayer(fname, name)
-#        self.setResult('self', self)
+#        self.set_output('self', self)
 #
 #class VectorLayer(Module):
 #    _input_ports = [('file', '(edu.utah.sci.vistrails.basic:File)'), 
@@ -1594,13 +1594,13 @@ def load_max_ent_params():
 #        self.qgis_obj = None
 #
 #    def compute(self):
-#        fname = self.getInputFromPort('file').name
-#        if self.hasInputFromPort('name'):
-#            name = self.getInputFromPort('name')
+#        fname = self.get_input('file').name
+#        if self.has_input('name'):
+#            name = self.get_input('name')
 #        else:
 #            name = os.path.splitext(os.path.basename(fname))[0]
 #        self.qgis_obj = qgis.core.QgsVectorLayer(fname, name, "ogr")
-#        self.setResult('self', self)
+#        self.set_output('self', self)
 
 
 

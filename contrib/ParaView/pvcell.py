@@ -17,7 +17,7 @@ class PVCell(SpreadsheetCell):
         """ compute() -> None
         Dispatch the vtkRenderer to the actual rendering widget
         """
-        proxies = self.forceGetInputListFromPort('Proxy')
+        proxies = self.force_get_input_list('Proxy')
         self.cellWidget = self.displayAndWait(QParaViewWidget, (proxies,))
 
 class QParaViewWidget(QVTKWidget):

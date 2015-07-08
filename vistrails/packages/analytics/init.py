@@ -1,39 +1,41 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.modules.basic_modules import new_constant
-from vistrails.core.modules.vistrails_module import Module, ModuleError, ModuleConnector
+from __future__ import division
+
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 import vistrails.core.vistrail.vistrail
 import vistrails.core.log.log 
 import vistrails.db.services.io
@@ -83,12 +85,12 @@ class ReadVistrail(Module):
         return None
 
     def compute(self):
-        fname = self.getInputFromPort('file').name
+        fname = self.get_input('file').name
         vistrail = self.read_vistrail(fname)
-        self.setResult('vistrail', vistrail)
-        fname = self.getInputFromPort('file').name
+        self.set_output('vistrail', vistrail)
+        fname = self.get_input('file').name
         log = self.read_log(fname)
-        self.setResult('log', log)
+        self.set_output('log', log)
 
 class CountActions(Module):
     _input_ports = [('vistrail', '(Vistrail)')]
@@ -114,14 +116,14 @@ class CountActions(Module):
                         Tally[action.what] = {action.vtType : 1}
 
                 # if is there, if subdictionary does not have vtType key, create entry
-                elif Tally.has_key(action.what) == none:
+                elif Tally.has_key(action.what) is None:
                     Tally[action.what] = {action.vtType : 1}
         return Tally
 
     def compute(self):
-        vistrail = self.getInputFromPort('vistrail')
+        vistrail = self.get_input('vistrail')
         Tally = self.count_actions(vistrail)
-        self.setResult('counts', Tally)
+        self.set_output('counts', Tally)
 
 class CountExecutedWorkflows(Module):
     _input_ports = [('log', '(Log)')]
@@ -137,9 +139,9 @@ class CountExecutedWorkflows(Module):
         return users
 
     def compute(self):
-        log = self.getInputFromPort('log')
+        log = self.get_input('log')
         users = self.count_executed_workflows(log)
-        self.setResult('completed', users)
+        self.set_output('completed', users)
 
 class TotalDays(Module):
     _input_ports = [('vistrail','(Vistrail)')]
@@ -169,9 +171,9 @@ class TotalDays(Module):
         return totals
                 
     def compute(self):
-        vistrail = self.getInputFromPort('vistrail')
+        vistrail = self.get_input('vistrail')
         totals = self.calc_time(vistrail)
-        self.setResult('completed', totals)
+        self.set_output('completed', totals)
 
 #class TimevsTags(Module):
     #Compare a few workflows to see how long the project took vs. how many tags were made

@@ -18,7 +18,7 @@ An Introduction to VisTrails
 .. toctree::
    :maxdepth: 2
 
-   intro2
+   intro
    getting_started
 
 #############################
@@ -48,11 +48,16 @@ Intermediate Concepts and VisTrails Packages
 .. toctree::
    :maxdepth: 2
 
+   parameter_widgets
    controlflow
    cfassistant
+   list_handling
+   streaming
    parallelflow
    database
    example_webservices
-   persistence
+   example_itk
+   persistent_archive
    vistrails_server
    latex
+   example_scikit_learn

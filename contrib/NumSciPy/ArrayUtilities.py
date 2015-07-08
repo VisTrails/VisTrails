@@ -11,12 +11,12 @@ class ArrayUtilModule(object):
 
 class ArrayToVTKVectors(ArrayUtilModule, Module):
     def compute(self):
-        v0 = self.forceGetInputFromPort("Array0")
-        v1 = self.forceGetInputFromPort("Array1")
-        v2 = self.forceGetInputFromPort("Array2")
-        ds = self.getInputFromPort("VTK Data")
+        v0 = self.force_get_input("Array0")
+        v1 = self.force_get_input("Array1")
+        v2 = self.force_get_input("Array2")
+        ds = self.get_input("VTK Data")
 
-        v_name = self.forceGetInputFromPort("Vector Name")
+        v_name = self.force_get_input("Vector Name")
         if v_name == None:
             v_name = 'vectors'
 
@@ -46,7 +46,7 @@ class ArrayToVTKVectors(ArrayUtilModule, Module):
         ds.vtkInstance.GetPointData().AddArray(vtk_ar)
         ds.vtkInstance.GetPointData().SetVectors(vtk_ar)
 #        ds.vtkInstance.GetPointData().SetActiveVectors(v_name)
-        self.setResult("Output", ds)
+        self.set_output("Output", ds)
 
     @classmethod
     def register(cls, reg, basic):
@@ -67,12 +67,12 @@ class ArrayToTimeVaryingVTKVectors(ArrayUtilModule, Module):
         self.logging.update_progress(self, t)
 
     def compute(self):
-        v0 = self.forceGetInputFromPort("Array0")
-        v1 = self.forceGetInputFromPort("Array1")
-        v2 = self.forceGetInputFromPort("Array2")
-        ds = self.getInputFromPort("VTK Data")
+        v0 = self.force_get_input("Array0")
+        v1 = self.force_get_input("Array1")
+        v2 = self.force_get_input("Array2")
+        ds = self.get_input("VTK Data")
 
-        v_name = self.forceGetInputFromPort("Vector Name")
+        v_name = self.force_get_input("Vector Name")
         if v_name == None:
             v_name = 'vectors'
 
@@ -109,7 +109,7 @@ class ArrayToTimeVaryingVTKVectors(ArrayUtilModule, Module):
             ds.vtkInstance.GetTimeStep(i).GetPointData().AddArray(vtk_ar)
             ds.vtkInstance.GetTimeStep(i).GetPointData().SetVectors(vtk_ar)
 #        ds.vtkInstance.GetPointData().SetActiveVectors(v_name)
-        self.setResult("Output", ds)
+        self.set_output("Output", ds)
 
     @classmethod
     def register(cls, reg, basic):
@@ -131,9 +131,9 @@ class ArrayToTimeVaryingVTKScalars(ArrayUtilModule, Module):
         self.logging.update_progress(self, t)
         
     def compute(self):
-        ds = self.getInputFromPort("VTK Data")
-        ar = self.getInputFromPort("Scalars")
-        v_name = self.forceGetInputFromPort("Array Name")
+        ds = self.get_input("VTK Data")
+        ar = self.get_input("Scalars")
+        v_name = self.force_get_input("Array Name")
         if v_name == None:
             v_name = 'scalars'
         num_times = ds.vtkInstance.GetNumberOfTimeSteps()
@@ -156,7 +156,7 @@ class ArrayToTimeVaryingVTKScalars(ArrayUtilModule, Module):
             ds.vtkInstance.GetTimeStep(i).GetPointData().AddArray(vtk_ar)
             ds.vtkInstance.GetTimeStep(i).GetPointData().SetScalars(vtk_ar)
 
-        self.setResult("Output", ds)
+        self.set_output("Output", ds)
 
     @classmethod
     def register(cls, reg, basic):
@@ -178,11 +178,11 @@ class ArrayToVTKScalars(ArrayUtilModule, Module):
     because of this."""
 
     def compute(self):
-        a = self.getInputFromPort("Array")
-        ds = self.getInputFromPort("VTK Data")
+        a = self.get_input("Array")
+        ds = self.get_input("VTK Data")
         scalar_name = ''
-        if self.hasInputFromPort("Scalar Name"):
-            scalar_name = self.getInputFromPort("Scalar Name")
+        if self.has_input("Scalar Name"):
+            scalar_name = self.get_input("Scalar Name")
         else:
             scalar_name = 'scalars'
         
@@ -201,7 +201,7 @@ class ArrayToVTKScalars(ArrayUtilModule, Module):
         ds.vtkInstance.GetPointData().AddArray(vtk_ar)
 #        ds.vtkinstance.GetPointData().SetActiveScalars(scalar_name)
         ds.vtkInstance.GetPointData().SetScalars(vtk_ar)
-        self.setResult("Output", ds)
+        self.set_output("Output", ds)
 
     @classmethod
     def register(cls, reg, basic):
@@ -221,8 +221,8 @@ class VTKDataSetToPointArray(ArrayUtilModule, Module):
     optionally added if the IncludeScalars flag is set.
     """
     def compute(self):
-        data = self.getInputFromPort("vtkDataSet").vtkInstance
-        flag = self.forceGetInputFromPort("IncludeScalars")
+        data = self.get_input("vtkDataSet").vtkInstance
+        flag = self.force_get_input("IncludeScalars")
 
         np = data.GetNumberOfPoints()
         ndim = 3
@@ -237,7 +237,7 @@ class VTKDataSetToPointArray(ArrayUtilModule, Module):
 
         out = NDArray()
         out.set_array(out_ar)
-        self.setResult("Output", out)
+        self.set_output("Output", out)
 
     @classmethod
     def register(cls, reg, basic):

@@ -1,3 +1,4 @@
+# pragma: no testimport
 name = 'test_import_pkg'
 identifier = 'org.vistrails.tests.test_import_pkg'
 version = '0.42'

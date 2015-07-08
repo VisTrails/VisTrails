@@ -12,10 +12,10 @@ class MatlabReader(ArrayUtilityModule, Module):
     """ Read a Matlab .mat file into a SciPy matrix """
     # Gather inputs here
     def get_inputs(self):
-        if self.hasInputFromPort("Filename"):
-            self.fname = self.getInputFromPort("Filename")
+        if self.has_input("Filename"):
+            self.fname = self.get_input("Filename")
         else:
-            self.fname = self.getInputFromPort("File").name
+            self.fname = self.get_input("File").name
 
     # Set required members externally.  This is just a helper function!
     def set_member(self, name, val):
@@ -40,13 +40,13 @@ class MatlabReader(ArrayUtilityModule, Module):
             out = Matrix()
             out.set_matrix(sparse.csc_matrix(results[0]))
             
-            self.setResult("Matrix Output", out)
+            self.set_output("Matrix Output", out)
         except:
             pass
         
         out_ar = NDArray()
         out_ar.set_array(numpy.array(results[0]))
-        self.setResult("Array Output", out_ar)
+        self.set_output("Array Output", out_ar)
 
     # The compute method for vistrails compatibility
     def compute(self):
@@ -65,13 +65,13 @@ class MatlabReader(ArrayUtilityModule, Module):
 class MatlabWriter(ArrayUtilityModule, Module):
     """ Write a Matlab .mat file from a SciPy matrix """
     def compute(self):
-        if self.hasInputFromPort("Filename"):
-            fname = self.getInputFromPort("Filename")
+        if self.has_input("Filename"):
+            fname = self.get_input("Filename")
         else:
-            fname = self.getInputFromPort("File").name
+            fname = self.get_input("File").name
 
-        ar_list = self.getInputListFromPort("Arrays")
-        mat_list = self.getInputListFromPort("Matrices")
+        ar_list = self.get_input_list("Arrays")
+        mat_list = self.get_input_list("Matrices")
         ar_dict = {}
         for i in xrange(len(ar_list)):
             ar_name = "array_" + str(i)

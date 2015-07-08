@@ -59,27 +59,27 @@ class Teem(Module):
         self.run_at_path(cmdline, _teemTenTestPath)
 
     def opt_command_line_val(self, option_name, port_name):
-        if self.hasInputFromPort(port_name):
-            return [option_name, self.getInputFromPort(port_name)]
+        if self.has_input(port_name):
+            return [option_name, self.get_input(port_name)]
         else:
             return []
 
     def opt_command_line_vec(self, option_name, port_name):
-        if self.hasInputFromPort(port_name):
-            t = self.getInputFromPort(port_name)
+        if self.has_input(port_name):
+            t = self.get_input(port_name)
             return [option_name] + list(t)
         else:
             return []
 
     def opt_command_line_file(self, option_name, port_name):
-        if self.hasInputFromPort(port_name):
-            t = self.getInputFromPort(port_name)
+        if self.has_input(port_name):
+            t = self.get_input(port_name)
             return [option_name, t.name]
         else:
             return []
 
     def opt_command_line_noopt(self, option_name, port_name):
-        if self.hasInputFromPort(port_name):
+        if self.has_input(port_name):
             return [option_name]
         else:
             return []
@@ -105,7 +105,7 @@ class Teem(Module):
         if callable(format):
             format = format(self)
         output_file = self.interpreter.filePool.create_file(suffix='.'+format)
-        self.setResult(port_name, output_file)
+        self.set_output(port_name, output_file)
         return [opt_name, output_file.name]
 
     def compute(self):
@@ -125,7 +125,7 @@ class Emap(Teem):
                                              option_name='-up')
         cmdline += self.opt_command_line_noopt(port_name='right_hand',
                                                option_name='-rh')
-        self.checkInputPort('input_file')
+        self.check_input('input_file')
         cmdline += self.opt_command_line_file(port_name='input_file',
                                               option_name='-i')
 
@@ -134,7 +134,7 @@ class Emap(Teem):
         
         self.run_teem(*cmdline)
         
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
 
     _input_ports = [('right_hand', []),
                     ('input_file', [(basic.File, 'the lights input file')]),
@@ -156,19 +156,19 @@ class Soid(Teem):
         cmdline += self.opt_command_line_noopt(port_name='sphere',
                                                option_name='-sphere')
 
-        if self.hasInputFromPort('AB'):
+        if self.has_input('AB'):
             cmdline += self.opt_command_line_vec(port_name='AB',
                                                  option_name='-AB')
-        elif self.hasInputFromPort('A') and self.hasInputFromPort('B'):
+        elif self.has_input('A') and self.has_input('B'):
             cmdline += ['-AB',
-                        self.getInputFromPort('A'),
-                        self.getInputFromPort('B')]
+                        self.get_input('A'),
+                        self.get_input('B')]
 
         output_file = self.interpreter.filePool.create_file(suffix='.nrrd')
         cmdline += ['-o', output_file.name]
 
         self.run_limn_test(*cmdline)
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
 
     _input_ports = [('resolution', [(basic.Float, 'The ellipsoid resolution')]),
                     ('radius', [(basic.Float, 'The radius')]),
@@ -208,15 +208,15 @@ class OffToEps(Teem):
                                              option_name='-ws')
         
 
-        self.checkInputPort('input_file')
-        input_file = self.getInputFromPort('input_file')
+        self.check_input('input_file')
+        input_file = self.get_input('input_file')
         cmdline += ['-i', input_file.name]
 
         output_file = self.interpreter.filePool.create_file(suffix='.eps')
         cmdline += ['-o', output_file.name]
 
         self.run_limn_test(*cmdline)
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
 
 
     _input_ports = [
@@ -241,15 +241,15 @@ class EpsToPpm(Teem):
 
     def compute(self):
         cmdline = ['eps2ppm']
-        self.checkInputPort('input_file')
-        self.checkInputPort('resolution')
-        cmdline += [self.getInputFromPort('input_file').name]
-        cmdline += [self.getInputFromPort('resolution')]
+        self.check_input('input_file')
+        self.check_input('resolution')
+        cmdline += [self.get_input('input_file').name]
+        cmdline += [self.get_input('resolution')]
         cmdline += ['>']
         output_file = self.interpreter.filePool.create_file(suffix='.ppm')
         cmdline += [output_file.name]
         self.run_path(*cmdline)
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
 
     _input_ports = [
         ("input_file", [(basic.File, 'the input EPS')]),
@@ -263,16 +263,16 @@ class EpsToPpm(Teem):
 class Unu(Teem):
 
     def do_output(self):
-        if self.hasInputFromPort('format'):
-            suffix = '.'+self.getInputFromPort('format')
+        if self.has_input('format'):
+            suffix = '.'+self.get_input('format')
         else:
             suffix = '.nrrd'
         output_file = self.interpreter.filePool.create_file(suffix=suffix)
         return (['-o', output_file.name], output_file)
 
     def do_input(self):
-        self.checkInputPort('input_file')
-        return ['-i', self.getInputFromPort('input_file').name]
+        self.check_input('input_file')
+        return ['-i', self.get_input('input_file').name]
 
     _input_ports = [
         ("format", [(basic.String, 'file format for output')]),
@@ -287,8 +287,8 @@ class UnuSave(Unu):
 	cmdline = ['unu save']
 	cmdline += self.do_input()
 	(ocmd, output_file) = self.do_output()
-	self.setResult("output_file", output_file)
-	self.setResult("output_name", output_file.name)
+	self.set_output("output_file", output_file)
+	self.set_output("output_name", output_file.name)
 	cmdline += ocmd
 	cmdline += self.opt_command_line_val(port_name='output_format', option_name='-f')
 	self.run_teem(*cmdline)
@@ -307,8 +307,8 @@ class UnuSwap(Unu):
         cmdline = ['unu swap']
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
-        self.setResult("output_file", output_file)
-        v1, v2 = self.getInputFromPort('axes')
+        self.set_output("output_file", output_file)
+        v1, v2 = self.get_input('axes')
         cmdline += ['-a', str(v1), str(v2)]
         cmdline += ocmd
         self.run_teem(*cmdline)
@@ -324,7 +324,7 @@ class UnuProject(Unu):
         cmdline = ['unu project']
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         cmdline += ocmd
         cmdline += self.opt_command_line_val(port_name='axis',
                                              option_name='-a')
@@ -341,13 +341,13 @@ class UnuProject(Unu):
 class UnuMinmax(Teem):
 
     def do_input(self):
-        self.checkInputPort('input_file')
-        return [self.getInputFromPort('input_file').name]
+        self.check_input('input_file')
+        return [self.get_input('input_file').name]
 
     def compute(self):
         cmdline = ['unu minmax']
         cmdline += self.do_input()
-        if self.hasInputFromPort('blind8'):
+        if self.has_input('blind8'):
             cmdline += '-blind8 true'
         output_file = self.interpreter.filePool.create_file()
         # FIXME use popen*
@@ -359,7 +359,7 @@ class UnuMinmax(Teem):
             mx = float(f.readline().split()[-1])
         except:
             raise ModuleError(self, 'Could not read result')
-        self.setResult('range', (mn, mx))
+        self.set_output('range', (mn, mx))
 
     _input_ports = [('input_file', [(basic.File, 'the input file')]),
                     ('blind8', [])]
@@ -373,7 +373,7 @@ class UnuReshape(Unu):
         cmdline += self.opt_command_line_val(port_name='axes',
                                              option_name='-s')
         (ocmd, output_file) = self.do_output()
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         cmdline += ocmd
         self.run_teem(*cmdline)
 
@@ -390,7 +390,7 @@ class UnuResample(Unu):
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         cmdline += self.opt_command_line_val(port_name='sampling_spec',
                                              option_name='-s')
         cmdline += self.opt_command_line_val(port_name='centering',
@@ -409,9 +409,9 @@ class UnuResample(Unu):
 class UnuJoin(Unu):
 
     def do_input(self):
-        self.checkInputPort('input_list')
+        self.check_input('input_list')
         return ['-i'] + [x.name
-                         for x in self.getInputFromPort('input_list')]
+                         for x in self.get_input('input_list')]
 
     def compute(self):
         cmdline = ['unu join']
@@ -420,7 +420,7 @@ class UnuJoin(Unu):
                                              option_name='-a')
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -432,8 +432,8 @@ class UnuQuantize(Unu):
 
     def do_input(self):
         current = Unu.do_input(self)
-        self.checkInputPort('bits')
-        return current + ['-b', self.getInputFromPort('bits')]
+        self.check_input('bits')
+        return current + ['-b', self.get_input('bits')]
 
     def compute(self):
         cmdline = ['unu quantize']
@@ -444,7 +444,7 @@ class UnuQuantize(Unu):
                                              option_name='-max')
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult("output_file", output_file)
+        self.set_output("output_file", output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -458,12 +458,12 @@ class Unu1op(Unu):
 
     def do_input(self):
         r = []
-        if self.hasInputFromPort('in1_file'):
-            r += ['-i', self.getInputFromPort('in1_file').name]
+        if self.has_input('in1_file'):
+            r += ['-i', self.get_input('in1_file').name]
         return r
 
     def is_cacheable(self):
-        return not self.getInputFromPort('op') in ['rand', 'nrand']
+        return not self.get_input('op') in ['rand', 'nrand']
 
     def compute(self):
         allowed_ops = ['-', 'r', 'sin',
@@ -472,16 +472,16 @@ class Unu1op(Unu):
                        'cbrt', 'ceil', 'floor', 'erf', 'rup',
                        'abs', 'sgn', 'exists', 'rand', 'nrand',
                        'if', '0', '1']
-        self.checkInputPort('op')
-        if not self.getInputFromPort('op') in allowed_ops:
+        self.check_input('op')
+        if not self.get_input('op') in allowed_ops:
             raise ModuleError(self, ("Operation %s is not allowed." % 
-                                     self.getInputFromPort('op')))
+                                     self.get_input('op')))
         cmdline = ['unu 1op']
-        cmdline += [self.getInputFromPort('op')]
+        cmdline += [self.get_input('op')]
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -493,16 +493,16 @@ class Unu2op(Unu):
 
     def do_input(self):
         r = []
-        if self.hasInputFromPort('in1_file'):
-            r += [self.getInputFromPort('in1_file').name]
-        elif self.hasInputFromPort('in1_value'):
-            r += [self.getInputFromPort('in1_value')]
+        if self.has_input('in1_file'):
+            r += [self.get_input('in1_file').name]
+        elif self.has_input('in1_value'):
+            r += [self.get_input('in1_value')]
         else:
             raise ModuleError(self, "Needs either in1_file or in1_value")
-        if self.hasInputFromPort('in2_file'):
-            r += [self.getInputFromPort('in2_file').name]
-        elif self.hasInputFromPort('in2_value'):
-            r += [self.getInputFromPort('in2_value')]
+        if self.has_input('in2_file'):
+            r += [self.get_input('in2_file').name]
+        elif self.has_input('in2_value'):
+            r += [self.get_input('in2_value')]
         else:
             raise ModuleError(self, "Needs either in2_file or in2_value")
         return r
@@ -512,16 +512,16 @@ class Unu2op(Unu):
                        '^', 'pow', 'spow', '%', 'fmod', 'atan2',
                        'min', 'max', 'lt', 'lte', 'gt', 'gte'
                        'eq', 'neq', 'comp', 'if', 'exists']
-        self.checkInputPort('op')
-        if not self.getInputFromPort('op') in allowed_ops:
+        self.check_input('op')
+        if not self.get_input('op') in allowed_ops:
             raise ModuleError(self, ("Operation %s is not allowed." % 
-                                     self.getInputFromPort('op')))
+                                     self.get_input('op')))
         cmdline = ['unu 2op']
-        cmdline += [self.getInputFromPort('op')]
+        cmdline += [self.get_input('op')]
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -537,22 +537,22 @@ class Unu3op(Unu):
 
     def do_input(self):
         r = []
-        if self.hasInputFromPort('in1_file'):
-            r += [self.getInputFromPort('in1_file').name]
-        elif self.hasInputFromPort('in1_value'):
-            r += [self.getInputFromPort('in1_value')]
+        if self.has_input('in1_file'):
+            r += [self.get_input('in1_file').name]
+        elif self.has_input('in1_value'):
+            r += [self.get_input('in1_value')]
         else:
             raise ModuleError(self, "Needs either in1_file or in1_value")
-        if self.hasInputFromPort('in2_file'):
-            r += [self.getInputFromPort('in2_file').name]
-        elif self.hasInputFromPort('in2_value'):
-            r += [self.getInputFromPort('in2_value')]
+        if self.has_input('in2_file'):
+            r += [self.get_input('in2_file').name]
+        elif self.has_input('in2_value'):
+            r += [self.get_input('in2_value')]
         else:
             raise ModuleError(self, "Needs either in2_file or in2_value")
-        if self.hasInputFromPort('in3_file'):
-            r += [self.getInputFromPort('in3_file').name]
-        elif self.hasInputFromPort('in3_value'):
-            r += [self.getInputFromPort('in3_value')]
+        if self.has_input('in3_file'):
+            r += [self.get_input('in3_file').name]
+        elif self.has_input('in3_value'):
+            r += [self.get_input('in3_value')]
         else:
             raise ModuleError(self, "Needs either in3_file or in3_value")
         return r
@@ -563,16 +563,16 @@ class Unu3op(Unu):
                        'clamp', 'ifelse',
                        'lerp', 'exists',
                        'in_op', 'in_cl']
-        self.checkInputPort('op')
-        if not self.getInputFromPort('op') in allowed_ops:
+        self.check_input('op')
+        if not self.get_input('op') in allowed_ops:
             raise ModuleError(self, ("Operation %s is not allowed." % 
-                                     self.getInputFromPort('op')))
+                                     self.get_input('op')))
         cmdline = ['unu 3op']
-        cmdline += [self.getInputFromPort('op')]
+        cmdline += [self.get_input('op')]
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -677,12 +677,12 @@ class UnuSlice(Unu):
 
     def do_input(self):
         r = []
-        self.checkInputPort('in_file')
-        self.checkInputPort('axis')
-        self.checkInputPort('position')
-        r += ['-i', self.getInputFromPort('in_file').name]
-        r += ['-a', str(self.getInputFromPort('axis'))]
-        r += ['-p', str(self.getInputFromPort('position'))]
+        self.check_input('in_file')
+        self.check_input('axis')
+        self.check_input('position')
+        r += ['-i', self.get_input('in_file').name]
+        r += ['-a', str(self.get_input('axis'))]
+        r += ['-p', str(self.get_input('position'))]
         return r
 
     def compute(self):
@@ -690,7 +690,7 @@ class UnuSlice(Unu):
         cmdline += self.do_input()
         (ocmd, output_file) = self.do_output()
         cmdline += ocmd
-        self.setResult('output_file', output_file)
+        self.set_output('output_file', output_file)
         self.run_teem(*cmdline)
 
     _input_ports = [
@@ -711,14 +711,14 @@ class TeemScaledTransferFunction(Teem):
         ramp = self.interpreter.filePool.create_file(suffix='.txt')
         tf_vals = self.interpreter.filePool.create_file(suffix='.txt')
         output = self.interpreter.filePool.create_file(suffix='.nrrd')
-        steps = self.getInputFromPort('steps')
-        rng = self.getInputFromPort('range')
+        steps = self.get_input('steps')
+        rng = self.get_input('range')
         self.run_teem('echo "0 1"',
                       '| unu reshape -s 1 2',
                       '| unu resample -s = %d -k tent -c node' % steps,
                       '| unu save -f text -o %s' % ramp.name)
         tf_file = file(tf_vals.name, 'w')
-        tf = self.getInputFromPort('transfer_function')
+        tf = self.get_input('transfer_function')
         for (scalar, op, (r, g, b)) in tf._pts:
             tf_file.write('%f %f %f %f %f\n' % (scalar, r, g, b, op))
 #             tf_file.write('%f %f\n' % (scalar, op))
@@ -731,7 +731,7 @@ class TeemScaledTransferFunction(Teem):
                       '| unu axinfo -a 1 -l "gage(scalar:v)" -mm %f %f -o %s' % (rng[0],
                                                                                  rng[1],
                                                                                  output.name))
-        self.setResult('nrrd', output)
+        self.set_output('nrrd', output)
 
 ##############################################################################
 
@@ -771,8 +771,8 @@ class Miter(Teem):
     
     def compute(self):
         cmdline = ['miter']
-        self.checkInputPort('input_file')
-        self.checkInputPort('transfer_function')
+        self.check_input('input_file')
+        self.check_input('transfer_function')
         cmdline += self.opt_command_line_file('-i', 'input_file')
         f = self.interpreter.filePool.create_file(suffix='.nrrd')
         cmdline += ['-o', f.name]
@@ -799,7 +799,7 @@ class Miter(Teem):
         cmdline += self.opt_command_line_val('-nt', 'thread_count')
         cmdline += self.opt_command_line_val('-n1', 'opacity_termination')
         cmdline += self.opt_command_line_file('-txf', 'transfer_function')
-        self.setResult('output_file', f) 
+        self.set_output('output_file', f) 
         self.run_teem(*cmdline)
         
 ###############################################################################
@@ -820,11 +820,11 @@ class OverRGB(Teem):
 
     def compute(self):
         cmdline = ['overrgb']
-        self.checkInputPort('input_file')
+        self.check_input('input_file')
         cmdline += self.opt_command_line_file('-i', 'input_file')
         f = self.interpreter.filePool.create_file(suffix='.png')
         cmdline += ['-o', f.name]
-        self.setResult('output_image', f)
+        self.set_output('output_image', f)
         cmdline += self.opt_command_line_val('-c', 'contrast')
         cmdline += self.opt_command_line_val('-cfp', 'component_fixed_point')
         cmdline += self.opt_command_line_val('-g', 'gamma')

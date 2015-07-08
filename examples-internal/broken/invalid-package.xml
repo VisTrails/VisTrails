@@ -1,0 +1,10 @@
+<vistrail id="" name="" version="1.0.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2014-02-04 22:51:03" id="1" prevId="0" session="0" user="Remi">
+    <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="0" name="CSVFile" namespace="read" package="org.nonexistent20150324.pkg" version="0.1.4" />
+    </add>
+    <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="0" x="-180.0" y="139.0" />
+    </add>
+  </action>
+</vistrail>

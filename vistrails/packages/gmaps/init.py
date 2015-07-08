@@ -1,3 +1,39 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
 from __future__ import division
 
 from .gmap_cell import _modules as gmap_modules
@@ -13,7 +49,8 @@ _modules = gmap_modules + vis_modules
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.modules.module_descriptor import ModuleDescriptor
-    from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+    from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, \
+        UpgradePackageRemap, UpgradeModuleRemap
     from vistrails.core.modules.basic_modules import identifier as basic_pkg
 
     def remap_functions(old_module, new_module, function_remap):
@@ -108,7 +145,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
 
             new_vis_desc = ModuleDescriptor(package=identifier,
                                             name=vis_name,
-                                            version='0.3')
+                                            version='0.3.0')
             new_vis_module = \
                 controller.create_module_from_descriptor(new_vis_desc,
                                                          new_x, new_y)
@@ -140,88 +177,66 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         # returns the actual remap function
         return remap_vis
 
-    old_module = pipeline.modules[module_id]
-    if (old_module.name == 'GMapSymbols' and
-            '0.1' <= old_module.version < '0.3'):
-        from vistrails.core.db.action import create_action
-        from vistrails.core.modules.module_registry import get_module_registry
-
-        reg = get_module_registry()
-        new_desc = reg.get_descriptor_by_name(identifier, 'GMapCell')
-        new_module = controller.create_module_from_descriptor(
-                new_desc,
-        old_module.location.x, old_module.location.y)
-        actions = UpgradeWorkflowHandler.replace_generic(
-                controller, pipeline,
-                old_module, new_module)
-
-        new_function = controller.create_function(new_module,
+    # zoom gets moved for free from old cell to new cell
+    remap = UpgradePackageRemap()
+    def add_legacy(fname, module):
+        new_function = controller.create_function(module,
                                                   "allowLegacy",
                                                   ["True"])
-        actions.append(create_action([('add', new_function,
-                                       'module', new_module.id)]))
-        return actions
-
-    # zoom gets moved for free from old cell to new cell
-    remap = {
-            'GMapCell': [
-                ('0.1', '0.3', 'GMapCell', {
-                    'dst_port_remap': {
-                        'table': insert_vis("GMapSymbols", {}),
-                        'colormapName': None},
-                })
-            ],
-            'GMapHeatmapCell': [
-                ('0.1', '0.3', 'GMapCell', {
-                    'dst_port_remap': {
-                        'table': insert_vis("GMapHeatmap", {
-                            'dissipating': 'dissipating',
-                            'maxIntensity': 'maxIntensity',
-                            'opacity': 'opacity',
-                            'radius': 'radius'}),
-                        'dissipating': None,
-                        'maxIntensity': None,
-                        'opacity': None,
-                        'radius': None}
-                })
-            ],
-            'GMapCircleCell': [
-                ('0.1', '0.3', 'GMapCell', {
-                    'dst_port_remap': {
-                        'table': insert_vis("GMapCircles", {
-                            'strokeColor': 'strokeColor',
-                            'strokeWeight': 'strokeWeight',
-                            'strokeOpacity': 'strokeOpacity',
-                            'fillColor': 'fillColor',
-                            'fillOpacity': 'fillOpacity'}),
-                        'strokeColor': None,
-                        'strokeWeight': None,
-                        'strokeOpacity': None,
-                        'fillColor': None,
-                        'fillOpacity': None}
-                })
-            ],
-            'GMapSymbolCell': [
-                ('0.1', '0.3', 'GMapCell', {
-                    'dst_port_remap': {
-                        'table': insert_vis("GMapSymbols", {
-                            'strokeColor': 'strokeColor',
-                            'strokeWeight': 'strokeWeight',
-                            'strokeOpacity': 'strokeOpacity',
-                            'fillStartColor': 'fillStartColor',
-                            'fillEndColor': 'fillEndColor',
-                            'fillOpacity': 'fillOpacity',
-                            'scale': 'scale'}),
-                        'strokeColor': None,
-                        'strokeWeight': None,
-                        'strokeOpacity': None,
-                        'fillStartColor': None,
-                        'fillEndColor': None,
-                        'fillOpacity': None,
-                        'scale': None}
-                })
-            ],
-        }
+        return [('add', new_function, 'module', module.id)]
+    remap.add_module_remap(UpgradeModuleRemap('0.1.0', '0.3.0', '0.3.0',
+                                              new_module="GMapCell",
+                                              module_name="GMapCell",
+                            dst_port_remap={'table': insert_vis("GMapSymbols",
+                                            {None: add_legacy}),
+                                            'colormapName': None}))
+    remap.add_module_remap(UpgradeModuleRemap('0.1.0', '0.3.0', '0.3.0',
+                                              new_module="GMapCell",
+                                              module_name="GMapHeatmapCell",
+                            dst_port_remap={'table': insert_vis("GMapHeatmap",
+                                            {'dissipating': 'dissipating',
+                                             'maxIntensity': 'maxIntensity',
+                                             'opacity': 'opacity',
+                                             'radius': 'radius'}),
+                                            'dissipating': None,
+                                            'maxIntensity': None,
+                                            'opacity': None,
+                                            'radius': None,
+                                            }))
+    remap.add_module_remap(UpgradeModuleRemap('0.1.0', '0.3.0', '0.3.0',
+                                              new_module="GMapCell",
+                                              module_name="GMapCircleCell",
+                            dst_port_remap={'table': insert_vis("GMapCircles",
+                                            {'strokeColor': 'strokeColor',
+                                             'strokeWeight': 'strokeWeight',
+                                             'strokeOpacity': 'strokeOpacity',
+                                             'fillColor': 'fillColor',
+                                             'fillOpacity': 'fillOpacity'}),
+                                            'strokeColor': None,
+                                            'strokeWeight': None,
+                                            'strokeOpacity': None,
+                                            'fillColor': None,
+                                            'fillOpacity': None,
+                                            }))
+    remap.add_module_remap(UpgradeModuleRemap('0.1.0', '0.3.0', '0.3.0',
+                                              new_module="GMapCell",
+                                              module_name="GMapSymbolCell",
+                            dst_port_remap={'table': insert_vis("GMapSymbols",
+                                            {'strokeColor': 'strokeColor',
+                                             'strokeWeight': 'strokeWeight',
+                                             'strokeOpacity': 'strokeOpacity',
+                                             'fillStartColor': 'fillStartColor',
+                                             'fillEndColor': 'fillEndColor',
+                                             'fillOpacity': 'fillOpacity',
+                                             'scale': 'scale'}),
+                                            'strokeColor': None,
+                                            'strokeWeight': None,
+                                            'strokeOpacity': None,
+                                            'fillStartColor': None,
+                                            'fillEndColor': None,
+                                            'fillOpacity': None,
+                                            'scale': None,
+                                        }))
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                                remap)

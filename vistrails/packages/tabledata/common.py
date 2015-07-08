@@ -5,11 +5,12 @@ try:
 except ImportError: # pragma: no cover
     numpy = None
 
-from vistrails.core.modules.basic_modules import List, ListType, String
+from vistrails.core.modules.basic_modules import List, ListType
+from vistrails.core.modules.config import ModuleSettings
+from vistrails.core.modules.output_modules import OutputModule, FileMode, \
+    IPythonMode
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     Converter
-
-from . import __name__ as pkgname
 
 
 class InternalModuleError(Exception):
@@ -91,11 +92,11 @@ class Table(Module):
     _input_ports = [('name', '(org.vistrails.vistrails.basic:String)')]
     _output_ports = [('value', 'Table')]
 
-    def setResult(self, port_name, value):
-        if value is not None and port_name == 'value':
+    def set_output(self, port_name, value):
+        if self.list_depth == 0 and value is not None and port_name == 'value':
             if value.name is None:
-                value.name = self.forceGetInputFromPort('name', None)
-        Module.setResult(self, port_name, value)
+                value.name = self.force_get_input('name', None)
+        Module.set_output(self, port_name, value)
 
 
 def choose_column(nb_columns, column_names=None, name=None, index=None):
@@ -187,19 +188,19 @@ class ExtractColumn(Module):
             ('value', '(org.vistrails.vistrails.basic:List)')]
 
     def compute(self):
-        table = self.getInputFromPort('table')
+        table = self.get_input('table')
         try:
             column_idx = choose_column(
                     table.columns,
                     column_names=table.names,
-                    name=self.forceGetInputFromPort('column_name', None),
-                    index=self.forceGetInputFromPort('column_index', None))
+                    name=self.force_get_input('column_name', None),
+                    index=self.force_get_input('column_index', None))
+
+            self.set_output('value', table.get_column(
+                    column_idx,
+                    self.get_input('numeric', allow_default=True)))
         except ValueError, e:
             raise ModuleError(self, e.message)
-
-        self.setResult('value', table.get_column(
-                column_idx,
-                self.getInputFromPort('numeric', allowDefault=True)))
 
 
 class BuildTable(Module):
@@ -208,16 +209,22 @@ class BuildTable(Module):
     Input can be a mix of lists, which will be used as single columns, and
     whole tables, whose column names will be mangled.
     """
+    _settings = ModuleSettings(configure_widget=
+            'vistrails.packages.tabledata.widgets:BuildTableWidget')
     _output_ports = [('value', Table)]
 
     def __init__(self):
         Module.__init__(self)
         self.input_ports_order = []
 
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
     def compute(self):
         items = None
         if self.input_ports_order: # pragma: no branch
-            items = [(p, self.getInputFromPort(p))
+            items = [(p, self.get_input(p))
                      for p in self.input_ports_order]
         if not items:
             raise ModuleError(self, "No inputs were provided")
@@ -254,7 +261,7 @@ class BuildTable(Module):
                 cols.append(item)
                 names.append(portname)
 
-        self.setResult('value', TableObject(cols, nb_rows, names))
+        self.set_output('value', TableObject(cols, nb_rows, names))
 
 
 class SingleColumnTable(Converter):
@@ -264,23 +271,16 @@ class SingleColumnTable(Converter):
     _output_ports = [('out_value', Table)]
 
     def compute(self):
-        column = self.getInputFromPort('in_value')
+        column = self.get_input('in_value')
         if not isinstance(column, ListType):
             column = list(column)
-        self.setResult('out_value', TableObject(
+        self.set_output('out_value', TableObject(
                 [column],               # columns
                 len(column),            # nb_rows
                 ['converted_list']))    # names
 
 
-class TableToFile(Module):
-    _input_ports = [('value', 'Table'),
-                    ('format', String,
-                     {'defaults': "['html']", 'optional': True,
-                      'entry_types': "['enum']",
-                      'values': "[['html', 'csv']]"})]
-    formats = ['html', 'csv']
-
+class HtmlRendererMixin(object):
     @staticmethod
     def make_html(table):
         document = ['<!DOCTYPE html>\n'
@@ -315,30 +315,47 @@ class TableToFile(Module):
 
         return ''.join(document)
 
-    def write_html(self, table, filename):
+
+class TableToFileMode(FileMode, HtmlRendererMixin):
+    formats = ['html', 'csv']
+
+    def write_html(self, table, configuration):
+        filename = self.get_filename(configuration, suffix='.html')
         with open(filename, 'wb') as fp:
             fp.write(self.make_html(table))
 
-    def write_csv(self, table, filename):
+    def write_csv(self, table, configuration):
         from .write.write_csv import WriteCSV
 
+        filename = self.get_filename(configuration, suffix='.csv')
         WriteCSV.write(filename, table)
 
-    def compute(self):
-        value = self.getInputFromPort("value")
-        format = self.getInputFromPort('format').lower()
-        filename = self.interpreter.filePool.create_file(suffix='.%s' % format)
+    def compute_output(self, output_module, configuration):
+        value = output_module.get_input("value")
+        format = configuration.get('format', 'html').lower()
         try:
             func = getattr(self, 'write_%s' % format)
         except AttributeError:
-            raise AttributeError("TableToFile: unknown format %s" % format)
+            raise AttributeError("TableToFileMode: unknown format %s" % format)
         else:
-            func(value, filename.name)
+            func(value, configuration)
 
 
-_modules = [(Table, {'abstract': True}),
-            ExtractColumn,
-            (BuildTable, {'configureWidgetType':
-                              ('%s.widgets' % pkgname, 'BuildTableWidget')}),
+class TableToIPythonMode(IPythonMode, HtmlRendererMixin):
+    def compute_output(self, output_module, configuration):
+        from IPython.core.display import display, HTML
+
+        table = output_module.get_input('value')
+        html = self.make_html(table)
+        display(HTML(data=html))
+
+
+class TableOutput(OutputModule):
+    _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")
+    _input_ports = [('value', 'Table')]
+    _output_modes = [TableToFileMode, TableToIPythonMode]
+
+
+_modules = [(Table, {'abstract': True}), ExtractColumn, BuildTable,
             (SingleColumnTable, {'hide_descriptor': True}),
-            TableToFile]
+            TableOutput]

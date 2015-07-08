@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
@@ -159,7 +162,7 @@ def getConnectionInfo(connectionList, id):
     conn = connectionList.get_connection(id)
     key = str(conn.id) + "." + conn.name + "." + conn.host
     passwd = DBLocator.keyChain.get_key(key)
-    if conn != None:
+    if conn is not None:
         config = {'id': conn.id,
                   'name': conn.name,
                   'host': conn.host,
@@ -180,19 +183,18 @@ def checkConnection(connectionList):
     if conn_id != -1:
         conn = connectionList.get_connection(conn_id)
         config = getConnectionInfo(connectionList, conn_id)
-        if config != None:
+        if config is not None:
+            config_name = config['name']
+            config_id = config['id']
             try:
-                config_name = config['name']
-                del config['name']
-                config_id = config['id']
-                del config['id']
                 test_db_connection(config)
             except VistrailsDBException:
                 # assume connection is wrong
-                config['name'] = config_name
-                config['id'] = config_id
                 config["create"] = False
                 showConnConfig(connectionList, **config)
+            else:
+                del config['name']
+                del config['id']
 
 class QDBWidget(QtGui.QWidget):
     """ Custom widget for handling the showConnConfig """
@@ -369,10 +371,8 @@ class ExecutionSearchWidget(QtGui.QSplitter):
         config = self.config
         if conn.dbtype == 'MySQL':
             #removing extra keyword arguments for MySQldb
-            config_name = config['name']
-            del config['name']
-            config_id = config['id']
-            del config['id']
+            config_name = config.pop('name')
+            config_id = config.pop('id')
             
         wf_exec_list = runLogQuery(config,
                                 vistrail=self.vistrail, version=self.version,
@@ -646,10 +646,8 @@ class WorkflowSearchWidget(QtGui.QSplitter):
         config = self.config
         if conn.dbtype == 'MySQL':
             #removing extra keyword arguments for MySQldb
-            config_name = config['name']
-            del config['name']
-            config_id = config['id']
-            del config['id']
+            config_name = config.pop('name')
+            config_id = config.pop('id')
             
         workflow_list = runWorkflowQuery(config,
                                 vistrail=self.vistrail, version=self.version,

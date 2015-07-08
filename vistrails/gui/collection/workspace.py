@@ -1,49 +1,52 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 import glob
 from itertools import chain
 import os
 from datetime import datetime
-from time import strptime
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
 from vistrails.core.collection import Collection, MashupEntity, ThumbnailEntity, \
     VistrailEntity, WorkflowEntity, WorkflowExecEntity, ParameterExplorationEntity
 from vistrails.core.db.locator import FileLocator
+from vistrails.core.system import time_strptime
 from vistrails.db.services.locator import UntitledLocator
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 from vistrails.gui.theme import CurrentTheme
@@ -120,6 +123,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
 
         locator.update_from_gui(self)
         open_vistrail(locator, **args)
+        self.setItemSelected(widget_item, True)
 
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
@@ -205,7 +209,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
     def add_file(self):
         s = QtGui.QFileDialog.getOpenFileName(
                     self, "Choose a file",
-                    "", "Vistrail files (*.vt *.xml)");
+                    "", "Vistrail files (*.vt *.xml)")
         if str(s):
             locator = FileLocator(str(s))
             url = locator.to_url()
@@ -217,7 +221,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
     def add_dir(self):
         s = QtGui.QFileDialog.getExistingDirectory(
                     self, "Choose a directory",
-                    "", QtGui.QFileDialog.ShowDirsOnly);
+                    "", QtGui.QFileDialog.ShowDirsOnly)
         if str(s):
             self.update_from_directory(str(s))
         
@@ -238,7 +242,7 @@ class QCollectionWidget(QtGui.QTreeWidget):
                 url = locator.to_url()
                 entity = self.collection.updateVistrail(url)
                 self.collection.add_to_workspace(entity)
-            except:
+            except Exception:
                 debug.critical("Failed to add file '%s'" % filename)
         progress.setValue(len(filenames))
         self.collection.commit()
@@ -344,8 +348,8 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
                     pixmap = QtGui.QPixmap(path)
                     if pixmap and not pixmap.isNull():
                         self.setIcon(0, QtGui.QIcon(pixmap.scaled(16, 16)))
-                    tooltip += """<br/><img border=0 src='%(path)s'/>
-                        """ % {'path':path}
+                    tooltip += "<br/><img border=0 src='%(path)s'/>" % \
+                               {'path': path}
             elif child.type_id == WorkflowEntity.type_id:
                 # is a pipeline
                 # only show tagged items
@@ -393,7 +397,6 @@ class QBrowserWidgetItem(QtGui.QTreeWidgetItem):
 class QWorkflowEntityItem(QBrowserWidgetItem):
     def get_vistrail(self):
         parent = self.parent()
-        QVistrailEntityItem
         while parent and type(parent) != QVistrailEntityItem:
             parent = parent.parent()
         return parent
@@ -475,7 +478,7 @@ class QExplorerWidgetItem(QtGui.QTreeWidgetItem):
         if sort_col in set([4]):
             return int(self.text(sort_col)) < int(other.text(sort_col))
         elif sort_col in set([2,3]):
-            return datetime(*strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
+            return datetime(*time_strptime(str(self.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6]) < datetime(*time_strptime(str(other.text(sort_col)), '%d %b %Y %H:%M:%S')[0:6])
         return QtGui.QTreeWidgetItem.__lt__(self, other)
 
     def refresh_object(self):
@@ -797,7 +800,7 @@ class QVistrailList(QtGui.QTreeWidget):
         Expand/Collapse top-level item when the mouse is pressed
         
         """
-        if item and item.parent() == None:
+        if item and item.parent() is None:
             self.setItemExpanded(item, not self.isItemExpanded(item))
             
     def search_result_selected(self, view, version):
@@ -859,7 +862,7 @@ class QVistrailList(QtGui.QTreeWidget):
                 try:
                     version = \
                         view.controller.vistrail.get_version_number(version)
-                except:
+                except Exception:
                     version = None
             if self.searchMode:
                 self.search_result_selected(view, version)
@@ -1185,7 +1188,10 @@ class QVistrailList(QtGui.QTreeWidget):
             item.pe_to_item[pe_entity.url] = childItem
             item.paramExplorationsItem.setHidden(not len(item.pe_to_item))
 
-        self.make_tree(item) if self.isTreeView else self.make_list(item)
+        if self.isTreeView:
+            self.make_tree(item)
+        else:
+            self.make_list(item)
 
     def execution_updated(self):
         """ Add new executions to workflow """
@@ -1289,7 +1295,10 @@ class QVistrailList(QtGui.QTreeWidget):
         item.mashupsItem.setHidden(not item.mashupsItem.childCount())
         item.paramExplorationsItem.setHidden(
                              not item.paramExplorationsItem.childCount())
-        self.make_tree(item) if self.isTreeView else self.make_list(item)
+        if self.isTreeView:
+            self.make_tree(item)
+        else:
+            self.make_list(item)
         self.item_changed(item, None)
         self.updateHideExecutions()
 
@@ -1320,7 +1329,10 @@ class QVistrailList(QtGui.QTreeWidget):
         if entity and not self.collection.is_temp_entity(entity) and \
                 not vistrail_window.is_abstraction:
             item = QVistrailEntityItem(entity)
-            self.make_tree(item) if self.isTreeView else self.make_list(item)
+            if self.isTreeView:
+                self.make_tree(item)
+            else:
+                self.make_list(item)
             self.closedFilesItem.addChild(item)
             item.setText(0, entity.name)
         self.updateHideExecutions()

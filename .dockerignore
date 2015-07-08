@@ -1,0 +1,27 @@
+*.pyc
+*~
+.project
+.pydevproject
+*.pyo
+.DS_Store
+
+# vim
+*.swp
+
+# install
+/build/
+/dist/
+vistrails.egg-info/
+/vistrails/build/
+
+# pycharm
+.idea/
+
+# sphinx build
+doc/usersguide/_build/
+
+
+.git
+doc
+extensions
+scripts

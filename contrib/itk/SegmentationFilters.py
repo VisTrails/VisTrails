@@ -30,23 +30,23 @@ class IsolatedWatershedImageFilter(Module):
     my_namespace="Filter|Segmentation"
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+        if self.has_input("Input PixelType"):
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+        if self.has_input("Output PixelType"):
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+        if self.has_input("Dimension"):
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
@@ -56,20 +56,20 @@ class IsolatedWatershedImageFilter(Module):
 
         self.filter_ = itk.IsolatedWatershedImageFilter[inImgType, outImgType].New(im.getImg())
 
-        if self.hasInputFromPort("Seed1"):
-            self.filter_.SetSeed1(self.getInputFromPort("Seed1").ind_)
+        if self.has_input("Seed1"):
+            self.filter_.SetSeed1(self.get_input("Seed1").ind_)
 
-        if self.hasInputFromPort("Seed2"):
-            self.filter_.SetSeed2(self.getInputFromPort("Seed2").ind_)
+        if self.has_input("Seed2"):
+            self.filter_.SetSeed2(self.get_input("Seed2").ind_)
 
-        if self.hasInputFromPort("ReplaceValue1"):
-            self.filter_.SetReplaceValue1(self.getInputFromPort("ReplaceValue1"))
+        if self.has_input("ReplaceValue1"):
+            self.filter_.SetReplaceValue1(self.get_input("ReplaceValue1"))
 
-        if self.hasInputFromPort("ReplaceValue2"):
-            self.filter_.SetReplaceValue2(self.getInputFromPort("ReplaceValue2"))
+        if self.has_input("ReplaceValue2"):
+            self.filter_.SetReplaceValue2(self.get_input("ReplaceValue2"))
 
-        if self.hasInputFromPort("Threshold"):
-            self.filter_.SetThreshold(self.getInputFromPort("Threshold"))
+        if self.has_input("Threshold"):
+            self.filter_.SetThreshold(self.get_input("Threshold"))
 
         self.filter_.Update()
 
@@ -79,9 +79,9 @@ class IsolatedWatershedImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
-        self.setResult("Filter", self)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
+        self.set_output("Filter", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -105,34 +105,34 @@ class ConnectedThresholdImageFilter(Module):
     my_namespace="Filter|Segmentation"
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+        if self.has_input("Input PixelType"):
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+        if self.has_input("Output PixelType"):
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+        if self.has_input("Dimension"):
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
-        if self.hasInputFromPort("Seed2D"):
-            seed = self.getInputFromPort("Seed2D")
+        if self.has_input("Seed2D"):
+            seed = self.get_input("Seed2D")
         else:
-            seed = self.getInputFromPort("Seed3D")
+            seed = self.get_input("Seed3D")
 
-        replace = self.getInputFromPort("Replace Value")
-        t_lower = self.getInputFromPort("Lower Value")
-        t_upper = self.getInputFromPort("Upper Value")
+        replace = self.get_input("Replace Value")
+        t_lower = self.get_input("Lower Value")
+        t_upper = self.get_input("Upper Value")
 
         #setup filter
         inImgType = itk.Image[inPixelType._type, dim]
@@ -153,8 +153,8 @@ class ConnectedThresholdImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
 
     @classmethod
     def register(cls, reg, basic):
@@ -177,35 +177,35 @@ class ConfidenceConnectedImageFilter(Module):
     my_namespace="Filter|Segmentation"
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
 
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+        if self.has_input("Input PixelType"):
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+        if self.has_input("Output PixelType"):
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+        if self.has_input("Dimension"):
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
-        if self.hasInputFromPort("Seed2D"):
-            seed = self.getInputFromPort("Seed2D")
+        if self.has_input("Seed2D"):
+            seed = self.get_input("Seed2D")
         else:
-            seed = self.getInputFromPort("Seed3D")
+            seed = self.get_input("Seed3D")
 
-        replace = self.getInputFromPort("Replace Value")
-        multiplier = self.getInputFromPort("Multiplier")
-        iterations = self.getInputFromPort("Iterations")
-        radius = self.getInputFromPort("Neighborhood Radius")
+        replace = self.get_input("Replace Value")
+        multiplier = self.get_input("Multiplier")
+        iterations = self.get_input("Iterations")
+        radius = self.get_input("Neighborhood Radius")
 
         #setup filter
         inImgType = itk.Image[inPixelType._type,dim]
@@ -228,8 +228,8 @@ class ConfidenceConnectedImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
 
     @classmethod
     def register(cls, reg, basic):
@@ -253,31 +253,31 @@ class IsolatedConnectedImageFilter(Module):
     my_namespace="Filter|Segmentation"
 
     def compute(self):
-        im = self.getInputFromPort("Input Image")
+        im = self.get_input("Input Image")
         #check for input PixelType
-        if self.hasInputFromPort("Input PixelType"):
-            inPixelType = self.getInputFromPort("Input PixelType")
+        if self.has_input("Input PixelType"):
+            inPixelType = self.get_input("Input PixelType")
         else:
             inPixelType = im.getPixelType()
 
         #check for output PixelType
-        if self.hasInputFromPort("Output PixelType"):
-            outPixelType = self.getInputFromPort("Output PixelType")
+        if self.has_input("Output PixelType"):
+            outPixelType = self.get_input("Output PixelType")
         else:
             outPixelType = inPixelType
 
         #check for dimension
-        if self.hasInputFromPort("Dimension"):
-            dim = self.getInputFromPort("Dimension")
+        if self.has_input("Dimension"):
+            dim = self.get_input("Dimension")
         else:
             dim = im.getDim()
 
-        seed1 = self.getInputFromPort("Seed1")
-        seed2 = self.getInputFromPort("Seed2")
+        seed1 = self.get_input("Seed1")
+        seed2 = self.get_input("Seed2")
 
-        replace = self.getInputFromPort("Replace Value")
-        t_lower = self.getInputFromPort("Lower Value")
-        t_upper = self.getInputFromPort("Upper Value")
+        replace = self.get_input("Replace Value")
+        t_lower = self.get_input("Lower Value")
+        t_upper = self.get_input("Upper Value")
 
         inImgType = itk.Image[inPixelType._type,dim]
         outImgType = itk.Image[outPixelType._type,dim]
@@ -298,8 +298,8 @@ class IsolatedConnectedImageFilter(Module):
         outIm.setPixelType(outPixelType)
         outIm.setDim(dim)
 
-        self.setResult("Output Image", outIm)
-        self.setResult("Output PixelType", outPixelType)
+        self.set_output("Output Image", outIm)
+        self.set_output("Output PixelType", outPixelType)
 
     @classmethod
     def register(cls, reg, basic):

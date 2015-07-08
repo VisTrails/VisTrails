@@ -14,7 +14,7 @@ try:
 except ImportError: # pragma: no cover
     pass
 
-from .common import _modules as common_modules
+from .common import _modules as common_modules, TableOutput
 from .convert import _modules as convert_modules
 from .operations import _modules as operation_modules
 from .read import _modules as read_modules
@@ -29,35 +29,19 @@ _modules = [common_modules,
 
 if get_package_manager().has_package( # pragma: no branch
         'org.vistrails.vistrails.spreadsheet'):
-    from .viewer import _modules as viewer_modules
+    from .viewer import _modules as viewer_modules, TableToSpreadsheetMode
     _modules.append(viewer_modules)
+    TableOutput.register_output_mode(TableToSpreadsheetMode)
 
 _modules = make_modules_dict(*_modules)
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
-    old_module = pipeline.modules[module_id]
-    if (old_module.name == 'JSONFile' and old_module.version != '0.1.5' and
-            old_module.namespace == 'read'):
-        from vistrails.core.db.action import create_action
-        from vistrails.core.modules.module_registry import get_module_registry
-        from .read.read_json import JSONObject
-
-        reg = get_module_registry()
-        new_desc = reg.get_descriptor(JSONObject)
-        new_module = controller.create_module_from_descriptor(
-                new_desc,
-                old_module.location.x, old_module.location.y)
-        actions = UpgradeWorkflowHandler.replace_generic(
-                controller, pipeline,
-                old_module, new_module)
-
-        new_function = controller.create_function(new_module,
+    def add_keyname(fname, module):
+        new_function = controller.create_function(module,
                                                   "key_name",
                                                   ["_key"])
-        actions.append(create_action([('add', new_function,
-                                       'module', new_module.id)]))
-        return actions
+        return [('add', new_function, 'module', module.id)]
 
     module_remap = {
             'read|csv|CSVFile': [
@@ -93,9 +77,22 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 ('0.1.3', '0.1.4', None, {})
             ],
             'read|JSONFile': [
-                (None, '0.1.5', 'read|JSONObject')
+                (None, '0.1.5', 'read|JSONObject', {
+                    'function_remap': {
+                        None: add_keyname},
+                })
             ],
         }
+
+    try:
+        from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
+    except ImportError:
+        pass
+    else:
+        module_remap = upgrade_cell_to_output(
+                module_remap, module_id, pipeline,
+                'TableCell', 'TableOutput',
+                '0.1.6', 'table')
 
     return UpgradeWorkflowHandler.remap_module(controller,
                                                module_id,

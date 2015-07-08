@@ -25,9 +25,9 @@ class SAHMModelOutputViewerCell(SpreadsheetCell):
         Dispatch the display event to the spreadsheet with images and labels
         
         """
-        if self.hasInputFromPort("ModelWorkspace"):
+        if self.has_input("ModelWorkspace"):
             window = spreadsheetController.findSpreadsheetWindow()
-            model_workspace = self.getInputFromPort("ModelWorkspace").name
+            model_workspace = self.get_input("ModelWorkspace").name
             model_dir_full = os.path.normcase(os.path.split(model_workspace)[0])
             model_dir = os.path.split(model_dir_full)[1]
             model_name = model_dir[:model_dir.index('output')]
@@ -47,15 +47,15 @@ class SAHMModelOutputViewerCell(SpreadsheetCell):
             model_label = model_dir.capitalize().replace('output', 'Output')
             
             
-            if self.hasInputFromPort("row"):
+            if self.has_input("row"):
                 if not self.location:
                     self.location = CellLocation()
-                self.location.row = self.getInputFromPort('row') - 1
+                self.location.row = self.get_input('row') - 1
             
-            if self.hasInputFromPort("column"):
+            if self.has_input("column"):
                 if not self.location:
                     self.location = CellLocation()
-                self.location.col = self.getInputFromPort('column') - 1
+                self.location.col = self.get_input('column') - 1
             
         else:
             fileValue = None

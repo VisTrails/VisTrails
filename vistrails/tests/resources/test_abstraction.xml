@@ -222,6 +222,78 @@
       <port id="31" moduleId="11" moduleName="List" name="head" signature="(org.vistrails.vistrails.basic:Module)" type="destination" />
     </add>
   </action>
+  <action date="2014-04-21 17:18:19" id="12" prevId="11" session="4" user="Remi">
+    <annotation id="7" key="__description__" value="Upgrade" />
+    <delete id="91" objectId="30" parentObjId="15" parentObjType="connection" what="port" />
+    <delete id="92" objectId="31" parentObjId="15" parentObjType="connection" what="port" />
+    <delete id="93" objectId="15" parentObjId="" parentObjType="" what="connection" />
+    <delete id="94" objectId="9" parentObjId="9" parentObjType="module" what="location" />
+    <delete id="95" objectId="9" parentObjId="" parentObjType="" what="module" />
+    <delete id="96" objectId="28" parentObjId="14" parentObjType="connection" what="port" />
+    <delete id="97" objectId="29" parentObjId="14" parentObjType="connection" what="port" />
+    <delete id="98" objectId="14" parentObjId="" parentObjType="" what="connection" />
+    <delete id="99" objectId="11" parentObjId="11" parentObjType="module" what="location" />
+    <delete id="100" objectId="11" parentObjId="" parentObjType="" what="module" />
+    <delete id="101" objectId="26" parentObjId="13" parentObjType="connection" what="port" />
+    <delete id="102" objectId="27" parentObjId="13" parentObjType="connection" what="port" />
+    <delete id="103" objectId="13" parentObjId="" parentObjType="" what="connection" />
+    <delete id="104" objectId="8" parentObjId="8" parentObjType="module" what="location" />
+    <delete id="105" objectId="8" parentObjId="" parentObjType="" what="module" />
+    <delete id="106" objectId="10" parentObjId="10" parentObjType="module" what="location" />
+    <delete id="107" objectId="10" parentObjId="" parentObjType="" what="module" />
+    <add id="108" objectId="12" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="12" name="Float" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="109" objectId="12" parentObjId="12" parentObjType="module" what="location">
+      <location id="12" x="62.0" y="180.0" />
+    </add>
+    <add id="110" objectId="13" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="13" name="List" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="111" objectId="13" parentObjId="13" parentObjType="module" what="location">
+      <location id="13" x="18.0" y="85.0" />
+    </add>
+    <add id="112" objectId="18" parentObjId="" parentObjType="" what="connection">
+      <connection id="18" />
+    </add>
+    <add id="113" objectId="36" parentObjId="18" parentObjType="connection" what="port">
+      <port id="36" moduleId="12" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="source" />
+    </add>
+    <add id="114" objectId="37" parentObjId="18" parentObjType="connection" what="port">
+      <port id="37" moduleId="13" moduleName="List" name="head" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+    <add id="115" objectId="14" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="14" name="List" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="116" objectId="14" parentObjId="14" parentObjType="module" what="location">
+      <location id="14" x="17.0" y="-31.0" />
+    </add>
+    <add id="117" objectId="20" parentObjId="" parentObjType="" what="connection">
+      <connection id="20" />
+    </add>
+    <add id="118" objectId="40" parentObjId="20" parentObjType="connection" what="port">
+      <port id="40" moduleId="13" moduleName="List" name="value" signature="(org.vistrails.vistrails.basic:List)" type="source" />
+    </add>
+    <add id="119" objectId="41" parentObjId="20" parentObjType="connection" what="port">
+      <port id="41" moduleId="14" moduleName="List" name="tail" signature="(org.vistrails.vistrails.basic:List)" type="destination" />
+    </add>
+    <add id="120" objectId="15" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="15" name="Float" namespace="" package="org.vistrails.vistrails.basic" version="2.1.1" />
+    </add>
+    <add id="121" objectId="15" parentObjId="15" parentObjType="module" what="location">
+      <location id="15" x="-109.0" y="146.0" />
+    </add>
+    <add id="122" objectId="21" parentObjId="" parentObjType="" what="connection">
+      <connection id="21" />
+    </add>
+    <add id="123" objectId="42" parentObjId="21" parentObjType="connection" what="port">
+      <port id="42" moduleId="15" moduleName="Float" name="value" signature="(org.vistrails.vistrails.basic:Float)" type="source" />
+    </add>
+    <add id="124" objectId="43" parentObjId="21" parentObjType="connection" what="port">
+      <port id="43" moduleId="14" moduleName="List" name="head" signature="(org.vistrails.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
   <actionAnnotation actionId="9" date="2012-08-02 17:59:40" id="2" key="__upgrade__" user="tommy" value="10" />
   <actionAnnotation actionId="10" date="2013-05-08 17:48:29" id="6" key="__upgrade__" user="dakoop" value="11" />
+  <actionAnnotation actionId="11" date="2014-04-21 17:18:19" id="8" key="__upgrade__" user="Remi" value="12" />
 </vistrail>

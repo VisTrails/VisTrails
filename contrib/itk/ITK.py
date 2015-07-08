@@ -53,13 +53,13 @@ class Index2D(Module, ITK):
 
     def compute(self):
         self.ind_ = itk.Index[2]()
-        self.x_ = self.getInputFromPort("X Index")
-        self.y_ = self.getInputFromPort("Y Index")
+        self.x_ = self.get_input("X Index")
+        self.y_ = self.get_input("Y Index")
 
         self.ind_.SetElement(0,self.x_)
         self.ind_.SetElement(1,self.y_)
 
-        self.setResult("Index", self)
+        self.set_output("Index", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -74,15 +74,15 @@ class Index3D(Module, ITK):
     my_namespace = "index"
     def compute(self):
         self.ind_ = itk.Index[3]()
-        self.x_ = self.getInputFromPort("X Index")
-        self.y_ = self.getInputFromPort("Y Index")
-        self.z_ = self.getInputFromPort("Z Index")
+        self.x_ = self.get_input("X Index")
+        self.y_ = self.get_input("Y Index")
+        self.z_ = self.get_input("Z Index")
 
         self.ind_.SetElement(0,self.x_)
         self.ind_.SetElement(1,self.y_)
         self.ind_.SetElement(2,self.z_)
 
-        self.setResult("Index", self)
+        self.set_output("Index", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -97,12 +97,12 @@ class Index3D(Module, ITK):
 class Size(Module, ITK):
     my_namespace = "size"
     def compute(self):
-        dim = self.getInputFromPort("Dimension")
+        dim = self.get_input("Dimension")
         self.size_ = itk.Size[dim]()
-        self.x = self.getInputFromPort("Element 1")
-        self.y = self.getInputFromPort("Element 2")
+        self.x = self.get_input("Element 1")
+        self.y = self.get_input("Element 2")
         if dim > 2:
-            self.z = self.getInputFromPort("Element 3")
+            self.z = self.get_input("Element 3")
 
         self.size_.SetElement(0,self.x)
         self.size_.SetElement(1,self.y)
@@ -110,7 +110,7 @@ class Size(Module, ITK):
         if dim > 2:
             self.size_.SetElement(2,self.z)
 
-        self.setResult("Size",self)
+        self.set_output("Size",self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -126,15 +126,15 @@ class Size(Module, ITK):
 class Region(Module, ITK):
     my_namespace = "region"
     def compute(self):
-        dim = self.getInputFromPort("Dimension")
+        dim = self.get_input("Dimension")
         self.region_ = itk.ImageRegion[dim]()
-        self.region_.SetSize(self.getInputFromPort("Size").size_)
+        self.region_.SetSize(self.get_input("Size").size_)
         if dim > 2:
-            self.region_.SetIndex(self.getInputFromPort("Input 3D Index").ind_)
+            self.region_.SetIndex(self.get_input("Input 3D Index").ind_)
         else:
-            self.region_.SetIndex(self.getInputFromPort("Input 2D Index").ind_)
+            self.region_.SetIndex(self.get_input("Input 2D Index").ind_)
 
-        self.setResult("Region", self)
+        self.set_output("Region", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -150,11 +150,11 @@ class Region(Module, ITK):
 class Kernel(Module, ITK):
     my_namespace = "kernel"
     def compute(self):
-        dim = self.getInputFromPort("Dimension")
-        radius = self.getInputFromPort("Radius")
+        dim = self.get_input("Dimension")
+        radius = self.get_input("Radius")
         self.kernel = itk.strel(dim,radius)
 
-        self.setResult("Kernel", self.kernel)
+        self.set_output("Kernel", self.kernel)
 
     @classmethod
     def register(cls, reg, basic):

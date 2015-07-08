@@ -14,105 +14,105 @@ class DSPFilters(SciPy):
 
 class HanningWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.hanning(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class TriangularWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.triang(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class BlackmanWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.blackman(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class BlackmanHarrisWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.blackmanharris(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class ParzenWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.parzen(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class HammingWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.hamming(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class KaiserWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
-        beta = self.getInputFromPort("Beta")
+        size = self.get_input("Window Size")
+        beta = self.get_input("Beta")
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.kaiser(size, beta))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class BartlettHannWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.barthann(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class GaussianWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
-        sigma = self.getInputFromPort("Sigma")
+        size = self.get_input("Window Size")
+        sigma = self.get_input("Sigma")
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.gaussian(size, sigma))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class BoxcarWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.boxcar(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class BohmanWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.bohman(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class BartlettWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.bartlett(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 
 class NuttallBlackmanHarrisWindow(DSPFilters):
     def compute(self):
-        size = self.getInputFromPort("Window Size")
+        size = self.get_input("Window Size")
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(scipy.signal.nuttall(size))
-        self.setResult("Window", out)
+        self.set_output("Window", out)
 

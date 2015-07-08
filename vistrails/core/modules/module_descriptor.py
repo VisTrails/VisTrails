@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import copy
 import pydoc
 
@@ -139,6 +142,7 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._widget_item = None
             self._is_hidden = False
             self._namespace_hidden = False
+            self._widget_classes = {}
             self.children = []
             # The ghost attributes represent the original values
             # for the descriptor of an upgraded package subworkflow
@@ -163,6 +167,8 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._hasher_callable = other._hasher_callable
             self._widget_item = other._widget_item
             self._is_hidden = other._is_hidden
+            self._widget_classes = dict((k,copy.copy(v)) for k, v in \
+                                         other._widget_classes.iteritems())
             self._namespace_hidden = other._namespace_hidden
             self.ghost_identifier = other.ghost_identifier
             self.ghost_package_version = other.ghost_package_version
@@ -250,6 +256,26 @@ class ModuleDescriptor(DBModuleDescriptor):
     def configuration_widget(self):
         return self._configuration_widget
 
+    def set_constant_config_widget(self, widget_class, widget_use, 
+                                   widget_type):
+        if widget_use not in self._widget_classes:
+            self._widget_classes[widget_use] = {}
+        self._widget_classes[widget_use][widget_type] = widget_class
+
+    def has_constant_config_widget(self, widget_use, widget_type):
+        return widget_use in self._widget_classes and \
+            widget_type in self._widget_classes[widget_use]
+
+    def get_constant_config_widget(self, widget_use, widget_type):
+        if self.has_constant_config_widget(widget_use, widget_type):
+            return self._widget_classes[widget_use][widget_type]
+        return None
+
+    def get_all_constant_config_widgets(self, widget_use):
+        if widget_use in self._widget_classes:
+            return self._widget_classes[widget_use]
+        return {}
+
     def set_module_color(self, color):
         if color:
             assert isinstance(color, tuple)
@@ -283,8 +309,9 @@ class ModuleDescriptor(DBModuleDescriptor):
             try:
                 doc = self.module.get_documentation(doc, module)
             except Exception, e:
-                import traceback
-                debug.critical(str(e), traceback.format_exc())
+                debug.critical("Exception calling get_documentation on %r" %
+                               self.module,
+                               e)
                 doc = doc or "(Error getting documentation)"
         doc = doc or "(No documentation available)"
         return doc
@@ -327,7 +354,7 @@ class ModuleDescriptor(DBModuleDescriptor):
                 "version=%s, base_descriptor_id=%s)" % \
                     (self.id, self.package, self.name, self.namespace,
                      self.version, self.base_descriptor_id))
- 
+
     ##########################################################################
     # Abstract module detection support
 

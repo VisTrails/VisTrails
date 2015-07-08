@@ -1,47 +1,49 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import copy
 import sys
 import os
-#sys.path.append(os.getenv('VISTRAILS', ''))
 import vistrails.db.services.io
 from vistrails.db.domain import DBProvDocument, DBProvEntity, DBProvActivity, \
     DBProvAgent, DBProvGeneration, DBProvUsage, DBProvAssociation, \
     DBVtConnection, DBRefProvEntity, DBRefProvPlan, DBRefProvActivity, \
-    DBRefProvAgent, DBIsPartOf, IdScope, DBGroupExec, DBLoopExec, DBModuleExec, \
-    DBWorkflowExec, DBFunction, DBParameter, DBGroup, DBAbstraction
+    DBRefProvAgent, DBIsPartOf, IdScope, DBGroupExec, DBLoopExec, DBLoopIteration, \
+    DBModuleExec, DBWorkflowExec, DBFunction, DBParameter, DBGroup, DBAbstraction
 from vistrails.db.services.vistrail import materializeWorkflow
 
 def create_prov_document(entities, activities, agents, connections, usages,
@@ -249,17 +251,22 @@ def create_prov_activity_from_exec(id_scope, module_exec, machine_id, is_part_of
     type = ''
     if module_exec.vtType == DBModuleExec.vtType:
         type = 'vt:module_exec'
+        cached = module_exec._db_cached
     elif module_exec.vtType == DBGroupExec.vtType:
         type = 'vt:group_exec'
+        cached = module_exec._db_cached
+    elif module_exec.vtType == DBLoopIteration.vtType:
+        type = 'vt:loop_iteration'
+        cached = 0
     else:
         # something is wrong...
-        pass
+        raise Exception('Unknown exec type: %s' % module_exec.vtType)
     return DBProvActivity(id='a' + str(id_scope.getNewId(DBProvActivity.vtType)),
                           vt_id=module_exec._db_id,
                           startTime=module_exec._db_ts_start,
                           endTime=module_exec._db_ts_end,
                           vt_type=type,
-                          vt_cached=module_exec._db_cached,
+                          vt_cached=cached,
                           vt_completed=module_exec._db_completed,
                           vt_machine_id=machine_id,
                           vt_error=module_exec._db_error,
@@ -354,7 +361,7 @@ def create_prov(workflow, version, log):
                                                              is_part_of=vt_part)
                 entities_map[module._db_id] = prov_module
                 entities.append(prov_module)
-                
+
             module_functions[module._db_id] = module._db_functions
             for function in module._db_functions:
                 prov_data = create_prov_entity_from_function(id_scope, function)
@@ -383,7 +390,7 @@ def create_prov(workflow, version, log):
     ############################################################################
 
     def get_execs(exec_, parent_exec, prov_agent):
-        
+
         # module or group execution
         if exec_.vtType != DBLoopExec.vtType:
             
@@ -405,53 +412,53 @@ def create_prov(workflow, version, log):
                                                            machine_id,
                                                            vt_part)
             
-            try:
-                functions = module_functions[exec_._db_module_id]
-            except:
-                activities.append(prov_activity)
-                return True
-                
-            for function in functions:
-                prov_data = prov_functions[function.db_id]
-                
-                prov_usage = create_prov_usage(prov_activity, prov_data)
-                usages.append(prov_usage)
-                
-            if dest_conn.has_key(exec_._db_module_id):
-                connections = dest_conn[exec_._db_module_id]
-                for connection in connections:
-                    prov_input_data, inserted = prov_data_conn[connection.db_id]
-                    if not inserted:
-                        entities.append(prov_input_data)
-                        prov_data_conn[connection.db_id][1] = True
-                    
-                    prov_usage = create_prov_usage(prov_activity, prov_input_data)
-                    usages.append(prov_usage)
-                
-            if (prov_activity._db_vt_error == None) or (prov_activity._db_vt_error == ''):
-                if source_conn.has_key(exec_._db_module_id):
-                    connections = source_conn[exec_._db_module_id]
-                    for connection in connections:
-                        prov_output_data, inserted = prov_data_conn[connection.db_id]
-                        if not inserted:
-                            entities.append(prov_output_data)
-                            prov_data_conn[connection.db_id][1] = True
-                            
-                        prov_generation = create_prov_generation(prov_output_data, prov_activity)
-                        generations.append(prov_generation)
-            
             activities.append(prov_activity)
-            
-            # PROV entity associated
-            prov_module_entity = entities_map[exec_._db_module_id]
-            prov_association = create_prov_association(prov_activity, prov_agent, prov_module_entity)
-            associations.append(prov_association)
+
+            if exec_.vtType != DBLoopIteration.vtType:
+                try:
+                    functions = module_functions[exec_._db_module_id]
+                except Exception:
+                    return True
+
+                for function in functions:
+                    prov_data = prov_functions[function.db_id]
+
+                    prov_usage = create_prov_usage(prov_activity, prov_data)
+                    usages.append(prov_usage)
+
+                if dest_conn.has_key(exec_._db_module_id):
+                    connections = dest_conn[exec_._db_module_id]
+                    for connection in connections:
+                        prov_input_data, inserted = prov_data_conn[connection.db_id]
+                        if not inserted:
+                            entities.append(prov_input_data)
+                            prov_data_conn[connection.db_id][1] = True
+
+                        prov_usage = create_prov_usage(prov_activity, prov_input_data)
+                        usages.append(prov_usage)
+
+                if (prov_activity._db_vt_error is None) or (prov_activity._db_vt_error == ''):
+                    if source_conn.has_key(exec_._db_module_id):
+                        connections = source_conn[exec_._db_module_id]
+                        for connection in connections:
+                            prov_output_data, inserted = prov_data_conn[connection.db_id]
+                            if not inserted:
+                                entities.append(prov_output_data)
+                                prov_data_conn[connection.db_id][1] = True
+
+                            prov_generation = create_prov_generation(prov_output_data, prov_activity)
+                            generations.append(prov_generation)
+
+                # PROV entity associated
+                prov_module_entity = entities_map[exec_._db_module_id]
+                prov_association = create_prov_association(prov_activity, prov_agent, prov_module_entity)
+                associations.append(prov_association)
             
             if exec_.vtType == DBModuleExec.vtType:
-                for loop_exec in exec_._db_loop_execs:
+                for loop_exec in exec_.loop_execs:
                     get_execs(loop_exec, prov_activity, prov_agent)
-            elif exec_.vtType == DBGroupExec.vtType:
-                for item in exec_._db_item_execs:
+            elif exec_.vtType in [DBGroupExec.vtType, DBLoopIteration.vtType]:
+                for item in exec_.item_execs:
                     get_execs(item, prov_activity, prov_agent)
             else:
                 # something is wrong...
@@ -462,12 +469,9 @@ def create_prov(workflow, version, log):
             # here, the parent execution is related to the ControlFlow:Map module
             # TODO: should get the input values from Map, and create Function +
             # Parameter?
-            
-            # there must be only one item exec per loop exec - otherwise, something
-            # is wrong
-            item_exec = exec_.item_execs[0]
-            get_execs(item_exec, parent_exec, prov_agent)
-        
+            for iter_exec in exec_.loop_iterations:
+                get_execs(iter_exec, parent_exec, prov_agent)
+
         else:
             # something is wrong...
             pass
@@ -486,11 +490,7 @@ def create_prov(workflow, version, log):
     # storing input data
     for id in prov_functions:
         entities.append(prov_functions[id])
-    
-    # machines
-    for machine in log._db_machines:
-        machines[machine.db_id] = (create_prov_agent_from_machine(id_scope, machine), False)
-    
+
     # executions
     for exec_ in log._db_workflow_execs:
         if exec_._db_parent_version != version:
@@ -503,6 +503,11 @@ def create_prov(workflow, version, log):
         else:
             prov_agent = agents_map[exec_._db_user]
         
+        # machines
+        for machine in exec_.machine_list:
+            if machine.db_id not in machines:
+                machines[machine.db_id] = (create_prov_agent_from_machine(id_scope, machine), False)
+
         # creating PROV activity
         prov_activity = create_prov_activity_from_wf_exec(id_scope, exec_)
         activities.append(prov_activity)

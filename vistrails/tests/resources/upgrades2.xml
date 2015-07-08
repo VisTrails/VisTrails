@@ -1,0 +1,133 @@
+<vistrail id="" name="" version="1.0.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2015-03-27 10:00:51" id="1" prevId="0" session="0" user="Remi">
+    <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="0" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.1" />
+    </add>
+    <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="0" x="-4.0" y="-15.0" />
+    </add>
+  </action>
+  <action date="2015-03-27 10:01:01" id="2" prevId="1" session="0" user="Remi">
+    <change id="2" newObjId="1" oldObjId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="1" x="-38.0" y="2.0" />
+    </change>
+  </action>
+  <action date="2015-03-27 10:01:15" id="3" prevId="2" session="1" user="Remi">
+    <annotation id="0" key="__description__" value="Upgrade" />
+    <delete id="3" objectId="1" parentObjId="0" parentObjType="module" what="location" />
+    <delete id="4" objectId="0" parentObjId="" parentObjType="" what="module" />
+    <add id="5" objectId="1" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="1" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.2" />
+    </add>
+    <add id="6" objectId="2" parentObjId="1" parentObjType="module" what="location">
+      <location id="2" x="-38.0" y="2.0" />
+    </add>
+  </action>
+  <action date="2015-03-27 10:01:30" id="4" prevId="3" session="1" user="Remi">
+    <change id="7" newObjId="3" oldObjId="2" parentObjId="1" parentObjType="module" what="location">
+      <location id="3" x="-75.7986577181" y="-1.43624161074" />
+    </change>
+  </action>
+  <action date="2015-03-27 10:01:35" id="5" prevId="3" session="1" user="Remi">
+    <change id="8" newObjId="4" oldObjId="2" parentObjId="1" parentObjType="module" what="location">
+      <location id="4" x="24.711409396" y="-9.1677852349" />
+    </change>
+  </action>
+  <action date="2015-03-27 10:01:36" id="6" prevId="5" session="1" user="Remi">
+    <change id="9" newObjId="5" oldObjId="4" parentObjId="1" parentObjType="module" what="location">
+      <location id="5" x="-43.1543624161" y="8.87248322148" />
+    </change>
+  </action>
+  <action date="2015-03-27 10:01:57" id="7" prevId="4" session="2" user="Remi">
+    <annotation id="4" key="__description__" value="Upgrade" />
+    <delete id="10" objectId="3" parentObjId="1" parentObjType="module" what="location" />
+    <delete id="11" objectId="1" parentObjId="" parentObjType="" what="module" />
+    <add id="12" objectId="3" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="3" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.3" />
+    </add>
+    <add id="13" objectId="7" parentObjId="3" parentObjType="module" what="location">
+      <location id="7" x="-75.7986577181" y="-1.43624161074" />
+    </add>
+  </action>
+  <action date="2015-03-27 10:03:31" id="8" prevId="0" session="3" user="Remi">
+    <add id="14" objectId="5" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="5" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.1" />
+    </add>
+    <add id="15" objectId="9" parentObjId="5" parentObjType="module" what="location">
+      <location id="9" x="-43.8120805369" y="14.6040268456" />
+    </add>
+  </action>
+  <action date="2015-03-27 10:03:33" id="9" prevId="8" session="3" user="Remi">
+    <change id="16" newObjId="10" oldObjId="9" parentObjId="5" parentObjType="module" what="location">
+      <location id="10" x="-96.2147651007" y="6.01342281879" />
+    </change>
+  </action>
+  <action date="2015-03-27 10:03:35" id="10" prevId="9" session="3" user="Remi">
+    <change id="17" newObjId="11" oldObjId="10" parentObjId="5" parentObjType="module" what="location">
+      <location id="11" x="-49.8255033557" y="19.7583892617" />
+    </change>
+  </action>
+  <action date="2015-03-27 10:03:55" id="11" prevId="9" session="4" user="Remi">
+    <annotation id="7" key="__description__" value="Upgrade" />
+    <delete id="18" objectId="10" parentObjId="5" parentObjType="module" what="location" />
+    <delete id="19" objectId="5" parentObjId="" parentObjType="" what="module" />
+    <add id="20" objectId="7" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="7" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.2" />
+    </add>
+    <add id="21" objectId="13" parentObjId="7" parentObjType="module" what="location">
+      <location id="13" x="-96.2147651007" y="6.01342281879" />
+    </add>
+  </action>
+  <action date="2015-03-27 10:04:17" id="12" prevId="0" session="5" user="Remi">
+    <add id="22" objectId="9" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="9" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.1" />
+    </add>
+    <add id="23" objectId="15" parentObjId="9" parentObjType="module" what="location">
+      <location id="15" x="4.29530201342" y="4.29530201342" />
+    </add>
+  </action>
+  <action date="2015-03-27 10:04:19" id="13" prevId="12" session="5" user="Remi">
+    <change id="24" newObjId="16" oldObjId="15" parentObjId="9" parentObjType="module" what="location">
+      <location id="16" x="-12.0268456376" y="10.3087248322" />
+    </change>
+  </action>
+  <action date="2015-03-27 10:04:20" id="14" prevId="13" session="5" user="Remi">
+    <change id="25" newObjId="17" oldObjId="16" parentObjId="9" parentObjType="module" what="location">
+      <location id="17" x="-0.859060402685" y="12.8859060403" />
+    </change>
+  </action>
+  <action date="2015-03-27 10:04:36" id="15" prevId="12" session="6" user="Remi">
+    <annotation id="11" key="__description__" value="Upgrade" />
+    <delete id="26" objectId="15" parentObjId="9" parentObjType="module" what="location" />
+    <delete id="27" objectId="9" parentObjId="" parentObjType="" what="module" />
+    <add id="28" objectId="11" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="11" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.2" />
+    </add>
+    <add id="29" objectId="19" parentObjId="11" parentObjType="module" what="location">
+      <location id="19" x="4.29530201342" y="4.29530201342" />
+    </add>
+  </action>
+  <action date="2015-03-27 10:04:40" id="16" prevId="13" session="6" user="Remi">
+    <annotation id="13" key="__description__" value="Upgrade" />
+    <delete id="30" objectId="16" parentObjId="9" parentObjType="module" what="location" />
+    <delete id="31" objectId="9" parentObjId="" parentObjType="" what="module" />
+    <add id="32" objectId="12" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="12" name="Mod" namespace="" package="org.vistrails.test.upgrades_layout" version="0.2" />
+    </add>
+    <add id="33" objectId="20" parentObjId="12" parentObjType="module" what="location">
+      <location id="20" x="-12.0268456376" y="10.3087248322" />
+    </add>
+  </action>
+  <action date="2015-03-27 10:04:44" id="17" prevId="16" session="6" user="Remi">
+    <change id="34" newObjId="21" oldObjId="20" parentObjId="12" parentObjType="module" what="location">
+      <location id="21" x="-29.2080536913" y="32.644295302" />
+    </change>
+  </action>
+  <actionAnnotation actionId="2" date="2015-03-27 10:01:15" id="1" key="__upgrade__" user="Remi" value="3" />
+  <actionAnnotation actionId="3" date="2015-03-27 10:01:18" id="2" key="__tag__" user="Remi" value="T1" />
+  <actionAnnotation actionId="4" date="2015-03-27 10:01:57" id="5" key="__upgrade__" user="Remi" value="7" />
+  <actionAnnotation actionId="9" date="2015-03-27 10:03:55" id="8" key="__upgrade__" user="Remi" value="11" />
+  <actionAnnotation actionId="11" date="2015-03-27 10:03:57" id="9" key="__tag__" user="Remi" value="T2" />
+  <actionAnnotation actionId="12" date="2015-03-27 10:04:36" id="12" key="__upgrade__" user="Remi" value="15" />
+  <actionAnnotation actionId="13" date="2015-03-27 10:04:40" id="14" key="__upgrade__" user="Remi" value="16" />
+</vistrail>

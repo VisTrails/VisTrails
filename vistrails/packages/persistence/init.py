@@ -1,37 +1,41 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
+from ast import literal_eval
 import copy
 import os
 import shutil
@@ -41,7 +45,7 @@ import uuid
 import vistrails.core.debug
 from vistrails.core.configuration import ConfigurationObject
 from vistrails.core.cache.hasher import Hasher
-from vistrails.core.modules.basic_modules import Path, File, Directory, Boolean, \
+from vistrails.core.modules.basic_modules import Path, PathObject, Directory, Boolean, \
     String, Constant
 from vistrails.core.modules.module_registry import get_module_registry, MissingModule, \
     MissingPackageVersion, MissingModuleVersion
@@ -111,10 +115,10 @@ class PersistentRef(Constant):
     def translate_to_python(x):
         try:
             res = PersistentRef()
-            s_tuple = eval(x)
+            s_tuple = literal_eval(x)
             (res.type, res.id, res.version, res.local_path, res.local_read,
              res.local_writeback, res.versioned, res.name, res.tags) = s_tuple
-        except:
+        except Exception:
             return None
 #         result.settings = dict(zip(sorted(default_settings.iterkeys()),
 #                                    s_tuple))
@@ -202,15 +206,15 @@ class PersistentPath(Module):
     def set_result(self, path):
         persistent_path = Path()
         persistent_path.name = path
-        persistent_path.setResult('value', self)
+        persistent_path.set_output('value', self)
         persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        self.set_output("value", persistent_path)
 
-    def updateUpstream(self, is_input=None, path_type=None):
+    def update_upstream(self, is_input=None, path_type=None):
         global db_access
 
         if is_input is None:
-            if not self.hasInputFromPort('value'):
+            if not self.has_input('value'):
                 is_input = True
             else:
                 # FIXME: check if the signature is the signature of
@@ -220,21 +224,21 @@ class PersistentPath(Module):
         self.persistent_ref = None
         self.persistent_path = None
         if is_input:
-            return super(PersistentPath, self).updateUpstream()
+            return super(PersistentPath, self).update_upstream()
 
-        # can check updateUpstream
+        # can check update_upstream
         if not hasattr(self, 'signature'):
             raise ModuleError(self, 'Module has no signature')
 
         ref_exists = False
-        if not self.hasInputFromPort('ref'):
+        if not self.has_input('ref'):
             # create new reference with no name or tags
             ref = PersistentRef()
             ref.signature = self.signature
         else:
             # update single port
-            self.updateUpstreamPort('ref')
-            ref = self.getInputFromPort('ref')
+            self.update_upstream_port('ref')
+            ref = self.get_input('ref')
             if db_access.ref_exists(ref.id, ref.version):
                 ref_exists = True
                 if ref.version is None:
@@ -276,20 +280,20 @@ class PersistentPath(Module):
 
         if self.persistent_ref is None or self.persistent_path is None:
             debug_print("NOT FOUND persistent path")
-            super(PersistentPath, self).updateUpstream()
+            super(PersistentPath, self).update_upstream()
 
     def compute(self, is_input=None, path_type=None):
         global db_access
-        if not self.hasInputFromPort('value') and \
-                not self.hasInputFromPort('ref'):
+        if not self.has_input('value') and \
+                not self.has_input('ref'):
             raise ModuleError(self, "Need to specify path or reference")
 
         if self.persistent_path is not None:
             debug_print('using persistent path')
             ref = self.persistent_ref
             path = self.persistent_path
-        elif self.hasInputFromPort('ref'):
-            ref = self.getInputFromPort('ref')
+        elif self.has_input('ref'):
+            ref = self.get_input('ref')
             if ref.id is None:
                 ref.id = str(uuid.uuid1())
         else:
@@ -297,16 +301,16 @@ class PersistentPath(Module):
             ref = PersistentRef()
             ref.id = str(uuid.uuid1())
 
-        if self.hasInputFromPort('localPath'):
-            ref.local_path = self.getInputFromPort('localPath').name
-            if self.hasInputFromPort('readLocal'):
-                ref.local_read = self.getInputFromPort('readLocal')
-            if self.hasInputFromPort('writeLocal'):
-                ref.local_writeback = self.getInputFromPort('writeLocal')
+        if self.has_input('localPath'):
+            ref.local_path = self.get_input('localPath').name
+            if self.has_input('readLocal'):
+                ref.local_read = self.get_input('readLocal')
+            if self.has_input('writeLocal'):
+                ref.local_writeback = self.get_input('writeLocal')
 
         if is_input is None:
             is_input = False
-            if not self.hasInputFromPort('value'):
+            if not self.has_input('value'):
                 is_input = True
             else:
                 if ref.local_path and ref.local_read:
@@ -317,7 +321,7 @@ class PersistentPath(Module):
 
         # if just reference, pull path from repository (get latest
         # version unless specified as specific version)
-        if self.persistent_path is None and not self.hasInputFromPort('value') \
+        if self.persistent_path is None and not self.has_input('value') \
                 and is_input and not (ref.local_path and ref.local_read):
             _, suffix = os.path.splitext(ref.name)
             if not db_access.ref_exists(ref.id, ref.version):
@@ -336,7 +340,7 @@ class PersistentPath(Module):
                 debug_print('using local_path')
                 path = ref.local_path
             else:
-                path = self.getInputFromPort('value').name
+                path = self.get_input('value').name
             # this is a static method so we need to add module ourselves
             try:
                 new_hash = repo.get_current_repo().compute_hash(path)
@@ -429,49 +433,43 @@ class PersistentFile(PersistentPath):
                     ('localPath', '(basic:File)')]
     _output_ports = [('value', '(basic:File)')]
 
-    def updateUpstream(self, is_input=None):
-        PersistentPath.updateUpstream(self, is_input, 'blob')
+    def update_upstream(self, is_input=None):
+        PersistentPath.update_upstream(self, is_input, 'blob')
 
     def compute(self, is_input=None):
         PersistentPath.compute(self, is_input, 'blob')
 
     def set_result(self, path):
-        persistent_path = File()
-        persistent_path.name = path
-        persistent_path.setResult('value', self)
-        persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        persistent_path = PathObject(path)
+        self.set_output("value", persistent_path)
 
 class PersistentDir(PersistentPath):
     _input_ports = [('value', '(basic:Directory)'),
                     ('localPath', '(basic:Directory)')]
     _output_ports = [('value', '(basic:Directory)')]
 
-    def updateUpstream(self, is_input=None):
-        PersistentPath.updateUpstream(self, is_input, 'tree')
+    def update_upstream(self, is_input=None):
+        PersistentPath.update_upstream(self, is_input, 'tree')
 
     def compute(self, is_input=None):
         PersistentPath.compute(self, is_input, 'tree')
 
     def set_result(self, path):
-        persistent_path = Directory()
-        persistent_path.name = path
-        persistent_path.setResult('value', self)
-        persistent_path.upToDate = True
-        self.setResult("value", persistent_path)
+        persistent_path = PathObject(path)
+        self.set_output("value", persistent_path)
 
 class PersistentInputDir(PersistentDir):
     _input_ports = [('value', '(basic:Directory)', True)]
 
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, True)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, True)
 
     def compute(self):
         PersistentDir.compute(self, True)
         
 class PersistentIntermediateDir(PersistentDir):
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, False)
 
     def compute(self):
         PersistentDir.compute(self, False)
@@ -479,8 +477,8 @@ class PersistentIntermediateDir(PersistentDir):
 class PersistentOutputDir(PersistentDir):
     _output_ports = [('value', '(basic:Directory)', True)]
 
-    def updateUpstream(self):
-        PersistentDir.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentDir.update_upstream(self, False)
 
     def compute(self):
         PersistentDir.compute(self, False)
@@ -488,15 +486,15 @@ class PersistentOutputDir(PersistentDir):
 class PersistentInputFile(PersistentFile):
     _input_ports = [('value', '(basic:File)', True)]
 
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, True)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, True)
 
     def compute(self):
         PersistentFile.compute(self, True)
     
 class PersistentIntermediateFile(PersistentFile):
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, False)
 
     def compute(self):
         PersistentFile.compute(self, False)
@@ -504,8 +502,8 @@ class PersistentIntermediateFile(PersistentFile):
 class PersistentOutputFile(PersistentFile):
     _output_ports = [('value', '(basic:File)', True)]
 
-    def updateUpstream(self):
-        PersistentFile.updateUpstream(self, False)
+    def update_upstream(self):
+        PersistentFile.update_upstream(self, False)
 
     def compute(self):
         PersistentFile.compute(self, False)
@@ -586,7 +584,7 @@ def initialize():
         if not os.path.exists(local_db):
             try:
                 os.mkdir(local_db)
-            except:
+            except OSError:
                 raise RuntimeError('local_db "%s" does not exist' % local_db)
 
     local_repo = repo.get_repo(local_db)
@@ -600,14 +598,15 @@ def initialize():
     search_dbs = [local_db,]
     if configuration.check('search_dbs'):
         try:
-            check_paths = eval(configuration.search_dbs)
-        except:
+            check_paths = literal_eval(configuration.search_dbs)
+        except Exception:
             print "*** persistence error: cannot parse search_dbs ***"
-        for path in check_paths:
-            if os.path.exists(path):
-                search_dbs.append(path)
-            else:
-                print '*** persistence warning: cannot find path "%s"' % path
+        else:
+            for path in check_paths:
+                if os.path.exists(path):
+                    search_dbs.append(path)
+                else:
+                    print '*** persistence warning: cannot find path "%s"' % path
 
 _configuration_widget = None
 

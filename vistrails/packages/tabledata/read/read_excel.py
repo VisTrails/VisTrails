@@ -1,3 +1,38 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2013-2014, NYU-Poly.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
 from __future__ import division
 
 try:
@@ -14,10 +49,11 @@ from ..common import TableObject, Table
 def get_xlrd():
     try:
         return py_import('xlrd', {
-                'pip': 'xlrd',
-                'linux-debian': 'python-xlrd',
-                'linux-ubuntu': 'python-xlrd',
-                'linux-fedora': 'python-xlrd'})
+                             'pip': 'xlrd',
+                             'linux-debian': 'python-xlrd',
+                             'linux-ubuntu': 'python-xlrd',
+                             'linux-fedora': 'python-xlrd'},
+                         True)
     except ImportError: # pragma: no cover
         return None
 
@@ -80,34 +116,34 @@ class ExcelSpreadsheet(Table):
         if xlrd is None: # pragma: no cover
             raise ModuleError(self, "xlrd is not available")
 
-        workbook = self.getInputFromPort('file')
+        workbook = self.get_input('file')
         workbook = xlrd.open_workbook(workbook.name)
 
-        if self.hasInputFromPort('sheet_index'):
-            sheet_index = self.getInputFromPort('sheet_index')
-        if self.hasInputFromPort('sheet_name'):
-            name = self.getInputFromPort('sheet_name')
+        if self.has_input('sheet_index'):
+            sheet_index = self.get_input('sheet_index')
+        if self.has_input('sheet_name'):
+            name = self.get_input('sheet_name')
             try:
                 index = workbook.sheet_names().index(name)
             except Exception:
                 raise ModuleError(self, "Sheet name not found")
-            if self.hasInputFromPort('sheet_index'):
+            if self.has_input('sheet_index'):
                 if sheet_index != index:
                     raise ModuleError(self,
                                       "Both sheet_name and sheet_index were "
                                       "specified, and they don't agree")
-        elif self.hasInputFromPort('sheet_index'):
+        elif self.has_input('sheet_index'):
             index = sheet_index
         else:
             index = 0
         sheet = workbook.sheet_by_index(index)
-        header_present = self.getInputFromPort('header_present')
+        header_present = self.get_input('header_present')
         table = ExcelTable(sheet, header_present)
-        self.setResult('value', table)
+        self.set_output('value', table)
 
         if table.names is not None:
-            self.setResult('column_names', table.names)
-        self.setResult('column_count', table.columns)
+            self.set_output('column_names', table.names)
+        self.set_output('column_count', table.columns)
 
 
 _modules = [ExcelSpreadsheet]

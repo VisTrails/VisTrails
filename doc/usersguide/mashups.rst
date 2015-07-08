@@ -23,7 +23,7 @@ Notice that a pipeline can have multiple modules of the same type or name, makin
    :width: 2.5in
    :align: center
 
-   Numbered Modules - The HTTPFile modules 1 and 2 appear in the annotated pipeline and in the parameter aliases.  The annotated pipeline also, numbers the vtkDataSetReader modules (which appear below the respective HTTPFile modules in the pipeline).  Their parameters have not been exposed to the mashup, so they do not appear in the Parameter Aliases section.
+   Numbered Modules - The DownloadFile modules 1 and 2 appear in the annotated pipeline and in the parameter aliases.  The annotated pipeline also, numbers the vtkDataSetReader modules (which appear below the respective HTTPFile modules in the pipeline).  Their parameters have not been exposed to the mashup, so they do not appear in the Parameter Aliases section.
 
 Finally, not all modules in the ``Annotated Pipeline`` will show up in the ``Parameter Aliases`` section.  Only modules whose parameters have been set in the pipeline will appear.
 

@@ -1,24 +1,63 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
+from __future__ import division
+
 import vistrails.core.db.action
-import vistrails.db.versions
+from vistrails.core.db.locator import XMLFileLocator
+from vistrails.core.db.io import serialize, unserialize
+from vistrails.core import debug
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.log.group_exec import GroupExec
+from vistrails.core.log.machine import Machine
+from vistrails.core.log.module_exec import ModuleExec
+from vistrails.core.modules.basic_modules import Constant
 import vistrails.core.modules.module_registry
 import vistrails.core.modules.utils
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
-    ModuleConnector, InvalidOutput
-from vistrails.core.modules.basic_modules import NotCacheable, Constant
-from vistrails.core.vistrail.pipeline import Pipeline
+    InvalidOutput
 from vistrails.core.vistrail.annotation import Annotation
+from vistrails.core.vistrail.controller import VistrailController
 from vistrails.core.vistrail.group import Group
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.vistrail.vistrail import Vistrail
-from vistrails.core.db.locator import XMLFileLocator
-from vistrails.core.vistrail.controller import VistrailController
-from vistrails.core.interpreter.default import get_default_interpreter
-from vistrails.core.db.io import serialize, unserialize
-from vistrails.core.log.module_exec import ModuleExec
-from vistrails.core.log.group_exec import GroupExec
-from vistrails.core.log.machine import Machine
 from vistrails.db.domain import IdScope
+import vistrails.db.versions
 
 import copy
 import inspect
@@ -31,6 +70,13 @@ import tempfile
 from IPython.parallel.error import CompositeError
 
 from .api import get_client
+
+try:
+    import hashlib
+    sha1_hash = hashlib.sha1
+except ImportError:
+    import sha
+    sha1_hash = sha.new
 
 
 ###############################################################################
@@ -99,13 +145,13 @@ def execute_wf(wf, output_port):
             errors.append("Module log not found")
             return dict(errors=errors)
         else:
-            machine = controller.log.machine_list[0]
+            machine = controller.log.workflow_execs[0].machines[
+                    module_log.machine_id]
             xml_log = serialize(module_log)
             machine_log = serialize(machine)
 
         # Get the output value
         output = None
-        serializable = None
         if not execution_errors:
             executed_module, = execution[0][0].executed
             executed_module = execution[0][0].objects[executed_module]
@@ -114,16 +160,12 @@ def execute_wf(wf, output_port):
             except ModuleError:
                 errors.append("Output port not found: %s" % output_port)
                 return dict(errors=errors)
-            reg = vistrails.core.modules.module_registry.get_module_registry()
-            base_classes = inspect.getmro(type(output))
-            if Module in base_classes:
-                serializable = reg.get_descriptor(type(output)).sigstring
-                output = output.serialize()
+            if isinstance(output, Module):
+                raise TypeError("Output value is a Module instance")
 
         # Return the dictionary, that will be sent back to the client
         return dict(errors=errors,
                     output=output,
-                    serializable=serializable,
                     xml_log=xml_log,
                     machine_log=machine_log)
     finally:
@@ -149,15 +191,15 @@ class Map(Module):
     def __init__(self):
         Module.__init__(self)
 
-    def updateUpstream(self):
-        """A modified version of the updateUpstream method."""
+    def update_upstream(self):
+        """A modified version of the update_upstream method."""
 
         # everything is the same except that we don't update anything
         # upstream of FunctionPort
         for port_name, connector_list in self.inputPorts.iteritems():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
-                    connector.obj.updateUpstream()
+                    connector.obj.update_upstream()
             else:
                 for connector in connector_list:
                     connector.obj.update()
@@ -166,7 +208,7 @@ class Map(Module):
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
                             InvalidOutput:
-                        self.removeInputConnector(port_name, connector)
+                        self.remove_input_connector(port_name, connector)
 
     @staticmethod
     def print_compositeerror(e):
@@ -191,9 +233,9 @@ class Map(Module):
         updates the module connected to the FunctionPort port, executing it in
         parallel.
         """
-        nameInput = self.getInputFromPort('InputPort')
-        nameOutput = self.getInputFromPort('OutputPort')
-        rawInputList = self.getInputFromPort('InputList')
+        nameInput = self.get_input('InputPort')
+        nameOutput = self.get_input('OutputPort')
+        rawInputList = self.get_input('InputList')
 
         # Create inputList to always have iterable elements
         # to simplify code
@@ -228,7 +270,7 @@ class Map(Module):
 
                 # checking type and setting input in the module
                 self.typeChecking(connector.obj, nameInput, inputList)
-                self.setInputValues(connector.obj, nameInput, element)
+                self.setInputValues(connector.obj, nameInput, element, i)
 
                 pipeline_db_module = original_pipeline.modules[module_id].do_copy()
 
@@ -298,8 +340,8 @@ class Map(Module):
         try:
             rc = get_client()
         except Exception, error:
-            raise ModuleError(self, "Exception while loading IPython: "
-                              "%s" % error)
+            raise ModuleError(self, "Exception while loading IPython: %s" %
+                              debug.format_exception(error))
         if rc is None:
             raise ModuleError(self, "Couldn't get an IPython connection")
         engines = rc.ids
@@ -316,7 +358,7 @@ class Map(Module):
         for eng in engines:
             try:
                 rc[eng]['init']
-            except:
+            except Exception:
                 uninitialized.append(eng)
         if uninitialized:
             init_view = rc[uninitialized]
@@ -380,19 +422,10 @@ class Map(Module):
         # setting success color
         module.logging.signalSuccess(module)
 
-        import vistrails.core.modules.module_registry
         reg = vistrails.core.modules.module_registry.get_module_registry()
         self.result = []
         for map_execution in map_result:
-            serializable = map_execution['serializable']
-            output = None
-            if not serializable:
-                output = map_execution['output']
-            else:
-                d_tuple = vistrails.core.modules.utils.parse_descriptor_string(serializable)
-                d = reg.get_descriptor_by_name(*d_tuple)
-                module_klass = d.module
-                output = module_klass().deserialize(map_execution['output'])
+            output = map_execution['output']
             self.result.append(output)
 
         # including execution logs
@@ -419,19 +452,17 @@ class Map(Module):
 
             # before adding the execution log, we need to get the machine information
             machine = unserialize(map_result[engine]['machine_log'], Machine)
-            machine.id = self.logging.log.log.id_scope.getNewId(Machine.vtType) #assigning new id
-            self.logging.log.log.add_machine(machine)
+            machine_id = self.logging.add_machine(machine)
 
             # recursively add machine information to execution items
             def add_machine_recursive(exec_):
-                for i in range(len(exec_.item_execs)):
-                    if hasattr(exec_.item_execs[i], 'machine_id'):
-                        exec_.item_execs[i].machine_id = machine.id
-                        vt_type = exec_.item_execs[i].vtType
-                        if (vt_type == 'abstraction') or (vt_type == 'group'):
-                            add_machine_recursive(exec_.item_execs[i])
+                for item in exec_.item_execs:
+                    if hasattr(item, 'machine_id'):
+                        item.machine_id = machine_id
+                        if item.vtType in ('abstraction', 'group'):
+                            add_machine_recursive(item)
 
-            exec_.machine_id = machine.id
+            exec_.machine_id = machine_id
             if (vtType == 'abstraction') or (vtType == 'group'):
                 add_machine_recursive(exec_)
 
@@ -459,78 +490,13 @@ class Map(Module):
 
         return serialize(pipeline)
 
-    def setInputValues(self, module, inputPorts, elementList):
-        """
-        Function used to set a value inside 'module', given the input port(s).
-        """
-        for element, inputPort in izip(elementList, inputPorts):
-            ## Cleaning the previous connector...
-            if inputPort in module.inputPorts:
-                del module.inputPorts[inputPort]
-            new_connector = ModuleConnector(create_constant(element), 'value')
-            module.set_input_port(inputPort, new_connector)
-
-    def typeChecking(self, module, inputPorts, inputList):
-        """
-        Function used to check if the types of the input list element and of the
-        inputPort of 'module' match.
-        """
-        for elementList in inputList:
-            if len(elementList) != len(inputPorts):
-                raise ModuleError(self,
-                                  'The number of input values and input ports '
-                                  'are not the same.')
-            for element, inputPort in izip(elementList, inputPorts):
-                p_modules = module.moduleInfo['pipeline'].modules
-                p_module = p_modules[module.moduleInfo['moduleId']]
-                port_spec = p_module.get_port_spec(inputPort, 'input')
-                v_module = get_module(element, port_spec.signature)
-                if v_module is not None:
-                    if not self.compare(port_spec, v_module, inputPort):
-                        raise ModuleError(self,
-                                          'The type of a list element does '
-                                          'not match with the type of the '
-                                          'port %s.' % inputPort)
-
-                    del v_module
-                else:
-                    break
-
-    def createSignature(self, v_module):
-        """
-    `   Function used to create a signature, given v_module, for a port spec.
-        """
-        if isinstance(v_module, tuple):
-            v_module_class = []
-            for module_ in v_module:
-                v_module_class.append(self.createSignature(module_))
-            return v_module_class
-        else:
-            return v_module
-
-    def compare(self, port_spec, v_module, port):
-        """
-        Function used to compare two port specs.
-        """
-        port_spec1 = port_spec
-
-        from vistrails.core.modules.module_registry import get_module_registry
-        reg = get_module_registry()
-
-        from vistrails.core.vistrail.port_spec import PortSpec
-        v_module = self.createSignature(v_module)
-        port_spec2 = PortSpec(**{'signature': v_module})
-        matched = reg.are_specs_matched(port_spec2, port_spec1)
-
-        return matched
-
     def compute(self):
         """The compute method for Map."""
 
         self.result = None
         self.updateFunctionPort()
 
-        self.setResult('Result', self.result)
+        self.set_output('Result', self.result)
 
 ###############################################################################
 
@@ -539,7 +505,7 @@ class NewConstant(Constant):
     A new Constant module to be used inside the Map module.
     """
     def setValue(self, v):
-        self.setResult("value", v)
+        self.set_output("value", v)
         self.upToDate = True
 
 def create_constant(value):
