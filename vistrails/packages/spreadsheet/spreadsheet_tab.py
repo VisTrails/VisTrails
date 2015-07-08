@@ -105,7 +105,8 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         self.addAction(self.sheetTab.tabWidget.saveAction())
         self.addWidget(self.rowCountSpinBox())
         self.addWidget(self.colCountSpinBox())
-        self.connect(self.addAction("Reset sizes",),
+        self.connect(self.addAction(QtGui.QIcon(":/images/equal-sizes.png"),
+                                    "Reset sizes",),
                      QtCore.SIGNAL('triggered()'),
                      self.resetCellSizes)
         self.addAction(self.sheetTab.tabWidget.exportSheetToImageAction())

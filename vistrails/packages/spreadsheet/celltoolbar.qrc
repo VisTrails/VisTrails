@@ -8,5 +8,6 @@
     <file>images/camera.png</file>
     <file>images/view-refresh.png</file>
     <file>images/new-window.png</file>
+    <file>images/equal-sizes.png</file>
 </qresource>
 </RCC>
