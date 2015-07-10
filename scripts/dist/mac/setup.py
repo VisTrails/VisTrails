@@ -43,6 +43,8 @@ Usage:
 from setuptools import setup
 import sys
 
+sys.setrecursionlimit(1500)
+
 VERSION = '2.2.x'
 
 # Add VTK 6.2 to path

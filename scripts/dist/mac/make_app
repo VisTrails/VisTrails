@@ -39,7 +39,7 @@ ln -s Versions/2.7/Python Python
 ln -s Versions/2.7/Resources Resources
 cd $curdir
 echo "copying hdf5 headers and libs..."
-mkdir dist/VisTrails.app/Contents/Resources/hdf5
+mkdir -p dist/VisTrails.app/Contents/Resources/hdf5
 cp -r /Users/vistrails/src/hdf5-1.8.4/hdf5/include dist/VisTrails.app/Contents/Resources/hdf5/
 cp -r /Users/vistrails/src/hdf5-1.8.4/hdf5/lib dist/VisTrails.app/Contents/Resources/hdf5/
 install_name_tool -id @executable_path/../Resources/hdf5/lib/libhdf5.dylib dist/VisTrails.app/Contents/Resources/hdf5/lib/libhdf5.dylib
@@ -74,6 +74,7 @@ echo "adding scrpt files..."
 mkdir dist/scripts
 rsync -a ../.. dist/scripts/ --exclude dist
 echo "copying GDAL's resource files..."
+mkdir -p dist/VisTrails.app/Contents/Frameworks/GDAL.framework/Versions/1.8/Resources
 cp -r /Library/Frameworks/GDAL.framework/Versions/1.8/Resources/gdal dist/VisTrails.app/Contents/Frameworks/GDAL.framework/Versions/1.8/Resources/
 echo "Downloading User's Guide and adding it distribution"
 
