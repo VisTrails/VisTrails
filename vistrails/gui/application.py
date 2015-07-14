@@ -548,21 +548,17 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                         errs.append("Error generating vistrail graph: %s" % \
                                     r[1])
                         debug.critical("*** Error in get_vt_graph: %s" % r[1])
-                
-            extra_info = None
-            if output_dir:
-                extra_info = {'pathDumpCells': output_dir}
+
             if not self.temp_configuration.check('noExecute'):
                 if self.temp_configuration.check('parameterExploration'):
                     errs.extend(
                         vistrails.core.console_mode.run_parameter_explorations(
-                            w_list, extra_info=extra_info))
+                            w_list))
                 else:
                     errs.extend(vistrails.core.console_mode.run(
                             w_list,
                             self.temp_configuration.check('parameters') or '',
-                            update_vistrail=True,
-                            extra_info=extra_info))
+                            update_vistrail=True))
                 if len(errs) > 0:
                     for err in errs:
                         print err
