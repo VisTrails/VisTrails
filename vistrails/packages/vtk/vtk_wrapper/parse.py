@@ -178,11 +178,19 @@ def create_module(base_cls_name, node):
     callback = '_set_callback' if is_algorithm else None
     methods_last = issubclass(node.klass, vtk.vtkRenderer)
 
-    module_spec = ClassSpec(node.name, base_cls_name, node.name,
-                            node.klass.__doc__.decode('latin-1'), callback,
-                            tempfile, cacheable, input_ports, output_ports,
-                            compute='Update', cleanup='_cleanup',
-                            methods_last=methods_last, abstract=is_abstract())
+    module_spec = ClassSpec(module_name=node.name,
+                            superklass=base_cls_name,
+                            code_ref=node.name,
+                            docstring=node.klass.__doc__.decode('latin-1'),
+                            callback=callback,
+                            tempfile=tempfile,
+                            cacheable=cacheable,
+                            input_port_specs=input_ports,
+                            output_port_specs=output_ports,
+                            compute='Update',
+                            cleanup='_cleanup',
+                            methods_last=methods_last,
+                            abstract=is_abstract())
 
     module_specs = [module_spec]
     for child in node.children:
