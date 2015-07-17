@@ -2,7 +2,6 @@ from __future__ import division
 
 from PyQt4 import QtCore, QtGui
 
-from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.gui.modules.module_configure import \
     StandardModuleConfigurationWidget
 
@@ -156,7 +155,7 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
 
         """
         table_sig = '(%s:Table)' % identifier
-        list_sig = '(%s:List)' % get_vistrails_basic_pkg_id()
+        list_sig = '(org.vistrails.vistrails.basic:List)'
         seen_new_ports = set()
         current_ports = dict(self.getCurrentPorts())
         add_ports = []
@@ -170,7 +169,7 @@ class BuildTableWidget(StandardModuleConfigurationWidget):
                 QtGui.QMessageBox.critical(
                         self,
                         "Duplicated port name",
-                        "There is several input ports with name %r" % name)
+                        "There are several input ports with name %r" % name)
                 return
             seen_new_ports.add(name)
 
