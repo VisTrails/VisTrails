@@ -4,6 +4,7 @@ import contextlib
 import io
 import logging
 import os
+import shutil
 import urllib
 
 from vistrails.core import debug
@@ -341,6 +342,31 @@ class DownloadDirectory(Module):
         self.set_output('directory', PathObject(target))
 
 
+class MakeDirectory(Module):
+    """Creates a temporary directory and puts the given files in it.
+    """
+    _settings = ModuleSettings(configure_widget=(
+            '%s.widgets' % this_pkg, 'DirectoryConfigurationWidget'))
+    _output_ports = [('directory', '(basic:Directory)')]
+
+    def __init__(self):
+        Module.__init__(self)
+        self.input_ports_order = []
+
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
+    def compute(self):
+        directory = self.interpreter.filePool.create_directory(
+                prefix='vt_tmp_makedirectory')
+        for name in self.input_ports_order:
+            shutil.copy(self.get_input(name).name,
+                        os.path.join(directory.name, name))
+
+        self.set_output('directory', directory)
+
+
 _tej_log_handler = None
 
 
@@ -379,4 +405,5 @@ def finalize():
 
 _modules = [Queue,
             Job, BaseSubmitJob, SubmitJob, SubmitShellJob,
-            DownloadFile, DownloadDirectory]
+            DownloadFile, DownloadDirectory,
+            MakeDirectory]
