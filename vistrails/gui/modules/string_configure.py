@@ -43,7 +43,8 @@ from vistrails.gui.theme import CurrentTheme
 
 def TextEditor(parent=None):
     try:
-        py_import('PyQt4.Qsci', {'linux-ubuntu': 'python-qscintilla2'})
+        py_import('PyQt4.Qsci', {'linux-debian': 'python-qscintilla2',
+                                 'linux-ubuntu': 'python-qscintilla2'}, True)
     except ImportError:
         return OldTextEditor(parent)
     else:
