@@ -3516,8 +3516,12 @@ class VistrailController(object):
                                     self.get_upgrade_module_remap(new_actions)
                 if is_complete:
                     for pe in param_exps:
-                        new_pe = pe.do_copy(True, self.id_scope, module_remap)
-                        new_param_exps.append(new_pe)
+                        old_pe = None
+                        # loop because we may have multi-step upgrades
+                        while old_pe != pe:
+                            old_pe = pe
+                            pe = pe.do_copy(True, self.id_scope, module_remap)
+                        new_param_exps.append(pe)
                 else:
                     debug.warning("Cannot translate old parameter "
                                   "explorations through upgrade.")

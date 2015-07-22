@@ -123,7 +123,7 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
 def PythonEditor(parent=None):
     try:
         py_import('PyQt4.Qsci', {'linux-debian': 'python-qscintilla2',
-                                 'linux-ubuntu': 'python-qscintilla2'})
+                                 'linux-ubuntu': 'python-qscintilla2'}, True)
     except ImportError:
         return OldPythonEditor(parent)
     else:
@@ -215,6 +215,7 @@ class OldPythonEditor(QtGui.QTextEdit):
 
     def __init__(self, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
+        self.setAcceptRichText(False)
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
         self.formatChanged(None)
         self.setCursorWidth(8)

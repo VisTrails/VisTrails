@@ -1,8 +1,7 @@
 from __future__ import division
 
-from PyQt4 import QtGui
-
 from vistrails.gui.modules.source_configure import SourceConfigurationWidget
+from vistrails.gui.modules.string_configure import TextEditor
 
 
 class ShellSourceConfigurationWidget(SourceConfigurationWidget):
@@ -12,6 +11,6 @@ class ShellSourceConfigurationWidget(SourceConfigurationWidget):
     """
     def __init__(self, module, controller, parent=None):
         SourceConfigurationWidget.__init__(self, module, controller,
-                                           QtGui.QTextEdit,
+                                           TextEditor,
                                            has_inputs=False, has_outputs=False,
                                            parent=parent)
