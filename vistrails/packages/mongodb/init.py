@@ -64,34 +64,29 @@ class MongoDatabase(Module):
 
 # Database operations
 
-class CreateCollection(Module):
-    """Creates a collection in a MongoDB database.
+class MongoCollection(Module):
+    """A single collection in a mongo database.
     """
     _input_ports = [('database', MongoDatabase),
-                    ('collection', '(basic:String)')]
-    _output_ports = [('database', MongoDatabase)]
+                    ('name', '(basic:String)')]
+    _output_ports = [('collection', '(MongoCollection)')]
 
     def compute(self):
-        database = self.get_input('database')
-        collection = self.get_input('collection')
-
-        database.create_collection(collection)
-
-        self.set_output('database', database)
+        self.set_output('collection',
+                        self.get_input('database')[self.get_input('name')])
 
 
 class DropCollection(Module):
     """Drops a collection from a MongoDB database.
     """
-    _input_ports = [('database', MongoDatabase),
-                    ('collection', '(basic:String)')]
+    _input_ports = [('collection', MongoCollection)]
     _output_ports = [('database', MongoDatabase)]
 
     def compute(self):
-        database = self.get_input('database')
         collection = self.get_input('collection')
+        database = collection.database
 
-        database.drop_collection(collection)
+        collection.drop()
 
         self.set_output('database', database)
 
@@ -99,42 +94,40 @@ class DropCollection(Module):
 class RenameCollection(Module):
     """Renames a collection in a MongoDB database.
     """
-    _input_ports = [('database', MongoDatabase),
-                    ('collection', '(basic:String)'),
+    _input_ports = [('collection', MongoCollection),
                     ('new_name', '(basic:String)')]
-    _output_ports = [('database', MongoDatabase)]
+    _output_ports = [('collection', MongoCollection),
+                     ('database', MongoDatabase)]
 
     def compute(self):
-        database = self.get_input('database')
-        old_name = self.get_input('collection')
+        collection = self.get_input('collection')
         new_name = self.get_input('new_name')
 
-        database[old_name].rename(new_name)
+        collection.rename(new_name)
 
-        self.set_output('database', database)
+        self.set_output('collection', collection)
+        self.set_output('database', collection.database)
 
 
-_modules = [MongoDatabase, CreateCollection, DropCollection, RenameCollection]
+_modules = [MongoDatabase, MongoCollection, DropCollection, RenameCollection]
 
 
 # Data operations
 
 class BaseCollectionOperation(Module):
-    _input_ports = [('database', MongoDatabase),
-                    ('collection', '(basic:String)')]
-    _output_ports = [('database', MongoDatabase)]
+    _input_ports = [('collection', MongoCollection)]
+    _output_ports = [('collection', MongoCollection)]
 
     collection_op_out = None
 
     def compute(self):
-        database = self.get_input('database')
         collection = self.get_input('collection')
 
-        out = self.collection_operation(database[collection])
+        out = self.collection_operation(collection)
         if self.collection_op_out is not None:
             self.set_output(self.collection_op_out, out)
 
-        self.set_output('database', database)
+        self.set_output('collection', collection)
 
     def collection_operation(self, collection):
         raise NotImplementedError
@@ -250,7 +243,7 @@ def Group(self, coll):
 
 @collection_op([('map', '(basic:String)'), ('reduce', '(basic:String)'),
                 ('out', '(basic:String)')],
-               output=('results', '(basic:List)'))
+               output=('results', MongoCollection))
 def MapReduce(self, coll):
     return coll.map_reduce(self.get_input('map'), self.get_input('reduce'),
-                           self.get_input('out')).find()
+                           self.get_input('out'))
