@@ -36,6 +36,7 @@
 
 from __future__ import division
 
+import os
 from pymongo import MongoClient
 
 from vistrails.core.modules.vistrails_module import Module
@@ -247,3 +248,44 @@ def Group(self, coll):
 def MapReduce(self, coll):
     return coll.map_reduce(self.get_input('map'), self.get_input('reduce'),
                            self.get_input('out'))
+
+
+###############################################################################
+
+import unittest
+
+
+class TestMongoDB(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        if 'VISTRAILS_TEST_MONGODB' not in os.environ:
+            raise unittest.SkipTest(
+                    "MongoDB tests need $VISTRAILS_TEST_MONGODB to point to a "
+                    "MongoDB server")
+        else:
+            uri = os.environ['VISTRAILS_TEST_MONGODB']
+            host, port = uri.rsplit(':', 1)
+            port = int(port)
+
+            def mock_get_input(self, name):
+                if name == 'host':
+                    return host
+                elif name == 'port':
+                    return port
+                else:
+                    return Module.get_input(self, name)
+
+            MongoDatabase.get_input = mock_get_input
+            MongoDatabase.has_input = lambda s, n: True
+
+    @classmethod
+    def tearDownClass(cls):
+        del MongoDatabase.get_input
+        del MongoDatabase.has_input
+
+    def test_example(self):
+        """Runs the example vt file.
+        """
+        from vistrails.tests.utils import run_file
+
+        self.assertFalse(run_file('examples/mongodb.vt'))
