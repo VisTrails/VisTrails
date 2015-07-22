@@ -38,6 +38,7 @@ from __future__ import division
 
 import contextlib
 import logging
+import os
 import sys
 
 try:
@@ -219,6 +220,30 @@ def execute(modules, connections=[], add_port_specs=[],
     else:
         # Allows to do self.assertFalse(execute(...))
         return result.errors
+
+
+def run_file(filename, tag_filter=lambda x: True):
+    """Loads a .vt file and runs all the tagged versions in it.
+    """
+    import vistrails.core.db.io
+    from vistrails.core.db.locator import FileLocator
+    from vistrails.core.system import vistrails_root_directory
+    from vistrails.core.vistrail.controller import VistrailController
+
+    filename = os.path.join(vistrails_root_directory(), '..', filename)
+    locator = FileLocator(filename)
+    loaded_objs = vistrails.core.db.io.load_vistrail(locator)
+    controller = VistrailController(loaded_objs[0], locator, *loaded_objs[1:])
+
+    errors = []
+    for version, name in controller.vistrail.get_tagMap().iteritems():
+        if tag_filter(name):
+            controller.change_selected_version(version)
+            (result,), _ = controller.execute_current_workflow()
+            if result.errors:
+                errors.append(("%d: %s" % (version, name), result.errors))
+
+    return errors
 
 
 @contextlib.contextmanager
