@@ -1,3 +1,4 @@
+# pragma: no testimport
 ###############################################################################
 ##
 ## Copyright (C) 2014-2015, New York University.
@@ -41,8 +42,7 @@ from __future__ import division
 
 from PyQt4 import QtCore, QtGui, QAxContainer
 from vistrails.packages.spreadsheet.basic_widgets import SpreadsheetCell
-from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget, \
-    QCellToolBar
+from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 import os
 import shutil
 ############################################################################
