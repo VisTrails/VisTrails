@@ -1085,6 +1085,7 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
 
 
 import unittest
+from vistrails.tests.utils import skip_test_checked
 
 class TestLocators(unittest.TestCase):
     if not hasattr(unittest.TestCase, 'assertIsInstance'):
@@ -1177,13 +1178,15 @@ class TestLocators(unittest.TestCase):
         enc = sys.getfilesystemencoding() or locale.getpreferredencoding()
         if (enc.lower() not in ('mbcs', 'utf-8', 'utf8',
                                 'latin-1', 'iso-8859-1', 'iso-8859-15')):
-            self.skipTest("unusual encoding on this system: %r" % enc)
+            skip_test_checked('system_encoding',
+                              "unusual encoding on this system: %r" % enc)
         if enc.lower() in ('mbcs', 'latin-1', 'iso-8859-1', 'iso-8859-15'):
             fname = "test_short_names \xE9 \xEA"
         elif enc.lower() in ('utf8', 'utf-8'):
             fname = "test_short_names \xC3\xA9 \xC3\xAA"
         else:
-            self.skipTest("unusual encoding on this system: %r" % enc)
+            skip_test_checked('system_encoding',
+                              "unusual encoding on this system: %r" % enc)
         loc = BaseLocator.from_url("../%s.xml" % fname)
         self.assertEqual(loc.short_filename, fname)
         self.assertEqual(loc.short_name, u"test_short_names \xE9 \xEA")
@@ -1193,8 +1196,9 @@ class TestLocators(unittest.TestCase):
             import ntpath
             import nturl2path
         except ImportError:
-            return self.skipTest("Do not have ntpath or nturl2path installed.")
-            
+            skip_test_checked('path.nt',
+                              "Do not have ntpath or nturl2path installed.")
+
         global systemType
         old_sys_type = systemType
         old_path = os.path

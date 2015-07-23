@@ -382,7 +382,7 @@ _modules = {'dates': [
 ###############################################################################
 
 import unittest
-from vistrails.tests.utils import execute, intercept_result
+from vistrails.tests.utils import execute, intercept_result, skip_test_checked
 from ..identifiers import identifier
 
 
@@ -450,7 +450,7 @@ class TestStringsToDates(unittest.TestCase):
         try:
             import dateutil
         except ImportError: # pragma: no cover
-            self.skipTest("dateutil is not available")
+            skip_test_checked('dateutil', "dateutil is not available")
 
         dates = ['2013-05-20 9:25',
                  'Thu Sep 25 10:36:26 2003',
@@ -499,7 +499,7 @@ class TestStringsToDates(unittest.TestCase):
         try:
             import pytz
         except ImportError: # pragma: no cover
-            self.skipTest("pytz is not available")
+            skip_test_checked('pytz', "pytz is not available")
         if LooseVersion(pytz.__version__) < PYTZ_MIN_VER: # pragma: no cover
             self.skipTest("pytz version is known to cause issues (%s)" %
                           pytz.__version__)
@@ -534,7 +534,7 @@ class TestDatesToMatplotlib(unittest.TestCase):
         try:
             import matplotlib
         except ImportError: # pragma: no cover
-            self.skipTest("matplotlib is not available")
+            skip_test_checked('matplotlib', "matplotlib is not available")
 
         from matplotlib.dates import date2num
 
@@ -577,7 +577,7 @@ class TestTimestampsToMatplotlib(unittest.TestCase):
         try:
             import matplotlib
         except ImportError: # pragma: no cover
-            self.skipTest("matplotlib is not available")
+            skip_test_checked('matplotlib', "matplotlib is not available")
 
         from matplotlib.dates import date2num
 
