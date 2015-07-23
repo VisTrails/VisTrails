@@ -41,7 +41,8 @@ import os.path
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.system import vistrails_default_file_type, get_elementtree_library, \
-                        default_connections_file, vistrails_examples_directory
+                        default_connections_file, vistrails_examples_directory, \
+                        vistrails_root_directory
 from vistrails.core.external_connection import ExtConnectionList, DBConnection
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core import debug
@@ -749,3 +750,37 @@ class FileLocator(CoreLocator):
                                mashuptrail=mashuptrail,
                                mashupVersion=mashupVersion,
                                parameterExploration=parameterExploration)
+
+
+import unittest
+
+# Test vtl files in usersguide
+class TestUsersGuideVTL(unittest.TestCase):
+    vtl_path = os.path.join(vistrails_root_directory(), '..', 'doc',
+                            'usersguide', 'vtl')
+    @unittest.skipIf(not os.path.isdir(vtl_path), 'Could not find vtl dir')
+    def test_vtl_files(self):
+        from vistrails.tests.utils import run_file
+        for root, dirs, file_names in os.walk(self.vtl_path):
+            for file_name in file_names:
+                if file_name.endswith('.vtl'):
+                    f = os.path.join(root, file_name)
+                    locator = FileLocator(f)
+                    version = locator._vnode
+                    # if there is a version specified try to execute it,
+                    # else just load the pipeline
+                    if version:
+                        errors = run_file(f, lambda x: x == version)
+                        self.assertEqual(errors, [], 'Errors processing %s: %s')
+                    else:
+                        import vistrails.core.db.io
+                        from vistrails.core.vistrail.controller import \
+                            VistrailController
+                        loaded_objs = vistrails.core.db.io.load_vistrail(locator)
+                        controller = VistrailController(loaded_objs[0],
+                                                        locator,
+                                                        *loaded_objs[1:])
+                        controller.change_selected_version(
+                            controller.vistrail.get_latest_version())
+                        self.assertTrue(controller.current_pipeline.is_valid,
+                                        "Latest pipeline is invalid: %s" % f)
