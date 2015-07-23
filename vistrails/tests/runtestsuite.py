@@ -165,6 +165,7 @@ import vistrails.core.debug
 vistrails.core.debug.DebugPrint.getInstance().log_to_console()
 
 import vistrails.tests
+from vistrails.tests.utils import skippable_test
 import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
@@ -313,6 +314,7 @@ if test_modules:
 else:
     sub_print("Trying to import all modules")
 
+imports_failed = False
 for (p, subdirs, files) in os.walk(root_directory):
     # skip subversion subdirectories
     if p.find('.svn') != -1 or p.find('.git') != -1 :
@@ -359,7 +361,13 @@ for (p, subdirs, files) in os.walk(root_directory):
             else:
                 m = __import__(module)
         except BaseException:
-            print >>sys.stderr, "ERROR: Could not import module: %s" % module
+            if not skippable_test(module):
+                print >>sys.stderr, ("ERROR: Could not import module: %s" %
+                                     module)
+                imports_failed = True
+            else:
+                print >>sys.stderr, ("WARNING: Could not import module: %s" %
+                                     module)
             if verbose >= 1:
                 traceback.print_exc(file=sys.stderr)
             continue
@@ -557,4 +565,6 @@ vistrails.gui.application.get_vistrails_application().finishSession()
 vistrails.gui.application.stop_application()
 
 # Test Runners can use the return value to know if the tests passed
-sys.exit(0 if tests_passed else 1)
+if imports_failed:
+    print("Error: some modules couldn't be imported, failing")
+sys.exit(0 if tests_passed and not imports_failed else 1)
