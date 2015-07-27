@@ -771,7 +771,7 @@ class TestUsersGuideVTL(unittest.TestCase):
                     # else just load the pipeline
                     if version:
                         errors = run_file(f, lambda x: x == version)
-                        self.assertEqual(errors, [], 'Errors processing %s: %s')
+                        self.assertEqual(errors, [], 'Errors processing %s: %s' % (f, str(errors)))
                     else:
                         import vistrails.core.db.io
                         from vistrails.core.vistrail.controller import \
