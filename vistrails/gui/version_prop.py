@@ -808,6 +808,7 @@ class QVersionMashups(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self.versionNumber = None
         self.controller = None
+        self.mtrail = None
         #label = QtGui.QLabel("Mashups:")
         self.mashupsButton = QtGui.QToolButton()
         self.mashupsButton.setText("Mashups")

@@ -770,6 +770,8 @@ class UpgradeWorkflowHandler(object):
             elif isinstance(new_module_type, basestring):
                 new_module_t = parse_descriptor_string(new_module_type,
                                                        old_module_t[0])
+            elif isinstance(new_module_type, ModuleDescriptor):
+                new_module_t = new_module_type.spec_tuple
             else:
                 new_module_desc = reg.get_descriptor(new_module_type)
                 new_module_t = new_module_desc.spec_tuple
