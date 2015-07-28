@@ -343,6 +343,7 @@ class Abstraction(Group):
                                hide_descriptor=True)
 
     def transfer_attrs(self, module):
+        # Skip Group#transfer_attrs()
         Module.transfer_attrs(self, module)
 
     # the compute method is inherited from Group!
