@@ -160,8 +160,10 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                     'MplFigure':
                     [(None, '1.0.0', None,
                       {'dst_port_remap': {'Script': 'addPlot'},
-                       'src_port_remap': {'FigureManager': 'self',
-                                          'File': 'file'}})],
+                       'src_port_remap': {'FigureManager': 'figure',
+                                          'File': 'file'}}),
+                     ('1.0.0', '1.0.6', None,
+                      {'src_port_remap': {'self': 'figure'}})],
                     'MplFigureCell':
                     [(None, '1.0.0', None,
                       {'dst_port_remap': {'FigureManager': 'figure'}})],

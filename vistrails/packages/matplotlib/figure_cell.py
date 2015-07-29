@@ -112,12 +112,12 @@ class MplFigureCellWidget(QCellWidget):
         Update the widget contents based on the input data
         
         """
-        (fig, ) = inputPorts
-        if not self.figure or self.figure.number != fig.figInstance.number:
+        (figInstance, ) = inputPorts
+        if not self.figure or self.figure.number != figInstance.number:
             if self.layout().count() > 0:
                 self.layout().removeWidget(self.canvas)
 
-            self.figure = fig.figInstance
+            self.figure = figInstance
 
             self.canvas = FigureCanvasQTAgg(self.figure)
             self.mplToolbar = MplNavigationToolbar(self.canvas, None)
