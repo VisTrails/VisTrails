@@ -1,7 +1,8 @@
 ###############################################################################
 ##
 ## Copyright (C) 2014-2015, New York University.
-## Copyright (C) 2013-2014, NYU-Poly.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
@@ -32,30 +33,22 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+"""
+MongoDB package for VisTrails.
+
+Uses the pymongo driver to access MongoDB.
+"""
 
 from __future__ import division
 
-from vistrails.core.modules.utils import make_modules_dict
+identifier = 'org.vistrails.vistrails.mongodb'
+name = 'MongoDB'
+version = '0.1.0'
 
-from .convert import _modules as convert_modules
-
-try:
-    # read_numpy requires numpy
-    import numpy
-except ImportError: # pragma: no cover
-    numpy_modules = []
-else:
-    from .read_numpy import _modules as numpy_modules
-
-from .read_excel import get_xlrd
-if get_xlrd():
-    from .read_excel import _modules as excel_modules
-else: # pragma: no cover
-    excel_modules = []
-
-from .read_csv import _modules as csv_modules
-from .read_json import _modules as json_modules
-
-_modules = make_modules_dict(convert_modules, numpy_modules, csv_modules,
-                             excel_modules, json_modules,
-                             namespace='read')
+def package_requirements():
+    from vistrails.core.requirements import require_python_module
+    require_python_module('pymongo', {
+            'pip': 'pymongo',
+            'linux-debian': 'python-pymongo',
+            'linux-ubuntu': 'python-sqlalchemy',
+            'linux-fedora': 'pymongo'})
