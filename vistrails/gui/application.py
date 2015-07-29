@@ -550,7 +550,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
             errs = []
             if self.temp_configuration.check('outputPipelineGraph'):
-                results = vistrails.core.console_mode.get_wf_graph(w_list, output_dir,
+                results = vistrails.core.console_mode.get_wf_graph(w_list, output_dir or '',
                                                                    self.temp_configuration.graphsAsPdf)
                 for r in results:
                     if r[0] is False:
@@ -559,29 +559,24 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                         debug.critical("*** Error in get_wf_graph: %s" % r[1])
             
             if self.temp_configuration.check('outputVersionTree'):
-                results = vistrails.core.console_mode.get_vt_graph(vt_list, output_dir,
+                results = vistrails.core.console_mode.get_vt_graph(vt_list, output_dir or '',
                                                                    self.temp_configuration.graphsAsPdf)
                 for r in results:
                     if r[0] is False:
                         errs.append("Error generating vistrail graph: %s" % \
                                     r[1])
                         debug.critical("*** Error in get_vt_graph: %s" % r[1])
-                
-            extra_info = None
-            if output_dir:
-                extra_info = {'pathDumpCells': output_dir}
+
             if not self.temp_configuration.check('noExecute'):
                 if self.temp_configuration.check('parameterExploration'):
                     errs.extend(
                         vistrails.core.console_mode.run_parameter_explorations(
-                            w_list, extra_info=extra_info))
+                            w_list))
                 else:
                     errs.extend(vistrails.core.console_mode.run(
                             w_list,
                             self.temp_configuration.check('parameters') or '',
-                            output_dir if self.temp_configuration.check('withWorkflowInfo') else None,
-                            update_vistrail=True,
-                            extra_info=extra_info))
+                            update_vistrail=True))
                 if len(errs) > 0:
                     for err in errs:
                         print err

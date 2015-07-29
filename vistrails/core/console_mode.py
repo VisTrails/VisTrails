@@ -57,9 +57,9 @@ import vistrails.db
 
 
 ################################################################################
-    
-def run_and_get_results(w_list, parameters='', output_dir=None, 
-                        update_vistrail=True, extra_info=None, 
+
+def run_and_get_results(w_list, parameters='',
+                        update_vistrail=True, extra_info=None,
                         reason='Console Mode Execution'):
     """run_and_get_results(w_list: list of (locator, version), parameters: str,
                            output_dir:str, update_vistrail: boolean,
@@ -156,7 +156,7 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
 
 ################################################################################
 
-def get_wf_graph(w_list, output_dir=None, pdf=False):
+def get_wf_graph(w_list, output_dir, pdf=False):
     """run_and_get_results(w_list: list of (locator, version), 
                            output_dir:str, pdf:bool)
     Load all workflows in wf_list and dump their graph to output_dir.
@@ -188,8 +188,7 @@ def get_wf_graph(w_list, output_dir=None, pdf=False):
 
                 controller.change_selected_version(version)
 
-                if (output_dir is not None and
-                    controller.current_pipeline is not None):
+                if controller.current_pipeline is not None:
                     controller.updatePipelineScene()
                     if pdf:
                         base_fname = "%s_%s_pipeline.pdf" % \
@@ -252,14 +251,14 @@ def get_vt_graph(vt_list, tree_info, pdf=False):
 
 ################################################################################
 
-def run(w_list, parameters='', output_dir=None, update_vistrail=True,
+def run(w_list, parameters='', update_vistrail=True,
         extra_info=None, reason="Console Mode Execution"):
     """run(w_list: list of (locator, version), parameters: str) -> boolean
     Run all workflows in w_list, version can be a tag name or a version id.
     Returns list of errors (empty list if there are no errors)
     """
     all_errors = []
-    results = run_and_get_results(w_list, parameters, output_dir, 
+    results = run_and_get_results(w_list, parameters,
                                   update_vistrail,extra_info, reason)
     for result in results:
         (objs, errors, executed) = (result.objects,

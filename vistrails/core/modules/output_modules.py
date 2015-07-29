@@ -486,10 +486,13 @@ class FileMode(OutputMode):
             if suffix is None:
                 suffix = ''
             if dirname is None:
-                # FIXME should unify with VisTrails output
-                # directory global!  should check for abspath (if
-                # not, use relative to global output directory)
                 dirname = ''
+            if not os.path.isabs(dirname):
+                vt_output_dir = getattr(get_vistrails_temp_configuration(),
+                                        'outputDirectory',
+                                        None)
+                if vt_output_dir:
+                    dirname = os.path.join(vt_output_dir, dirname)
 
             # seriesPadding and series have defaults so no
             # need to default them
