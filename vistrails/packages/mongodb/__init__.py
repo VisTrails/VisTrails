@@ -33,17 +33,22 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-"""Matplotlib package for VisTrails.
+"""
+MongoDB package for VisTrails.
 
-This package wrap Matplotlib to provide a plotting tool for
-VisTrails. We are going to use the 'Qt4Agg' backend of the library.
-
+Uses the pymongo driver to access MongoDB.
 """
 
 from __future__ import division
 
-identifier = 'org.vistrails.vistrails.matplotlib'
-name = 'matplotlib'
-version = '1.0.6'
-old_identifiers = ['edu.utah.sci.vistrails.matplotlib',
-                   'org.vistrails.matplotlib.new']
+identifier = 'org.vistrails.vistrails.mongodb'
+name = 'MongoDB'
+version = '0.1.0'
+
+def package_requirements():
+    from vistrails.core.requirements import require_python_module
+    require_python_module('pymongo', {
+            'pip': 'pymongo',
+            'linux-debian': 'python-pymongo',
+            'linux-ubuntu': 'python-sqlalchemy',
+            'linux-fedora': 'pymongo'})
