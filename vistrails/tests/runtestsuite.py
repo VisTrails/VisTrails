@@ -81,7 +81,7 @@ class clean_tempdir(object):
         nb_dirs = 0
         nb_files = 0
         for f in self.listdir(self.test_temp_dir):
-            if self.isdir(f):
+            if self.isdir(os.path.join(self.test_temp_dir,f)):
                 nb_dirs += 1
             else:
                 nb_files += 1
