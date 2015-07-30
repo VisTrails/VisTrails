@@ -721,7 +721,7 @@ class TestPreferencesDialog(unittest.TestCase):
             QtGui.QApplication.processEvents()
             QtGui.QApplication.processEvents()
             packages.enable_current_package()
-        except:
+        except ValueError:
             # Already enabled
             pass
         QtGui.QApplication.processEvents()
