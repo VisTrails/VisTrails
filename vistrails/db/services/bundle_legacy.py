@@ -55,9 +55,9 @@ class DummyManifest(Manifest):
         for root, dirs, files in os.walk(self._dir_path):
             for fname in files:
                 if fname == 'vistrail' and root == self._dir_path:
-                    self.add_entry('vistrail', 'vistrail', 'vistrail')
+                    self.add_entry('vistrail', None, 'vistrail')
                 elif fname == 'log' and root == self._dir_path:
-                    self.add_entry('log', 'log', 'log')
+                    self.add_entry('log', None, 'log')
                 elif fname.startswith('abstraction_'):
                     abs_id = fname[len('abstraction_'):]
                     self.add_entry('abstraction', abs_id, fname)
@@ -75,6 +75,9 @@ class DummyManifest(Manifest):
 class LegacyAbstractionFileSerializer(FileRefSerializer):
     def __init__(self):
         FileRefSerializer.__init__(self, 'abstraction')
+
+    def get_obj_id(self, filename):
+        return FileRefSerializer.get_obj_id(self, filename)[len('abstraction_'):]
 
     def get_basename(self, obj):
         return 'abstraction_%s' % obj.id

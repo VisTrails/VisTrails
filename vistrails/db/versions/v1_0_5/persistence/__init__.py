@@ -49,7 +49,7 @@ from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
 from vistrails.core.system import get_elementtree_library, vistrails_root_directory
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.bundle import Bundle, BundleObj, XMLFileSerializer, \
-    XMLAppendSerializer,FileRefSerializer, DirectorySerializer
+    XMLAppendSerializer,FileRefSerializer, DirectorySerializer, ZIPSerializer
 from vistrails.db.versions.v1_0_5 import version as my_version
 from vistrails.db.versions.v1_0_5.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
     DBRegistry, DBMashuptrail, DBWorkflowExec
@@ -92,10 +92,7 @@ class MashupXMLSerializer(XMLFileSerializer):
     def get_obj_id(self, vt_obj):
         return vt_obj.db_name
 
-def dir_serializer(dir_path, version=None, bundle=None):
-    if version is None:
-        version = my_version
-    s = DirectorySerializer(dir_path, version, bundle)
+def add_file_serializers(s):
     s.add_serializer("vistrail",
                      XMLFileSerializer(DBVistrail.vtType,
                                        "http://www.vistrails.org/vistrail.xsd",
@@ -105,10 +102,18 @@ def dir_serializer(dir_path, version=None, bundle=None):
     s.add_serializer("mashup", MashupXMLSerializer())
     s.add_serializer("thumbnail", FileRefSerializer("thumbnail",
                                                     "thumbnails"))
-    s.add_serializer("abstraction", FileRefSerializer('abstraction', 'abstractions'))
+    s.add_serializer("abstraction", FileRefSerializer('abstraction', 'subworkflows'))
     s.add_serializer("job", FileRefSerializer('job'))
     s.add_serializer("data", FileRefSerializer('data', 'data'))
 
+def get_dir_bundle_serializer(dir_path, bundle=None):
+    s = DirectorySerializer(dir_path, version=my_version, bundle=bundle)
+    add_file_serializers(s)
+    return s
+
+def get_zip_bundle_serializer(fname, bundle=None):
+    s = ZIPSerializer(fname, version=my_version, bundle=bundle)
+    add_file_serializers(s)
     return s
 
 class DAOList(dict):

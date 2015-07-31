@@ -105,6 +105,37 @@ def get_sql_utils(version=None):
             raise VistrailsDBException(msg)
     return utils
 
+def get_persistence_version(version=None):
+    if version is None:
+        version = currentVersion
+    try:
+        pkg_name = 'vistrails.db.versions.' + get_version_name(version) + \
+                   '.persistence'
+        return __import__(pkg_name, {}, {}, [''])
+    except ImportError as e:
+        if str(e).startswith('No module named v'):
+            msg = "Cannot find utils for version '%s'" % version
+            raise VistrailsDBException(msg)
+        raise
+
+def get_dir_bundle_serializer(version=None, dir_path=None, bundle=None):
+    mo = get_persistence_version(version)
+    if hasattr(pkg, 'get_dir_bundle_serializer'):
+        return pkg.get_dir_bundle_serializer(dir_path, bundle)
+    return None
+
+def get_zip_bundle_serializer(version=None, fname=None, bundle=None):
+    pkg = get_persistence_version(version)
+    if hasattr(pkg, 'get_zip_bundle_serializer'):
+        return pkg.get_zip_bundle_serializer(fname, bundle)
+    return None
+
+def get_db_bundle_serializer(version=None, conn=None, bundle=None):
+    pkg = get_persistence_version(version)
+    if hasattr(pkg, 'get_db_bundle_serializer'):
+        return pkg.get_db_bundle_serializer(conn, bundle)
+    return None
+
 def getVersionDAO(version=None):
     if version is None:
         version = currentVersion

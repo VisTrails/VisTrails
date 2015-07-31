@@ -490,7 +490,8 @@ class DirectoryLocator(BaseLocator, SaveTemporariesMixin):
         self._name = dirname
         self.kwargs = kwargs
     
-    def load(self, type):
+    def load(self, type=None):
+        # don't require type for locators since Manifest should take care of
         raise Exception("Need to implement!")
 
     def save(self, obj, do_copy=True, version=None):

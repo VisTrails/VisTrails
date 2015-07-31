@@ -62,6 +62,9 @@ from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DB
     DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
     DBMashuptrail, DBStartup
 import vistrails.db.services.abstraction
+from vistrails.db.services.bundle import FileManifest
+from vistrails.db.services.bundle_legacy import LegacyZIPSerializer, \
+    LegacyDirSerializer
 # from vistrails.db.services.bundle import DefaultVistrailsZIPSerializer , WorkflowXMLSerializer, \
 #     BundleObj, VistrailBundle, WorkflowBundle, LogBundle, RegistryBundle
 import vistrails.db.services.log
@@ -373,6 +376,77 @@ def insert_thumbnails_into_db(db_connection, abs_fnames):
 ##############################################################################
 # General I/O
 
+custom_file_serializers = {}
+def register_custom_file_serializer(obj_type, s):
+    if obj_type in custom_file_serializers:
+        raise VistrailsDBException('Serializer for type "%s" already exists' %
+                                   obj_type)
+    custom_file_serializers[obj_type] = s
+
+def add_custom_file_serializers(s):
+    for k, v in custom_file_serializers.iteritems():
+        s.add_serializer(k,v)
+
+def get_dir_bundle_serializer(dir_path=None, bundle=None, version=None):
+    #FIXME hardcoding manifest filename
+    s = None
+    if dir_path is None or not os.path.exists(dir_path):
+        if version is None:
+            version = currentVersion
+        s = vistrails.db.versions.get_dir_bundle_serializer(version, dir_path,
+                                                            bundle)
+    else:
+        manifest_fname = os.path.join(dir_path, "MANIFEST")
+        if os.path.exists(manifest_fname):
+            manifest = FileManifest(dir_path)
+            manifest.load()
+            if manifest.version:
+                s = vistrails.db.versions.get_dir_bundle_serializer(
+                    manifest.version, dir_path, bundle)
+    if not s:
+        # use legacy serializer
+        s = LegacyDirSerializer(dir_path, bundle=bundle)
+    add_custom_file_serializers(s)
+    return s
+
+def get_zip_bundle_serializer(fname=None, bundle=None, version=None):
+    s = None
+    manifest_fname = None
+    not_zip = True
+    if fname is not None and os.path.exists(fname):
+        tempd = tempfile.mkdtemp(prefix="vt_manifest_test")
+        try:
+            zf = zipfile.ZipFile(fname)
+            not_zip = False
+            manifest_fname = zf.extract("MANIFEST", tempd)
+            if manifest_fname:
+                manifest = FileManifest(dir_path=tempd)
+                manifest.load()
+                if manifest.version:
+                    s = vistrails.db.versions.get_zip_bundle_serializer(
+                        manifest.version, fname, bundle)
+        except KeyError:
+            pass
+        finally:
+            shutil.rmtree(tempd)
+    # catch cases where the file exists but is not a zip file,
+    # e.g. for mkstemp files
+    if not_zip:
+        if version is None:
+            version = currentVersion
+        print "GETTING VERSION", version
+        s = vistrails.db.versions.get_zip_bundle_serializer(version, fname,
+                                                            bundle)
+        print "S:", s
+    if not s:
+        # use legacy serializer
+        s = LegacyZIPSerializer(fname, bundle=bundle)
+    add_custom_file_serializers(s)
+    return s
+
+def get_db_bundle_serializer(conn, bundle=None, version=None):
+    pass
+
 def open_from_xml(filename, type):
     if type == DBVistrail.vtType:
         return open_vistrail_from_xml(filename)
@@ -540,10 +614,12 @@ def open_vistrail_bundle_from_zip_xml(filename):
 
     """
 
-    vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
-    serializer = DefaultVistrailsZIPSerializer(dir_path=vt_save_dir)
-    bundle = serializer.load(filename)
-    return (bundle, vt_save_dir)
+    # vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
+    # serializer = DefaultVistrailsZIPSerializer(dir_path=vt_save_dir)
+    # bundle = serializer.load(filename)
+    # return (bundle, vt_save_dir)
+    s = get_zip_bundle_serializer(filename)
+    return s.load()
 
 def open_vistrail_bundle_from_db(db_connection, vistrail_id, tmp_dir=None):
     """open_vistrail_bundle_from_db(db_connection, id: long, tmp_dir: str) -> SaveBundle
@@ -645,7 +721,8 @@ def save_vistrail_bundle_to_zip_xml(bundle, filename, vt_save_dir=None, version=
     if not vt_save_dir:
         vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
 
-    serializer = DefaultVistrailsZIPSerializer(dir_path=vt_save_dir, bundle=bundle)
+    serializer = get_zip_bundle_serializer(filename, dir_path=vt_save_dir,
+                                           bundle=bundle)
     serializer.save(filename)
 
     return (bundle, vt_save_dir)
@@ -1440,7 +1517,7 @@ def get_alternate_tests(version):
             a1.deep_eq_test(a2, test_class, alternate_tests)
             del vt1_action_annotations[a_t]
         if len(vt1_action_annotations) > 0:
-            a_t = vt_action_annotations.iterkeys().next()
+            a_t = vt1_action_annotations.iterkeys().next()
             raise AssertionError("Action annotation %s not matched" % 
                                  unicode(a_t))
 
@@ -1519,8 +1596,7 @@ class TestXMLFile(object):
         # return '/vistrails/src/git/examples/terminator.vt'
 
     def test_save_vistrail_and_reload(self):
-        (bundle, tmp_save_dir) = \
-                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        bundle = open_vistrail_bundle_from_zip_xml(self.get_filename())
         vt1 = bundle.vistrail
 
         (h, fname) = tempfile.mkstemp(prefix='vt_test_', suffix='.xml')
@@ -1532,7 +1608,7 @@ class TestXMLFile(object):
             vt1.deep_eq_test(vt2, self, get_alternate_tests(self.get_version()))
         finally:
             os.unlink(fname)
-            close_zip_xml(tmp_save_dir)
+            bundle.cleanup()
 
 class TestXMLFile_v0_9_3(TestXMLFile, unittest.TestCase):
     def get_version(self):
@@ -1568,16 +1644,14 @@ class TestSQLDatabase(object):
         # return '/vistrails/src/git/examples/terminator.vt'
 
     def test_save_bundle(self):
-        (bundle, tmp_save_dir) = \
-                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        bundle = open_vistrail_bundle_from_zip_xml(self.get_filename())
         try:
             save_vistrail_bundle_to_db(bundle, self.conn, True, save_wfs=False)
         finally:
-            close_zip_xml(tmp_save_dir)
+            bundle.cleanup()
         
     def test_save_vistrail_and_reload(self):
-        (bundle, tmp_save_dir) = \
-                open_vistrail_bundle_from_zip_xml(self.get_filename())
+        bundle = open_vistrail_bundle_from_zip_xml(self.get_filename())
         try:
             vt1 = bundle.vistrail
             # vt1.db_version = currentVersion
@@ -1588,7 +1662,7 @@ class TestSQLDatabase(object):
             vt1.deep_eq_test(vt2, self, 
                              get_alternate_tests(self.get_config()["version"]))
         finally:
-            close_zip_xml(tmp_save_dir)
+            bundle.cleanup()
 
     # def test_z_get_db_object_list(self):
     #     print get_db_object_list(self.conn, DBVistrail.vtType)
@@ -1675,7 +1749,7 @@ class TestTranslations(unittest.TestCase):
     def run_vistrail_translation_test(self, version):
         bundle = None
         try:
-            s = DefaultVistrailsZIPSerializer(self.get_filename())
+            s = get_zip_bundle_serializer(self.get_filename())
             bundle = s.load()
             vt1 = bundle.vistrail
             vt2 = translate_vistrail(vt1, currentVersion, version)
@@ -1688,7 +1762,7 @@ class TestTranslations(unittest.TestCase):
     def run_workflow_translation_test(self, version):
         bundle = None
         try:
-            s = DefaultVistrailsZIPSerializer(self.get_filename())
+            s = get_zip_bundle_serializer(self.get_filename())
             bundle = s.load()
             vt = bundle.vistrail
             # 258 is Image Slices HW in terminator.vt
@@ -1706,7 +1780,7 @@ class TestTranslations(unittest.TestCase):
     def run_log_translation_test(self, version):
         bundle = None
         try:
-            s = DefaultVistrailsZIPSerializer(self.get_filename())
+            s = get_zip_bundle_serializer(self.get_filename())
             bundle = s.load()
             log1 = bundle.log # lazy load here
             log1.db_version = '1.0.5'
@@ -1758,6 +1832,51 @@ class TestTranslations(unittest.TestCase):
 
     def test_v1_0_1_registry(self):
         self.run_registry_translation_test('1.0.1')
+
+    def test_new_bundle(self):
+        s1 = None
+        s2 = None
+        s3 = None
+        s4 = None
+        (h1, fname1) = tempfile.mkstemp(prefix='vt_test_', suffix='.zip')
+        os.close(h1)
+        (h2, fname2) = tempfile.mkstemp(prefix='vt_test_', suffix='.zip')
+        os.close(h2)
+        try:
+            s1 = get_zip_bundle_serializer(self.get_filename())
+            bundle = s1.load()
+            s2 = get_zip_bundle_serializer(bundle=bundle)
+            s2.save(fname1)
+
+            saved_zip1 = zipfile.ZipFile(fname1)
+            paths = saved_zip1.namelist()
+            self.assertEqual(len(paths), 4)
+            self.assertTrue('MANIFEST' in paths)
+            self.assertTrue('log' in paths)
+            self.assertTrue('vistrail' in paths)
+            self.assertTrue('subworkflows/AddValues(29ff781c-fef5-11e2-abf5-0023dfde3d57).xml' in paths)
+
+            s3 = get_zip_bundle_serializer(fname=fname1)
+            bundle2 = s3.load()
+            s4 = get_zip_bundle_serializer(bundle=bundle2, version='1.0.3')
+            s4.save(fname2)
+
+            saved_zip2 = zipfile.ZipFile(fname2)
+            paths2 = saved_zip2.namelist()
+            self.assertEqual(len(paths2), 3)
+            self.assertFalse('MANIFEST' in paths2)
+            self.assertTrue('log' in paths2)
+            self.assertTrue('vistrail' in paths2)
+            self.assertTrue('abstraction_AddValues(29ff781c-fef5-11e2-abf5-0023dfde3d57).xml' in paths2)
+        finally:
+            if s1 is not None:
+                s1.cleanup()
+            if s2 is not None:
+                s2.cleanup()
+            if s3 is not None:
+                s3.cleanup()
+            os.unlink(fname1)
+            os.unlink(fname2)
         
 if __name__ == '__main__':
     import vistrails.core.application

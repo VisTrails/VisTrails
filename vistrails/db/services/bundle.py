@@ -1,5 +1,6 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah. 
 ## All rights reserved.
@@ -399,11 +400,14 @@ class FileRefSerializer(FileSerializer):
     def __init__(self, obj_type, inner_dir_name=None):
         FileSerializer.__init__(self, obj_type, inner_dir_name)
 
+    def get_obj_id(self, filename):
+        return os.path.basename(filename)
+
     def load(self, filename):
         """ Create a BundleObj containing a reference to a file
             If inner dir name is specified, filename must contain it
         """
-        obj_id = os.path.basename(filename)
+        obj_id = self.get_obj_id(filename)
         obj = BundleObj(filename, self.obj_type, obj_id)
         return obj
 
@@ -1092,6 +1096,7 @@ class DirectorySerializer(BundleSerializer):
             else:
                 obj = serializer.load(path)
                 if obj is not None:
+                    #FIXME test/assert that what serializer loads matches manifest
                     if obj.id is None:
                         obj.id = obj_id
                     if obj.obj_type is None:
@@ -1151,9 +1156,6 @@ class DirectorySerializer(BundleSerializer):
         # FIXME looks like this would not remove abstraction/vistrail if
         # vistrail also existed
         manifest_files = [i[2] for i in self._manifest.get_items()]
-        print "*** MANIFEST FILES ***"
-        for f1 in manifest_files:
-            print f1
         manifest_files.append('MANIFEST')
         if not dir_path.endswith(os.sep):
             dir_path = dir_path + os.sep
@@ -1487,7 +1489,7 @@ class TestBundles(unittest.TestCase):
         s.add_serializer("log", TestBundles.LogXMLSerializer(), True)
         s.add_serializer("mashup", TestBundles.MashupXMLSerializer())
         s.add_serializer("thumbnail", FileRefSerializer('thumbnail', 'thumbnails'))
-        s.add_serializer("abstraction", FileRefSerializer('abstraction', 'abstractions'))
+        s.add_serializer("abstraction", FileRefSerializer('abstraction', 'subworkflows'))
         s.add_serializer("job", FileRefSerializer('job'))
         s.add_serializer("data", FileRefSerializer('data', 'data'))
 
