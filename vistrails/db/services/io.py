@@ -62,8 +62,8 @@ from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DB
     DBRegistry, DBWorkflowExec, DBOpmGraph, DBProvDocument, DBAnnotation, \
     DBMashuptrail, DBStartup
 import vistrails.db.services.abstraction
-from vistrails.db.services.bundle import DefaultVistrailsZIPSerializer , WorkflowXMLSerializer, \
-    BundleObj, VistrailBundle, WorkflowBundle, LogBundle, RegistryBundle
+# from vistrails.db.services.bundle import DefaultVistrailsZIPSerializer , WorkflowXMLSerializer, \
+#     BundleObj, VistrailBundle, WorkflowBundle, LogBundle, RegistryBundle
 import vistrails.db.services.log
 import vistrails.db.services.opm
 import vistrails.db.services.prov

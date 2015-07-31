@@ -414,55 +414,6 @@ class FileRefSerializer(FileSerializer):
         if obj.obj != path:
             shutil.copyfile(obj.obj, path)
 
-# class ThumbnailFileSerializer(FileRefSerializer):
-#     """ Serializes thumbnails as file references to the "thumbs" folder.
-#     """
-#     def __init__(self):
-#         FileRefSerializer.__init__(self, 'thumbnail', 'thumbs')
-#
-#     def load(self, filename):
-#         return FileRefSerializer.load(self, filename, 'thumbnail',
-#                                                         'thumbs')
-#
-#     def save(self, obj, rootdir):
-#         return FileRefSerializer.save(self, obj, rootdir, 'thumbs')
-#
-# class AbstractionFileSerializer(FileRefSerializer):
-#     """ Serializes abstractions as file references to the "abstractions" folder.
-#     """
-#     @classmethod
-#     def load(cls, filename):
-#         return super(AbstractionFileSerializer, cls).load(filename,
-#                                                           'abstraction',
-#                                                           'abstractions')
-#
-#     @classmethod
-#     def save(cls, obj, rootdir):
-#         return super(AbstractionFileSerializer, cls).save(obj, rootdir,
-#                                                           'abstractions')
-#
-# class JobFileSerializer(FileSerializer):
-#     """ Serializes jobs in a file.
-#     """
-#     @classmethod
-#     def load(cls, filename):
-#         return super(JobFileSerializer, cls).load(filename, 'job')
-#
-#     @classmethod
-#     def save(cls, obj, rootdir):
-#         return super(JobFileSerializer, cls).save(obj, rootdir)
-#
-# class DataFileSerializer(FileRefSerializer):
-#     """ Serializes a data file to the data/ directory
-#     """
-#     @classmethod
-#     def load(cls, filename):
-#         return super(DataFileSerializer, cls).load(filename, 'data', 'data')
-#
-#     @classmethod
-#     def save(cls, obj, rootdir):
-#         return super(DataFileSerializer, cls).save(obj, rootdir, 'data')
-
 class XMLFileSerializer(FileSerializer):
     """ Serializes vistrails objects as xml files.
     """
@@ -736,9 +687,8 @@ class XMLAppendSerializer(XMLFileSerializer):
             cur_id = inner_obj.db_id
             inner_obj.db_id = -1
             inner_bundle_obj = BundleObj(inner_obj, inner_obj.vtType, -1)
-            XMLAppendSerializer.save_file(inner_bundle_obj, 
-                                          file_obj, version, 
-                                          self.xml_tags, self.translator_f)
+            XMLAppendSerializer.save_file(self, inner_bundle_obj,
+                                          file_obj, version)
             inner_obj.db_id = cur_id
         vistrails.db.versions.translate_object(vt_obj, self.translator_f, version)
 
@@ -1076,9 +1026,9 @@ class FileManifest(Manifest):
     """ Stores manifest as a tab-separated file
     """
 
-    def __init__(self, version=None, fname=None):
+    def __init__(self, version=None, dir_path=None):
         Manifest.__init__(self, version)
-        self._fname = fname
+        self._fname = os.path.join(dir_path, "MANIFEST")
 
     def load(self):
         with open(self._fname, 'rU') as f:
@@ -1103,51 +1053,23 @@ class DirectorySerializer(BundleSerializer):
 
     """
 
-    def __init__(self, dir_path, version=None, bundle=None, overwrite=False, *args, **kwargs):
+    def __init__(self, dir_path, version=None, bundle=None, overwrite=False,
+                 manifest_cls=FileManifest, *args, **kwargs):
         BundleSerializer.__init__(self, version, bundle, *args, **kwargs)
         self._dir_path = dir_path
+        self._manifest_cls = manifest_cls
         self._manifest = None
         self._overwrite = overwrite
-        
+
     def create_manifest(self, dir_path=None, fname=None):
         if dir_path is None:
             dir_path = self._dir_path
-        if fname is None:
-            fname = os.path.join(dir_path, "MANIFEST")
-        self._manifest = FileManifest(self.version, fname)
 
-    def compute_manifest(self, dir_path=None, fname=None):
-        """ Creates manifest from old bundle files
-        """
+        self._manifest = self._manifest_cls(self.version, dir_path)
 
-        if dir_path is None:
-            dir_path = self._dir_path
-        self._manifest = FileManifest(self.version)
-
-        for root, dirs, files in os.walk(dir_path):
-            for fname in files:
-                if fname == 'vistrail' and root == dir_path:
-                    self._manifest.add_entry('vistrail', None, 'vistrail')
-                elif fname == 'log' and root == dir_path:
-                    self._manifest.add_entry('log', None, 'log')
-                elif fname.startswith('abstraction_'):
-                    abs_id = fname[len('abstraction_'):]
-                    self._manifest.add_entry('abstraction', abs_id, fname)
-                elif root == os.path.join(dir_path,'thumbs'):
-                    self._manifest.add_entry('thumbnail', fname,
-                                             os.path.join('thumbs', fname))
-                elif root == os.path.join(dir_path,'mashups'):
-                    self._manifest.add_entry('mashup', fname,
-                                             os.path.join('mashups', fname))
-
-    def load_manifest(self, dir_path=None, fname=None):
-        self.create_manifest(dir_path, fname)
-        if os.path.isfile(self._manifest._fname):
-            self._manifest.load()
-        else:
-            # Assume an old bundle that does not have MANIFEST
-            debug.log('MANIFEST is missing, assuming old bundle.')
-            self.compute_manifest(dir_path, fname)
+    def load_manifest(self, dir_path=None):
+        self.create_manifest(dir_path, dir_path)
+        self._manifest.load()
 
     def load(self, dir_path=None):
         if dir_path is None:
@@ -1158,7 +1080,7 @@ class DirectorySerializer(BundleSerializer):
         for obj_type, obj_id, fname in self._manifest.get_items(allow_none=True):
             serializer = self.get_serializer(obj_type,
                                         FileSerializer.get_serializer_type())
-            path = os.path.join(dir_path, serializer.inner_dir_name or "",
+            path = os.path.join(dir_path, serializer.inner_dir_name or '',
                                 fname)
             serializer.check_inner_dir(path)
             if self.lazy and self.is_lazy(obj_type,
@@ -1229,6 +1151,9 @@ class DirectorySerializer(BundleSerializer):
         # FIXME looks like this would not remove abstraction/vistrail if
         # vistrail also existed
         manifest_files = [i[2] for i in self._manifest.get_items()]
+        print "*** MANIFEST FILES ***"
+        for f1 in manifest_files:
+            print f1
         manifest_files.append('MANIFEST')
         if not dir_path.endswith(os.sep):
             dir_path = dir_path + os.sep
@@ -1247,13 +1172,14 @@ class ZIPSerializer(DirectorySerializer):
     """ a zipped version of a directory bundle
     """
 
-    def __init__(self, file_path=None, dir_path=None, version=None, bundle=None, overwrite=False,
-                 *args, **kwargs):
-        DirectorySerializer.__init__(self, dir_path, version, bundle, *args, **kwargs)
+    def __init__(self, file_path=None, dir_path=None, version=None, bundle=None,
+                 overwrite=False, manifest_cls=FileManifest, *args, **kwargs):
+        DirectorySerializer.__init__(self, dir_path, version, bundle, overwrite,
+                                     manifest_cls, *args, **kwargs)
         self._file_path = file_path
 
     def load(self, file_path=None):
-        # have path and temp dir 
+        # have path and temp dir
         #
         # first unzip it to a temporary directory and then
         # treat it like a directory bundle
@@ -1269,7 +1195,7 @@ class ZIPSerializer(DirectorySerializer):
         finally:
             z.close()
 
-        return DirectorySerializer.load(self)
+        return super(ZIPSerializer,self).load()
 
     def save(self, file_path=None):
         # first save everything to a temporary directory as a
@@ -1279,7 +1205,7 @@ class ZIPSerializer(DirectorySerializer):
         if self._dir_path is None:
             self._dir_path = tempfile.mkdtemp(prefix='vt_save')
         # FIXME should we overwrite?
-        DirectorySerializer.save(self, overwrite=True)
+        super(ZIPSerializer, self).save(overwrite=True)
 
         tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
         tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
@@ -1302,6 +1228,7 @@ class ZIPSerializer(DirectorySerializer):
     def cleanup(self):
         if self._dir_path is not None:
             shutil.rmtree(self._dir_path)
+
 
 class DBManifest(Manifest):
     SCHEMA = """
@@ -1464,81 +1391,6 @@ class DBSerializer(BundleSerializer):
         connection_obj.get_connection().commit()
         self._bundle.serializer = self
 
-class DefaultVistrailsDirSerializer(DirectorySerializer):
-    def __init__(self, dir_path, version=None, bundle=None, overwrite=False,
-                 *args, **kwargs):
-        if version is None:
-            version = vistrails.db.versions.currentVersion
-        DirectorySerializer.__init__(self, dir_path, version,
-                                     bundle, overwrite,
-                                     *args, **kwargs)
-        self.add_serializer("vistrail", VistrailXMLSerializer)
-        self.add_serializer("log", LogXMLSerializer, True)
-        self.add_serializer("mashup", MashupXMLSerializer)
-        self.add_serializer("thumbnail", FileRefSerializer('thumbnail', 'thumbnails'))
-        self.add_serializer("abstraction", FileRefSerializer('abstraction', 'abstractions'))
-        self.add_serializer("job", FileRefSerializer('job'))
-        self.add_serializer("data", FileRefSerializer('data', 'data'))
-
-class DefaultVistrailsZIPSerializer(ZIPSerializer):
-    def __init__(self, file_path=None, dir_path=None, version=None, bundle=None,
-                 overwrite=False, *args, **kwargs):
-        if version is None:
-            version = vistrails.db.versions.currentVersion
-        ZIPSerializer.__init__(self, file_path, dir_path, version, bundle,
-                               overwrite, *args, **kwargs)
-        self.add_serializer("vistrail", VistrailXMLSerializer)
-        self.add_serializer("log", LogXMLSerializer, True)
-        self.add_serializer("mashup", MashupXMLSerializer)
-        self.add_serializer("thumbnail", ThumbnailFileSerializer)
-        self.add_serializer("abstraction", AbstractionFileSerializer)    
-        self.add_serializer("job", JobFileSerializer)
-        self.add_serializer("data", DataFileSerializer)
-
-class DefaultVistrailsDBSerializer(DBSerializer):
-    def __init__(self, connection_obj, version=None, bundle_id=None, name="",
-                 bundle=None, overwrite=False, *args, **kwargs):
-        if version is None:
-            version = vistrails.db.versions.currentVersion
-        DBSerializer.__init__(self, connection_obj, version, bundle_id, name,
-                              bundle, overwrite, *args, **kwargs)
-        self.add_serializer("vistrail", VistrailDBSerializer)
-
-class NoManifestMixin(object):
-    """ Mixin for old bundles that do not have a manifest
-    """
-
-    def load_manifest(self, dir_path=None, fname=None):
-        if dir_path is None:
-            dir_path = self._dir_path
-        self._manifest = FileManifest()
-
-        for root, dirs, files in os.walk(dir_path):
-            for fname in files:
-                if fname == 'vistrail' and root == dir_path:
-                    self._manifest.add_entry('vistrail', 'vistrail', 'vistrail')
-                elif fname == 'log' and root == dir_path:
-                    self._manifest.add_entry('log', 'log', 'log')
-                elif fname.startswith('abstraction_'):
-                    abs_id = fname[len('abstraction_'):]
-                    self._manifest.add_entry('abstraction', abs_id, fname)
-                elif root == os.path.join(dir_path,'thumbs'):
-                    self._manifest.add_entry('thumbnail', fname,
-                                             os.path.join('thumbs', fname))
-                elif root == os.path.join(dir_path,'mashups'):
-                    self._manifest.add_entry('mashup', fname,
-                                             os.path.join('mashups', fname))
-
-class NoManifestDirSerializer(DefaultVistrailsDirSerializer, NoManifestMixin):
-    def load_manifest(self, dir_path=None, fname=None):
-        NoManifestMixin.load_manifest(self, dir_path, fname)
-
-class NoManifestZIPSerializer(DefaultVistrailsZIPSerializer, NoManifestMixin):
-    def load_manifest(self, dir_path=None, fname=None):
-        NoManifestMixin.load_manifest(self, dir_path, fname)
-
-
-
 import unittest
 import os
 import shutil
@@ -1592,6 +1444,82 @@ class SQLite3DatabaseTest(DatabaseTest):
 from vistrails.core.system import resource_directory, vistrails_root_directory
 
 class TestBundles(unittest.TestCase):
+    class LogXMLSerializer(XMLAppendSerializer):
+        def __init__(self):
+            XMLAppendSerializer.__init__(self, DBLog.vtType,
+                                         "http://www.vistrails.org/log.xsd",
+                                         "translateLog",
+                                         DBWorkflowExec.vtType,
+                                         True, True)
+
+        def create_obj(self, inner_obj_list=None):
+            if inner_obj_list is not None:
+                return DBLog(workflow_execs=inner_obj_list)
+            else:
+                return DBLog()
+
+        def get_inner_objs(self, vt_obj):
+            return vt_obj.db_workflow_execs
+
+        def add_inner_obj(self, vt_obj, inner_obj):
+            vt_obj.db_add_workflow_exec(inner_obj)
+
+    class MashupXMLSerializer(XMLFileSerializer):
+        def __init__(self):
+            XMLFileSerializer.__init__(self, DBMashuptrail.vtType,
+                                       "http://www.vistrails.org/mashup.xsd",
+                                       "translateMashup",
+                                       inner_dir_name="mashups")
+
+        def finish_load(self, b_obj):
+            b_obj.obj_type = "mashup"
+
+        def get_obj_id(self, vt_obj):
+            return vt_obj.db_name
+
+    @staticmethod
+    def add_file_serializers(s):
+        s.add_serializer("vistrail",
+                         XMLFileSerializer(DBVistrail.vtType,
+                                           "http://www.vistrails.org/vistrail.xsd",
+                                           "translateVistrail",
+                                           True, True)),
+        s.add_serializer("log", TestBundles.LogXMLSerializer(), True)
+        s.add_serializer("mashup", TestBundles.MashupXMLSerializer())
+        s.add_serializer("thumbnail", FileRefSerializer('thumbnail', 'thumbnails'))
+        s.add_serializer("abstraction", FileRefSerializer('abstraction', 'abstractions'))
+        s.add_serializer("job", FileRefSerializer('job'))
+        s.add_serializer("data", FileRefSerializer('data', 'data'))
+
+
+    class VistrailsDirSerializer(DirectorySerializer):
+        def __init__(self, dir_path, version=None, bundle=None, overwrite=False,
+                     *args, **kwargs):
+            if version is None:
+                version = vistrails.db.versions.currentVersion
+            DirectorySerializer.__init__(self, dir_path, version,
+                                         bundle, overwrite,
+                                         *args, **kwargs)
+            TestBundles.add_file_serializers(self)
+
+    class VistrailsZIPSerializer(ZIPSerializer):
+        def __init__(self, file_path=None, dir_path=None, version=None, bundle=None,
+                     overwrite=False, *args, **kwargs):
+            if version is None:
+                version = vistrails.db.versions.currentVersion
+            ZIPSerializer.__init__(self, file_path, dir_path, version, bundle,
+                                   overwrite, *args, **kwargs)
+            TestBundles.add_file_serializers(self)
+
+    class VistrailsDBSerializer(DBSerializer):
+        def __init__(self, connection_obj, version=None, bundle_id=None, name="",
+                     bundle=None, overwrite=False, *args, **kwargs):
+            if version is None:
+                version = vistrails.db.versions.currentVersion
+            DBSerializer.__init__(self, connection_obj, version, bundle_id, name,
+                                  bundle, overwrite, *args, **kwargs)
+            self.add_serializer("vistrail", VistrailDBSerializer)
+
     def test_manifest(self):
         manifest = Manifest()
         paths = [('vistrail', None, 'vistrail.xml'),
@@ -1608,7 +1536,7 @@ class TestBundles(unittest.TestCase):
     def test_manifest_file(self):
         d = tempfile.mkdtemp(prefix='vt_bundle_test')
         try:
-            manifest = FileManifest('1.0.0', os.path.join(d, 'MANIFEST'))
+            manifest = FileManifest('1.0.0', d)
             paths = [('vistrail', None, 'vistrail.xml'),
                      ('thumbnail', 'abc', 'thumbs/abc.png'),
                      ('thumbnail', 'def', 'thumbs/def.png')]
@@ -1617,7 +1545,7 @@ class TestBundles(unittest.TestCase):
             manifest.save()
             self.assertTrue(os.path.exists(os.path.join(d, "MANIFEST")))
 
-            manifest2 = FileManifest('1.0.0', os.path.join(d, 'MANIFEST'))
+            manifest2 = FileManifest('1.0.0', d)
             manifest2.load()
             for p in paths:
                 self.assertTrue(manifest2.has_entry(p[0], p[1]))
@@ -1629,16 +1557,21 @@ class TestBundles(unittest.TestCase):
     def create_bundle(self):
         b = Bundle()
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
-        o1 = FileSerializer.load(fname1)
+        s1 = FileSerializer()
+        s1.load(fname1)
+        o1 = s1.load(fname1)
         o1.id = "abc"
         b.add_object(o1)
         fname2 = os.path.join(resource_directory(), 'images', 'left.png')
-        o2 = FileSerializer.load(fname2)
+        s2 = FileSerializer()
+        o2 = s2.load(fname2)
         o2.id = "def"
         b.add_object(o2)
         return b
 
     def compare_bundles(self, b1, b2):
+        print b1.get_items()
+        print b2.get_items()
         self.assertEqual(len(b1.get_items()), len(b2.get_items()))
         for obj_type, obj_id, obj in b1.get_items():
             obj2 = b2.get_bundle_obj(obj_type, obj_id)
@@ -1652,11 +1585,11 @@ class TestBundles(unittest.TestCase):
         try:
             b1 = self.create_bundle()
             s1 = DirectorySerializer(inner_d, '1.0.0', b1)
-            s1.add_serializer('data', FileSerializer)
+            s1.add_serializer('data', FileSerializer())
             s1.save()
 
             s2 = DirectorySerializer(inner_d, '1.0.0')
-            s2.add_serializer('data', FileSerializer)
+            s2.add_serializer('data', FileSerializer())
             b2 = s2.load()
 
             self.compare_bundles(b1, b2)
@@ -1672,11 +1605,11 @@ class TestBundles(unittest.TestCase):
         try:
             b1 = self.create_bundle()
             s1 = ZIPSerializer(fname, version='1.0.0', bundle=b1)
-            s1.add_serializer('data', FileSerializer)
+            s1.add_serializer('data', FileSerializer())
             s1.save()
 
             s2 = ZIPSerializer(fname, version='1.0.0')
-            s2.add_serializer('data', FileSerializer)
+            s2.add_serializer('data', FileSerializer())
             b2 = s2.load()
             
             self.compare_bundles(b1, b2)
@@ -1798,10 +1731,10 @@ class TestBundles(unittest.TestCase):
         s2 = None
         try:
             b1 = self.create_vt_bundle()
-            s1 = DefaultVistrailsDirSerializer(inner_d, bundle=b1)
+            s1 = TestBundles.VistrailsDirSerializer(inner_d, bundle=b1)
             s1.save()
 
-            s2 = DefaultVistrailsDirSerializer(inner_d)
+            s2 = TestBundles.VistrailsDirSerializer(inner_d)
             b2 = s2.load()
             
             self.compare_bundles(b1, b2)
@@ -1816,10 +1749,10 @@ class TestBundles(unittest.TestCase):
         s2 = None
         try:
             b1 = self.create_vt_bundle()
-            s1 = DefaultVistrailsZIPSerializer(fname, bundle=b1)
+            s1 = TestBundles.VistrailsZIPSerializer(fname, bundle=b1)
             s1.save()
 
-            s2 = DefaultVistrailsZIPSerializer(fname)
+            s2 = TestBundles.VistrailsZIPSerializer(fname)
             b2 = s2.load()
             
             self.compare_bundles(b1, b2)
@@ -1830,38 +1763,38 @@ class TestBundles(unittest.TestCase):
                 s2.cleanup()
             os.unlink(fname)
 
-    def test_old_vt_dir_load(self):
-        d = tempfile.mkdtemp(prefix='vtbundle_test')
-        inner_d = os.path.join(d, 'mybundle')
-
-        s1 = None
-        s2 = None
-        try:
-            s1 = NoManifestDirSerializer('/vistrails/tmp/terminator')
-            b1 = s1.load()
-            s2 = DefaultVistrailsDirSerializer(inner_d, bundle=b1)
-            s2.save()
-        finally:
-            shutil.rmtree(d)
-
-    def test_old_vt_zip_load(self):
-        in_fname = os.path.join(vistrails_root_directory(),'tests', 
-                                'resources', 'terminator.vt')
-        (h, out_fname) = tempfile.mkstemp(prefix='vtbundle_test', suffix='.zip')
-        os.close(h)
-
-        s1 = None
-        s2 = None
-        try:
-            s1 = NoManifestZIPSerializer(in_fname)
-            b1 = s1.load()
-            s2 = DefaultVistrailsZIPSerializer(out_fname, bundle=b1)
-            s2.save()
-        finally:
-            os.unlink(out_fname)
+    # def test_old_vt_dir_load(self):
+    #     d = tempfile.mkdtemp(prefix='vtbundle_test')
+    #     inner_d = os.path.join(d, 'mybundle')
+    #
+    #     s1 = None
+    #     s2 = None
+    #     try:
+    #         s1 = NoManifestDirSerializer('/vistrails/tmp/terminator')
+    #         b1 = s1.load()
+    #         s2 = DefaultVistrailsDirSerializer(inner_d, bundle=b1)
+    #         s2.save()
+    #     finally:
+    #         shutil.rmtree(d)
+    #
+    # def test_old_vt_zip_load(self):
+    #     in_fname = os.path.join(vistrails_root_directory(),'tests',
+    #                             'resources', 'terminator.vt')
+    #     (h, out_fname) = tempfile.mkstemp(prefix='vtbundle_test', suffix='.zip')
+    #     os.close(h)
+    #
+    #     s1 = None
+    #     s2 = None
+    #     try:
+    #         s1 = NoManifestZIPSerializer(in_fname)
+    #         b1 = s1.load()
+    #         s2 = DefaultVistrailsZIPSerializer(out_fname, bundle=b1)
+    #         s2.save()
+    #     finally:
+    #         os.unlink(out_fname)
 
     def run_vt_db_bundle(self, db_klass):
-        in_fname = os.path.join(vistrails_root_directory(),'tests', 
+        in_fname = os.path.join(vistrails_root_directory(),'tests',
                                 'resources', 'terminator.vt')
         (h, out_fname) = tempfile.mkstemp(prefix='vtbundle_test', suffix='.zip')
         os.close(h)
@@ -1899,11 +1832,11 @@ class TestBundles(unittest.TestCase):
             # connection_obj.run_sql_file(vt_drop_schema)
             db.cleanup()
 
-    def test_vt_bundle_mysql(self):
-        self.run_vt_db_bundle(MySQLDatabaseTest)        
-
-    def test_vt_bundle_sqlite(self):
-        self.run_vt_db_bundle(SQLite3DatabaseTest)
+    # def test_vt_bundle_mysql(self):
+    #     self.run_vt_db_bundle(MySQLDatabaseTest)
+    #
+    # def test_vt_bundle_sqlite(self):
+    #     self.run_vt_db_bundle(SQLite3DatabaseTest)
 
 if __name__ == '__main__':
     unittest.main()
