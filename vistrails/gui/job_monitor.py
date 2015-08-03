@@ -91,6 +91,23 @@ class QJobTree(QtGui.QTreeWidget):
                                    QtCore.SIGNAL("triggered()"),
                                    item.stderr)
             menu.addAction(act)
+
+            act = QtGui.QAction("Delete job", self)
+            QtCore.QObject.connect(act,
+                                   QtCore.SIGNAL("triggered()"),
+                                   lambda :self.parent().delete_item(item))
+            menu.addAction(act)
+
+            menu.exec_(event.globalPos())
+
+        if item and isinstance(item, QWorkflowItem):
+
+            act = QtGui.QAction("Delete job", self)
+            QtCore.QObject.connect(act,
+                                   QtCore.SIGNAL("triggered()"),
+                                   lambda :self.parent().delete_item(item))
+
+            menu.addAction(act)
             menu.exec_(event.globalPos())
 
 class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
@@ -253,16 +270,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             for item in self.jobView.selectedItems():
-                if isinstance(item, QWorkflowItem):
-                    item.parent().controller.set_changed(True)
-                    item.parent().jobMonitor.deleteWorkflow(item.workflow.id)
-                elif isinstance(item, QJobItem):
-                    # find parent
-                    parent = item.parent()
-                    while not isinstance(parent, QWorkflowItem):
-                        parent = parent.parent()
-                    parent.parent().controller.set_changed(True)
-                    parent.parent().jobMonitor.deleteJob(item.job.id)
+                self.delete_item(item)
         else:
             QtGui.QWidget.keyPressEvent(self, event)
 
@@ -271,6 +279,18 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         """
         if isinstance(item, QWorkflowItem):
             item.goto()
+
+    def delete_item(self, item):
+        if isinstance(item, QWorkflowItem):
+            item.parent().controller.set_changed(True)
+            item.parent().jobMonitor.deleteWorkflow(item.workflow.id)
+        elif isinstance(item, QJobItem):
+            # find parent
+            parent = item.parent()
+            while not isinstance(parent, QWorkflowItem):
+                parent = parent.parent()
+            parent.parent().controller.set_changed(True)
+            parent.parent().jobMonitor.deleteJob(item.job.id)
 
 
 class QVistrailItem(QtGui.QTreeWidgetItem):
