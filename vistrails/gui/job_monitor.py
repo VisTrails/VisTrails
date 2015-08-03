@@ -341,8 +341,8 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
             if id in workflow_item.jobs:
                 job_item = workflow_item.jobs[id]
                 job_item.parent().takeChild(job_item.parent().indexOfChild(job_item))
-            del workflow_item.jobs[id]
-            workflow_item.updateJobs()
+                del workflow_item.jobs[id]
+                workflow_item.updateJobs()
 
     def addJobRec(self, obj, parent_id=None):
         """addJobRec(obj: ModuleSuspended, parent_id: signature)  -> None
