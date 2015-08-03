@@ -1547,11 +1547,11 @@ class Module(object):
         """ job_monitor() -> JobMonitor
         Returns the JobMonitor for the associated controller if it exists
         """
-        controller = self.moduleInfo['controller']
-        if controller is None:
+        if 'job_monitor' not in self.moduleInfo or \
+           not self.moduleInfo['job_monitor']:
             raise ModuleError(self,
-                              "Cannot run job, no controller is specified!")
-        return controller.jobMonitor
+                              "Cannot run job, no job_monitor is specified!")
+        return self.moduleInfo['job_monitor']
 
     @classmethod
     def provide_input_port_documentation(cls, port_name):
