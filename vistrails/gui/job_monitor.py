@@ -445,8 +445,8 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
                                           item.job.start))
                 progress.setLabelText(labelText)
                 while not self.jobMonitor.isDone(handle):
-                    dieTime = QtCore.QTime.currentTime().addMSecs(interval*1000)
-                    while QtCore.QTime.currentTime() < dieTime:
+                    dieTime = QtCore.QDateTime.currentDateTime().addSecs(interval)
+                    while QtCore.QDateTime.currentDateTime() < dieTime:
                         QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents, 100)
                         if progress.wasCanceled():
                             # this does not work, need to create a new progress dialog
