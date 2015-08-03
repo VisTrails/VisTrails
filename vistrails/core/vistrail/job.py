@@ -285,13 +285,21 @@ class Job(object):
         self.name = name
         self.start = start if start else datetime.datetime.now().isoformat()
         self.finished = finished
+        # A ready job is ready to output its result
+        self.ready = False
         self.updated = True
 
     def reset(self):
         self.updated = False
+        self.ready = False
 
     def mark(self):
+        """ Mark job as updated and not finished
+        """
         self.updated = True
+        # Old-style jobs may need to reset finished status
+        self.finished = False
+        self.ready = False
 
     def finish(self, params=None):
         self.parameters = params if params else {}
@@ -470,14 +478,11 @@ class JobMonitor(object):
                 self.addJobRec(child, id)
             return
         if id in workflow.jobs:
-            # this is an already existing new-style job
-            # mark that it has been used
+            # this is an already existing job
+            # that has been suspended
             workflow.jobs[id].mark()
-            return
-        if id in workflow.jobs:
-            # this is an already existing new-style job
-            # mark that it has been used
-            workflow.jobs[id].mark()
+            # trigger job update
+            self.addJob(id, workflow.jobs[id].parameters)
             return
         # this is a new old-style job that we need to add
         self.addJob(id, {'__message__': obj.msg}, obj.name)
@@ -517,7 +522,6 @@ class JobMonitor(object):
         """
 
         params = params if params is not None else {}
-
         if self.hasJob(id):
             # update job attributes
             job = self.getJob(id)

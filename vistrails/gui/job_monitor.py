@@ -36,8 +36,6 @@
 
 from __future__ import division
 
-import time
-
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
@@ -215,13 +213,13 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 if workflow_item.workflowFinished:
                     continue
                 for job in workflow_item.jobs.itervalues():
-                    if job.jobFinished:
+                    if job.job.finished:
                         continue
                     try:
                         # call monitor
-                        job.jobFinished = jm.isDone(job.handle)
-                        if job.jobFinished:
-                            job.setText(1, "Finished")
+                        jobReady = jm.isDone(job.handle)
+                        if jobReady:
+                            job.job.ready = True
                     except Exception, e:
                         debug.critical("Error checking job %s: %s" %
                                        (workflow_item.text(0), e))
@@ -484,7 +482,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
             if not job.job.finished and not job.handle:
                 self.has_handle = False
         count = len(self.jobs)
-        finished = sum([job.jobFinished for job in self.jobs.values()])
+        finished = sum([job.job.finished for job in self.jobs.values()])
         self.setText(1, "(%s/%s)" % (finished, count))
         self.workflowFinished = (finished == count)
         if self.workflowFinished:
@@ -520,17 +518,13 @@ class QJobItem(QtGui.QTreeWidgetItem):
                                                       job.description()])
         self.setToolTip(1, job.description())
         self.job = job
-        # This is different from job.jobFinished after job finishes
-        self.jobFinished = self.job.finished
         self.handle = None
         self.updateJob()
 
     def updateJob(self):
-        if self.job.finished:
-            self.jobFinished = self.job.finished
         self.setText(1, self.job.parameters.get('__message__',
-                        "Finished" if self.jobFinished else "Running"))
-        if self.jobFinished:
+                        "Finished" if self.job.finished else "Running"))
+        if self.job.finished or self.job.ready:
             self.setIcon(1, theme.get_current_theme().JOB_FINISHED)
             self.setToolTip(0, "This Job Has Finished")
         elif self.handle:
