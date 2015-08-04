@@ -36,8 +36,6 @@
 
 from __future__ import division
 
-import time
-
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
@@ -92,6 +90,23 @@ class QJobTree(QtGui.QTreeWidget):
             QtCore.QObject.connect(act,
                                    QtCore.SIGNAL("triggered()"),
                                    item.stderr)
+            menu.addAction(act)
+
+            act = QtGui.QAction("Delete job", self)
+            QtCore.QObject.connect(act,
+                                   QtCore.SIGNAL("triggered()"),
+                                   lambda :self.parent().delete_item(item))
+            menu.addAction(act)
+
+            menu.exec_(event.globalPos())
+
+        if item and isinstance(item, QWorkflowItem):
+
+            act = QtGui.QAction("Delete job", self)
+            QtCore.QObject.connect(act,
+                                   QtCore.SIGNAL("triggered()"),
+                                   lambda :self.parent().delete_item(item))
+
             menu.addAction(act)
             menu.exec_(event.globalPos())
 
@@ -215,13 +230,13 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 if workflow_item.workflowFinished:
                     continue
                 for job in workflow_item.jobs.itervalues():
-                    if job.jobFinished:
+                    if job.job.finished:
                         continue
                     try:
                         # call monitor
-                        job.jobFinished = jm.isDone(job.handle)
-                        if job.jobFinished:
-                            job.setText(1, "Finished")
+                        jobReady = jm.isDone(job.handle)
+                        if jobReady:
+                            job.job.ready = True
                     except Exception, e:
                         debug.critical("Error checking job %s: %s" %
                                        (workflow_item.text(0), e))
@@ -255,16 +270,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             for item in self.jobView.selectedItems():
-                if isinstance(item, QWorkflowItem):
-                    item.parent().controller.set_changed(True)
-                    item.parent().jobMonitor.deleteWorkflow(item.workflow.id)
-                elif isinstance(item, QJobItem):
-                    # find parent
-                    parent = item.parent()
-                    while not isinstance(parent, QWorkflowItem):
-                        parent = parent.parent()
-                    parent.parent().controller.set_changed(True)
-                    parent.parent().jobMonitor.deleteJob(item.job.id)
+                self.delete_item(item)
         else:
             QtGui.QWidget.keyPressEvent(self, event)
 
@@ -273,6 +279,18 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         """
         if isinstance(item, QWorkflowItem):
             item.goto()
+
+    def delete_item(self, item):
+        if isinstance(item, QWorkflowItem):
+            item.parent().controller.set_changed(True)
+            item.parent().jobMonitor.deleteWorkflow(item.workflow.id)
+        elif isinstance(item, QJobItem):
+            # find parent
+            parent = item.parent()
+            while not isinstance(parent, QWorkflowItem):
+                parent = parent.parent()
+            parent.parent().controller.set_changed(True)
+            parent.parent().jobMonitor.deleteJob(item.job.id)
 
 
 class QVistrailItem(QtGui.QTreeWidgetItem):
@@ -343,8 +361,8 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
             if id in workflow_item.jobs:
                 job_item = workflow_item.jobs[id]
                 job_item.parent().takeChild(job_item.parent().indexOfChild(job_item))
-            del workflow_item.jobs[id]
-            workflow_item.updateJobs()
+                del workflow_item.jobs[id]
+                workflow_item.updateJobs()
 
     def addJobRec(self, obj, parent_id=None):
         """addJobRec(obj: ModuleSuspended, parent_id: signature)  -> None
@@ -427,11 +445,9 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
                                           item.job.start))
                 progress.setLabelText(labelText)
                 while not self.jobMonitor.isDone(handle):
-                    i = 0
-                    while i < interval:
-                        i += 1
-                        time.sleep(1)
-                        QtCore.QCoreApplication.processEvents()
+                    dieTime = QtCore.QDateTime.currentDateTime().addSecs(interval)
+                    while QtCore.QDateTime.currentDateTime() < dieTime:
+                        QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents, 100)
                         if progress.wasCanceled():
                             # this does not work, need to create a new progress dialog
                             #progress.goOn()
@@ -486,7 +502,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
             if not job.job.finished and not job.handle:
                 self.has_handle = False
         count = len(self.jobs)
-        finished = sum([job.jobFinished for job in self.jobs.values()])
+        finished = sum([job.job.finished for job in self.jobs.values()])
         self.setText(1, "(%s/%s)" % (finished, count))
         self.workflowFinished = (finished == count)
         if self.workflowFinished:
@@ -522,17 +538,13 @@ class QJobItem(QtGui.QTreeWidgetItem):
                                                       job.description()])
         self.setToolTip(1, job.description())
         self.job = job
-        # This is different from job.jobFinished after job finishes
-        self.jobFinished = self.job.finished
         self.handle = None
         self.updateJob()
 
     def updateJob(self):
-        if self.job.finished:
-            self.jobFinished = self.job.finished
         self.setText(1, self.job.parameters.get('__message__',
-                        "Finished" if self.jobFinished else "Running"))
-        if self.jobFinished:
+                        "Finished" if self.job.finished else "Running"))
+        if self.job.finished or self.job.ready:
             self.setIcon(1, theme.get_current_theme().JOB_FINISHED)
             self.setToolTip(0, "This Job Has Finished")
         elif self.handle:

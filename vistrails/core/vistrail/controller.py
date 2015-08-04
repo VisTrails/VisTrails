@@ -3724,6 +3724,7 @@ class VistrailController(object):
                             self.handle_invalid_pipeline(e, new_version,
                                                          self.vistrail,
                                                          report_all_errors)
+                    self.validate(pipeline)
                     self.current_pipeline = pipeline
                     self.current_version = new_version
                 except InvalidPipeline, e:
