@@ -58,6 +58,7 @@ class BundleObj(object):
 
     def __init__(self, obj, obj_type=None, id=None, changed=False):
         self._obj = obj
+        #FIXME deprecate this so we use mappings instead?
         if obj_type is None:
             if hasattr(obj, 'vtType'):
                 self.obj_type = obj.vtType
@@ -171,6 +172,39 @@ class BundleObjDictionary(object):
         return [(k1, k2, v) for k1, k2_dict in self._objs.iteritems()
                 for k2, v in k2_dict.iteritems()]
 
+class BundleObjMapping(object):
+    def __init__(self, create_bundle_obj_f, attr_name, attr_plural=False,
+                attr_plural_name=None):
+        self.create_bundle_obj_f = create_bundle_obj_f
+        self.attr_name = attr_name
+        self.attr_plural = attr_plural
+        if attr_plural and attr_plural_name is None:
+            attr_plural_name = attr_name + "s"
+        self.attr_plural_name = attr_plural_name
+
+class SingleRootBundleObjMapping(BundleObjMapping):
+    def __init__(self, obj_type, attr_name, attr_plural=False,
+                 attr_plural_name=None):
+        def create_bundle_obj(obj):
+            return BundleObj(obj, obj_type, None)
+        BundleObjMapping.__init__(self, create_bundle_obj, attr_name,
+                                  attr_plural, attr_plural_name)
+
+class MultipleObjMapping(BundleObjMapping):
+    def __init__(self, obj_type, obj_id_extract_f, attr_name,
+                 attr_plural_name=None):
+        def create_bundle_obj(obj):
+            return BundleObj(obj, obj_type, obj_id_extract_f(obj))
+        BundleObjMapping.__init__(self, create_bundle_obj, attr_name,
+                                  True, attr_plural_name)
+
+class MultipleFileRefMapping(MultipleObjMapping):
+    def __init__(self, obj_type, attr_name, attr_plural_name=None):
+        def obj_id_extract_f(obj):
+            return os.path.basename(obj)
+        MultipleObjMapping.__init__(self, obj_type, obj_id_extract_f,
+                                        attr_name, attr_plural_name)
+
 class Bundle(BundleObjDictionary):
     """ Assume a bundle contains a set of objects.  If an object is a list
         or dictionary, we serialize these to a directory.
@@ -178,17 +212,37 @@ class Bundle(BundleObjDictionary):
     def __init__(self):
         BundleObjDictionary.__init__(self)
         self._serializer = None
+        self._mappings_by_type = {}
+        self._mappings_by_name = {}
 
-    def add_object(self, obj):
+    def create_bundle_obj(self, obj, obj_type=None):
+        # check for BundleObjMapping
+        if obj_type is None and hasattr(obj, 'vtType'):
+            obj_type = obj.vtType
+        if obj_type in self._mappings_by_type:
+            mapping = self._mappings_by_type[obj_type]
+            obj = mapping.create_bundle_obj_f(obj)
+            return obj
+        raise VistrailsDBException('Do not know how to create BundleObj for '
+                                   'obj "%s", add BundleObjMapping')
+
+    def add_object(self, obj, obj_type=None):
         if not isinstance(obj, BundleObj):
-            raise VistrailsDBException('Can only add BundleObj objects.')
+            # check for BundleObjMapping, raises exception if cannot
+            obj = self.create_bundle_obj(obj, obj_type)
         self.add_entry(obj, obj)
 
-    def remove_object(self, obj):
+    def remove_object(self, obj, obj_type=None):
+        if not isinstance(obj, BundleObj):
+            # check for BundleObjMapping
+            obj = self.create_bundle_obj(obj, obj_type)
         self.remove_entry(obj)
 
-    def change_object(self, obj):
+    def change_object(self, obj, obj_type=None):
+        #FIXME path for LazyBundleObj -> BundleObj change?
         if not isinstance(obj, BundleObj):
+            # check for BundleObjMapping
+            obj = self.create_bundle_obj(obj, obj_type)
             raise VistrailsDBException('Can only change BundleObj objects.')
         self.change_entry(obj, obj)
 
@@ -220,16 +274,25 @@ class Bundle(BundleObjDictionary):
         """
         return [obj for t in self._objs.itervalues() for obj in t.itervalues() if hasattr(obj.obj, 'vtType')]
 
+    def add_mapping(self, obj_type, mapping):
+        self._mappings_by_type[obj_type] = mapping
+        self._mappings_by_name[mapping.attr_name] = mapping
+        if mapping.attr_plural_name is not None:
+            self._mappings_by_name[mapping.attr_plural_name] = mapping
+
     def __getattr__(self, item):
         """ Returns the default bundleobj(s) of the specified type or None
         """
-        if item.endswith('s'):
-            if BundleObjDictionary.has_entries(self, item[:-1]):
-                # return all of them
-                return [bo.obj for bo in BundleObjDictionary.get_values(self, item[:-1])]
-            return []
-        if BundleObjDictionary.has_entry(self, item, None):
-            return BundleObjDictionary.get_value(self, (item, None)).obj
+        if item in self._mappings_by_name:
+            mapping = self._mappings_by_name[item]
+            if mapping.attr_plural_name == item:
+                if BundleObjDictionary.has_entries(self, mapping.attr_name):
+                    # return all of them
+                    return [bo.obj for bo in BundleObjDictionary.get_values(self, mapping.attr_name)]
+                return []
+            else: # have single attr name
+                if BundleObjDictionary.has_entry(self, mapping.attr_name, None):
+                    return BundleObjDictionary.get_value(self, (mapping.attr_name, None)).obj
         return None
 
     def _get_serializer(self):
@@ -242,15 +305,15 @@ class Bundle(BundleObjDictionary):
         if self.serializer is not None:
             self.serializer.cleanup()
 
-class VistrailBundle(Bundle):
-    def __init__(self):
-        Bundle.__init__(self)
-        self.set_single_type("vistrail")
-        self.set_single_type("log")
-        self.set_single_type("job")
-
-    def get_primary_obj(self):
-        return self.get_object(DBVistrail.vtType)
+# class VistrailBundle(Bundle):
+#     def __init__(self):
+#         Bundle.__init__(self)
+#         self.set_single_type("vistrail")
+#         self.set_single_type("log")
+#         self.set_single_type("job")
+#
+#     def get_primary_obj(self):
+#         return self.get_object(DBVistrail.vtType)
 
 class WorkflowBundle(Bundle):
     def __init__(self):
@@ -273,9 +336,11 @@ class RegistryBundle(Bundle):
         return self.get_object(DBRegistry.vtType)
 
 class BundleSerializer(object):
-    def __init__(self, version=None, bundle=None, bundle_cls=VistrailBundle):
+    def __init__(self, version=None, bundle=None, bundle_cls=None):
         self._bundle = bundle
         self._bundle_cls = bundle_cls
+        if self._bundle is None and self._bundle_cls is None:
+            raise VistrailsDBException("Must set either bundle or bundle_cls")
         # _serializers[obj_key][serializer_type] = cls
         self._serializers = {}
         self._lazy_serializers = set()
@@ -1057,9 +1122,10 @@ class DirectorySerializer(BundleSerializer):
 
     """
 
-    def __init__(self, dir_path, version=None, bundle=None, overwrite=False,
-                 manifest_cls=FileManifest, *args, **kwargs):
-        BundleSerializer.__init__(self, version, bundle, *args, **kwargs)
+    def __init__(self, dir_path, version=None, bundle=None, bundle_cls=None,
+                 overwrite=False, manifest_cls=FileManifest, *args, **kwargs):
+        BundleSerializer.__init__(self, version, bundle, bundle_cls,
+                                  *args, **kwargs)
         self._dir_path = dir_path
         self._manifest_cls = manifest_cls
         self._manifest = None
@@ -1175,9 +1241,10 @@ class ZIPSerializer(DirectorySerializer):
     """
 
     def __init__(self, file_path=None, dir_path=None, version=None, bundle=None,
-                 overwrite=False, manifest_cls=FileManifest, *args, **kwargs):
-        DirectorySerializer.__init__(self, dir_path, version, bundle, overwrite,
-                                     manifest_cls, *args, **kwargs)
+                 bundle_cls=None, overwrite=False, manifest_cls=FileManifest,
+                 *args, **kwargs):
+        DirectorySerializer.__init__(self, dir_path, version, bundle, bundle_cls,
+                                     overwrite, manifest_cls, *args, **kwargs)
         self._file_path = file_path
 
     def load(self, file_path=None):

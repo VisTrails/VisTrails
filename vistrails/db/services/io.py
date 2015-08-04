@@ -64,7 +64,7 @@ from vistrails.db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DB
 import vistrails.db.services.abstraction
 from vistrails.db.services.bundle import FileManifest
 from vistrails.db.services.bundle_legacy import LegacyZIPSerializer, \
-    LegacyDirSerializer
+    LegacyDirSerializer, LegacyVistrailBundle
 # from vistrails.db.services.bundle import DefaultVistrailsZIPSerializer , WorkflowXMLSerializer, \
 #     BundleObj, VistrailBundle, WorkflowBundle, LogBundle, RegistryBundle
 import vistrails.db.services.log
@@ -446,6 +446,16 @@ def get_zip_bundle_serializer(fname=None, bundle=None, version=None):
 
 def get_db_bundle_serializer(conn, bundle=None, version=None):
     pass
+
+def new_bundle(version=None, bundle_type=None):
+    b = None
+    if version is None:
+        version = currentVersion
+    b = vistrails.db.versions.new_bundle(version, bundle_type)
+    if b is None:
+        # this should not happen much...
+        b = LegacyVistrailBundle()
+    return b
 
 def open_from_xml(filename, type):
     if type == DBVistrail.vtType:
@@ -1335,7 +1345,7 @@ def save_mashuptrails_to_db(mashuptrails, vt_id, db_connection, do_copy=False):
 
     # for now we replace all mashups
     for old_id in get_db_mashuptrail_ids_from_vistrail(db_connection, vt_id):
-        delete_entity_from_db(db_connection, Mashuptrail.vtType, old_id)
+        delete_entity_from_db(db_connection, DBMashuptrail.vtType, old_id)
 
     for mashuptrail in mashuptrails:
         try: 
@@ -1833,7 +1843,7 @@ class TestTranslations(unittest.TestCase):
     def test_v1_0_1_registry(self):
         self.run_registry_translation_test('1.0.1')
 
-    def test_new_bundle(self):
+    def test_bundle_translate(self):
         s1 = None
         s2 = None
         s3 = None
@@ -1877,7 +1887,17 @@ class TestTranslations(unittest.TestCase):
                 s3.cleanup()
             os.unlink(fname1)
             os.unlink(fname2)
-        
+
+    def test_new_bundle(self):
+        from vistrails.core.system import resource_directory
+        b = new_bundle()
+        b.add_object(DBVistrail())
+        b.add_object(DBLog())
+        fname1 = os.path.join(resource_directory(), 'images', 'info.png')
+        b.add_object(fname1, 'thumbnail') # info.png
+        fname2 = os.path.join(resource_directory(), 'images', 'left.png')
+        b.add_object(fname2, 'thumbnail') # left.png
+
 if __name__ == '__main__':
     import vistrails.core.application
     vistrails.core.application.init()

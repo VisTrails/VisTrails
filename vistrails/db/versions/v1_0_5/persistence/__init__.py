@@ -48,8 +48,10 @@ from vistrails.db.versions.v1_0_5.persistence.sql import alchemy
 
 from vistrails.core.system import get_elementtree_library, vistrails_root_directory
 from vistrails.db import VistrailsDBException
-from vistrails.db.services.bundle import Bundle, BundleObj, XMLFileSerializer, \
-    XMLAppendSerializer,FileRefSerializer, DirectorySerializer, ZIPSerializer
+from vistrails.db.services.bundle import Bundle, BundleObj, \
+    XMLFileSerializer, XMLAppendSerializer,FileRefSerializer, \
+    DirectorySerializer, ZIPSerializer, \
+    SingleRootBundleObjMapping, MultipleObjMapping, MultipleFileRefMapping
 from vistrails.db.versions.v1_0_5 import version as my_version
 from vistrails.db.versions.v1_0_5.domain import DBGroup, DBWorkflow, DBVistrail, DBLog, \
     DBRegistry, DBMashuptrail, DBWorkflowExec
@@ -92,6 +94,34 @@ class MashupXMLSerializer(XMLFileSerializer):
     def get_obj_id(self, vt_obj):
         return vt_obj.db_name
 
+#FIXME have some way to specify bundleobj mappings and serializers at once?
+mappings = {'vistrail':
+                SingleRootBundleObjMapping(DBVistrail.vtType, 'vistrail'),
+            'log':
+                SingleRootBundleObjMapping(DBLog.vtType, 'log'),
+            'mashup':
+                MultipleObjMapping(DBMashuptrail.vtType,
+                                   lambda obj: obj.db_name,
+                                   'mashup'),
+            'thumbnail': MultipleFileRefMapping('thumbnail', 'thumbnail'),
+            'abstraction': MultipleFileRefMapping('abstraction', 'abstraction'),
+            'job': SingleRootBundleObjMapping('job', 'job'),
+            'data': MultipleFileRefMapping('data', 'data'),
+}
+
+class VistrailBundle(Bundle):
+    def __init__(self):
+        Bundle.__init__(self)
+        for obj_type, mapping in mappings.iteritems():
+            self.add_mapping(obj_type, mapping)
+
+def new_bundle(bundle_type=None):
+    if bundle_type == "vistrail" or bundle_type is None:
+        return VistrailBundle()
+    raise VistrailsDBException("Unknown bundle type:", bundle_type)
+
+#FIXME probably need to add bundle registration stuff
+
 def add_file_serializers(s):
     s.add_serializer("vistrail",
                      XMLFileSerializer(DBVistrail.vtType,
@@ -107,12 +137,14 @@ def add_file_serializers(s):
     s.add_serializer("data", FileRefSerializer('data', 'data'))
 
 def get_dir_bundle_serializer(dir_path, bundle=None):
-    s = DirectorySerializer(dir_path, version=my_version, bundle=bundle)
+    s = DirectorySerializer(dir_path, version=my_version, bundle=bundle,
+                            bundle_cls=VistrailBundle)
     add_file_serializers(s)
     return s
 
 def get_zip_bundle_serializer(fname, bundle=None):
-    s = ZIPSerializer(fname, version=my_version, bundle=bundle)
+    s = ZIPSerializer(fname, version=my_version, bundle=bundle,
+                      bundle_cls=VistrailBundle)
     add_file_serializers(s)
     return s
 
@@ -502,13 +534,13 @@ class TestPersistence(unittest.TestCase):
 
     def create_vt_bundle(self):
         from vistrails.core.system import resource_directory
-        b = Bundle()
-        b.add_object(BundleObj(DBVistrail(), None, None))
-        b.add_object(BundleObj(DBLog(), None, None))
+        b = VistrailBundle()
+        b.add_object(DBVistrail())
+        b.add_object(DBLog())
         fname1 = os.path.join(resource_directory(), 'images', 'info.png')
-        b.add_object(BundleObj(fname1, 'thumbnail', 'info.png'))
+        b.add_object(fname1, 'thumbnail') # info.png
         fname2 = os.path.join(resource_directory(), 'images', 'left.png')
-        b.add_object(BundleObj(fname2, 'thumbnail', 'left.png'))
+        b.add_object(fname2, 'thumbnail') # left.png
         return b
 
     def test_vt_dir_bundle(self):
@@ -519,16 +551,20 @@ class TestPersistence(unittest.TestCase):
         s2 = None
         try:
             b1 = self.create_vt_bundle()
-            s1 = dir_serializer(inner_d, bundle=b1)
+            s1 = get_dir_bundle_serializer(inner_d, bundle=b1)
             s1.save()
 
-            s2 = dir_serializer(inner_d)
+            s2 = get_dir_bundle_serializer(inner_d)
             s2.set_lazy_loading(False)
             b2 = s2.load()
 
             self.compare_bundles(b1, b2)
         finally:
-            shutil.rmtree(d)
+            if s1 is not None:
+                s1.cleanup()
+            if s2 is not None:
+                s2.cleanup()
+            # shutil.rmtree(d)
 
 if __name__ == '__main__':
     unittest.main()

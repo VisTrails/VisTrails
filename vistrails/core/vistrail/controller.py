@@ -92,10 +92,10 @@ from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.theme import DefaultCoreTheme
 from vistrails.db import VistrailsDBException
 from vistrails.db.domain import IdScope, DBWorkflowExec
-from vistrails.db.services.bundle import VistrailBundle, BundleObj, \
+from vistrails.db.services.bundle import BundleObj, \
     WorkflowBundle, LogBundle, RegistryBundle
 from vistrails.db.services.io import create_temp_folder, remove_temp_folder
-from vistrails.db.services.io import SaveBundle, open_vt_log_from_db
+from vistrails.db.services.io import SaveBundle, open_vt_log_from_db, new_bundle
 from vistrails.db.services.vistrail import getSharedRoot
 from vistrails.core.utils import any
 
@@ -3972,7 +3972,7 @@ class VistrailController(object):
             annotation_key = get_next_abs_annotation_key(self.vistrail)
             self.vistrail.set_annotation(annotation_key, new_namespace)
 
-        bundle = VistrailBundle()
+        bundle = new_bundle()
 
         # Save jobs
         if self.jobMonitor.workflows:

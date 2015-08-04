@@ -48,7 +48,7 @@ import uuid
 
 import vistrails.core.system
 from vistrails.db.services import io
-from vistrails.db.services.bundle import Bundle, VistrailBundle, BundleObj
+from vistrails.db.services.bundle import Bundle, BundleObj
 from vistrails.db.domain import DBVistrail, DBWorkflow
 from vistrails.db import VistrailsDBException
 from vistrails.core import debug
@@ -675,8 +675,8 @@ class ZIPFileLocator(XMLFileLocator):
         fname = self.get_temporary()
         if fname:
             obj = io.open_from_xml(fname, type)
-            bundle = VistrailBundle()
-            bundle.add_object(BundleObj(obj))
+            bundle = io.new_bundle()
+            bundle.add_object(obj)
             return bundle
         else:
             (bundle, tmp_dir) = io.open_bundle_from_zip_xml(type, self._name)

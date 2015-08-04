@@ -76,14 +76,14 @@ def load_vistrail(locator, is_abstraction=False):
     from vistrails.core.vistrail.vistrail import Vistrail
 
     if locator is None:
-        bundle = Bundle()
-        bundle.add_object(BundleObj(Vistrail()))
+        bundle = vistrails.db.services.io.new_bundle()
+        bundle.add_object(Vistrail())
         return bundle
     res = locator.load()
     if isinstance(res, Bundle):
         return res
-    bundle = Bundle()
-    bundle.add_object(BundleObj(res))
+    bundle = vistrails.db.services.io.new_bundle()
+    bundle.add_object(res)
     return bundle
 
 def open_registry(filename):

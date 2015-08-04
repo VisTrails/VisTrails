@@ -118,8 +118,14 @@ def get_persistence_version(version=None):
             raise VistrailsDBException(msg)
         raise
 
+def new_bundle(version=None, bundle_type=None):
+    pkg = get_persistence_version(version)
+    if hasattr(pkg, 'new_bundle'):
+        return pkg.new_bundle(bundle_type)
+    return None
+
 def get_dir_bundle_serializer(version=None, dir_path=None, bundle=None):
-    mo = get_persistence_version(version)
+    pkg = get_persistence_version(version)
     if hasattr(pkg, 'get_dir_bundle_serializer'):
         return pkg.get_dir_bundle_serializer(dir_path, bundle)
     return None

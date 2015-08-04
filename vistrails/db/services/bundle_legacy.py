@@ -43,7 +43,8 @@ from vistrails.db import VistrailsDBException
 from vistrails.db.domain import DBVistrail, DBLog, DBWorkflowExec, DBMashuptrail
 from vistrails.db.services.bundle import Bundle, BundleObj, XMLFileSerializer, \
     XMLAppendSerializer,FileRefSerializer, DirectorySerializer, \
-    ZIPSerializer, Manifest
+    ZIPSerializer, Manifest, SingleRootBundleObjMapping, MultipleObjMapping, \
+    MultipleFileRefMapping
 import vistrails.db.versions
 
 class DummyManifest(Manifest):
@@ -71,6 +72,26 @@ class DummyManifest(Manifest):
     def save(self):
         # don't actually do anything here since legacy vts have no manifest file
         pass
+
+#FIXME have some way to specify bundleobj mappings and serializers at once?
+mappings = {'vistrail':
+                SingleRootBundleObjMapping(DBVistrail.vtType, 'vistrail'),
+            'log':
+                SingleRootBundleObjMapping(DBLog.vtType, 'log'),
+            'mashup':
+                MultipleObjMapping(DBMashuptrail.vtType,
+                                   lambda obj: obj.db_name,
+                                   'mashup'),
+            'thumbnail': MultipleFileRefMapping('thumbnail', 'thumbnail'),
+            'abstraction': MultipleFileRefMapping('abstraction', 'abstraction'),
+            'job': SingleRootBundleObjMapping('job', 'job'),
+}
+
+class LegacyVistrailBundle(Bundle):
+    def __init__(self):
+        Bundle.__init__(self)
+        for obj_type, mapping in mappings.iteritems():
+            self.add_mapping(obj_type, mapping)
 
 class LegacyAbstractionFileSerializer(FileRefSerializer):
     def __init__(self):
@@ -135,8 +156,8 @@ class LegacyDirSerializer(DirectorySerializer):
             #FIXME hard-coded
             version = '1.0.4'
         DirectorySerializer.__init__(self, dir_path, version,
-                                     bundle, overwrite, DummyManifest,
-                                     *args, **kwargs)
+                                     bundle, LegacyVistrailBundle, overwrite,
+                                     DummyManifest, *args, **kwargs)
         add_legacy_serializers(self)
 
 class LegacyZIPSerializer(ZIPSerializer):
@@ -147,7 +168,8 @@ class LegacyZIPSerializer(ZIPSerializer):
             version = '1.0.4'
 
         ZIPSerializer.__init__(self, file_path, dir_path, version, bundle,
-                               overwrite, DummyManifest, *args, **kwargs)
+                               LegacyVistrailBundle, overwrite, DummyManifest,
+                               *args, **kwargs)
         add_legacy_serializers(self)
 
 class TestLegacyBundles(unittest.TestCase):
