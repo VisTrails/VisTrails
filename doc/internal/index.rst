@@ -1,22 +1,30 @@
-.. VisTrails documentation master file, created by
-   sphinx-quickstart on Tue Aug  4 14:43:21 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+VisTrails documentation
+***********************
 
-Welcome to VisTrails's documentation!
-=====================================
+Welcome to VisTrails' documentation!
 
-Contents:
+VisTrails is an open-source scientific workflow and provenance management system written in Python, that supports data exploration and visualization.
 
-.. toctree::
-   :maxdepth: 2
+This document is meant to be the internal documentation of the project, giving pointers on how the code is organized and the main design concepts. If you are a user, check out the users' guide distributed with your version of VisTrails instead (or `here <http://www.vistrails.org/usersguide/dev/html/>`__).
 
+Contents
+--------
 
+..  toctree::
+    :maxdepth: 2
+
+    architecture
+
+Links
+-----
+
+* `Project homepage <http://www.vistrails.org/>`__
+* `GitHub repository <https://github.com/VisTrails/VisTrails>`__
+* `Users' guide <http://www.vistrails.org/usersguide/dev/html/>`__
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
