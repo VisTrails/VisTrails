@@ -38,12 +38,10 @@ from __future__ import division
 from vistrails.core.vistrail.action import Action
 from vistrails.core.log.log import Log
 from vistrails.core.vistrail.operation import AddOp, ChangeOp, DeleteOp
-from vistrails.db.services.bundle import Bundle, BundleObj
-from vistrails.db.services.io import SaveBundle
+from vistrails.db.services.bundle import Bundle
 import vistrails.db.services.io
 import vistrails.db.services.vistrail
 import vistrails.db.services.action
-from xml.dom.minidom import parse, getDOMImplementation
 
 def get_db_vistrail_list(config):
     db_connection = vistrails.db.services.io.open_db_connection(config)

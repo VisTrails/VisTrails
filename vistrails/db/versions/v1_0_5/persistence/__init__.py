@@ -95,29 +95,41 @@ class MashupXMLSerializer(XMLFileSerializer):
         return vt_obj.db_name
 
 #FIXME have some way to specify bundleobj mappings and serializers at once?
-mappings = {'vistrail':
-                SingleRootBundleObjMapping(DBVistrail.vtType, 'vistrail'),
-            'log':
-                SingleRootBundleObjMapping(DBLog.vtType, 'log'),
-            'mashup':
-                MultipleObjMapping(DBMashuptrail.vtType,
-                                   lambda obj: obj.db_name,
-                                   'mashup'),
-            'thumbnail': MultipleFileRefMapping('thumbnail', 'thumbnail'),
-            'abstraction': MultipleFileRefMapping('abstraction', 'abstraction'),
-            'job': SingleRootBundleObjMapping('job', 'job'),
-            'data': MultipleFileRefMapping('data', 'data'),
-}
+
+bundle_obj_maps = \
+    {'log':
+         SingleRootBundleObjMapping(DBLog.vtType, 'log'),
+     'registry':
+         SingleRootBundleObjMapping(DBRegistry.vtType, 'registry'),
+     'mashup':
+         MultipleObjMapping(DBMashuptrail.vtType,
+                            lambda obj: obj.db_name,
+                            'mashup'),
+     'thumbnail': MultipleFileRefMapping('thumbnail', 'thumbnail'),
+     'abstraction': MultipleFileRefMapping('abstraction', 'abstraction'),
+     'job': SingleRootBundleObjMapping('job', 'job'),
+     'data': MultipleFileRefMapping('data', 'data'),
+     }
 
 class VistrailBundle(Bundle):
     def __init__(self):
-        Bundle.__init__(self)
-        for obj_type, mapping in mappings.iteritems():
-            self.add_mapping(obj_type, mapping)
+        maps = bundle_obj_maps.copy()
+        maps['vistrail'] = \
+            SingleRootBundleObjMapping(DBVistrail.vtType, 'vistrail')
+        Bundle.__init__(self, maps, "vistrail")
+
+class WorkflowBundle(Bundle):
+    def __init__(self):
+        maps = bundle_obj_maps.copy()
+        maps['workflow'] = \
+            SingleRootBundleObjMapping(DBWorkflow.vtType, 'workflow')
+        Bundle.__init__(self, maps, "workflow")
 
 def new_bundle(bundle_type=None):
     if bundle_type == "vistrail" or bundle_type is None:
         return VistrailBundle()
+    elif bundle_type == "workflow":
+        return WorkflowBundle()
     raise VistrailsDBException("Unknown bundle type:", bundle_type)
 
 #FIXME probably need to add bundle registration stuff

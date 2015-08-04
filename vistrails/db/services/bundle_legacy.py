@@ -74,24 +74,23 @@ class DummyManifest(Manifest):
         pass
 
 #FIXME have some way to specify bundleobj mappings and serializers at once?
-mappings = {'vistrail':
-                SingleRootBundleObjMapping(DBVistrail.vtType, 'vistrail'),
-            'log':
-                SingleRootBundleObjMapping(DBLog.vtType, 'log'),
-            'mashup':
-                MultipleObjMapping(DBMashuptrail.vtType,
-                                   lambda obj: obj.db_name,
-                                   'mashup'),
-            'thumbnail': MultipleFileRefMapping('thumbnail', 'thumbnail'),
-            'abstraction': MultipleFileRefMapping('abstraction', 'abstraction'),
-            'job': SingleRootBundleObjMapping('job', 'job'),
-}
+bundle_obj_maps = \
+    {'vistrail':
+         SingleRootBundleObjMapping(DBVistrail.vtType, 'vistrail'),
+     'log':
+         SingleRootBundleObjMapping(DBLog.vtType, 'log'),
+     'mashup':
+         MultipleObjMapping(DBMashuptrail.vtType,
+                            lambda obj: obj.db_name,
+                            'mashup'),
+     'thumbnail': MultipleFileRefMapping('thumbnail', 'thumbnail'),
+     'abstraction': MultipleFileRefMapping('abstraction', 'abstraction'),
+     'job': SingleRootBundleObjMapping('job', 'job'),
+     }
 
 class LegacyVistrailBundle(Bundle):
     def __init__(self):
-        Bundle.__init__(self)
-        for obj_type, mapping in mappings.iteritems():
-            self.add_mapping(obj_type, mapping)
+        Bundle.__init__(self, bundle_obj_maps, "vistrail")
 
 class LegacyAbstractionFileSerializer(FileRefSerializer):
     def __init__(self):

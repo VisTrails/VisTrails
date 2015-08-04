@@ -209,11 +209,14 @@ class Bundle(BundleObjDictionary):
     """ Assume a bundle contains a set of objects.  If an object is a list
         or dictionary, we serialize these to a directory.
     """
-    def __init__(self):
+    def __init__(self, mappings={}, primary_obj_type=None):
         BundleObjDictionary.__init__(self)
         self._serializer = None
         self._mappings_by_type = {}
         self._mappings_by_name = {}
+        self._primary_obj_type = primary_obj_type
+        for obj_type, mapping in mappings.iteritems():
+            self.add_mapping(obj_type, mapping)
 
     def create_bundle_obj(self, obj, obj_type=None):
         # check for BundleObjMapping
@@ -267,7 +270,10 @@ class Bundle(BundleObjDictionary):
         return [bo.obj for bo in self.get_bundle_objs(obj_type)]
 
     def get_primary_obj(self):
-        raise NotImplementedError("Subclass must implement get_primary_obj")
+        return self.get_object(self._primary_obj_type)
+
+    def set_primary_obj_type(self, obj_type):
+        self._primary_obj_type = obj_type
 
     def get_db_objs(self):
         """ Gets a list containing only the DB* objects in the bundle
