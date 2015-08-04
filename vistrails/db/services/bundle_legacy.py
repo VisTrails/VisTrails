@@ -148,6 +148,9 @@ def add_legacy_serializers(s):
     s.add_serializer("abstraction", LegacyAbstractionFileSerializer())
     s.add_serializer("job", FileRefSerializer('job'))
 
+def add_legacy_bundle_types(s):
+    s.register_bundle_type(None, LegacyVistrailBundle)
+
 class LegacyDirSerializer(DirectorySerializer):
     def __init__(self, dir_path, version=None, bundle=None, overwrite=False,
                  *args, **kwargs):
@@ -155,9 +158,10 @@ class LegacyDirSerializer(DirectorySerializer):
             #FIXME hard-coded
             version = '1.0.4'
         DirectorySerializer.__init__(self, dir_path, version,
-                                     bundle, LegacyVistrailBundle, overwrite,
+                                     bundle, overwrite,
                                      DummyManifest, *args, **kwargs)
         add_legacy_serializers(self)
+        add_legacy_bundle_types(self)
 
 class LegacyZIPSerializer(ZIPSerializer):
     def __init__(self, file_path=None, dir_path=None, version=None, bundle=None,
@@ -167,9 +171,10 @@ class LegacyZIPSerializer(ZIPSerializer):
             version = '1.0.4'
 
         ZIPSerializer.__init__(self, file_path, dir_path, version, bundle,
-                               LegacyVistrailBundle, overwrite, DummyManifest,
+                            overwrite, DummyManifest,
                                *args, **kwargs)
         add_legacy_serializers(self)
+        add_legacy_bundle_types(self)
 
 class TestLegacyBundles(unittest.TestCase):
     def compare_bundles(self, b1, b2):

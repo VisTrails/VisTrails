@@ -209,12 +209,16 @@ class Bundle(BundleObjDictionary):
     """ Assume a bundle contains a set of objects.  If an object is a list
         or dictionary, we serialize these to a directory.
     """
-    def __init__(self, mappings={}, primary_obj_type=None):
+    def __init__(self, mappings={}, primary_obj_type=None, bundle_type=None):
         BundleObjDictionary.__init__(self)
         self._serializer = None
         self._mappings_by_type = {}
         self._mappings_by_name = {}
         self._primary_obj_type = primary_obj_type
+        if bundle_type is not None:
+            self.bundle_type = bundle_type
+        else:
+            self.bundle_type = primary_obj_type
         for obj_type, mapping in mappings.iteritems():
             self.add_mapping(obj_type, mapping)
 
@@ -311,16 +315,6 @@ class Bundle(BundleObjDictionary):
         if self.serializer is not None:
             self.serializer.cleanup()
 
-# class VistrailBundle(Bundle):
-#     def __init__(self):
-#         Bundle.__init__(self)
-#         self.set_single_type("vistrail")
-#         self.set_single_type("log")
-#         self.set_single_type("job")
-#
-#     def get_primary_obj(self):
-#         return self.get_object(DBVistrail.vtType)
-
 class WorkflowBundle(Bundle):
     def __init__(self):
         Bundle.__init__(self)
@@ -342,11 +336,9 @@ class RegistryBundle(Bundle):
         return self.get_object(DBRegistry.vtType)
 
 class BundleSerializer(object):
-    def __init__(self, version=None, bundle=None, bundle_cls=None):
+    def __init__(self, version=None, bundle=None):
         self._bundle = bundle
-        self._bundle_cls = bundle_cls
-        if self._bundle is None and self._bundle_cls is None:
-            raise VistrailsDBException("Must set either bundle or bundle_cls")
+        self._bundle_type_dict = {}
         # _serializers[obj_key][serializer_type] = cls
         self._serializers = {}
         self._lazy_serializers = set()
@@ -397,6 +389,24 @@ class BundleSerializer(object):
 
     def is_lazy(self, obj_key, serializer_type):
         return (obj_key, serializer_type) in self._lazy_serializers
+
+    def register_bundle_type(self, bundle_cls):
+        if bundle_type in self._bundle_type_dict:
+            raise VistrailsDBException('Bundle type "%s" already registered.' %
+                                       bundle_type)
+        self._bundle_type_dict[bundle_type] = bundle_cls
+
+    def unregister_bundle_type(self, bundle_type):
+        if bundle_type not in self._bundle_type_dict:
+            raise VistrailsDBException('Bundle type "%s" not registered.' %
+                                       bundle_type)
+        del self._bundle_type_dict[bundle_type]
+
+    def new_bundle(self, bundle_type):
+        if bundle_type not in self._bundle_type_dict:
+            raise VistrailsDBException('Bundle type "%s" not registered.' %
+                                       bundle_type)
+        return self._bundle_type_dict[bundle_type]()
 
 class Serializer(object):
     def load(self, *args, **kwargs):
@@ -1067,9 +1077,10 @@ class WorkflowDBSerializer(BaseDBSerializer):
 class Manifest(BundleObjDictionary):
     """ Contains a dictionary of objects contained in the bundle
     """
-    def __init__(self, version=None):
+    def __init__(self, version=None, bundle_type=None):
         BundleObjDictionary.__init__(self)
         self.version = version
+        self.bundle_type = bundle_type
 
     def load(self):
         raise NotImplementedError("Subclass must define load.")
@@ -1101,8 +1112,8 @@ class FileManifest(Manifest):
     """ Stores manifest as a tab-separated file
     """
 
-    def __init__(self, version=None, dir_path=None):
-        Manifest.__init__(self, version)
+    def __init__(self, version=None, dir_path=None, bundle_type=None):
+        Manifest.__init__(self, version, bundle_type)
         self._fname = os.path.join(dir_path, "MANIFEST")
 
     def load(self):
@@ -1113,13 +1124,15 @@ class FileManifest(Manifest):
                 raise VistrailsDBException("Not a VisTrails bundle")
             if len(header_arr) > 1 and header_arr[1].strip() != "":
                 self.version = header_arr[1].strip()
+            if len(header_arr) > 2 and header_arr[2].strip() != "":
+                self.bundle_type = header_arr[2].strip()
             for line in f:
                 args = line.strip().split('\t')
                 self.add_entry(*args)
     
     def save(self):
         with open(self._fname, 'w') as f:
-            print >>f, "VTBUNDLE\t" + self.version
+            print >>f, "VTBUNDLE\t" + self.version + "\t" + self.bundle_type
             for obj_type, obj_id, fname in sorted(self.get_items()):
                 print >>f, obj_type + "\t" + obj_id + "\t" + fname
 
@@ -1128,31 +1141,31 @@ class DirectorySerializer(BundleSerializer):
 
     """
 
-    def __init__(self, dir_path, version=None, bundle=None, bundle_cls=None,
+    def __init__(self, dir_path, version=None, bundle=None,
                  overwrite=False, manifest_cls=FileManifest, *args, **kwargs):
-        BundleSerializer.__init__(self, version, bundle, bundle_cls,
+        BundleSerializer.__init__(self, version, bundle,
                                   *args, **kwargs)
         self._dir_path = dir_path
         self._manifest_cls = manifest_cls
         self._manifest = None
         self._overwrite = overwrite
 
-    def create_manifest(self, dir_path=None, fname=None):
+    def create_manifest(self, dir_path=None):
         if dir_path is None:
             dir_path = self._dir_path
-
         self._manifest = self._manifest_cls(self.version, dir_path)
 
     def load_manifest(self, dir_path=None):
-        self.create_manifest(dir_path, dir_path)
+        self.create_manifest(dir_path)
         self._manifest.load()
 
     def load(self, dir_path=None):
         if dir_path is None:
             dir_path = self._dir_path
-        if self._bundle is None:
-            self._bundle = self._bundle_cls()
         self.load_manifest(dir_path)
+        if self._bundle is None:
+            self._bundle = self.new_bundle(self._manifest.bundle_type)
+
         for obj_type, obj_id, fname in self._manifest.get_items(allow_none=True):
             serializer = self.get_serializer(obj_type,
                                         FileSerializer.get_serializer_type())
@@ -1247,10 +1260,10 @@ class ZIPSerializer(DirectorySerializer):
     """
 
     def __init__(self, file_path=None, dir_path=None, version=None, bundle=None,
-                 bundle_cls=None, overwrite=False, manifest_cls=FileManifest,
+                overwrite=False, manifest_cls=FileManifest,
                  *args, **kwargs):
-        DirectorySerializer.__init__(self, dir_path, version, bundle, bundle_cls,
-                                     overwrite, manifest_cls, *args, **kwargs)
+        DirectorySerializer.__init__(self, dir_path, version, bundle, overwrite,
+                                     manifest_cls, *args, **kwargs)
         self._file_path = file_path
 
     def load(self, file_path=None):

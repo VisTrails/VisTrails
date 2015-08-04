@@ -116,14 +116,14 @@ class VistrailBundle(Bundle):
         maps = bundle_obj_maps.copy()
         maps['vistrail'] = \
             SingleRootBundleObjMapping(DBVistrail.vtType, 'vistrail')
-        Bundle.__init__(self, maps, "vistrail")
+        Bundle.__init__(self, maps, "vistrail", "vistrail")
 
 class WorkflowBundle(Bundle):
     def __init__(self):
         maps = bundle_obj_maps.copy()
         maps['workflow'] = \
             SingleRootBundleObjMapping(DBWorkflow.vtType, 'workflow')
-        Bundle.__init__(self, maps, "workflow")
+        Bundle.__init__(self, maps, "workflow", "workflow")
 
 def new_bundle(bundle_type=None):
     if bundle_type == "vistrail" or bundle_type is None:
@@ -148,16 +148,21 @@ def add_file_serializers(s):
     s.add_serializer("job", FileRefSerializer('job'))
     s.add_serializer("data", FileRefSerializer('data', 'data'))
 
+def add_bundle_types(s):
+    s.register_bundle_type(VistrailBundle, None)
+    s.register_bundle_type(VistrailBundle)
+    s.register_bundle_type(WorkflowBundle)
+
 def get_dir_bundle_serializer(dir_path, bundle=None):
-    s = DirectorySerializer(dir_path, version=my_version, bundle=bundle,
-                            bundle_cls=VistrailBundle)
+    s = DirectorySerializer(dir_path, version=my_version, bundle=bundle)
     add_file_serializers(s)
+    add_bundle_types(s)
     return s
 
 def get_zip_bundle_serializer(fname, bundle=None):
-    s = ZIPSerializer(fname, version=my_version, bundle=bundle,
-                      bundle_cls=VistrailBundle)
+    s = ZIPSerializer(fname, version=my_version, bundle=bundle)
     add_file_serializers(s)
+    add_bundle_types(s)
     return s
 
 class DAOList(dict):
