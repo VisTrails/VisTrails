@@ -145,13 +145,18 @@ class ModuleSuspended(ModuleError):
     def __init__(self, module, errormsg, handle=None, children=None,
                  queue=None):
         ModuleError.__init__(self, module, errormsg)
-        self.handle = handle
-        if handle is None and queue is not None:
-            warnings.warn("Use of deprecated argument 'queue' replaced by "
-                          "'handle'",
-                          category=VistrailsDeprecation,
-                          stacklevel=2)
-            self.handle = queue
+        if handle is not None:
+            self.handle = handle
+        else:
+            if queue is not None:
+                warnings.warn("Use of deprecated argument 'queue' replaced by "
+                              "'handle'",
+                              category=VistrailsDeprecation,
+                              stacklevel=2)
+                self.handle = queue
+            else:
+                raise TypeError("__init__(): 'handle' argument not set")
+
         self.children = children
         self.name = None
 
