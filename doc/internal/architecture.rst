@@ -29,6 +29,8 @@ The module registry also sends some signals when modules get added or removed, w
 
     Possible future directions: allow packages to provide a list of packages (for the palette), but to provide modules lazily. This would make packages that dynamically generate modules a lot faster, because they would only need to generate all the modules upfront (or at all).
 
+    :issue:`1117`
+
 ..  _concept-packagemngr:
 
 Package manager
@@ -41,6 +43,8 @@ The :class:`~vistrails.core.packagemanager.PackageManager` contains the list of 
     The __import__ override is a bit insane and it might be worth disabling it completely, and simply reloading packages under the package's codepath when "reload" is clicked.
 
     If this is kept, it should be fixed to use an actual full graph at the package manager level, since multiple packages might depend on the same library and the current logic will fail to see that.
+
+    :issue:`959`
 
 ..  _concept-application:
 
@@ -103,6 +107,8 @@ When a pipeline is executed, structured information from each module is appended
 ..  todo::
 
     This provenance information should be made available to modules so they can reuse a past context exactly.
+
+    :issue:`548`
 
 ..  _concept-api:
 

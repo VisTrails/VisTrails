@@ -18,6 +18,10 @@ The controller triggers the upgrade of a version when it gets selected. Since ea
 
     There are currently some issues with how the controller keeps these unflushed upgrades.
 
+    :issue:`907`
+
 ..  todo::
 
     Upgrades should be triggered when necessary during diff, query, subworkflow update, parameter exploration.
+
+    :issue:`695,1054,1071,1087`

@@ -53,6 +53,8 @@ The ``my_codepath.init`` (if separate, else ``my_codepath``) module is can conta
 
     Right now, ``contextMenuName()`` only allows package creator to display a one-element context menu.
 
+    :issue:`1115`
+
 ..  autoclass:: vistrails.core.modules.package.Package
     :members:
 
