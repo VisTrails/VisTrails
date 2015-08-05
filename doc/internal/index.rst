@@ -14,6 +14,14 @@ Contents
     :maxdepth: 2
 
     architecture
+    packages
+    registry
+    widgets
+    configuration
+    interpreter
+    output_modules
+    upgrades
+    jobs
 
 Links
 -----

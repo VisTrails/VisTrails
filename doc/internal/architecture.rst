@@ -1,7 +1,7 @@
 Project architecture and concepts
 *********************************
 
-VisTrails is made of multiple components.
+VisTrails is made of multiple components. This page gives a high-level overview of what they are, and links to relevant pages of the documentation.
 
 ..  _concept-database:
 
@@ -21,7 +21,7 @@ Objects loaded from the database eventually gets converted to core classes by as
 Module registry
 ---------------
 
-The :class:`~vistrails.core.modules.module_registry.ModuleRegistry` contains the list of all the modules currently available, in the form of :class:`~vistrails.core.modules.module_descriptor.ModuleDescriptor` objects. These contain the module identifier, name and namespace of the module, the input and output ports, the parent module if any, and also optional things like the constant widget and configuration widget class (see :ref:`widgets`) and fringe shape for the pipeline view. They also have a direct reference to the :ref:`~vistrails.core.modules.vistrails_module.Module` subclass in the defining package that the interpreter will instanciate for execution (see :ref:`interpreter`).
+The :class:`~vistrails.core.modules.module_registry.ModuleRegistry` contains the list of all the modules currently available, in the form of :class:`~vistrails.core.modules.module_descriptor.ModuleDescriptor` objects. These contain the module identifier, name and namespace of the module, the input and output ports, the parent module if any, and also optional things like the constant widget and configuration widget class (see :ref:`widgets`) and fringe shape for the pipeline view. They also have a direct reference to the :class:`~vistrails.core.modules.vistrails_module.Module` subclass in the defining package that the interpreter will instanciate for execution (see :ref:`concept-interpreter`).
 
 The module registry also sends some signals when modules get added or removed, which are used to update the module palette in the UI.
 
@@ -47,7 +47,7 @@ The :class:`~vistrails.core.packagemanager.PackageManager` contains the list of 
 Application
 -----------
 
-The application logic is contained in two application classes: :class:`~vistrails.core.application.VistrailsCoreApplication`, used in non-graphical mode, for example through the :ref:`api_highlevel`, and :class:`vistrails.gui.application.VistrailsApplicationSingleton` which is a :class:`QtGui.QApplication`.
+The application logic is contained in two application classes: :class:`~vistrails.core.application.VistrailsCoreApplication`, used in non-graphical mode, for example through the :ref:`concept-api`, and :class:`vistrails.gui.application.VistrailsApplicationSingleton` which is a :class:`QtGui.QApplication`.
 
 The application handles startup and configuration, notification delivery, output modes (see :ref:`output_modules`), jobs (see :ref:`jobs`), logging, and loading and saving vistrails (creating controllers from the database objects, or handing them out to the database layer).
 
@@ -60,68 +60,53 @@ Packages and modules
 
 Packages are the name of the plugins in VisTrails that provide modules. Each package usually wraps a library or provide related functionalities. They are loaded by the package manager and are wrapped by :class:`vistrails.core.modules.package.Package`.
 
-A VisTrails Package is a directory with the following structure::
-
-    my_codepath
-    |-- __init__.py
-    |-- init.py
-    +-- ...
-
-``my_codepath`` is referred to as "codepath" in the code; concatenated with the "prefix", it gives the argument passed to import to load the package (set as :attr:`~vistrails.core.modules.packages.Package._module`).
-
-ModuleDescriptor.module?
-
-If ``my_codepath.init`` exists, it will be loaded as :attr:`~vistrails.core.modules.packages.Package._module` when the module is enabled instead of ``my_codepath``; this allows the bulk of the code (the part that usually has Python dependencies) to be separate from the package root, in which we find a bunch of functions and constants that are used by VisTrails before the package is enabled.
-
-The package should contain (in ``__init__.py``) the following:
-
-* ``name``: a human-readable name for the package, displayed in dialogs
-* ``identifier``: a unique identifier for the package, used to refer to it everywhere (for dependency links in other packages, and in serialized workflows)
-* ``version``: a version number (see :ref:`upgrades`)
-
-It can also optionally have the following:
-
-* ``configuration`` DOCTODO
-* ``package_dependencies`` DOCTODO
-* ``package_requirements`` DOCTODO
-* ``can_handle_identifier`` DOCTODO
-* ``can_handle_vt_file`` DOCTODO
-
-The ``my_codepath.init`` (if separate, else ``my_codepath``) module is can contain the following:
-
-* ``handle_all_errors`` DOCTODO
-* ``handle_module_upgrade_request`` DOCTODO
-* ``handle_missing_module`` DOCTODO
-* ``contextMenuName`` DOCTODO
-* ``callContextMenu`` DOCTODO
-* ``loadVistrailFileHook`` DOCTODO
-* ``saveVistrailFileHook`` DOCTODO
-* ``_modules`` DOCTODO
+A VisTrails Package is a Python module or package in a location where the package manager will find it (either ``vistrails/packages`` or ``.vistrails/userpackages``). See :ref:`packages`.
 
 ..  _concept-interpreter:
 
 The interpreter
 ---------------
 
-DOCTODO
+The interpreter takes a :class:`~vistrails.core.vistrail.pipeline.Pipeline` and executes it, by creating the :class:`~vistrails.core.modules.vistrails_module.Module` objects defined by packages from the pipeline :class:`~vistrails.core.vistrail.module.Module` and connecting them. Currently, the execution strategy is very simple: the sink modules's update() methods are called by the interpreter, and they recursively call their upstream's update() methods before doing their compute() logic.
+
+Instanciated modules are also kept in a global cache, the *persistent pipeline*, keyed on their subpipeline signature (a hash computed recursively for a module and its upstream).
+
+..  todo::
+
+    This strategy is very limited as it is completely local. It makes it difficult to add "smart" logic to get us towards better caching, parallel execution, ... We are considering rewriting the interpreter and building into it the looping/streaming, group and parallel execution code, using the opportunity to improve caching, persistence and job submission.
 
 ..  _concept-controller:
 
 Vistrail and VistrailController
 -------------------------------
 
-DOCTODO
+:class:`~vistrails.core.vistrail.vistrail.Vistrail` represents a full tree of pipeline versions. It is a project in the VisTrails application. There are no pipeline descriptions in a Vistrail, only actions which add/remove modules and connections from an empty pipeline (and annotations).
+
+a Vistrail is wrapped in :class:`~vistrails.core.vistrail.controller.VistrailController` (or the GUI version: :class:`~vistrails.gui.vistrail_controller.VistrailController`) that provide all the pipeline manipulation logic. It has a notion of current pipeline which is efficiently changed by actions when moving around the version tree, and provides methods to create such actions. It also handles upgrading versions when needed (see :ref:`upgrades`) and interactions with subworkflows.
 
 ..  _concept-ui:
 
 User interface
 --------------
 
-DOCTODO
+The user interface lives in :mod:`vistrails.gui`. It is based on PyQt4 and allows the user to display and manipulate versions and pipelines through a VistrailController.
+
+In graphical mode, most visualizations end up in the spreadsheet, which is implemented as a package.
 
 ..  _concept-log:
 
 Provenance log
 --------------
 
-DOCTODO
+When a pipeline is executed, structured information from each module is appended to an XML file called the provenance log. Each module gets its own entry, with information such as time, status (executed, up to date in the cache, exception info), plus "annotations" from modules.
+
+..  todo::
+
+    This provenance information should be made available to modules so they can reuse a past context exactly.
+
+..  _concept-api:
+
+High-level API
+--------------
+
+A high-level API, directly importable under :mod:`vistrails`, makes it possible to use VisTrails workflows from scripts or other applications. It automatically builds an application when first used, provides easy-to-use wrappers for VistrailController and friends, and integration with the IPython notebook. See :mod:`vistrails.core.api`.

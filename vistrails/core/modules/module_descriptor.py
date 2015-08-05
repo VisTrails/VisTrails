@@ -58,41 +58,43 @@ class OverloadedPort(Exception):
 # ModuleDescriptor
 
 class ModuleDescriptor(DBModuleDescriptor):
-    """ModuleDescriptor is a class that holds information about
-    modules in the registry. There exists exactly one ModuleDescriptor
-    for every registered VisTrails module in the system.
+    """Description of a VisTrails module in the registry.
 
-    self.module: reference to the python class that defines the module
-    self.name: name of the module
-    self.identifier: identifier of the package that module belongs to
-    self.input_ports: dictionary of names of input ports to the types
-      consumed by the ports
-    self.output_ports: dictionary of names of output ports to the types
-      produces by the ports
-    self.input_ports_optional: dictionary of input port names that records
-      whether ports should show up by default on GUI
-    self.output_ports_optional: dictionary of output port names that records
-      whether ports should show up by default on GUI
-    self.port_order: stores a map from names to numbers to order the ports
-      in the GUI
+    There exists exactly one ModuleDescriptor for every registered VisTrails
+    module in the system. It holds information about a module, such as its
+    name, package identifier and ports.
 
-    self._is_abstract: whether module is abstract
-    self._configuration_widget: reference to the Qt class that provides a
-      custom configuration widget for the class.  Note that this can
-      be a tuple (path, name) that will be loaded only when needed via
-      __import__ (! this is preferred !) or as a QWidget (deprecated)
+    :attribute module: reference to the python class that defines the module
+    :attribute name: name of the module
+    :attribute identifier: identifier of the package that module belongs to
+    :attribute input_ports: dictionary of names of input ports to the types
+        consumed by the ports
+    :attribute output_ports: dictionary of names of output ports to the types
+        produces by the ports
+    :attribute input_ports_optional: dictionary of input port names that
+        records whether ports should show up by default on GUI
+    :attribute output_ports_optional: dictionary of output port names that
+        records whether ports should show up by default on GUI
+    :attribute port_order: stores a map from names to numbers to order the
+        ports in the GUI
 
-    self._left_fringe and self._right_fringe: lists of 2D points that
-      define a drawing style for modules in the GUI
-    self._module_color: color of the module in the GUI
+    :attribute _is_abstract: whether module is abstract
+    :attribute _configuration_widget: reference to the Qt class that provides a
+        custom configuration widget for the class.  Note that this can be a
+        tuple (path, name) that will be loaded only when needed via __import__
+        (! this is preferred !) or as a QWidget (deprecated)
 
-    self._widget_item: stores a reference to the ModuleTreeWidgetItem so
-      that when ports are added to modules things get correctly updated.
+    :attribute _left_fringe, _right_fringe: lists of 2D points that define a
+        drawing style for modules in the GUI
+    :attribute _module_color: color of the module in the GUI
 
-    self._input_port_cache, self._output_port_cache,
-      self._port_caches: Dictionaries for fast port spec lookup,
-      created because port spec lookups are sometimes part of hot code
-      paths and need to go as fast as possible.
+    :attribute _widget_item: stores a reference to the ModuleTreeWidgetItem so
+        that when ports are added to modules things get correctly updated.
+
+    :attribute _input_port_cache, _output_port_cache, _port_caches:
+        Dictionaries for fast port spec lookup, created because port spec
+        lookups are sometimes part of hot code paths and need to go as fast as
+        possible.
     """
 
     ##########################################################################
