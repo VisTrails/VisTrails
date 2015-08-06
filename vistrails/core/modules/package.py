@@ -567,6 +567,8 @@ class Package(DBPackage):
         return None
 
     def has_context_menu(self):
+        if hasattr(self._init_module, 'context_menu'):
+            return True
         name = hasattr(self._init_module, 'contextMenuName')
         callback = hasattr(self._init_module, 'callContextMenu')
         if name and callback:
@@ -580,11 +582,15 @@ class Package(DBPackage):
                 self._warned_contextmenu_notboth = True
         return False
 
-    def contextMenuName(self, signature):
-        return self._init_module.contextMenuName(signature)
-
-    def callContextMenu(self, signature):
-        return self._init_module.callContextMenu(signature)
+    def context_menu(self, signature):
+        if hasattr(self._init_module, 'context_menu'):
+            return self._init_module.context_menu(signature)
+        elif hasattr(self._init_module, 'contextMenuName'):
+            if signature is None:
+                signature = self.name
+            def callMenu():
+                self._init_module.callContextMenu(signature)
+            return [(self._init_module.contextMenuName(signature), callMenu)]
 
     def loadVistrailFileHook(self, vistrail, tmp_dir):
         if hasattr(self._init_module, 'loadVistrailFileHook'):
