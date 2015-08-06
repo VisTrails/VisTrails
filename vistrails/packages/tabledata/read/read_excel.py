@@ -153,14 +153,16 @@ _modules = [ExcelSpreadsheet]
 
 import itertools
 import unittest
-from vistrails.tests.utils import execute, intercept_result
+from vistrails.tests.utils import execute, intercept_result, skip_test_checked
 from ..identifiers import identifier
 from ..common import ExtractColumn
 
-@unittest.skipIf(get_xlrd() is None, "xlrd not available")
 class ExcelTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        if get_xlrd() is None: # pragma: no cover
+            skip_test_checked('xlrd', "xlrd not available")
+
         import os
         cls._test_dir = os.path.join(
                 os.path.dirname(__file__),

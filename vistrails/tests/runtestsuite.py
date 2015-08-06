@@ -165,6 +165,7 @@ import vistrails.core.debug
 vistrails.core.debug.DebugPrint.getInstance().log_to_console()
 
 import vistrails.tests
+from vistrails.tests.utils import set_skippable_tests, skippable_test
 import vistrails.core
 import vistrails.core.db.io
 import vistrails.core.db.locator
@@ -177,6 +178,14 @@ from vistrails.core.packagemanager import get_package_manager
 # VisTrails does funny stuff with unittest/unittest2, be sure to load that
 # after vistrails
 import unittest
+
+# Load the skippable test whitelist
+if 'VISTRAILS_SKIP_WHITELIST' in os.environ:
+    set_skippable_tests(os.environ['VISTRAILS_SKIP_WHITELIST'].split(','))
+    print ("Test skipping whitelist enabled; skipping non-whitelisted tests "
+           "will be\nreported as error")
+else:
+    print "No test skipping whitelist; tests will be skipped with no error"
 
 # reinitializing arguments and options so VisTrails does not try parsing them
 sys.argv = sys.argv[:1]
@@ -313,6 +322,7 @@ if test_modules:
 else:
     sub_print("Trying to import all modules")
 
+imports_failed = False
 for (p, subdirs, files) in os.walk(root_directory):
     # skip subversion subdirectories
     if p.find('.svn') != -1 or p.find('.git') != -1 :
@@ -359,7 +369,13 @@ for (p, subdirs, files) in os.walk(root_directory):
             else:
                 m = __import__(module)
         except BaseException:
-            print >>sys.stderr, "ERROR: Could not import module: %s" % module
+            if not skippable_test(module):
+                print >>sys.stderr, ("ERROR: Could not import module: %s" %
+                                     module)
+                imports_failed = True
+            else:
+                print >>sys.stderr, ("WARNING: Could not import module: %s" %
+                                     module)
             if verbose >= 1:
                 traceback.print_exc(file=sys.stderr)
             continue
@@ -557,4 +573,6 @@ vistrails.gui.application.get_vistrails_application().finishSession()
 vistrails.gui.application.stop_application()
 
 # Test Runners can use the return value to know if the tests passed
-sys.exit(0 if tests_passed else 1)
+if imports_failed:
+    print("Error: some modules couldn't be imported, failing")
+sys.exit(0 if tests_passed and not imports_failed else 1)
