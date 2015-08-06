@@ -24,6 +24,11 @@ this_pkg = __name__[:-5]
 
 
 class ServerLogger(tej.ServerLogger):
+    """Subclass of tej server logger that can be toggled on and off.
+
+    This is used to hide server messages from the VisTrails console when
+    running tej commands.
+    """
     def __init__(self):
         self.hidden = False
         tej.ServerLogger.__init__(self)
@@ -46,6 +51,8 @@ ServerLogger = ServerLogger()
 
 
 class RemoteQueue(tej.RemoteQueue):
+    """Subclass of tej's RemoteQueue that uses our `ServerLogger`.
+    """
     def server_logger(self):
         return ServerLogger
 
@@ -95,7 +102,80 @@ class Queue(Module):
         self.set_output('queue', QueueCache.get(destination_str, queue))
 
 
+class AssembleDirectoryMixin(object):
+    """A mixin for assembling a directory from paths passed on port specs.
+
+    Modules using this mixin should use the DirectoryConfigurationWidget
+    configuration widget to setup the input port specs.
+    :meth:`assemble_directory` returns a PathObject for the temporary directory
+    with the paths copied into it.
+    """
+    def __init__(self):
+        self.input_ports_order = []
+
+    def transfer_attrs(self, module):
+        super(AssembleDirectoryMixin, self).transfer_attrs(module)
+        self.input_ports_order = [p.name for p in module.input_port_specs]
+
+    def assemble_directory(self, base=None, do_copy=False):
+        """Create the directory using the optional `base` and the port specs.
+
+        :type base: PathObject
+
+        This creates a directory that contains all the contents of `base` (if
+        provided, else start empty), and all the additional files and
+        directories provided as input port specs (configured using the
+        `DirectoryConfigurationWidget`).
+
+        If there are no input port specs and `do_copy` is False, this method
+        will just return the currect location of `base` without copying it to a
+        temporary directory.
+        """
+        if self.input_ports_order or do_copy:
+            directory = self.interpreter.filePool.create_directory(
+                    prefix='vt_tmp_makedirectory_')
+
+            # Copy everything in base
+            if base is not None:
+                for name in os.listdir(base.name):
+                    src = os.path.join(base.name, name)
+                    dst = os.path.join(directory.name, name)
+                    if os.path.isdir(src):
+                        shutil.copytree(src, dst)
+                    else:
+                        shutil.copy2(src, dst)
+            # Copy from port specs
+            for name in self.input_ports_order:
+                shutil.copy(self.get_input(name).name,
+                            os.path.join(directory.name, name))
+            return directory
+        else:
+            return base
+
+
+class MakeDirectory(AssembleDirectoryMixin, Module):
+    """Creates a temporary directory and puts the given files in it.
+    """
+    _settings = ModuleSettings(configure_widget=(
+            '%s.widgets' % this_pkg, 'DirectoryConfigurationWidget'))
+    _output_ports = [('directory', '(basic:Directory)')]
+
+    def __init__(self):
+        AssembleDirectoryMixin.__init__(self)
+        Module.__init__(self)
+
+    def compute(self):
+        directory = self.assemble_directory()
+        self.set_output('directory', directory)
+
+
 class RemoteJob(object):
+    """This implements the JobMonitor's JobHandle interface.
+
+    These objects are returned to the JobMonitor via the ModuleSuspended
+    exceptions; they are used by the JobMonitor to figure out the status of the
+    submitted job.
+    """
     def __init__(self, queue, job_id):
         self.queue = queue
         self.job_id = job_id
@@ -118,7 +198,8 @@ class Job(Module):
     the creating module would have failed/suspended.
 
     You probably won't use this module directly since it references a
-    pre-existing job by name.
+    pre-existing job by name; just use one of the SubmitJob modules that
+    compute the upstream's signature.
     """
     _input_ports = [('id', '(basic:String)'),
                     ('queue', Queue)]
@@ -342,35 +423,12 @@ class DownloadDirectory(Module):
         self.set_output('directory', PathObject(target))
 
 
-class MakeDirectory(Module):
-    """Creates a temporary directory and puts the given files in it.
-    """
-    _settings = ModuleSettings(configure_widget=(
-            '%s.widgets' % this_pkg, 'DirectoryConfigurationWidget'))
-    _output_ports = [('directory', '(basic:Directory)')]
-
-    def __init__(self):
-        Module.__init__(self)
-        self.input_ports_order = []
-
-    def transfer_attrs(self, module):
-        Module.transfer_attrs(self, module)
-        self.input_ports_order = [p.name for p in module.input_port_specs]
-
-    def compute(self):
-        directory = self.interpreter.filePool.create_directory(
-                prefix='vt_tmp_makedirectory')
-        for name in self.input_ports_order:
-            shutil.copy(self.get_input(name).name,
-                        os.path.join(directory.name, name))
-
-        self.set_output('directory', directory)
-
-
 _tej_log_handler = None
 
 
 class _VisTrailsTejLogHandler(logging.Handler):
+    """Custom handler for the 'tej' logger that re-logs to VisTrails.
+    """
     def emit(self, record):
         msg = "tej: %s" % self.format(record)
         if record.levelno >= logging.CRITICAL:
