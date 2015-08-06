@@ -291,12 +291,19 @@ class BaseSubmitJob(JobMixin, Module):
         self.set_output('job', RemoteJob(queue, params['job_id']))
 
 
-class SubmitJob(BaseSubmitJob):
+class SubmitJob(AssembleDirectoryMixin, BaseSubmitJob):
     """Submits a generic job (a directory).
     """
-    _input_ports = [('job', '(basic:Directory)'),
+    _settings = ModuleSettings(configure_widget=(
+            '%s.widgets' % this_pkg, 'DirectoryConfigurationWidget'))
+    _input_ports = [('job', '(basic:Directory)',
+                     {'optional': True}),
                     ('script', '(basic:String)',
                      {'optional': True, 'defaults': "['start.sh']"})]
+
+    def __init__(self):
+        AssembleDirectoryMixin.__init__(self)
+        Module.__init__(self)
 
     def job_start(self, params):
         """Sends the directory and submits the job.
@@ -312,14 +319,25 @@ class SubmitJob(BaseSubmitJob):
         else:
             return params
 
-        job_dir = self.get_input('job').name
-        if not os.path.exists(job_dir):
-            raise ModuleError(self, "Directory doesn't exist")
+        if self.has_input('job'):
+            job_dir = self.get_input('job')
+            if not os.path.exists(job_dir.name):
+                raise ModuleError(self, "Directory doesn't exist")
+        else:
+            job_dir = None
+
+        # Use AssembleDirectoryMixin to get additional files from port specs
+        job_dir = self.assemble_directory(job_dir, False)
+
+        # Check that the script exists
+        script = self.get_input('script')
+        if not os.path.exists(os.path.join(job_dir.name, script)):
+            raise ModuleError(self, "Script does not exist")
 
         # Alright, submit a new job
         queue.submit(params['job_id'],
-                     job_dir,
-                     self.get_input('script'))
+                     job_dir.name,
+                     script)
         return params
 
 
