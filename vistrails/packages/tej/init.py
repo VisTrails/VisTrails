@@ -342,7 +342,7 @@ class SubmitJob(AssembleDirectoryMixin, BaseSubmitJob):
         return params
 
 
-class SubmitShellJob(BaseSubmitJob):
+class SubmitShellJob(AssembleDirectoryMixin, BaseSubmitJob):
     """Submits a shell script.
     """
     _settings = ModuleSettings(configure_widget=(
@@ -350,6 +350,10 @@ class SubmitShellJob(BaseSubmitJob):
     _input_ports = [('source', '(basic:String)')]
     _output_ports = [('stderr', '(basic:File)'),
                      ('stdout', '(basic:File)')]
+
+    def __init__(self):
+        AssembleDirectoryMixin.__init__(self)
+        Module.__init__(self)
 
     def job_start(self, params):
         """Creates a temporary job with the given source, upload and submit it.
@@ -366,8 +370,7 @@ class SubmitShellJob(BaseSubmitJob):
             return params
 
         # Alright, submit a new job
-        directory = self.interpreter.filePool.create_directory(
-                prefix='vt_tmp_shelljob_').name
+        directory = self.assemble_directory(None, True).name
         # We use io.open() here because we could be writing scripts on Windows
         # before uploading them to a POSIX server
         source = urllib.unquote(self.get_input('source'))
