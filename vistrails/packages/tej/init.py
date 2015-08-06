@@ -250,8 +250,6 @@ class SubmitShellJob(BaseSubmitJob):
     _output_ports = [('stderr', '(basic:File)'),
                      ('stdout', '(basic:File)')]
 
-    _job_interpreter = '/bin/sh'
-
     def job_start(self, params):
         """Creates a temporary job with the given source, upload and submit it.
         """
@@ -276,15 +274,9 @@ class SubmitShellJob(BaseSubmitJob):
             kwargs = {'mode': 'wb'}
         else:
             kwargs = {'mode': 'w', 'newline': '\n'}
-        with io.open(os.path.join(directory, 'vistrails_source.sh'),
+        with io.open(os.path.join(directory, 'start.sh'),
                      **kwargs) as fp:
             fp.write(source)
-        with io.open(os.path.join(directory, 'start.sh'), 'w',
-                     newline='\n') as fp:
-            fp.write(u'%s '
-                     u'vistrails_source.sh '
-                     u'>_stdout.txt '
-                     u'2>_stderr.txt\n' % self._job_interpreter)
 
         queue.submit(params['job_id'], directory)
 
@@ -298,12 +290,12 @@ class SubmitShellJob(BaseSubmitJob):
         temp_dir = self.interpreter.filePool.create_directory(
                 prefix='vt_tmp_shelljobout_').name
         queue = QueueCache.get(params['destination'], params['queue'])
-        queue.download(params['job_id'], ['_stderr.txt', '_stdout.txt'],
+        queue.download(params['job_id'], ['_stderr', '_stdout'],
                        directory=temp_dir)
         self.set_output('stderr',
-                        PathObject(os.path.join(temp_dir, '_stderr.txt')))
+                        PathObject(os.path.join(temp_dir, '_stderr')))
         self.set_output('stdout',
-                        PathObject(os.path.join(temp_dir, '_stdout.txt')))
+                        PathObject(os.path.join(temp_dir, '_stdout')))
 
 
 class DownloadFile(Module):
