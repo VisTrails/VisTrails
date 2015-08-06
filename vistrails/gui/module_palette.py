@@ -283,14 +283,13 @@ class QModuleTreeWidget(QSearchTreeWidget):
             registry = get_module_registry()
             package = registry.packages[identifier]
             try:
-                if package.has_contextMenuName():
+                if package.has_context_menu():
                     name = package.contextMenuName(item.text(0))
                     if name:
                         act = QtGui.QAction(name, self)
                         act.setStatusTip(name)
                         def callMenu():
-                            if package.has_callContextMenu():
-                                name = package.callContextMenu(item.text(0))
+                            package.callContextMenu(item.text(0))
 
                         QtCore.QObject.connect(act,
                                                QtCore.SIGNAL("triggered()"),
