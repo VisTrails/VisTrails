@@ -566,9 +566,8 @@ class JobMonitor(object):
 
         """
         if not self.currentWorkflow():
-            if not handle or not self.isDone(handle):
-                raise ModuleSuspended(module, 'Job is running',
-                                      handle=handle)
+            if not self.isDone(handle):
+                raise ModuleSuspended(module, 'Job is running', handle=handle)
         job = self.getJob(id)
         if self.callback is not None and self.callback() is not None:
             self.callback().checkJob(module, id, handle)
@@ -577,16 +576,15 @@ class JobMonitor(object):
         conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
         if interval and not conf.jobAutorun:
-            if handle:
-                # wait for module to complete
-                try:
-                    while not self.isDone(handle):
-                        time.sleep(interval)
-                        print ("Waiting for job: %s,"
-                               "press Ctrl+C to suspend") % job.name
-                except KeyboardInterrupt:
-                    raise ModuleSuspended(module, 'Interrupted by user, job'
-                                          ' is still running', handle=handle)
+            # wait for module to complete
+            try:
+                while not self.isDone(handle):
+                    time.sleep(interval)
+                    print ("Waiting for job: %s,"
+                           "press Ctrl+C to suspend") % job.name
+            except KeyboardInterrupt:
+                raise ModuleSuspended(module, 'Interrupted by user, job'
+                                      ' is still running', handle=handle)
         else:
             if not handle or not self.isDone(handle):
                 raise ModuleSuspended(module, 'Job is running',

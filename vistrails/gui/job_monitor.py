@@ -417,7 +417,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         """
         workflow = self.jobMonitor.currentWorkflow()
         if not workflow:
-            if not handle or not self.jobMonitor.isDone(handle):
+            if not self.jobMonitor.isDone(handle):
                 raise ModuleSuspended(module, 'Job is running',
                                       handle=handle)
         workflow_item = self.workflowItems[workflow.id]
@@ -425,8 +425,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         item.setText(0, item.job.name)
         # we should check the status using the JobHandle and show dialog
         # get current view progress bar and hijack it
-        if handle:
-            item.handle = handle
+        item.handle = handle
         workflow = self.jobMonitor.currentWorkflow()
         workflow_item = self.workflowItems.get(workflow.id, None)
         workflow_item.updateJobs()
@@ -436,38 +435,37 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         interval = conf.jobCheckInterval
         if interval and not conf.jobAutorun and not progress.suspended:
             # we should keep checking the job
-            if handle:
-                # wait for module to complete
-                labelText = (("Running external job %s\n"
-                                       "Started %s\n"
-                                       "Press Cancel to suspend")
-                                       % (item.job.name,
-                                          item.job.start))
-                progress.setLabelText(labelText)
-                while not self.jobMonitor.isDone(handle):
-                    dieTime = QtCore.QDateTime.currentDateTime().addSecs(interval)
-                    while QtCore.QDateTime.currentDateTime() < dieTime:
-                        QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents, 100)
-                        if progress.wasCanceled():
-                            # this does not work, need to create a new progress dialog
-                            #progress.goOn()
-                            new_progress = progress.__class__(progress.parent())
-                            new_progress.setMaximum(progress.maximum())
-                            new_progress.setValue(progress.value())
-                            new_progress.setLabelText(labelText)
-                            new_progress.setMinimumDuration(0)
-                            new_progress.suspended = True
-                            self.controller.progress = new_progress
-                            progress.hide()
-                            progress.deleteLater()
-                            progress = new_progress
-                            progress.show()
-                            QtCore.QCoreApplication.processEvents()
-                            raise ModuleSuspended(module,
-                                       'Interrupted by user, job'
-                                       ' is still running', handle=handle)
-                return
-        if not handle or not self.jobMonitor.isDone(handle):
+            # wait for module to complete
+            labelText = (("Running external job %s\n"
+                                   "Started %s\n"
+                                   "Press Cancel to suspend")
+                                   % (item.job.name,
+                                      item.job.start))
+            progress.setLabelText(labelText)
+            while not self.jobMonitor.isDone(handle):
+                dieTime = QtCore.QDateTime.currentDateTime().addSecs(interval)
+                while QtCore.QDateTime.currentDateTime() < dieTime:
+                    QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents, 100)
+                    if progress.wasCanceled():
+                        # this does not work, need to create a new progress dialog
+                        #progress.goOn()
+                        new_progress = progress.__class__(progress.parent())
+                        new_progress.setMaximum(progress.maximum())
+                        new_progress.setValue(progress.value())
+                        new_progress.setLabelText(labelText)
+                        new_progress.setMinimumDuration(0)
+                        new_progress.suspended = True
+                        self.controller.progress = new_progress
+                        progress.hide()
+                        progress.deleteLater()
+                        progress = new_progress
+                        progress.show()
+                        QtCore.QCoreApplication.processEvents()
+                        raise ModuleSuspended(module,
+                                   'Interrupted by user, job'
+                                   ' is still running', handle=handle)
+            return
+        if not self.jobMonitor.isDone(handle):
             raise ModuleSuspended(module, 'Job is running', handle=handle)
 
 
@@ -556,16 +554,14 @@ class QJobItem(QtGui.QTreeWidgetItem):
         self.setToolTip(1, self.job.id)
 
     def stdout(self):
-        if self.handle:
-            sp = LogMonitor("Standard Output for " + self.job.name,
-                            self.handle)
-            sp.exec_()
+        sp = LogMonitor("Standard Output for " + self.job.name,
+                        self.handle)
+        sp.exec_()
 
     def stderr(self):
-        if self.handle:
-            sp = ErrorMonitor("Standard Output for " + self.job.name,
-                              self.handle)
-            sp.exec_()
+        sp = ErrorMonitor("Standard Output for " + self.job.name,
+                          self.handle)
+        sp.exec_()
 
 
 class QParentItem(QtGui.QTreeWidgetItem):
