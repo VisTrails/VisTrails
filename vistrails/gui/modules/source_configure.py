@@ -119,7 +119,7 @@ class SourceWidget(PortTableConfigurationWidget):
                 code, = port.defaults
         if code is not None:
             if self.sourceEncode:
-                code = urllib.unquote(code)
+                code = urllib.unquote(code).decode('utf-8')
             self.codeEditor.setPlainText(code)
         if self.codeEditor.__class__.__name__ not in ['_PythonEditor', '_TextEditor']:
             self.codeEditor.document().setModified(False)
@@ -365,11 +365,7 @@ class SourceConfigurationWidget(SourceWidget):
             modified = self.codeEditor.isModified()
 
         if (self.codeEditor is not None and modified):
-            try:
-                code = str(self.codeEditor.toPlainText())
-            except UnicodeEncodeError, e:
-                debug.critical('Source Code Editor does not support non-ascii characters', e)
-                return False
+            code = self.codeEditor.toPlainText().encode('utf-8')
             if self.sourceEncode:
                 code = urllib.quote(code)
             functions.append((self.sourcePortName, [code]))
