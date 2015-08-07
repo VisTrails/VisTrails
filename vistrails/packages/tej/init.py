@@ -6,6 +6,7 @@ import logging
 import os
 import shutil
 import urllib
+import sys
 
 from vistrails.core import debug
 from vistrails.core.bundles import py_import
@@ -238,7 +239,9 @@ class BaseSubmitJob(JobMixin, Module):
     is finished, you can obtain files from it.
     """
     _settings = ModuleSettings(abstract=True)
-    _input_ports = [('queue', Queue)]
+    _input_ports = [('queue', Queue),
+                    ('print_error', '(basic:Boolean)',
+                     {'optional': True, 'defaults': "['False']"})]
     _output_ports = [('job', '(org.vistrails.extra.tej:Job)'),
                      ('exitcode', '(basic:Integer)')]
 
@@ -290,6 +293,26 @@ class BaseSubmitJob(JobMixin, Module):
         queue = QueueCache.get(params['destination'], params['queue'])
         self.set_output('exitcode', params['exitcode'])
         self.set_output('job', RemoteJob(queue, params['job_id']))
+
+        if self.get_input('print_error') and params['exitcode'] != 0:
+            # If it failed and 'print_error' is set, download and print stderr
+            # then fail
+            destination = self.interpreter.filePool.create_file(
+                    prefix='vt_tmp_job_err_').name
+            with ServerLogger.hide_output():
+                queue.download(params['job_id'],
+                               '_stderr',
+                               destination=destination,
+                               recursive=False)
+            with open(destination, 'r') as fin:
+                chunk = fin.read(4096)
+                sys.stderr.write(chunk)
+                while len(chunk) == 4096:
+                    chunk = fin.read(4096)
+                    if chunk:
+                        sys.stderr.write(chunk)
+            raise ModuleError(self,
+                              "Job failed with status %d" % params['exitcode'])
 
 
 class SubmitJob(AssembleDirectoryMixin, BaseSubmitJob):
