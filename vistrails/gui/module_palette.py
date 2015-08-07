@@ -283,20 +283,27 @@ class QModuleTreeWidget(QSearchTreeWidget):
             registry = get_module_registry()
             package = registry.packages[identifier]
             try:
-                if package.has_contextMenuName():
-                    name = package.contextMenuName(item.text(0))
-                    if name:
-                        act = QtGui.QAction(name, self)
-                        act.setStatusTip(name)
-                        def callMenu():
-                            if package.has_callContextMenu():
-                                name = package.callContextMenu(item.text(0))
-
-                        QtCore.QObject.connect(act,
-                                               QtCore.SIGNAL("triggered()"),
-                                               callMenu)
+                if package.has_context_menu():
+                    if isinstance(item, QPackageTreeWidgetItem):
+                        text = None
+                    elif isinstance(item, QNamespaceTreeWidgetItem):
+                        return  # no context menu for namespaces
+                    elif isinstance(item, QModuleTreeWidgetItem):
+                        text = item.descriptor.name
+                        if item.descriptor.namespace:
+                            text = '%s|%s' % (item.descriptor.namespace, text)
+                    else:
+                        assert False, "fell through"
+                    menu_items = package.context_menu(text)
+                    if menu_items:
                         menu = QtGui.QMenu(self)
-                        menu.addAction(act)
+                        for text, callback in menu_items:
+                            act = QtGui.QAction(text, self)
+                            act.setStatusTip(text)
+                            QtCore.QObject.connect(act,
+                                                   QtCore.SIGNAL("triggered()"),
+                                                   callback)
+                            menu.addAction(act)
                         menu.exec_(event.globalPos())
                     return
             except Exception, e:
