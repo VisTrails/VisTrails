@@ -54,7 +54,7 @@ import unittest
 import weakref
 
 
-class JobMixin(NotCacheable):
+class JobMixin(object):
     """ Mixin for suspendable modules.
 
     This provides the base behavior for modules that submit jobs by handling
