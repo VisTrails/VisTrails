@@ -230,14 +230,14 @@ class SubmitJob(BaseSubmitJob):
         else:
             return params
 
-        script = self.get_input('script')
-        if not os.path.exists(script):
-            raise ModuleError(self, "File doesn't exist")
+        job_dir = self.get_input('job').name
+        if not os.path.exists(job_dir):
+            raise ModuleError(self, "Directory doesn't exist")
 
         # Alright, submit a new job
         queue.submit(params['job_id'],
-                     self.get_input('job').name,
-                     script)
+                     job_dir,
+                     self.get_input('script'))
         return params
 
 
