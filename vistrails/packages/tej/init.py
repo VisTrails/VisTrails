@@ -278,7 +278,8 @@ class BaseSubmitJob(JobMixin, Module):
         Gets the exit code from the server.
         """
         queue = QueueCache.get(params['destination'], params['queue'])
-        status, target, arg = queue.status(params['job_id'])
+        with ServerLogger.hide_output():
+            status, target, arg = queue.status(params['job_id'])
         assert status == tej.RemoteQueue.JOB_DONE
         params['exitcode'] = int(arg)
         return params
@@ -411,10 +412,11 @@ class DownloadFile(Module):
 
         destination = self.interpreter.filePool.create_file(
                 prefix='vt_tmp_shelljobout_')
-        job.queue.download(job.job_id,
-                           self.get_input('filename'),
-                           destination=destination.name,
-                           recursive=False)
+        with ServerLogger.hide_output():
+            job.queue.download(job.job_id,
+                               self.get_input('filename'),
+                               destination=destination.name,
+                               recursive=False)
 
         self.set_output('file', destination)
 
@@ -433,10 +435,11 @@ class DownloadDirectory(Module):
         destination = self.interpreter.filePool.create_directory(
                 prefix='vt_tmp_shelljobout_').name
         target = os.path.join(destination, 'dir')
-        job.queue.download(job.job_id,
-                           self.get_input('pathname'),
-                           destination=target,
-                           recursive=True)
+        with ServerLogger.hide_output():
+            job.queue.download(job.job_id,
+                               self.get_input('pathname'),
+                               destination=target,
+                               recursive=True)
 
         self.set_output('directory', PathObject(target))
 
