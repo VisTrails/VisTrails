@@ -28,3 +28,45 @@ Downloading output files
 ========================
 
 You can connect SubmitJob's output to ``DownloadFile`` modules to retrieve generated files from the server and use them in the following steps of your pipeline. The module only needs a ``filename`` parameter, which is relative to the job's directory. The ``DownloadDirectory`` module works in the same way but downloads a whole subdirectory recursively.
+
+Example
+=======
+
+In this example, we'll submit a simple Python script to a server via SSH. That script searches for the largest prime factor of a given number and prints it to the console.
+
+..  topic:: Try it Now!
+
+    First, create the Python script. You can use the ``String`` module, entering the script in the configuration widgets; connect it to a ``WriteFile`` module to get a file suitable for uploading.
+
+    ::
+
+        #!/usr/bin/env python
+        with open('input') as fp:
+            number = int(fp.read().strip())
+
+        largest = None
+        n = 2
+        while n <= number:
+            while number % n == 0:
+                number /= n
+            if number == 1:
+                largest = n
+                break
+            n += 1
+
+        with open('output', 'w') as fp:
+            if largest is not None:
+                fp.write("%d" % largest)
+
+    As you can see, this script reads the target number from a file, ``input``, and writes the result to another file, ``output``. You can create the ``input`` file from an Integer using the ``StringFormat`` module (setting the `format` to ``{target}`` for example).
+
+    Add a ``DownloadFile`` module to download ``output`` and print the file with ``StandardOutput`` for example.
+
+    The end result should look like this :vtl:`(or open it from here) <tej-primes.vt>`:
+
+..  figure:: figures/tej/pipeline.png
+    :align: center
+
+Running it will start the job on the server. The job monitor window will pop up to indicate that it knows about the remote job, and that it is currently running. Clicking the "check" button or re-running the workflow will update the status, and eventually run the rest of the pipeline when the job is done, displaying the result.
+
+Because the job identifier is computed from the signature of the subpipeline consisting of ``SubmitJob`` and its upstream modules, anyone running the same job on the same server will hit the same job, and will reuse your results without triggering a recomputation. But if you change the script, or choose a different target number to factorize, a new job will be submitted, that will not affect the result seen by other users and other workflows.
