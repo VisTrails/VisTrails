@@ -1038,7 +1038,8 @@ class CodeRunnerMixin(object):
                 locals_[k] = self.get_input(k)
         if use_output:
             for output_portname in self.output_ports_order:
-                locals_[output_portname] = None
+                if output_portname not in self.inputPorts:
+                    locals_[output_portname] = None
         _m = vistrails.core.packagemanager.get_package_manager()
         reg = get_module_registry()
         locals_.update({'fail': fail,

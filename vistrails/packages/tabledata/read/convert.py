@@ -35,6 +35,7 @@
 
 from __future__ import division
 
+from vistrails.core.modules.basic_modules import ListType
 from vistrails.core.modules.vistrails_module import ModuleError
 
 from ..common import Table, TableObject, InternalModuleError
@@ -58,7 +59,7 @@ class BaseConverter(Table):
 
     @staticmethod
     def add_list(columns, key, value):
-        if not isinstance(value, list):
+        if not isinstance(value, ListType):
             raise InternalModuleError("Entry for key %r is not a list" % key)
         if key is not None:
             value = [key] + value
@@ -106,7 +107,7 @@ class BaseDictToTable(BaseConverter):
         except StopIteration:
             raise ModuleError(self, "No entry in JSON object")
         count = 1
-        if isinstance(first_value, list):
+        if isinstance(first_value, ListType):
             keys = None
             columns = [[] for i in xrange(1 + len(first_value))]
             self.add_list(columns, first_key, first_value)
@@ -133,7 +134,7 @@ class BaseDictToTable(BaseConverter):
 
 class BaseListToTable(BaseConverter):
     def make_table(self, obj):
-        if not isinstance(obj, list):
+        if not isinstance(obj, ListType):
             raise ModuleError(self, "JSON file is not a list")
         iterator = iter(obj)
         try:
@@ -141,7 +142,7 @@ class BaseListToTable(BaseConverter):
         except StopIteration:
             raise ModuleError(self, "No element in JSON list")
         count = 1
-        if isinstance(first, list):
+        if isinstance(first, ListType):
             keys = None
             columns = [[] for i in xrange(len(first))]
             self.add_list(columns, None, first)

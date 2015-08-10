@@ -39,5 +39,14 @@ from vistrails.core.modules.utils import make_modules_dict
 
 from convert_dates import _modules as dates_modules
 
+try:
+    # write_numpy requires numpy
+    import numpy
+except ImportError: # pragma: no cover
+    numpy_modules = []
+else:
+    from .convert_numpy import _modules as numpy_modules
 
-_modules = make_modules_dict(dates_modules, namespace='convert')
+
+_modules = make_modules_dict(dates_modules, numpy_modules,
+                             namespace='convert')
