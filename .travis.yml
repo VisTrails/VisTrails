@@ -24,7 +24,8 @@ addons:
 # python-zmq is needed by parallelflow, but Travis has a bug right now (2015-01-12)
 install:
   - virtualenv --system-site-packages venv && source venv/bin/activate
+  - pip install -U pip wheel setuptools
   - pip install -r requirements.txt
-  - python setup.py install
+  - pip install "$(pwd)"
 script:
   - cd /tmp && xvfb-run --server-args="-screen 0 1024x768x16" python -m vistrails.tests -V 1
