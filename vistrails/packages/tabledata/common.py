@@ -1,16 +1,75 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2013-2014, NYU-Poly.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
 from __future__ import division
 
-try:
-    import numpy
-except ImportError: # pragma: no cover
-    numpy = None
-
+from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.basic_modules import List, ListType
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.output_modules import OutputModule, FileMode, \
     IPythonMode
 from vistrails.core.modules.vistrails_module import Module, ModuleError, \
     Converter
+
+
+_numpy = False
+
+def get_numpy(required=True):
+    """Tries to import numpy.
+
+    If `required` is False, don't ask again if the user already declined;
+    return None if numpy is not available.
+    If `required` is True, do ask to install, and raise ImportError if numpy
+    can't be set up.
+    """
+    global _numpy
+
+    if _numpy is False:
+        try:
+            _numpy = py_import(
+                    'numpy', {
+                        'pip': 'numpy',
+                        'linux-debian': 'python-numpy',
+                        'linux-ubuntu': 'python-numpy',
+                        'linux-fedora': 'numpy'},
+                    store_in_config=not required)
+        except ImportError:
+            _numpy = None
+    if _numpy is None and required:
+        raise ImportError("No module named numpy")
+    return _numpy
 
 
 class InternalModuleError(Exception):
@@ -42,6 +101,7 @@ class TableObject(object):
         If numeric=True, the data is returned as a numpy array if numpy is
         available, or as a list of floats.
         """
+        numpy = get_numpy(False)
         if numeric and numpy is not None:
             return numpy.array(self._columns[i], dtype=numpy.float32)
         else:
