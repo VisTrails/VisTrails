@@ -147,12 +147,14 @@ def menu_items():
 
 
 def finalize():
-    spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
-    ### DO NOT ADD BACK spreadsheetWindow.destroy()
-    ### That will crash VisTrails on Mac.
-    ### It is not supposed to be called directly
-    spreadsheetWindow.cleanup()
-    spreadsheetWindow.deleteLater()
+    spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(
+        show=False, create=False)
+    if spreadsheetWindow is not None:
+        ### DO NOT ADD BACK spreadsheetWindow.destroy()
+        ### That will crash VisTrails on Mac.
+        ### It is not supposed to be called directly
+        spreadsheetWindow.cleanup()
+        spreadsheetWindow.deleteLater()
 
 
 def upgrade_cell_to_output(module_remap, module_id, pipeline,

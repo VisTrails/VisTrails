@@ -62,7 +62,7 @@ class SpreadsheetController(object):
         """
         pass
 
-    def findSpreadsheetWindow(self, show=True):
+    def findSpreadsheetWindow(self, show=True, create=True):
         """ findSpreadsheetWindow() -> QWidget
         Looking for the spreadsheet window
 
@@ -73,7 +73,10 @@ class SpreadsheetController(object):
         wList = QtGui.QApplication.topLevelWidgets()
         for w in wList:
             if isinstance(w, SpreadsheetWindow):
+                spreadsheetWindow = w
                 return w
+        if not create:
+            return None
         spreadsheetWindow = SpreadsheetWindow()
         if show:
             spreadsheetWindow.configShow()
@@ -84,9 +87,8 @@ class SpreadsheetController(object):
         Post an event to the spreadsheet to make thread-safe connection
         """
         spreadsheetWindow = self.findSpreadsheetWindow()
-        if spreadsheetWindow:
-            QtCore.QCoreApplication.postEvent(spreadsheetWindow, QtGui.QShowEvent())
-            QtCore.QCoreApplication.postEvent(spreadsheetWindow, event)
+        QtCore.QCoreApplication.postEvent(spreadsheetWindow, QtGui.QShowEvent())
+        QtCore.QCoreApplication.postEvent(spreadsheetWindow, event)
 
     def getBuilderWindow(self):
         """ getBuilderWindow() -> QWidget
@@ -107,8 +109,7 @@ class SpreadsheetController(object):
 
         """
         spreadsheetWindow = self.findSpreadsheetWindow(show=False)
-        if spreadsheetWindow:
-            spreadsheetWindow.setEchoMode(echo)
+        spreadsheetWindow.setEchoMode(echo)
 
     def echoMode(self):
         """ echoMode() -> bool
@@ -116,9 +117,7 @@ class SpreadsheetController(object):
 
         """
         spreadsheetWindow = self.findSpreadsheetWindow(show=False)
-        if spreadsheetWindow:
-            return spreadsheetWindow.echoMode
-        return None
+        return spreadsheetWindow.echoMode
 
     def getEchoCellEvents(self):
         """ getEchoCellEvents() -> [DisplayCellEvent]
@@ -127,11 +126,9 @@ class SpreadsheetController(object):
 
         """
         spreadsheetWindow = self.findSpreadsheetWindow(show=False)
-        if spreadsheetWindow:
-            events = spreadsheetWindow.getEchoCellEvents()
-            spreadsheetWindow.clearEchoCellEvents()
-            return events
-        return None
+        events = spreadsheetWindow.getEchoCellEvents()
+        spreadsheetWindow.clearEchoCellEvents()
+        return events
 
 
 spreadsheetController = SpreadsheetController()
