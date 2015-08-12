@@ -35,19 +35,9 @@
 
 from __future__ import division
 
-from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.utils import make_modules_dict
 from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
-
-try:
-    py_import('numpy', {
-            'pip': 'numpy',
-            'linux-debian': 'python-numpy',
-            'linux-ubuntu': 'python-numpy',
-            'linux-fedora': 'numpy'})
-except ImportError: # pragma: no cover
-    pass
 
 from .common import _modules as common_modules, TableOutput
 from .convert import _modules as convert_modules

@@ -222,7 +222,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 if workflow_item.workflowFinished:
                     continue
                 for job in workflow_item.jobs.itervalues():
-                    if job.job.finished:
+                    if job.job.finished or job.job.ready:
                         continue
                     try:
                         # call monitor
@@ -490,7 +490,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         for job in self.jobs.itervalues():
             job.updateJob()
         count = len(self.jobs)
-        finished = sum([job.job.finished for job in self.jobs.values()])
+        finished = sum([job.job.finished or job.job.ready for job in self.jobs.values()])
         self.setText(1, "(%s/%s)" % (finished, count))
         self.workflowFinished = (finished == count)
         if self.workflowFinished:
@@ -529,7 +529,7 @@ class QJobItem(QtGui.QTreeWidgetItem):
 
     def updateJob(self):
         self.setText(1, self.job.parameters.get('__message__',
-                        "Finished" if self.job.finished else "Running"))
+                        "Finished" if self.job.finished or self.job.ready else "Running"))
         if self.job.finished or self.job.ready:
             self.setIcon(1, theme.get_current_theme().JOB_FINISHED)
             self.setToolTip(0, "This Job Has Finished")

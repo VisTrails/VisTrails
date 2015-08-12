@@ -35,15 +35,12 @@
 
 from __future__ import division
 
-try:
-    import numpy
-except ImportError: # pragma: no cover
-    numpy = None
 import re
 
 from vistrails.core.modules.vistrails_module import ModuleError
 
-from .common import TableObject, Table, choose_column, choose_columns
+from .common import get_numpy, TableObject, Table, \
+    choose_column, choose_columns
 
 # FIXME use pandas?
 
@@ -118,6 +115,7 @@ class JoinedTables(TableObject):
                     j = self.row_map[i]
                     result.append(column[j])
 
+        numpy = get_numpy(False)
         if numeric and numpy is not None:
             result = numpy.array(result, dtype=numpy.float32)
         self.column_cache[(index, numeric)] = result
@@ -427,6 +425,8 @@ class TestJoin(unittest.TestCase):
     def test_join(self):
         """Test joining tables that have column names.
         """
+        import numpy
+
         with intercept_result(JoinTables, 'value') as results:
             self.assertFalse(execute([
                     ('BuildTable', identifier, [
@@ -646,6 +646,8 @@ class TestSelect(unittest.TestCase):
     def test_numeric(self):
         """Selects using the 'less-than' condition.
         """
+        import numpy
+
         self.do_select([
                 ('float_expr', [('String', '6'),
                                 ('String', '<='),

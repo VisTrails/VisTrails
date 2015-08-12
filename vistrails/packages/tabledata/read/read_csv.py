@@ -37,12 +37,8 @@ from __future__ import division
 
 import csv
 import operator
-try:
-    import numpy
-except ImportError: # pragma: no cover
-    numpy = None
 
-from ..common import TableObject, Table, InternalModuleError
+from ..common import get_numpy, TableObject, Table, InternalModuleError
 
 
 def count_lines(fp):
@@ -128,6 +124,8 @@ class CSVTable(TableObject):
     def get_column(self, index, numeric=False):
         if (index, numeric) in self.column_cache:
             return self.column_cache[(index, numeric)]
+
+        numpy = get_numpy(False)
 
         if numeric and numpy is not None:
             result = numpy.loadtxt(
