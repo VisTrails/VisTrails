@@ -232,7 +232,9 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                     except Exception, e:
                         debug.critical("Error checking job %s: %s" %
                                        (workflow_item.text(0), e))
-                workflow_item.updateJobs()
+                if workflow_item.updateJobs():
+                    QJobView.instance().set_visible(True)
+
                 if workflow_item.workflowFinished:
                     if self.autorun.isChecked():
                         jm.startWorkflow(workflow)
@@ -332,9 +334,12 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
             self.workflowItems[workflow.id] = workflow_item
 
         workflow_item = self.workflowItems[workflow.id]
+        changed = False
         if job.id not in workflow_item.jobs:
             workflow_item.jobs[job.id] = QJobItem(job, workflow_item)
-        workflow_item.updateJobs()
+            changed = True
+        if workflow_item.updateJobs() or changed:
+            QJobView.instance().set_visible(True)
 
     def deleteWorkflow(self, id):
         """ deleteWorkflow(id: str) -> None
@@ -354,7 +359,8 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
                 job_item = workflow_item.jobs[id]
                 job_item.parent().takeChild(job_item.parent().indexOfChild(job_item))
                 del workflow_item.jobs[id]
-                workflow_item.updateJobs()
+                if workflow_item.updateJobs():
+                    QJobView.instance().set_visible(True)
 
     def addJobRec(self, obj, parent_id=None):
         """addJobRec(obj: ModuleSuspended, parent_id: signature)  -> None
@@ -398,10 +404,10 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         for parent in workflow.parents.itervalues():
             self.addJobRec(parent)
 
-        workflowItem = self.workflowItems.get(workflow.id, None)
-        if workflowItem:
-            workflowItem.updateJobs()
-            QJobView.instance().set_visible(True)
+        workflow_item = self.workflowItems.get(workflow.id, None)
+        if workflow_item:
+            if workflow_item.updateJobs():
+                QJobView.instance().set_visible(True)
 
     def checkJob(self, module, id, handle):
         """ checkJob(module: VistrailsModule, id: str, handle: object)
@@ -409,7 +415,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         """
         workflow = self.jobMonitor.currentWorkflow()
         if not workflow:
-            if not handle or not self.jobMonitor.isDone(handle):
+            if not self.jobMonitor.isDone(handle):
                 raise ModuleSuspended(module, 'Job is running',
                                       handle=handle)
         workflow_item = self.workflowItems[workflow.id]
@@ -417,8 +423,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         item.setText(0, item.job.name)
         # we should check the status using the JobHandle and show dialog
         # get current view progress bar and hijack it
-        if handle:
-            item.handle = handle
+        item.handle = handle
         workflow = self.jobMonitor.currentWorkflow()
         workflow_item = self.workflowItems.get(workflow.id, None)
         workflow_item.updateJobs()
@@ -427,39 +432,37 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
         if interval and not conf.jobAutorun and not progress.suspended:
-            # we should keep checking the job
-            if handle:
-                # wait for module to complete
-                labelText = (("Running external job %s\n"
-                                       "Started %s\n"
-                                       "Press Cancel to suspend")
-                                       % (item.job.name,
-                                          item.job.start))
-                progress.setLabelText(labelText)
-                while not self.jobMonitor.isDone(handle):
-                    dieTime = QtCore.QDateTime.currentDateTime().addSecs(interval)
-                    while QtCore.QDateTime.currentDateTime() < dieTime:
-                        QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents, 100)
-                        if progress.wasCanceled():
-                            # this does not work, need to create a new progress dialog
-                            #progress.goOn()
-                            new_progress = progress.__class__(progress.parent())
-                            new_progress.setMaximum(progress.maximum())
-                            new_progress.setValue(progress.value())
-                            new_progress.setLabelText(labelText)
-                            new_progress.setMinimumDuration(0)
-                            new_progress.suspended = True
-                            self.controller.progress = new_progress
-                            progress.hide()
-                            progress.deleteLater()
-                            progress = new_progress
-                            progress.show()
-                            QtCore.QCoreApplication.processEvents()
-                            raise ModuleSuspended(module,
-                                       'Interrupted by user, job'
-                                       ' is still running', handle=handle)
-                return
-        if not handle or not self.jobMonitor.isDone(handle):
+            # wait for module to complete
+            labelText = (("Running external job %s\n"
+                                   "Started %s\n"
+                                   "Press Cancel to suspend")
+                                   % (item.job.name,
+                                      item.job.start))
+            progress.setLabelText(labelText)
+            while not self.jobMonitor.isDone(handle):
+                dieTime = QtCore.QDateTime.currentDateTime().addSecs(interval)
+                while QtCore.QDateTime.currentDateTime() < dieTime:
+                    QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents, 100)
+                    if progress.wasCanceled():
+                        # this does not work, need to create a new progress dialog
+                        #progress.goOn()
+                        new_progress = progress.__class__(progress.parent())
+                        new_progress.setMaximum(progress.maximum())
+                        new_progress.setValue(progress.value())
+                        new_progress.setLabelText(labelText)
+                        new_progress.setMinimumDuration(0)
+                        new_progress.suspended = True
+                        self.controller.progress = new_progress
+                        progress.hide()
+                        progress.deleteLater()
+                        progress = new_progress
+                        progress.show()
+                        QtCore.QCoreApplication.processEvents()
+                        raise ModuleSuspended(module,
+                                   'Interrupted by user, job'
+                                   ' is still running', handle=handle)
+            return
+        if not self.jobMonitor.isDone(handle):
             raise ModuleSuspended(module, 'Job is running', handle=handle)
 
 
@@ -487,8 +490,10 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         self.setToolTip(0, 'Double-Click to View Pipeline "%s" with id %s' %
                            (name, self.workflow.version))
         self.setToolTip(1, "Log id: %s" % self.workflow.id)
+        changed = False
         for job in self.jobs.itervalues():
-            job.updateJob()
+            if job.updateJob():
+                changed = True
         count = len(self.jobs)
         finished = sum([job.job.finished or job.job.ready for job in self.jobs.values()])
         self.setText(1, "(%s/%s)" % (finished, count))
@@ -497,6 +502,7 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
             self.setIcon(1, theme.get_current_theme().JOB_FINISHED)
         else:
             self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
+        return changed
 
     def goto(self):
         """ Shows this pipeline
@@ -525,9 +531,12 @@ class QJobItem(QtGui.QTreeWidgetItem):
         self.setToolTip(1, job.description())
         self.job = job
         self.handle = None
+        self.finished = None
         self.updateJob()
 
     def updateJob(self):
+        changed = self.job.finished != self.finished
+        self.finished = self.job.finished
         self.setText(1, self.job.parameters.get('__message__',
                         "Finished" if self.job.finished or self.job.ready else "Running"))
         if self.job.finished or self.job.ready:
@@ -540,6 +549,7 @@ class QJobItem(QtGui.QTreeWidgetItem):
             self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
             self.setToolTip(0, "This Job is Running")
         self.setToolTip(1, self.job.id)
+        return changed
 
     def stdout(self):
         if self.handle:
