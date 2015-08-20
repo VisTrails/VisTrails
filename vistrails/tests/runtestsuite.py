@@ -460,19 +460,16 @@ def image_test_generator(vtfile, version):
     from vistrails.core.db.locator import FileLocator
     import vistrails.core.console_mode
     def test(self):
-        try:
-            filename = os.path.join(EXAMPLES_PATH, vtfile)
-            locator = FileLocator(os.path.abspath(filename))
-            errs = vistrails.core.console_mode.run(
-                    [(locator, version)],
-                    update_vistrail=False,
-                    extra_info={'compare_thumbnails': compare_thumbnails})
-            if len(errs) > 0:
-                for err in errs:
-                    print("   *** Error in %s:%s:%s -- %s" % err)
-                    self.fail(str(err))
-        except Exception, e:
-            self.fail(debug.format_exception(e))
+        filename = os.path.join(EXAMPLES_PATH, vtfile)
+        locator = FileLocator(os.path.abspath(filename))
+        errs = vistrails.core.console_mode.run(
+                [(locator, version)],
+                update_vistrail=False,
+                extra_info={'compare_thumbnails': compare_thumbnails})
+        if len(errs) > 0:
+            for err in errs:
+                print("   *** Error in %s:%s:%s -- %s" % err)
+                self.fail(str(err))
     return test
 
 class TestVistrailImages(unittest.TestCase):
