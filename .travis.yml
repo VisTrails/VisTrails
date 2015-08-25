@@ -1,5 +1,6 @@
 language: python
 sudo: false
+env: VISTRAILS_SKIP_WHITELIST="vistrails.packages.RemoteQ"
 python:
   - "2.6"
   - "2.7"
@@ -21,6 +22,8 @@ addons:
       - xvfb
       - python-rpy2
       - python-zsi
+      - python-zmq
+      - python-qgis
 # python-zmq is needed by parallelflow, but Travis has a bug right now (2015-01-12)
 install:
   - virtualenv --system-site-packages venv && source venv/bin/activate

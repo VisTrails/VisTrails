@@ -406,6 +406,7 @@ def hsv2rgb(hsv):
 ################################################################################
 
 import unittest
+from vistrails.tests.utils import skip_test_checked
 
 class TestColorByName(unittest.TestCase):
     """
@@ -437,7 +438,7 @@ class TestColorConversion(unittest.TestCase):
         try:
             from PyQt4 import QtGui
         except ImportError:
-            self.skipTest("QtGui not available")
+            skip_test_checked('qt.gui', "QtGui not available")
         for color in self.colors:
             our_hsv = rgb2hsv(color)
             qcolor = QtGui.QColor(*[int(color[i]*255) for i in xrange(3)])

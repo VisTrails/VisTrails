@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pragma: no testimport
 ###############################################################################
 ##
 ## Copyright (C) 2014-2015, New York University.

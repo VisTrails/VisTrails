@@ -42,7 +42,7 @@ from PyQt4.QtCore import pyqtSignal
 from vistrails.core import debug
 from vistrails.gui.mashups.mashups_widgets import QAliasNumericStepperWidget, \
     QAliasSliderWidget, QDropDownWidget
-from vistrails.gui.utils import show_warning, TestVisTrailsGUI
+from vistrails.gui.utils import show_warning
 
 from vistrails.packages.spreadsheet.spreadsheet_controller import \
     spreadsheetController
@@ -611,6 +611,9 @@ class QCustomDockWidget(QtGui.QDockWidget):
 ################################################################################
 # Testing
 
+from vistrails.gui.utils import TestVisTrailsGUI
+from vistrails.tests.utils import skip_test_checked
+
 
 class TestMashupApp(TestVisTrailsGUI):
     def setUp(self):
@@ -618,7 +621,7 @@ class TestMashupApp(TestVisTrailsGUI):
         try:
             import vtk
         except ImportError:
-            self.skipTest("VTK is not available")
+            skip_test_checked('vtk', "VTK is not available")
         from vistrails.tests.utils import enable_package
         enable_package('org.vistrails.vistrails.vtk')
 

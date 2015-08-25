@@ -1,4 +1,6 @@
-###############################################################################
+#!/usr/bin/env python
+# pragma: no testimport
+# ###############################################################################
 ##
 ## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
@@ -36,7 +38,6 @@
 
 from __future__ import division
 
-import re
 from xml.etree import ElementTree as ET
 from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
     AlternatePortSpec
