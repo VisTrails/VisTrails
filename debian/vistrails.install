@@ -1,4 +1,2 @@
-contrib/*	usr/share/vistrails/contrib
 scripts/*	usr/share/vistrails/scripts
 extensions/mediawiki/*	usr/share/mediawiki/extensions/vistrails
-data/*		usr/share/vistrails/data
