@@ -261,6 +261,18 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                     workflow_item.resume()
                 else:
                     return
+            try:
+                int(workflow.version)
+            except ValueError:
+                if (workflow.version.startswith("Parameter Exploration") or
+                    workflow.version.startswith("Mashup")):
+                    QtGui.QMessageBox.question(self, "Running job(s) found",
+                        'Running jobs in "%s" are not yet monitored. Rerun it to start monitoring.' %
+                                             workflow_item.text(0),
+                        QtGui.QMessageBox.Ok)
+                    # do not notify again
+                    workflow_item.pause()
+                return
             # Ask user to re-execute workflow
             ret = QtGui.QMessageBox.question(self, "Running job(s) found",
                     'Running jobs in workflow "%s" are not yet monitored. Load and check now?' %
@@ -274,6 +286,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             self.updating_now = False
             workflow_item.execute()
             self.updating_now = True
+            jm.finishWorkflow()
             return
 
         job_items = workflow_item.jobs.values() if job is None else [job]
@@ -291,11 +304,26 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             QJobView.instance().set_visible(True)
 
         if workflow_item.workflowFinished:
+            try:
+                int(workflow.version)
+            except ValueError:
+                if workflow.version.startswith("Parameter Exploration"):
+                    QtGui.QMessageBox.information(self, "Job Ready",
+                        'Pending Jobs in "%s" have finished, '
+                        'execute it again to get results' % workflow_item.text(0),
+                        QtGui.QMessageBox.Ok)
+                elif workflow.version.startswith("Mashup"):
+                    QtGui.QMessageBox.information(self, "Job Ready",
+                        'Pending Jobs in "%s" have finished, '
+                        'execute it again to get results' % workflow_item.text(0),
+                        QtGui.QMessageBox.Ok)
+                return
             if self.autorun.isChecked():
                 jm.startWorkflow(workflow)
                 self.updating_now = False
                 workflow_item.execute()
                 self.updating_now = True
+                jm.finishWorkflow()
                 return
             ret = QtGui.QMessageBox.information(self, "Job Ready",
                     'Pending Jobs in workflow "%s" have finished, '
@@ -306,7 +334,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.updating_now = False
                 workflow_item.execute()
                 self.updating_now = True
-
+                jm.finishWorkflow()
     def check_jobs(self, job=None):
         if self.updating_now:
             return
@@ -535,7 +563,10 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
 class QWorkflowItem(QtGui.QTreeWidgetItem):
     """A workflow with jobs.
 
-    This item can have child items.
+       It can reference a workflow version, a parameter exploration workflow,
+       or a mashup
+
+    This item can have child module items.
     """
     def __init__(self, workflow, parent):
         QtGui.QTreeWidgetItem.__init__(self, parent, ['', ''])
@@ -554,11 +585,14 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         """ Updates name and job states
         """
         self.paused = False
-        name = self.parent().controller.get_pipeline_name(
-                                                        self.workflow.version)
+        try:
+            name = self.parent().controller.get_pipeline_name(
+                                                           self.workflow.version)
+            self.setToolTip(0, 'Double-Click to View Pipeline "%s" with id %s' %
+                               (name, self.workflow.version))
+        except KeyError:
+            name = self.workflow.version
         self.setText(0, name)
-        self.setToolTip(0, 'Double-Click to View Pipeline "%s" with id %s' %
-                           (name, self.workflow.version))
         self.setToolTip(1, "Log id: %s" % self.workflow.id)
         changed = False
         self.has_handle = True
@@ -583,6 +617,11 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         """ Shows this pipeline
 
         """
+        try:
+            int(self.workflow.version)
+        except ValueError:
+            # this is not a pipeline id
+            return
         from vistrails.gui.vistrails_window import _app
         view = _app.getViewFromLocator(self.parent().controller.locator)
         _app.change_view(view)
@@ -592,6 +631,11 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
     def execute(self):
         """ Shows and executes this pipeline
         """
+        try:
+            int(self.workflow.version)
+        except ValueError:
+            # this is not a pipeline id
+            return
         self.goto().execute()
 
     def pause(self):
