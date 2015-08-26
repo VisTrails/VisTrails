@@ -464,7 +464,7 @@ class JobMonitor(object):
         """
         if self._current_workflow:
             raise Exception("A workflow is still running: %s!" %
-                            self._current_workflow)
+                            self._current_workflow.id)
         workflow.reset()
         self._current_workflow = workflow
         if self.callback is not None and self.callback() is not None:

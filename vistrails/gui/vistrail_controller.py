@@ -94,6 +94,29 @@ class ExecutionProgressDialog(QtGui.QProgressDialog):
         self.show()
         super(ExecutionProgressDialog, self).setValue(self._last_set_value)
 
+class PEProgressDialog(QtGui.QProgressDialog):
+    def __init__(self, parent=None, total_progress=100):
+        QtGui.QProgressDialog.__init__(self,
+                                       'Performing Parameter Exploration...',
+                                       '&Cancel',
+                                       0, total_progress,
+                                       parent, QtCore.Qt.Dialog)
+        self.setWindowTitle('Parameter Exploration')
+        self.setWindowModality(QtCore.Qt.WindowModal)
+        self._last_set_value = 0
+        self._progress_canceled = False
+        # if suspended is true we should not wait for a job to complete
+        self.suspended = False
+
+    def setValue(self, value):
+        self._last_set_value = value
+        super(PEProgressDialog, self).setValue(value)
+
+    def goOn(self):
+        self.reset()
+        self.show()
+        super(PEProgressDialog, self).setValue(self._last_set_value)
+
 
 class VistrailController(QtCore.QObject, BaseController):
     """
@@ -151,7 +174,8 @@ class VistrailController(QtCore.QObject, BaseController):
         self.quiet = False
         self.progress = None
         self.create_job = False
-        
+        self.create_job = False
+
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
         # file every 2 minutes
@@ -1286,72 +1310,106 @@ class VistrailController(QtCore.QObject, BaseController):
                     mCount.append(0)
                 else:
                     mCount.append(len(p.modules)+mCount[len(mCount)-1])
-                
-            # Now execute the pipelines
-            if showProgress:
-                totalProgress = sum([len(p.modules) for p in modifiedPipelines])
-                progress = QtGui.QProgressDialog('Performing Parameter '
-                                                 'Exploration...',
-                                                 '&Cancel',
-                                                 0, totalProgress)
-                progress.setWindowTitle('Parameter Exploration')
-                progress.setWindowModality(QtCore.Qt.WindowModal)
-                progress.show()
+                    mCount.append(len(p.modules)+mCount[len(mCount)-1])
 
-            interpreter = get_default_interpreter()
-            
-            images = {}
-            errors = []
-            for pi in xrange(len(modifiedPipelines)):
+            try:
+                # Now execute the pipelines
                 if showProgress:
-                    progress.setValue(mCount[pi])
-                    QtCore.QCoreApplication.processEvents()
-                    if progress.wasCanceled():
-                        break
-                    def moduleExecuted(objId):
-                        if not progress.wasCanceled():
-                            progress.setValue(progress.value()+1)
-                            QtCore.QCoreApplication.processEvents()
-                if use_spreadsheet:
-                    name = os.path.splitext(self.name)[0] + \
-                                         ("_%s_%s_%s" % pipelinePositions[pi])
-                    extra_info['nameDumpCells'] = name
-                    if 'pathDumpCells' in extra_info:
-                        images[pipelinePositions[pi]] = \
-                                   os.path.join(extra_info['pathDumpCells'], name)
-                pe_cell_id = (pe_log_id,) + pipelinePositions[pi]
-                kwargs = {'locator': self.locator,
-                          'current_version': self.current_version,
-                          'reason': 'Parameter Exploration %s %s_%s_%s' % pe_cell_id,
-                          'logger': self.get_logger(),
-                          'actions': performedActions[pi],
-                          'extra_info': extra_info
-                          }
-                if view:
-                    kwargs['view'] = view
-                if showProgress:
-                    kwargs['module_executed_hook'] = [moduleExecuted]
-                if self.get_vistrail_variables():
-                    # remove vars used in pe
-                    vars = dict([(v.uuid, v) for v in self.get_vistrail_variables()
-                                 if v.uuid not in vistrail_vars])
-                    kwargs['vistrail_variables'] = lambda x: vars.get(x, None)
-                result = interpreter.execute(modifiedPipelines[pi], **kwargs)
-                for error in result.errors.itervalues():
+                    # reset job view
+                    from vistrails.gui.job_monitor import QJobView
+                    jobView = QJobView.instance()
+                    if jobView.updating_now:
+                        debug.critical("Execution Aborted: Job Monitor is updating. "
+                                       "Please wait a few seconds and try again.")
+                        return
+                    jobView.updating_now = True
+
+                    totalProgress = sum([len(p.modules) for p in modifiedPipelines])
+                    self.progress = PEProgressDialog(self.vistrail_view, totalProgress)
+                    self.progress.show()
+
+
+                interpreter = get_default_interpreter()
+
+                images = {}
+                errors = []
+                for pi in xrange(len(modifiedPipelines)):
+                    if showProgress:
+                        self.progress.setValue(mCount[pi])
+                        QtCore.QCoreApplication.processEvents()
+                        if self.progress.wasCanceled():
+                            break
+                        def moduleExecuted(objId):
+                            if not self.progress.wasCanceled():
+                                self.progress.setValue(self.progress.value()+1)
+                                QtCore.QCoreApplication.processEvents()
                     if use_spreadsheet:
-                        pp = pipelinePositions[pi]
-                        errors.append(((pp[1], pp[0], pp[2]), error))
-                    else:
-                        errors.append(((0,0,0), error))
+                        name = os.path.splitext(self.name)[0] + \
+                                             ("_%s_%s_%s" % pipelinePositions[pi])
+                        extra_info['nameDumpCells'] = name
+                        if 'pathDumpCells' in extra_info:
+                            images[pipelinePositions[pi]] = \
+                                       os.path.join(extra_info['pathDumpCells'], name)
+                    pe_cell_id = (pe_log_id,) + pipelinePositions[pi]
+                    kwargs = {'locator': self.locator,
+                              'controller': self,
+                              'current_version': self.current_version,
+                              'reason': 'Parameter Exploration %s %s_%s_%s' % pe_cell_id,
+                              'logger': self.get_logger(),
+                              'actions': performedActions[pi],
+                              'extra_info': extra_info
+                              }
+                    if view:
+                        kwargs['view'] = view
+                    if showProgress:
+                        kwargs['module_executed_hook'] = [moduleExecuted]
+                    if self.get_vistrail_variables():
+                        # remove vars used in pe
+                        vars = dict([(v.uuid, v) for v in self.get_vistrail_variables()
+                                if v.uuid not in vistrail_vars])
+                        kwargs['vistrail_variables'] = lambda x: vars.get(x, None)
 
-            if showProgress:
-                progress.setValue(totalProgress)
-            if 'pathDumpCells' in extra_info:
-                filename = os.path.join(extra_info['pathDumpCells'],
-                                        os.path.splitext(self.name)[0])
-                assembleThumbnails(images, filename)
-            from vistrails.gui.vistrails_window import _app
-            _app.notify('execution_updated')
+
+                    # Create job
+                    # check if a job exist for this workflow
+                    job_id = 'Parameter Exploration %s %s %s_%s_%s' % ((self.current_version, pe.id) + pipelinePositions[pi])
+
+                    current_workflow = None
+                    for wf in self.jobMonitor.workflows.itervalues():
+                        if job_id == wf.version:
+                            current_workflow = wf
+                            self.jobMonitor.startWorkflow(wf)
+                    if not current_workflow:
+                        current_workflow = JobWorkflow(job_id)
+                        self.jobMonitor.startWorkflow(current_workflow)
+
+                    try:
+                        result = interpreter.execute(modifiedPipelines[pi], **kwargs)
+                    finally:
+                        self.jobMonitor.finishWorkflow()
+
+                    for error in result.errors.itervalues():
+                        if use_spreadsheet:
+                            pp = pipelinePositions[pi]
+                            errors.append(((pp[1], pp[0], pp[2]), error))
+                        else:
+                            errors.append(((0,0,0), error))
+
+                if 'pathDumpCells' in extra_info:
+                    filename = os.path.join(extra_info['pathDumpCells'],
+                                            os.path.splitext(self.name)[0])
+                    assembleThumbnails(images, filename)
+                from vistrails.gui.vistrails_window import _app
+                _app.notify('execution_updated')
+            finally:
+                if showProgress:
+                    self.progress.setValue(totalProgress)
+                    self.progress.hide()
+                    self.progress.deleteLater()
+                    self.progress = None
+
+                    jobView.updating_now = False
+
             return errors
 
 
