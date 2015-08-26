@@ -286,7 +286,6 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             self.updating_now = False
             workflow_item.execute()
             self.updating_now = True
-            jm.finishWorkflow()
             return
 
         job_items = workflow_item.jobs.values() if job is None else [job]
@@ -323,7 +322,6 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.updating_now = False
                 workflow_item.execute()
                 self.updating_now = True
-                jm.finishWorkflow()
                 return
             ret = QtGui.QMessageBox.information(self, "Job Ready",
                     'Pending Jobs in workflow "%s" have finished, '
@@ -334,7 +332,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 self.updating_now = False
                 workflow_item.execute()
                 self.updating_now = True
-                jm.finishWorkflow()
+
     def check_jobs(self, job=None):
         if self.updating_now:
             return
