@@ -1,66 +1,59 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 ##TODO Tests
 """ This module defines the class Pipeline """
+from __future__ import division
+
 from vistrails.core.cache.hasher import Hasher
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.data_structures.bijectivedict import Bidict
 from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
-from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.modules.module_registry import get_module_registry, \
     ModuleRegistryException, MissingModuleVersion, MissingPackage, PortMismatch
-from vistrails.core.system import get_vistrails_default_pkg_prefix, \
-    get_vistrails_basic_pkg_id
+from vistrails.core.system import get_vistrails_basic_pkg_id
 from vistrails.core.utils import VistrailsInternalError
-from vistrails.core.utils import expression, append_to_dict_of_lists
-from vistrails.core.utils.uxml import named_elements
-from vistrails.core.vistrail.abstraction import Abstraction
-from vistrails.core.vistrail.connection import Connection
 from vistrails.core.vistrail.group import Group
-from vistrails.core.vistrail.module import Module
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.plugin_data import PluginData
-from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.db.domain import DBWorkflow
 import vistrails.core.vistrail.action
-from vistrails.core.utils import profile, InvalidPipeline, versions_increasing
+from vistrails.core.utils import InvalidPipeline
 
-from xml.dom.minidom import getDOMImplementation, parseString
 import copy
 
 import unittest
@@ -284,45 +277,6 @@ class Pipeline(DBWorkflow):
     def fresh_connection_id(self):
         return self.get_tmp_id(Connection.vtType)
 
-    def check_connection(self, c):
-        """check_connection(c: Connection) -> boolean 
-        Checks semantics of connection
-          
-        """
-        if c.source.endPoint != Port.SourceEndPoint:
-            return False
-        if c.destination.endPoint != Port.DestinationEndPoint:
-            return False
-        if not self.has_module_with_id(c.sourceId):
-            return False
-        if not self.has_module_with_id(c.destinationId):
-            return False
-        if c.source.type != c.destination.type:
-            return False
-        return True
-    
-    def connects_at_port(self, p):
-        """ connects_at_port(p: Port) -> list of Connection 
-        Returns a list of Connections that connect at port p
-        
-        """
-        result = []
-        if p.endPoint == Port.DestinationEndPoint:
-            el = self.graph.edges_to(p.moduleId)
-            for (edgeto, edgeid) in el:
-                dest = self.connection[edgeid].destination
-                if VTKRTTI().intrinsicPortEqual(dest, p):
-                    result.append(self.connection[edgeid])
-        elif p.endPoint == Port.SourceEndPoint:
-            el = self.graph.edges_from(p.moduleId)
-            for (edgeto, edgeid) in el:
-                source = self.connection[edgeid].source
-                if VTKRTTI().intrinsicPortEqual(source, p):
-                    result.append(self.connection[edgeid])
-        else:
-            raise VistrailsInternalError("port with bogus information")
-        return result
-
     def connections_to_module(self, moduleId):
         """ connections_to_module(int moduleId) -> list of module ids
         returns a list of module ids that are inputs to the given moduleId
@@ -484,7 +438,7 @@ class Pipeline(DBWorkflow):
                                    old_conn.id)
             if self.graph.out_degree(old_conn.sourceId) < 1:
                 self.modules[old_conn.sourceId].connected_output_ports.discard(
-                    conn.source.name)
+                    old_conn.source.name)
             if self.graph.in_degree(old_conn.destinationId) < 1:
                 connected_input_ports = \
                     self.modules[old_conn.destinationId].connected_input_ports
@@ -886,26 +840,6 @@ class Pipeline(DBWorkflow):
         for c in self.connections.iterkeys():
             self.connection_signature(c)
 
-    def get_subpipeline(self, module_set):
-        """get_subpipeline([module_id] or subgraph) -> Pipeline
-
-        Returns a subset of the current pipeline with the modules passed
-        in as module_ids and the internal connections between them."""
-        if isinstance(module_set, list):
-            subgraph = self.graph.subgraph(module_set)
-        elif isinstance(module_set, Graph):
-            subgraph = module_set
-        else:
-            raise TypeError("Expected list of ints or graph")
-        result = Pipeline()
-        for module_id in subgraph.iter_vertices():
-            result.add_module(copy.copy(self.modules[module_id]))
-        for (conn_from, conn_to, conn_id) in subgraph.iter_all_edges():
-            result.add_connection(copy.copy(self.connections[conn_id]))
-                # TODO : I haven't finished this yet. -cscheid
-        raise NotImplementedError
-        return result
-
     ##########################################################################
     # Registry-related
 
@@ -938,7 +872,7 @@ class Pipeline(DBWorkflow):
                         desc = module.module_descriptor
                         if long(module.internal_version) != long(desc.version):
                             exceptions.add(MissingModuleVersion(desc.package, desc.name, desc.namespace, desc.version, desc.package_version, module.id))
-                    except:
+                    except Exception:
                         pass
         try:
             self.ensure_port_specs()
@@ -965,6 +899,8 @@ class Pipeline(DBWorkflow):
             else:
                 self.is_valid = False
                 return False
+
+        self.mark_list_depth()
 
         self.is_valid = True
         return True
@@ -1045,7 +981,7 @@ class Pipeline(DBWorkflow):
         def find_descriptors(pipeline, module_ids=None):
             registry = get_module_registry()
             conf = get_vistrails_configuration()
-            if module_ids == None:
+            if module_ids is None:
                 module_ids = pipeline.modules.iterkeys()
             exceptions = set()
             for mid in module_ids:
@@ -1166,7 +1102,71 @@ class Pipeline(DBWorkflow):
         for module in self.modules.itervalues():
             if module.is_valid and module.is_abstraction():
                 module.check_latest_version()
-                
+
+    def mark_list_depth(self, module_ids=None):
+        """mark_list_depth() -> list
+
+        Updates list_depth variable on each module according to list depth of
+        connecting port specs. This decides at what list depth the module
+        needs to be executed.
+        List ports have default depth 1
+
+        module_ids: list of module_ids - The id:s of modules that have changed
+        All modules upstream of these will be skipped, since markings only
+        affects downstream. This slightly increases performance.
+
+        """
+        result = []
+        is_upstream = module_ids
+        for module_id in self.graph.vertices_topological_sort():
+            if is_upstream:
+                if module_id in module_ids:
+                    is_upstream = False
+                else:
+                    continue
+            module = self.get_module_by_id(module_id)
+            module.list_depth = 0
+            ports = []
+            for module_from_id, conn_id in self.graph.edges_to(module_id):
+                prev_depth = self.get_module_by_id(module_from_id).list_depth
+                conn = self.get_connection_by_id(conn_id)
+                source_depth = 0
+                from vistrails.core.modules.basic_modules import List, Variant
+                if conn.source.spec:
+                    source_depth = conn.source.spec.depth
+                    src_descs = conn.source.spec.descriptors()
+                    # Lists have depth 1 if dest has depth>1 or is a list
+                    if len(src_descs) == 1 and src_descs[0].module == List:
+                        source_depth += 1
+                dest_depth = 0
+                if conn.destination.spec:
+                    dest_depth = conn.destination.spec.depth
+                    dest_descs = conn.destination.spec.descriptors()
+                    # Lists have depth 1
+                    if len(dest_descs) == 1 and dest_descs[0].module == List:
+                        dest_depth += 1
+                    # special case: if src is List and dst is Variant
+                    # we should treat the Variant as having depth 0
+                    if conn.source.spec:
+                        if len(src_descs)==1 and src_descs[0].module == List and \
+                           len(dest_descs)==1 and dest_descs[0].module == Variant:
+                            source_depth -= 1
+                        if len(src_descs)==1 and src_descs[0].module == Variant and \
+                           len(dest_descs)==1 and dest_descs[0].module == List:
+                            dest_depth -= 1
+                depth = prev_depth + source_depth - dest_depth
+                if depth > 0 and conn.destination.spec.name not in ports:
+                    ports.append(conn.destination.spec.name)
+                # if dest depth is greater the input will be wrapped in a
+                # list to match its depth
+                # if source depth is greater this module will be executed
+                # once for each input in the (possibly nested) list
+                module.list_depth = max(module.list_depth, depth)
+            result.append((module_id, module.list_depth))
+            module.iterated_ports = ports
+        return result
+
+
     ##########################################################################
     # Debugging
 
@@ -1274,7 +1274,7 @@ class TestPipeline(unittest.TestCase):
         # make sure pythonCalc is loaded
         from vistrails.core.packagemanager import get_package_manager
         pm = get_package_manager()
-        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no partial
+        if 'pythonCalc' not in pm._package_list: # pragma: no cover # pragma: no branch
             pm.late_enable_package('pythonCalc')
 
     def create_default_pipeline(self, id_scope=None):
@@ -1315,11 +1315,18 @@ class TestPipeline(unittest.TestCase):
                 param.strValue = '4.0'
                 f.params.append(param)
                 return f
+            def cp1():
+                f = ModuleControlParam()
+                f.id = id_scope.getNewId(ModuleControlParam.vtType)
+                f.name = 'cpname1'
+                f.value = 'cpvalue[]'
+                return f
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
-            m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
+            m.package = 'org.vistrails.vistrails.pythoncalc'
             m.functions.append(f1())
+            m.control_parameters.append(cp1())
             return m
         
         def module2(p):
@@ -1336,7 +1343,7 @@ class TestPipeline(unittest.TestCase):
             m = Module()
             m.id = id_scope.getNewId(Module.vtType)
             m.name = 'PythonCalc'
-            m.package = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
+            m.package = 'org.vistrails.vistrails.pythoncalc'
             m.functions.append(f1())
             return m
         m1 = module1(p)
@@ -1470,9 +1477,7 @@ class TestPipeline(unittest.TestCase):
         self.assertNotEquals(p1.id, p3.id)
 
     def test_copy2(self):
-        import vistrails.core.db.io
-
-        # nedd to id modules and abstraction_modules with same counter
+        # need to id modules and abstraction_modules with same counter
         id_scope = IdScope(remap={Abstraction.vtType: Module.vtType})
         
         p1 = self.create_pipeline2(id_scope)
@@ -1548,7 +1553,7 @@ class TestPipeline(unittest.TestCase):
     def test_module_signature(self):
         """Tests signatures for modules with similar (but not equal)
         parameter specs."""
-        pycalc_pkg = '%s.pythoncalc' % get_vistrails_default_pkg_prefix()
+        pycalc_pkg = 'org.vistrails.vistrails.pythoncalc'
         p1 = Pipeline()
         p1_functions = [ModuleFunction(name='value1',
                                        parameters=[ModuleParam(type='Float',
@@ -1597,8 +1602,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.add_module(Module(name='CacheBug', 
-                            package='%s.console_mode_test' % \
-                             get_vistrails_default_pkg_prefix(),
+                            package='org.vistrails.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
 
@@ -1620,8 +1624,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.add_module(Module(name='CacheBug', 
-                            package='%s.console_mode_test' % \
-                             get_vistrails_default_pkg_prefix(),
+                            package='org.vistrails.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
         str(p1)
@@ -1646,14 +1649,6 @@ class TestPipeline(unittest.TestCase):
                              id=0,
                              functions=[]))
         assert p1 == p2
-
-#     def test_subpipeline(self):
-#         p = self.create_default_pipeline()
-#         p2 = p.get_subpipeline([0, 1])
-#         for m in p2.modules:
-#             print m
-#         for c in p2.connections:
-#             print c
 
     def test_incorrect_port_spec(self):
         import vistrails.core.modules.basic_modules

@@ -1,80 +1,61 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 
 """Routines common to Linux and OSX."""
+from __future__ import division
+
 import os
-import os.path
-import stat
 import subprocess
-import sys
-import vistrails.core.utils
-import re
+
+
+__all__ = ['executable_is_in_path', 'list2cmdline', 'execute_cmdline',
+           'get_executable_path', 'execute_piped_cmdlines', 'execute_cmdline2']
+
+###############################################################################
 
 def executable_is_in_path(filename):
-    """executable_is_in_path(filename): string
-    Tests if filename corresponds to an executable file on the path. Returns
-the filename if true, or an empty string if false."""
-    cmdline = ['which','%s' % filename]
-    output = []
-    result = execute_cmdline(cmdline, output)
-    if result == 1:
-        return ""
-    if result != 0:
-        msg = ("'%s' failed. Return code %s. Output: %s" %
-               (cmdline, result, output))
-        raise vistrails.core.utils.VistrailsInternalError(msg)
-    else:
-        output = output[0][:-1]
-        return output
-
-def executable_is_in_pythonpath(filename):
-    """executable_is_in_pythonpath(filename: str)
-    Check if exename can be reached in the PYTHONPATH environment. Return
-    the filename if true, or an empty string if false.
-    
+    """ executable_is_in_path(filename: str) -> string
+    Check if exename can be reached in the PATH environment.
     """
-    pathlist = sys.path
-    for dir in pathlist:
-        fullpath = os.path.join(dir, filename)
-        try:
-            st = os.stat(fullpath)
-        except os.error:
-            continue        
-        if stat.S_ISREG(st[stat.ST_MODE]):
-            return filename
-    return ""
+    pathlist = os.environ['PATH'].split(os.pathsep) + ["."]
+    for path in pathlist:
+        fullpath = os.path.join(path, filename)
+        if os.path.isfile(fullpath):
+            return True
+    return False
 
 def list2cmdline(lst):
     for el in lst:
@@ -94,21 +75,19 @@ def execute_cmdline(lst, output):
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
                                close_fds=True)
-    # cscheid: Should this be busy-waiting? What's going on here?
-    result = None
-    while result == None:
-        result = process.poll()
+    result = process.wait()
     output.extend(process.stdout.readlines())
     return result
 
 def get_executable_path(executable_name):
-    paths = os.environ['PATH']
-    paths = paths.split(os.pathsep)
-    for prefix in paths:
-        path = os.path.join(prefix, executable_name)
-        if os.path.exists(path):
-            return path
-    return None
+    """get_executable_path(executable_name: str) -> str
+    Get the absolute filename of an executable, searching in the PATH.
+    """
+    pathlist = os.environ['PATH'].split(os.pathsep)
+    for path in pathlist:
+        fullpath = os.path.join(path, executable_name)
+        if os.path.isfile(fullpath):
+            return os.path.abspath(fullpath)
 
 def execute_piped_cmdlines(cmd_list_list):
     stdin = subprocess.PIPE
@@ -123,3 +102,6 @@ def execute_piped_cmdlines(cmd_list_list):
     (output, errs) = process.communicate()
     result = process.returncode
     return (result, output, errs)
+
+def execute_cmdline2(cmd_list):
+    return execute_piped_cmdlines([cmd_list])

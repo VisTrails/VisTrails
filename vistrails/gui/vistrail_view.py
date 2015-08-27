@@ -1,53 +1,55 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """ The file describes a container widget consisting of a pipeline
 view and a version tree for each opened Vistrail """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
 from vistrails.core.collection import Collection
-from vistrails.core.debug import critical
-from vistrails.core.data_structures.bijectivedict import Bidict
-from vistrails.core.system import vistrails_default_file_type
+from vistrails.core.system import vistrails_default_file_type, \
+    vistrails_file_directory
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.log.log import Log
 from vistrails.core.log.opm_graph import OpmGraph
 from vistrails.core.log.prov_document import ProvDocument
-from vistrails.core.db.locator import FileLocator, XMLFileLocator
+from vistrails.core.db.locator import XMLFileLocator
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.configuration import get_vistrails_configuration
 
@@ -58,7 +60,6 @@ from vistrails.gui.version_view import QVersionTreeView
 from vistrails.gui.query_view import QQueryView
 from vistrails.gui.paramexplore.pe_view import QParamExploreView
 from vistrails.gui.vis_diff import QDiffView
-from vistrails.gui.paramexplore.param_view import QParameterView
 from vistrails.gui.vistrail_controller import VistrailController
 from vistrails.gui.mashups.mashup_view import QMashupView
 from vistrails.gui.ports_pane import ParameterEntry
@@ -231,8 +232,8 @@ class QVistrailView(QtGui.QWidget):
         try:
             qaction = self.tab_state[self.tabs.currentIndex()]
             qaction.trigger()
-        except:
-            pass
+        except Exception, e:
+            debug.unexpected_exception(e)
         
     def reset_tab_view_to_current(self):
         index = self.tabs.currentIndex()
@@ -356,7 +357,8 @@ class QVistrailView(QtGui.QWidget):
             self.mashup_view.updateView()
             self.tab_to_view[self.tabs.currentIndex()] = self.get_current_tab()
         except Exception, e:
-            print "EXCEPTION: ", str(e)
+            debug.unexpected_exception(e)
+            print "EXCEPTION: ", debug.format_exception(e)
     def mashup_unselected(self):
         #print "MASHUP UN"
         self.stack.setCurrentIndex(
@@ -423,7 +425,6 @@ class QVistrailView(QtGui.QWidget):
                         newPipelineView
                     module.pipeline.ensure_connection_specs()
                     newPipelineView.scene().setupScene(module.pipeline)
-                    newPipelineView.scene().current_pipeline = module.pipeline
 
     def create_view(self, klass, add_tab=True):
         view = klass(self)
@@ -597,12 +598,12 @@ class QVistrailView(QtGui.QWidget):
 
     def view_changed(self):
         from vistrails.gui.vistrails_window import _app
-        _app.closeNotPinPalettes()
         #view = self.stack.currentWidget()
         view = self.get_current_outer_tab()
         #print "changing tab from: ",self.current_tab, " to ", view
         #print self.tab_to_stack_idx
         if view != self.current_tab:
+            _app.closeNotPinPalettes()
             #print "!!unset_action_links of ", self.current_tab
             _app.unset_action_links(self.current_tab)
             self.current_tab = view
@@ -616,10 +617,10 @@ class QVistrailView(QtGui.QWidget):
             #print "\n!!set_action_links of ", self.current_tab 
             _app.set_action_links(self.current_tab.action_links, self.current_tab,
                                   self)
+            self.showCurrentViewPalettes()
 
         #else:
            # print "tabs the same. do nothing"
-        self.showCurrentViewPalettes()
         if isinstance(view, QQueryView):
             _app.notify("controller_changed", view.p_controller)
             _app.notify("entry_klass_changed", QueryEntry)
@@ -689,7 +690,7 @@ class QVistrailView(QtGui.QWidget):
         self.set_to_current(view)
         
     def set_to_current(self, view):
-        from vistrails.gui.vistrails_window import _app, QVistrailViewWindow
+        from vistrails.gui.vistrails_window import _app
         if isinstance(view, QDiffView):
             view.set_to_current()
             #print "view changed!", self.controller, \
@@ -889,6 +890,7 @@ class QVistrailView(QtGui.QWidget):
         #print "CALLED SAVE VISTRAIL", locator_class
 
         self.flush_changes()
+        self.controller.flush_delayed_actions()
         gui_get = locator_class.save_from_gui
         # get a locator to write to
         if not locator or locator.is_untitled():
@@ -901,12 +903,9 @@ class QVistrailView(QtGui.QWidget):
             return False
         try:
             self.controller.write_vistrail(locator, export=export)
-        except Exception, e:
-            import traceback
-            debug.critical('Failed to save vistrail: %s' % str(e),
-                           traceback.format_exc())
+        except Exception:
+            debug.critical('Failed to save vistrail', debug.format_exc())
             raise
-            return False
         if export:
             return self.controller.locator
         
@@ -932,9 +931,8 @@ class QVistrailView(QtGui.QWidget):
             # add to relevant workspace categories
             collection.add_to_workspace(entity)
             collection.commit()
-        except Exception, e:
-            import traceback
-            debug.critical('Failed to index vistrail', traceback.format_exc())
+        except Exception:
+            debug.critical('Failed to index vistrail', debug.format_exc())
 
         from vistrails.gui.vistrails_window import _app
         # update recent files menu items
@@ -955,26 +953,15 @@ class QVistrailView(QtGui.QWidget):
         """ Exports vistrail without updating the current vistrail """
         self.save_vistrail(locator_class, force_choose_locator=True, export=True)
 
-    def export_stable(self, locator_class=XMLFileLocator,
-                      force_choose_locator=True):
-        """ save vistrail to previous stable version """
+    def export_stable(self, locator_class=XMLFileLocator):
+        """ save workflow to previous stable version """
         self.flush_changes()
         gui_get = locator_class.save_from_gui
-        if force_choose_locator:
-            locator = gui_get(self, Vistrail.vtType,
-                              self.controller.locator)
-        else:
-            locator = (self.controller.locator or
-                      gui_get(self, Vistrail.vtType, self.controller.locator))
-        if locator is not None and locator.is_untitled():
-            locator = gui_get(self, Vistrail.vtType,
-                              self.controller.locator)
+        locator = gui_get(self, Pipeline.vtType)
         if not locator:
             return False
-        self.controller.write_vistrail(locator, '1.0.2', True)
+        self.controller.write_workflow(locator, '1.0.3')
         return True
-
-
 
     # FIXME normalize workflow/log/registry!!!
     def save_workflow(self, locator_class, force_choose_locator=True):
@@ -1025,6 +1012,16 @@ class QVistrailView(QtGui.QWidget):
         if not locator:
             return False
         self.controller.write_registry(locator)
+
+    def save_version_graph(self):
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self.window(),
+            "Save DOT...",
+            vistrails_file_directory(),
+            "Graphviz DOT files (*.dot)")
+        if not filename:
+            return
+        self.controller.save_version_graph(filename)
 
 
     def save_opm(self, locator_class=XMLFileLocator, 

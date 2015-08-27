@@ -1,58 +1,58 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 # Check for testing
 """ This module defines the class Module 
 """
+from __future__ import division
+
 import copy
 from itertools import izip
 import weakref
 
 from vistrails.db.domain import DBModule
-from vistrails.core.data_structures.point import Point
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.location import Location
+from vistrails.core.vistrail.module_control_param import ModuleControlParam
 from vistrails.core.vistrail.module_function import ModuleFunction
 from vistrails.core.vistrail.module_param import ModuleParam
-from vistrails.core.vistrail.port import Port, PortEndPoint
 from vistrails.core.vistrail.port_spec import PortSpec
-from vistrails.core.utils import NoSummon, VistrailsInternalError, report_stack
-from vistrails.core.modules.module_descriptor import OverloadedPort
-from vistrails.core.modules.module_registry import get_module_registry, ModuleRegistry
+from vistrails.core.utils import NoSummon
+from vistrails.core.modules.module_registry import get_module_registry
 
 import unittest
-import vistrails.core
 
 ################################################################################
 
@@ -93,6 +93,8 @@ class Module(DBModule):
             self.is_watched = False
             self._descriptor_info = None
             self._module_descriptor = None
+            self.list_depth = 0
+            self.iterated_ports = []
         else:
             self.portVisible = copy.copy(other.portVisible)
             self.visible_input_ports = copy.copy(other.visible_input_ports)
@@ -104,6 +106,8 @@ class Module(DBModule):
             self.is_breakpoint = other.is_breakpoint
             self.is_watched = other.is_watched
             self._descriptor_info = None
+            self.list_depth = other.list_depth
+            self.iterated_ports = other.iterated_ports
             self._module_descriptor = other._module_descriptor
         if not self.namespace:
             self.namespace = None
@@ -142,18 +146,22 @@ class Module(DBModule):
             ModuleFunction.convert(_function)
         for _annotation in _module.db_get_annotations():
             Annotation.convert(_annotation)
+        for _control_parameter in _module.db_get_controlParameters():
+            ModuleControlParam.convert(_control_parameter)
         _module.set_defaults()
 
     ##########################################################################
     # CONSTANTS
         
     VISTRAIL_VAR_ANNOTATION = '__vistrail_var__'
+    INLINE_WIDGET_ANNOTATION = '__inline_widgets__'
 
     ##########################################################################
 
     id = DBModule.db_id
     cache = DBModule.db_cache
     annotations = DBModule.db_annotations
+    control_parameters = DBModule.db_controlParameters
     location = DBModule.db_location
     center = DBModule.db_location
     name = DBModule.db_name
@@ -187,6 +195,14 @@ class Module(DBModule):
         return self.db_has_annotation_with_key(key)
     def get_annotation_by_key(self, key):
         return self.db_get_annotation_by_key(key)        
+    def add_control_parameter(self, controlParameter):
+        self.db_add_controlParameter(controlParameter)
+    def delete_control_parameter(self, controlParameter):
+        self.db_delete_controlParameter(controlParameter)
+    def has_control_parameter_with_name(self, name):
+        return self.db_has_controlParameter_with_name(name)
+    def get_control_parameter_by_name(self, name):
+        return self.db_get_controlParameter_by_name(name)
     def toggle_breakpoint(self):
         self.is_breakpoint = not self.is_breakpoint
     def toggle_watched(self):
@@ -227,7 +243,7 @@ class Module(DBModule):
     input_port_specs = property(_get_input_port_specs)
     def _get_output_port_specs(self):
         return sorted(self._output_port_specs, 
-                      key=lambda x: (x.sort_key, x.id), reverse=True)
+                      key=lambda x: (x.sort_key, x.id))
     output_port_specs = property(_get_output_port_specs)
 
     def _get_descriptor_info(self):
@@ -250,6 +266,18 @@ class Module(DBModule):
     module_descriptor = property(_get_module_descriptor, 
                                  _set_module_descriptor)
 
+    def _get_editable_input_ports(self):
+        if self.has_annotation_with_key(Module.INLINE_WIDGET_ANNOTATION):
+            values = self.get_annotation_by_key(
+                             Module.INLINE_WIDGET_ANNOTATION).value.split(',')
+            return set() if values == [''] else set(values)
+        elif get_module_registry(
+                   ).is_constant_module(self.module_descriptor.module):
+            # Show value by default on constant modules
+            return set(['value'])
+        return set()
+    editable_input_ports = property(_get_editable_input_ports)
+
     def get_port_spec(self, port_name, port_type):
         """get_port_spec(port_name: str, port_type: str: ['input' | 'output'])
              -> PortSpec
@@ -270,14 +298,8 @@ class Module(DBModule):
 
     def summon(self):
         result = self.module_descriptor.module()
-        if self.cache != 1:
-            result.is_cacheable = lambda *args: False
-        if hasattr(result, 'input_ports_order'):
-            result.input_ports_order = [p.name for p in self.input_port_specs]
-        if hasattr(result, 'output_ports_order'):
-            result.output_ports_order = [p.name for p in self.output_port_specs]
-            # output_ports are reversed for display purposes...
-            result.output_ports_order.reverse()
+        result.transfer_attrs(self)
+
         # FIXME this may not be quite right because we don't have self.registry
         # anymore.  That said, I'm not sure how self.registry would have
         # worked for hybrids...
@@ -356,13 +378,14 @@ class Module(DBModule):
             if self.namespace:
                 return self.namespace + '|' + self.name
             return self.name
-        return ("(Module '%s:%s' id=%s functions:%s port_specs:%s annotations:%s)@%X" %
+        return ("(Module '%s:%s' id=%s functions:%s port_specs:%s annotations:%s control_parameters:%s)@%X" %
                 (self.package,
                  get_name(),
                  self.id,
                  [str(f) for f in self.functions],
                  [str(port_spec) for port_spec in self.db_portSpecs],
                  [str(a) for a in self.annotations],
+                 [str(c) for c in self.control_parameters],
                  id(self)))
 
     def __eq__(self, other):
@@ -387,10 +410,15 @@ class Module(DBModule):
             return False
         if len(self.annotations) != len(other.annotations):
             return False
+        if len(self.control_parameters) != len(other.control_parameters):
+            return False
         for f, g in izip(self.functions, other.functions):
             if f != g:
                 return False
         for f, g in izip(self.annotations, other.annotations):
+            if f != g:
+                return False
+        for f, g in izip(self.control_parameters, other.control_parameters):
             if f != g:
                 return False
         return True
@@ -420,10 +448,14 @@ class TestModule(unittest.TestCase):
         functions = [ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
                                     name='value',
                                     parameters=params)]
+        control_parameters = [ModuleControlParam(id=id_scope.getNewId(ModuleControlParam.vtType),
+                                  name='combiner',
+                                  value='pairwise')]
         module = Module(id=id_scope.getNewId(Module.vtType),
                         name='Float',
                         package=basic_pkg,
-                        functions=functions)
+                        functions=functions,
+                        controlParameters=control_parameters)
         return module
 
     def test_copy(self):

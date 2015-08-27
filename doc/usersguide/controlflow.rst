@@ -127,7 +127,7 @@ structure.
 
   You will set some parameters now:
 
-  * ``HTTPFile``: set the parameter "url" to http://www.sci.utah.edu/~cscheid/stuff/head.120.vtk
+  * ``DownloadFile``: set the parameter "url" to http://www.sci.utah.edu/~cscheid/stuff/head.120.vtk
   * ``List``: set the parameter "value" to *[0]*
   * ``Map``: set the parameter "InputPort" to *["SetValue"]* and the parameter "OutputPort" to *GetSurfaceArea*
 
@@ -388,7 +388,7 @@ that will be executed if the input is a structure identifier.
    text = '</BODY></HTML>'
    f.write(text)
 
-   self.setResult('html', f)
+   self.set_output('html', f)
 
    f.close()
 
@@ -472,6 +472,8 @@ the previous run.
   Euclid's algorithm. Keep in mind that |vistrails| is meant for data-oriented
   workflows and that we are twisting it's execution model a little, but this
   will demonstrate the functionality should you actually need it.
+
+  Note that you can find the completed example here: :vtl:`gcd.vt`.
 
   The modules we are going to need are:
 

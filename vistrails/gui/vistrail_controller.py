@@ -1,85 +1,100 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from __future__ import division
+
+import copy
+import math
+import os
+import uuid
+
 from PyQt4 import QtCore, QtGui
-from vistrails.core.common import *
+
+import vistrails.core.analogy
 from vistrails.core.configuration import get_vistrails_configuration
+from vistrails.core.data_structures.graph import Graph
 from vistrails.core import debug
 import vistrails.core.db.action
-import vistrails.core.db.locator
-import vistrails.core.modules.vistrails_module
-from vistrails.core.utils import VistrailsInternalError, InvalidPipeline
+from vistrails.core.interpreter.default import get_default_interpreter
+from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.core.layout.version_tree_layout import VistrailsTreeLayoutLW
 from vistrails.core.log.opm_graph import OpmGraph
 from vistrails.core.log.prov_document import ProvDocument
 from vistrails.core.modules.abstraction import identifier as abstraction_pkg
-from vistrails.core.modules.module_registry import get_module_registry, MissingPort
-from vistrails.core.modules.package import Package
-from vistrails.core.packagemanager import PackageManager
+from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.param_explore import ActionBasedParameterExploration
 from vistrails.core.query.version import TrueSearch
 from vistrails.core.query.visual import VisualQuery
-from vistrails.core.param_explore import ActionBasedParameterExploration
+from vistrails.core.utils import DummyView, VistrailsInternalError, InvalidPipeline
 import vistrails.core.system
-
-from vistrails.core.vistrail.annotation import Annotation
-from vistrails.core.vistrail.controller import VistrailController as BaseController, \
-    vt_action
-from vistrails.core.vistrail.location import Location
-from vistrails.core.vistrail.module import Module
-from vistrails.core.vistrail.module_function import ModuleFunction
-from vistrails.core.vistrail.module_param import ModuleParam
+from vistrails.core.vistrail.controller import VistrailController as BaseController
 from vistrails.core.vistrail.pipeline import Pipeline
-from vistrails.core.vistrail.port_spec import PortSpec
 from vistrails.core.vistrail.vistrail import Vistrail, TagExists
-from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.gui.pipeline_view import QPipelineView
 from vistrails.gui.theme import CurrentTheme
+import vistrails.gui.utils
 from vistrails.gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from vistrails.gui.version_prop import QVersionProp
 
-import vistrails.core.analogy
-import copy
-import os.path
-import math
 
-import unittest
-import vistrails.gui.utils
-import vistrails.api
-import os
-from vistrails.core.utils import DummyView
 
 ################################################################################
+
+class ExecutionProgressDialog(QtGui.QProgressDialog):
+    def __init__(self, parent=None):
+        QtGui.QProgressDialog.__init__(self, 'Executing Workflow',
+                                       '&Cancel',
+                                       0, 100,
+                                       parent, QtCore.Qt.Dialog)
+        self.setWindowTitle('Executing')
+        self.setWindowModality(QtCore.Qt.WindowModal)
+        self._last_set_value = 0
+        self._progress_canceled = False
+        # if suspended is true we should not wait for a job to complete
+        self.suspended = False
+
+    def setValue(self, value):
+        self._last_set_value = value
+        super(ExecutionProgressDialog, self).setValue(value)
+
+    def goOn(self):
+        self.reset()
+        self.show()
+        super(ExecutionProgressDialog, self).setValue(self._last_set_value)
+
 
 class VistrailController(QtCore.QObject, BaseController):
     """
@@ -135,6 +150,8 @@ class VistrailController(QtCore.QObject, BaseController):
         self.reset_pipeline_view = False
         self.reset_version_view = True
         self.quiet = False
+        self.progress = None
+        self.create_job = False
         
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
@@ -143,8 +160,6 @@ class VistrailController(QtCore.QObject, BaseController):
         self.timer = None
         if self._auto_save:
             self.setup_timer()
-        
-        self._previous_graph_layout = None
 
         def width_f(text):
             return CurrentTheme.VERSION_FONT_METRIC.width(text)
@@ -153,7 +168,6 @@ class VistrailController(QtCore.QObject, BaseController):
                                   CurrentTheme.VERSION_FONT_METRIC.height(), 
                                   CurrentTheme.VERSION_LABEL_MARGIN[0], 
                                   CurrentTheme.VERSION_LABEL_MARGIN[1])
-        self.animate_layout = False
         #this was moved to BaseController
         #self.num_versions_always_shown = 1
         BaseController.__init__(self, vistrail, locator, abstractions, 
@@ -221,7 +235,6 @@ class VistrailController(QtCore.QObject, BaseController):
         
         """
         self.reset_version_view = reset_version_view
-        self.animate_layout = animate_layout
         #FIXME: in the future, rename the signal
         try:
             self.emit(QtCore.SIGNAL('vistrailChanged()'))
@@ -252,7 +265,7 @@ class VistrailController(QtCore.QObject, BaseController):
     def get_locator(self):
         from vistrails.gui.application import get_vistrails_application
         if (self._auto_save and 
-            get_vistrails_application().configuration.check('autosave')):
+            get_vistrails_application().configuration.check('autoSave')):
             if self.locator is None:
                 raise ValueError("locator is None")
             return self.locator
@@ -330,16 +343,18 @@ class VistrailController(QtCore.QObject, BaseController):
         return self.create_abstraction(module_ids, connection_ids, name)
 
     def update_notes(self, notes):
-        """
-        Parameters
-        ----------
+        # Find current location of notes
+        notes_version = self.vistrail.search_upgrade_versions(
+                self.current_version,
+                lambda vt, v, bv: v if vt.get_notes(v) else None)
 
-        - notes : 'string'
-        
-        """
-        self.flush_delayed_actions()
-        
-        if self.vistrail.set_notes(self.current_version, str(notes)):
+        # Remove notes
+        if notes_version is not None:
+            self.vistrail.set_notes(notes_version, None)
+
+        # Add notes
+        if self.vistrail.set_notes(self.current_base_version, str(notes)):
+            self.set_changed(True)
             self.emit(QtCore.SIGNAL('notesChanged()'))
 
     ##########################################################################
@@ -358,28 +373,87 @@ class VistrailController(QtCore.QObject, BaseController):
         return (results, changed)
 
     def execute_current_workflow(self, custom_aliases=None, custom_params=None,
-                                 reason='Pipeline Execution', sinks=None):
+                                 extra_info=None, reason='Pipeline Execution',
+                                 sinks=None):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
         """
         self.flush_delayed_actions()
+
+        if self.create_job:
+            version_id = self.current_version
+            # check if a job exist for this workflow
+            current_workflow = None
+            for wf in self.jobMonitor.workflows.itervalues():
+                try:
+                    wf_version = int(wf.version)
+                except ValueError:
+                    wf_version = self.vistrail.get_version_number(wf.version)
+                if version_id == wf_version:
+                    current_workflow = wf
+                    self.jobMonitor.startWorkflow(wf)
+            if not current_workflow:
+                current_workflow = JobWorkflow(version_id)
+                self.jobMonitor.startWorkflow(current_workflow)
+            self.create_job = False
+
         if self.current_pipeline:
             locator = self.get_locator()
             if locator:
                 locator.clean_temporaries()
                 locator.save_temporary(self.vistrail)
-            return self.execute_workflow_list([(self.locator,
-                                         self.current_version,
-                                         self.current_pipeline,
-                                         self.current_pipeline_scene,
-                                         custom_aliases,
-                                         custom_params,
-                                         reason,
-                                         sinks,
-                                         None)])
+            try:
+                return self.execute_workflow_list([(self.locator,
+                                             self.current_version,
+                                             self.current_pipeline,
+                                             self.current_pipeline_scene,
+                                             custom_aliases,
+                                             custom_params,
+                                             reason,
+                                             sinks,
+                                             extra_info)])
+            except Exception, e:
+                debug.unexpected_exception(e)
+                raise
         return ([], False)
-    
+
+
+    def execute_user_workflow(self, reason='Pipeline Execution', sinks=None):
+        """ execute_user_workflow() -> None
+        Execute the current workflow (if exists) and monitors it if it contains jobs
+        
+        """
+
+        # reset job view
+        from vistrails.gui.job_monitor import QJobView
+        jobView = QJobView.instance()
+        if jobView.updating_now:
+            debug.critical("Execution Aborted: Job Monitor is updating. "
+                           "Please wait a few seconds and try again.")
+            return
+        jobView.updating_now = True
+
+        try:
+            self.progress = ExecutionProgressDialog(self.vistrail_view)
+            self.progress.show()
+
+            if not self.jobMonitor.currentWorkflow():
+                self.create_job = True
+
+            result =  self.execute_current_workflow(reason=reason, sinks=sinks)
+
+            self.progress.setValue(100)
+        finally:
+            self.progress.hide()
+            self.progress.deleteLater()
+            self.progress = None
+            self.create_job = False
+            self.jobMonitor.finishWorkflow()
+            jobView.updating_now = False
+
+        return result
+
     def enable_missing_package(self, identifier, deps):
         configuration = get_vistrails_configuration()
         if getattr(configuration, 'enablePackagesSilently', False):
@@ -388,7 +462,8 @@ class VistrailController(QtCore.QObject, BaseController):
         msg = "VisTrails needs to enable package '%s'." % identifier
         if len(deps) > 0:
             msg += (" This will also enable the dependencies: %s." 
-                    " Do you want to enable these packages?") % str(deps)
+                    " Do you want to enable these packages?" % (
+                    ", ".join(deps),))
         else:
             msg += " Do you want to enable this package?"
         res = show_question('Enable package?',
@@ -396,9 +471,6 @@ class VistrailController(QtCore.QObject, BaseController):
                             [YES_BUTTON, NO_BUTTON], 
                             YES_BUTTON)
         if res == NO_BUTTON:
-#             QtGui.QMessageBox.warning(get_vistrails_application().builderWindow,
-#                                       'Missing modules',
-#                                       'Some necessary modules will be missing.')
             return False
         return True
 
@@ -441,9 +513,8 @@ class VistrailController(QtCore.QObject, BaseController):
             self.do_version_switch(new_version, report_all_errors,
                                    do_validate, from_root)
         except InvalidPipeline, e:
-            from vistrails.gui.application import get_vistrails_application
-
-
+#            from vistrails.gui.application import get_vistrails_application
+#
 #             def process_err(err):
 #                 if isinstance(err, Package.InitializationFailed):
 #                     QtGui.QMessageBox.critical(
@@ -486,11 +557,11 @@ class VistrailController(QtCore.QObject, BaseController):
 #                                           "construct this workflow.")
 #                msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
 #                msg_box.setDefaultButton(QtGui.QMessageBox.Ok)
-#                msg_box.setDetailedText(str(e))
+#                msg_box.setDetailedText(debug.format_exception(e))
 #                msg_box.exec_()
                 # text = "The current workflow could not be validated."
-                # debug.critical('%s\n%s' % (text, str(e)))
-                debug.critical(str(e))
+                # debug.critical(text, e)
+                debug.critical("Error changing version", e)
 
 #                 print 'got to exception set'
 #                 # Process all errors as usual
@@ -501,10 +572,9 @@ class VistrailController(QtCore.QObject, BaseController):
 #                 else:
 #                     process_err(exception_set.__iter__().next())
 
-        except Exception, e:
-            import traceback
-            debug.critical('Unexpected Exception\n%s' % str(e), 
-                           traceback.format_exc())
+        except Exception:
+            debug.critical('Unexpected Exception',
+                           debug.format_exc())
         
         # FIXME: this code breaks undo/redo, and seems to be ok with normal
         # pipeline manipulations so I am leaving it commented out for now
@@ -560,7 +630,6 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def recompute_terse_graph(self):
         BaseController.recompute_terse_graph(self)
-        self._previous_graph_layout = copy.deepcopy(self._current_graph_layout)
         self._current_graph_layout.layout_from(self.vistrail,
                                                self._current_terse_graph)
 
@@ -574,83 +643,8 @@ class VistrailController(QtCore.QObject, BaseController):
         if self._current_full_graph is None:
             self.recompute_terse_graph()
 
-        if not self.animate_layout:
-            return (self._current_terse_graph, self._current_full_graph,
-                    self._current_graph_layout)
-
-        graph_layout = copy.deepcopy(self._current_graph_layout)
-        terse_graph = copy.deepcopy(self._current_terse_graph)
-        am = self.vistrail.actionMap
-        step = 1.0/(1.0+math.exp(-(step*12-6))) # use a logistic sigmoid function
-        
-        # Adding nodes to tree
-        for (c_id, c_node) in self._current_graph_layout.nodes.iteritems():
-            if self._previous_graph_layout.nodes.has_key(c_id):
-                p_node = self._previous_graph_layout.nodes[c_id]
-            else: 
-                p_id = c_id
-                # Find closest child of contained in both graphs
-                while not self._previous_graph_layout.nodes.has_key(p_id):
-                    # Should always have exactly one child
-                    p_id = [to for (to, _) in \
-                                self._current_full_graph.adjacency_list[p_id]
-                            if (to in am) and \
-                                not self.vistrail.is_pruned(to)][0]
-                p_node = self._previous_graph_layout.nodes[p_id]
-
-            # Interpolate position
-            x = p_node.p.x - c_node.p.x
-            y = p_node.p.y - c_node.p.y
-            graph_layout.move_node(c_id, x*(1.0-step), y*(1.0-step))
-            
-        # Removing nodes from tree
-        for (p_id, p_node) in self._previous_graph_layout.nodes.iteritems():
-            if not self._current_graph_layout.nodes.has_key(p_id):
-                # Find closest parent contained in both graphs
-                shared_parent = p_id
-                while (shared_parent > 0 and 
-                       shared_parent not in self._current_graph_layout.nodes):
-                    shared_parent = \
-                        self._current_full_graph.parent(shared_parent)
-
-                # Find closest child contained in both graphs
-                c_id = p_id
-                while not self._current_graph_layout.nodes.has_key(c_id):
-                    # Should always have exactly one child
-                    c_id = [to for (to, _) in \
-                                self._current_full_graph.adjacency_list[c_id]
-                            if (to in am) and \
-                                not self.vistrail.is_pruned(to)][0]
-                    
-                # Don't show edge that skips the disappearing nodes
-                if terse_graph.has_edge(shared_parent, c_id):
-                    terse_graph.delete_edge(shared_parent, c_id)
-
-                # Add the disappearing node to the graph and layout
-                c_node = copy.deepcopy(self._current_graph_layout.nodes[c_id])
-                c_node.id = p_id
-                graph_layout.add_node(p_id, c_node)
-                terse_graph.add_vertex(p_id)
-                p_parent = self._current_full_graph.parent(p_id)
-                if not terse_graph.has_edge(p_id, p_parent):
-                    terse_graph.add_edge(p_parent, p_id)
-                p_child = p_id
-                while p_child not in self._current_graph_layout.nodes:
-                    # Should always have exactly one child
-                    p_child = [to for (to, _) in \
-                                   self._current_full_graph.adjacency_list[p_child]
-                               if (to in am) and \
-                                   not self.vistrail.is_pruned(to)][0]
-                if not terse_graph.has_edge(p_id, p_child):
-                    terse_graph.add_edge(p_id, p_child)
-
-                # Interpolate position
-                x = p_node.p.x - c_node.p.x
-                y = p_node.p.y - c_node.p.y
-                graph_layout.move_node(p_id, x*(1.0-step), y*(1.0-step))
-
-        return (terse_graph, self._current_full_graph,
-                graph_layout)
+        return (self._current_terse_graph, self._current_full_graph,
+                self._current_graph_layout)
 
     ##########################################################################
     # undo/redo navigation
@@ -722,207 +716,6 @@ class VistrailController(QtCore.QObject, BaseController):
 
         """
         self._change_version_short_hop(which_child)
-        
-
-    def prune_versions(self, versions):
-        """ prune_versions(versions: list of version numbers) -> None
-        Prune all versions in 'versions' out of the view
-        
-        """
-        # We need to go up-stream to the highest invisible node
-        current = self._current_terse_graph
-        if not current:
-            (current, full, layout) = self.refine_graph()
-        else:
-            full = self._current_full_graph
-        changed = False
-        new_current_version = None
-        for v in versions:
-            if v!=0: # not root
-                highest = v
-                while True:
-                    p = full.parent(highest)
-                    if p==-1:
-                        break
-                    if p in current.vertices:
-                        break
-                    highest = p
-                if highest!=0:
-                    changed = True
-                    if highest == self.current_version:
-                        new_current_version = full.parent(highest)
-                self.vistrail.pruneVersion(highest)
-        if changed:
-            self.set_changed(True)
-        if new_current_version is not None:
-            self.change_selected_version(new_current_version)
-        self.recompute_terse_graph()
-        self.invalidate_version_tree(False)
-
-    def hide_versions_below(self, v=None):
-        """ hide_versions_below(v: int) -> None
-        Hide all versions including and below v
-        
-        """
-        if v is None:
-            v = self.current_version
-        full = self.vistrail.getVersionGraph()
-        x = [v]
-
-        am = self.vistrail.actionMap
-
-        changed = False
-
-        while 1:
-            try:
-                current=x.pop()
-            except IndexError:
-                break
-
-            children = [to for (to, _) in full.adjacency_list[current]
-                        if (to in am) and \
-                            not self.vistrail.is_pruned(to)]
-            self.vistrail.hideVersion(current)
-            changed = True
-
-            for child in children:
-                x.append(child)
-
-        if changed:
-            self.set_changed(True)
-        self.recompute_terse_graph()
-        self.invalidate_version_tree(False, False) 
-
-    def show_all_versions(self):
-        """ show_all_versions() -> None
-        Unprune (graft?) all pruned versions
-
-        """
-        full = self.vistrail.getVersionGraph()
-        am = self.vistrail.actionMap
-        for a in am.iterkeys():
-            self.vistrail.showVersion(a)
-        self.set_changed(True)
-        self.recompute_terse_graph()
-        self.invalidate_version_tree(False, False)
-
-    def expand_versions(self, v1, v2):
-        """ expand_versions(v1: int, v2: int) -> None
-        Expand all versions between v1 and v2
-        
-        """
-        full = self.vistrail.getVersionGraph()
-        changed = False
-        p = full.parent(v2)
-        while p>v1:
-            self.vistrail.expandVersion(p)
-            changed = True
-            p = full.parent(p)
-        if changed:
-            self.set_changed(True)
-        self.recompute_terse_graph()
-        self.invalidate_version_tree(False, True)
-
-    def collapse_versions(self, v):
-        """ collapse_versions(v: int) -> None
-        Collapse all versions including and under version v until the next tag or branch
-        
-        """
-        full = self.vistrail.getVersionGraph()
-        x = [v]
-
-        am = self.vistrail.actionMap
-        tm = self.vistrail.get_tagMap()
-
-        changed = False
-
-        while 1:
-            try:
-                current=x.pop()
-            except IndexError:
-                break
-
-            children = [to for (to, _) in full.adjacency_list[current]
-                        if (to in am) and not self.vistrail.is_pruned(to)]
-            if len(children) > 1:
-                break;
-            self.vistrail.collapseVersion(current)
-            changed = True
-
-            for child in children:
-                if (not child in tm and  # has no Tag
-                    child != self.current_version): # not selected
-                    x.append(child)
-
-        if changed:
-            self.set_changed(True)
-        self.recompute_terse_graph()
-        self.invalidate_version_tree(False, True) 
-
-    def expand_or_collapse_all_versions_below(self, v=None, expand=True):
-        """ expand_or_collapse_all_versions_below(v: int) -> None
-        Expand/Collapse all versions including and under version v
-        
-        """
-        if v is None:
-            v = self.current_version
-
-        full = self.vistrail.getVersionGraph()
-        x = [v]
-        
-        am = self.vistrail.actionMap
-
-        changed = False
-
-        while 1:
-            try:
-                current=x.pop()
-            except IndexError:
-                break
-
-            children = [to for (to, _) in full.adjacency_list[current]
-                        if (to in am) and not self.vistrail.is_pruned(to)]
-            if expand:
-                self.vistrail.expandVersion(current)
-            else:
-                self.vistrail.collapseVersion(current)
-            changed = True
-
-            for child in children:
-                x.append(child)
-
-        if changed:
-            self.set_changed(True)
-        self.recompute_terse_graph()
-        self.invalidate_version_tree(False, True) 
-
-    def expand_all_versions_below(self, v=None):
-        self.expand_or_collapse_all_versions_below(v, True)
-
-    def collapse_all_versions_below(self, v=None):
-        self.expand_or_collapse_all_versions_below(v, False)
-
-    def collapse_all_versions(self):
-        """ collapse_all_versions() -> None
-        Collapse all expanded versions
-
-        """
-        am = self.vistrail.actionMap
-        for a in am.iterkeys():
-            self.vistrail.collapseVersion(a)
-        self.set_changed(True)
-        self.recompute_terse_graph()
-        self.invalidate_version_tree(False, True)
-
-    def set_num_versions_always_shown(self, num):
-        """ set_num_versions_always_shown(num: int) -> None
-
-        """
-        if num <> self.num_versions_always_shown:
-            self.num_versions_always_shown = num
-            self.set_changed(True)
-            self.recompute_terse_graph()
-            self.invalidate_version_tree(False)
 
     def setSavedQueries(self, queries):
         """ setSavedQueries(queries: list of (str, str, str)) -> None
@@ -932,22 +725,38 @@ class VistrailController(QtCore.QObject, BaseController):
         self.vistrail.setSavedQueries(queries)
         self.set_changed(True)
         
-    def update_current_tag(self,tag):
+    def update_current_tag(self, tag):
         """ update_current_tag(tag: str) -> Bool
         Update the current vistrail tag and return success predicate
         
         """
         self.flush_delayed_actions()
-        try:
-            if self.vistrail.hasTag(self.current_version):
-                self.vistrail.changeTag(tag, self.current_version)
-            else:
-                self.vistrail.addTag(tag, self.current_version)
-        except TagExists:
-            show_warning('Name Exists',
-                         "There is already another version named '%s'.\n"
-                         "Please enter a different one." % tag)
+
+        # Find current location of tag
+        tag_version = self.vistrail.search_upgrade_versions(
+                self.current_version,
+                lambda vt, v, bv: v if vt.has_tag(v) else None)
+
+        # No change in tag: return
+        if (tag_version is not None and
+                self.vistrail.getVersionName(tag_version) == tag):
+            return True
+
+        # This tag already exists elsewhere: error
+        if self.vistrail.has_tag_str(tag):
+            show_warning("Name Exists",
+                         "There is another version named '%s'.\n"
+                         "Please enter a different name." % tag)
             return False
+
+        # Remove current tag
+        self.vistrail.set_tag(tag_version, None)
+
+        if self.vistrail.hasTag(self.current_version):
+            self.vistrail.changeTag(tag, self.current_base_version)
+        else:
+            self.vistrail.addTag(tag, self.current_base_version)
+
         self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False)
@@ -977,7 +786,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.invalidate_version_tree(False)
 
     def get_pipeline_name(self, version=None):
-        if version == None:
+        if version is None:
             version = self.current_version
         return self.vistrail.get_pipeline_name(version)
 
@@ -1049,7 +858,6 @@ class VistrailController(QtCore.QObject, BaseController):
         remove_duplicate_aliases(pipeline)
 
         modules = []
-        connections = []
         if pipeline:
             def process_group(group):
                 # reset pipeline id for db
@@ -1075,10 +883,7 @@ class VistrailController(QtCore.QObject, BaseController):
                        if (op.what == 'module' or 
                            op.what == 'abstraction' or
                            op.what == 'group')]
-            connections = [op.objectId
-                           for op in action.operations
-                           if op.what == 'connection']
-                
+
             self.add_new_action(action)
             self.vistrail.change_description("Paste", action.id)
             self.perform_action(action)
@@ -1141,10 +946,34 @@ class VistrailController(QtCore.QObject, BaseController):
         if dir_name:
             return None
         dir_name = os.path.abspath(str(dir_name))
-        setattr(get_vistrails_configuration(), 'fileDirectory', dir_name)
+        setattr(get_vistrails_configuration(), 'fileDir', dir_name)
         vistrails.core.system.set_vistrails_file_directory(dir_name)
         return dir_name
-    
+
+    def create_abstractions_from_groups(self, group_ids):
+        for group_id in group_ids:
+            self.create_abstraction_from_group(group_id)
+
+    def create_abstraction_from_group(self, group_id, name=""):
+        self.flush_delayed_actions()
+        name = self.get_abstraction_name(name)
+
+        (abstraction, connections) = \
+            self.build_abstraction_from_group(self.current_pipeline,
+                                              group_id, name)
+
+        op_list = []
+        getter = self.get_connections_to_and_from
+        op_list.extend(('delete', c)
+                       for c in getter(self.current_pipeline, [group_id]))
+        op_list.append(('delete', self.current_pipeline.modules[group_id]))
+        op_list.append(('add', abstraction))
+        op_list.extend(('add', c) for c in connections)
+        action = vistrails.core.db.action.create_action(op_list)
+        self.add_new_action(action)
+        result = self.perform_action(action)
+        return abstraction
+
     def export_abstractions(self, abstraction_ids):
         save_dir = self.do_save_dir_prompt()
         if not save_dir:
@@ -1223,7 +1052,8 @@ class VistrailController(QtCore.QObject, BaseController):
             if abstraction.is_abstraction() and \
                     abstraction.package == abstraction_pkg:
                 abstractions.append(abstraction)
-                [abstractions.extend(v) for v in self.find_abstractions(abstraction.vistrail).itervalues()]
+                for v in self.find_abstractions(abstraction.vistrail).itervalues():
+                    abstractions.extend(v)
         pkg_subworkflows = []
         pkg_dependencies = set()
         for abstraction in abstractions:
@@ -1385,9 +1215,8 @@ class VistrailController(QtCore.QObject, BaseController):
         corresponding to each dimension
         
         """
-        reg = vistrails.core.modules.module_registry.get_module_registry()
-        spreadsheet_pkg = '%s.spreadsheet' % \
-                vistrails.core.system.get_vistrails_default_pkg_prefix()
+        reg = get_module_registry()
+        spreadsheet_pkg = 'org.vistrails.vistrails.spreadsheet'
         use_spreadsheet = reg.has_module(spreadsheet_pkg, 'CellLocation') and\
                           reg.has_module(spreadsheet_pkg, 'SheetReference')
 
@@ -1397,6 +1226,7 @@ class VistrailController(QtCore.QObject, BaseController):
                         pe.collectParameterActions(self.current_pipeline)
 
         if self.current_pipeline and actions:
+            pe_log_id = uuid.uuid1()
             explorer = ActionBasedParameterExploration()
             (pipelines, performedActions) = explorer.explore(
                 self.current_pipeline, actions, pre_actions)
@@ -1410,7 +1240,10 @@ class VistrailController(QtCore.QObject, BaseController):
                     dim[2], dim[1], dim[0], pipelines, pe.layout, self)
                 QParamExploreView.explorationId += 1
             else:
+                from vistrails.core.param_explore import _pipelinePositions
                 modifiedPipelines = pipelines
+                pipelinePositions = _pipelinePositions(
+                    dim[2], dim[1], dim[0], pipelines)
 
             mCount = []
             for p in modifiedPipelines:
@@ -1451,9 +1284,11 @@ class VistrailController(QtCore.QObject, BaseController):
                     if 'pathDumpCells' in extra_info:
                         images[pipelinePositions[pi]] = \
                                    os.path.join(extra_info['pathDumpCells'], name)
+                pe_cell_id = (pe_log_id,) + pipelinePositions[pi]
                 kwargs = {'locator': self.locator,
                           'current_version': self.current_version,
-                          'reason': 'Parameter Exploration',
+                          'reason': 'Parameter Exploration %s %s_%s_%s' % pe_cell_id,
+                          'logger': self.get_logger(),
                           'actions': performedActions[pi],
                           'extra_info': extra_info
                           }
@@ -1480,6 +1315,8 @@ class VistrailController(QtCore.QObject, BaseController):
                 filename = os.path.join(extra_info['pathDumpCells'],
                                         os.path.splitext(self.name)[0])
                 assembleThumbnails(images, filename)
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('execution_updated')
             return errors
 
 ################################################################################
@@ -1492,12 +1329,10 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
     #     v = api.new_vistrail()
        
     def tearDown(self):
-        from vistrails.core.configuration import get_vistrails_configuration
         vistrails.gui.utils.TestVisTrailsGUI.tearDown(self)
 
-        config = get_vistrails_configuration()
-        filename = os.path.join(config.abstractionsDirectory,
-                                '__TestFloatList.xml')
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, '__TestFloatList.xml')
         if os.path.exists(filename):
             os.remove(filename)
 
@@ -1530,11 +1365,8 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
 
     def test_abstraction_create(self):
         from vistrails.core.db.locator import XMLFileLocator
-        import vistrails.core.db.io
-        from vistrails.core.configuration import get_vistrails_configuration
-        config = get_vistrails_configuration()
-        filename = os.path.join(config.abstractionsDirectory,
-                                '__TestFloatList.xml')
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, '__TestFloatList.xml')
         locator = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
                            '/tests/resources/test_abstraction.xml')
         v = locator.load()
@@ -1544,15 +1376,16 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         # controller.change_selected_version(9L)
         controller.select_latest_version()
         self.assertNotEqual(controller.current_pipeline, None)
-        
-        # DAK: changed these because of upgrades...
-        # module_ids = [1, 2, 3]
-        # connection_ids = [1, 2, 3]
-        module_ids = [8, 10, 11]
-        #connection_ids = [6, 8, 9]
-        # TE: changed again because upgrades produced different id:s
-        # also saved upgrade in test_abstraction.xml
-        connection_ids = [13,14,15]
+
+        # If getting a KeyError here, run the upgrade on the vistrail and
+        # update the ids
+        # TODO : rewrite test so we don't have to update this unrelated code
+        # each time new upgrades are introduced
+        # Original ids:
+        #     module_ids = [1, 2, 3]
+        #     connection_ids = [1, 2, 3]
+        module_ids = [15, 13, 14]
+        connection_ids = [21, 18, 20]
         controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))

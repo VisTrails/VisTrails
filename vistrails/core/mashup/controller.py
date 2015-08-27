@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 import copy
 import os.path
 from vistrails.core.system import current_user, current_time
@@ -107,8 +110,8 @@ class MashupController(object):
     def getVistrailName(self):
         name = ''
         locator = self.currentMashup.vtid
-        if locator != None:
-            if locator.name == None:
+        if locator is not None:
+            if locator.name is None:
                 name = ''
             else:
                 name = os.path.split(locator.name)[1]
@@ -127,7 +130,9 @@ class MashupController(object):
             new_aliases = []
             pos = 0
             for old_pos in new_order:
-                alias = copy.copy(self.currentMashup.alias_list[old_pos])
+                alias = self.currentMashup.alias_list[old_pos].do_copy(
+                               new_ids=True, id_scope=self.mshptrail.id_scope,
+                               id_remap={})
                 alias.component.pos = pos
                 new_aliases.append(alias)
                 pos += 1
@@ -145,10 +150,14 @@ class MashupController(object):
         if self.currentMashup:
             for a in self.currentMashup.alias_list:
                 if a.id != alias.id:
-                    calias = copy.copy(a)
+                    calias = a.do_copy(new_ids=True,
+                                       id_scope=self.mshptrail.id_scope,
+                                       id_remap={})
                 else:
                     #print "found alias: ", a
-                    calias = copy.copy(alias)
+                    calias = alias.do_copy(new_ids=True,
+                                           id_scope=self.mshptrail.id_scope,
+                                           id_remap={})
                 new_aliases.append(calias)
         return self.createMashupVersion(new_aliases, quiet=False)
         
@@ -158,7 +167,9 @@ class MashupController(object):
         pos = 0
         for alias in self.currentMashup.alias_list:
             if alias.component.vtid != param.id:
-                calias = copy.copy(alias)
+                calias = alias.do_copy(new_ids=True,
+                                       id_scope=self.mshptrail.id_scope,
+                                       id_remap={})
                 calias.component.pos = pos
                 new_aliases.append(calias)
                 pos += 1
@@ -166,14 +177,16 @@ class MashupController(object):
                 #print "found alias: ", alias
                 add_alias = False
                 if param.alias != '':
-                    new_alias = copy.copy(alias)
+                    new_alias = alias.do_copy(new_ids=True,
+                                              id_scope=self.mshptrail.id_scope,
+                                              id_remap={})
                     new_alias.name = param.alias
                     new_aliases.append(new_alias)
                     pos += 1
         if add_alias:
             parameter = self.vtPipeline.db_get_object(param.dbtype, param.id)
-            cid = self.id_scope.getNewId('component')
-            aid = self.id_scope.getNewId('alias')
+            cid = self.id_scope.getNewId('mashup_component')
+            aid = self.id_scope.getNewId('mashup_alias')
             component = Component(cid, parameter.vtType, 
                                   parameter.real_id, param.parent_dbtype, 
                                   param.parent_id,
@@ -209,7 +222,9 @@ class MashupController(object):
             new_a = None
             for a in self.currentMashup.alias_list:
                 if a.name not in pip_aliases:
-                    old_a = copy.copy(a)
+                    old_a = a.do_copy(new_ids=True,
+                                      id_scope=self.mshptrail.id_scope,
+                                      id_remap={})
                     new_aliases.append(old_a)
                 else:
                     new_aliases.append(a)
@@ -234,7 +249,9 @@ class MashupController(object):
             pos = 0
             for a in self.currentMashup.alias_list:
                 if a.name in pip_aliases:
-                    alias = copy.copy(a)
+                    alias = a.do_copy(new_ids=True,
+                                      id_scope=self.mshptrail.id_scope,
+                                      id_remap={})
                     alias.component.pos = pos
                     new_aliases.append(alias)
                     pos += 1
@@ -246,8 +263,8 @@ class MashupController(object):
                 if a not in mashup_aliases:
                     info = pipeline.aliases[a]
                     parameter = pipeline.db_get_object(info[0],info[1])
-                    cid = self.id_scope.getNewId('component')
-                    aid = self.id_scope.getNewId('alias')
+                    cid = self.id_scope.getNewId('mashup_component')
+                    aid = self.id_scope.getNewId('mashup_alias')
                     component = Component(cid, parameter.vtType, 
                                           parameter.real_id, info[2], info[3],
                                           info[4], parameter.type, 
@@ -322,7 +339,9 @@ class MashupController(object):
             pos = 0
             for alias in self.currentMashup.alias_list:
                 if alias.name != name:
-                    calias = copy.copy(alias)
+                    calias = alias.do_copy(new_ids=True,
+                                           id_scope=self.mshptrail.id_scope,
+                                           id_remap={})
                     calias.component.pos = pos
                     new_aliases.append(calias)
                     pos += 1

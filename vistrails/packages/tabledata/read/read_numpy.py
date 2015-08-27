@@ -1,21 +1,58 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2013-2014, NYU-Poly.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
+from __future__ import division
+
 import numpy
 
 from vistrails.core.modules.vistrails_module import Module
 
 
 class NumPyArray(Module):
-    """
-    A Numpy Array, that can be loaded from a file.
+    """Reads a Numpy Array that has been written to a file.
 
     Declared as returning a List, but returns a Numpy array instead!
-    """
-    _input_ports = [
-            ('file', '(org.vistrails.vistrails.basic:File)'),
-            ('datatype', '(org.vistrails.vistrails.basic:String)'),
-            ('shape', '(org.vistrails.vistrails.basic:List)')]
-    _output_ports = [
-            ('value', '(org.vistrails.vistrails.basic:List)')]
 
+    NumPy can use one of two schemes: either 'plain' binary arrays, i.e. just
+    the binary representation of the data format (in this case you must specify
+    the exact format to get the original data back), or the NPY format, i.e.
+    .npy files that know what the actual structure of the array is.
+
+    If the array you are reading is not a simple one-dimensional array, you can
+    use the shape port to indicate its expected structure.
+    """
     NPY_FMT = object()
 
     FORMAT_MAP = dict(
@@ -37,10 +74,18 @@ class NumPyArray(Module):
         complex128 = numpy.complex128,
     )
 
+    _input_ports = [
+            ('file', '(org.vistrails.vistrails.basic:File)'),
+            ('datatype', '(org.vistrails.vistrails.basic:String)',
+             {'entry_types': "['enum']", 'values': "[%r]" % FORMAT_MAP.keys()}),
+            ('shape', '(org.vistrails.vistrails.basic:List)')]
+    _output_ports = [
+            ('value', '(org.vistrails.vistrails.basic:List)')]
+
     def compute(self):
-        filename = self.getInputFromPort('file').name
-        if self.hasInputFromPort('datatype'):
-            dtype = NumPyArray.FORMAT_MAP[self.getInputFromPort('datatype')]
+        filename = self.get_input('file').name
+        if self.has_input('datatype'):
+            dtype = NumPyArray.FORMAT_MAP[self.get_input('datatype')]
         else:
             if filename[-4:].lower() == '.npy':
                 dtype = self.NPY_FMT
@@ -54,12 +99,12 @@ class NumPyArray(Module):
             # Numpy's plain binary format
             # Written with: array.tofile('xxx.dat')
             array = numpy.fromfile(filename, dtype)
-        if self.hasInputFromPort('shape'):
-            array.shape = tuple(self.getInputFromPort('shape'))
-        self.setResult('value', array)
+        if self.has_input('shape'):
+            array.shape = tuple(self.get_input('shape'))
+        self.set_output('value', array)
 
 
-_modules = {'numpy': [NumPyArray]}
+_modules = [NumPyArray]
 
 
 ###############################################################################
@@ -84,7 +129,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('read|numpy|NumPyArray', identifier, [
+                    ('read|NumPyArray', identifier, [
                         ('datatype', [('String', 'float32')]),
                         ('shape', [('List', '[2, 3]')]),
                         ('file', [('File', self._test_dir + '/random.dat')]),
@@ -102,7 +147,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('read|numpy|NumPyArray', identifier, [
+                    ('read|NumPyArray', identifier, [
                         ('datatype', [('String', 'npy')]),
                         ('file', [('File', self._test_dir + '/random.npy')]),
                     ]),
@@ -128,7 +173,7 @@ class NumpyTestCase(unittest.TestCase):
 
         with intercept_result(NumPyArray, 'value') as results:
             self.assertFalse(execute([
-                    ('read|numpy|NumPyArray', identifier, [
+                    ('read|NumPyArray', identifier, [
                         ('file', [('File', self._test_dir + '/random.npy')]),
                     ]),
                 ]))

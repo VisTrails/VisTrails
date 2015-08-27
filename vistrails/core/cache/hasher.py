@@ -1,38 +1,41 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """Hasher class for vistrail items."""
+from __future__ import division
+
 from vistrails.core.cache.utils import hash_list
 
 try:
@@ -75,6 +78,14 @@ class Hasher(object):
         return hasher.digest()
 
     @staticmethod
+    def control_param_signature(control_param, constant_hasher_map={}):
+        hasher = sha_hash()
+        u = hasher.update
+        u(control_param.name)
+        u(control_param.value)
+        return hasher.digest()
+
+    @staticmethod
     def connection_signature(c):
         hasher = sha_hash()
         u = hasher.update
@@ -84,8 +95,10 @@ class Hasher(object):
 
     @staticmethod
     def connection_subpipeline_signature(c, source_sig, dest_sig):
-        """Returns the signature for the connection, including source
-and dest subpipelines"""
+        """Returns the signature for the connection, including source and dest
+        subpipelines
+
+        """
         hasher = sha_hash()
         u = hasher.update
         u(Hasher.connection_signature(c))
@@ -102,15 +115,19 @@ and dest subpipelines"""
         u(obj.module_descriptor.namespace or '')
         u(obj.module_descriptor.package_version or '')
         u(obj.module_descriptor.version or '')
-        u(hash_list(obj.functions, Hasher.function_signature, constant_hasher_map))
+        u(hash_list(obj.functions, Hasher.function_signature,
+                    constant_hasher_map))
+        u(hash_list(obj.control_parameters, Hasher.control_param_signature,
+                    constant_hasher_map))
         return hasher.digest()
 
     @staticmethod
     def subpipeline_signature(module_sig, upstream_sigs):
-        """Returns the signature for a subpipeline, given the
-signatures for the upstream pipelines and connections.
+        """Returns the signature for a subpipeline, given the signatures for
+        the upstream pipelines and connections.
 
         WARNING: For efficiency, upstream_sigs is mutated!
+
         """
         hasher = sha_hash()
         hasher.update(module_sig)
@@ -121,9 +138,11 @@ signatures for the upstream pipelines and connections.
 
     @staticmethod
     def compound_signature(sig_list):
-        """compound_signature(list of signatures) -> sha digest
-        returns the signature of the compound object formed by the list
-        of signatures, assuming the list order is irrelevant"""
+        """compound_signature(list of signatures) -> sha digest returns the
+        signature of the compound object formed by the list of
+        signatures, assuming the list order is irrelevant
+
+        """
         hasher = sha_hash()
         for h in sorted(sig_list):
             hasher.update(h)

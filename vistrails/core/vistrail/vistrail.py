@@ -1,37 +1,40 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from vistrails.core.paramexplore.paramexplore import ParameterExploration
 
 import copy
@@ -294,9 +297,9 @@ class Vistrail(DBVistrail):
             if self.has_upgrade(max_ver):
                 max_ver = long(self.get_upgrade(max_ver))
             return max_ver
-        except:
+        except Exception:
             return 0
-                   
+
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
         Return a pipeline object given a version number or a version name. 
@@ -327,124 +330,6 @@ class Vistrail(DBVistrail):
         workflow = vistrails.core.db.io.get_workflow(self, version)
         return workflow
 
-    def make_actions_from_diff(self, diff):
-        """ make_actions_from_diff(diff) -> [action]
-        Returns a sequence of actions that performs the diff.
-
-        (The point is that this might be smaller than the
-        algebra-based one).
-        """
-        (p1,
-         p2,
-         m_shared,
-         m_to_be_deleted,
-         m_to_be_added,
-         parameter_changes,
-         c_shared,
-         c_to_be_deleted,
-         c_to_be_added) = (diff.p1,
-                           diff.p2,
-                           diff.v1andv2,
-                           diff.v1only,
-                           diff.v2only,
-                           diff.paramchanged,
-                           diff.c1andc2,
-                           diff.c1only,
-                           diff.c2only)
-
-        p1_c = copy.copy(p1)
-        result = []
-
-        module_id_remap = Bidict()
-        module_id_remap.update(m_shared)
-
-        connection_id_remap = Bidict()
-        connection_id_remap.update(c_shared)
-        
-        for ((m_id_from, m_id_to), _) in parameter_changes:
-            module_id_remap[m_id_from] = m_id_to
-
-        # First all the modules to get the remap
-        for p2_m_id in m_to_be_added:
-            add_module = AddModuleAction()
-            add_module.module = copy.copy(p2.modules[p2_m_id])
-            add_module.module.id = p1_c.fresh_module_id()
-            module_id_remap[add_module.module.id] = p2_m_id
-            result.append(add_module)
-            add_module.perform(p1_c)
-
-
-        # Then all the connections using the remap
-        for p2_c_id in c_to_be_added:
-            c2 = p2.connections[p2_c_id]
-            add_connection = AddConnectionAction()
-            new_c = copy.copy(c2)
-            add_connection.connection = new_c
-            new_c.id = p1_c.fresh_connection_id()
-            new_c.sourceId = module_id_remap.inverse[c2.sourceId]
-            new_c.destinationId = module_id_remap.inverse[c2.destinationId]
-            connection_id_remap[c2.id] = new_c.id
-            result.append(add_connection)
-            add_connection.perform(p1_c)
-
-
-        # Now delete all connections:
-        delete_conns = DeleteConnectionAction()
-        delete_conns.ids = copy.copy(c_to_be_deleted)
-        if len(delete_conns.ids) > 0:
-            delete_conns.perform(p1_c)
-            result.append(delete_conns)
-
-        # And then all the modules
-        delete_modules = DeleteModuleAction()
-        delete_modules.ids = copy.copy(m_to_be_deleted)
-        if len(delete_modules.ids) > 0:
-            delete_modules.perform(p1_c)
-            result.append(delete_modules)
-
-        # From now on, module_id_remap is not necessary, we can act
-        # on p1 ids without worry. (they still exist)
-
-        # Now move everyone
-        move_action = MoveModuleAction()
-        for (p1_m_id, p2_m_id) in m_shared.iteritems():
-            delta = p2.modules[p2_m_id].location - p1.modules[p1_m_id].location
-            move_action.addMove(p1_m_id, delta.x, delta.y)
-        move_action.perform(p1_c)
-        result.append(move_action)
-
-        # Now change parameters
-        def make_param_change(fto_name, fto_params,
-                              m_id, f_id, m):
-            action = ChangeParameterAction()
-            for (p_id, param) in enumerate(fto_params):
-                p_name = m.functions[f_id].params[p_id].name
-                p_alias = m.functions[f_id].params[p_id].alias
-                (p_type, p_value) = param
-                action.addParameter(m_id, f_id, p_id, fto_name,
-                                    p_name, p_value, p_type, p_alias)
-            return action
-        
-        if len(parameter_changes):
-            # print parameter_changes
-            for ((m_from_id, m_to_id), plist) in parameter_changes:
-                m_from = p1.modules[m_to_id]
-                for ((ffrom_name, ffrom_params),
-                     (fto_name, fto_params)) in plist:
-                    for (f_id, f) in enumerate(m_from.functions):
-                        if f.name != fto_name: continue
-                        new_action = make_param_change(fto_name,
-                                                       fto_params,
-                                                       m_from_id,
-                                                       f_id,
-                                                       m_from)
-                        new_action.perform(p1_c)
-                        result.append(new_action)
-
-        return (result,
-                module_id_remap,
-                connection_id_remap)
-
     def get_pipeline_diff_with_connections(self, v1, v2):
         """like get_pipeline_diff but returns connection info
         Keyword arguments:
@@ -456,6 +341,8 @@ class Vistrail(DBVistrail):
                     [v1 not v2 modules],
                     [v2 not v1 modules],
                     [parameter-changed modules (see-below)],
+                    [controlParameter-changed modules (see-below)],
+                    [annotation-changed modules (see-below)],
                     [shared connections (id in v1, id in v2) ...],
                     [shared connections [heuristic] (id in v1, id in v2)],
                     [c1 not in v2 connections],
@@ -463,6 +350,12 @@ class Vistrail(DBVistrail):
 
         parameter-changed modules = [((module id in v1, module id in v2),
                                       [(function in v1, function in v2)...]),
+                                      ...]
+        controlParameter-changed modules = [((module id in v1, module id in v2),
+                                             [(cparam in v1, cparam in v2)...]),
+                                             ...]
+        annotation-changed modules = [((module id in v1, module id in v2),
+                                      [(annotation in v1, annotation in v2)...]),
                                       ...]
         
         """
@@ -485,11 +378,20 @@ class Vistrail(DBVistrail):
                     [shared modules [heuristic match] (id in v1, id in v2)],
                     [v1 not v2 modules],
                     [v2 not v1 modules],
-                    [parameter-changed modules (see-below)])
+                    [parameter-changed modules (see-below)],
+                    [controlParameter-changed modules (see-below)],
+                    [annotation-changed modules (see-below)])
 
         parameter-changed modules = [((module id in v1, module id in v2),
                                       [(function in v1, function in v2)...]),
                                       ...]
+        controlParameter-changed modules = [((module id in v1, module id in v2),
+                                             [(cparam in v1, cparam in v2)...]),
+                                             ...]
+        annotation-changed modules = [((module id in v1, module id in v2),
+                                       [(annotation in v1, annotation in v2)...]),
+                                       ...]
+
         
         """
         return vistrails.core.db.io.get_workflow_diff((self, v1), (self, v2))
@@ -903,15 +805,18 @@ class Vistrail(DBVistrail):
             added_parameters = 0
             added_connections = 0
             added_annotations = 0
+            added_control_parameters = 0
             added_ports = 0
             moved_modules = 0
             changed_parameters = 0
             changed_annotations = 0
+            changed_control_parameters = 0
             deleted_modules = 0
             deleted_connections = 0
             deleted_parameters = 0
             deleted_functions = 0
             deleted_annotations = 0
+            deleted_control_parameters = 0
             deleted_ports = 0
             for op in ops:
                 if op.vtType == 'add':
@@ -923,6 +828,8 @@ class Vistrail(DBVistrail):
                         added_functions+=1
                     elif op.what == 'parameter':
                         added_parameters+=1
+                    elif op.what == 'controlParameter':
+                        added_control_parameters+=1
                     elif op.what == 'annotation':
                         added_annotations+=1
                     elif op.what == 'portSpec':
@@ -934,6 +841,8 @@ class Vistrail(DBVistrail):
                         moved_modules+=1
                     elif op.what == 'annotation':
                         changed_annotations+=1
+                    elif op.what == 'controlParameter':
+                        changed_control_parameters+=1
                 elif op.vtType == 'delete':
                     if op.what == 'module':
                         deleted_modules+=1
@@ -945,6 +854,8 @@ class Vistrail(DBVistrail):
                         deleted_parameters+=1
                     elif op.what == 'annotation':
                         deleted_annotations+=1
+                    elif op.what == 'controlParameter':
+                        deleted_control_parameters+=1
                     elif op.what == 'portSpec':
                         deleted_ports += 1
                 else:
@@ -962,6 +873,10 @@ class Vistrail(DBVistrail):
                 description = "Added parameter"
                 if added_functions > 1 or added_parameters > 1:
                     description += "s"
+            elif added_control_parameters:
+                description = "Added control parameter"
+                if added_control_parameters > 1:
+                    description += "s"
             elif added_annotations:
                 description = "Added annotation"
                 if added_annotations > 1:
@@ -973,6 +888,10 @@ class Vistrail(DBVistrail):
             elif changed_parameters:
                 description = "Changed parameter"
                 if changed_parameters > 1:
+                    description += "s"
+            elif changed_control_parameters:
+                description = "Changed control parameter"
+                if changed_control_parameters > 1:
                     description += "s"
             elif moved_modules:
                 description = "Moved module"
@@ -993,6 +912,10 @@ class Vistrail(DBVistrail):
             elif deleted_parameters or deleted_functions:
                 description = "Deleted parameter"
                 if deleted_parameters > 1 or deleted_functions > 1:
+                    description += "s"
+            elif deleted_control_parameters:
+                description = "Deleted control parameter"
+                if deleted_control_parameters > 1:
                     description += "s"
             elif deleted_annotations:
                 description = "Deleted annotation"
@@ -1030,7 +953,6 @@ class Vistrail(DBVistrail):
 
     def getDate(self):
         """ getDate() -> str - Returns the current date and time. """
-    #    return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
         return datetime.datetime.now()
     
     def getUser(self):
@@ -1126,10 +1048,64 @@ class Vistrail(DBVistrail):
                 try:
                     if isinstance(op, AddOp) and op.what == 'module':
                         package_list[op.data.package] = op.data.package
-                except:
-                    pass
+                except AttributeError, e:
+                    debug.unexpected_exception(e)
         return package_list
-                    
+
+    def get_base_upgrade_version(self, version):
+        """Finds the base version in the upgrade chain.
+        """
+        # TODO: use this in search_upgrade_versions(), once the map is cached
+        upgrade_rev_map = {}
+        for ann in self.action_annotations:
+            if ann.key == Vistrail.UPGRADE_ANNOTATION:
+                upgrade_rev_map[int(ann.value)] = ann.action_id
+
+        while version in upgrade_rev_map:
+            version = upgrade_rev_map[version]
+        return version
+
+    def search_upgrade_versions(self, base_version, getter,
+                                start_at_base=None):
+        """Search all upgrades from a version for a specific value.
+
+        :param base_version: version from which to search (upgrades from this
+        version will be recursively searched)
+        :param getter: function that returns the value you are looking for, or
+        None to continue searching
+        :param start_at_base: if None (default), start from given version, then
+        if nothing is found start again from original version. If True, search
+        from the original action (the one that's not an upgrade). If False, go
+        down from given version only.
+        :returns: The result from getter, or None if all upgrades were exhausted
+        """
+        # TODO: cache these maps somewhere
+        upgrade_map = {}
+        upgrade_rev_map = {}
+        for ann in self.action_annotations:
+            if ann.key == Vistrail.UPGRADE_ANNOTATION:
+                upgrade_map[ann.action_id] = int(ann.value)
+                upgrade_rev_map[int(ann.value)] = ann.action_id
+
+        if start_at_base is True:
+            while base_version in upgrade_rev_map:
+                base_version = upgrade_rev_map[base_version]
+
+        version = base_version
+        walked_versions = set()
+        while version is not None and version not in walked_versions:
+            ret = getter(self, version, base_version)
+            if ret is not None:
+                return ret
+            walked_versions.add(version)
+            version = upgrade_map.get(version)
+            if version is None and start_at_base is None:
+                start_at_base = True
+                version = base_version
+                while version in upgrade_rev_map:
+                    version = upgrade_rev_map[version]
+        return None
+
 
 ##############################################################################
 
@@ -1236,7 +1212,6 @@ class TestVistrail(unittest.TestCase):
         # FIXME add checks for equality
 
     def test1(self):
-        import vistrails.core.vistrail
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
@@ -1259,7 +1234,6 @@ class TestVistrail(unittest.TestCase):
             self.fail("vistrails tree is not single rooted.")
 
     def test2(self):
-        import vistrails.core.vistrail
         from vistrails.core.db.locator import XMLFileLocator
         import vistrails.core.system
         v = XMLFileLocator(vistrails.core.system.vistrails_root_directory() +
@@ -1270,6 +1244,8 @@ class TestVistrail(unittest.TestCase):
         v3 = 22
         v.get_pipeline_diff(v1,v2)
         v.get_pipeline_diff(v1,v3)
+        v.get_pipeline_diff_with_connections(v1,v2)
+        v.get_pipeline_diff_with_connections(v1,v3)
 
     def test_empty_action_chain(self):
         """Tests calling action chain on empty version."""

@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>images/fittocell.png</file>
+    <file>images/flip.png</file>
+    <file>images/rotate.png</file>
+    <file>images/save.png</file>
+</qresource>
+</RCC>

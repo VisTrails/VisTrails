@@ -1,76 +1,70 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
-## Copyright (C) 2006-2011, University of Utah. 
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
 ## This file is part of VisTrails.
 ##
-## "Redistribution and use in source and binary forms, with or without 
+## "Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##
-##  - Redistributions of source code must retain the above copyright notice, 
+##  - Redistributions of source code must retain the above copyright notice,
 ##    this list of conditions and the following disclaimer.
-##  - Redistributions in binary form must reproduce the above copyright 
-##    notice, this list of conditions and the following disclaimer in the 
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
 ##    documentation and/or other materials provided with the distribution.
-##  - Neither the name of the University of Utah nor the names of its 
-##    contributors may be used to endorse or promote products derived from 
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
 ##    this software without specific prior written permission.
 ##
-## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
 """ The file describes a container widget consisting of a pipeline
 view and a version tree for each opened Vistrail """
+from __future__ import division
+
 from PyQt4 import QtCore, QtGui
 import copy
-from itertools import izip
-import operator
 
-from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import (get_vistrails_configuration,
                                 get_vistrails_persistent_configuration)
 from vistrails.core.db.locator import FileLocator, XMLFileLocator, DBLocator, \
     UntitledLocator
-from vistrails.core.db.io import load_vistrail
 from vistrails.core.interpreter.cached import CachedInterpreter
-from vistrails.core.modules.module_registry import ModuleRegistry, \
-                                         ModuleRegistryException
 from vistrails.core.recent_vistrails import RecentVistrailList
 import vistrails.core.system
 import vistrails.core.db.action
-from vistrails.core.packagemanager import get_package_manager
 from vistrails.core.system import vistrails_default_file_type
 from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.pipeline import Pipeline
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.collection import Collection
 from vistrails.core import debug
 
 from vistrails.gui.application import get_vistrails_application
 from vistrails.gui.preferences import QPreferencesDialog
 from vistrails.gui.base_view import BaseView
-from vistrails.gui.pipeline_view import QPipelineView
+from vistrails.gui.common_widgets import QToolWindow
 from vistrails.gui.repository import QRepositoryDialog
-from vistrails.gui.theme import initializeCurrentTheme, CurrentTheme
+from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.utils import build_custom_window
 from vistrails.gui.vistrail_view import QVistrailView
 from vistrails.gui import merge_gui
 from vistrails.gui.vistrail_variables import QVistrailVariables
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
-from vistrails.gui.mashups.mashup_app import QMashupAppMainWindow
 from vistrails.gui.modules.constant_configuration import ConstantWidgetMixin
 from vistrails.gui.paramexplore.pe_view import QParamExploreView
 from vistrails.gui.mashups.alias_inspector import QAliasInspector
@@ -155,10 +149,8 @@ class QBaseViewWindow(QtGui.QMainWindow):
                     else:
                         self.connect(qaction, QtCore.SIGNAL("triggered()"),
                                      callback)
-        
+
     def init_action_list(self):
-        global _app
-        
         self._actions = [("file", "&File",
                    [("export", "Export",
                       [('savePDF', "PDF...",
@@ -166,6 +158,12 @@ class QBaseViewWindow(QtGui.QMainWindow):
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_tab,
                                                        'save_pdf')}),
+                       ('saveDOT', "Version tree to Graphviz DOT...",
+                        {'statusTip': "Save the version view to a Graphviz "
+                             "DOT file",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_view,
+                                                       'save_version_graph')}),
                        "---",
                        ('saveWorkflow', "Workflow To XML...",
                         {'statusTip': "Save the current workflow to a file",
@@ -370,7 +368,6 @@ class QVistrailViewWindow(QBaseViewWindow):
             self.setWindowTitle('%s - VisTrails' % self.view.get_name())
 
     def close_vistrail(self):
-        global _app
         return _app.close_vistrail(self.view)
         
     def closeEvent(self, event):
@@ -449,7 +446,6 @@ class QVistrailViewWindow(QBaseViewWindow):
             self.set_title('(empty)')
 
     def build_packages_menu_from_main_app(self):
-        global _app
         if len(self._package_menu_items) == 0:
             self.qmenus['packages'].menuAction().setEnabled(True)
             
@@ -466,7 +462,6 @@ class QVistrailViewWindow(QBaseViewWindow):
                     pkg_menu.addAction(action)
 
     def init_action_list(self):
-        global _app
         # This keeps track of the menu items for each package
         self._package_menu_items = {}
         
@@ -553,19 +548,18 @@ class QVistrailViewWindow(QBaseViewWindow):
                              _app.pass_through_locator(self.get_current_view,
                                                        'export_vistrail', 
                                                        reverse=True)}),
-                       ('exportStable', "To Stable Version...",
-                        {'statusTip': "Save vistrail as XML according to " \
-                             "the older (stable) schema",
-                         'enabled': True,
-                         'callback': \
-                             _app.pass_through_locator(self.get_current_view,
-                                                       'export_stable')}),
                        "---",
                        ('savePDF', "PDF...",
                         {'statusTip': "Save the current view to a PDF file",
                          'enabled': True,
                          'callback': _app.pass_through(self.get_current_tab,
                                                        'save_pdf')}),
+                       ('saveDOT', "Version tree to Graphviz DOT...",
+                        {'statusTip': "Save the version view to a Graphviz "
+                             "DOT file",
+                         'enabled': True,
+                         'callback': _app.pass_through(self.get_current_view,
+                                                       'save_version_graph')}),
                        "---",
                        ('saveWorkflow', "Workflow To XML...",
                         {'statusTip': "Save the current workflow to a file",
@@ -581,6 +575,13 @@ class QVistrailViewWindow(QBaseViewWindow):
                              _app.pass_through_locator(self.get_current_view,
                                                        'save_workflow',
                                                        DBLocator)}),
+                       ('exportStable', "Workflow to VisTrails 2.1 XML...",
+                        {'statusTip': "Save workflow as XML according to " \
+                             "the previous schema",
+                         'enabled': True,
+                         'callback': \
+                             _app.pass_through_locator(self.get_current_view,
+                                                       'export_stable')}),
                        "---",
                        ('saveOpm', "OPM XML...",
                         {'statusTip': "Save provenance according to the " \
@@ -714,7 +715,7 @@ class QVistrailViewWindow(QBaseViewWindow):
                            _app.pass_through(self.get_current_controller,
                                              'collapse_all_versions')}),
                      ("hideBranch", "Hide Branch",
-                      {'statusTip': "Hide all versions in the tre including " \
+                      {'statusTip': "Hide all versions in the tree including " \
                            "and below the current version",
                        'enabled': True,
                        'callback': \
@@ -818,7 +819,6 @@ class QVistrailViewWindow(QBaseViewWindow):
         Construct all menu/toolbar actions for window.
 
         """
-        global _app
 
         # format of each item in the list is:
         # item: reference, title, options
@@ -883,7 +883,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.connect(QtGui.QApplication.clipboard(),
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboard_changed)
-        self.connect(QtGui.QApplication.instance(), 
+        self.connect(QtGui.QApplication.instance(),
                      QtCore.SIGNAL("focusChanged(QWidget*,QWidget*)"),
                      self.applicationFocusChanged)
 
@@ -958,7 +958,12 @@ class QVistrailsWindow(QVistrailViewWindow):
             window = self.windows[view]
             window.close()
         QWorkspaceWindow.instance().remove_vt_window(view)
-        self.current_view = None
+
+        # DK: **Do not** set current_view here because remove_vistrail
+        # calls change_view which sends notifications that there is
+        # not current controller
+        #
+        # self.current_view = None
 
     def view_triggered(self, action):
         #print "VIEW_TRIGGERED", action
@@ -1004,11 +1009,12 @@ class QVistrailsWindow(QVistrailViewWindow):
         from vistrails.gui.debugger import QDebugger
         from vistrails.gui.module_configuration import QModuleConfiguration
         from vistrails.gui.module_documentation import QModuleDocumentation
+        from vistrails.gui.module_options import QModuleOptions
         from vistrails.gui.module_palette import QModulePalette
         from vistrails.gui.module_info import QModuleInfo
         from vistrails.gui.paramexplore.param_view import QParameterView
         from vistrails.gui.paramexplore.pe_inspector import QParamExploreInspector
-        from vistrails.gui.shell import QShellDialog
+        from vistrails.gui.shell import get_shell_dialog
         from vistrails.gui.version_prop import QVersionProp
         from vistrails.gui.vis_diff import QDiffProperties
         from vistrails.gui.collection.explorer import QExplorerWindow
@@ -1016,10 +1022,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         from vistrails.gui.collection.vis_log import QLogDetails
         from vistrails.gui.mashups.mashups_inspector import QMashupsInspector
         from vistrails.gui.mashups.alias_parameter_view import QAliasParameterView
-        from vistrails.gui.publishing import QLatexAssistant, QVersionEmbed
+        from vistrails.gui.publishing import QVersionEmbed
         self.palettes = []
         self.palette_window = None
-        
+
         self.palette_layout = \
             [(self.UPPER_LEFT_DOCK_AREA,
               [((QWorkspaceWindow,True),
@@ -1029,9 +1035,7 @@ class QVistrailsWindow(QVistrailViewWindow):
              (self.LOWER_LEFT_DOCK_AREA,
               [(QModulePalette, True),
                ((QParamExploreInspector, False),
-                (('pipeline_changed', 'set_pipeline'),
-                 ('exploration_changed', 'set_exploration'),
-                 ('controller_changed', 'set_controller'))),
+                (('controller_changed', 'set_controller'),)),
                ((QMashupsInspector, False),
                 (('controller_changed', 'updateVistrailController'),
                  ('mshpcontroller_changed', 'updateMshpController'),
@@ -1049,8 +1053,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module'))),
                ((QParameterView, False),
-                (('controller_changed', 'set_controller'),
-                 ('pipeline_changed', 'set_pipeline'))),
+                (('pipeline_changed', 'set_pipeline'),
+                 ('controller_changed', 'set_controller'))),
                ((QLogDetails, False),
                 (('controller_changed', 'set_controller'),
                  ('execution_updated', 'execution_updated'),
@@ -1068,12 +1072,17 @@ class QVistrailsWindow(QVistrailViewWindow):
                 (('controller_changed', 'set_controller'),
                  ('module_changed', 'update_module'),
                  ('descriptor_changed', 'update_descriptor'))),
-               ((QShellDialog, True),
-                (('controller_changed', 'set_controller'),)),
-               ((QDebugger, True),
+               ((QModuleOptions, True),
+                (('controller_changed', 'set_controller'),
+                 ('module_changed', 'update_module')))] +
+              ([] if not get_shell_dialog() else [
+               ((get_shell_dialog(), True),
+                (('controller_changed', 'set_controller'),))]) +
+              [((QDebugger, True),
                 (('controller_changed', 'set_controller'),)),
                (DebugView, True),
-               (QJobView, True),
+               ((QJobView, True),
+                (('controller_changed', 'set_controller'),)),
                (QExplorerWindow, True),
 #               ((QLatexAssistant, True),
 #                (('controller_changed', 'set_controller'),)),
@@ -1164,11 +1173,11 @@ class QVistrailsWindow(QVistrailViewWindow):
             for dock_area, p_group in self.palette_layout:
                 for p_klass in p_group:
                 
+                    assert isinstance(p_klass, tuple)
+                    p_klass, visible = p_klass
                     if isinstance(p_klass, tuple):
+                        notifications = visible
                         p_klass, visible = p_klass
-                        if isinstance(p_klass, tuple):
-                            notifications = visible
-                            p_klass, visible = p_klass      
                     palette = p_klass.instance()
                     if dock_area == QtCore.Qt.RightDockWidgetArea:
                         pin_status = palette.get_pin_status()
@@ -1251,31 +1260,6 @@ class QVistrailsWindow(QVistrailViewWindow):
     def notify(self, notification_id, *args):
         vt_app = get_vistrails_application()
         vt_app.send_notification(notification_id, *args)
-
-        # # do global notifications
-        # if notification_id in self.notifications:
-        #     print 'global notification ', notification_id
-        #     for m in self.notifications[notification_id]:
-        #         try:
-        #             #print "  m: ", m
-        #             m(*args)
-        #         except Exception, e:
-        #             import traceback
-        #             traceback.print_exc()
-        # notifications = {}
-        # # do local notifications
-        # if self.current_view in self.view_notifications:
-        #     notifications = self.view_notifications[self.current_view]
-        #     print 'local notification ', notification_id, self.current_view
-                
-        # if notification_id in notifications:
-        #     for m in notifications[notification_id]:
-        #         try:
-        #             #print "  m: ", m
-        #             m(*args)
-        #         except Exception, e:
-        #             import traceback
-        #             traceback.print_exc()
 
     def clipboard_changed(self):
         self.notify("clipboard_changed")
@@ -1373,13 +1357,12 @@ class QVistrailsWindow(QVistrailViewWindow):
         self._first_view = self.get_current_view()
 
     def change_view(self, view):
-        #print 'changing view', id(view), view
         if isinstance(view, QVistrailView) or view is None:
+            self.view_changed(view)
             if view and view not in self.windows:
                 if self.stack.currentWidget() != view:
                     self.stack.setCurrentWidget(view)
                     view.reset_tab_state()
-            self.view_changed(view)
             if view and get_vistrails_configuration().detachHistoryView:
                 self.history_view.stack.setCurrentIndex(view.version_index)
                 self.history_view.view = view.controller
@@ -1432,6 +1415,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                 self.notify('controller_changed', new_view.get_controller())
                 if new_view.current_tab:
                     self.set_action_defaults(new_view.current_tab)
+            else:
+                self.notify('controller_changed', None)
         
         if new_view is not None:
             window = None
@@ -1494,17 +1479,6 @@ class QVistrailsWindow(QVistrailViewWindow):
                 # FIXME how do we choose which one? -- really should open all
                 locator = untitled_temps[0]
 
-        # try:
-        #     (vistrail, abstraction_files, thumbnail_files) = load_vistrail(locator)
-        # except ModuleRegistryException, e:
-        #     debug.critical("Module registry error for %s" %
-        #                    str(e.__class__.__name__), str(e))
-        # except Exception, e:
-        #     debug.critical('An error has occurred', str(e))
-        #     raise
-        # return self.set_vistrail_view(vistrail, locator, abstraction_files,
-        #                               thumbnail_files)
-        
         self.open_vistrail(locator)
         self.qactions['pipeline'].trigger()
 
@@ -1529,7 +1503,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             self._first_view = None
 
     def ensureController(self, controller):
-        """ ensureController(locator: VistrailController) -> QVistrailView        
+        """ ensureController(controller: VistrailController) -> QVistrailView        
         This will first find among the opened vistrails to see if
         controller is open. If not, it will try to open it if a locator exist.
 
@@ -1554,10 +1528,10 @@ class QVistrailsWindow(QVistrailViewWindow):
         return None
 
     def getViewFromLocator(self, locator):
-        """ getViewFromLocator(locator: VistrailLocator) -> QVistrailView        
+        """ getViewFromLocator(locator: VistrailLocator) -> QVistrailView
         This will find the view associated with the locator. If not, it will
         return None.
-        
+
         """
         if locator is None:
             return None
@@ -1569,6 +1543,17 @@ class QVistrailsWindow(QVistrailViewWindow):
             if view.controller.vistrail.locator == locator:
                 return view
         return None
+
+    def getAllViews(self):
+        """ getAllViews() ->[QVistrailView]
+        Returns all open views.
+
+        """
+        views = []
+        for i in xrange(self.stack.count()):
+            views.append(self.stack.widget(i))
+        views.extend(self.windows)
+        return views
 
     def ensureVistrail(self, locator):
         """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        
@@ -1602,10 +1587,6 @@ class QVistrailsWindow(QVistrailViewWindow):
     def remove_vistrail(self, locator):
         for view in copy.copy(self.vistrail_widgets):
             if view.controller.locator == locator:
-                from vistrails.gui.job_monitor import QJobView
-                jobView = QJobView.instance()
-                jobView.delete_job(view.controller, all=True)
-
                 view.closeDetachedViews()
                 self.remove_view(view)
                 self.vistrail_widgets.remove(view)
@@ -1633,10 +1614,11 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         """
         old_view = self.getViewFromLocator(locator)
-        self.close_first_vistrail_if_necessary()
         
-        get_vistrails_application().open_vistrail(locator, version, 
-                                                  is_abstraction)
+        if not get_vistrails_application().open_vistrail(locator, version, 
+                                                         is_abstraction):
+            return None
+        self.close_first_vistrail_if_necessary()
         view = self.get_current_view()
         view.is_abstraction = view.controller.is_abstraction
         if not old_view:
@@ -1652,17 +1634,18 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         locator = locator_class.load_from_gui(self, Vistrail.vtType)
         if locator:
+            version = None
             if not self.getViewFromLocator(locator):
                 if locator.has_temporaries():
                     if not locator_class.prompt_autosave(self):
                         locator.clean_temporaries()
-            if hasattr(locator, '_vnode'):
+            if hasattr(locator,'_vtag'):
+                # if a tag is set, it should be used instead of the
+                # version number
+                if locator._vtag != '':
+                    version = locator._vtag
+            elif hasattr(locator, '_vnode'):
                 version = locator._vnode
-                if hasattr(locator,'_vtag'):
-                    # if a tag is set, it should be used instead of the
-                    # version number
-                    if locator._vtag != '':
-                        version = locator._vtag
             mashuptrail = None
             mashupversion = None
             execute = False
@@ -1672,7 +1655,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 mashupversion = locator._mshpversion
                 if mashupversion:
                     execute = True
-            self.open_vistrail_without_prompt(locator, version, 
+            self.open_vistrail_without_prompt(locator, version,
                                               mashuptrail=mashuptrail,
                                               mashupVersion=mashupversion,
                                               execute_workflow=execute)
@@ -1685,7 +1668,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             pe = vistrail.get_paramexp(pe_id)
         except ValueError:
             pe= vistrail.get_named_paramexp(pe_id)
-        except Exception:
+        except Exception, e:
+            debug.unexpected_exception(e)
             return
         self.current_view.open_parameter_exploration(pe.id)
         self.qactions['execute'].trigger()
@@ -1744,19 +1728,31 @@ class QVistrailsWindow(QVistrailViewWindow):
                     if not locator.prompt_autosave(self):
                         locator.clean_temporaries()
             view = self.open_vistrail(locator, version, is_abstraction)
+            if view is None:
+                return
             view.version_view.select_current_version()
             conf = get_vistrails_configuration()
-            has_tag = len(view.controller.vistrail.get_tagMap()) > 0
-            if (not conf.check('showPipelineViewOnLoad')) and \
-               (conf.check('showHistoryViewOnLoad') or has_tag):
-                self.qactions['history'].trigger()
-
             if version:
                 self.qactions['pipeline'].trigger()
-                
+            elif conf.check('viewOnLoad') and conf.viewOnLoad == 'history':
+                self.qactions['history'].trigger()
+            elif conf.check('viewOnLoad') and conf.viewOnLoad == 'pipeline':
+                self.qactions['pipeline'].trigger()
+            else:
+                # appropriate
+                has_tag = len(view.controller.vistrail.get_tagMap()) > 0
+                if has_tag:
+                    self.qactions['history'].trigger()
+                else:
+                    self.qactions['pipeline'].trigger()
+                            
             if mashuptrail is not None and mashupVersion is not None:
                 mashup = view.get_mashup_from_mashuptrail_id(mashuptrail,
                                                              mashupVersion)
+                if mashup is None:
+                    debug.critical("Mashup not found. If workflow has been "
+                                   "upgraded, try executing it first.")
+                    return
                 if execute_workflow:
                     view.open_mashup(mashup)
                 else:
@@ -1823,9 +1819,12 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def open_workflow(self, locator):
         self.close_first_vistrail_if_necessary()
-
         get_vistrails_application().open_workflow(locator)
-
+        view = self.get_current_view()
+        view.controller.recompute_terse_graph()
+        view.controller.invalidate_version_tree()
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        QWorkspaceWindow.instance().add_vt_window(view)
         self.qactions['pipeline'].trigger()
     
     def close_vistrail(self, current_view=None, quiet=False):
@@ -1834,6 +1833,8 @@ class QVistrailsWindow(QVistrailViewWindow):
             current_view = self.get_current_view()
         if current_view:
             locator = current_view.controller.locator
+
+        SAVE_BUTTON, DISCARD_BUTTON, CANCEL_BUTTON = 0, 1, 2
 
         if not quiet and current_view and current_view.has_changes():
             window = current_view.window()
@@ -1852,54 +1853,10 @@ class QVistrailsWindow(QVistrailViewWindow):
                                                 'Cancel',
                                                 0,
                                                 2)
-            # Check if any unsaved workflow contains jobs
-            if res == 1:
-                vistrail = current_view.controller.vistrail
-                conf = get_vistrails_configuration()
-                if not conf.has('runningJobsList') or not conf.runningJobsList:
-                    conf_jobs = []
-                else:
-                    conf_jobs = conf.runningJobsList.split(';')
-                    res2 = 0
-                for url in conf_jobs:
-                    loc, version = url.split('?')
-                    version = int(version.split('=')[1])
-                    if loc != locator.to_url():
-                        continue
-                    action = vistrail.db_get_action_by_id(version)
-                    if not action.is_dirty:
-                        continue
-                    if res2 == 1:
-                        # already discarded
-                        from vistrails.gui.job_monitor import QJobView
-                        QJobView.instance().delete_job(
-                                             current_view.controller, version)
-                        continue
-                    text = ('Vistrail ' +
-                            QtCore.Qt.escape(name) +
-                            ' contains unsaved jobs.\n Do you want to '
-                            'save changes or discard the job(s)?')
-                    res2 = QtGui.QMessageBox.information(window,
-                                                        'Vistrails',
-                                                        text, 
-                                                        '&Save', 
-                                                        '&Discard',
-                                                        'Cancel',
-                                                        0,
-                                                        2)
-                    if res2 == 0:
-                        res = 0
-                        break
-                    elif res2 == 1:
-                        from vistrails.gui.job_monitor import QJobView
-                        QJobView.instance().delete_job(
-                                             current_view.controller, version)
-                    elif res2 == 2:
-                        return False
         else:
-            res = 1
+            res = DISCARD_BUTTON
         
-        if res == 0:
+        if res == SAVE_BUTTON:
             if locator is None or locator.is_untitled():
                 class_ = FileLocator()
             else:
@@ -1907,7 +1864,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             locator = current_view.save_vistrail(class_)
             if not locator:
                 return False
-        elif res == 2:
+        elif res == CANCEL_BUTTON:
             return False
         
         if locator is not None:
@@ -1960,7 +1917,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             return self.stack.currentWidget()
         else:
             if len(self.windows) > 0:
-                return self.windows.iterkeys().next()
+                return next(self.windows.iterkeys())
         return None
         
     def get_current_controller(self):
@@ -2260,10 +2217,6 @@ class QVistrailsWindow(QVistrailViewWindow):
         conf.subscribe('maxRecentVistrails', self.max_recent_vistrails_changed)
         self.update_recent_vistrail_actions()
 
-    def check_running_jobs(self):
-        from vistrails.gui.job_monitor import QJobView
-        QJobView.instance().load_running_jobs()
-
     def open_recent_vistrail(self):
         """ open_recent_vistrail() -> None
         Opens a vistrail from Open Recent menu list
@@ -2298,7 +2251,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             action.setCheckable(True)
             
             base_view_windows = {}
-            if current_view == None or \
+            if current_view is None or \
                QtGui.QApplication.activeWindow() == self:
                 action.setChecked(True)
             actions.append(action)
@@ -2441,6 +2394,13 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.qactions[action_name].setChecked(False)
         self.qactions[action_name].setChecked(True)
 
+    def show_looping_options(self):
+        from vistrails.gui.module_options import QModuleOptions
+        action_name = QModuleOptions.instance().get_title()
+        # easy way to make sure that looping options window is raised
+        self.qactions[action_name].setChecked(False)
+        self.qactions[action_name].setChecked(True)
+
 #    def show_group(self):
 #        class DummyController(object):
 #            def __init__(self, pip):
@@ -2519,13 +2479,15 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         vistrails.db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
         vistrail = s1.vistrail
-        vistrail.locator = None
+        vistrail.locator = UntitledLocator()
         vistrail.set_defaults()
         view = self.create_view(vistrail, None)
         # FIXME need to figure out what to do with this !!!
         view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
         view.controller.set_changed(True)
         self.view_changed(view)
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        QWorkspaceWindow.instance().add_vt_window(view)
         self.reset_toolbar_for_view(view)
         self.qactions['history'].trigger()
         view.version_view.scene().fitToView(view.version_view, True)
@@ -2623,7 +2585,8 @@ class QVistrailsWindow(QVistrailViewWindow):
                                QAliasInspector,
                                QCellWidget,
                                QMashupViewTab,
-                               QVistrailsPaletteInterface]
+                               QVistrailsPaletteInterface,
+                               QToolWindow]
             old_view = self.get_current_view()
             view = None
             if self.isAncestorOf(current):
@@ -2678,8 +2641,8 @@ class QPaletteMainWindow(QtGui.QMainWindow):
     def closeDockedPalettes(self):
         for p in self.palettes:
             if (p.toolWindow().isVisible() and 
-                not p.toolWindow().isFloating()):
-                        p.toolWindow().close()
+                    not p.toolWindow().isFloating()):
+                p.toolWindow().close()
             
     def closeEvent(self, event):
         if not QtCore.QCoreApplication.closingDown():

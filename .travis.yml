@@ -1,0 +1,14 @@
+language: python
+sudo: true
+python:
+  - "2.6"
+  - "2.7"
+install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq python-matplotlib python-mysqldb python-numpy python-qt4 python-qt4-gl python-qt4-sql python-scipy python-vtk python-xlrd python-xlwt zip unzip xvfb python-rpy2 python-zsi
+# python-zmq is needed by parallelflow, but Travis has a bug right now (2015-01-12)
+  - virtualenv --system-site-packages venv && source venv/bin/activate
+  - pip install -r requirements.txt
+  - python setup.py install
+script:
+  - cd /tmp && xvfb-run --server-args="-screen 0 1024x768x16" python -m vistrails.tests -V 1

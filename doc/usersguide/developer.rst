@@ -10,7 +10,7 @@ Developer's Guide
    packages
    batch
    log
-   example_itk
    controlflowdev
    parallelization
    cltools
+   api_documentation

@@ -59,25 +59,24 @@ dialog. (Please  refer to  Chapter :ref:`chap-packages` for more  information on
 Adding Web Service Packages
 ===========================
 
-Within the  ``Module Packages`` tab  of the ``Preferences``
-dialog,  click the  ``Configure``  button to  open the  configuration
-dialog  for  this package(``SUDSWebServices``).   Select  the  ``wsdlList``  and click  on the ``Value`` field.  This is where you will enter  the URL(s) of the web service(s)  you wish  to access.  If there is  more than  one URL,  place a semicolon (;)  between each URL, but  *not* after the final  URL. In other words, the URLs must be semicolon-delimited, but not semicolon-terminated.
+Within the ``Module Packages`` tab of the ``Preferences`` dialog, click the ``Configure`` button to open the configuration dialog for this package (``SUDSWebServices``).  Select the ``wsdlList`` and click on the ``Value`` field.  This is where you will enter the URL(s) of the web service(s) you wish to access.  If there is more than one URL, place a semicolon (;) between each URL, but *not* after the final URL. In other words, the URLs must be semicolon-delimited, but not semicolon-terminated.
 
 For our example, we need the following URL:
 
 ``http://www.ebi.ac.uk/webservices/chebi/2.0/webservice?wsdl``
 
-After   closing   the   dialog,    you   need   to reload the ``SUDSWebServices`` package in order to load  the changes. Then, close the ``Preferences`` dialog.  A new package will be created for each URL provided.
+After closing the dialog, you need to reload the ``SUDSWebServices`` package in order to load the changes. Then, close the ``Preferences`` dialog.  A new package will be created for each URL provided.
 
 Alternatively, you may add a web service package by clicking the secondary mouse button on the "SUDS Web Services" package in the module palette and entering the corresponding URL.  You may remove a web service by clicking the secondary mouse button on the corresponding package in the module palette and selecting ``Remove this Web Service``.
 
-.. %.. figure::
-.. %   :align: center
-.. %   :height=3in,clip=false]{modules_list.png}
-.. %}
-.. %   The available modules in the ``webServices`` module are shown in the ``Modules`` panel.}
-.. %.. _fig-webservices_preferences}
-.. %  
+.. _fig-webservices_preferences:
+
+.. figure:: figures/example_webservices/modules_list.png
+   :align: center
+   :height: 3in
+
+   The available modules in the ``webServices`` module are shown in the ``Modules`` panel.
+
 
 Creating a new vistrail
 =======================
@@ -119,7 +118,7 @@ configuration dialog:
 
 .. code-block:: python
 
-   dataitemlist = self.getInputFromPort("ontologyDataItemList")
+   dataitemlist = self.get_input("ontologyDataItemList")
    output1 = self.interpreter.filePool.create_file()
    f1 = open(str(output1.name), "w")
    text = "<HTML><TITLE>Chebi WebService</TITLE><BODY BGCOLOR=#FFFFFF>"
@@ -142,7 +141,7 @@ configuration dialog:
        f1.write(line)        
    text = "</table></CENTER></BODY></HTML>"
    f1.write(text)
-   self.setResult("outfile",output1)
+   self.set_output("outfile",output1)
    f1.close()
 
 Close the dialog.  One of the ports we need to use is an optional port.  Select the ``OntologyDataItemList`` module and select the ``Outputs`` tab from the ``Module Information`` panel.  Click in the left column next to ``ListElement`` so the eye icon appears.  Now connect the modules together as shown in Figure :ref:`fig-chebi_pipeline_screenshot`.
