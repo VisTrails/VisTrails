@@ -175,7 +175,6 @@ class VistrailController(QtCore.QObject, BaseController):
         self.quiet = False
         self.progress = None
         self.create_job = False
-        self.create_job = False
 
         self.analogy = {}
         # if self._auto_save is True, an auto_saving timer will save a temporary
@@ -1275,24 +1274,22 @@ class VistrailController(QtCore.QObject, BaseController):
                     mCount.append(0)
                 else:
                     mCount.append(len(p.modules)+mCount[len(mCount)-1])
-                    mCount.append(len(p.modules)+mCount[len(mCount)-1])
+
+            from vistrails.gui.job_monitor import QJobView
+            jobView = QJobView.instance()
+            if jobView.updating_now:
+                debug.critical("Execution Aborted: Job Monitor is updating. "
+                               "Please wait a few seconds and try again.")
+                return
+            jobView.updating_now = True
 
             try:
                 # Now execute the pipelines
-                if showProgress:
-                    # reset job view
-                    from vistrails.gui.job_monitor import QJobView
-                    jobView = QJobView.instance()
-                    if jobView.updating_now:
-                        debug.critical("Execution Aborted: Job Monitor is updating. "
-                                       "Please wait a few seconds and try again.")
-                        return
-                    jobView.updating_now = True
 
+                if showProgress:
                     totalProgress = sum([len(p.modules) for p in modifiedPipelines])
                     self.progress = PEProgressDialog(self.vistrail_view, totalProgress)
                     self.progress.show()
-
 
                 interpreter = get_default_interpreter()
 
@@ -1317,7 +1314,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                        os.path.join(extra_info['pathDumpCells'], name)
                     pe_cell_id = (pe_log_id,) + pipelinePositions[pi]
                     kwargs = {'locator': self.locator,
-                              'controller': self,
+                              'job_monitor': self.jobMonitor,
                               'current_version': self.current_version,
                               'reason': 'Parameter Exploration %s %s_%s_%s' % pe_cell_id,
                               'logger': self.get_logger(),
@@ -1333,7 +1330,6 @@ class VistrailController(QtCore.QObject, BaseController):
                         vars = dict([(v.uuid, v) for v in self.get_vistrail_variables()
                                 if v.uuid not in vistrail_vars])
                         kwargs['vistrail_variables'] = lambda x: vars.get(x, None)
-
 
                     # Create job
                     # check if a job exist for this workflow
@@ -1360,12 +1356,6 @@ class VistrailController(QtCore.QObject, BaseController):
                         else:
                             errors.append(((0,0,0), error))
 
-                if 'pathDumpCells' in extra_info:
-                    filename = os.path.join(extra_info['pathDumpCells'],
-                                            os.path.splitext(self.name)[0])
-                    assembleThumbnails(images, filename)
-                from vistrails.gui.vistrails_window import _app
-                _app.notify('execution_updated')
             finally:
                 if showProgress:
                     self.progress.setValue(totalProgress)
@@ -1373,8 +1363,14 @@ class VistrailController(QtCore.QObject, BaseController):
                     self.progress.deleteLater()
                     self.progress = None
 
-                    jobView.updating_now = False
+                jobView.updating_now = False
 
+            if 'pathDumpCells' in extra_info:
+                filename = os.path.join(extra_info['pathDumpCells'],
+                                        os.path.splitext(self.name)[0])
+                assembleThumbnails(images, filename)
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('execution_updated')
             return errors
 
 ################################################################################
