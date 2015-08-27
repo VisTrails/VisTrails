@@ -1,3 +1,10 @@
+vistrails (2.2.2-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Fix outdated copyright info.
+
+ -- Remi Rampin <remi.rampin@nyu.edu>  Thu, 27 Aug 2015 15:01:00 -0400
+
 vistrails (2.2-1) unstable; urgency=medium
 
   * New upstream release.
