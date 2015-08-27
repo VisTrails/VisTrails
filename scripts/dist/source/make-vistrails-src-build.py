@@ -34,13 +34,13 @@ import subprocess
 EXPORT_PATHS = "vistrails doc examples extensions scripts CHANGELOG LICENSE".split()
 
 # VisTrails Release Version
-VT_VERSION = '2.2'
+VT_VERSION = '2.2.2'
 
 # Branch to be used to build release
-VT_BRANCH = 'master'
+VT_BRANCH = 'v2.2'
 
 # Hash used in the release
-VT_HASH = 'b5341fe97287'
+VT_HASH = '9bd2afa387a4'
 
 # Distribution Tarball name (Do not add ".tar.gz")
 #TARBALL_NAME = "vistrails-src-%s-%s" % (VT_VERSION, VT_HASH)

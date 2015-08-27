@@ -103,6 +103,15 @@ def unexpected_exception(e, tb=None, frame=None):
     p.reset()
     p.interaction(frame, tb)
 
+_old_excepthook = sys.excepthook
+
+def _excepthook(exctype, value, traceback):
+    unexpected_exception(value, traceback)
+    if _old_excepthook is not None:
+        return _old_excepthook(exctype, value, traceback)
+
+sys.excepthook = _excepthook
+
 ###############################################################################
 
 def _format_exception(etype, value, etb, rtb):
@@ -383,9 +392,7 @@ class DebugPrint(object):
         for d in details:
             if isinstance(d, Exception):
                 d = format_exception(d)
-                msg = '%s\n%s' % (msg, d)
-            else:
-                msg = '%s\n%s' % (msg, d)
+            msg = '%s\n%s' % (msg, d)
         source = inspect.getsourcefile(caller)
         line = caller.f_lineno
         if source and line:

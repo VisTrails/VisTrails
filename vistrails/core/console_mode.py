@@ -74,8 +74,13 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
     result = []
     for locator, workflow in w_list:
         (v, abstractions , thumbnails, mashups)  = load_vistrail(locator)
-        controller = VistrailController(v, locator, abstractions, thumbnails,
+        if is_running_gui():
+            from vistrails.gui.vistrail_controller import VistrailController as GUIVistrailController
+            controller = GUIVistrailController(v, locator, abstractions, thumbnails,
                                         mashups, auto_save=update_vistrail)
+        else:
+            controller = VistrailController(v, locator, abstractions, thumbnails,
+                                            mashups, auto_save=update_vistrail)
         if isinstance(workflow, basestring):
             version = v.get_version_number(workflow)
         elif isinstance(workflow, (int, long)):
@@ -85,8 +90,10 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
         else:
             msg = "Invalid version tag or number: %s" % workflow
             raise VistrailsInternalError(msg)
+        # FIXME TE: why is this needed
+        controller.current_pipeline_view.set_controller(controller)
         controller.change_selected_version(version)
-        
+
         for e in elements:
             pos = e.find("=")
             if pos != -1:
@@ -103,19 +110,6 @@ def run_and_get_results(w_list, parameters='', output_dir=None,
                             c = mashup.getAliasByName(key).component
                             params.append((c.vttype, c.vtid, value))
 
-        if output_dir is not None and controller.current_pipeline is not None:
-            # FIXME DAK: why is this always done?!? there is a flag for it...
-            if is_running_gui():
-                controller.updatePipelineScene()
-                base_fname = "%s_%s_pipeline.pdf" % (locator.short_filename, version)
-                filename = os.path.join(output_dir, base_fname)
-                controller.current_pipeline_scene.saveToPDF(filename)
-            else:
-                debug.critical("Cannot save pipeline figure when not "
-                               "running in gui mode")
-            base_fname = "%s_%s_pipeline.xml" % (locator.short_filename, version)
-            filename = os.path.join(output_dir, base_fname)
-            vistrails.core.db.io.save_workflow(controller.current_pipeline, filename)
         if not update_vistrail:
             conf = get_vistrails_configuration()
             if conf.has('thumbs'):
@@ -185,6 +179,9 @@ def get_wf_graph(w_list, output_dir=None, pdf=False):
                 controller = GUIVistrailController(v, locator, abstractions, 
                                                    thumbnails, mashups,
                                                    auto_save=False)
+                # FIXME TE: why is this needed
+                controller.current_pipeline_view.set_controller(controller)
+
                 version = None
                 if isinstance(workflow, basestring):
                     version = v.get_version_number(workflow)
@@ -195,8 +192,10 @@ def get_wf_graph(w_list, output_dir=None, pdf=False):
                 else:
                     msg = "Invalid version tag or number: %s" % workflow
                     raise VistrailsInternalError(msg)
-            
-                if (output_dir is not None and 
+
+                controller.change_selected_version(version)
+
+                if (output_dir is not None and
                     controller.current_pipeline is not None):
                     controller.updatePipelineScene()
                     if pdf:

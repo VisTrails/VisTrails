@@ -42,6 +42,8 @@ QModuleTreeWidgetItem
 """
 from __future__ import division
 
+import os
+import traceback
 from PyQt4 import QtCore, QtGui
 from vistrails.core import get_vistrails_application
 from vistrails.core import debug
@@ -298,10 +300,12 @@ class QModuleTreeWidget(QSearchTreeWidget):
                         menu.exec_(event.globalPos())
                     return
             except Exception, e:
+                debug.unexpected_exception(e)
                 debug.warning("Got exception trying to display %s's "
-                              "context menu in the palette: %s: %s" % (
-                              package.name,
-                              type(e).__name__, ', '.join(e.args)))
+                              "context menu in the palette: %s\n%s" % (
+                                  package.name,
+                                  debug.format_exception(e),
+                                  traceback.format_exc()))
 
             item.contextMenuEvent(event, self)
 
@@ -483,6 +487,12 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
                                QtCore.SIGNAL("triggered()"),
                                self.edit_subworkflow)
             menu.addAction(act)
+            act = QtGui.QAction("Remove Subworkflow", widget)
+            act.setStatusTip("Delete this Subworkflow")
+            QtCore.QObject.connect(act,
+                               QtCore.SIGNAL("triggered()"),
+                               self.remove_subworkflow)
+            menu.addAction(act)
         menu.exec_(event.globalPos())
 
     def view_documentation(self):
@@ -495,6 +505,17 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         from vistrails_window import _app
         filename = self.descriptor.module.vt_fname
         _app.openAbstraction(filename)
+
+    def remove_subworkflow(self):
+        registry = get_module_registry()
+        res = QtGui.QMessageBox.question(None,
+                  'Delete subworkflow?',
+                  'Remove local subworkflow "%s" and delete from disk?' % self.descriptor.name,
+                  buttons=QtGui.QMessageBox.Yes,
+                  defaultButton=QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
+            os.unlink(self.descriptor.module.vt_fname)
+            registry.delete_module(*self.descriptor.spec_tuple)
 
     def set_descriptor(self, descriptor):
         self.descriptor = descriptor

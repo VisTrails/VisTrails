@@ -319,8 +319,8 @@ class Package(DBPackage):
                         self._imports_are_good = False
                         debug.warning(
                             "In package '%s', Please use the 'vistrails.' "
-                            "prefix when importing vistrails packages." %
-                            (self.identifier or self.codepath))
+                            "prefix when importing vistrails packages (%s)" %
+                            (self.identifier or self.codepath, name))
                     fixed = pkg
                     name = "vistrails." + name
                     break
@@ -500,9 +500,11 @@ class Package(DBPackage):
             return (hasattr(self.init_module, 'can_handle_identifier') and
                     self.init_module.can_handle_identifier(identifier))
         except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Got exception calling %s's can_handle_identifier: "
-                           "%s: %s" % (self.name,
-                                       type(e).__name__, ', '.join(e.args)))
+                           "%s\n%s" % (self.name,
+                                       debug.format_exception(e),
+                                       traceback.format_exc()))
             return False
 
     def can_handle_vt_file(self, name):
@@ -512,9 +514,11 @@ class Package(DBPackage):
             return (hasattr(self.init_module, 'can_handle_vt_file') and
                     self.init_module.can_handle_vt_file(name))
         except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Got exception calling %s's can_handle_vt_file: "
-                           "%s: %s" % (self.name,
-                                       type(e).__name__, ', '.join(e.args)))
+                           "%s\n%s" % (self.name,
+                                       debug.format_exception(e),
+                                       traceback.format_exc()))
             return False
 
     def can_handle_missing_modules(self):
@@ -577,18 +581,22 @@ class Package(DBPackage):
             try:
                 self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
             except Exception, e:
+                debug.unexpected_exception(e)
                 debug.critical("Got exception in %s's loadVistrailFileHook(): "
-                               "%s: %s" % (self.name, type(e).__name__,
-                                           ', '.join(e.args)))
+                               "%s\n%s" % (self.name,
+                                           debug.format_exception(e),
+                                           traceback.format_exc()))
 
     def saveVistrailFileHook(self, vistrail, tmp_dir):
         if hasattr(self._init_module, 'saveVistrailFileHook'):
             try:
                 self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
             except Exception, e:
+                debug.unexpected_exception(e)
                 debug.critical("Got exception in %s's saveVistrailFileHook(): "
-                               "%s: %s" % (self.name, type(e).__name__,
-                                           ', '.join(e.args)))
+                               "%s\n%s" % (self.name,
+                                           debug.format_exception(e),
+                                           traceback.format_exc()))
 
     def check_requirements(self):
         try:
@@ -607,8 +615,10 @@ class Package(DBPackage):
             try:
                 return callable_()
             except Exception, e:
-                debug.critical("Couldn't load menu items for %s: %s: %s" % (
-                               self.name, type(e).__name__, ', '.join(e.args)))
+                debug.unexpected_exception(e)
+                debug.critical("Couldn't load menu items for %s: %s\n%s" % (
+                               self.name, debug.format_exception(e),
+                               traceback.format_exc()))
 
     def finalize(self):
         if not self._initialized:
@@ -622,8 +632,10 @@ class Package(DBPackage):
             try:
                 callable_()
             except Exception, e:
-                debug.critical("Couldn't finalize %s: %s: %s" % (
-                               self.name, type(e).__name__, ', '.join(e.args)))
+                debug.unexpected_exception(e)
+                debug.critical("Couldn't finalize %s: %s\n%s" % (
+                               self.name, debug.format_exception(e),
+                               traceback.format_exc()))
         # Save configuration
         if self.load_configuration and self.configuration is not None:
             self.persist_configuration()
@@ -642,8 +654,11 @@ class Package(DBPackage):
             try:
                 deps = callable_()
             except Exception, e:
-                debug.critical("Couldn't get dependencies of %s: %s: %s" % (
-                               self.name, type(e).__name__, ', '.join(e.args)))
+                debug.critical(
+                        "Couldn't get dependencies of %s: %s\n%s" % (
+                            self.name, debug.format_exception(e),
+                            traceback.format_exc()))
+                deps = []
 
         if self._module is not None and \
                 hasattr(self._module, '_dependencies'):

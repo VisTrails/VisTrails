@@ -935,7 +935,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 '')
-        if ok and not text:
+        if ok and text:
             return str(text).strip().rstrip()
         return ''
             
@@ -943,7 +943,7 @@ class VistrailController(QtCore.QObject, BaseController):
         dialog = QtGui.QFileDialog.getExistingDirectory
         dir_name = dialog(None, "Save Subworkflows...",
                           vistrails.core.system.vistrails_file_directory())
-        if dir_name:
+        if not dir_name:
             return None
         dir_name = os.path.abspath(str(dir_name))
         setattr(get_vistrails_configuration(), 'fileDir', dir_name)
@@ -1114,7 +1114,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 log = self.log
             opm_graph = OpmGraph(log=log, 
                                  version=self.current_version,
-                                 workflow=self.current_pipeline,
+                                 workflow=self.vistrail.getPipeline(self.current_version),
                                  registry=get_module_registry())
             locator.save_as(opm_graph)
             
@@ -1127,7 +1127,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 log = self.log
             prov_document = ProvDocument(log=log, 
                                          version=self.current_version,
-                                         workflow=self.current_pipeline,
+                                         workflow=self.vistrail.getPipeline(self.current_version),
                                          registry=get_module_registry())
             locator.save_as(prov_document)
 
@@ -1389,3 +1389,23 @@ class TestVistrailController(vistrails.gui.utils.TestVisTrailsGUI):
         controller.create_abstraction(module_ids, connection_ids,
                                       '__TestFloatList')
         self.assert_(os.path.exists(filename))
+
+    def test_abstraction_execute(self):
+        from vistrails import api
+        api.new_vistrail()
+        api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'String', '')
+        api.change_parameter(0, 'value', ['Running Abstraction'])
+        api.add_module(0, 0, 'org.vistrails.vistrails.basic', 'StandardOutput', '')
+        api.add_connection(0, 'value', 1, 'value')
+        c = api.get_current_controller()
+        abs = c.create_abstraction([0,1], [0], 'ExecAbs')
+        d = vistrails.core.system.get_vistrails_directory('subworkflowsDir')
+        filename = os.path.join(d, 'ExecAbs.xml')
+        api.close_current_vistrail(True)
+        desc = c.load_abstraction(filename, abs_name='ExecAbs')
+        api.new_vistrail()
+        c = api.get_current_controller()
+        api.add_module_from_descriptor(desc, 0, 0)
+        self.assertEqual(c.execute_current_workflow()[0][0].errors, {})
+        api.close_current_vistrail(True)
+        c.unload_abstractions()

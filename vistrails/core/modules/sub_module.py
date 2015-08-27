@@ -47,7 +47,7 @@ from vistrails.core.modules import module_registry
 from vistrails.core.modules.basic_modules import identifier as basic_pkg
 from vistrails.core.modules.config import ModuleSettings, IPort, OPort
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, new_module, \
-    ModuleError, ModuleSuspended
+    ModuleError, ModuleSuspended, ModuleConnector
 from vistrails.core.utils import VistrailsInternalError
 import os.path
 
@@ -188,9 +188,15 @@ class Group(Module):
 
         # Connect Group's external input ports to internal InputPort modules
         for iport_name, conn in self.inputPorts.iteritems():
+            from vistrails.core.modules.basic_modules import create_constant
+            # The type information is lost when passing as Variant,
+            # so we need to use the the final normalized value
+            value = self.get_input(iport_name)
+            temp_conn = ModuleConnector(create_constant(value),
+                                        'value', conn[0].spec)
             iport_module = self.input_remap[iport_name]
             iport_obj = tmp_id_to_module_map[iport_module.id]
-            iport_obj.set_input_port('ExternalPipe', conn[0])
+            iport_obj.set_input_port('ExternalPipe', temp_conn)
 
         # Execute pipeline
         kwargs = {'logger': self.logging.log.recursing(self),
@@ -330,11 +336,14 @@ def get_port_spec_info(pipeline, module):
 ###############################################################################
 
 class Abstraction(Group):
-    _settings = ModuleSettings(name="SubWorkflow", 
+    # We need Abstraction to be a subclass of Group so that the hierarchy of
+    # modules is right
+    # But the pipeline comes from somewhere else, so skip the transfer_attrs()
+    _settings = ModuleSettings(name="SubWorkflow",
                                hide_descriptor=True)
 
-    def __init__(self):
-        Group.__init__(self)
+    def transfer_attrs(self, module):
+        Module.transfer_attrs(self, module)
 
     # the compute method is inherited from Group!
 
@@ -478,14 +487,18 @@ def get_abstraction_dependencies(vistrail, internal_version=-1L):
         vistrail = read_vistrail(vistrail)
     if internal_version == -1L:
         internal_version = vistrail.get_latest_version()
-    # action = vistrail.actionMap[internal_version]
     pipeline = vistrail.getPipeline(internal_version)
-    
+
     packages = {}
-    for module in pipeline.module_list:
-        if module.package not in packages:
-            packages[module.package] = set()
-        packages[module.package].add(module.descriptor_info)
+    def pipeline_deps(pipeline):
+        for module in pipeline.module_list:
+            if module.is_group():
+                pipeline_deps(module.pipeline)
+                continue
+            if module.package not in packages:
+                packages[module.package] = set()
+            packages[module.package].add(module.descriptor_info)
+    pipeline_deps(pipeline)
     return packages
 
 def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1L):

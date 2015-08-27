@@ -765,13 +765,12 @@ class ModuleRegistry(DBRegistry):
                 package = self.package_versions[(identifier, package_version)]
             except KeyError:
                 raise MissingPackageVersion(identifier, package_version)
-        if not module_version:
-            try:
-                descriptor = package.descriptors[(name, namespace)]
-            except KeyError:
-                raise MissingModule(identifier, name, namespace,
-                                    package_version)
-        else:
+        try:
+            descriptor = package.descriptors[(name, namespace)]
+        except KeyError:
+            raise MissingModule(identifier, name, namespace,
+                                package_version)
+        if module_version:
             descriptor_version_key = (name, namespace, module_version)
             try:
                 descriptor = \
@@ -1057,26 +1056,32 @@ class ModuleRegistry(DBRegistry):
         contents."""
         if '_input_ports' in module.__dict__:
             for port_info in module._input_ports:
+                name = None
                 try:
                     name, sig, kwargs = self.decode_input_port(port_info)
                     self.add_input_port(module, name, sig, **kwargs)
                 except Exception, e:
                     debug.unexpected_exception(e)
-                    debug.critical('Failed to add input port "%s" to module '
-                                   '"%s"' % (name, module.__name__),
-                                   e)
+                    debug.critical(
+                            "Failed to add input port %s to module '%s'" % (
+                                '"%s"' % name if name is not None
+                                else "(unknown)", module.__name__),
+                            e)
                     raise
 
         if '_output_ports' in module.__dict__:
             for port_info in module._output_ports:
+                name = None
                 try:
                     name, sig, kwargs = self.decode_output_port(port_info)
                     self.add_output_port(module, name, sig, **kwargs)
                 except Exception, e:
                     debug.unexpected_exception(e)
-                    debug.critical('Failed to add output port "%s" to module '
-                                   '"%s"' % (name, module.__name__),
-                                   e)
+                    debug.critical(
+                             "Failed to add output port %s to module '%s'" % (
+                                 '"%s"' % name if name is not None
+                                 else "(unknown)", module.__name__),
+                             e)
                     raise
 
     def auto_add_module(self, module):
@@ -1169,7 +1174,7 @@ class ModuleRegistry(DBRegistry):
 
         if identifier is None:
             raise VistrailsInternalError("No package is currently being "
-                                         "loaded and arugment 'package' is "
+                                         "loaded and argument 'package' is "
                                          "not specified.")
 
         package = self.package_versions[(identifier, package_version)]

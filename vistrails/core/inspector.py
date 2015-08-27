@@ -150,35 +150,45 @@ class PipelineInspector(object):
         Inspect the pipeline to see how many cells is needed
         
         """
-        registry = get_module_registry()
         self.spreadsheet_cells = []
-        if not pipeline: return
+        if not pipeline:
+            return
+
+        registry = get_module_registry()
+        # Sometimes we run without the spreadsheet!
+        if not registry.has_module('org.vistrails.vistrails.spreadsheet',
+                                   'SpreadsheetCell'):
+            return
+        cell_desc = registry.get_descriptor_by_name(
+                'org.vistrails.vistrails.spreadsheet',
+                'SpreadsheetCell')
+        output_desc = registry.get_descriptor_by_name(
+                'org.vistrails.vistrails.basic',
+                'OutputModule')
 
         def find_spreadsheet_cells(pipeline, root_id=None):
             if root_id is None:
                 root_id = []
-            # Sometimes we run without the spreadsheet!
-            spreadsheet_pkg = 'org.vistrails.vistrails.spreadsheet'
-            if registry.has_module(spreadsheet_pkg, 'SpreadsheetCell'):
-                # First pass to check cells types
-                cellType = \
-                    registry.get_descriptor_by_name(spreadsheet_pkg,
-                                                    'SpreadsheetCell').module
-                for mId, module in pipeline.modules.iteritems():
-                    desc = registry.get_descriptor_by_name(module.package, 
-                                                           module.name, 
-                                                           module.namespace)
-                    if issubclass(desc.module, cellType):
+            for mId, module in pipeline.modules.iteritems():
+                desc = registry.get_descriptor_by_name(module.package,
+                                                       module.name,
+                                                       module.namespace)
+                # SpreadsheetCell subclasses
+                if registry.is_descriptor_subclass(desc, cell_desc):
+                    self.spreadsheet_cells.append(root_id + [mId])
+                # Output modules with a 'spreadsheet' mode
+                elif registry.is_descriptor_subclass(desc, output_desc):
+                    if desc.module.get_mode_class('spreadsheet') is not None:
                         self.spreadsheet_cells.append(root_id + [mId])
 
             for subworkflow_id in self.find_subworkflows(pipeline):
                 subworkflow = pipeline.modules[subworkflow_id]
                 if subworkflow.pipeline is not None:
-                    find_spreadsheet_cells(subworkflow.pipeline, 
+                    find_spreadsheet_cells(subworkflow.pipeline,
                                            root_id + [subworkflow_id])
 
         find_spreadsheet_cells(pipeline)
-    
+
     def find_subworkflows(self, pipeline):
         if not pipeline: 
             return

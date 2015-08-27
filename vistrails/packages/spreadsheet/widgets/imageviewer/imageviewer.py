@@ -48,7 +48,7 @@ import imageviewer_rc
 ################################################################################
 
 class ImageFileToSpreadsheet(SpreadsheetMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         fname = output_module.get_input('value').name
         window = spreadsheetController.findSpreadsheetWindow()
         local_file = window.file_pool.make_local_copy(fname)

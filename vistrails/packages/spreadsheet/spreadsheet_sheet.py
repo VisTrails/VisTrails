@@ -544,6 +544,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.setCellWidget(row, col, cellWidget)
         if cellWidget:
             self.delegate.updateEditorGeometry(cellWidget, None, index)
+        if (row, col) == self.activeCell:
+            self.setActiveCell(row, col)
 
     def selectCell(self, row, col, toggling):
         """ selectCell(row: int, col: int, toggling: bool) -> None

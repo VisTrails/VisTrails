@@ -42,8 +42,8 @@ Usage:
 
 from setuptools import setup
 import sys
-
-VERSION = '2.2'
+sys.setrecursionlimit(1500)
+VERSION = '2.2.2'
 
 # Add VTK 6.2 to path
 sys.path.insert(0,'/Users/vistrails/src/VTK6/build/Wrapping/Python')

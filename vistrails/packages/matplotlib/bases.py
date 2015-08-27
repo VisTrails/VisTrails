@@ -128,7 +128,7 @@ class MplFigureToFile(ImageFileMode):
     config_cls = ImageFileModeConfig
     formats = ['pdf', 'png', 'jpg']
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
         w = configuration["width"]
         h = configuration["height"]
@@ -155,7 +155,7 @@ class MplIPythonMode(IPythonMode):
     mode_type = "ipython"
     config_cls = MplIPythonModeConfig
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         from IPython.display import set_matplotlib_formats
         from IPython.core.display import display
 

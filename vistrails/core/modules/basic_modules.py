@@ -352,13 +352,11 @@ class PathObject(object):
         if name.startswith('_repr_') and name.endswith('_'):
             if self._ipython_repr is None:
                 filetype, encoding = mimetypes.guess_type(self.name)
-                if not filetype:
-                    self._ipython_repr = False
-                elif filetype.startswith('image/'):
+                if filetype and filetype.startswith('image/'):
                     self._ipython_repr = display.Image(filename=self.name)
                 else:
                     self._ipython_repr = False
-            elif self._ipython_repr is not False:
+            if self._ipython_repr is not False:
                 return getattr(self._ipython_repr, name)
         raise AttributeError
 

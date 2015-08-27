@@ -40,6 +40,7 @@ from copy import copy
 import os
 import sys
 import unittest
+import warnings
 
 from vistrails.core.configuration import ConfigurationObject, ConfigField, ConfigPath, get_vistrails_persistent_configuration, get_vistrails_temp_configuration
 from vistrails.core.modules.vistrails_module import Module, NotCacheable, ModuleError
@@ -58,7 +59,7 @@ class OutputMode(object):
     def get_config(cls):
         return cls.config_cls
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         raise NotImplementedError("Subclass of OutputMode should implement "
                                   "this")
 
@@ -519,7 +520,7 @@ class FileMode(OutputMode):
 class FileToFileMode(FileMode):
     default_file_extension = None
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         old_fname = output_module.get_input('value').name
         full_path = self.get_filename(configuration,
                                       suffix=(os.path.splitext(old_fname)[1] or
@@ -540,19 +541,19 @@ class FileToFileMode(FileMode):
             raise ModuleError(output_module, msg)
 
 class FileToStdoutMode(StdoutMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         fname = output_module.get_input('value').name
         with open(fname, 'r') as f:
             for line in f:
                 sys.stdout.write(line)
 
 class GenericToStdoutMode(StdoutMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
         print >>sys.stdout, value
 
 class GenericToFileMode(FileMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         value = output_module.get_input('value')
         filename = self.get_filename(configuration)
         with open(filename, 'w') as f:
@@ -592,18 +593,33 @@ class IPythonMode(OutputMode):
     priority = 400
     config_cls = IPythonModeConfig
 
-    @staticmethod
-    def can_compute():
+    # Set this to enable/disable notebook integration
+    notebook_override = None
+
+    @classmethod
+    def can_compute(cls):
+        if cls.notebook_override is not None:
+            return cls.notebook_override
         try:
-            import __main__ as main
-            if hasattr(main, '__file__'):
-                return False
             import IPython.core.display
-            return True
+            from IPython import get_ipython
+            from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
         except ImportError:
             return False
+        else:
+            ip = get_ipython()
+            if ip is not None and isinstance(ip, ZMQInteractiveShell):
+                warnings.warn(
+                        "Looks like you might be running from IPython; you "
+                        "might want to call\nvistrails.ipython_mode(True) to "
+                        "enable IPythonMode, allowing output modules to\n"
+                        "render to the notebook.\n"
+                        "If this is wrong, please call "
+                        "vistrails.ipython_mode(False) to get rid of this\n"
+                        "warning.")
+            return False
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         from IPython.core.display import display
 
         value = output_module.get_input('value')
@@ -612,7 +628,7 @@ class IPythonMode(OutputMode):
 class IPythonHtmlMode(IPythonMode):
     mode_type = "ipython"
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         from IPython.core.display import display, HTML
 
         value = output_module.get_input('value')

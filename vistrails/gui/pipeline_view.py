@@ -51,6 +51,7 @@ from __future__ import division
 from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
+from vistrails.core.data_structures.graph import GraphContainsCycles
 from vistrails.core.db.action import create_action
 from vistrails.core.system import systemType
 from vistrails.core.modules.module_registry import get_module_registry, \
@@ -608,10 +609,10 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """
         self.scene().clearSelection()
         self.parentItem().setSelected(True)
+        self.ungrabMouse()
         self.contextMenuEvent(event)
         event.accept()
-        self.ungrabMouse()
-        
+
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
         Captures context menu event.
@@ -1072,7 +1073,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.invalid = False
         self._module_shape = None
         self._original_module_shape = None
-        self._old_connection_ids = None
         self.errorTrace = None
         self.is_breakpoint = False
         self._needs_state_updated = True
@@ -2057,6 +2057,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.noUpdate = False
         self.installEventFilter(self)
         self.pipeline_tab = None
+        # These are the IDs currently present in the scene, used to update it
+        # faster when switching pipelines via setupScene()
         self._old_module_ids = set()
         self._old_connection_ids = set()
         self._var_selected_port = None
@@ -2080,7 +2082,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def addModule(self, module, moduleBrush=None):
         """ addModule(module: Module, moduleBrush: QBrush) -> QGraphicsModuleItem
         Add a module to the scene
-        
+
         """
         moduleItem = QGraphicsModuleItem(None)
         if self.controller and self.controller.search:
@@ -2198,9 +2200,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         selected = self.modules[m_id].isSelected()
         depending_connections = \
             [c_id for c_id in self.modules[m_id].dependingConnectionItems()]
-        # old_depending_connections = self.modules[m_id]._old_connection_ids
         
-        #when configuring a python source, maybe connections were deleted
+        # when configuring a python source, maybe connections were deleted
         # but are not in the current pipeline. So we need to check the depending
         # connections of the module just before the configure. 
         for c_id in depending_connections:
@@ -2623,13 +2624,20 @@ class QPipelineScene(QInteractiveGraphicsScene):
         else:
             src_port_item = tmp_connection_item.snapPortItem
             dst_port_item = tmp_connection_item.startPortItem
-        
+
         if src_port_item.parentItem().id < 0 or start_is_src:
             src_module_id = module.id
             dst_module_id = dst_port_item.parentItem().id
         else:
             src_module_id = src_port_item.parentItem().id
             dst_module_id = module.id
+
+        graph = copy.copy(self.controller.current_pipeline.graph)
+        graph.add_edge(src_module_id, dst_module_id)
+        try:
+            graph.dfs(raise_if_cyclic=True)
+        except GraphContainsCycles:
+            return False
 
         reg = get_module_registry()
 
@@ -2676,12 +2684,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.addConnection(conn1)
             self.addConnection(conn2)
 
+        return True
+
     def addConnectionFromTmp(self, tmp_connection_item, module, start_is_src):
-        self.createConnectionFromTmp(tmp_connection_item, module, start_is_src)
+        result = self.createConnectionFromTmp(tmp_connection_item, module,
+                                              start_is_src)
         self.reset_module_colors()
         self._old_connection_ids = \
             set(self.controller.current_pipeline.connections)
         self._old_module_ids = set(self.controller.current_pipeline.modules)
+        return result
 
     def add_module_event(self, event, data):
         """Adds a new module from a drop event"""
@@ -2752,15 +2764,21 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if self.skip_update:
             return
         if (self.controller.current_pipeline and
-            self.controller.current_pipeline.is_valid):
-            for module_id, list_depth in \
-                    self.controller.current_pipeline.mark_list_depth(modules):
-                if module_id in self.modules:
-                    self.modules[module_id].module.list_depth = list_depth
+                self.controller.current_pipeline.is_valid):
+            try:
+                depths = \
+                    self.controller.current_pipeline.mark_list_depth(modules)
+            except GraphContainsCycles:
+                # Pipeline is invalid, we don't really care that the depths are
+                # not right
+                pass
+            else:
+                for module_id, list_depth in depths:
+                    if module_id in self.modules:
+                        self.modules[module_id].module.list_depth = list_depth
         for c in self.connections.itervalues():
             c.setupConnection()
 
-    
     def delete_tmp_module(self):
         if self.tmp_module_item is not None:
             self.removeItem(self.tmp_module_item)
@@ -3593,16 +3611,20 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
         return False
     
     def execute(self, target=None):
-        # reset job view
-        if target is not None:
-            self.controller.execute_user_workflow(
-                    sinks=[target],
-                    reason="Execute specific module")
+        try:
+            if target is not None:
+                self.controller.execute_user_workflow(
+                        sinks=[target],
+                        reason="Execute specific module")
+            else:
+                self.controller.execute_user_workflow()
+        except Exception, e:
+            debug.unexpected_exception(e)
+            debug.critical("Error executing workflow: %s" % debug.format_exception(e))
         else:
-            self.controller.execute_user_workflow()
-        from vistrails.gui.vistrails_window import _app
-        _app.notify('execution_updated')
-        
+            from vistrails.gui.vistrails_window import _app
+            _app.notify('execution_updated')
+
     def publish_to_web(self):
         from vistrails.gui.publishing import QVersionEmbed
         panel = QVersionEmbed.instance()
