@@ -302,6 +302,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
+        job_monitor = fetch('job_monitor', None)
 
         reg = get_module_registry()
 
@@ -665,6 +666,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
           actions = fetch('actions', None)
           done_summon_hooks = fetch('done_summon_hooks', [])
           module_executed_hook = fetch('module_executed_hook', [])
+          job_monitor = fetch('job_monitor', None)
 
         Executes a pipeline using caching. Caching works by reusing
         pipelines directly.  This means that there exists one global
@@ -708,6 +710,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
+        job_monitor = fetch('job_monitor', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '

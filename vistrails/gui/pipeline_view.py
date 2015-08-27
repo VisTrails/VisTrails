@@ -3244,7 +3244,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if p is not None:
             self.check_progress_canceled()
             pipeline = self.controller.current_pipeline
-            module = pipeline.get_module_by_id(moduleId)
+            try:
+                module = pipeline.get_module_by_id(moduleId)
+            except KeyError:
+                # Module does not exist in pipeline
+                return
             p.setLabelText(module.name)
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))

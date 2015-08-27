@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 # usage: make_app volname
 #      example: scripts/dist/make_app vistrails-mac-10.5-intel-1.3.1-rev1646
 #

@@ -307,10 +307,13 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 int(workflow.version)
             except ValueError:
                 if workflow.version.startswith("Parameter Exploration"):
-                    QtGui.QMessageBox.information(self, "Job Ready",
-                        'Pending Jobs in "%s" have finished, '
-                        'execute it again to get results' % workflow_item.text(0),
-                        QtGui.QMessageBox.Ok)
+                    # this is too annoying
+                    #QtGui.QMessageBox.information(self, "Job Ready",
+                    #    'Pending Jobs in "%s" have finished, '
+                    #    'execute it again to get results' % workflow_item.text(0),
+                    #    QtGui.QMessageBox.Ok)
+                    # TODO: Only notify user when all cells have finished
+                    pass
                 elif workflow.version.startswith("Mashup"):
                     QtGui.QMessageBox.information(self, "Job Ready",
                         'Pending Jobs in "%s" have finished, '
