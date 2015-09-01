@@ -293,7 +293,8 @@ class SaveTemporariesMixin(object):
     self.name to exist for proper functioning.
 
     """
-
+    # Minimum number of temporary files to keep
+    MIN_TEMPORARIES = 30
     @staticmethod
     def get_autosave_dir():
         dot_vistrails = vistrails.core.system.current_dot_vistrails()
@@ -361,11 +362,13 @@ class SaveTemporariesMixin(object):
         return latest[0]
         
     def _next_temporary(self, temporary):
-        """_find_latest_temporary(string or None): String
+        """_next_temporary(string or None): String
 
         Returns the next suitable temporary file given the current
         latest one.
 
+        If there are already 60 temporaries, delete the oldest 30
+        and rename the rest to start from 0.
         """
         if temporary is None:
             return self.encode_name(self.get_temp_basename()) + '0'
@@ -373,7 +376,33 @@ class SaveTemporariesMixin(object):
             split = temporary.rfind('_')+1
             base = temporary[:split]
             number = int(temporary[split:])
+            if number >= self.MIN_TEMPORARIES*2-1:
+                number = self._prune_temporaries()
+                return base + str(number)
             return base + str(number+1)
+
+
+    def _prune_temporaries(self):
+        """_prune_temporaries(): int
+
+           Removes oldest N temporaries
+           Returns the next free temporary
+
+        """
+        i = 0
+        base = self.encode_name(self._name)
+        while True:
+            old_name = base + str(i)
+            if not os.path.isfile(old_name):
+                break
+            if i < self.MIN_TEMPORARIES:
+                    os.unlink(old_name)
+            else:
+                # Rename files so that the first one starts with 0
+                new_name = base + str(i - self.MIN_TEMPORARIES)
+                os.rename(old_name, new_name)
+            i += 1
+        return i - self.MIN_TEMPORARIES
 
 class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     UNTITLED_NAME = "Untitled"
