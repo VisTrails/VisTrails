@@ -440,6 +440,7 @@ class VistrailController(QtCore.QObject, BaseController):
         self.flush_delayed_actions()
 
         if self.create_job:
+            self.create_job = False
             version_id = self.current_version
             # check if a job exist for this workflow
             current_workflow = None
@@ -447,14 +448,17 @@ class VistrailController(QtCore.QObject, BaseController):
                 try:
                     wf_version = int(wf.version)
                 except ValueError:
-                    wf_version = self.vistrail.get_version_number(wf.version)
+                    try:
+                        wf_version = self.vistrail.get_version_number(wf.version)
+                    except KeyError:
+                        # this is a PE or mashup
+                        continue
                 if version_id == wf_version:
                     current_workflow = wf
                     self.jobMonitor.startWorkflow(wf)
             if not current_workflow:
                 current_workflow = JobWorkflow(version_id)
                 self.jobMonitor.startWorkflow(current_workflow)
-            self.create_job = False
 
         if self.current_pipeline:
             locator = self.get_locator()
@@ -502,13 +506,12 @@ class VistrailController(QtCore.QObject, BaseController):
 
             self.progress.setValue(100)
         finally:
+            jobView.updating_now = False
+            self.jobMonitor.finishWorkflow()
             self.progress.hide()
             self.progress.deleteLater()
             self.progress = None
             self.create_job = False
-            self.jobMonitor.finishWorkflow()
-            jobView.updating_now = False
-
         return result
 
     def enable_missing_package(self, identifier, deps):
@@ -1375,10 +1378,10 @@ class VistrailController(QtCore.QObject, BaseController):
                         if job_id == wf.version:
                             current_workflow = wf
                             self.jobMonitor.startWorkflow(wf)
+                            break
                     if not current_workflow:
                         current_workflow = JobWorkflow(job_id)
                         self.jobMonitor.startWorkflow(current_workflow)
-
                     try:
                         result = interpreter.execute(modifiedPipelines[pi], **kwargs)
                     finally:
@@ -1392,13 +1395,12 @@ class VistrailController(QtCore.QObject, BaseController):
                             errors.append(((0,0,0), error))
 
             finally:
+                jobView.updating_now = False
                 if showProgress:
                     self.progress.setValue(totalProgress)
                     self.progress.hide()
                     self.progress.deleteLater()
                     self.progress = None
-
-                jobView.updating_now = False
 
             if 'pathDumpCells' in extra_info:
                 filename = os.path.join(extra_info['pathDumpCells'],

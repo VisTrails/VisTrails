@@ -494,25 +494,27 @@ class JobMonitor(object):
 
         """
         workflow = self._current_workflow
-        # untangle parents
-        # only keep the top item
-        c = set()
-        for exception in workflow.parents.itervalues():
-            if exception.children:
-                c.update([id(child) for child in exception.children])
-        for child in c:
-            if child in workflow.parents:
-                del workflow.parents[child]
-        for parent in workflow.parents.itervalues():
-            self.addJobRec(parent)
+        try:
+            # untangle parents
+            # only keep the top item
+            c = set()
+            for exception in workflow.parents.itervalues():
+                if exception.children:
+                    c.update([id(child) for child in exception.children])
+            for child in c:
+                if child in workflow.parents:
+                    del workflow.parents[child]
+            for parent in workflow.parents.itervalues():
+                self.addJobRec(parent)
 
-        # Assume all unfinished jobs that were not updated are now finished
-        for job in workflow.jobs.values():
-            if not job.finished and not job.updated:
-                job.finish()
-        if self.callback is not None and self.callback() is not None:
-            self.callback().finishWorkflow(workflow)
-        self._current_workflow = None
+            # Assume all unfinished jobs that were not updated are now finished
+            for job in workflow.jobs.values():
+                if not job.finished and not job.updated:
+                    job.finish()
+            if self.callback is not None and self.callback() is not None:
+                self.callback().finishWorkflow(workflow)
+        finally:
+            self._current_workflow = None
 
     def addJob(self, id, params=None, name='', finished=False):
         """ addJob(id: str, params: dict, name: str, finished: bool) -> uuid

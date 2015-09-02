@@ -113,9 +113,16 @@ if __name__ == "__main__":
     tarball = None
     try:
         tarball = tarfile.open(TARBALL_FILENAME, "w:gz")
-        dist = os.path.join('scripts', 'dist')
+        ignore = [os.path.join('scripts', 'dist'),
+                  os.path.join('doc', 'dist')]
+
+        def filter_(path):
+            if any(path.startswith(ignored) for ignored in ignore):
+                return None
+            return path
+
         for fname in EXPORT_PATHS:
-            tarball.add(fname, filter=lambda x: None if x.name.startswith(dist) else x)
+            tarball.add(fname, filter=filter_)
     except:
         print "ERROR: Failed to create tarball"
         raise

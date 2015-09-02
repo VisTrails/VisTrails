@@ -115,7 +115,11 @@ def run_and_get_results(w_list, parameters='',
                 try:
                     job_version = int(job.version)
                 except ValueError:
-                    job_version =  v.get_version_number(job.version)
+                    try:
+                        job_version =  v.get_version_number(job.version)
+                    except KeyError:
+                        # this is a PE or mashup
+                        continue
                 if version == job_version:
                     current_workflow = job
                     jobMonitor.startWorkflow(job)
