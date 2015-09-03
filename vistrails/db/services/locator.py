@@ -35,7 +35,6 @@
 ###############################################################################
 from __future__ import division
 
-import cgi
 from datetime import datetime, date
 import hashlib
 import locale
@@ -88,7 +87,7 @@ def url2pathname(urlpath):
 
 class BaseLocator(object):
 
-    def load(self):
+    def load(self, type):
         raise NotImplementedError("load is not implemented")
 
     def save(self, obj, do_copy=True, version=None):
@@ -204,7 +203,7 @@ class BaseLocator(object):
     @staticmethod
     def parse_args(arg_str):
         args = {}
-        parsed_dict = cgi.parse_qs(arg_str)
+        parsed_dict = urlparse.parse_qs(arg_str)
         if 'type' in parsed_dict:
             args['obj_type'] = parsed_dict['type'][0]
         if 'id' in parsed_dict:
@@ -1089,9 +1088,9 @@ import unittest
 class TestLocators(unittest.TestCase):
     if not hasattr(unittest.TestCase, 'assertIsInstance'):
         def assertIsInstance(self, obj, cls, msg=None):
-            assert(isinstance(obj, cls))
-        def assertIsNone(self, obj):
-            self.assertEqual(obj, None)
+            self.assertTrue(isinstance(obj, cls), msg)
+        def assertIsNone(self, obj, msg=None):
+            self.assertTrue(obj is None, msg)
 
     @staticmethod
     def path2url(fname):
