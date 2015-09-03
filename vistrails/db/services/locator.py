@@ -293,8 +293,6 @@ class SaveTemporariesMixin(object):
     self.name to exist for proper functioning.
 
     """
-    # Minimum number of temporary files to keep
-    MIN_TEMPORARIES = 30
     @staticmethod
     def get_autosave_dir():
         dot_vistrails = vistrails.core.system.current_dot_vistrails()
@@ -336,6 +334,8 @@ class SaveTemporariesMixin(object):
         temp_fname = self.encode_name(self.get_temp_basename())
         if os.path.isfile(temp_fname):
             os.unlink(temp_fname)
+        if os.path.isfile(temp_fname + '.tmp'):
+            os.unlink(temp_fname + '.tmp')
 
     def encode_name(self, filename):
         """encode_name(filename) -> str
