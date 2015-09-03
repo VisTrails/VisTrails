@@ -116,10 +116,10 @@ if __name__ == "__main__":
         ignore = [os.path.join('scripts', 'dist'),
                   os.path.join('doc', 'dist')]
 
-        def filter_(path):
-            if any(path.startswith(ignored) for ignored in ignore):
+        def filter_(member):
+            if any(member.name.startswith(ignored) for ignored in ignore):
                 return None
-            return path
+            return member
 
         for fname in EXPORT_PATHS:
             tarball.add(fname, filter=filter_)
