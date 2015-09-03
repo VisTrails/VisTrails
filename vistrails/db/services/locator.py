@@ -310,10 +310,22 @@ class SaveTemporariesMixin(object):
     def get_temp_basename(self):
         return self.name
 
+    def get_temporary(self):
+        temp_fname = self.encode_name(self.get_temp_basename())
+        if os.path.isfile(temp_fname):
+            return temp_fname
+        return None
+
     def save_temporary(self, obj):
-        fname = self._find_latest_temporary()
-        new_temp_fname = self._next_temporary(fname)
+        """ Writes a backup file to disk
+        """
+        temp_fname = self.encode_name(self.get_temp_basename())
+        new_temp_fname = temp_fname + '.tmp'
+        # Write a temporary backup before deleting the old one
         io.save_to_xml(obj, new_temp_fname)
+        if os.path.isfile(temp_fname):
+            os.unlink(temp_fname)
+        os.rename(new_temp_fname, temp_fname)
 
     def clean_temporaries(self):
         """_remove_temporaries() -> None
@@ -321,88 +333,17 @@ class SaveTemporariesMixin(object):
         Erases all temporary files.
 
         """
-        def remove_it(fname):
-            os.unlink(fname)
-        self._iter_temporaries(remove_it)
+        temp_fname = self.encode_name(self.get_temp_basename())
+        if os.path.isfile(temp_fname):
+            os.unlink(temp_fname)
 
     def encode_name(self, filename):
         """encode_name(filename) -> str
         Encodes a file path using urllib.quoteplus
 
         """
-        name = urllib.quote_plus(filename) + '_tmp_'
+        name = urllib.quote_plus(filename) + '_tmp'
         return os.path.join(self.get_autosave_dir(), name)
-
-    def _iter_temporaries(self, f):
-        """_iter_temporaries(f): calls f with each temporary file name, in
-        sequence.
-
-        """
-        latest = None
-        current = 0
-        while True:
-            fname = self.encode_name(self.get_temp_basename()) + str(current)
-            if os.path.isfile(fname):
-                f(fname)
-                current += 1
-            else:
-                break
-
-    def _find_latest_temporary(self):
-        """_find_latest_temporary(): String or None.
-
-        Returns the latest temporary file saved, if it exists. Returns
-        None otherwise.
-        
-        """
-        latest = [None]
-        def set_it(fname):
-            latest[0] = fname
-        self._iter_temporaries(set_it)
-        return latest[0]
-        
-    def _next_temporary(self, temporary):
-        """_next_temporary(string or None): String
-
-        Returns the next suitable temporary file given the current
-        latest one.
-
-        If there are already 60 temporaries, delete the oldest 30
-        and rename the rest to start from 0.
-        """
-        if temporary is None:
-            return self.encode_name(self.get_temp_basename()) + '0'
-        else:
-            split = temporary.rfind('_')+1
-            base = temporary[:split]
-            number = int(temporary[split:])
-            if number >= self.MIN_TEMPORARIES*2-1:
-                number = self._prune_temporaries()
-                return base + str(number)
-            return base + str(number+1)
-
-
-    def _prune_temporaries(self):
-        """_prune_temporaries(): int
-
-           Removes oldest N temporaries
-           Returns the next free temporary
-
-        """
-        i = 0
-        base = self.encode_name(self._name)
-        while True:
-            old_name = base + str(i)
-            if not os.path.isfile(old_name):
-                break
-            if i < self.MIN_TEMPORARIES:
-                    os.unlink(old_name)
-            else:
-                # Rename files so that the first one starts with 0
-                new_name = base + str(i - self.MIN_TEMPORARIES)
-                os.rename(old_name, new_name)
-            i += 1
-        return i - self.MIN_TEMPORARIES
 
 class UntitledLocator(SaveTemporariesMixin, BaseLocator):
     UNTITLED_NAME = "Untitled"
@@ -437,9 +378,6 @@ class UntitledLocator(SaveTemporariesMixin, BaseLocator):
 
     def get_temp_basename(self):
         return UntitledLocator.UNTITLED_PREFIX + self._uuid.hex
-
-    def get_temporary(self):
-        return self._find_latest_temporary()
 
     def _get_name(self):
         return UntitledLocator.UNTITLED_NAME
@@ -547,9 +485,6 @@ class XMLFileLocator(SaveTemporariesMixin, BaseLocator):
 
     def is_valid(self):
         return os.path.isfile(self._name)
-
-    def get_temporary(self):
-        return self._find_latest_temporary()
 
     def _get_name(self):
         return str(self._name)
