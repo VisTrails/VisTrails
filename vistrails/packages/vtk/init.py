@@ -783,7 +783,7 @@ else:
     #
     def op_append_datasets(dataset1, dataset2):
         new_var = Variable(type=dataset_type)
-        mod = new_var.add_module('vtkAppendFilter')
+        mod = new_var.add_module('org.vistrails.vistrails.vtk:vtkAppendFilter')
         dataset1.connect_to(mod, 'AddInputConnection')
         dataset2.connect_to(mod, 'AddInputConnection')
         new_var.select_output_port(mod, 'GetOutputPort0')
@@ -791,7 +791,7 @@ else:
 
     def op_outline(dataset):
         new_var = Variable(type=dataset_type)
-        mod = new_var.add_module('vtkOutlineFilter')
+        mod = new_var.add_module('org.vistrails.vistrails.vtk:vtkOutlineFilter')
         dataset.connect_to(mod, 'SetInputConnection0')
         new_var.select_output_port(mod, 'GetOutputPort0')
         return new_var
