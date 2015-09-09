@@ -42,10 +42,12 @@ from vistrails.core import debug
 from vistrails.core.configuration import get_vistrails_configuration, \
     get_vistrails_persistent_configuration
 from vistrails.core.modules.vistrails_module import ModuleSuspended
+from vistrails.core.vistrail.job import module_name
 from vistrails.gui import theme
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
+import vistrails.gui.utils
 
 refresh_states = [('Off', 0), ('10 sec', 10),
                   ('1 min', 60), ('10 min', 600),
@@ -472,7 +474,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         if obj.children:
             # add parent items and their children
             if id not in workflow_item.intermediates:
-                parent_item = QParentItem(id, obj.name, base)
+                parent_item = QParentItem(id, module_name(obj.module), base)
                 parent_item.setExpanded(True)
                 workflow_item.intermediates[id] = parent_item
 
