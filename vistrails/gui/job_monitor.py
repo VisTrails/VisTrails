@@ -47,6 +47,7 @@ from vistrails.gui import theme
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
+import vistrails.core.system
 import vistrails.gui.utils
 
 refresh_states = [('Off', 0), ('10 sec', 10),
@@ -753,3 +754,163 @@ class ErrorMonitor(LogMonitor):
     """
     def update_text(self):
         self.text.setPlainText(self.handle.standard_error())
+
+
+################################################################################
+# Testing
+
+
+class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
+
+    @classmethod
+    def setUpClass(cls):
+        pm = vistrails.core.packagemanager.get_package_manager()
+        if pm.has_package('org.vistrails.vistrails.myjobs'):
+            return
+        pm.late_enable_package('myjob')
+
+        get_vistrails_configuration().jobAutorun = True
+        get_vistrails_persistent_configuration().jobAutorun = True
+        QJobView.instance().set_refresh()
+        cls.filename = (vistrails.core.system.vistrails_root_directory() +
+                        '/tests/resources/jobs.vt')
+
+    @classmethod
+    def tearDownClass(cls):
+        manager = vistrails.core.packagemanager.get_package_manager()
+        if manager.has_package('org.vistrails.vistrails.myjobs'):
+            manager.late_disable_package('myjob')
+
+    def tearDown(self):
+        vistrails.gui.utils.TestVisTrailsGUI.tearDown(self)
+        from vistrails.core.interpreter.cached import CachedInterpreter
+        CachedInterpreter.flush()
+
+    def testSuspended(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+        api.select_version('SuspendOnce', c)
+
+        result = c.execute_user_workflow()[0][0]
+        # assert suspended
+        self.assertEqual(result.errors, {})
+        self.assertNotEqual(result.suspended, {})
+
+        result = c.execute_user_workflow()[0][0]
+        # assert finished
+        self.assertEqual(result.errors, {})
+        self.assertEqual(result.suspended, {})
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
+
+    def testGroup(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+        api.select_version('SuspendGroup', c)
+        result = c.execute_user_workflow()[0][0]
+
+        # assert suspended
+        self.assertEqual(result.errors, {})
+        self.assertNotEqual(result.suspended, {})
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
+
+    def testMap(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+        api.select_version('SuspendMap', c)
+
+        result = c.execute_user_workflow()[0][0]
+        # assert suspended
+        self.assertEqual(result.errors, {})
+        self.assertNotEqual(result.suspended, {})
+
+        result = c.execute_user_workflow()[0][0]
+        # assert finished
+        self.assertEqual(result.errors, {})
+        self.assertEqual(result.suspended, {})
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
+
+    def testLoop(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+        api.select_version('SuspendLoop', c)
+
+        result = c.execute_user_workflow()[0][0]
+        # assert suspended
+        self.assertEqual(result.errors, {})
+        self.assertNotEqual(result.suspended, {})
+
+        result = c.execute_user_workflow()[0][0]
+        # assert finished
+        self.assertEqual(result.errors, {})
+        self.assertEqual(result.suspended, {})
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
+
+    def testParameterExploration(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+        api.select_version('SuspendOnce', c)
+
+        pe = c.vistrail.get_named_paramexp('SuspendOnce')
+        try:
+            c.executeParameterExploration(pe)
+        except:
+            self.fail("Parameter Exploration with Job failed")
+
+        # Check that we have 2 jobs
+        self.assertEqual(len(c.jobMonitor.workflows.keys()), 2)
+        for i in c.jobMonitor.workflows.keys():
+            wf = c.jobMonitor.workflows[i]
+            self.assertFalse(wf.completed())
+
+        try:
+            c.executeParameterExploration(pe)
+        except:
+            self.fail("Parameter Exploration with Job failed")
+
+        # Check that the 2 jobs has completed
+        for i in c.jobMonitor.workflows.keys():
+            wf = c.jobMonitor.workflows[i]
+            self.assertTrue(wf.completed())
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
+
+    def testMashup(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+
+        c.flush_delayed_actions()
+        id = "80f58f50-57b1-11e5-a1da-000c2960b7d8"
+        mashup = view.get_mashup_from_mashuptrail_id(id, "SuspendOnce")
+        self.assert_(mashup)
+
+        view.open_mashup(mashup)
+        self.assertEqual(len(c.jobMonitor.workflows.keys()), 1)
+        self.assertFalse(c.jobMonitor.workflows.values()[0].completed())
+
+        # close associated mashup apps
+        from vistrails.gui.version_prop import QVersionProp
+        version_prop = QVersionProp.instance()
+        for app in version_prop.versionMashups.apps.values():
+            app.close()
+
+        view.open_mashup(mashup)
+        self.assertEqual(len(c.jobMonitor.workflows.keys()), 1)
+        self.assertTrue(c.jobMonitor.workflows.values()[0].completed())
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
