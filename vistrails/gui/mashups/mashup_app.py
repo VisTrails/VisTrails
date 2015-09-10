@@ -43,7 +43,7 @@ from vistrails.core import debug
 from vistrails.core.vistrail.job import Workflow as JobWorkflow
 from vistrails.gui.mashups.mashups_widgets import QAliasNumericStepperWidget, \
     QAliasSliderWidget, QDropDownWidget
-from vistrails.gui.utils import show_warning, TestVisTrailsGUI
+from vistrails.gui.utils import TestVisTrailsGUI
 from vistrails.gui.vistrail_controller import ExecutionProgressDialog
 
 from vistrails.packages.spreadsheet.spreadsheet_controller import \
@@ -113,13 +113,11 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             if cellEvents:
                 self.initCells(cellEvents)
         if errors is True:
-            show_warning("VisTrails::Mashup Preview",
-                         "Mashup job is still executing. Try again later.")
-
+            debug.warning("Mashup job is still running. Run again to check "
+                          "if it has completed.")
         elif len(errors) > 0:
-            show_warning("VisTrails::Mashup Preview",
-                         "There was a problem executing the pipeline: %s." %
-                         errors)
+            debug.critical("There was a problem executing the mashup: %s." %
+                           errors)
         # Construct the controllers for aliases
         self.controlDocks = {}
         self.cellControls = {}
@@ -261,9 +259,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.is_executing = True
         (cellEvents, errors) = self.runAndGetCellEvents()
         if errors is True:
-            show_warning("VisTrails::Mashup Preview",
-                         "Mashup job is still executing. Try again later.")
-            return
+            debug.warning("Mashup job is still running. Run again to check "
+                          "if it has completed.")
         self.is_executing = False
         if self.numberOfCells is not None and len(cellEvents) != self.numberOfCells:
             raise RuntimeError(
@@ -316,8 +313,8 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         while True:
             (cellEvents, errors) = self.runAndGetCellEvents()
             if errors is True:
-                show_warning("VisTrails::Mashup Preview",
-                             "Mashup job is still executing. Try again later.")
+                debug.warning("Mashup job is still running. Run again to check "
+                              "if it has completed.")
             if self.numberOfCells is not None and len(cellEvents) != self.numberOfCells:
                 raise RuntimeError(
                         "The number of cells has changed (unexpectedly) "
