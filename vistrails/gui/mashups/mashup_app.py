@@ -113,7 +113,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
             if cellEvents:
                 self.initCells(cellEvents)
         if errors is True:
-            debug.warning("Mashup job is still running. Run again to check "
+            debug.critical("Mashup job is still running. Run again to check "
                           "if it has completed.")
         elif len(errors) > 0:
             debug.critical("There was a problem executing the mashup: %s." %
@@ -259,7 +259,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         self.is_executing = True
         (cellEvents, errors) = self.runAndGetCellEvents()
         if errors is True:
-            debug.warning("Mashup job is still running. Run again to check "
+            debug.critical("Mashup job is still running. Run again to check "
                           "if it has completed.")
         self.is_executing = False
         if self.numberOfCells is not None and len(cellEvents) != self.numberOfCells:
@@ -313,7 +313,7 @@ class QMashupAppMainWindow(QtGui.QMainWindow):
         while True:
             (cellEvents, errors) = self.runAndGetCellEvents()
             if errors is True:
-                debug.warning("Mashup job is still running. Run again to check "
+                debug.critical("Mashup job is still running. Run again to check "
                               "if it has completed.")
             if self.numberOfCells is not None and len(cellEvents) != self.numberOfCells:
                 raise RuntimeError(
