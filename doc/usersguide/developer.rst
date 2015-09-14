@@ -9,6 +9,7 @@ Developer's Guide
 
    packages
    batch
+   job_submission
    log
    controlflowdev
    parallelization
