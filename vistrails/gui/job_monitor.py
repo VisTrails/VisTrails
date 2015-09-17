@@ -767,7 +767,8 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         pm = vistrails.core.packagemanager.get_package_manager()
         if pm.has_package('org.vistrails.vistrails.myjobs'):
             return
-        pm.late_enable_package('myjob')
+        d = {'myjob': 'vistrails.tests.resources.'}
+        pm.late_enable_package('myjob', d)
 
         get_vistrails_configuration().jobAutorun = True
         get_vistrails_persistent_configuration().jobAutorun = True

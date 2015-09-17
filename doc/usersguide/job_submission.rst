@@ -13,6 +13,9 @@ To use the Job mechanism it needs to be implemented by Modules. |vistrails| will
 then detect the jobs and handle it accordingly. Jobs are implemented either using
 :ref:`JobMixin <sec-jobmixin>` or :ref:`ModuleSuspended <sec-modulesuspended>`.
 
+
+.. note:: To run the examples, first install the example package by copying it from `vistrails/tests/resources/myjob.py` to `~/.vistrails/userpackages` (:vtl:`Or run a workflow that does this automatically <jobsubmission3.vt>`)
+
 .. _sec-monitoring_jobs:
 
 Monitoring Jobs
@@ -22,11 +25,11 @@ Jobs are tracked by the Job Monitor when started from the VisTrails GUI. It
 keeps track of all jobs and enables you to:
 
 * Check jobs - Checks if the job has completed through the handle mechanism, either the selected workflow/module or all.
-* Pause jobs - A paused workflow will not be checked by the `Check All` button.
+* Pause jobs - A paused workflow will not be checked by the timer or `Check All` button.
 * View standard output/error for running jobs - If implemented by the handle.
 * Delete running workflows/modules.
 * Set time interval for automatic job checking.
-* Set flag for waiting for job to finish.
+* Set flag for waiting for job to finish (Automatic job execution).
 
 .. _fig-list_job-monitor:
 
