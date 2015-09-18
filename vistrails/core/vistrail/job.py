@@ -54,6 +54,17 @@ import unittest
 import weakref
 
 
+def module_name(module):
+    """ Returns the display-name of the module or the module name if not set
+
+    """
+    if 'pipeline' in module.moduleInfo and module.moduleInfo['pipeline']:
+        p_modules = module.moduleInfo['pipeline'].modules
+        p_module = p_modules[module.moduleInfo['moduleId']]
+        if p_module.has_annotation_with_key('__desc__'):
+            return p_module.get_annotation_by_key('__desc__').value
+    return module.__class__.__name__
+
 class JobMixin(object):
     """ Mixin for suspendable modules.
 
@@ -186,13 +197,7 @@ class JobMixin(object):
         Modules needn't override this, in which case a default will be
         provided.
         """
-        # use module description if it exists
-        if 'pipeline' in self.moduleInfo and self.moduleInfo['pipeline']:
-            p_modules = self.moduleInfo['pipeline'].modules
-            p_module = p_modules[self.moduleInfo['moduleId']]
-            if p_module.has_annotation_with_key('__desc__'):
-                return p_module.get_annotation_by_key('__desc__').value
-        return self.__class__.__name__
+        return module_name(self)
 
 
 class Workflow(object):
