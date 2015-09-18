@@ -8,10 +8,13 @@ Job Submission
 long-running executions and jobs that are run in parallel. These jobs are
 executed asynchronously in the background while the workflow execution suspends
 on the client side. The state of running jobs are persisted in the vistrail
-file, and workflows with running jobs can be resumed after restarting |vistrails|.
-To use the Job mechanism it needs to be implemented by Modules. |vistrails| will
-then detect the jobs and handle it accordingly. Jobs are implemented either using
-:ref:`JobMixin <sec-jobmixin>` or :ref:`ModuleSuspended <sec-modulesuspended>`.
+file, so that workflows with running jobs can be resumed even after restarting
+|vistrails|.
+
+To use the Job mechanism, it needs to be implemented by Modules. |vistrails|
+will then detect the jobs and handle it accordingly. Jobs are implemented either
+using :ref:`JobMixin <sec-jobmixin>` (recommended) or
+:ref:`raising ModuleSuspended directly <sec-modulesuspended>`.
 
 
 .. note:: To run the examples, first install the example package by copying it from `vistrails/tests/resources/myjob.py` to `~/.vistrails/userpackages` (:vtl:`Or run a workflow that does this automatically <jobsubmission3.vt>`)
