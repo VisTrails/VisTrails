@@ -762,8 +762,11 @@ class TestUsersGuideVTL(unittest.TestCase):
     def test_vtl_files(self):
         from vistrails.tests.utils import run_file
         for root, dirs, file_names in os.walk(self.vtl_path):
-            for file_name in file_names:
+            for file_name in sorted(file_names):
                 if file_name.endswith('.vtl'):
+                    # update available packages
+                    from vistrails.core.packagemanager import get_package_manager
+                    get_package_manager().build_available_package_names_list()
                     f = os.path.join(root, file_name)
                     locator = FileLocator(f)
                     version = locator._vnode

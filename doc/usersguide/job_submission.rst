@@ -17,7 +17,7 @@ using :ref:`JobMixin <sec-jobmixin>` (recommended) or
 :ref:`raising ModuleSuspended directly <sec-modulesuspended>`.
 
 
-.. note:: To run the examples, first install the example package by copying it from `vistrails/tests/resources/myjob.py` to `~/.vistrails/userpackages` (:vtl:`Or run a workflow that does this automatically <jobsubmission3.vt>`)
+.. note:: To run the examples, first install the example package by copying it from `vistrails/tests/resources/myjob.py` to `~/.vistrails/userpackages` (:vtl:`Or run a workflow that does this automatically <jobsubmission1.vt>`)
 
 .. _sec-monitoring_jobs:
 
@@ -86,7 +86,7 @@ until all branches are either suspended or completed, until finally the workflow
 execution and enter a suspended state.
 
 ModuleSuspended takes a :ref:`handle <sec-handle>` that is used to check the job. Below
-is an example using the TimedJobMonitor above. (:vtl:`Open in vistrails <jobsubmission1.vt>`)
+is an example using the TimedJobMonitor above. (:vtl:`Open in vistrails <jobsubmission2.vt>`)
 
 
 .. code-block:: python
@@ -111,7 +111,7 @@ Using JobMixin
 It exposes a set of methods to implement that is needed to handle the job. One advantage of `JobMixin`
 is that it will resume jobs without re-executing the upstream of the module, as opposed to
 `ModuleSuspended`. This means the upstream will only be executed once for each job. Below is an
-example from the package `MyJobs` (vistrails.packages.myjob). (:vtl:`Open in vistrails <jobsubmission2.vt>`)
+example from the package `MyJobs` (vistrails.packages.myjob). (:vtl:`Open in vistrails <jobsubmission3.vt>`)
 
 .. code-block:: python
 
