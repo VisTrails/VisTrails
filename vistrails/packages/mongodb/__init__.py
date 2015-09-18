@@ -50,5 +50,5 @@ def package_requirements():
     require_python_module('pymongo', {
             'pip': 'pymongo',
             'linux-debian': 'python-pymongo',
-            'linux-ubuntu': 'python-sqlalchemy',
+            'linux-ubuntu': 'python-pymongo',
             'linux-fedora': 'pymongo'})
