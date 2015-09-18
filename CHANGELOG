@@ -19,6 +19,10 @@ Enhancements:
  - Allow multiple actions in module palette's context menus by introducing 'context_menu', replacing 'contextMenuName' and 'callContextMenu'
  - Add Reshape, DictToTable and ListToTable modules to tabledata
  - Only require numpy/xlrd/xlwt when modules get executed; they now always exist
+ - Added Job Submission support to Parameter Explorations and Mashups
+ - ModuleSuspended now requires a handle
+ - Added Job Submission documentation, examples, and tests
+ - Autosave now only stores the latest save, not a new one every 2 minutes
 
 Behavior change for package developers:
  - MplFigure connections now carry the figure number (int)
