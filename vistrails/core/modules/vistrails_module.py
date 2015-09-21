@@ -135,7 +135,7 @@ class ModuleSuspended(ModuleError):
     This is useful when executing external jobs where you do not want to block
     vistrails while waiting for the execution to finish.
 
-    'monitor' is a class instance that should provide a finished() method for
+    'handle' should be a class instance providing a finished() method for
     checking if the job has finished
 
     'children' is a list of ModuleSuspended instances that is used for nested
@@ -154,8 +154,11 @@ class ModuleSuspended(ModuleError):
                               category=VistrailsDeprecation,
                               stacklevel=2)
                 self.handle = queue
-            else:
+            elif children is None:
                 raise TypeError("__init__(): 'handle' argument not set")
+            else:
+                # parent exceptions has no handle
+                self.handle = None
 
         self.children = children
         self.name = None
