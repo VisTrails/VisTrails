@@ -10,7 +10,7 @@ Package: vistrails
 Section: science
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, python-numpy, python-scipy,
-  python-qt4, python-matplotlib,
+  python-qt4, python-matplotlib, python-xlrd, python-xlwt,
   python-suds, python-sip, ipython-qtconsole, python-sklearn,
   python-qt4-gl, python-qt4-sql, python-vtk6 | python-vtk
 Description: Scientific workflow and provenance management system
