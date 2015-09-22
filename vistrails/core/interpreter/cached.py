@@ -302,6 +302,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
+        job_monitor = fetch('job_monitor', None)
 
         reg = get_module_registry()
 
@@ -456,6 +457,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         clean_pipeline = fetch('clean_pipeline', False)
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
+        job_monitor = fetch('job_monitor', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -492,6 +494,12 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             obj.moduleInfo['moduleId'] = i
             obj.moduleInfo['pipeline'] = pipeline
             obj.moduleInfo['controller'] = controller
+            # extract job monitor from controller if this is the top level
+            if controller:
+                obj.moduleInfo['job_monitor'] = controller.jobMonitor
+            else:
+                obj.moduleInfo['job_monitor'] = job_monitor
+
             if extra_info is not None:
                 obj.moduleInfo['extra_info'] = extra_info
             if reason is not None:
@@ -658,6 +666,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
           actions = fetch('actions', None)
           done_summon_hooks = fetch('done_summon_hooks', [])
           module_executed_hook = fetch('module_executed_hook', [])
+          job_monitor = fetch('job_monitor', None)
 
         Executes a pipeline using caching. Caching works by reusing
         pipelines directly.  This means that there exists one global
@@ -701,6 +710,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
+        job_monitor = fetch('job_monitor', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '

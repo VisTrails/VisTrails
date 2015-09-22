@@ -184,7 +184,7 @@ class QAliasNumericStepperWidget(QtGui.QWidget):
         
 ###############################################################################
 class QNumericStepperIntegerWidget(ConstantWidgetMixin, QtGui.QSpinBox):
-    contentsChanged = QtCore.pyqtSignal(object, object)
+    contentsChanged = QtCore.pyqtSignal(tuple)
     def __init__(self, param, parent=None):
         QtGui.QSpinBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self, param.strValue)

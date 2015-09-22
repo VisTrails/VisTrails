@@ -704,7 +704,7 @@ class TestPreferencesDialog(unittest.TestCase):
             selected again in the available packages list.
         """
         
-        pkg = "dialogs"
+        pkg = "URL"
         _app = get_vistrails_application()
         builder = _app.builderWindow
         builder.showPreferences()
@@ -715,11 +715,15 @@ class TestPreferencesDialog(unittest.TestCase):
 
         # check if package is loaded
         av = packages._available_packages_list
-        item, = av.findItems(pkg, QtCore.Qt.MatchExactly)
-        av.setCurrentItem(item)
-        QtGui.QApplication.processEvents()
-        QtGui.QApplication.processEvents()
-        packages.enable_current_package()
+        try:
+            item, = av.findItems(pkg, QtCore.Qt.MatchExactly)
+            av.setCurrentItem(item)
+            QtGui.QApplication.processEvents()
+            QtGui.QApplication.processEvents()
+            packages.enable_current_package()
+        except ValueError:
+            # Already enabled
+            pass
         QtGui.QApplication.processEvents()
         QtGui.QApplication.processEvents()
 

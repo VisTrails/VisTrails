@@ -1,0 +1,31 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "remram/debian-8-amd64"
+
+  config.vm.network "forwarded_port", guest: 27017, host: 27017
+
+  config.vm.provision "shell",
+    inline: <<SCRIPT
+sudo aptitude update -y
+sudo aptitude install -y mongodb-server curl
+curl -LO https://raw.githubusercontent.com/mongodb/docs-assets/primer-dataset/dataset.json
+mongoimport --db test --collection restaurants --drop --file dataset.json
+cd /etc
+patch -p0 <<EOF
+--- mongodb.conf    2013-11-13 05:38:26.000000000 -0500
++++ mongodb.conf    2015-07-22 16:32:29.775054996 -0400
+@@ -9,4 +9,4 @@
+ logappend=true
+ 
+-bind_ip = 127.0.0.1
++#bind_ip = 127.0.0.1
+ #port = 27017
+EOF
+sudo service mongodb restart
+SCRIPT
+end

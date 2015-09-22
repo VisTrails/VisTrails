@@ -1,6 +1,34 @@
 RELEASE NOTES
 -------------
-Release Name: v2.2.2 build 9bd2afa387a4 from v2.2 branch
+Release Name: v2.2.3 build 02ad04a622c4 from v2.2 branch
+
+Bug fixes:
+ - Fixed showing "invalid pipeline" instead of failure from auto-enabled package
+ - Fixed responsiveness of suspended module progress bar
+ - Fixed some GUI issues in the job monitor
+ - Accept unicode in source configuration widgets (e.g. PythonSource's)
+ - Fixed using same name for an input & output port in PythonSource
+ - Fixed the spreadsheet window popping up when exiting VisTrails
+
+Enhancements:
+ - tej package improved & documented
+ - Add "close" action in workspace context menu
+ - Added a MongoDB package
+ - Added a reprounzip package
+ - Make FileOutput mode use the 'outputDirectory' config setting
+ - Allow multiple actions in module palette's context menus by introducing 'context_menu', replacing 'contextMenuName' and 'callContextMenu'
+ - Add Reshape, DictToTable and ListToTable modules to tabledata
+ - Only require numpy/xlrd/xlwt when modules get executed; they now always exist
+ - Added Job Submission support to Parameter Explorations and Mashups
+ - ModuleSuspended now requires a handle
+ - Added Job Submission documentation, examples, and tests
+ - Autosave now only stores the latest save, not a new one every 2 minutes
+
+Behavior change for package developers:
+ - MplFigure connections now carry the figure number (int)
+ - ModuleSuspended now must have an associated JobHandle
+
+From Release: v2.2.2 build 9bd2afa387a4 from v2.2 branch
 
 Bug fixes:
  - prevents introducing cycles in pipeline view (#1097)
@@ -65,11 +93,13 @@ Enhancements:
  - No longer show upgrade actions in version tree (optional; #1046)
  - Associate with .vt and .vtl files on Linux
  - Added min_conns and max_conns attribute to ports
+
 Bug fixes:
  - fixes strptime on system with non-English locale
  - fixes returning numpy arrays from PythonSource modules (3468998b)
  - pressing ctrl+s after loading a pipeline no longer replace it with a vistrail
  - fixed losing notes when clicking "execute" immediately from version view
+
 Behavior change for package developers:
  - made Module methods python_style; updateUpstream won't work, others will
    work but trigger warning

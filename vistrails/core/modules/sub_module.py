@@ -202,7 +202,7 @@ class Group(Module):
         kwargs = {'logger': self.logging.log.recursing(self),
                   'clean_pipeline': True,
                   'current_version': self.moduleInfo['version']}
-        module_info_args = set(['locator', 'reason', 'extra_info', 'actions'])
+        module_info_args = set(['locator', 'reason', 'extra_info', 'actions', 'job_monitor'])
         for arg in module_info_args:
             if arg in self.moduleInfo:
                 kwargs[arg] = self.moduleInfo[arg]

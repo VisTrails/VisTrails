@@ -44,6 +44,6 @@ from __future__ import division
 
 identifier = 'org.vistrails.vistrails.matplotlib'
 name = 'matplotlib'
-version = '1.0.5'
+version = '1.0.6'
 old_identifiers = ['edu.utah.sci.vistrails.matplotlib',
                    'org.vistrails.matplotlib.new']

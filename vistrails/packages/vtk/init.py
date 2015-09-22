@@ -43,7 +43,7 @@ import vtk
 
 from distutils.version import LooseVersion
 from vistrails.core.configuration import ConfigField
-from vistrails.core.modules.basic_modules import PathObject, \
+from vistrails.core.modules.basic_modules import Path, PathObject, \
                                                        identifier as basic_pkg
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError
@@ -54,6 +54,7 @@ from vistrails.core.system import get_vistrails_default_pkg_prefix, systemType, 
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
                                        UpgradeModuleRemap, UpgradePackageRemap
 from vistrails.core.vistrail.connection import Connection
+from vistrails.core.vistrail.port import Port
 from .pythonclass import BaseClassModule, gen_class_module
 
 from .tf_widget import _modules as tf_modules
@@ -427,11 +428,26 @@ def build_remap(module_name=None):
                                           old_conn.source,
                                           path_module,
                                           'name')
+            # Avoid descriptor lookup by explicitly creating Ports
+            input_port_id = controller.id_scope.getNewId(Port.vtType)
+            input_port = Port(id=input_port_id,
+                              name='value',
+                              type='source',
+                              signature=(Path,),
+                              moduleId=path_module.id,
+                              moduleName=path_module.name)
+            output_port_id = controller.id_scope.getNewId(Port.vtType)
+            output_port = Port(id=output_port_id,
+                               name=name,
+                               type='destination',
+                               signature=(Path,),
+                               moduleId=new_module.id,
+                               moduleName=new_module.name)
             conn2 = create_new_connection(controller,
                                           path_module,
-                                          'value',
+                                          input_port,
                                           new_module,
-                                          name)
+                                          output_port)
             return [('add', path_module),
                     ('add', conn1),
                     ('add', conn2)]
@@ -645,7 +661,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='VTKCell')
-        remap.add_remap('src_port_remap', 'self', 'Instance')
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='VTKViewCell',

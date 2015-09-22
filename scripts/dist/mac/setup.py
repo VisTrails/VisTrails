@@ -43,7 +43,7 @@ Usage:
 from setuptools import setup
 import sys
 sys.setrecursionlimit(1500)
-VERSION = '2.2.2'
+VERSION = '2.2.3'
 
 # Add VTK 6.2 to path
 sys.path.insert(0,'/Users/vistrails/src/VTK6/build/Wrapping/Python')
@@ -74,7 +74,7 @@ OPTIONS = {'argv_emulation': True,
                         sqlalchemy.dialects.firebird,sqlalchemy.dialects.mssql,\
                         sqlalchemy.dialects.oracle,sqlalchemy.dialects.sybase,\
                         sqlalchemy.dialects.drizzle,certifi,backports.ssl_match_hostname,\
-                        tej',
+                        tej,pymongo',
            'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,scipy,\
                         api,twisted,Scientific,distutils,h5py,batchq,osgeo,\
                         nose,IPython,zmq,pygments,pyth,psycopg2,remoteq,\

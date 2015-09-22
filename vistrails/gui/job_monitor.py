@@ -36,18 +36,19 @@
 
 from __future__ import division
 
-import time
-
 from PyQt4 import QtCore, QtGui
 
 from vistrails.core import debug
 from vistrails.core.configuration import get_vistrails_configuration, \
     get_vistrails_persistent_configuration
 from vistrails.core.modules.vistrails_module import ModuleSuspended
+from vistrails.core.vistrail.job import module_name
 from vistrails.gui import theme
 from vistrails.gui.common_widgets import QDockPushButton
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
+import vistrails.core.system
+import vistrails.gui.utils
 
 refresh_states = [('Off', 0), ('10 sec', 10),
                   ('1 min', 60), ('10 min', 600),
@@ -82,16 +83,53 @@ class QJobTree(QtGui.QTreeWidget):
         item = self.itemAt(event.pos())
         menu = QtGui.QMenu(self)
         if item and isinstance(item, QJobItem):
+            act = QtGui.QAction("&Check", self)
+            QtCore.QObject.connect(act,
+                                   QtCore.SIGNAL("triggered()"),
+                                   lambda :self.parent().check_jobs(item))
+            menu.addAction(act)
+
+            act = QtGui.QAction("&Delete", self)
+            QtCore.QObject.connect(act,
+                                   QtCore.SIGNAL("triggered()"),
+                                   lambda :self.parent().delete_item(item))
+            menu.addAction(act)
+
             act = QtGui.QAction("View Standard &Output", self)
             act.setStatusTip("View Standard Output in new window")
             QtCore.QObject.connect(act,
                                    QtCore.SIGNAL("triggered()"),
                                    item.stdout)
             menu.addAction(act)
+
             act = QtGui.QAction("View Standard &Error", self)
             QtCore.QObject.connect(act,
                                    QtCore.SIGNAL("triggered()"),
                                    item.stderr)
+            menu.addAction(act)
+
+            menu.exec_(event.globalPos())
+
+        if item and isinstance(item, QWorkflowItem):
+
+            act = QtGui.QAction("&Check", self)
+            QtCore.QObject.connect(act,
+                                   QtCore.SIGNAL("triggered()"),
+                                   lambda :self.parent().check_jobs(item))
+            menu.addAction(act)
+
+            if not item.paused and not item.workflowFinished:
+                act = QtGui.QAction("&Pause", self)
+                QtCore.QObject.connect(act,
+                                       QtCore.SIGNAL("triggered()"),
+                                       item.pause)
+                menu.addAction(act)
+
+            act = QtGui.QAction("Delete", self)
+            QtCore.QObject.connect(act,
+                                   QtCore.SIGNAL("triggered()"),
+                                   lambda :self.parent().delete_item(item))
+
             menu.addAction(act)
             menu.exec_(event.globalPos())
 
@@ -106,10 +144,14 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.layout = QtGui.QVBoxLayout()
 
         buttonsLayout = QtGui.QHBoxLayout()
-        run_now = QDockPushButton("Check now")
-        run_now.setToolTip("Check all jobs now")
-        run_now.clicked.connect(self.timerEvent)
+        run_now = QDockPushButton("Check selected")
+        run_now.setToolTip("Check selected job now")
+        run_now.clicked.connect(self.check_selected_job)
         buttonsLayout.addWidget(run_now)
+        run_all = QDockPushButton("Check all")
+        run_all.setToolTip("Check all jobs now")
+        run_all.clicked.connect(self.timerEvent)
+        buttonsLayout.addWidget(run_all)
         label = QtGui.QLabel('Refresh interval (seconds):')
         buttonsLayout.addWidget(label)
 
@@ -194,77 +236,136 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         get_vistrails_persistent_configuration().jobCheckInterval = refresh
         self.updating_now = False
 
-    def update_jobs(self):
-        """Called via a timer.
+    def update_job(self, job, force=True):
+        """ Checks specified job
 
-        Checks jobs for all workflows both with and without monitors.
+            force: bool - True means we should ask user to resume jobs
+            that has been paused
         """
-        for i in xrange(self.jobView.topLevelItemCount()):
-            vistrail = self.jobView.topLevelItem(i)
-            jm = vistrail.jobMonitor
-            for workflow_item in vistrail.workflowItems.values():
-                workflow = workflow_item.workflow
-                # jobs without a handle can also be checked
-                if not workflow_item.has_handle:
-                    # restart job and execute
-                    jm.startWorkflow(workflow)
-                    self.updating_now = False
-                    workflow_item.execute()
-                    self.updating_now = True
-                    continue
-                if workflow_item.workflowFinished:
-                    continue
-                for job in workflow_item.jobs.itervalues():
-                    if job.jobFinished:
-                        continue
-                    try:
-                        # call monitor
-                        job.jobFinished = jm.isDone(job.handle)
-                        if job.jobFinished:
-                            job.setText(1, "Finished")
-                    except Exception, e:
-                        debug.critical("Error checking job %s: %s" %
-                                       (workflow_item.text(0), e))
-                workflow_item.updateJobs()
-                if workflow_item.workflowFinished:
-                    if self.autorun.isChecked():
-                        jm.startWorkflow(workflow)
-                        self.updating_now = False
-                        workflow_item.execute()
-                        self.updating_now = True
-                        continue
-                    ret = QtGui.QMessageBox.information(self, "Job Ready",
-                            'Pending Jobs in workflow "%s" have finished, '
-                            'continue execution now?' % workflow_item.text(0),
-                            QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
-                    if ret == QtGui.QMessageBox.Ok:
-                        jm.startWorkflow(workflow)
-                        self.updating_now = False
-                        workflow_item.execute()
-                        self.updating_now = True
+        if isinstance(job, QJobItem):
+            vistrail_item = job.vistrail()
+            workflow_item = job.workflow()
+        elif isinstance(job, QWorkflowItem):
+            vistrail_item = job.parent()
+            workflow_item = job
+            job = None
+        else:
+            for workflow_item in job.workflowItems.values():
+                self.update_job(workflow_item, force)
+            return
+        jm = vistrail_item.jobMonitor
+        workflow = workflow_item.workflow
+        if workflow_item.workflowFinished:
+            return
+        # re-execute if no handle is set
+        if not workflow_item.has_handle:
+            if workflow_item.paused:
+                if force:
+                    workflow_item.resume()
+                else:
+                    return
+            try:
+                int(workflow.version)
+            except ValueError:
+                if (workflow.version.startswith("Parameter Exploration") or
+                    workflow.version.startswith("Mashup")):
+                    QtGui.QMessageBox.question(self, "Running job(s) found",
+                        'Running jobs in "%s" are not yet monitored. Rerun it to start monitoring.' %
+                                             workflow_item.text(0),
+                        QtGui.QMessageBox.Ok)
+                    # do not notify again
+                    workflow_item.pause()
+                return
+            # Ask user to re-execute workflow
+            ret = QtGui.QMessageBox.question(self, "Running job(s) found",
+                    'Running jobs in workflow "%s" are not yet monitored. Load and check now?' %
+                                             workflow_item.text(0),
+                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            if ret == QtGui.QMessageBox.No:
+                workflow_item.pause()
+                return
+            # restart job and execute
+            jm.startWorkflow(workflow)
+            self.updating_now = False
+            workflow_item.execute()
+            self.updating_now = True
+            return
 
-    def timerEvent(self, id=None):
+        job_items = workflow_item.jobs.values() if job is None else [job]
+        for job_item in job_items:
+            if job_item.job.finished or job_item.job.ready:
+                continue
+            try:
+                # call monitor
+                if jm.isDone(job_item.handle):
+                    job_item.job.ready = True
+            except Exception, e:
+                debug.critical("Error checking job %s: %s" %
+                               (workflow_item.text(0), e))
+        if workflow_item.updateJobs():
+            QJobView.instance().set_visible(True)
+
+        if workflow_item.workflowFinished:
+            try:
+                int(workflow.version)
+            except ValueError:
+                if workflow.version.startswith("Parameter Exploration"):
+                    # this is too annoying
+                    #QtGui.QMessageBox.information(self, "Job Ready",
+                    #    'Pending Jobs in "%s" have finished, '
+                    #    'execute it again to get results' % workflow_item.text(0),
+                    #    QtGui.QMessageBox.Ok)
+                    # TODO: Only notify user when all cells have finished
+                    pass
+                elif workflow.version.startswith("Mashup"):
+                    QtGui.QMessageBox.information(self, "Job Ready",
+                        'Pending Jobs in "%s" have finished, '
+                        'execute it again to get results' % workflow_item.text(0),
+                        QtGui.QMessageBox.Ok)
+                return
+            if self.autorun.isChecked():
+                jm.startWorkflow(workflow)
+                self.updating_now = False
+                workflow_item.execute()
+                self.updating_now = True
+                return
+            ret = QtGui.QMessageBox.information(self, "Job Ready",
+                    'Pending Jobs in workflow "%s" have finished, '
+                    'continue execution now?' % workflow_item.text(0),
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
+            if ret == QtGui.QMessageBox.Ok:
+                jm.startWorkflow(workflow)
+                self.updating_now = False
+                workflow_item.execute()
+                self.updating_now = True
+
+    def check_jobs(self, job=None):
         if self.updating_now:
             return
         self.updating_now = True
         try:
-            self.update_jobs()
+            if job is None:
+                for i in xrange(self.jobView.topLevelItemCount()):
+                    vistrail_item = self.jobView.topLevelItem(i)
+                    self.update_job(vistrail_item, force=False)
+            else:
+                self.update_job(job)
         finally:
             self.updating_now = False
+
+    def check_selected_job(self):
+        items = self.jobView.selectedItems()
+        if len(items) != 1:
+            return
+        self.check_jobs(items[0])
+
+    def timerEvent(self, id=None):
+        self.check_jobs()
 
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             for item in self.jobView.selectedItems():
-                if isinstance(item, QWorkflowItem):
-                    item.parent().controller.set_changed(True)
-                    item.parent().jobMonitor.deleteWorkflow(item.workflow.id)
-                elif isinstance(item, QJobItem):
-                    # find parent
-                    parent = item.parent()
-                    while not isinstance(parent, QWorkflowItem):
-                        parent = parent.parent()
-                    parent.parent().controller.set_changed(True)
-                    parent.parent().jobMonitor.deleteJob(item.job.id)
+                self.delete_item(item)
         else:
             QtGui.QWidget.keyPressEvent(self, event)
 
@@ -273,6 +374,15 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         """
         if isinstance(item, QWorkflowItem):
             item.goto()
+
+    def delete_item(self, item):
+        if isinstance(item, QWorkflowItem):
+            item.parent().controller.set_changed(True)
+            item.parent().jobMonitor.deleteWorkflow(item.workflow.id)
+        elif isinstance(item, QJobItem):
+            # find parent workflow
+            item.vistrail().controller.set_changed(True)
+            item.vistrail().jobMonitor.deleteJob(item.job.id)
 
 
 class QVistrailItem(QtGui.QTreeWidgetItem):
@@ -322,9 +432,12 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
             self.workflowItems[workflow.id] = workflow_item
 
         workflow_item = self.workflowItems[workflow.id]
+        changed = False
         if job.id not in workflow_item.jobs:
             workflow_item.jobs[job.id] = QJobItem(job, workflow_item)
-        workflow_item.updateJobs()
+            changed = True
+        if workflow_item.updateJobs() or changed:
+            QJobView.instance().set_visible(True)
 
     def deleteWorkflow(self, id):
         """ deleteWorkflow(id: str) -> None
@@ -343,8 +456,9 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
             if id in workflow_item.jobs:
                 job_item = workflow_item.jobs[id]
                 job_item.parent().takeChild(job_item.parent().indexOfChild(job_item))
-            del workflow_item.jobs[id]
-            workflow_item.updateJobs()
+                del workflow_item.jobs[id]
+                if workflow_item.updateJobs():
+                    QJobView.instance().set_visible(True)
 
     def addJobRec(self, obj, parent_id=None):
         """addJobRec(obj: ModuleSuspended, parent_id: signature)  -> None
@@ -361,7 +475,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         if obj.children:
             # add parent items and their children
             if id not in workflow_item.intermediates:
-                parent_item = QParentItem(id, obj.name, base)
+                parent_item = QParentItem(id, module_name(obj.module), base)
                 parent_item.setExpanded(True)
                 workflow_item.intermediates[id] = parent_item
 
@@ -388,10 +502,10 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         for parent in workflow.parents.itervalues():
             self.addJobRec(parent)
 
-        workflowItem = self.workflowItems.get(workflow.id, None)
-        if workflowItem:
-            workflowItem.updateJobs()
-            QJobView.instance().set_visible(True)
+        workflow_item = self.workflowItems.get(workflow.id, None)
+        if workflow_item:
+            if workflow_item.updateJobs():
+                QJobView.instance().set_visible(True)
 
     def checkJob(self, module, id, handle):
         """ checkJob(module: VistrailsModule, id: str, handle: object)
@@ -399,7 +513,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         """
         workflow = self.jobMonitor.currentWorkflow()
         if not workflow:
-            if not handle or not self.jobMonitor.isDone(handle):
+            if not self.jobMonitor.isDone(handle):
                 raise ModuleSuspended(module, 'Job is running',
                                       handle=handle)
         workflow_item = self.workflowItems[workflow.id]
@@ -407,8 +521,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         item.setText(0, item.job.name)
         # we should check the status using the JobHandle and show dialog
         # get current view progress bar and hijack it
-        if handle:
-            item.handle = handle
+        item.handle = handle
         workflow = self.jobMonitor.currentWorkflow()
         workflow_item = self.workflowItems.get(workflow.id, None)
         workflow_item.updateJobs()
@@ -417,53 +530,54 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         conf = get_vistrails_configuration()
         interval = conf.jobCheckInterval
         if interval and not conf.jobAutorun and not progress.suspended:
-            # we should keep checking the job
-            if handle:
-                # wait for module to complete
-                labelText = (("Running external job %s\n"
-                                       "Started %s\n"
-                                       "Press Cancel to suspend")
-                                       % (item.job.name,
-                                          item.job.start))
-                progress.setLabelText(labelText)
-                while not self.jobMonitor.isDone(handle):
-                    i = 0
-                    while i < interval:
-                        i += 1
-                        time.sleep(1)
+            # wait for module to complete
+            labelText = (("Running external job %s\n"
+                                   "Started %s\n"
+                                   "Press Cancel to suspend")
+                                   % (item.job.name,
+                                      item.job.start))
+            progress.setLabelText(labelText)
+            while not self.jobMonitor.isDone(handle):
+                dieTime = QtCore.QDateTime.currentDateTime().addSecs(interval)
+                while QtCore.QDateTime.currentDateTime() < dieTime:
+                    QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents, 100)
+                    if progress.wasCanceled():
+                        # this does not work, need to create a new progress dialog
+                        #progress.goOn()
+                        new_progress = progress.__class__(progress.parent())
+                        new_progress.setMaximum(progress.maximum())
+                        new_progress.setValue(progress.value())
+                        new_progress.setLabelText(labelText)
+                        new_progress.setMinimumDuration(0)
+                        new_progress.suspended = True
+                        self.controller.progress = new_progress
+                        progress.hide()
+                        progress.deleteLater()
+                        progress = new_progress
+                        progress.show()
                         QtCore.QCoreApplication.processEvents()
-                        if progress.wasCanceled():
-                            # this does not work, need to create a new progress dialog
-                            #progress.goOn()
-                            new_progress = progress.__class__(progress.parent())
-                            new_progress.setMaximum(progress.maximum())
-                            new_progress.setValue(progress.value())
-                            new_progress.setLabelText(labelText)
-                            new_progress.setMinimumDuration(0)
-                            new_progress.suspended = True
-                            self.controller.progress = new_progress
-                            progress.hide()
-                            progress.deleteLater()
-                            progress = new_progress
-                            progress.show()
-                            QtCore.QCoreApplication.processEvents()
-                            raise ModuleSuspended(module,
-                                       'Interrupted by user, job'
-                                       ' is still running', handle=handle)
-                return
-        if not handle or not self.jobMonitor.isDone(handle):
+                        raise ModuleSuspended(module,
+                                   'Interrupted by user, job'
+                                   ' is still running', handle=handle)
+            return
+        if not self.jobMonitor.isDone(handle):
             raise ModuleSuspended(module, 'Job is running', handle=handle)
 
 
 class QWorkflowItem(QtGui.QTreeWidgetItem):
     """A workflow with jobs.
 
-    This item can have child items.
+       It can reference a workflow version, a parameter exploration workflow,
+       or a mashup
+
+    This item can have child module items.
     """
     def __init__(self, workflow, parent):
         QtGui.QTreeWidgetItem.__init__(self, parent, ['', ''])
         self.workflow = workflow
         self.has_handle = True
+        # Paused workflows will not be checked by the timer/"Check all" button
+        self.paused = False
         self.setIcon(0, theme.get_current_theme().PIPELINE_ICON)
         self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
         self.workflowFinished = False
@@ -474,19 +588,25 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
     def updateJobs(self):
         """ Updates name and job states
         """
-        name = self.parent().controller.get_pipeline_name(
-                                                        self.workflow.version)
+        self.paused = False
+        try:
+            name = self.parent().controller.get_pipeline_name(
+                                                           self.workflow.version)
+            self.setToolTip(0, 'Double-Click to View Pipeline "%s" with id %s' %
+                               (name, self.workflow.version))
+        except KeyError:
+            name = self.workflow.version
         self.setText(0, name)
-        self.setToolTip(0, 'Double-Click to View Pipeline "%s" with id %s' %
-                           (name, self.workflow.version))
         self.setToolTip(1, "Log id: %s" % self.workflow.id)
+        changed = False
         self.has_handle = True
         for job in self.jobs.itervalues():
-            job.updateJob()
+            if job.updateJob():
+                changed = True
             if not job.job.finished and not job.handle:
                 self.has_handle = False
         count = len(self.jobs)
-        finished = sum([job.jobFinished for job in self.jobs.values()])
+        finished = sum([job.job.finished or job.job.ready for job in self.jobs.values()])
         self.setText(1, "(%s/%s)" % (finished, count))
         self.workflowFinished = (finished == count)
         if self.workflowFinished:
@@ -495,11 +615,17 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
             self.setIcon(1, theme.get_current_theme().JOB_SCHEDULED)
         else:
             self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
+        return changed
 
     def goto(self):
         """ Shows this pipeline
 
         """
+        try:
+            int(self.workflow.version)
+        except ValueError:
+            # this is not a pipeline id
+            return
         from vistrails.gui.vistrails_window import _app
         view = _app.getViewFromLocator(self.parent().controller.locator)
         _app.change_view(view)
@@ -509,8 +635,20 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
     def execute(self):
         """ Shows and executes this pipeline
         """
+        try:
+            int(self.workflow.version)
+        except ValueError:
+            # this is not a pipeline id
+            return
         self.goto().execute()
 
+    def pause(self):
+        self.paused = True
+        self.setIcon(1, theme.get_current_theme().JOB_SCHEDULED)
+
+    def resume(self):
+        self.paused = False
+        self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
 
 class QJobItem(QtGui.QTreeWidgetItem):
     """A pending job, i.e. a single module that was suspended.
@@ -522,17 +660,16 @@ class QJobItem(QtGui.QTreeWidgetItem):
                                                       job.description()])
         self.setToolTip(1, job.description())
         self.job = job
-        # This is different from job.jobFinished after job finishes
-        self.jobFinished = self.job.finished
         self.handle = None
+        self.finished = None
         self.updateJob()
 
     def updateJob(self):
-        if self.job.finished:
-            self.jobFinished = self.job.finished
+        changed = self.job.finished != self.finished
+        self.finished = self.job.finished
         self.setText(1, self.job.parameters.get('__message__',
-                        "Finished" if self.jobFinished else "Running"))
-        if self.jobFinished:
+                        "Finished" if self.job.finished or self.job.ready else "Running"))
+        if self.job.finished or self.job.ready:
             self.setIcon(1, theme.get_current_theme().JOB_FINISHED)
             self.setToolTip(0, "This Job Has Finished")
         elif self.handle:
@@ -542,6 +679,7 @@ class QJobItem(QtGui.QTreeWidgetItem):
             self.setIcon(1, theme.get_current_theme().JOB_CHECKING)
             self.setToolTip(0, "This Job is Running")
         self.setToolTip(1, self.job.id)
+        return changed
 
     def stdout(self):
         if self.handle:
@@ -555,6 +693,16 @@ class QJobItem(QtGui.QTreeWidgetItem):
                               self.handle)
             sp.exec_()
 
+    def workflow(self):
+        # find parent workflow
+        parent = self.parent()
+        while not isinstance(parent, QWorkflowItem):
+            parent = parent.parent()
+        return parent
+
+    def vistrail(self):
+        # find parent vistrail
+        return self.workflow().parent()
 
 class QParentItem(QtGui.QTreeWidgetItem):
     """A composite job, i.e. a module whose child suspended.
@@ -606,3 +754,164 @@ class ErrorMonitor(LogMonitor):
     """
     def update_text(self):
         self.text.setPlainText(self.handle.standard_error())
+
+
+################################################################################
+# Testing
+
+
+class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
+
+    @classmethod
+    def setUpClass(cls):
+        get_vistrails_configuration().jobAutorun = True
+        get_vistrails_persistent_configuration().jobAutorun = True
+        QJobView.instance().set_refresh()
+        cls.filename = (vistrails.core.system.vistrails_root_directory() +
+                        '/tests/resources/jobs.vt')
+
+        pm = vistrails.core.packagemanager.get_package_manager()
+        if pm.has_package('org.vistrails.vistrails.myjobs'):
+            return
+        d = {'myjob': 'vistrails.tests.resources.'}
+        pm.late_enable_package('myjob', d)
+
+    @classmethod
+    def tearDownClass(cls):
+        manager = vistrails.core.packagemanager.get_package_manager()
+        if manager.has_package('org.vistrails.vistrails.myjobs'):
+            manager.late_disable_package('myjob')
+
+    def tearDown(self):
+        vistrails.gui.utils.TestVisTrailsGUI.tearDown(self)
+        from vistrails.core.interpreter.cached import CachedInterpreter
+        CachedInterpreter.flush()
+
+    def testSuspended(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+        api.select_version('SuspendOnce', c)
+
+        result = c.execute_user_workflow()[0][0]
+        # assert suspended
+        self.assertEqual(result.errors, {})
+        self.assertNotEqual(result.suspended, {})
+
+        result = c.execute_user_workflow()[0][0]
+        # assert finished
+        self.assertEqual(result.errors, {})
+        self.assertEqual(result.suspended, {})
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
+
+    def testGroup(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+        api.select_version('SuspendGroup', c)
+        result = c.execute_user_workflow()[0][0]
+
+        # assert suspended
+        self.assertEqual(result.errors, {})
+        self.assertNotEqual(result.suspended, {})
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
+
+    def testMap(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+        api.select_version('SuspendMap', c)
+
+        result = c.execute_user_workflow()[0][0]
+        # assert suspended
+        self.assertEqual(result.errors, {})
+        self.assertNotEqual(result.suspended, {})
+
+        result = c.execute_user_workflow()[0][0]
+        # assert finished
+        self.assertEqual(result.errors, {})
+        self.assertEqual(result.suspended, {})
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
+
+    def testLoop(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+        api.select_version('SuspendLoop', c)
+
+        result = c.execute_user_workflow()[0][0]
+        # assert suspended
+        self.assertEqual(result.errors, {})
+        self.assertNotEqual(result.suspended, {})
+
+        result = c.execute_user_workflow()[0][0]
+        # assert finished
+        self.assertEqual(result.errors, {})
+        self.assertEqual(result.suspended, {})
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
+
+    def testParameterExploration(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+        api.select_version('SuspendOnce', c)
+
+        pe = c.vistrail.get_named_paramexp('SuspendOnce')
+        try:
+            c.executeParameterExploration(pe)
+        except:
+            self.fail("Parameter Exploration with Job failed")
+
+        # Check that we have 2 jobs
+        self.assertEqual(len(c.jobMonitor.workflows.keys()), 2)
+        for i in c.jobMonitor.workflows.keys():
+            wf = c.jobMonitor.workflows[i]
+            self.assertFalse(wf.completed())
+
+        try:
+            c.executeParameterExploration(pe)
+        except:
+            self.fail("Parameter Exploration with Job failed")
+
+        # Check that the 2 jobs has completed
+        for i in c.jobMonitor.workflows.keys():
+            wf = c.jobMonitor.workflows[i]
+            self.assertTrue(wf.completed())
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)
+
+    def testMashup(self):
+        from vistrails import api
+        view = api.open_vistrail_from_file(self.filename)
+        c = view.controller
+
+        c.flush_delayed_actions()
+        id = "80f58f50-57b1-11e5-a1da-000c2960b7d8"
+        mashup = view.get_mashup_from_mashuptrail_id(id, "SuspendOnce")
+        self.assert_(mashup)
+
+        view.open_mashup(mashup)
+        self.assertEqual(len(c.jobMonitor.workflows.keys()), 1)
+        self.assertFalse(c.jobMonitor.workflows.values()[0].completed())
+
+        # close associated mashup apps
+        from vistrails.gui.version_prop import QVersionProp
+        version_prop = QVersionProp.instance()
+        for app in version_prop.versionMashups.apps.values():
+            app.close()
+
+        view.open_mashup(mashup)
+        self.assertEqual(len(c.jobMonitor.workflows.keys()), 1)
+        self.assertTrue(c.jobMonitor.workflows.values()[0].completed())
+
+        for i in c.jobMonitor.workflows.keys():
+            c.jobMonitor.deleteWorkflow(i)

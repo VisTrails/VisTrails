@@ -54,7 +54,18 @@ import unittest
 import weakref
 
 
-class JobMixin(NotCacheable):
+def module_name(module):
+    """ Returns the display-name of the module or the module name if not set
+
+    """
+    if 'pipeline' in module.moduleInfo and module.moduleInfo['pipeline']:
+        p_modules = module.moduleInfo['pipeline'].modules
+        p_module = p_modules[module.moduleInfo['moduleId']]
+        if p_module.has_annotation_with_key('__desc__'):
+            return p_module.get_annotation_by_key('__desc__').value
+    return module.__class__.__name__
+
+class JobMixin(object):
     """ Mixin for suspendable modules.
 
     This provides the base behavior for modules that submit jobs by handling
@@ -186,13 +197,7 @@ class JobMixin(NotCacheable):
         Modules needn't override this, in which case a default will be
         provided.
         """
-        # use module description if it exists
-        if 'pipeline' in self.moduleInfo and self.moduleInfo['pipeline']:
-            p_modules = self.moduleInfo['pipeline'].modules
-            p_module = p_modules[self.moduleInfo['moduleId']]
-            if p_module.has_annotation_with_key('__desc__'):
-                return p_module.get_annotation_by_key('__desc__').value
-        return self.__class__.__name__
+        return module_name(self)
 
 
 class Workflow(object):
@@ -285,13 +290,21 @@ class Job(object):
         self.name = name
         self.start = start if start else datetime.datetime.now().isoformat()
         self.finished = finished
+        # A ready job is ready to output its result
+        self.ready = False
         self.updated = True
 
     def reset(self):
         self.updated = False
+        self.ready = False
 
     def mark(self):
+        """ Mark job as updated and not finished
+        """
         self.updated = True
+        # Old-style jobs may need to reset finished status
+        self.finished = False
+        self.ready = False
 
     def finish(self, params=None):
         self.parameters = params if params else {}
@@ -456,7 +469,7 @@ class JobMonitor(object):
         """
         if self._current_workflow:
             raise Exception("A workflow is still running: %s!" %
-                            self._current_workflow)
+                            self._current_workflow.id)
         workflow.reset()
         self._current_workflow = workflow
         if self.callback is not None and self.callback() is not None:
@@ -470,14 +483,11 @@ class JobMonitor(object):
                 self.addJobRec(child, id)
             return
         if id in workflow.jobs:
-            # this is an already existing new-style job
-            # mark that it has been used
+            # this is an already existing job
+            # that has been suspended
             workflow.jobs[id].mark()
-            return
-        if id in workflow.jobs:
-            # this is an already existing new-style job
-            # mark that it has been used
-            workflow.jobs[id].mark()
+            # trigger job update
+            self.addJob(id, workflow.jobs[id].parameters)
             return
         # this is a new old-style job that we need to add
         self.addJob(id, {'__message__': obj.msg}, obj.name)
@@ -489,25 +499,27 @@ class JobMonitor(object):
 
         """
         workflow = self._current_workflow
-        # untangle parents
-        # only keep the top item
-        c = set()
-        for exception in workflow.parents.itervalues():
-            if exception.children:
-                c.update([id(child) for child in exception.children])
-        for child in c:
-            if child in workflow.parents:
-                del workflow.parents[child]
-        for parent in workflow.parents.itervalues():
-            self.addJobRec(parent)
+        try:
+            # untangle parents
+            # only keep the top item
+            c = set()
+            for exception in workflow.parents.itervalues():
+                if exception.children:
+                    c.update([id(child) for child in exception.children])
+            for child in c:
+                if child in workflow.parents:
+                    del workflow.parents[child]
+            for parent in workflow.parents.itervalues():
+                self.addJobRec(parent)
 
-        # Assume all unfinished jobs that were not updated are now finished
-        for job in workflow.jobs.values():
-            if not job.finished and not job.updated:
-                job.finish()
-        if self.callback is not None and self.callback() is not None:
-            self.callback().finishWorkflow(workflow)
-        self._current_workflow = None
+            # Assume all unfinished jobs that were not updated are now finished
+            for job in workflow.jobs.values():
+                if not job.finished and not job.updated:
+                    job.finish()
+            if self.callback is not None and self.callback() is not None:
+                self.callback().finishWorkflow(workflow)
+        finally:
+            self._current_workflow = None
 
     def addJob(self, id, params=None, name='', finished=False):
         """ addJob(id: str, params: dict, name: str, finished: bool) -> uuid
@@ -517,7 +529,6 @@ class JobMonitor(object):
         """
 
         params = params if params is not None else {}
-
         if self.hasJob(id):
             # update job attributes
             job = self.getJob(id)

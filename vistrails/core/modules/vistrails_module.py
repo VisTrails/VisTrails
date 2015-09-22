@@ -135,7 +135,7 @@ class ModuleSuspended(ModuleError):
     This is useful when executing external jobs where you do not want to block
     vistrails while waiting for the execution to finish.
 
-    'monitor' is a class instance that should provide a finished() method for
+    'handle' should be a class instance providing a finished() method for
     checking if the job has finished
 
     'children' is a list of ModuleSuspended instances that is used for nested
@@ -145,13 +145,21 @@ class ModuleSuspended(ModuleError):
     def __init__(self, module, errormsg, handle=None, children=None,
                  queue=None):
         ModuleError.__init__(self, module, errormsg)
-        self.handle = handle
-        if handle is None and queue is not None:
-            warnings.warn("Use of deprecated argument 'queue' replaced by "
-                          "'handle'",
-                          category=VistrailsDeprecation,
-                          stacklevel=2)
-            self.handle = queue
+        if handle is not None:
+            self.handle = handle
+        else:
+            if queue is not None:
+                warnings.warn("Use of deprecated argument 'queue' replaced by "
+                              "'handle'",
+                              category=VistrailsDeprecation,
+                              stacklevel=2)
+                self.handle = queue
+            elif children is None:
+                raise TypeError("__init__(): 'handle' argument not set")
+            else:
+                # parent exceptions has no handle
+                self.handle = None
+
         self.children = children
         self.name = None
 
@@ -1547,11 +1555,11 @@ class Module(object):
         """ job_monitor() -> JobMonitor
         Returns the JobMonitor for the associated controller if it exists
         """
-        controller = self.moduleInfo['controller']
-        if controller is None:
+        if 'job_monitor' not in self.moduleInfo or \
+           not self.moduleInfo['job_monitor']:
             raise ModuleError(self,
-                              "Cannot run job, no controller is specified!")
-        return controller.jobMonitor
+                              "Cannot run job, no job_monitor is specified!")
+        return self.moduleInfo['job_monitor']
 
     @classmethod
     def provide_input_port_documentation(cls, port_name):

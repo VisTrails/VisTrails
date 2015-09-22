@@ -93,7 +93,8 @@ def fix_site():
 
 def fix_paths():
     import site
-    if not hasattr(site, "USER_BASE"): return # We are running py2app
+    if not hasattr(site, "USER_BASE"): return  # We are running py2app
+    if os.path.basename(__file__) != 'run.py': return  # Not running from source
 
     # Fix import path: add parent directory(so that we can
     # import vistrails.[gui|...] and remove other paths below it (we might have
@@ -152,8 +153,7 @@ def main():
                 traceback._format_final_exc_line(type(e).__name__, e).strip())
         traceback.print_exc(None, sys.stderr)
         sys.exit(255)
-    if (not app.temp_configuration.batch and
-        not app.temp_configuration.check('outputDirectory')):
+    if not app.temp_configuration.batch:
         v = app.exec_()
 
     vistrails.gui.application.stop_application()
