@@ -260,6 +260,8 @@ class PortSpec(object):
 
 class InputPortSpec(PortSpec):
     xml_name = "inputPortSpec"
+    alternate_specs = None
+    _parent = None
 
     prop_attrs = {
         "entry_types": (None, True, True), # custom entry type (like enum)
@@ -273,6 +275,71 @@ class InputPortSpec(PortSpec):
     attrs.update(PortSpec.attrs)
 
     prop_attrs.update(PortSpec.prop_attrs)
+
+    def __init__(self, **kwargs):
+        if "alternate_specs" in kwargs and kwargs["alternate_specs"]:
+            self.alternate_specs = kwargs.pop("alternate_specs")
+        else:
+            self.alternate_specs = []
+        PortSpec.__init__(self, **kwargs)
+        for spec in self.alternate_specs:
+            spec.set_parent(self)
+
+    def set_parent(self, parent):
+        self._parent = parent
+        if not self.name:
+            if self._parent.name.endswith("Sequence"):
+                base_name = self._parent.name[:-8]
+            elif self._parent.name.endswith("Scalar"):
+                base_name = self._parent.name[:-6]
+            else:
+                base_name = self._parent.name
+            if self.port_type == "basic:List":
+                self.name = base_name + "Sequence"
+            else:
+                self.name = base_name + "Scalar"
+        #self.arg = self._parent.arg
+
+    def to_xml(self, elt=None):
+        elt = PortSpec.to_xml(self, elt)
+        for spec in self.alternate_specs:
+            # write the spec as alternateSpec
+            spec.xml_name = 'alternateSpec'
+            subelt = spec.to_xml()
+            elt.append(subelt)
+        return elt
+
+    @classmethod
+    def from_xml(cls, elt, obj=None):
+        obj, child_elts = cls.internal_from_xml(elt, obj)
+
+        if "alternateSpec" in child_elts:
+            for child_elt in child_elts["alternateSpec"]:
+                spec = cls.from_xml(child_elt)
+                spec.set_parent(obj)
+                obj.alternate_specs.append(spec)
+
+        return obj
+
+    def get_port_attrs(self):
+        """ Check parent spec first
+
+        """
+        if not self._parent\
+                :
+            return PortSpec.get_port_attrs(self)
+
+        # This is an Alternate PortSpec
+        alt_attrs = PortSpec.get_port_attrs(self)
+        par_attrs = self._parent.get_port_attrs()
+        for k, v in par_attrs.iteritems():
+            # type properties are never copied from parent
+            if k == 'defaults' or k == "values" or k == "entry_types" or \
+                    k == "translations": # FIXME remove "translations"
+                continue
+            if k not in alt_attrs or alt_attrs[k] is None:
+                alt_attrs[k] = v
+        return alt_attrs
 
 class OutputPortSpec(PortSpec):
     xml_name = "outputPortSpec"
@@ -622,6 +689,42 @@ class TestModuleSpec(unittest.TestCase):
         out_attrs2 = ms2.output_port_specs[0].get_port_attrs()
         self.assertEqual(in_attrs, in_attrs2)
         self.assertEqual(out_attrs, out_attrs2)
+
+    def test_alt_spec(self):
+
+        alt_spec = InputPortSpec(name='myportname',
+                                 port_type='basic:Integer',
+                                 docstring='my alternative port doc')
+
+        input_spec = InputPortSpec(name='myaltportname',
+                                   port_type='basic:String',
+                                   docstring='my port doc',
+                                   min_conns=1,
+                                   max_conns=3,
+                                   show_port=True,
+                                   sort_key=5,
+                                   depth=1,
+                                   entry_type='enum',
+                                   alternate_specs=[alt_spec])
+        in_attrs = input_spec.get_port_attrs()
+
+        alt_attrs = alt_spec.get_port_attrs()
+
+        ms = ModuleSpec(module_name='myclassname',
+                        superklass='mysuperclassname',
+                        code_ref='theclassname',
+                        docstring='my documentation',
+                        callback=None,
+                        tempfile=None,
+                        cacheable=False,
+                        input_port_specs=[input_spec])
+        as_string = ET.tostring(ms.to_xml())
+        from_string = ET.fromstring(as_string)
+        ms2 = ModuleSpec.from_xml(from_string)
+        in_attrs2 = ms2.input_port_specs[0].get_port_attrs()
+        alt_attrs2 = ms2.input_port_specs[0].alternate_specs[0].get_port_attrs()
+        self.assertEqual(in_attrs, in_attrs2)
+        self.assertEqual(alt_attrs, alt_attrs2)
 
 
 #def run():
