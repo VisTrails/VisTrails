@@ -50,7 +50,7 @@ from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
     ImageFileModeConfig, IPythonMode, IPythonModeConfig
-from vistrails.core.system import get_vistrails_default_pkg_prefix, systemType, current_dot_vistrails
+from vistrails.core.system import systemType, current_dot_vistrails
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
                                        UpgradeModuleRemap, UpgradePackageRemap
 from vistrails.core.vistrail.connection import Connection
