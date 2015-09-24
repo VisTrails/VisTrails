@@ -99,22 +99,79 @@ class SpecList(object):
             if elt.tag == klass.xml_name:
                 module_specs.append(klass.from_xml(elt))
         retval = SpecList(module_specs)
-        # for spec in retval.module_specs:
-        #     print "==", spec.name, "=="
-        #     for ps in spec.port_specs:
-        #         print " ", ps.arg, ps.name
         return retval
 
 ######### BASE MODULE SPEC ###########
 
-class PortSpec(object):
-    """ Represents specification of a port
-    """
-    xml_name = "portSpec"
+
+class SpecObject(object):
+
+    # Add attributes in subclasses
     # value as string means default value
     # value as tuple means (default value, [is subelement, [run eval]])
     # Subelement: Should be serialized as a subelement (For large texts)
     # eval: serialize as string and use eval to get value back
+    attrs = {}
+
+    def __init__(self, **kwargs):
+        self.set_defaults(kwargs)
+
+    def set_defaults(self, kwargs):
+        for attr, props in self.attrs.iteritems():
+            default_val, is_subelt, run_eval = parse_props(props)
+            setattr(self, attr, kwargs.pop(attr)
+                                if attr in kwargs else default_val)
+        if kwargs:
+            raise Exception('Unknown argument(s): %s' % kwargs.keys())
+        assert kwargs == {}
+
+    def to_xml(self, elt=None):
+        if elt is None:
+            elt = ET.Element(self.xml_name)
+        for attr, props in self.attrs.iteritems():
+            value = getattr(self, attr)
+            default_val, is_subelt, run_eval = parse_props(props)
+            if default_val != value:
+                if is_subelt:
+                    subelt = ET.Element(attr)
+                    subelt.text = unicode(getattr(self, attr))
+                    elt.append(subelt)
+                else:
+                    elt.set(attr, unicode(value))
+        return elt
+
+    @classmethod
+    def internal_from_xml(cls, elt):
+        # Process attributes
+        kwargs = {}
+        for attr, props in cls.attrs.iteritems():
+            default_val, is_subelt, run_eval = parse_props(props)
+            value = elt.get(attr, default_val)
+            if run_eval and value != default_val:
+                value = ast.literal_eval(value)
+            kwargs[attr] = value
+        children = elt.getchildren()
+        for child in children:
+            if child.tag in cls.attrs:
+                props = cls.attrs[child.tag]
+                default_val, is_subelt, run_eval = parse_props(props)
+                if not is_subelt:
+                    continue
+                value = child.text or default_val
+                if run_eval and value != default_val:
+                    value = ast.literal_eval(value)
+                kwargs[child.tag] = value
+        return kwargs, children
+
+    @classmethod
+    def from_xml(cls, elt):
+        kwargs, child_elts = cls.internal_from_xml(elt)
+        return cls(**kwargs)
+
+class PortSpec(SpecObject):
+    """ Represents specification of a port
+    """
+    xml_name = "portSpec"
 
     # Properties to use when creating Port
     prop_attrs = {
@@ -133,14 +190,6 @@ class PortSpec(object):
     }
     attrs.update(prop_attrs)
 
-    def __init__(self, **kwargs):
-        self.set_defaults(**kwargs)
-
-    def set_defaults(self, **kwargs):
-        for attr, props in self.attrs.iteritems():
-            default_val, is_subelt, run_eval = parse_props(props)
-            setattr(self, attr, kwargs.get(attr, default_val))
-
     def get_port_attrs(self):
         """ Returns a prop_attrs dict that will be passed to Port()
 
@@ -157,67 +206,6 @@ class PortSpec(object):
         else:
             attrs['optional'] = True
         return attrs
-
-    def to_xml(self, elt=None):
-        if elt is None:
-            elt = ET.Element(self.xml_name)
-        for attr, props in self.attrs.iteritems():
-            attr_val = getattr(self, attr)
-            default_val, is_subelt, run_eval = parse_props(props)
-            if default_val != attr_val:
-                if is_subelt:
-                    subelt = ET.Element(attr)
-                    subelt.text = unicode(getattr(self, attr))
-                    elt.append(subelt)
-                else:
-                    elt.set(attr, unicode(attr_val))
-        return elt
-
-    @classmethod
-    def internal_from_xml(cls, elt, obj=None):
-        if obj is None:
-            obj = cls()
-
-        child_elts = {}
-        for child in elt.getchildren():
-            # if child.tag not in obj.attrs:
-            #     raise RuntimeError('Cannot deal with tag "%s"' % child.tag)
-            if child.tag not in child_elts:
-                child_elts[child.tag] = []
-            child_elts[child.tag].append(child)
-
-        kwargs = {}
-        for attr, props in obj.attrs.iteritems():
-            default_val, is_subelt, run_eval = parse_props(props)
-            attr_vals = []
-            if is_subelt:
-                if attr in child_elts:
-                    attr_vals = [c.text for c in child_elts[attr]
-                                 if c.text is not None]
-            else:
-                attr_val = elt.get(attr)
-                if attr_val is not None:
-                    attr_vals = [attr_val]
-
-            if len(attr_vals) > 1:
-                raise ValueError('Should have only one value for '
-                                'attribute "%s"' % attr)
-            if len(attr_vals) > 0:
-                attr_val = attr_vals[0]
-                if run_eval:
-                    try:
-                        kwargs[attr] = ast.literal_eval(attr_val)
-                    except (NameError, SyntaxError, ValueError):
-                        kwargs[attr] = attr_val
-                else:
-                    kwargs[attr] = attr_val
-        obj.set_defaults(**kwargs)
-        return obj, child_elts
-
-    @classmethod
-    def from_xml(cls, elt, obj=None):
-        obj, child_elts = cls.internal_from_xml(elt, obj)
-        return obj
 
     @classmethod
     def create_from_xml(cls, elt):
@@ -277,7 +265,7 @@ class InputPortSpec(PortSpec):
     prop_attrs.update(PortSpec.prop_attrs)
 
     def __init__(self, **kwargs):
-        if "alternate_specs" in kwargs and kwargs["alternate_specs"]:
+        if "alternate_specs" in kwargs:
             self.alternate_specs = kwargs.pop("alternate_specs")
         else:
             self.alternate_specs = []
@@ -310,11 +298,13 @@ class InputPortSpec(PortSpec):
         return elt
 
     @classmethod
-    def from_xml(cls, elt, obj=None):
-        obj, child_elts = cls.internal_from_xml(elt, obj)
+    def from_xml(cls, elt):
+        kwargs, child_elts = cls.internal_from_xml(elt)
 
-        if "alternateSpec" in child_elts:
-            for child_elt in child_elts["alternateSpec"]:
+        obj = cls(**kwargs)
+
+        for child_elt in child_elts:
+            if "alternateSpec"  == child_elt.tag:
                 spec = cls.from_xml(child_elt)
                 spec.set_parent(obj)
                 obj.alternate_specs.append(spec)
@@ -344,7 +334,7 @@ class InputPortSpec(PortSpec):
 class OutputPortSpec(PortSpec):
     xml_name = "outputPortSpec"
 
-class ModuleSpec(object):
+class ModuleSpec(SpecObject):
     """ Represents specification of a module
         This mirrors how the module will look in the vistrails registry
     """
@@ -381,35 +371,20 @@ class ModuleSpec(object):
     }
     attrs.update(ms_attrs)
 
-    def __init__(self, input_port_specs=None, output_port_specs=None,
-                 **kwargs):
-        if input_port_specs is None:
-            input_port_specs = []
-        if output_port_specs is None:
-            output_port_specs = []
+    def __init__(self, **kwargs):
+        if 'input_port_specs' in kwargs:
+            self.input_port_specs = kwargs.pop('input_port_specs')
+        else:
+            self.input_port_specs = []
 
-        self.input_port_specs = input_port_specs
-        self.output_port_specs = output_port_specs
-
-        for attr, props in self.attrs.iteritems():
-            default_val, is_subelt, run_eval = parse_props(props)
-            setattr(self, attr, kwargs.get(attr, default_val))
+        if 'output_port_specs' in kwargs:
+            self.output_port_specs = kwargs.pop('output_port_specs')
+        else:
+            self.output_port_specs = []
+        SpecObject.__init__(self, **kwargs)
 
     def to_xml(self, elt=None):
-        if elt is None:
-            elt = ET.Element(self.xml_name)
-        for attr, props in self.attrs.iteritems():
-            value = getattr(self, attr)
-            default_val, is_subelt, run_eval = parse_props(props)
-            if value != default_val:
-                if is_subelt:
-                    subelt = ET.Element(attr)
-                    subelt.text = unicode(value)
-                    elt.append(subelt)
-                else:
-                    if run_eval:
-                        value = repr(value)
-                    elt.set(attr, value)
+        elt = SpecObject.to_xml(self, elt)
         for port_spec in self.input_port_specs:
             subelt = port_spec.to_xml()
             elt.append(subelt)
@@ -418,37 +393,20 @@ class ModuleSpec(object):
             elt.append(subelt)
         return elt
 
-    @staticmethod
-    def from_xml(elt, klass=None):
-        if klass is None:
-            klass = ModuleSpec
-        # Process attributes
-        kwargs = {}
-        for attr, props in klass.attrs.iteritems():
-            default_val, is_subelt, run_eval = parse_props(props)
-            value = elt.get(attr, default_val)
-            if run_eval and value != default_val:
-                value = ast.literal_eval(value)
-            kwargs[attr] = value
+    @classmethod
+    def from_xml(cls, elt):
+        kwargs, child_elts = cls.internal_from_xml(elt)
+        # read port specs
         input_port_specs = []
         output_port_specs = []
-        for child in elt.getchildren():
-            if child.tag == klass.InputSpecType.xml_name:
-                input_port_specs.append(klass.InputSpecType.from_xml(child))
-            elif child.tag == klass.OutputSpecType.xml_name:
-                output_port_specs.append(klass.OutputSpecType.from_xml(child))
-            elif child.tag in klass.attrs:
-                props = klass.attrs[child.tag]
-                default_val, is_subelt, run_eval = parse_props(props)
-                if not is_subelt:
-                    continue
-                value = child.text or default_val
-                if run_eval and value != default_val:
-                    value = ast.literal_eval(value)
-                kwargs[child.tag] = value
-        return klass(input_port_specs=input_port_specs,
-                     output_port_specs=output_port_specs,
-                     **kwargs)
+        for child in child_elts:
+            if child.tag == cls.InputSpecType.xml_name:
+                input_port_specs.append(cls.InputSpecType.from_xml(child))
+            elif child.tag == cls.OutputSpecType.xml_name:
+                output_port_specs.append(cls.OutputSpecType.from_xml(child))
+        kwargs['input_port_specs'] = input_port_specs
+        kwargs['output_port_specs'] = output_port_specs
+        return cls(**kwargs)
 
     def get_output_port_spec(self, compute_name):
         for ps in self.output_port_specs:
@@ -472,8 +430,23 @@ class ModuleSpec(object):
 
 class FunctionInputPortSpec(InputPortSpec):
     xml_name = "functionInputPortSpec"
-    attrs = {"arg": ""}                  # attribute name
+    attrs = {"arg":     "",                           # attribute name
+             "in_kwargs": (True, False, True),        # Add as kwarg?
+             "in_args": (False, False, True),         # Add as arg?
+             "constructor_arg": (False, False, True), # TODO MPL ONLY
+             "not_setp": (False, False, True),        # TODO MPL ONLY
+             "translations": (None, True, True),      # TODO MPL ONLY
+             "arg_pos": [None, False, False]}         # attribute position
     attrs.update(InputPortSpec.attrs)
+
+    def __init__(self, name=None, **kwargs):
+        # arg is the same as name by default
+        if name is not None:
+            kwargs['name'] = name
+        if 'arg' not in kwargs and 'name' in kwargs:
+            kwargs['arg'] = kwargs['name']
+
+        InputPortSpec.__init__(self, **kwargs)
 
 
 class FunctionOutputPortSpec(OutputPortSpec):
@@ -494,15 +467,6 @@ class FunctionSpec(ModuleSpec):
     attrs = {'output_type': None}
     attrs.update(ModuleSpec.attrs)
 
-    def __init__(self, input_port_specs=None, output_port_specs=None,
-                 **kwargs):
-        ModuleSpec.__init__(self, input_port_specs, output_port_specs,
-                            **kwargs)
-
-    @staticmethod
-    def from_xml(elt):
-        inst = ModuleSpec.from_xml(elt, FunctionSpec)
-        return inst
 
 ######### PYTHON CLASS SPEC ###########
 
@@ -548,15 +512,6 @@ class ClassSpec(ModuleSpec):
         'cleanup': None}       # Function to call after output methods
     attrs.update(ModuleSpec.attrs)
 
-    def __init__(self, input_port_specs=None, output_port_specs=None,
-                 **kwargs):
-        ModuleSpec.__init__(self, input_port_specs, output_port_specs,
-                            **kwargs)
-
-    @staticmethod
-    def from_xml(elt):
-        inst = ModuleSpec.from_xml(elt, ClassSpec)
-        return inst
 
 ###############################################################################
 
@@ -573,7 +528,7 @@ class TestModuleSpec(unittest.TestCase):
                                    show_port=True,
                                    sort_key=5,
                                    depth=1,
-                                   entry_type='enum')
+                                   entry_types=['enum'])
         in_attrs = input_spec.get_port_attrs()
 
         output_spec = OutputPortSpec(name='myportname',
@@ -612,7 +567,6 @@ class TestModuleSpec(unittest.TestCase):
                                    show_port=False,
                                    sort_key=5,
                                    depth=1,
-                                   arg='myargname',
                                    )
         in_attrs = input_spec.get_port_attrs()
 
@@ -704,7 +658,7 @@ class TestModuleSpec(unittest.TestCase):
                                    show_port=True,
                                    sort_key=5,
                                    depth=1,
-                                   entry_type='enum',
+                                   entry_types=['enum'],
                                    alternate_specs=[alt_spec])
         in_attrs = input_spec.get_port_attrs()
 
