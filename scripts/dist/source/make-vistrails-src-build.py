@@ -40,7 +40,7 @@ VT_VERSION = '2.2.x'
 VT_BRANCH = 'master'
 
 # Hash used in the release
-VT_HASH = '2a23d897fbd6'
+VT_HASH = 'xxxxxxxxxxxx'
 
 # Distribution Tarball name (Do not add ".tar.gz")
 #TARBALL_NAME = "vistrails-src-%s-%s" % (VT_VERSION, VT_HASH)
