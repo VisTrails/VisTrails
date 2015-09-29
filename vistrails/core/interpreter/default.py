@@ -35,51 +35,21 @@
 ###############################################################################
 from __future__ import division
 
-import vistrails.core.interpreter.cached
-import vistrails.core.interpreter.noncached
-
-import unittest
-
-cached_interpreter = vistrails.core.interpreter.cached.CachedInterpreter
-noncached_interpreter = vistrails.core.interpreter.noncached.Interpreter
-__default_interpreter = cached_interpreter
+import vistrails.core.interpreter import Interpreter
 
 ##############################################################################
 
 def set_cache_configuration(field, value):
-    assert field == 'cache'
-    if value:
-        set_default_interpreter(cached_interpreter)
-    else:
-        set_default_interpreter(noncached_interpreter)
+    # TODO
+    pass
 
 def connect_to_configuration(configuration):
-    configuration.subscribe('cache', set_cache_configuration)
+    # TODO
+    pass
 
 def get_default_interpreter():
-    """Returns an instance of the default interpreter class."""
-    return __default_interpreter.get()
+    """Returns an instance of the default interpreter class.
 
-def set_default_interpreter(interpreter_class):
-    """Sets the default interpreter class."""
-    global __default_interpreter
-    __default_interpreter = interpreter_class
-
-##############################################################################
-
-
-class TestDefaultInterpreter(unittest.TestCase):
-
-    def test_set(self):
-        old_interpreter = type(get_default_interpreter())
-        try:
-            set_default_interpreter(noncached_interpreter)
-            self.assertEquals(type(get_default_interpreter()),
-                              noncached_interpreter)
-            set_default_interpreter(cached_interpreter)
-            self.assertEquals(type(get_default_interpreter()),
-                              cached_interpreter)
-        finally:
-            set_default_interpreter(old_interpreter)
-            self.assertEquals(type(get_default_interpreter()),
-                              old_interpreter)
+    Deprecated, just use :obj:`vistrails.core.interpreter.Interpreter`.
+    """
+    return Interpreter
