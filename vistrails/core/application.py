@@ -45,6 +45,7 @@ from vistrails.core import system
 from vistrails.core.collection import Collection
 import vistrails.core.configuration
 from vistrails.core.configuration import ConfigurationObject
+import vistrails.core.db.action
 from vistrails.core.db.locator import BaseLocator, FileLocator, DBLocator, \
     UntitledLocator
 import vistrails.core.db.io
@@ -52,11 +53,11 @@ import vistrails.core.interpreter.cached
 import vistrails.core.interpreter.default
 from vistrails.core.modules.module_registry import ModuleRegistry
 from vistrails.core.packagemanager import PackageManager
+import vistrails.core.requirements
 from vistrails.core.startup import VistrailsStartup
 from vistrails.core.thumbnails import ThumbnailCache
-from vistrails.core.utils import InstanceObject, VistrailsWarning
+from vistrails.core.utils import VistrailsWarning
 from vistrails.core.vistrail.pipeline import Pipeline
-from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.core.vistrail.controller import VistrailController
 from vistrails.db import VistrailsDBException
 
