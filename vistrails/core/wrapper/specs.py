@@ -429,34 +429,28 @@ class ModuleSpec(SpecObject):
 ######### PYTHON FUNCTION SPEC ###########
 
 class FunctionInputPortSpec(InputPortSpec):
-    xml_name = "functionInputPortSpec"
-    attrs = {"arg":     "",                           # attribute name
+    attrs = {"arg":     "",                           # function argument name
              "in_kwargs": (True, False, True),        # Add as kwarg?
              "in_args": (False, False, True),         # Add as arg?
-             "constructor_arg": (False, False, True), # TODO MPL ONLY
-             "not_setp": (False, False, True),        # TODO MPL ONLY
-             "translations": (None, True, True),      # TODO MPL ONLY
-             "arg_pos": [None, False, False]}         # attribute position
+             "arg_pos": [None, False, False]}         # argument position
     attrs.update(InputPortSpec.attrs)
 
-    def __init__(self, name=None, **kwargs):
-        # arg is the same as name by default
-        if name is not None:
-            kwargs['name'] = name
-        if 'arg' not in kwargs and 'name' in kwargs:
-            kwargs['arg'] = kwargs['name']
+    def __init__(self, arg=None, **kwargs):
+        if arg is not None:
+            kwargs['arg'] = arg
+        if 'name' not in kwargs and 'arg' in kwargs:
+            kwargs['name'] = kwargs['arg']
 
         InputPortSpec.__init__(self, **kwargs)
 
 
 class FunctionOutputPortSpec(OutputPortSpec):
-    xml_name = "functionOutputPortSpec"
+    pass
 
 
 class FunctionSpec(ModuleSpec):
     """ Specification for wrapping a python function
     """
-    xml_name = 'functionSpec'
     InputSpecType = FunctionInputPortSpec
     OutputSpecType = FunctionOutputPortSpec
 
@@ -472,7 +466,6 @@ class FunctionSpec(ModuleSpec):
 
 
 class ClassInputPortSpec(InputPortSpec):
-    xml_name = "classInputPortSpec"
     attrs = {
         "method_name": "",                   # method name
         "method_type": "",                   # Type like nullary, OnOff or SetXToY
@@ -487,7 +480,6 @@ class ClassInputPortSpec(InputPortSpec):
 
 
 class ClassOutputPortSpec(OutputPortSpec):
-    xml_name = "classOutputPortSpec"
     attrs = {
         "method_name": "",                   # method/attribute name
         "prepend_params": (None, True, True) # prepended params used with indexed methods
@@ -503,7 +495,6 @@ class ClassOutputPortSpec(OutputPortSpec):
 class ClassSpec(ModuleSpec):
     """ Specification for wrapping a python class
     """
-    xml_name = 'classSpec'
     InputSpecType = ClassInputPortSpec
     OutputSpecType = ClassOutputPortSpec
     attrs = {
