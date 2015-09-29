@@ -45,7 +45,7 @@ import sys
 
 sys.setrecursionlimit(1500)
 
-VERSION = '2.2.x'
+VERSION = '2.3'
 
 # Add VTK 6.2 to path
 sys.path.insert(0,'/Users/vistrails/src/VTK6/build/Wrapping/Python')

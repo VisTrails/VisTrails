@@ -34,7 +34,7 @@ import subprocess
 EXPORT_PATHS = "vistrails doc examples extensions scripts CHANGELOG LICENSE".split()
 
 # VisTrails Release Version
-VT_VERSION = '2.2.x'
+VT_VERSION = '2.3'
 
 # Branch to be used to build release
 VT_BRANCH = 'master'
