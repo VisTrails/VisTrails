@@ -40,19 +40,17 @@ from __future__ import division
 import ast
 import re
 import sys
-from xml.etree import ElementTree as ET
 import docutils.core
 import docutils.nodes
-from itertools import izip
 import inspect
 import matplotlib
 matplotlib.use('Qt4Agg')
 import matplotlib.docstring
+from numpydoc.docscrape import NumpyDocString
 def new_call(self, func):
     return func
 
 matplotlib.docstring.Substitution.__call__ = new_call
-
 
 import matplotlib.pyplot
 from matplotlib.artist import Artist, ArtistInspector
@@ -115,7 +113,7 @@ def parse_docutils_term(elt):
             term = parse_docutils_elt(child)[0].strip()
             if term in ('True', 'False') or accepts != "":
                 accepts += term
-            elif term != "None": 
+            elif term != "None":
                 terms.append(term)
         elif child.__class__ == docutils.nodes.Text:
             if str(child).strip() not in [',', '/']:
@@ -172,7 +170,7 @@ def parse_docutils_elt(elt, last_text=""):
         elif child.__class__ == docutils.nodes.system_message:
             pass
         elif child.__class__ == docutils.nodes.definition_list:
-            args.append((get_last_block(last_text + text), 
+            args.append((get_last_block(last_text + text),
                          parse_docutils_deflist(child)))
         elif child.__class__ == docutils.nodes.table:
             tables.append((get_last_block(last_text + text),) + \
@@ -203,6 +201,32 @@ def parse_docutils_str(docstring, should_print=False):
     if should_print:
         print root
     return parse_docutils_elt(root)
+
+
+##############################################################################
+# numpydoc parsing code
+##############################################################################
+
+
+def parse_numpydoc_str(docstring, should_print=False):
+    root = NumpyDocString(docstring)
+    if should_print:
+        print "### SIG:", root['Signature']
+        print "### SUM:", root['Summary']
+        print "### EXSUM:", root['Extended Summary']
+        print "### PAR:", root['Parameters']
+        print "### OPAR:", root['Other Parameters']
+        print "### RET:", root['Returns']
+        print "### NOTES:", root['Notes']
+        print "### REFS:", root['References']
+        print "### EXAMPL:", root['Examples']
+    sigs = []
+    if root['Signature']:
+        sigs.append(root['Signature'])
+    summary = '\n'.join(root['Summary']) + '\n' + \
+              '\n'.join(root['Extended Summary']) + '\n' + \
+              '\n'.join(root['Notes']) + '\n' + root['References'] + '\n' + root['Examples']
+    return (summary, [], [], sigs)
 
 ##############################################################################
 # util methods
@@ -334,7 +358,7 @@ def parse_description(desc):
     option_strs = []
     default_val = None
     allows_none = False
-    default_paren_re = re.compile(r"((\S*)\s+)?\(default:?(\s+(\S*))?\)", 
+    default_paren_re = re.compile(r"((\S*)\s+)?\(default:?(\s+(\S*))?\)",
                                   re.IGNORECASE)
     default_is_re = re.compile(r"default\s+is\s+(\S*)", re.IGNORECASE)
 
@@ -443,13 +467,13 @@ def do_translation_override(port_specs, names, rows, opts):
     for name in names:
         print "TRANSLATING", name
         if name not in port_specs:
-            port_specs[name] = InputPortSpec(name) 
+            port_specs[name] = InputPortSpec(name)
         port_specs[name].entry_types = ['enum']
         port_specs[name].values = [values]
         if not values_only:
             port_specs[name].translations = t
 
-def get_names(obj, default_module_base, default_super_base, 
+def get_names(obj, default_module_base, default_super_base,
               prefix="Mpl", suffix=""):
     module_name = None
     super_name = None
@@ -460,12 +484,12 @@ def get_names(obj, default_module_base, default_super_base,
             raise ValueError("Need to specify 2- or 3-tuple")
         (obj, module_name) = obj[:2]
     if module_name is None:
-        module_name = "%s%s%s" % (prefix, 
-                                  pretty_name(default_module_base(obj)), 
+        module_name = "%s%s%s" % (prefix,
+                                  pretty_name(default_module_base(obj)),
                                   suffix)
     if super_name is None:
-        super_name = "%s%s%s" % (prefix, 
-                                 pretty_name(default_super_base(obj)), 
+        super_name = "%s%s%s" % (prefix,
+                                 pretty_name(default_super_base(obj)),
                                  suffix)
 
     return (obj, module_name, super_name)
@@ -541,7 +565,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                     resolve_port_type([port_spec.port_type], old_port_spec)
                     if old_port_spec.defaults is None:
                         if port_spec.defaults is not None:
-                            assign_port_values(old_port_spec, [], 
+                            assign_port_values(old_port_spec, [],
                                                port_spec.defaults[0])
                             # old_port_spec.defaults = port_spec.defaults
                     elif old_port_spec.defaults != port_spec.defaults:
@@ -640,7 +664,7 @@ def parse_plots(plot_types, table_overrides):
         print "========================================"
         print plot
         print "========================================"
-        
+
         (plot, module_name, super_name) = \
             get_names(plot, get_module_base, get_super_base, "Mpl", "")
 
@@ -650,7 +674,7 @@ def parse_plots(plot_types, table_overrides):
             print '*** CANNOT ADD PLOT "%s";' \
                 'IT DOES NOT EXIST IN THIS MPL VERSION ***' % plot
             continue
-        
+
         port_specs_list = parse_argspec(plot_obj)
         for port_spec in port_specs_list:
             port_specs[port_spec.arg] = port_spec
@@ -660,7 +684,7 @@ def parse_plots(plot_types, table_overrides):
             # want to change the double newline to single newline...
             print "&*&* FINDING:", \
                 docstring.find("*extent*: [ *None* | (x0,x1,y0,y1) ]\n\n")
-            docstring = docstring.replace("*extent*: [ *None* | (x0,x1,y0,y1) ]\n\n", 
+            docstring = docstring.replace("*extent*: [ *None* | (x0,x1,y0,y1) ]\n\n",
                               "*extent*: [ *None* | (x0,x1,y0,y1) ]\n")
         if plot == 'annotate':
             docstring = docstring % dict((k,v) for k, v in matplotlib.docstring.interpd.params.iteritems() if k == 'Annotation')
@@ -681,14 +705,14 @@ def parse_plots(plot_types, table_overrides):
         #             alt_ps.defaults = [str(v) for v in alt_ps.defaults]
         #         if alt_ps.values is not None:
         #             alt_ps.values = [[str(v) for v in alt_ps.values[0]]]
-                
+
         module_specs.append(ModuleSpec(module_name, super_name,
-                                       "matplotlib.pyplot.%s" % plot, 
+                                       "matplotlib.pyplot.%s" % plot,
                                        cleaned_docstring, port_specs.values(),
                                        output_port_specs))
     my_specs = SpecList(module_specs)
     return my_specs
-        
+
 _get_accepts_regex = re.compile(
     r"([\s\S]*)\n\s*ACCEPTS:\s*((?:.|\n)*?)(?:$|(?:\n\n))([\s\S]*)",
     re.IGNORECASE)
@@ -705,7 +729,7 @@ def parse_artists(artist_types, table_overrides={}):
     module_specs = []
     for klass in artist_types:
         (klass, module_name, super_name) = \
-            get_names(klass, get_module_name, get_super_name, "Mpl", 
+            get_names(klass, get_module_name, get_super_name, "Mpl",
                       "Properties")
 
         port_specs = {}
@@ -751,9 +775,14 @@ def parse_artists(artist_types, table_overrides={}):
                 else:
                     docstring = groups[0]
                 print "FIXED DOCSTRING:", docstring
-            
-            (cleaned_docstring, args, tables, call_sigs) = \
-                parse_docutils_str(docstring)
+
+            try:
+                (cleaned_docstring, args, tables, call_sigs) = \
+                    parse_docutils_str(docstring)
+            except:
+                print 'It looks like', s, 'has a NUMPY docstring!'
+                (cleaned_docstring, args, tables, call_sigs) = \
+                    parse_numpydoc_str(docstring)
             port_spec.docstring = cleaned_docstring
 
             translations = None
@@ -776,7 +805,7 @@ def parse_artists(artist_types, table_overrides={}):
                 (translations, pt2, values) = parse_translation(rows)
                 port_spec.translations = translations
                 port_spec.values = [values]
-                port_types.extend(pt2)  
+                port_types.extend(pt2)
             resolve_port_type(port_types, port_spec)
 
         constructor_port_specs = {}
@@ -785,16 +814,16 @@ def parse_artists(artist_types, table_overrides={}):
             constructor_port_specs[port_spec.arg] = port_spec
         constructor_docstring = klass.__init__.__doc__
         if constructor_docstring is not None:
-            _, output_port_specs = process_docstring(constructor_docstring, 
+            _, output_port_specs = process_docstring(constructor_docstring,
                                                      constructor_port_specs,
-                                                     (klass.__name__, 
+                                                     (klass.__name__,
                                                       '__init__'),
                                                      table_overrides)
         for arg, ps in constructor_port_specs.iteritems():
             if arg not in port_specs:
                 ps.constructor_arg = True
                 ps.required = False
-                port_specs[arg] = ps            
+                port_specs[arg] = ps
 
         module_spec = ModuleSpec(module_name, super_name, klass_qualname,
                                  klass.__doc__, port_specs.values())
@@ -812,7 +841,7 @@ def run_artists():
     import matplotlib.lines
     import matplotlib.patches
     import matplotlib.text
-    
+
     artist_py_modules = [matplotlib.axes,
                          matplotlib.axis,
                          matplotlib.collections,
@@ -856,9 +885,18 @@ def run_artists():
                                              'values_only': True}),
                         ('Annotation', '__init__', "If the dictionary has a key arrowstyle, a FancyArrowPatch instance is created with the given dictionary and is drawn. Otherwise, a YAArow patch instance is created and drawn. Valid keys for YAArow are"):
                             ('skip', {}),
+                        ('Annotation', '__init__', "If the dictionary has a key arrowstyle, a ~matplotlib.patches.FancyArrowPatch instance is created with the given dictionary and is drawn. Otherwise, a ~matplotlib.patches.YAArrow patch instance is created and drawn. Valid keys for ~matplotlib.patches.YAArrow are:"):
+                            ('skip', {}),
                         ('Annotation', '__init__', "Valid keys for FancyArrowPatch are"):
                             ('skip', {}),
+                        ('Annotation', '__init__', "Valid keys for ~matplotlib.patches.FancyArrowPatch are:"):
+                            ('skip', {}),
+
                         ('Annotation', '__init__', "xycoords and textcoords are strings that indicate the coordinates of xy and xytext."):
+                            ('translation', {'name': ['xycoords', 'textcoords'],
+                                             'reverse': False,
+                                             'values_only': True}),
+                        ('Annotation', '__init__', "xycoords and textcoords are strings that indicate the coordinates of xy and xytext, and may be one of the following values:"):
                             ('translation', {'name': ['xycoords', 'textcoords'],
                                              'reverse': False,
                                              'values_only': True}),
@@ -953,7 +991,7 @@ def run_plots():
 
     specs = parse_plots(plot_types, table_overrides)
     specs.write_to_xml("mpl_plots_raw.xml")
-    
+
 
 def run(which="all"):
     if which == "all" or which == "artists":
@@ -966,7 +1004,7 @@ def get_docutils(plot):
     plot_obj = getattr(matplotlib.pyplot, plot)
     (_, _, _, call_sigs) = parse_docutils_str(plot_obj.__doc__, True)
     print call_sigs
-    
+
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
         run()
