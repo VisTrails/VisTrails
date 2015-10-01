@@ -282,7 +282,6 @@ else:
     # Compact list format used when only one input port present
     if len(input_ports) == 1:
         InputList = [x[0] for x in InputList]
-print 'InputList: %%s' %% InputList
 ''' % output_portspec.name
         functions = [('source', [source_code])]
         self.controller.update_ports_and_functions(py_source_module.id, [], base_input_ports + add_input_ports + base_output_ports, functions)
