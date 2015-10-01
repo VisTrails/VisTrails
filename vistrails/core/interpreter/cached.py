@@ -297,7 +297,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         sinks = fetch('sinks', None)
         reason = fetch('reason', None)
         actions = fetch('actions', None)
-        done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
@@ -424,11 +423,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             dst = self._objects[conn.destinationId]
             self.make_connection(conn, src, dst)
 
-        if self.done_summon_hook:
-            self.done_summon_hook(self._persistent_pipeline, self._objects)
-        for callable_ in done_summon_hooks:
-            callable_(self._persistent_pipeline, self._objects)
-
         tmp_id_to_module_map = {}
         for i, j in tmp_to_persistent_module_map.iteritems():
             tmp_id_to_module_map[i] = self._objects[j]
@@ -452,7 +446,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         reason = fetch('reason', None)
         actions = fetch('actions', None)
         module_executed_hook = fetch('module_executed_hook', [])
-        done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)
@@ -586,9 +579,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
                     break
 
         Generator.generators = self._streams.pop()
-
-        if self.done_update_hook:
-            self.done_update_hook(self._persistent_pipeline, self._objects)
                 
         # objs, errs, and execs are mappings that use the local ids as keys,
         # as opposed to the persistent ids.
@@ -663,7 +653,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
           logger = fetch('logger', DummyLogController)
           reason = fetch('reason', None)
           actions = fetch('actions', None)
-          done_summon_hooks = fetch('done_summon_hooks', [])
           module_executed_hook = fetch('module_executed_hook', [])
           job_monitor = fetch('job_monitor', None)
 
@@ -705,7 +694,6 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         sinks = fetch('sinks', None)
         reason = fetch('reason', None)
         actions = fetch('actions', None)
-        done_summon_hooks = fetch('done_summon_hooks', [])
         module_executed_hook = fetch('module_executed_hook', [])
         stop_on_error = fetch('stop_on_error', True)
         parent_exec = fetch('parent_exec', None)

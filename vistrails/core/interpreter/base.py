@@ -73,14 +73,6 @@ class AbortExecution(Exception):
 
 class BaseInterpreter(object):
 
-    def __init__(self):
-        """ BaseInterpreter() -> BaseInterpreter
-        Initialize class members
-        
-        """
-        self.done_summon_hook = None
-        self.done_update_hook = None
-
     def resolve_aliases(self, pipeline,
                         customAliases=None):
         # We don't build the alias dictionary anymore because as we don't 
@@ -132,21 +124,5 @@ class BaseInterpreter(object):
                 for func in m.functions:
                     if func.name == 'value':
                         func.params[0].strValue = strValue
-
-    def set_done_summon_hook(self, hook):
-        """ set_done_summon_hook(hook: function(pipeline, objects)) -> None
-        Assign a function to call right after every objects has been
-        summoned during execution
-        
-        """
-        self.done_summon_hook = hook
-
-    def set_done_update_hook(self, hook):
-        """ set_done_update_hook(hook: function(pipeline, objects)) -> None
-        Assign a function to call right after every objects has been
-        updated
-        
-        """
-        self.done_update_hook = hook
 
 ##############################################################################
