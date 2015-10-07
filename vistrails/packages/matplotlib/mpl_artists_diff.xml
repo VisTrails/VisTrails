@@ -11,25 +11,25 @@
   <changePortSpec attr="values" code_ref="matplotlib.artist.Artist" port="clip_path" type="input">
     <value>None</value>
   </changePortSpec>
-  <changePortSpec attr="name" code_ref="matplotlib.axes.Axes" port="xticks" type="input">
+  <changePortSpec attr="name" code_ref="matplotlib.axes._base._AxesBase" port="xticks" type="input">
     <value>xticks</value>
   </changePortSpec>
-  <deletePortSpec altName="xticksScalar" code_ref="matplotlib.axes.Axes" port="xticks" type="alternate" />
-  <changePortSpec attr="name" code_ref="matplotlib.axes.Axes" port="yticks" type="input">
+  <deletePortSpec altName="xticksScalar" code_ref="matplotlib.axes._base._AxesBase" port="xticks" type="alternate" />
+  <changePortSpec attr="name" code_ref="matplotlib.axes._base._AxesBase" port="yticks" type="input">
     <value>yticks</value>
   </changePortSpec>
-  <deletePortSpec altName="yticksScalar" code_ref="matplotlib.axes.Axes" port="yticks" type="alternate" />
-  <addPortSpec code_ref="matplotlib.axes.Axes" port="yaxis" type="output">
+  <deletePortSpec altName="yticksScalar" code_ref="matplotlib.axes._base._AxesBase" port="yticks" type="alternate" />
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="yaxis" type="output">
     <value>
       <outputPortSpec arg="yaxis" compute_name="yaxis" compute_parent="yaxis" name="yaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.YAxis" />
     </value>
   </addPortSpec>
-  <addPortSpec code_ref="matplotlib.axes.Axes" port="xaxis" type="output">
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="xaxis" type="output">
     <value>
       <outputPortSpec arg="xaxis" compute_name="xaxis" compute_parent="xaxis" name="xaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.XAxis" />
     </value>
   </addPortSpec>
-  <addPortSpec code_ref="matplotlib.axes.Axes" port="title" type="output">
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="title" type="output">
     <value>
       <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
     </value>

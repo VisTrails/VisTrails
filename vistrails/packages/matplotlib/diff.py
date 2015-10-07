@@ -230,6 +230,7 @@ def apply_diff(in_fname, diff_fname, out_fname):
             if port:
                 if port_type == "input":
                     idx = in_ips_refs[(code_ref, port)][0]
+                    print "deleting", idx, (code_ref, port)
                     del m_spec.port_specs[idx]
                 elif port_type == 'output':
                     idx = in_ops_refs[(code_ref, port)][0]

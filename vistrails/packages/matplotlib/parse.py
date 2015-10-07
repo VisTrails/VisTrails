@@ -126,7 +126,7 @@ def parse_docutils_term(elt):
     return terms, accepts
 
 def parse_docutils_deflist(elt):
-    print "GOT DEFLIST!"
+    print "GOT DEFLIST!", elt
     args = []
     term = None
     definition = None
@@ -152,7 +152,7 @@ def parse_docutils_elt(elt, last_text=""):
         while cur_text.endswith("\n\n" * num_newlines):
             num_newlines += 1
             end_idx -= 2
-        idx = cur_text.rfind("\n\n",0,end_idx)
+        idx = cur_text.rfind("\n\n",    0,end_idx)
         if idx < 0:
             idx = 0
         else:
@@ -223,10 +223,174 @@ def parse_numpydoc_str(docstring, should_print=False):
     sigs = []
     if root['Signature']:
         sigs.append(root['Signature'])
-    summary = '\n'.join(root['Summary']) + '\n' + \
-              '\n'.join(root['Extended Summary']) + '\n' + \
-              '\n'.join(root['Notes']) + '\n' + root['References'] + '\n' + root['Examples']
+    summary = ''
+    if root['Summary']:
+        summary += '\n'.join(root['Summary']) + '\n'
+    if root['Extended Summary']:
+        summary += '\n'.join(root['Extended Summary']) + '\n'
+    if root['Notes']:
+        summary += '\n'.join(root['Notes']) + '\n'
+    if root['References']:
+        summary += root['References'] + '\n'
+    if root['Examples']:
+        summary += root['Examples'] + '\n'
     return (summary, [], [], sigs)
+
+def parse_numpy_parameters(param):
+    """ Converts numpy parameter(s) into port spec
+
+    """
+
+    name, type, docstring = param
+    print "PARSUNG: '%s'" % name, "TYPE: '%s'" % type
+    if ':' in name: # error empty type
+        return {}
+    params = {}
+    for name in param[0].split(','):
+        name = name.strip()
+        # FIXME: Default to string or drop unknown types?
+        # vtype = 'basic:String'
+        vtype = None
+        optional = False
+        default = None
+        values = None
+        translations = None
+        alternate_specs = []
+        # check for tuple
+        type = type.strip()
+        if type.startswith('('): # tuple
+            tuple = type[1:].split(')')[0]
+            type = type[1:].split(')')[1]
+            if tuple == 'x, y': # scalar tuple
+                vtype = 'basic:Float,basic:Float'
+                options = [o.strip() for o in type.split(',') if o.strip()]
+            elif tuple == 'n,': # assume list
+                vtype = 'basic:List'
+                options = [o.strip() for o in type.split(',') if o.strip()]
+            else:
+                # FIXME: assumes string tuple
+                vtype = ','.join(['basic:String'] * len(tuple))
+                options = [o.strip() for o in type.split(',') if o.strip()]
+        elif type.startswith('{'): # enum
+            enum_string = type[1:].split('}')[0]
+            enums = [e.strip() for e in enum_string.split(',')]
+            enums = [(e[1:-1] if e[0] in ['"', "'"] else e) for e in enums]
+            values = enums
+            type = type[1:].split('}')[1]
+            vtype = 'basic:String'
+            options = [o.strip() for o in type.split(',') if o.strip()]
+        elif type.startswith('['): # enum
+            enum_string = type[1:].split(']')[0]
+            enums = [e.strip() for e in enum_string.split(',')]
+            enums = [(e[1:-1] if e[0] in ['"', "'"] else e) for e in enums]
+            values = enums
+            type = type[1:].split(']')[1]
+            vtype = 'basic:String'
+            options = [o.strip() for o in type.split(',') if o.strip()]
+        elif '|' in type: # enum
+            if type.startswith('['):
+                type = type.replace('[', '').replace(']', '')
+            enum_string = type[1:].split(',')[0]
+            enums = [e.strip() for e in enum_string.split('|')]
+            enums = [(e[1:-1] if e[0] in ['"', "'"] else e) for e in enums]
+            values = enums
+            vtype = 'basic:String'
+            type = type[1:].split(',')[1]
+            options = [o.strip() for o in type.split(',') if o.strip()]
+        else:
+            options = [o.strip() for o in type.split(',') if o.strip()]
+            if len(options) == 0:
+                # NO TYPE!
+                continue
+            vtype = options.pop(0)
+            if 'string' in vtype:
+                vtype = 'basic:String'
+            elif 'boolean' == vtype:
+                vtype = 'basic:Boolean'
+            elif 'integer' in vtype or vtype.startswith('int'):
+                vtype = 'basic:Integer'
+            elif vtype in ['scalar', 'scalar or array-like', 'scalar or array_like']:
+                vtype = 'basic:Float'
+            elif vtype == 'array_like of colors':
+                vtype = 'basic:String'
+
+
+            elif vtype == 'color or sequence of color':
+                vtype = 'basic:List'
+                alternate_spec = \
+                    AlternatePortSpec(name=name + "Scalar",
+                                  port_type='basic:String')
+
+                alternate_specs.append(alternate_spec)
+                name = name + 'Sequence'
+            elif 'color' in vtype:
+                vtype = 'basic:Color'
+                translations = "translate_color"
+            elif 'array' in vtype or 'sequence of scalar' in vtype:
+                vtype = 'basic:List' # TODO: use depth=1
+            elif 'callable' == vtype:
+                return {}
+            elif 'tuple' in vtype:
+                vtype = 'basic:Tuple'
+            elif '~matplotlib' in vtype:
+                klass = vtype.rsplit('`', 2)[1].rsplit('.', 1)[1]
+                klass = 'Mpl' + pretty_name(klass)
+                if 'prop' in vtype or 'property' in vtype:
+                    klass = klass + 'Properties'
+                vtype = klass
+            else:
+                print "SKIPPING UNKNOWN TYPE:", vtype
+                continue
+
+        for option in options:
+            option = option.strip()
+            if option.startswith('default'):
+                if option[-1] == ':' or option == 'default': # empty default!
+                    continue
+                default = option.split(':')[1].strip()
+                if default.startswith('"') or default.startswith("'"):
+                    default = default[1:-1]
+            if option == 'optional':
+                optional = True
+
+        kwargs = {'port_type': vtype,
+                  'docstring': '\n'.join([d for d in docstring if d]),
+                  'optional': optional,
+                  'translations': translations}
+        if values:
+            while 'None' in values:
+                values.remove('None')
+            kwargs['values'] = [values]
+        if default not in ['None', None]:
+            kwargs['defaults'] = [default]
+
+        if alternate_specs:
+            kwargs['alternate_specs'] = alternate_specs
+
+        print "NEW ARG:", name, vtype, default, optional, values
+        params[name] = InputPortSpec(name, **kwargs)
+    return params
+
+
+def get_params_from_numpydoc_str(docstring, should_print=False):
+    params = {}
+    root = NumpyDocString(docstring)
+    if should_print:
+        print "### SIG:", root['Signature']
+        print "### SUM:", root['Summary']
+        print "### EXSUM:", root['Extended Summary']
+        print "### PAR:", root['Parameters']
+        print "### OPAR:", root['Other Parameters']
+        print "### RET:", root['Returns']
+        print "### NOTES:", root['Notes']
+        print "### REFS:", root['References']
+        print "### EXAMPL:", root['Examples']
+    for param in root['Parameters']:
+        params.update(parse_numpy_parameters(param))
+    for param in root['Other Parameters']:
+        params.update(parse_numpy_parameters(param))
+
+    return params
 
 ##############################################################################
 # util methods
@@ -524,6 +688,7 @@ def parse_argspec(obj_or_str):
     else:
         argspec = inspect.getargspec(obj_or_str)
         argspec_args = argspec.args
+        print "^^^^^^^^^ parsed args:", argspec_args
         argspec_defaults = argspec.defaults
 
     if not argspec_defaults:
@@ -533,6 +698,7 @@ def parse_argspec(obj_or_str):
     port_specs_list = []
     has_self = False
     for i, arg in enumerate(argspec_args):
+        print "parsing arg:", i, arg
         if i == 0 and arg == "self":
             has_self = True
             continue
@@ -674,7 +840,8 @@ def parse_plots(plot_types, table_overrides):
             print '*** CANNOT ADD PLOT "%s";' \
                 'IT DOES NOT EXIST IN THIS MPL VERSION ***' % plot
             continue
-
+        print "PLOT CLASS:", plot
+        print "PLOT ARGSPEC:", plot_obj
         port_specs_list = parse_argspec(plot_obj)
         for port_spec in port_specs_list:
             port_specs[port_spec.arg] = port_spec
@@ -690,10 +857,32 @@ def parse_plots(plot_types, table_overrides):
             docstring = docstring % dict((k,v) for k, v in matplotlib.docstring.interpd.params.iteritems() if k == 'Annotation')
         elif plot == 'barbs':
             docstring = docstring % dict((k,v) for k,v in matplotlib.docstring.interpd.params.iteritems() if k == 'barbs_doc')
+        print "A DOCSTRING:", docstring
 
         cleaned_docstring, output_port_specs = \
             process_docstring(docstring, port_specs, ('pyplot', plot),
                               table_overrides)
+
+        # Add additional parameters from numpy docstrings
+        for name, port_spec in get_params_from_numpydoc_str(docstring).iteritems():
+            if name in port_specs:
+                # have to reconcile the two
+                old_port_spec = port_specs[port_spec.arg]
+                resolve_port_type([port_spec.port_type], old_port_spec)
+                if old_port_spec.defaults is None:
+                    if port_spec.defaults is not None:
+                        assign_port_values(old_port_spec, [],
+                                           port_spec.defaults[0])
+                        # old_port_spec.defaults = port_spec.defaults
+                elif old_port_spec.defaults != port_spec.defaults:
+                    # keep it as the old spec is
+                    print "*** Different defaults!" + \
+                        str(old_port_spec.defaults) + \
+                        " : " + str(port_spec.defaults)
+                    assign_port_values(old_port_spec, [],
+                                       old_port_spec.defaults[0])
+            else:
+                port_specs[name] = port_spec
 
         # for port_spec in port_specs.itervalues():
         #     if port_spec.defaults is not None:
@@ -738,9 +927,14 @@ def parse_artists(artist_types, table_overrides={}):
         klass_qualname = klass.__module__ + "." + klass_name
         for (s, t) in insp._get_setters_and_targets():
             print "** %s **" % s
+            if s == 'xticks':
+                print "THIS. IS. XTICKS.", t
+                print t.rsplit('.',1)[0], klass_qualname
             if t.rsplit('.',1)[0] != klass_qualname:
                 # let inheritance work
                 continue
+            if s == 'xticks':
+                print "MADE. IT."
 
             if s in port_specs:
                 raise ValueError('duplicate port "%s"' % s)
@@ -833,7 +1027,8 @@ def parse_artists(artist_types, table_overrides={}):
     return my_specs
 
 def run_artists():
-    import matplotlib.axes
+    import matplotlib.axes._base
+    import matplotlib.axes._axes
     import matplotlib.axis
     import matplotlib.collections
     import matplotlib.figure
@@ -842,7 +1037,8 @@ def run_artists():
     import matplotlib.patches
     import matplotlib.text
 
-    artist_py_modules = [matplotlib.axes,
+    artist_py_modules = [matplotlib.axes._base,
+                         matplotlib.axes._axes,
                          matplotlib.axis,
                          matplotlib.collections,
                          matplotlib.figure,
@@ -979,9 +1175,17 @@ def run_plots():
                            ('ports', {}),
                        ('pyplot', 'annotate', "If the dictionary has a key arrowstyle, a FancyArrowPatch instance is created with the given dictionary and is drawn. Otherwise, a YAArow patch instance is created and drawn. Valid keys for YAArow are"):
                            ('skip', {}),
+                        ('pyplot', 'annotate', "If the dictionary has a key arrowstyle, a ~matplotlib.patches.FancyArrowPatch instance is created with the given dictionary and is drawn. Otherwise, a ~matplotlib.patches.YAArrow patch instance is created and drawn. Valid keys for ~matplotlib.patches.YAArrow are:"):
+                            ('skip', {}),
                        ('pyplot', 'annotate', "Valid keys for FancyArrowPatch are"):
                            ('skip', {}),
+                       ('pyplot', 'annotate', "Valid keys for ~matplotlib.patches.FancyArrowPatch are:"):
+                           ('skip', {}),
                        ('pyplot', 'annotate', "xycoords and textcoords are strings that indicate the coordinates of xy and xytext."):
+                           ('translation', {'name': ['xycoords', 'textcoords'],
+                                            'reverse': False,
+                                            'values_only': True}),
+                       ('pyplot', 'annotate', "xycoords and textcoords are strings that indicate the coordinates of xy and xytext, and may be one of the following values:"):
                            ('translation', {'name': ['xycoords', 'textcoords'],
                                             'reverse': False,
                                             'values_only': True}),
