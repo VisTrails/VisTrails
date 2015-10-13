@@ -38,6 +38,9 @@
 
 This package wrap Matplotlib to provide a plotting tool for
 VisTrails. We are going to use the 'Qt4Agg' backend of the library.
+
+This package supports matplotlib >= v1.4
+
 """
 
 from __future__ import division
