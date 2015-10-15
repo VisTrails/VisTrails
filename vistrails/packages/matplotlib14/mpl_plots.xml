@@ -1247,14 +1247,10 @@ If a tuple, different levels will be plotted with different linewidths in the or
 If a string, like 'r' or 'red', all levels will be plotted in this color.
 
 If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
-      <entry_types>None</entry_types>
-      <values>None</values>
     </inputPortSpec>
     <inputPortSpec arg="cmap" name="cmap" port_type="basic:Color">
       <docstring>A cm :class:`~matplotlib.colors.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
       <translations>translate_color</translations>
-      <entry_types>None</entry_types>
-      <values>None</values>
     </inputPortSpec>
     <inputPortSpec arg="yunits" name="yunits" port_type="basic:String">
       <docstring>Override axis units by specifying an instance of a :class:`matplotlib.units.ConversionInterface`.</docstring>
@@ -1282,8 +1278,6 @@ This keyword is not active if X and Y are specified in the call to contour.</doc
     </inputPortSpec>
     <inputPortSpec arg="norm" name="normSequence" port_type="basic:List">
       <docstring>A :class:`matplotlib.colors.Normalize` instance for scaling data values to colors. If norm is None and colors is None, the default linear scaling is used.</docstring>
-      <entry_types>None</entry_types>
-      <values>None</values>
       <alternateSpec arg="norm" name="normScalar" port_type="basic:String">
         <entry_types>['enum']</entry_types>
         <values>[['Normalize']]</values>
@@ -1403,8 +1397,6 @@ If a tuple, different levels will be plotted with different linewidths in the or
 If a string, like 'r' or 'red', all levels will be plotted in this color.
 
 If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
-      <entry_types>None</entry_types>
-      <values>None</values>
     </inputPortSpec>
     <inputPortSpec arg="cmap" name="cmap" port_type="basic:Color">
       <docstring>A cm :class:`~matplotlib.colors.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
@@ -1472,12 +1464,8 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="pad_to" arg_pos="8" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="10" name="scale_by_freq" />
-    <inputPortSpec arg="detrend" arg_pos="5" name="detrend">
-      <defaults>None</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="window" arg_pos="6" name="window">
-      <defaults>None</defaults>
-    </inputPortSpec>
+    <inputPortSpec arg="detrend" arg_pos="5" name="detrend" />
+    <inputPortSpec arg="window" arg_pos="6" name="window" />
     <inputPortSpec arg="Fc" arg_pos="4" name="Fc" port_type="basic:Integer">
       <defaults>[0]</defaults>
     </inputPortSpec>
@@ -1564,8 +1552,6 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</docstring>
     <inputPortSpec arg="ecolor" arg_pos="5" name="ecolor" port_type="basic:Color">
       <docstring>A matplotlib color arg which gives the color the errorbar lines; if None, use the color of the line connecting the markers.</docstring>
       <translations>translate_color</translations>
-      <entry_types>None</entry_types>
-      <values>None</values>
     </inputPortSpec>
     <inputPortSpec arg="errorevery" arg_pos="13" name="errorevery" port_type="basic:Integer">
       <docstring>subsamples the errorbars. e.g., if everyerror=5, errorbars for every 5-th datapoint will be plotted. The data plot itself still shows all data points.</docstring>
@@ -2868,12 +2854,8 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     </inputPortSpec>
     <inputPortSpec arg="pad_to" arg_pos="7" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="9" name="scale_by_freq" />
-    <inputPortSpec arg="detrend" arg_pos="4" name="detrend">
-      <defaults>None</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="window" arg_pos="5" name="window">
-      <defaults>None</defaults>
-    </inputPortSpec>
+    <inputPortSpec arg="detrend" arg_pos="4" name="detrend" />
+    <inputPortSpec arg="window" arg_pos="5" name="window" />
     <inputPortSpec arg="Fc" arg_pos="3" name="Fc" port_type="basic:Integer">
       <defaults>[0]</defaults>
     </inputPortSpec>
@@ -3176,8 +3158,6 @@ styles of markers scatter supports.
 `cmap` is only used if `c` is an array of floats. If None,
 defaults to rc `image.cmap`.
 </docstring>
-      <entry_types>None</entry_types>
-      <values>None</values>
     </inputPortSpec>
     <inputPortSpec arg="verts" arg_pos="11" name="verts" />
     <inputPortSpec arg="alpha" arg_pos="9" name="alpha" port_type="basic:Float">
@@ -3198,8 +3178,6 @@ defaults to rc `image.cmap`.
 luminance data to 0, 1. `norm` is only used if `c` is an array of
 floats. If `None`, use the default :func:`normalize`.
 </docstring>
-      <entry_types>None</entry_types>
-      <values>None</values>
     </inputPortSpec>
     <outputPortSpec arg="pathCollection" compute_name="pathCollection" name="pathCollectionProperties" port_type="__property__" property_key="0" property_type="matplotlib.collections.PathCollection" />
   </moduleSpec>
@@ -3309,12 +3287,8 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="pad_to" arg_pos="9" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="11" name="scale_by_freq" />
     <inputPortSpec arg="xextent" arg_pos="8" name="xextent" />
-    <inputPortSpec arg="detrend" arg_pos="4" name="detrend">
-      <defaults>None</defaults>
-    </inputPortSpec>
-    <inputPortSpec arg="window" arg_pos="5" name="window">
-      <defaults>None</defaults>
-    </inputPortSpec>
+    <inputPortSpec arg="detrend" arg_pos="4" name="detrend" />
+    <inputPortSpec arg="window" arg_pos="5" name="window" />
     <inputPortSpec arg="Fc" arg_pos="3" name="Fc" port_type="basic:Integer">
       <defaults>[0]</defaults>
     </inputPortSpec>
@@ -3532,8 +3506,6 @@ If a tuple, different levels will be plotted with different linewidths in the or
 If a string, like 'r' or 'red', all levels will be plotted in this color.
 
 If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
-      <entry_types>None</entry_types>
-      <values>None</values>
     </inputPortSpec>
     <inputPortSpec arg="cmap" name="cmap" port_type="basic:Color">
       <docstring>A cm :class:`~matplotlib.colors.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
@@ -3654,8 +3626,6 @@ If a tuple, different levels will be plotted with different linewidths in the or
 If a string, like 'r' or 'red', all levels will be plotted in this color.
 
 If a tuple of matplotlib color args (string, float, rgb, etc), different levels will be plotted in different colors in the order specified.</docstring>
-      <entry_types>None</entry_types>
-      <values>None</values>
     </inputPortSpec>
     <inputPortSpec arg="cmap" name="cmap" port_type="basic:Color">
       <docstring>A cm :class:`~matplotlib.colors.Colormap` instance or None. If cmap is None and colors is None, a default Colormap is used.</docstring>
@@ -4494,7 +4464,6 @@ points", .... See `matplotlib.text.Annotation` for more details.
 </docstring>
       <entry_types>['enum']</entry_types>
       <values>[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]</values>
-      <defaults>None</defaults>
     </inputPortSpec>
     <inputPortSpec arg="xytext" name="xytext" port_type="basic:Float, basic:Float">
       <docstring>position of the label `s`
@@ -4516,7 +4485,6 @@ Default is None.
 </docstring>
       <entry_types>['enum']</entry_types>
       <values>[['figure points', 'figure pixels', 'figure fraction', 'axes points', 'axes pixels', 'axes fraction', 'data', 'offset points', 'polar']]</values>
-      <defaults>None</defaults>
     </inputPortSpec>
     <inputPortSpec arg="arrowprops" name="arrowprops">
       <docstring>Dictionary of line properties for the arrow that connects

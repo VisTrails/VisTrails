@@ -11,21 +11,6 @@
   <changePortSpec attr="values" code_ref="matplotlib.artist.Artist" port="clip_path" type="input">
     <value>None</value>
   </changePortSpec>
-  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="yaxis" type="output">
-    <value>
-      <outputPortSpec arg="yaxis" compute_name="yaxis" compute_parent="yaxis" name="yaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.YAxis" />
-    </value>
-  </addPortSpec>
-  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="xaxis" type="output">
-    <value>
-      <outputPortSpec arg="xaxis" compute_name="xaxis" compute_parent="xaxis" name="xaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.XAxis" />
-    </value>
-  </addPortSpec>
-  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="title" type="output">
-    <value>
-      <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
-    </value>
-  </addPortSpec>
   <addPortSpec code_ref="matplotlib.axis.Axis" port="major_ticks" type="output">
     <value>
       <outputPortSpec arg="major_ticks" compute_name="major_ticks" compute_parent="get_major_ticks()" name="majorTickProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.Tick" />
@@ -36,17 +21,8 @@
       <outputPortSpec arg="minor_ticks" compute_name="minor_ticks" compute_parent="get_minor_ticks()" name="minorTickProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.Tick" />
     </value>
   </addPortSpec>
-  <changePortSpec attr="translations" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
-    <value>{'caretright': 5, 'star': '*', 'point': '.', 'mathtext': '$...$', 'triangle_right': '&gt;', 'tickup': 2, 'hexagon1': 'h', 'plus': '+', 'hline': '_', 'vline': '|', 'tickdown': 3, 'nothing': ' ', 'caretup': 6, 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'tickleft': 0, 'tickright': 1, 'tri_down': '1', 'thin_diamond': 'd', 'diamond': 'D', 'caretdown': 7, 'hexagon2': 'H', 'tri_up': '2', 'square': 's', 'x': 'x', 'triangle_down': 'v', 'triangle_up': '^', 'octagon': '8', 'tri_right': '4', 'circle': 'o', 'pixel': ',', 'triangle_left': '&lt;'}</value>
-  </changePortSpec>
-  <changePortSpec attr="entry_types" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
-    <value>['enum']</value>
-  </changePortSpec>
-  <changePortSpec attr="values" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
-    <value>[['caretdown', 'caretleft', 'caretright', 'caretup', 'circle', 'diamond', 'hexagon1', 'hexagon2', 'hline', 'nothing', 'octagon', 'pentagon', 'pixel', 'plus', 'point', 'square', 'star', 'thin_diamond', 'tickdown', 'tickleft', 'tickright', 'tickup', 'tri_down', 'tri_left', 'tri_right', 'tri_up', 'triangle_down', 'triangle_left', 'triangle_right', 'triangle_up', 'vline', 'x', 'mathtext']]</value>
-  </changePortSpec>
   <deletePortSpec code_ref="matplotlib.axis.Tick" port="label1" type="input" />
-  <deletePortSpec code_ref="matplotlib.axis.Tick" port="label2" type="input" />
+  <deletePortSpec code_ref="matplotlib.axis.Tick" port="axes" type="input" />
   <changePortSpec attr="not_setp" code_ref="matplotlib.axis.Tick" port="label1On" type="input">
     <value>True</value>
   </changePortSpec>
@@ -122,6 +98,30 @@
   <addPortSpec code_ref="matplotlib.axis.Tick" port="gridline" type="output">
     <value>
       <outputPortSpec arg="gridline" compute_name="gridline" compute_parent="gridline" name="gridlineProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.lines.Line2D" />
+    </value>
+  </addPortSpec>
+  <changePortSpec attr="translations" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>{'caretright': 5, 'star': '*', 'point': '.', 'tickdown': 3, 'triangle_right': '&gt;', 'tickup': 2, 'hexagon1': 'h', 'hline': '_', 'vline': '|', 'mathtext': '$...$', 'nothing': ' ', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'caretdown': 7, 'tri_down': '1', 'tickright': 1, 'tri_right': '4', 'thin_diamond': 'd', 'diamond': 'D', 'octagon': '8', 'tickleft': 0, 'square': 's', 'tri_up': '2', 'plus': '+', 'x': 'x', 'triangle_down': 'v', 'triangle_up': '^', 'hexagon2': 'H', 'caretup': 6, 'circle': 'o', 'pixel': ',', 'triangle_left': '&lt;'}</value>
+  </changePortSpec>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>['enum']</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>[['caretdown', 'caretleft', 'caretright', 'caretup', 'circle', 'diamond', 'hexagon1', 'hexagon2', 'hline', 'nothing', 'octagon', 'pentagon', 'pixel', 'plus', 'point', 'square', 'star', 'thin_diamond', 'tickdown', 'tickleft', 'tickright', 'tickup', 'tri_down', 'tri_left', 'tri_right', 'tri_up', 'triangle_down', 'triangle_left', 'triangle_right', 'triangle_up', 'vline', 'x', 'mathtext']]</value>
+  </changePortSpec>
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="title" type="output">
+    <value>
+      <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="xaxis" type="output">
+    <value>
+      <outputPortSpec arg="xaxis" compute_name="xaxis" compute_parent="xaxis" name="xaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.XAxis" />
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="yaxis" type="output">
+    <value>
+      <outputPortSpec arg="yaxis" compute_name="yaxis" compute_parent="yaxis" name="yaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.YAxis" />
     </value>
   </addPortSpec>
 </diff>

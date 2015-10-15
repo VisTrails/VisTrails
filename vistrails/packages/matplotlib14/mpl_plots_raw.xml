@@ -1022,10 +1022,10 @@ Additional kwargs: hold = [True|False] overrides default hold state</docstring>
     <inputPortSpec arg="pad_to" arg_pos="8" name="pad_to" />
     <inputPortSpec arg="scale_by_freq" arg_pos="10" name="scale_by_freq" />
     <inputPortSpec arg="detrend" arg_pos="5" name="detrend">
-      <defaults>[&lt;function detrend_none at 0x7fdd1a729050&gt;]</defaults>
+      <defaults>[&lt;function detrend_none at 0x7f37aded8500&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="window" arg_pos="6" name="window">
-      <defaults>[&lt;function window_hanning at 0x7fdd1a71dcf8&gt;]</defaults>
+      <defaults>[&lt;function window_hanning at 0x7f37aded8230&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="Fc" arg_pos="4" name="Fc" port_type="basic:Integer">
       <defaults>[0]</defaults>
@@ -1678,7 +1678,7 @@ If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the 
       <defaults>[u'linear']</defaults>
     </inputPortSpec>
     <inputPortSpec arg="reduce_C_function" arg_pos="15" name="reduce_C_function">
-      <defaults>[&lt;function mean at 0x7fdd1d6fc938&gt;]</defaults>
+      <defaults>[&lt;function mean at 0x7f37b0eed668&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="linewidths" arg_pos="13" name="linewidthsSequence" port_type="basic:List">
       <docstring>If None, defaults to rc lines.linewidth. Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats, as required by :class:`~matplotlib.collections.RegularPolyCollection`.</docstring>
@@ -3803,7 +3803,7 @@ origin to the acorr. Otherwise, Axes.plot is used.
       <docstring>x is detrended by the `detrend` callable. Default is no
 normalization.
 </docstring>
-      <defaults>[&lt;function detrend_none at 0x7fdd1a729050&gt;]</defaults>
+      <defaults>[&lt;function detrend_none at 0x7f37aded8500&gt;]</defaults>
     </inputPortSpec>
     <inputPortSpec arg="maxlags" arg_pos="5" name="maxlags" port_type="basic:Integer">
       <docstring>number of lags to show. If None, will return all 2 * len(x) - 1
