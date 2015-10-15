@@ -2671,8 +2671,6 @@ Additional kwargs: hold = [True|False] overrides default hold state
                {'optional': True, 'docstring': 'If not None, only display cells with more than mincnt number of points in the cell'}),
               ("marginals", "basic:Boolean",
                {'optional': True, 'docstring': 'if marginals is True, plot the marginal density as colormapped rectagles along the bottom of the x-axis and left of the y-axis', 'defaults': '[False]'}),
-              ("marginalsScalar", "basic:Color",
-               {'docstring': 'if marginals is True, plot the marginal density as colormapped rectagles along the bottom of the x-axis and left of the y-axis', 'optional': True}),
               ("bins", "basic:Integer",
                {'optional': True, 'docstring': "If None, no binning is applied; the color of each hexagon directly corresponds to its count value.\n\nIf 'log', use a logarithmic scale for the color map. Internally, log_{10}(i+1) is used to determine the hexagon color.\n\nIf an integer, divide the counts in the specified number of bins, and color the hexagons accordingly.\n\nIf a sequence of values, the values of the lower bound of the bins to be used."}),
               ("scale", "basic:String",
@@ -2752,10 +2750,6 @@ Additional kwargs: hold = [True|False] overrides default hold state
             kwargs['mincnt'] = val
         if self.has_input('marginals'):
             val = self.get_input('marginals')
-            kwargs['marginals'] = val
-        elif self.has_input('marginalsScalar'):
-            val = self.get_input('marginalsScalar')
-            val = translate_color(val)
             kwargs['marginals'] = val
         if self.has_input('bins'):
             val = self.get_input('bins')
@@ -4496,8 +4490,6 @@ Additional kwargs: hold = [True|False] overrides default hold state
                {'optional': True, 'docstring': '`vmin` and `vmax` are used in conjunction with `norm` to normalize\nluminance data.  If either are `None`, the min and max of the\ncolor array is used.  Note if you pass a `norm` instance, your\nsettings for `vmin` and `vmax` will be ignored.\n'}),
               ("c", "basic:String",
                {'optional': True, 'docstring': '`c` can be a single color format string, or a sequence of color\nspecifications of length `N`, or a sequence of `N` numbers to be\nmapped to colors using the `cmap` and `norm` specified via kwargs\n(see below). Note that `c` should not be a single numeric RGB or\nRGBA sequence because that is indistinguishable from an array of\nvalues to be colormapped.  `c` can be a 2-D array in which the\nrows are RGB or RGBA, however.\n', 'defaults': "[u'b']"}),
-              ("cScalar", "basic:Color",
-               {'docstring': '`c` can be a single color format string, or a sequence of color\nspecifications of length `N`, or a sequence of `N` numbers to be\nmapped to colors using the `cmap` and `norm` specified via kwargs\n(see below). Note that `c` should not be a single numeric RGB or\nRGBA sequence because that is indistinguishable from an array of\nvalues to be colormapped.  `c` can be a 2-D array in which the\nrows are RGB or RGBA, however.\n', 'optional': True}),
               ("cSequence", "basic:List",
                {'docstring': '`c` can be a single color format string, or a sequence of color\nspecifications of length `N`, or a sequence of `N` numbers to be\nmapped to colors using the `cmap` and `norm` specified via kwargs\n(see below). Note that `c` should not be a single numeric RGB or\nRGBA sequence because that is indistinguishable from an array of\nvalues to be colormapped.  `c` can be a 2-D array in which the\nrows are RGB or RGBA, however.\n', 'optional': True}),
               ("vmin", "basic:Float",
@@ -4544,10 +4536,6 @@ Additional kwargs: hold = [True|False] overrides default hold state
             kwargs['vmax'] = val
         if self.has_input('c'):
             val = self.get_input('c')
-            kwargs['c'] = val
-        elif self.has_input('cScalar'):
-            val = self.get_input('cScalar')
-            val = translate_color(val)
             kwargs['c'] = val
         elif self.has_input('cSequence'):
             val = self.get_input('cSequence')

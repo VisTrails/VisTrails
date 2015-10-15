@@ -1806,9 +1806,6 @@ If a matplotlib color arg or sequence of rgba tuples, draws the outlines in the 
     <inputPortSpec arg="marginals" arg_pos="17" name="marginals" port_type="basic:Boolean">
       <docstring>if marginals is True, plot the marginal density as colormapped rectagles along the bottom of the x-axis and left of the y-axis</docstring>
       <defaults>[False]</defaults>
-      <alternateSpec arg="marginals" name="marginalsScalar" port_type="basic:Color">
-        <translations>translate_color</translations>
-      </alternateSpec>
     </inputPortSpec>
     <inputPortSpec arg="bins" arg_pos="4" name="bins" port_type="basic:Integer">
       <docstring>If None, no binning is applied; the color of each hexagon directly corresponds to its count value.
@@ -3147,9 +3144,6 @@ values to be colormapped.  `c` can be a 2-D array in which the
 rows are RGB or RGBA, however.
 </docstring>
       <defaults>[u'b']</defaults>
-      <alternateSpec arg="c" name="cScalar" port_type="basic:Color">
-        <translations>translate_color</translations>
-      </alternateSpec>
       <alternateSpec arg="c" name="cSequence" port_type="basic:List" />
     </inputPortSpec>
     <inputPortSpec arg="vmin" arg_pos="7" name="vmin" port_type="basic:Float">
