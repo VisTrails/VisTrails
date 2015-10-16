@@ -46,6 +46,8 @@ import os
 import sys
 import warnings
 
+from distutils.version import LooseVersion
+
 from vistrails.core import debug, get_vistrails_application, system
 from vistrails.core.configuration import ConfigurationObject, \
     get_vistrails_configuration
@@ -748,27 +750,56 @@ class PackageManager(object):
     def identifier_is_available(self, identifier):
         """identifier_is_available(identifier: str) -> Pkg
 
-        returns true if there exists a package with the given
-        identifier in the list of available (ie, disabled) packages.
+        Searches for package that matches identifier in the list of
+        available (ie, disabled) packages.
 
-        If true, returns succesfully loaded, uninitialized package."""
+        If found, returns succesfully loaded, uninitialized package.
+
+        There can be multiple package versions for a single identifier.
+        If so, return the version that passes requirements, or the latest version.
+
+        """
+        matches = []
         for codepath in self.available_package_names_list():
             pkg = self.get_available_package(codepath)
+            #print ":", pkg.check_requirements()
             try:
                 pkg.load()
                 if pkg.identifier == identifier:
-                    return pkg
+                    matches.append(pkg)
                 elif identifier in pkg.old_identifiers:
-                    return pkg
+                    matches.append(pkg)
                 if (hasattr(pkg._module, "can_handle_identifier") and
                         pkg._module.can_handle_identifier(identifier)):
-                    return pkg
+                    matches.append(pkg)
             except (pkg.LoadFailed, pkg.InitializationFailed,
                     MissingRequirement):
                 pass
             except Exception, e:
                 pass
-        return None
+        if len(matches) == 0:
+            return None
+        elif len(matches) == 1:
+            return matches[0]
+        # return package version that pass requirements
+        valids = []
+        for pkg in matches:
+            try:
+                pkg.check_requirements()
+                valids.append(pkg)
+            except (pkg.LoadFailed, pkg.InitializationFailed,
+                    MissingRequirement):
+                pass
+            except Exception, e:
+                pass
+        if len(valids) == 0:
+            # return latest invalid package
+            valids = matches
+        if len(valids) == 1:
+            return valids[0]
+        # return latest version
+        return sorted(valids, key=lambda x: LooseVersion(x.version))[-1]
+
 
     def available_package_names_list(self):
         """available_package_names_list() -> returns list with code-paths of all
