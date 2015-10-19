@@ -193,8 +193,8 @@ def parse_docutils_elt(elt, last_text=""):
                 parse_docutils_elt(child, last_text + text)
             if child.__class__ == docutils.nodes.literal_block:
                 check_str = (last_text + text).lower().strip()
-                if check_str.endswith("\ncall signature:") or \
-                        check_str.endswith("\ncall signatures:"):
+                if check_str.endswith("call signature:") or \
+                        check_str.endswith("call signatures:"):
                     call_signatures.append(ntext)
             text += ntext.strip() + "\n\n"
             args += nargs
