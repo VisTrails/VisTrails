@@ -1004,7 +1004,7 @@ def run_artists():
                         # FIXME may want documentation from anchor?
                         ('Axes', 'aspect', 'anchor'):
                             ('skip', {}),
-                        ('_AxesBase', 'aspect', 'anchor'): # 1.4
+                        ('FancyBboxPatch', 'boxstyle', 'The following boxstyles are available:'): # 1.5
                             ('skip', {}),
                         ('ConnectionPatch', '__init__', "Valid keys are"):
                             ('ports', {}),
