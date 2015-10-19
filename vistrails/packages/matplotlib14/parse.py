@@ -49,6 +49,7 @@ from numpydoc.docscrape import NumpyDocString
 def new_call(self, func):
     return func
 from textwrap import dedent
+from types import BuiltinFunctionType
 
 # remove 'deprecated' directive.It triggers an 'uninitialized' error in sphinx.
 from docutils.parsers.rst.directives import _directives
@@ -291,7 +292,7 @@ def pretty_name(s):
 def get_value_and_type(s):
     try:
         val = eval(s)
-        if isinstance(val, type):
+        if isinstance(val, type) or isinstance(val, BuiltinFunctionType):
             return (None, None)
     except Exception:
         val = s
