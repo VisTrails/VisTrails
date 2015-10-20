@@ -479,6 +479,19 @@ import unittest
 import stat
 
 class TestStartup(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Mock DebugPrint#set_logfile()
+        def set_logfile(self, filename):
+            cls._log_filename = filename
+        cls._old_debugprint_set_logfile = debug.DebugPrint.set_logfile
+        debug.DebugPrint.set_logfile = set_logfile
+
+    @classmethod
+    def tearDownClass(cls):
+        # Un-mock DebugPrint#set_logfile()
+        debug.DebugPrint.set_logfile = cls._old_debugprint_set_logfile
+
     def check_structure(self, dir_name):
         self.assertTrue(os.path.isdir(dir_name))
         self.assertTrue(os.path.isfile(os.path.join(dir_name, 
@@ -494,13 +507,9 @@ class TestStartup(unittest.TestCase):
         import vistrails.core.system
         version = vistrails.core.system.vistrails_version()
         version = version.replace(".", "_")
-        self.assertTrue(os.path.isfile(
-            os.path.join(dir_name, 'logs', "vistrails_%s.log" % version)))
-
-    def close_logger(self):
-        for handler in debug.DebugPrint._instance.logger.handlers[:]:
-            handler.close()
-            debug.DebugPrint._instance.logger.removeHandler(handler)
+        self.assertEqual(
+                self._log_filename,
+                os.path.join(dir_name, 'logs', 'vistrails_%s.log' % version))
 
     def test_simple_create(self):
         dir_name = tempfile.mkdtemp()
@@ -509,7 +518,6 @@ class TestStartup(unittest.TestCase):
             startup = VistrailsStartup(options_config, None)
             self.check_structure(dir_name)
         finally:
-            self.close_logger()
             shutil.rmtree(dir_name)
 
     def test_create_dir_create(self):
@@ -520,7 +528,6 @@ class TestStartup(unittest.TestCase):
             startup = VistrailsStartup(None, cl_config)
             self.check_structure(dir_name)
         finally:
-            self.close_logger()
             shutil.rmtree(outer_dir_name)
         
     def test_config_override(self):
@@ -544,7 +551,6 @@ class TestStartup(unittest.TestCase):
                 self.assertFalse(os.path.isdir(a_dir),
                                 'Directory "%s" exists' % a_dir)
         finally:
-            self.close_logger()
             shutil.rmtree(dir_name)
             shutil.rmtree(user_pkg_dir)
             shutil.rmtree(abstractions_dir)
@@ -580,7 +586,6 @@ class TestStartup(unittest.TestCase):
             self.assertTrue(os.path.isdir(thumbs_dir))
             self.assertTrue(os.path.isdir(log_dir))
         finally:
-            self.close_logger()
             shutil.rmtree(dir_name)
             shutil.rmtree(outer_user_pkg_dir)
             shutil.rmtree(outer_abstractions_dir)
@@ -596,7 +601,6 @@ class TestStartup(unittest.TestCase):
             self.assertTrue(startup.configuration.autoSave)
             self.assertTrue(startup.temp_configuration.autoSave)
         finally:
-            self.close_logger()
             shutil.rmtree(dir_name)
 
     def test_cannot_create(self):

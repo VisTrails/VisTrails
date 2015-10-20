@@ -58,7 +58,7 @@ from vistrails.core.vistrail.controller import custom_color_key, \
 from vistrails.gui.theme import CurrentTheme
 from vistrails.gui.vistrails_palette import QVistrailsPaletteInterface
 
-################################################################################
+###############################################################################
 
 class ColorChooserButton(QtGui.QPushButton):
     color_selected = QtCore.pyqtSignal(object)
@@ -94,7 +94,7 @@ class ColorChooserButton(QtGui.QPushButton):
             if color.isValid():
                 self.setColor(color, silent=False)
 
-################################################################################
+###############################################################################
 
 class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
     """
@@ -222,9 +222,10 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
         self.versionThumbs.updateVersion(versionNumber)
         self.versionMashups.updateVersion(versionNumber)
         if self.controller:
+            vistrail = self.controller.vistrail
             if self.use_custom_colors:
-                custom_color = self.controller.vistrail.get_action_annotation(
-                        versionNumber, custom_color_key)
+                custom_color = vistrail.get_action_annotation(versionNumber,
+                                                              custom_color_key)
                 if custom_color is not None:
                     try:
                         custom_color = parse_custom_color(custom_color.value)
@@ -235,10 +236,19 @@ class QVersionProp(QtGui.QWidget, QVistrailsPaletteInterface):
                         custom_color = None
                 self.customColor.setColor(custom_color)
 
-            if self.controller.vistrail.actionMap.has_key(versionNumber):
-                action = self.controller.vistrail.actionMap[versionNumber]
-                name = self.controller.vistrail.getVersionName(versionNumber)
-                self.tagEdit.setText(name)
+            if vistrail.actionMap.has_key(versionNumber):
+                # Follow upgrades forward to find tag
+                tag = vistrail.search_upgrade_versions(
+                        versionNumber,
+                        lambda vt, v, bv: vt.getVersionName(v) or None) or ''
+
+                if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
+                    base_ver = vistrail.get_base_upgrade_version(versionNumber)
+                else:
+                    base_ver = versionNumber
+
+                action = vistrail.actionMap[base_ver]
+                self.tagEdit.setText(tag)
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
                 self.idEdit.setText(unicode(action.id))
@@ -309,18 +319,21 @@ class QVersionNotes(QtGui.QTextEdit):
         # Reset text to black, for some reason it is grey by default on the mac
         self.palette().setBrush(QtGui.QPalette.Text,
                                 QtGui.QBrush(QtGui.QColor(0,0,0,255)))
-        
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
         Update the text to be the notes of the vistrail versionNumber
         
         """
+        if self.versionNumber == versionNumber:
+            return
         self.versionNumber = versionNumber
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
-                action = self.controller.vistrail.actionMap[versionNumber]
-                notes = self.controller.vistrail.get_notes(versionNumber)
+                # Follow upgrades forward to find notes
+                notes = self.controller.vistrail.search_upgrade_versions(
+                        versionNumber,
+                        lambda vt, v, bv: vt.get_notes(v) or None)
                 if notes:
                     self.setHtml(notes)
                     # work around a strange bug where an empty new paragraph gets added every time
@@ -335,7 +348,8 @@ class QVersionNotes(QtGui.QTextEdit):
 
     def commit_changes(self):
         if self.controller and self.document().isModified():
-            self.controller.update_notes(str(self.toHtml()))
+            self.controller.update_notes('' if self.document().isEmpty()
+                                         else str(self.toHtml()))
 
     def reset_changes(self):
         """ reset_changes() -> None
@@ -363,8 +377,8 @@ class QVersionNotes(QtGui.QTextEdit):
             cursor = QtGui.QTextCursor(doc)
             cursor.deleteChar()
 
+###############################################################################
 
-################################################################################
 class QVersionPropOverlay(QtGui.QFrame):
     """
     QVersionPropOverlay is a transparent widget that sits on top of the version
@@ -499,17 +513,28 @@ class QVersionPropOverlay(QtGui.QFrame):
         Update the text items
         
         """
+
         self.notes_dialog.updateVersion(versionNumber)
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
-                action = self.controller.vistrail.actionMap[versionNumber]
-                name = self.controller.vistrail.getVersionName(versionNumber)
-                description = self.controller.vistrail.get_description(versionNumber)
-                self.tag.setText(self.truncate(name))
+                vistrail = self.controller.vistrail
+                # Follow upgrades forward to find tag
+                tag = vistrail.search_upgrade_versions(
+                        versionNumber,
+                        lambda vt, v, bv: vt.getVersionName(v) or None) or ''
+
+                if getattr(get_vistrails_configuration(), 'hideUpgrades', True):
+                    base_ver = vistrail.get_base_upgrade_version(versionNumber)
+                else:
+                    base_ver = versionNumber
+
+                action = vistrail.actionMap[base_ver]
+                description = vistrail.get_description(base_ver)
+                self.tag.setText(self.truncate(tag))
                 self.description.setText(self.truncate(description))
                 self.user.setText(self.truncate(action.user))
                 self.date.setText(self.truncate(action.date))
-                notes = self.controller.vistrail.get_notes(action.id)
+                notes = vistrail.get_notes(action.id)
                 if notes:
                     s = self.convertHtmlToText(notes)
                     self.notes.setText(self.truncate(s))
@@ -562,7 +587,8 @@ class QVersionPropOverlay(QtGui.QFrame):
                 return False
         return QtGui.QFrame.event(self, e)
 
-################################################################################
+###############################################################################
+
 class QExpandButton(QtGui.QLabel):
     """
     A transparent button type with a + draw in 
@@ -623,7 +649,8 @@ class QExpandButton(QtGui.QLabel):
         painter.end()
         self.setPicture(self.picture)
 
-################################################################################
+###############################################################################
+
 class QNotesDialog(QtGui.QDialog):
     """
     A small non-modal dialog with text entry to modify and view notes
@@ -705,8 +732,12 @@ class QNotesDialog(QtGui.QDialog):
         self.notes.updateVersion(versionNumber)
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
-                name = self.controller.vistrail.getVersionName(versionNumber)
-                title = "Notes: "+name
+                # Follow upgrades forward to find tag
+                tag = self.controller.vistrail.search_upgrade_versions(
+                        versionNumber,
+                        lambda vt, v, bv: vt.getVersionName(v) or None) or ''
+
+                title = "Notes: " + tag
                 self.setWindowTitle(title)
             else:
                 self.setWindowTitle("Notes")
@@ -717,7 +748,7 @@ class QNotesDialog(QtGui.QDialog):
         """
         return QtCore.QSize(250,200)
         
-################################################################################
+###############################################################################
 
 class QVersionThumbs(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -750,27 +781,34 @@ class QVersionThumbs(QtGui.QWidget):
         if self.controller:
             vistrail = self.controller.vistrail
             if versionNumber in vistrail.actionMap.keys():
-                action = vistrail.actionMap[versionNumber]
-                if action and vistrail.has_thumbnail(action.id):
-                    cache = ThumbnailCache.getInstance()
-                    fname = cache.get_abs_name_entry(
-                        vistrail.get_thumbnail(action.id))
-                    if fname is not None:
-                        pixmap = QtGui.QPixmap(fname)
-                        self.thumbs.setPixmap(pixmap)
-                        self.thumbs.adjustSize()
-                    self.thumbs.setFrameShape(QtGui.QFrame.StyledPanel)
-                    return
-                
+                # Follow upgrades forward to find a thumbnail
+                thumb_ver = self.controller.vistrail.search_upgrade_versions(
+                        versionNumber,
+                        lambda vt, v, bv: v if vt.has_thumbnail(v) else None)
+                if thumb_ver is not None:
+                    action = vistrail.actionMap[thumb_ver]
+                    if vistrail.has_thumbnail(action.id):
+                        cache = ThumbnailCache.getInstance()
+                        fname = cache.get_abs_name_entry(
+                            vistrail.get_thumbnail(action.id))
+                        if fname is not None:
+                            pixmap = QtGui.QPixmap(fname)
+                            self.thumbs.setPixmap(pixmap)
+                            self.thumbs.adjustSize()
+                        self.thumbs.setFrameShape(QtGui.QFrame.StyledPanel)
+                        return
+
         self.thumbs.setPixmap(QtGui.QPixmap())
         self.thumbs.setFrameShape(QtGui.QFrame.NoFrame)
 
-################################################################################
+###############################################################################
+
 class QVersionMashups(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.versionNumber = None
         self.controller = None
+        self.mtrail = None
         #label = QtGui.QLabel("Mashups:")
         self.mashupsButton = QtGui.QToolButton()
         self.mashupsButton.setText("Mashups")

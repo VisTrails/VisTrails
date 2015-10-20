@@ -45,10 +45,9 @@ import traceback
 import vistrails
 from vistrails.core import debug
 from vistrails.core import get_vistrails_application
-from vistrails.core.configuration import ConfigurationObject
+from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core.modules.module_descriptor import ModuleDescriptor
 from vistrails.core.utils import versions_increasing, VistrailsInternalError
-from vistrails.core.utils.uxml import (named_elements, enter_named_element)
 from vistrails.db.domain import DBPackage
 
 
@@ -106,6 +105,8 @@ class Package(DBPackage):
             return ("Package '%s' has unmet dependencies:\n  %s" %
                     (self.package.name,
                      '\n  '.join([dep_string(d) for d in self.dependencies])))
+
+    _warned_contextmenu_notboth = False
 
     def __init__(self, *args, **kwargs):
         if 'load_configuration' in kwargs:
@@ -319,9 +320,9 @@ class Package(DBPackage):
                     if self._imports_are_good: # only warn first time
                         self._imports_are_good = False
                         debug.warning(
-                            "In package '%s', Please use the 'vistrails.' "
-                            "prefix when importing vistrails packages." %
-                            (self.identifier or self.codepath))
+                            "In package '%s', please use the 'vistrails.' "
+                            "prefix when importing vistrails packages (%s)" %
+                            (self.identifier or self.codepath, name))
                     fixed = pkg
                     name = "vistrails." + name
                     break
@@ -457,10 +458,11 @@ class Package(DBPackage):
     def unload(self):
         for path in self.py_dependencies:
             if path not in sys.modules:
-                # print "skipping %s" % path
                 pass
-            else:
-                # print 'deleting path:', path, path in sys.modules
+            elif not getattr(get_vistrails_configuration(),
+                             'dontUnloadModules',
+                             False):
+                debug.debug("deleting from sys.modules: %s" % path)
                 del sys.modules[path]
         self.py_dependencies.clear()
         self._loaded = False
@@ -500,9 +502,11 @@ class Package(DBPackage):
             return (hasattr(self.init_module, 'can_handle_identifier') and
                     self.init_module.can_handle_identifier(identifier))
         except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Got exception calling %s's can_handle_identifier: "
-                           "%s: %s" % (self.name,
-                                       type(e).__name__, ', '.join(e.args)))
+                           "%s\n%s" % (self.name,
+                                       debug.format_exception(e),
+                                       traceback.format_exc()))
             return False
 
     def can_handle_vt_file(self, name):
@@ -512,9 +516,11 @@ class Package(DBPackage):
             return (hasattr(self.init_module, 'can_handle_vt_file') and
                     self.init_module.can_handle_vt_file(name))
         except Exception, e:
+            debug.unexpected_exception(e)
             debug.critical("Got exception calling %s's can_handle_vt_file: "
-                           "%s: %s" % (self.name,
-                                       type(e).__name__, ', '.join(e.args)))
+                           "%s\n%s" % (self.name,
+                                       debug.format_exception(e),
+                                       traceback.format_exc()))
             return False
 
     def can_handle_missing_modules(self):
@@ -560,35 +566,53 @@ class Package(DBPackage):
                 return self._abs_pkg_upgrades[key][latest_version]
         return None
 
-    def has_contextMenuName(self):
-        return hasattr(self._init_module, 'contextMenuName')
+    def has_context_menu(self):
+        if hasattr(self._init_module, 'context_menu'):
+            return True
+        name = hasattr(self._init_module, 'contextMenuName')
+        callback = hasattr(self._init_module, 'callContextMenu')
+        if name and callback:
+            return True
+        elif name or callback:
+            if not self._warned_contextmenu_notboth:
+                debug.warning(
+                        "In package '%s', only one of contextMenuName and "
+                        "callContextMenu is provided; the context menu will "
+                        "not be shown" % self.identifier)
+                self._warned_contextmenu_notboth = True
+        return False
 
-    def contextMenuName(self, signature):
-        return self._init_module.contextMenuName(signature)
-    
-    def has_callContextMenu(self):
-        return hasattr(self._init_module, 'callContextMenu')
-
-    def callContextMenu(self, signature):
-        return self._init_module.callContextMenu(signature)
+    def context_menu(self, signature):
+        if hasattr(self._init_module, 'context_menu'):
+            return self._init_module.context_menu(signature)
+        elif hasattr(self._init_module, 'contextMenuName'):
+            if signature is None:
+                signature = self.name
+            def callMenu():
+                self._init_module.callContextMenu(signature)
+            return [(self._init_module.contextMenuName(signature), callMenu)]
 
     def loadVistrailFileHook(self, vistrail, tmp_dir):
         if hasattr(self._init_module, 'loadVistrailFileHook'):
             try:
                 self._init_module.loadVistrailFileHook(vistrail, tmp_dir)
             except Exception, e:
+                debug.unexpected_exception(e)
                 debug.critical("Got exception in %s's loadVistrailFileHook(): "
-                               "%s: %s" % (self.name, type(e).__name__,
-                                           ', '.join(e.args)))
+                               "%s\n%s" % (self.name,
+                                           debug.format_exception(e),
+                                           traceback.format_exc()))
 
     def saveVistrailFileHook(self, vistrail, tmp_dir):
         if hasattr(self._init_module, 'saveVistrailFileHook'):
             try:
                 self._init_module.saveVistrailFileHook(vistrail, tmp_dir)
             except Exception, e:
+                debug.unexpected_exception(e)
                 debug.critical("Got exception in %s's saveVistrailFileHook(): "
-                               "%s: %s" % (self.name, type(e).__name__,
-                                           ', '.join(e.args)))
+                               "%s\n%s" % (self.name,
+                                           debug.format_exception(e),
+                                           traceback.format_exc()))
 
     def check_requirements(self):
         try:
@@ -607,8 +631,10 @@ class Package(DBPackage):
             try:
                 return callable_()
             except Exception, e:
-                debug.critical("Couldn't load menu items for %s: %s: %s" % (
-                               self.name, type(e).__name__, ', '.join(e.args)))
+                debug.unexpected_exception(e)
+                debug.critical("Couldn't load menu items for %s: %s\n%s" % (
+                               self.name, debug.format_exception(e),
+                               traceback.format_exc()))
 
     def finalize(self):
         if not self._initialized:
@@ -622,8 +648,10 @@ class Package(DBPackage):
             try:
                 callable_()
             except Exception, e:
-                debug.critical("Couldn't finalize %s: %s: %s" % (
-                               self.name, type(e).__name__, ', '.join(e.args)))
+                debug.unexpected_exception(e)
+                debug.critical("Couldn't finalize %s: %s\n%s" % (
+                               self.name, debug.format_exception(e),
+                               traceback.format_exc()))
         # Save configuration
         if self.load_configuration and self.configuration is not None:
             self.persist_configuration()
@@ -642,8 +670,11 @@ class Package(DBPackage):
             try:
                 deps = callable_()
             except Exception, e:
-                debug.critical("Couldn't get dependencies of %s: %s: %s" % (
-                               self.name, type(e).__name__, ', '.join(e.args)))
+                debug.critical(
+                        "Couldn't get dependencies of %s: %s\n%s" % (
+                            self.name, debug.format_exception(e),
+                            traceback.format_exc()))
+                deps = []
 
         if self._module is not None and \
                 hasattr(self._module, '_dependencies'):

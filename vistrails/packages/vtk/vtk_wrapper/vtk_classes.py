@@ -33,12 +33,17 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-# """ Convert VTK classes into functions using spec in vtk.xml"""
+
+""" Convert VTK classes into functions using spec in vtk.xml"""
+
+from __future__ import division
+
 import locale
 import os
 import tempfile
 import types
-import warnings
+
+from  platform import system
 
 import vtk
 
@@ -50,9 +55,6 @@ from .specs import SpecList, ClassSpec
 
 # filter some deprecation warnings coming from the fact that vtk calls
 # range() with float parameters
-
-warnings.filterwarnings("ignore",
-                        message="integer argument expected, got float")
 
 #### METHOD PATCHING CODE ####
 
@@ -146,11 +148,26 @@ def patch_methods(base_module, cls):
        not cls.__name__.endswith('TiffReader'):
         update_dict('Update', guarded_SetFileName)
 
-    def call_SetRenderWindow(self, cellObj):
-        if cellObj.cellWidget:
-            self.vtkInstance.SetRenderWindow(cellObj.cellWidget.mRenWin)
+    def call_SetRenderWindow(self, vtkRenderer):
+        window = vtk.vtkRenderWindow()
+        w = 512
+        h = 512
+        window.OffScreenRenderingOn()
+        window.SetSize(w, h)
+
+        widget = None
+        if system() == 'Darwin':
+            from PyQt4 import QtCore, QtGui
+            widget = QtGui.QWidget(None, QtCore.Qt.FramelessWindowHint)
+            widget.resize(w, h)
+            widget.show()
+            window.SetWindowInfo(str(int(widget.winId())))
+
+        window.AddRenderer(vtkRenderer.vtkInstance)
+        window.Render()
+        self.vtkInstance.SetRenderWindow(window)
     if hasattr(cls, 'SetRenderWindow'):
-        instance_dict['VTKCell'] = call_SetRenderWindow
+        instance_dict['vtkRenderer'] = call_SetRenderWindow
 
     def call_TransferFunction(self, tf):
         tf.set_on_vtk_volume_property(self.vtkInstance)
@@ -281,18 +298,21 @@ def gen_instance_factory(spec):
     return instanceFactory
 
 
+specs = None
+
+
 def initialize(spec_name=None):
     """ Generate class wrappers and add them to current module namespace
         Also adds spec so it can be referenced by module wrapper
 
     """
+    global specs
     if spec_name is None:
         # The spec can be placed in the same folder if used as a standalone package
         spec_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vtk.xml')
         if not os.path.exists(spec_name):
             return
     specs = SpecList.read_from_xml(spec_name, ClassSpec)
-    globals()['specs'] = specs
     for spec in specs.module_specs:
         globals()[spec.module_name] = gen_instance_factory(spec)
 

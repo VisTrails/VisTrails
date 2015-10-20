@@ -39,6 +39,7 @@
 
 from __future__ import division
 
+import copy
 import os
 from PyQt4 import QtCore, QtGui
 import sys
@@ -46,8 +47,10 @@ import sys
 from vistrails.core import debug
 from vistrails.core.modules import basic_modules
 from vistrails.core.modules.module_registry import get_module_registry
+from vistrails.core.modules.utils import create_descriptor_string
 from vistrails.core.system import vistrails_root_directory
-from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler
+from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler, \
+    UpgradePackageRemap, UpgradeModuleRemap
 
 from .spreadsheet_controller import spreadsheetController
 from .spreadsheet_registry import spreadsheetRegistry
@@ -152,12 +155,56 @@ def menu_items():
 
 
 def finalize():
-    spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
-    ### DO NOT ADD BACK spreadsheetWindow.destroy()
-    ### That will crash VisTrails on Mac.
-    ### It is not supposed to be called directly
-    spreadsheetWindow.cleanup()
-    spreadsheetWindow.deleteLater()
+    spreadsheetWindow = spreadsheetController.findSpreadsheetWindow(
+        show=False, create=False)
+    if spreadsheetWindow is not None:
+        ### DO NOT ADD BACK spreadsheetWindow.destroy()
+        ### That will crash VisTrails on Mac.
+        ### It is not supposed to be called directly
+        spreadsheetWindow.cleanup()
+        spreadsheetWindow.deleteLater()
+
+
+def upgrade_cell_to_output(module_remap, module_id, pipeline,
+                           old_name, new_module,
+                           end_version, input_port_name,
+                           start_version=None, output_version=None):
+    """This function upgrades a *Cell module to a *Output module.
+
+    The upgrade only happens if the original module doesn't have any connection
+    on the cell input ports that can't be translated.
+
+    This is to ease the transition to *Output modules, but we don't want (or
+    need) to break anything; the *Cell modules still exist, so they can stay.
+    """
+    if not isinstance(module_remap, UpgradePackageRemap):
+        module_remap = UpgradePackageRemap.from_dict(module_remap)
+
+    old_module = pipeline.modules[module_id]
+    old_module_name = create_descriptor_string(old_module.package,
+                                               old_module.name,
+                                               old_module.namespace,
+                                               False)
+    if old_module_name != old_name:
+        return module_remap
+
+    used_input_ports = set(old_module.connected_input_ports.keys())
+    for func in old_module.functions:
+        used_input_ports.add(func.name)
+
+    if used_input_ports != set([input_port_name]):
+        return module_remap
+
+    _old_remap = module_remap
+    module_remap = copy.copy(module_remap)
+    assert _old_remap.remaps is not module_remap.remaps
+    remap = UpgradeModuleRemap(start_version, end_version, output_version,
+                               module_name=old_name,
+                               new_module=new_module)
+    remap.add_remap('dst_port_remap', input_port_name, 'value')
+    remap.add_remap('function_remap', input_port_name, 'value')
+    module_remap.add_module_remap(remap)
+    return module_remap
 
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
@@ -181,6 +228,15 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 }),
             ],
         }
+
+    module_remap = upgrade_cell_to_output(
+            module_remap, module_id, pipeline,
+            'RichTextCell', 'org.vistrails.vistrails.basic:RichTextOutput',
+            '0.9.4', 'File')
+    module_remap = upgrade_cell_to_output(
+            module_remap, module_id, pipeline,
+            'ImageViewerCell', 'org.vistrails.vistrails.basic:ImageOutput',
+            '0.9.4', 'File')
 
     return UpgradeWorkflowHandler.remap_module(controller,
                                                module_id,

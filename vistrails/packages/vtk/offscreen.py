@@ -69,7 +69,11 @@ class VTKRenderOffscreen(Module):
         win2image.SetInput(window)
         win2image.Update()
         writer = vtk.vtkPNGWriter()
-        writer.SetInput(win2image.GetOutput())
+        if hasattr(writer, 'SetInput'):
+            writer.SetInput(win2image.GetOutput())
+        else:
+            # VTK 6 uses SetInputData
+            writer.SetInputData(win2image.GetOutput())
         output = self.interpreter.filePool.create_file(suffix='.png')
         writer.SetFileName(output.name)
         writer.Write()

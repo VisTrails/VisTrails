@@ -232,7 +232,8 @@ class SQLDAO:
             commandString = ''
             for prepared, values in dbCommands:
                 command = prepared % \
-                              db.escape(values, get_db_lib().converters.conversions)
+                          tuple(db.escape(v, get_db_lib().converters.conversions)
+                           for v in values)
                 commandString += command
             cur = db.cursor()
             try:

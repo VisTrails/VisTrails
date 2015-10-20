@@ -47,8 +47,7 @@ from vistrails.core import debug
 from vistrails.core.interpreter.default import get_default_interpreter
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.param_explore import ActionBasedParameterExploration
-from vistrails.core.system import current_time, strftime, \
-    get_vistrails_default_pkg_prefix
+from vistrails.core.system import current_time, strftime
 from vistrails.gui.common_widgets import QDockContainer, QToolWindowInterface
 from vistrails.gui.paramexplore.pe_table import QParameterExplorationWidget, QParameterSetEditor
 from vistrails.gui.paramexplore.virtual_cell import QVirtualCellWindow
@@ -269,7 +268,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         """
         registry = get_module_registry()
         actions = self.peWidget.table.collectParameterActions()
-        spreadsheet_pkg = '%s.spreadsheet' % get_vistrails_default_pkg_prefix()
+        spreadsheet_pkg = 'org.vistrails.vistrails.spreadsheet'
         # Set the annotation to persist the parameter exploration
         # TODO: For now, we just replace the existing exploration - Later we should append them.
         xmlString = "<paramexps>\n" + self.getParameterExploration() + "\n</paramexps>"

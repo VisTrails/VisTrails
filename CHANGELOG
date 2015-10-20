@@ -1,16 +1,59 @@
 RELEASE NOTES
 -------------
-Release Name: v2.2 build b5341fe97287 from master branch
+Release Name: v2.2.3 build 02ad04a622c4 from v2.2 branch
 
-TODO: FILL THIS IN BEFORE RELEASE
+Bug fixes:
+ - Fixed showing "invalid pipeline" instead of failure from auto-enabled package
+ - Fixed responsiveness of suspended module progress bar
+ - Fixed some GUI issues in the job monitor
+ - Accept unicode in source configuration widgets (e.g. PythonSource's)
+ - Fixed using same name for an input & output port in PythonSource
+ - Fixed the spreadsheet window popping up when exiting VisTrails
 
 Enhancements:
- - zip/unzip binaries no longer needed
+ - tej package improved & documented
+ - Add "close" action in workspace context menu
+ - Added a MongoDB package
+ - Added a reprounzip package
+ - Make FileOutput mode use the 'outputDirectory' config setting
+ - Allow multiple actions in module palette's context menus by introducing 'context_menu', replacing 'contextMenuName' and 'callContextMenu'
+ - Add Reshape, DictToTable and ListToTable modules to tabledata
+ - Only require numpy/xlrd/xlwt when modules get executed; they now always exist
+ - Added Job Submission support to Parameter Explorations and Mashups
+ - ModuleSuspended now requires a handle
+ - Added Job Submission documentation, examples, and tests
+ - Autosave now only stores the latest save, not a new one every 2 minutes
+
+Behavior change for package developers:
+ - MplFigure connections now carry the figure number (int)
+ - ModuleSuspended now must have an associated JobHandle
+
+From Release: v2.2.2 build 9bd2afa387a4 from v2.2 branch
+
+Bug fixes:
+ - prevents introducing cycles in pipeline view (#1097)
+ - Fixes to subworkflows
+   - Fixes subworkflows failing to execute (#1065)
+   - Fixes not being able to remove local subworkflows (#1101)
+   - Fixes upgrading to a newer local subworkflow
+ - Fixes OPM and PROV export (#1076) (#1075)
+ - Fixes executable documents (#1088)
+ - Fixed generating pipeline and version tree graphs
+
+From Release: v2.2.1 build c366dbcb640c from v2.2 branch
+
+Bug fixes:
+ - parameter exploration failed on cells upgraded to output modules (#1063)
+
+From Release: v2.2 build 7a19c29b8322 from v2.2 branch
+
+Enhancements:
+ - zip/unzip binaries no longer needed (#862)
  - new version of tabledata package (also backported to v2.1.5)
  - new version of parallelflow package
  - adds developer debugger (enable "developerDebugger" in expert settings)
  - improves logging
- - reloading a disabled package (if you changed __init__)
+ - reloading a disabled package (if you changed __init__; #714)
  - ungrouping materializes InputPort and OutputPort modules for unconnected
    Group ports
  - CLTools path and directory types
@@ -18,7 +61,7 @@ Enhancements:
  - adds an icon for 'port not visible' (instead of blank)
  - sql package with SQLAlchemy
  - auto-enabling package with unmet dependencies (4a1b200b)
- - job submission/monitor
+ - Enhancements to job submission/monitor
  - controlflow caches looped modules
  - menu to export a single spreadsheet cell
  - custom colors for version in tree
@@ -27,19 +70,36 @@ Enhancements:
  - HTTP package is now URL, validates HTTPS certificates, handles ssh://
  - fixes spreadsheet cells size resetting when resizing window
  - loads packages from pkg_resources entry points "vistrails.packages"
- - new persistent_archive package
+ - new persistent_archive package (#755)
  - new sklearn package for machine learning; http://scikit-learn.org/
  - highlight unset required ports in input ports list
- - new user API with IPython notebook integration
+ - new user API with IPython notebook integration (#24)
  - StandardOutput module can print a File's content
  - output module system: same module can output to spreadsheet, file, stdout,
    IPython, ...
- - constant widget use eventfilter
- - output port drawn from left to right
+ - output port drawn from left to right (#1006)
+ - Warn when parameters have invalid values
+ - New parameter widgets for editing parameters directly on modules
+ - New list handling (deprecating the controlflow package):
+   * Typed lists (Ports can now have 'list depth')
+   * Automatic looping: Modules taking single items processes each item in
+     a list and returns a list of results
+   * Streaming support for processing one list item at a time through
+     the pipeline
+   * New control parameters for controlling looping behaviour
+ - Switching views are now faster
+ - New VTK package supporting up to VTK 6.2 (#998)
+   * Installers now contains VTK 6.2
+ - No longer show upgrade actions in version tree (optional; #1046)
+ - Associate with .vt and .vtl files on Linux
+ - Added min_conns and max_conns attribute to ports
+
 Bug fixes:
  - fixes strptime on system with non-English locale
  - fixes returning numpy arrays from PythonSource modules (3468998b)
  - pressing ctrl+s after loading a pipeline no longer replace it with a vistrail
+ - fixed losing notes when clicking "execute" immediately from version view
+
 Behavior change for package developers:
  - made Module methods python_style; updateUpstream won't work, others will
    work but trigger warning
@@ -48,6 +108,7 @@ Behavior change for package developers:
  - use output modules instead of cell/writer modules
  - output port drawn from left to right; change your sort_keys
  - constant widget use eventfilter; call installEventFilter for child widgets
+ - Improved module/parameter/widget configuration APIs
 
 From Release: v2.1.5 build 9a01936a5640 from v2.1 branch
 

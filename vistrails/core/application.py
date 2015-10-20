@@ -405,7 +405,7 @@ class VistrailsApplicationInterface(object):
         if controller is None:
             # vistrail is not already open
             try:
-                loaded_objs = vistrails.core.db.io.load_vistrail(locator, False)
+                loaded_objs = vistrails.core.db.io.load_vistrail(locator, is_abstraction)
                 controller = self.add_vistrail(loaded_objs[0], locator, 
                                                *loaded_objs[1:])
                 if locator.is_untitled():

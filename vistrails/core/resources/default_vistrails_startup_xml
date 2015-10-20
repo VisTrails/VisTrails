@@ -12,12 +12,19 @@
     <package name="URL"/>
     <package name="controlflow"/>
     <package name="tabledata"/>
+    <package name="gmaps"/>
+    <package name="CLTools"/>
+    <package name="matplotlib"/>
+    <package name="persistent_archive"/>
+    <package name="sklearn"/>
+    <package name="sql"/>
+    <package name="tej"/>
   </packages>
   <disabledpackages/>
 </startup>
 
 <!--
-	This is what a "regular" startup file looks like.
+    This is what a "regular" startup file looks like.
 
 <startup version="0.1">
   <configuration>
@@ -27,10 +34,10 @@
     <key name="shell">
       <configuration>
         <key name="fontFace">
-  	  <str value="Bitstream Vera mono"/>
+      <str value="Bitstream Vera mono"/>
         </key>
         <key name="fontSize">
-	  <int value="9"/>
+      <int value="9"/>
         </key>
       </configuration>
     </key>
@@ -48,9 +55,9 @@
     <package name="meshutils"/>
     <package name="afront">
       <configuration>
-	<key name="debug">
-	  <bool value="True"/>
-	</key>
+    <key name="debug">
+      <bool value="True"/>
+    </key>
       </configuration>
     </package>
     <package name="metro"/>

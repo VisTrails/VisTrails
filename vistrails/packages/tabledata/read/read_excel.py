@@ -1,23 +1,54 @@
-from __future__ import division
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2013-2014, NYU-Poly.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
 
-try:
-    import numpy
-except ImportError: # pragma: no cover
-    numpy = None
+from __future__ import division
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
 
-from ..common import TableObject, Table
+from ..common import get_numpy, TableObject, Table
 
 
 def get_xlrd():
     try:
         return py_import('xlrd', {
-                'pip': 'xlrd',
-                'linux-debian': 'python-xlrd',
-                'linux-ubuntu': 'python-xlrd',
-                'linux-fedora': 'python-xlrd'})
+                             'pip': 'xlrd',
+                             'linux-debian': 'python-xlrd',
+                             'linux-ubuntu': 'python-xlrd',
+                             'linux-fedora': 'python-xlrd'},
+                         True)
     except ImportError: # pragma: no cover
         return None
 
@@ -43,6 +74,8 @@ class ExcelTable(TableObject):
     def get_column(self, index, numeric=False):
         if (index, numeric) in self.column_cache:
             return self.column_cache[(index, numeric)]
+
+        numpy = get_numpy(False)
 
         result = [c.value for c in self.sheet.col(index)]
         if self.header_present:

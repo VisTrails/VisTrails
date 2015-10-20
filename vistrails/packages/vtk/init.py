@@ -33,30 +33,35 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
+import copy
 import re
 import os.path
 
 import vtk
 
+from distutils.version import LooseVersion
 from vistrails.core.configuration import ConfigField
-from vistrails.core.modules.basic_modules import PathObject, \
+from vistrails.core.modules.basic_modules import Path, PathObject, \
                                                        identifier as basic_pkg
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.output_modules import OutputModule, ImageFileMode, \
     ImageFileModeConfig, IPythonMode, IPythonModeConfig
-from vistrails.core.system import get_vistrails_default_pkg_prefix, systemType, current_dot_vistrails
+from vistrails.core.system import systemType, current_dot_vistrails
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
                                        UpgradeModuleRemap, UpgradePackageRemap
 from vistrails.core.vistrail.connection import Connection
 from vistrails.core.wrapper.pythonclass import BaseClassModule, gen_class_module
+from vistrails.core.vistrail.port import Port
 
 from .tf_widget import _modules as tf_modules
 from .inspectors import _modules as inspector_modules
 from .offscreen import _modules as offscreen_modules
 
-from identifiers import identifier
+from identifiers import identifier, version as package_version
 
 from .vtk_wrapper import vtk_classes
 from . import hasher
@@ -65,8 +70,7 @@ from . import hasher
 _modules = tf_modules + inspector_modules + offscreen_modules
 
 registry = get_module_registry()
-if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
-                       'SpreadsheetCell'):
+if registry.has_module('org.vistrails.vistrails.spreadsheet', 'SpreadsheetCell'):
     # load these only if spreadsheet is enabled
     from .vtkcell import _modules as cell_modules
     from .vtkhandler import _modules as handler_modules
@@ -96,7 +100,11 @@ def render_to_image(output_filename, vtk_format, renderer, w, h):
     win2image.SetInput(window)
     win2image.Update()
     writer = vtk_format()
-    writer.SetInput(win2image.GetOutput())
+    if LooseVersion(vtk.vtkVersion().GetVTKVersion()) >= \
+       LooseVersion('6.0.0'):
+        writer.SetInputData(win2image.GetOutput())
+    else:
+        writer.SetInput(win2image.GetOutput())
     writer.SetFileName(output_filename)
     writer.Write()
     window.Finalize()
@@ -116,7 +124,7 @@ class vtkRendererToFile(ImageFileMode):
                       'jpg': vtk.vtkJPEGWriter,
                       'tif': vtk.vtkTIFFWriter,
                       'pnm': vtk.vtkPNMWriter}
-        r = output_module.get_input("value").vtkInstance
+        r = output_module.get_input("value")[0].vtkInstance
         w = configuration["width"]
         h = configuration["height"]
         img_format = self.get_format(configuration)
@@ -134,10 +142,10 @@ class vtkRendererToIPythonModeConfig(IPythonModeConfig):
 class vtkRendererToIPythonMode(IPythonMode):
     config_cls = vtkRendererToIPythonModeConfig
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         from IPython.core.display import display, Image
 
-        r = output_module.get_input('value').vtkInstance
+        r = output_module.get_input('value')[0].vtkInstance
         width = configuration['width']
         height = configuration['height']
 
@@ -152,16 +160,16 @@ class vtkRendererToIPythonMode(IPythonMode):
         display(Image(filename=fname, width=width, height=height))
 
 class vtkRendererOutput(OutputModule):
-    # DAK: no render view here, use a separate module for this...
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules."
                        "output_configuration:OutputModuleConfigurationWidget")
-    _input_ports = [('value', 'vtkRenderer')]
-    if registry.has_module('%s.spreadsheet' % get_vistrails_default_pkg_prefix(),
-                       'SpreadsheetCell'):
-        _input_ports.extend([('interactionHandler', 'vtkInteractionHandler'),
-                             ('interactorStyle', 'vtkInteractorStyle'),
-                             ('picker', 'vtkAbstractPicker')])
+    _input_ports = [('value', 'vtkRenderer', {'depth':1}),
+                    ('interactorStyle', 'vtkInteractorStyle'),
+                    ('picker', 'vtkAbstractPicker')]
     _output_modes = [vtkRendererToFile, vtkRendererToIPythonMode]
+    if registry.has_module('org.vistrails.vistrails.spreadsheet',
+                           'SpreadsheetCell'):
+        from .vtkcell import vtkRendererToSpreadsheet
+        _output_modes.append(vtkRendererToSpreadsheet)
 
 _modules.append(vtkRendererOutput)
 
@@ -175,11 +183,15 @@ klasses = {}
 def initialize():
     # First check if spec for this VTK version exists
     v = vtk.vtkVersion()
-    version = [v.GetVTKMajorVersion(),
-               v.GetVTKMinorVersion(),
-               v.GetVTKBuildVersion()]
+    vtk_version = [v.GetVTKMajorVersion(),
+                   v.GetVTKMinorVersion(),
+                   v.GetVTKBuildVersion()]
 
-    spec_name = os.path.join(current_dot_vistrails(), 'vtk-spec-%s.xml' % '_'.join([str(v) for v in version]))
+    # vtk-VTKVERSION-spec-PKGVERSION.xml
+    spec_name = os.path.join(current_dot_vistrails(),
+                             'vtk-%s-spec-%s.xml' %
+                             ('_'.join([str(v) for v in vtk_version]),
+                              package_version.replace('.', '_')))
     # TODO: how to patch with diff/merge
     if not os.path.exists(spec_name):
         from .vtk_wrapper.parse import parse
@@ -205,6 +217,13 @@ def _get_pipeline():
 
 module_name_remap = {'vtkPLOT3DReader': 'vtkMultiBlockPLOT3DReader'}
 
+def base_name(name):
+    """Returns name without overload index.
+    """
+    i = name.find('_')
+    if i != -1:
+        return name[:i]
+    return name
 
 def build_remap(module_name=None):
     global _remap, _controller
@@ -212,27 +231,95 @@ def build_remap(module_name=None):
     reg = get_module_registry()
     uscore_num = re.compile(r"(.+)_(\d+)$")
 
-    def base_name(name):
-        "returns name without overload index"
-        i = name.find('_')
-        if i != -1:
-            return name[:i]
-        return name
+    def create_function(module, *argv, **kwargs):
+        controller = _get_controller()
+        # create function using the current module version and identifier
+        # FIXME: This should really be handled by the upgrade code somehow
+        new_desc = reg.get_descriptor_by_name(module.package,
+                                              module.name,
+                                              module.namespace)
+        old_identifier = module.package
+        module.package = identifier
+        old_package_version = module.version
+        module.version = new_desc.package_version
+        new_function = controller.create_function(module, *argv, **kwargs)
+        module.package = old_identifier
+        module.version = old_package_version
+        return new_function
+
     def get_port_specs(descriptor, port_type):
         ports = {}
         for desc in reversed(reg.get_module_hierarchy(descriptor)):
             ports.update(reg.module_ports(port_type, desc))
         return ports
 
+    def get_input_port_spec(module, port_name):
+        # Get current desc
+        # FIXME: This should really be handled by the upgrade code somehow
+        new_desc = reg.get_descriptor_by_name(module.package,
+                                              module.name,
+                                              module.namespace)
+        port_specs = get_port_specs(new_desc, 'input')
+        return port_name in port_specs and port_specs[port_name]
+
+    def get_output_port_spec(module, port_name):
+        # Get current desc
+        new_desc = reg.get_descriptor_by_name(module.package,
+                                              module.name,
+                                              module.namespace)
+        port_specs = get_port_specs(new_desc, 'output')
+        return port_name in port_specs and port_specs[port_name]
+
+    def build_function(old_function, new_function_name, new_module):
+        controller = _get_controller()
+        if len(old_function.parameters) > 0:
+            new_param_vals, aliases = \
+                zip(*[(p.strValue, p.alias)
+                      for p in old_function.parameters])
+        else:
+            new_param_vals = []
+            aliases = []
+        new_function = create_function(new_module,
+                                       new_function_name,
+                                       new_param_vals,
+                                       aliases)
+        return new_function
+
+    def build_function_remap_method(desc, port_prefix, port_num):
+        f_map = {"vtkCellArray": {"InsertNextCell": 3}}
+
+        def remap(old_function, new_module):
+            for i in xrange(1, port_num):
+                port_name = "%s_%d" % (port_prefix, i)
+                port_spec = get_input_port_spec(new_module, port_name)
+                old_sigstring = \
+                    reg.expand_port_spec_string(old_function.sigstring,
+                                                basic_pkg)
+                if port_spec.sigstring == old_sigstring:
+                    new_function = build_function(old_function, port_name,
+                                                  new_module)
+                    new_module.add_function(new_function)
+                    return []
+            port_idx = 1
+            if desc.name in f_map:
+                if port_prefix in f_map[desc.name]:
+                    port_idx =  f_map[desc.name][port_prefix]
+            port_name = "%s_%d" % (port_prefix, port_idx)
+            new_function = build_function(old_function, port_name, new_module)
+            new_module.add_function(new_function)
+            return []
+
+        return remap
+
     def build_remap_method(desc, port_prefix, port_num, port_type):
         # for connection, need to differentiate between src and dst
         if port_type == 'input':
             conn_lookup = Connection._get_destination
-            get_port_spec = reg.get_input_port_spec
+            get_port_spec = get_input_port_spec
             idx = 1
         else:
             conn_lookup = Connection._get_source
-            get_port_spec = reg.get_output_port_spec
+            get_port_spec = get_output_port_spec
             idx = 0
 
         def remap(old_conn, new_module):
@@ -265,46 +352,6 @@ def build_remap(module_name=None):
             return [('add', new_conn)]
         return remap
 
-    def build_function_remap_method(desc, port_prefix, port_num):
-        f_map = {"vtkCellArray": {"InsertNextCell": 3}}
-        def build_function(old_function, new_function_name, new_module):
-            controller = _get_controller()
-            if len(old_function.parameters) > 0:
-                new_param_vals, aliases = \
-                    zip(*[(p.strValue, p.alias)
-                          for p in old_function.parameters])
-            else:
-                new_param_vals = []
-                aliases = []
-            new_function = controller.create_function(new_module,
-                                                      new_function_name,
-                                                      new_param_vals,
-                                                      aliases)
-            return new_function
-
-        def remap(old_function, new_module):
-            for i in xrange(1, port_num):
-                port_name = "%s_%d" % (port_prefix, i)
-                port_spec = reg.get_input_port_spec(new_module, port_name)
-                old_sigstring = \
-                    reg.expand_port_spec_string(old_function.sigstring,
-                                                basic_pkg)
-                if port_spec.sigstring == old_sigstring:
-                    new_function = build_function(old_function, port_name,
-                                                  new_module)
-                    new_module.add_function(new_function)
-                    return []
-            port_idx = 1
-            if desc.name in f_map:
-                if port_prefix in f_map[desc.name]:
-                    port_idx =  f_map[desc.name][port_prefix]
-            port_name = "%s_%d" % (port_prefix, port_idx)
-            new_function = build_function(old_function, port_name, new_module)
-            new_module.add_function(new_function)
-            return []
-
-        return remap
-
     def process_ports(desc, remap, port_type):
         if port_type == 'input':
             remap_dict_key = 'dst_port_remap'
@@ -331,6 +378,131 @@ def build_remap(module_name=None):
                 remap.add_remap('function_remap', port_prefix, m)
         if port_type == 'output' and desc.name in klasses:
             remap.add_remap('src_port_remap', 'self', 'Instance')
+
+    def change_func(name, value):
+        def remap(old_func, new_module):
+            controller = _get_controller()
+            new_function = create_function(new_module, name, [value])
+            return [('add', new_function, 'module', new_module.id)]
+        return remap
+
+    def change_SetXint(spec):
+        # Fix old SetX methods that takes an int representing the enum
+        def remap(old_func, new_module):
+            controller = _get_controller()
+            value = int(old_func.params[0].strValue)
+            value = spec.values[0][value]
+            new_function = create_function(new_module, spec.name, [value])
+            return [('add', new_function, 'module', new_module.id)]
+        return remap
+
+    def color_func(name):
+        def remap(old_func, new_module):
+            controller = _get_controller()
+            value = ','.join([p.strValue for p in old_func.params])
+            new_function = create_function(new_module, name, [value])
+            return [('add', new_function, 'module', new_module.id)]
+        return remap
+
+    def file_func(name):
+        def remap(old_func, new_module):
+            controller = _get_controller()
+            value = PathObject(old_func.params[0].strValue)
+            new_function = create_function(new_module, name, [value])
+            return [('add', new_function, 'module', new_module.id)]
+        return remap
+
+    def to_file_func(name):
+        # Add Path module as name->File converter
+        def remap(old_conn, new_module):
+            controller = _get_controller()
+            create_new_connection = UpgradeWorkflowHandler.create_new_connection
+            pipeline = _get_pipeline()
+            module = pipeline.modules[old_conn.source.moduleId]
+            x = (module.location.x + new_module.location.x)/2
+            y = (module.location.y + new_module.location.y)/2
+            path_module = controller.create_module(basic_pkg, 'Path',
+                                                   '', x, y)
+            conn1 = create_new_connection(controller,
+                                          module,
+                                          old_conn.source,
+                                          path_module,
+                                          'name')
+            # Avoid descriptor lookup by explicitly creating Ports
+            input_port_id = controller.id_scope.getNewId(Port.vtType)
+            input_port = Port(id=input_port_id,
+                              name='value',
+                              type='source',
+                              signature=(Path,),
+                              moduleId=path_module.id,
+                              moduleName=path_module.name)
+            output_port_id = controller.id_scope.getNewId(Port.vtType)
+            output_port = Port(id=output_port_id,
+                               name=name,
+                               type='destination',
+                               signature=(Path,),
+                               moduleId=new_module.id,
+                               moduleName=new_module.name)
+            conn2 = create_new_connection(controller,
+                                          path_module,
+                                          input_port,
+                                          new_module,
+                                          output_port)
+            return [('add', path_module),
+                    ('add', conn1),
+                    ('add', conn2)]
+        return remap
+
+    def wrap_block_func():
+        def remap(old_conn, new_module):
+            controller = _get_controller()
+            create_new_connection = UpgradeWorkflowHandler.create_new_connection
+            pipeline = _get_pipeline()
+            module1 = pipeline.modules[old_conn.destination.moduleId]
+            dest_port = old_conn.destination
+            candidates = ['AddInputData_1', 'AddInputData',
+                          'SetInputData_1', 'SetInputData',
+                          'AddInput', 'SetInput']
+            if 'Connection' in old_conn.destination.name:
+                _desc = reg.get_descriptor_by_name(identifier,
+                                                   module1.name)
+                ports = get_port_specs(_desc, 'input')
+                for c in candidates:
+                    if c in ports:
+                        dest_port = c
+                        break
+            conn = create_new_connection(controller,
+                                         new_module,
+                                         'StructuredGrid',
+                                         module1,
+                                         dest_port)
+            return [('add', conn)]
+        return remap
+
+    def fix_vtkcell_func():
+        # Move VTKCell.self -> X.VTKCell to
+        # vtkRenderer.Instance -> X.vtkRenderer
+        def remap(old_conn, new_module):
+            controller = _get_controller()
+            create_new_connection = UpgradeWorkflowHandler.create_new_connection
+            pipeline = _get_pipeline()
+            # find vtkRenderer
+            vtkRenderer = None
+            for conn in pipeline.connections.itervalues():
+                src_module_id = conn.source.moduleId
+                dst_module_id = conn.destination.moduleId
+                if dst_module_id == old_conn.source.moduleId and \
+                   pipeline.modules[src_module_id].name == 'vtkRenderer':
+                    vtkRenderer = pipeline.modules[src_module_id]
+            if vtkRenderer:
+                conn = create_new_connection(controller,
+                                             vtkRenderer,
+                                             'Instance',
+                                             new_module,
+                                             'vtkRenderer')
+                return [('add', conn)]
+            return []
+        return remap
 
     def process_module(desc):
         # 0.9.3 upgrades
@@ -363,93 +535,6 @@ def build_remap(module_name=None):
                      for s in get_port_specs(desc, 'input')]
         input_names = [s.name for s in input_specs]
         for spec in input_specs:
-            def change_func(name, value):
-                def remap(old_func, new_module):
-                    controller = _get_controller()
-                    new_function = controller.create_function(new_module,
-                                                              name,
-                                                              [value])
-                    return [('add', new_function, 'module', new_module.id)]
-                return remap
-            def change_SetXint(spec):
-                # Fix old SetX methods that takes an int representing the enum
-                def remap(old_func, new_module):
-                    controller = _get_controller()
-                    value = int(old_func.params[0].strValue)
-                    value = spec.values[0][value]
-                    new_function = controller.create_function(new_module,
-                                                              spec.name,
-                                                              [value])
-                    return [('add', new_function, 'module', new_module.id)]
-                return remap
-            def color_func(name):
-                def remap(old_func, new_module):
-                    controller = _get_controller()
-                    value = ','.join([p.strValue for p in old_func.params])
-                    new_function = controller.create_function(new_module,
-                                                              name,
-                                                              [value])
-                    return [('add', new_function, 'module', new_module.id)]
-                return remap
-            def file_func(name):
-                def remap(old_func, new_module):
-                    controller = _get_controller()
-                    value = PathObject(old_func.params[0].strValue)
-                    new_function = controller.create_function(new_module,
-                                                              name,
-                                                              [value])
-                    return [('add', new_function, 'module', new_module.id)]
-                return remap
-            def to_file_func(name):
-                # Add Path module as name->File converter
-                def remap(old_conn, new_module):
-                    controller = _get_controller()
-                    create_new_connection = UpgradeWorkflowHandler.create_new_connection
-                    pipeline = _get_pipeline()
-                    module = pipeline.modules[old_conn.source.moduleId]
-                    x = (module.location.x + new_module.location.x)/2
-                    y = (module.location.y + new_module.location.y)/2
-                    path_module = controller.create_module(basic_pkg, 'Path',
-                                                           '', x, y)
-                    conn1 = create_new_connection(controller,
-                                                  module,
-                                                  old_conn.source,
-                                                  path_module,
-                                                  'name')
-                    conn2 = create_new_connection(controller,
-                                                  path_module,
-                                                  'value',
-                                                  new_module,
-                                                  name)
-                    return [('add', path_module),
-                            ('add', conn1),
-                            ('add', conn2)]
-                return remap
-            def wrap_block_func():
-                def remap(old_conn, new_module):
-                    controller = _get_controller()
-                    create_new_connection = UpgradeWorkflowHandler.create_new_connection
-                    pipeline = _get_pipeline()
-                    module1 = pipeline.modules[old_conn.destination.moduleId]
-                    dest_port = old_conn.destination
-                    candidates = ['AddInputData_1', 'AddInputData',
-                                  'SetInputData_1', 'SetInputData',
-                                  'AddInput', 'SetInput']
-                    if 'Connection' in old_conn.destination.name:
-                        _desc = reg.get_descriptor_by_name(identifier,
-                                                           module1.name)
-                        ports = get_port_specs(_desc, 'input')
-                        for c in candidates:
-                            if c in ports:
-                                dest_port = c
-                                break
-                    conn = create_new_connection(controller,
-                                                 new_module,
-                                                 'StructuredGrid',
-                                                 module1,
-                                                 dest_port)
-                    return [('add', conn)]
-                return remap
             if spec is None:
                 continue
             elif spec.name == 'TextScaleMode':
@@ -522,6 +607,9 @@ def build_remap(module_name=None):
                 # FIXME what causes this?
                 # New version does not have AddInput
                 input_mappings['AddInput'] = 'AddInput_1'
+            elif spec.name == 'vtkRenderer':
+                # Classes having SetRendererWindow also used to have VTKCell
+                input_mappings['SetVTKCell'] = fix_vtkcell_func()
         output_mappings = {}
         for spec_name in get_port_specs(desc, 'output'):
             spec = desc.module._get_output_spec(spec_name)
@@ -532,7 +620,7 @@ def build_remap(module_name=None):
                 output_mappings[spec.method_name] = spec.name
         if desc.name == 'vtkMultiBlockPLOT3DReader':
             # Move GetOutput to custom FirstBlock
-            output_mappings['GetOutput'] = wrap_block_func()
+            output_mappings['GetOutput'] = wrap_block_func()  # what!?
             # Move GetOutputPort0 to custom FirstBlock
             # and change destination port to AddInputData_1 or similar
             output_mappings['GetOutputPort0'] = wrap_block_func()
@@ -564,11 +652,15 @@ def build_remap(module_name=None):
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     global _remap, _controller, _pipeline
+
     if _remap is None:
         _remap = UpgradePackageRemap()
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='vtkInteractionHandler')
         remap.add_remap('src_port_remap', 'self', 'Instance')
+        _remap.add_module_remap(remap)
+        remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
+                                   module_name='VTKCell')
         _remap.add_module_remap(remap)
         remap = UpgradeModuleRemap(None, '1.0.0', '1.0.0',
                                    module_name='VTKViewCell',
@@ -581,6 +673,31 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     module_name = module_name_remap.get(module_name, module_name)
     if not _remap.has_module_remaps(module_name):
         build_remap(module_name)
-    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
-                                              _remap)
 
+    try:
+        from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
+    except ImportError:
+        # Manually upgrade to 1.0.1
+        if _remap.get_module_remaps(module_name):
+            module_remap = copy.copy(_remap)
+            module_remap.add_module_remap(
+                    UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
+                                       module_name=module_name))
+        else:
+            module_remap = _remap
+    else:
+        module_remap = upgrade_cell_to_output(
+                _remap, module_id, pipeline,
+                'VTKCell', 'vtkRendererOutput',
+                '1.0.1', 'AddRenderer',
+                start_version='1.0.0')
+        if _remap.get_module_remaps(module_name):
+            remap = module_remap.get_module_upgrade(module_name, '1.0.0')
+            if remap is None:
+                # Manually upgrade to 1.0.1
+                module_remap.add_module_remap(
+                        UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
+                                           module_name=module_name))
+
+    return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
+                                               module_remap)

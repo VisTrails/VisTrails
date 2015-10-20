@@ -37,9 +37,10 @@ from __future__ import division
 
 from base64 import b16encode, b16decode
 import copy
+from itertools import izip, product, chain
 import json
 import time
-from itertools import izip, product
+import traceback
 import warnings
 
 from vistrails.core.data_structures.bijectivedict import Bidict
@@ -114,7 +115,7 @@ class ModuleError(Exception):
 
     """
 
-    def __init__(self, module, errormsg, abort=False):
+    def __init__(self, module, errormsg, abort=False, errorTrace=None):
         """ModuleError should be passed the module instance that signaled the
         error and the error message as a string.
 
@@ -123,8 +124,7 @@ class ModuleError(Exception):
         self.abort = abort # force abort even if stopOnError is False
         self.module = module
         self.msg = errormsg
-        import traceback
-        self.errorTrace = traceback.format_exc()
+        self.errorTrace = errorTrace
 
 class ModuleSuspended(ModuleError):
     """Exception representing a VisTrails module being suspended.
@@ -134,7 +134,7 @@ class ModuleSuspended(ModuleError):
     This is useful when executing external jobs where you do not want to block
     vistrails while waiting for the execution to finish.
 
-    'monitor' is a class instance that should provide a finished() method for
+    'handle' should be a class instance providing a finished() method for
     checking if the job has finished
 
     'children' is a list of ModuleSuspended instances that is used for nested
@@ -144,13 +144,21 @@ class ModuleSuspended(ModuleError):
     def __init__(self, module, errormsg, handle=None, children=None,
                  queue=None):
         ModuleError.__init__(self, module, errormsg)
-        self.handle = handle
-        if handle is None and queue is not None:
-            warnings.warn("Use of deprecated argument 'queue' replaced by "
-                          "'handle'",
-                          category=VistrailsDeprecation,
-                          stacklevel=2)
-            self.handle = queue
+        if handle is not None:
+            self.handle = handle
+        else:
+            if queue is not None:
+                warnings.warn("Use of deprecated argument 'queue' replaced by "
+                              "'handle'",
+                              category=VistrailsDeprecation,
+                              stacklevel=2)
+                self.handle = queue
+            elif children is None:
+                raise TypeError("__init__(): 'handle' argument not set")
+            else:
+                # parent exceptions has no handle
+                self.handle = None
+
         self.children = children
         self.name = None
 
@@ -577,10 +585,12 @@ class Module(object):
             raise
         except ModuleError, me:
             if hasattr(me.module, 'interpreter'):
+                if me.errorTrace is None:
+                    me.errorTrace = traceback.format_exc()
                 raise
             else:
                 msg = "A dynamic module raised an exception: '%s'" % me
-                raise ModuleError(self, msg)
+                raise ModuleError(self, msg, errorTrace=me.errorTrace)
         except ModuleErrors:
             raise
         except KeyboardInterrupt, e:
@@ -589,12 +599,10 @@ class Module(object):
             raise
         except Exception, e:
             debug.unexpected_exception(e)
-            import traceback
             raise ModuleError(
                     self,
-                    "Uncaught exception: %s\n%s" % (
-                    debug.format_exception(e),
-                    traceback.format_exc()))
+                    "Uncaught exception: %s" % debug.format_exception(e),
+                    errorTrace=traceback.format_exc())
         if self.annotate_output:
             self.annotate_output_values()
         self.upToDate = True
@@ -1184,7 +1192,12 @@ class Module(object):
 
             if (self.input_specs[port_name].depth + self.list_depth > 0) or \
                 self.input_specs[port_name].descriptors() == [list_desc]:
-                return [j for i in self.get_input_list(port_name) for j in i]
+                ret = self.get_input_list(port_name)
+                if len(ret) > 1:
+                    ret = list(chain.from_iterable(ret))
+                else:
+                    ret = ret[0]
+                return ret
 
         # else return first connector item
         value = self.inputPorts[port_name][0]()
@@ -1546,11 +1559,11 @@ class Module(object):
         """ job_monitor() -> JobMonitor
         Returns the JobMonitor for the associated controller if it exists
         """
-        controller = self.moduleInfo['controller']
-        if controller is None:
+        if 'job_monitor' not in self.moduleInfo or \
+           not self.moduleInfo['job_monitor']:
             raise ModuleError(self,
-                              "Cannot run job, no controller is specified!")
-        return controller.jobMonitor
+                              "Cannot run job, no job_monitor is specified!")
+        return self.moduleInfo['job_monitor']
 
     @classmethod
     def provide_input_port_documentation(cls, port_name):

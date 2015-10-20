@@ -42,8 +42,12 @@ Usage:
 
 from setuptools import setup
 import sys
+sys.setrecursionlimit(1500)
+VERSION = '2.2.3'
 
-VERSION = '2.2'
+# Add VTK 6.2 to path
+sys.path.insert(0,'/Users/vistrails/src/VTK6/build/Wrapping/Python')
+sys.path.insert(0,'/Users/vistrails/src/VTK6/build/lib/')
 
 plist = dict(
     CFBundleName='VisTrails',
@@ -69,10 +73,12 @@ OPTIONS = {'argv_emulation': True,
                         sqlalchemy.dialects.mysql,sqlalchemy.dialects.postgresql,\
                         sqlalchemy.dialects.firebird,sqlalchemy.dialects.mssql,\
                         sqlalchemy.dialects.oracle,sqlalchemy.dialects.sybase,\
-                        sqlalchemy.dialects.drizzle,certifi,backports.ssl_match_hostname',
+                        sqlalchemy.dialects.drizzle,certifi,backports.ssl_match_hostname,\
+                        tej,pymongo',
            'packages': 'PyQt4,vtk,MySQLdb,matplotlib,vistrails,numpy,scipy,\
                         api,twisted,Scientific,distutils,h5py,batchq,osgeo,\
-                        nose,IPython,zmq,pygments,pyth,psycopg2,remoteq,file_archive',
+                        nose,IPython,zmq,pygments,pyth,psycopg2,remoteq,\
+                        file_archive,sklearn',
            'excludes': 'mpl_toolkits.basemap,PyQt4.uic,PyQt4.uic.Compiler,\
                         PyQt4.uic.Loader,PyQt4.uic.port_v2,PyQt4.uic.port_v3',
            'plist': plist,

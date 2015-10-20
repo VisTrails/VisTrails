@@ -1,8 +1,43 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2013-2014, NYU-Poly.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
 from __future__ import division
 
-import numpy
-
 from vistrails.core.modules.vistrails_module import Module
+
+from ..common import get_numpy
 
 
 class NumPyArray(Module):
@@ -20,37 +55,61 @@ class NumPyArray(Module):
     """
     NPY_FMT = object()
 
-    FORMAT_MAP = dict(
-               npy = NPY_FMT,
+    FORMATS = [
+        'int8',
+        'uint8',
+        'int16',
+        'uint16',
+        'int32',
+        'uint32',
+        'int64',
+        'uint64',
+        'float32',
+        'float64',
+        'complex64',
+        'complex128',
+    ]
 
-              int8 = numpy.int8,
-             uint8 = numpy.uint8,
-             int16 = numpy.int16,
-            uint16 = numpy.uint16,
-             int32 = numpy.int32,
-            uint32 = numpy.uint32,
-             int64 = numpy.int64,
-            uint64 = numpy.uint64,
+    _format_map = None
 
-           float32 = numpy.float32,
-           float64 = numpy.float64,
+    @classmethod
+    def get_format(cls, format):
+        if cls._format_map is None:
+            numpy = get_numpy()
+            cls._format_map = dict(
+                       npy = cls.NPY_FMT,
 
-         complex64 = numpy.complex64,
-        complex128 = numpy.complex128,
-    )
+                      int8 = numpy.int8,
+                     uint8 = numpy.uint8,
+                     int16 = numpy.int16,
+                    uint16 = numpy.uint16,
+                     int32 = numpy.int32,
+                    uint32 = numpy.uint32,
+                     int64 = numpy.int64,
+                    uint64 = numpy.uint64,
+
+                   float32 = numpy.float32,
+                   float64 = numpy.float64,
+
+                 complex64 = numpy.complex64,
+                complex128 = numpy.complex128,
+            )
+        return cls._format_map[format]
 
     _input_ports = [
             ('file', '(org.vistrails.vistrails.basic:File)'),
             ('datatype', '(org.vistrails.vistrails.basic:String)',
-             {'entry_types': "['enum']", 'values': "[%r]" % FORMAT_MAP.keys()}),
+             {'entry_types': "['enum']", 'values': "[%r]" % FORMATS}),
             ('shape', '(org.vistrails.vistrails.basic:List)')]
     _output_ports = [
             ('value', '(org.vistrails.vistrails.basic:List)')]
 
     def compute(self):
+        numpy = get_numpy()
+
         filename = self.get_input('file').name
         if self.has_input('datatype'):
-            dtype = NumPyArray.FORMAT_MAP[self.get_input('datatype')]
+            dtype = NumPyArray.get_format(self.get_input('datatype'))
         else:
             if filename[-4:].lower() == '.npy':
                 dtype = self.NPY_FMT

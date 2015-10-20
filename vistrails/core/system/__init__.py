@@ -37,18 +37,16 @@ from __future__ import division, with_statement
 
 import datetime
 import functools
-import getpass
 import locale
 import os
 import platform
-import socket
-import subprocess
 import sys
 import time
 import urllib2
+import warnings
 
 from vistrails.core import debug
-from vistrails.core.utils import unimplemented, VistrailsInternalError, Chdir
+from vistrails.core.utils import unimplemented, VistrailsDeprecation, Chdir
 
 
 ###############################################################################
@@ -138,13 +136,20 @@ __examplesDir = __fileDir
 
 __defaultFileType = '.vt'
 
-__defaultPkgPrefix = 'org.vistrails.vistrails'
+_defaultPkgPrefix = 'org.vistrails.vistrails'
 
 def get_vistrails_default_pkg_prefix():
-    return __defaultPkgPrefix
+    """Gets the namespace under which identifiers of builtin packages live.
+
+    You should *not* use this, it is only useful intended to expand short names
+    of builtin packages in parse_descriptor_string.
+    """
+    warnings.warn("get_vistrails_default_pkg_prefix() is deprecated",
+                  category=VistrailsDeprecation)
+    return _defaultPkgPrefix
 
 def get_vistrails_basic_pkg_id():
-    return "%s.basic" % get_vistrails_default_pkg_prefix()
+    return "%s.basic" % _defaultPkgPrefix
 
 def get_vistrails_directory(config_key, conf=None):
     if conf is None:
@@ -293,7 +298,7 @@ def default_connections_file():
     """
     return os.path.join(current_dot_vistrails(), 'connections.xml')
 
-VERSION = '2.2'
+VERSION = '2.2.3'
 def vistrails_version():
     """vistrails_version() -> string - Returns the current VisTrails version."""
     # 0.1 was the Vis2005 version

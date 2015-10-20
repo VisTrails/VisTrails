@@ -1,5 +1,7 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -31,10 +33,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 """ This file describe a new type of spreadsheet cell to embed
 Matplotlib viewer into our spreadsheet
-
 """
+
 from __future__ import division
 
 from PyQt4 import QtCore, QtGui
@@ -53,7 +56,7 @@ FigureCanvasQTAgg.DEBUG = True
 ################################################################################
 
 class MplFigureToSpreadsheet(SpreadsheetMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         fig = output_module.get_input('value')
         self.display_and_wait(output_module, configuration,
                               MplFigureCellWidget, (fig,))
@@ -109,12 +112,12 @@ class MplFigureCellWidget(QCellWidget):
         Update the widget contents based on the input data
         
         """
-        (fig, ) = inputPorts
-        if not self.figure or self.figure.number != fig.figInstance.number:
+        (figInstance, ) = inputPorts
+        if not self.figure or self.figure.number != figInstance.number:
             if self.layout().count() > 0:
                 self.layout().removeWidget(self.canvas)
 
-            self.figure = fig.figInstance
+            self.figure = figInstance
 
             self.canvas = FigureCanvasQTAgg(self.figure)
             self.mplToolbar = MplNavigationToolbar(self.canvas, None)

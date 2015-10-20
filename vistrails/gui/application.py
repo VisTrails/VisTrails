@@ -40,6 +40,7 @@ initializations to the theme, packages and the builder...
 from __future__ import division
 
 from ast import literal_eval
+import copy
 import os.path
 import getpass
 import re
@@ -72,7 +73,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     there will be only one instance of the application during VisTrails
     
     """
-    
+
+    use_event_filter = system.systemType in ['Darwin']
+
     def __call__(self):
         """ __call__() -> VistrailsApplicationSingleton
         Return self for calling method
@@ -92,7 +95,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
 
-        if system.systemType in ['Darwin']:
+        if self.use_event_filter:
             self.installEventFilter(self)
         self.builderWindow = None
         # local notifications
@@ -198,9 +201,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         vistrails.gui.theme.initializeCurrentTheme()
         VistrailsApplicationInterface.init(self, optionsDict, args)
         
-        if self.temp_configuration.check('jobRun') or \
+        if self.temp_configuration.check('jobInfo') or \
            self.temp_configuration.check('jobList'):
-            self.temp_configuration.interactiveMode = False
+            self.temp_configuration.batch = True
 
         # singleInstance configuration
         singleInstance = self.temp_configuration.check('singleInstance')
@@ -522,10 +525,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 vt_list.append(locator)
             import vistrails.core.console_mode
 
+            if self.temp_configuration.check('outputDirectory'):
+                output_dir = self.temp_configuration.outputDirectory
+            else:
+                output_dir = None
+
             errs = []
-            if self.temp_configuration.check('workflowGraph'):
-                workflow_graph = self.temp_configuration.workflowGraph
-                results = vistrails.core.console_mode.get_wf_graph(w_list, workflow_graph,
+            if self.temp_configuration.check('outputPipelineGraph'):
+                results = vistrails.core.console_mode.get_wf_graph(w_list, output_dir or '',
                                                                    self.temp_configuration.graphsAsPdf)
                 for r in results:
                     if r[0] is False:
@@ -533,40 +540,30 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                     r[1])
                         debug.critical("*** Error in get_wf_graph: %s" % r[1])
             
-            if self.temp_configuration.check('evolutionGraph'):
-                evolution_graph = self.temp_configuration.evolutionGraph
-                results = vistrails.core.console_mode.get_vt_graph(vt_list, evolution_graph,
+            if self.temp_configuration.check('outputVersionTree'):
+                results = vistrails.core.console_mode.get_vt_graph(vt_list, output_dir or '',
                                                                    self.temp_configuration.graphsAsPdf)
                 for r in results:
                     if r[0] is False:
                         errs.append("Error generating vistrail graph: %s" % \
                                     r[1])
                         debug.critical("*** Error in get_vt_graph: %s" % r[1])
-                
-            if self.temp_configuration.check('outputDirectory'):
-                output_dir = self.temp_configuration.outputDirectory
-            else:
-                output_dir = None
 
-            extra_info = None
-            if self.temp_configuration.check('outputDirectory'):
-                extra_info = \
-                {'pathDumpCells': self.temp_configuration.outputDirectory}
-            if self.temp_configuration.check('parameterExploration'):
-                errs.extend(
-                    vistrails.core.console_mode.run_parameter_explorations(
-                        w_list, extra_info=extra_info))
-            else:
-                errs.extend(vistrails.core.console_mode.run(
-                        w_list,
-                        self.temp_configuration.check('parameters')
-                            or '',
-                        output_dir, update_vistrail=True,
-                        extra_info=extra_info))
-            if len(errs) > 0:
-                for err in errs:
-                    debug.critical("*** Error in %s:%s:%s -- %s" % err)
-                return [False, ["*** Error in %s:%s:%s -- %s" % err for err in errs]]
+            if not self.temp_configuration.check('noExecute'):
+                if self.temp_configuration.check('parameterExploration'):
+                    errs.extend(
+                        vistrails.core.console_mode.run_parameter_explorations(
+                            w_list))
+                else:
+                    errs.extend(vistrails.core.console_mode.run(
+                            w_list,
+                            self.temp_configuration.check('parameters') or '',
+                            update_vistrail=True))
+                if len(errs) > 0:
+                    for err in errs:
+                        print err
+                        debug.critical("*** Error in %s:%s:%s -- %s" % err)
+                    return [False, ["*** Error in %s:%s:%s -- %s" % err for err in errs]]
             return True
         else:
             debug.warning("no input vistrails provided")
@@ -592,7 +589,13 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                         mashups, auto_save=False)
         text = "### Jobs in workflow ###\n"
         text += "name | start date | status\n"
-        workflow = controller.jobMonitor.workflows[int(version)]
+        workflow = [wf for wf in controller.jobMonitor.workflows.itervalues()
+                    if wf.version == int(version)]
+        if len(workflow) < 1:
+            text = "No job for workflow with id %s" % version
+            print text
+            return text
+        workflow = workflow[0]
         text += '\n'.join(
             ["%s %s %s" %(i.name,
                           i.start,
@@ -692,12 +695,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                                local_socket.errorString())
                 return
             byte_array = local_socket.readAll()
-            self.temp_configuration.workflowGraph = None
-            self.temp_configuration.evolutionGraph = None
-            self.temp_configuration.outputDirectory = None
-            self.temp_configuration.spreadsheetDumpPDF = False
-            self.temp_configuration.execute = False
-            self.temp_configuration.batch = False
 
             output = None
             try:
@@ -709,9 +706,12 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 sys.stdout.close()
                 sys.stdout = old_stdout
             except Exception, e:
+                import traceback
+                traceback.print_exc()
                 debug.unexpected_exception(e)
                 debug.critical("Unknown error", e)
                 result = debug.format_exc()
+
             if None == result:
                 result = True
             if True == result:
@@ -761,21 +761,29 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             args = literal_eval(msg)
             if isinstance(args, list):
                 try:
-                    self.read_options(args)
+                    conf_options = self.read_options(args)
                 except SystemExit:
                     debug.critical("Invalid options: %s" % ' '.join(args))
                     return False
-                interactive = not self.temp_configuration.check('batch')
-                if interactive:
-                    result = self.process_interactive_input()
-                    if self.temp_configuration.showWindow:
-                        # in some systems (Linux and Tiger) we need to make both calls
-                        # so builderWindow is activated
-                        self.builderWindow.raise_()
-                        self.builderWindow.activateWindow()
-                    return result
-                else:
-                    return self.noninteractiveMode()
+                try:
+                    # Execute using persistent configuration + new temp configuration
+                    old_temp_conf = self.temp_configuration
+                    self.startup.temp_configuration = copy.copy(self.configuration)
+                    self.temp_configuration.update(conf_options)
+
+                    interactive = not self.temp_configuration.check('batch')
+                    if interactive:
+                        result = self.process_interactive_input()
+                        if self.temp_configuration.showWindow:
+                            # in some systems (Linux and Tiger) we need to make both calls
+                            # so builderWindow is activated
+                            self.builderWindow.raise_()
+                            self.builderWindow.activateWindow()
+                        return result
+                    else:
+                        return self.noninteractiveMode()
+                finally:
+                    self.startup.temp_configuration = old_temp_conf
             else:
                 debug.critical("Invalid string: %s" % msg)
         else:

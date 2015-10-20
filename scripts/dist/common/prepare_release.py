@@ -22,6 +22,7 @@ VERSION_FILES = [
     ["scripts/dist/windows/vistrails-gdal.iss", r'AppVerName=VisTrails '],
     ["scripts/dist/windows/vistrailsx64-gdal.iss", r'AppVerName=VisTrails x64 '],
     ["scripts/dist/source/make-vistrails-src-build.py", r'VT_VERSION = [\'"]'],
+    ["setup.py", r'version=[\'"]'],
     ["doc/usersguide/conf.py", r'release = [\'"]'],
     ["scripts/dist/common/splash/splash.svg", r'tspan4025">'],
     ["scripts/dist/common/splash/splash.svg", r'tspan4025-7">']] # second pass for shadow
@@ -81,41 +82,45 @@ if __name__ == '__main__':
     # Get info from CHANGELOG
     # Assumes 3:rd line and fixed format
     line = lines[2].split()
-    VERSION = line[2][1:] # Drop "v" prefix
-    HASH = line[4]
-    BRANCH = line[6]
- 
+    version = line[2][1:] # Drop "v" prefix
+    hash = line[4]
+    branch = line[6]
+
     try:
-        hash = subprocess.check_output(['git', 'rev-parse', '--verify', 'HEAD',
-                                       '--short=12']).strip()
-        if hash != HASH:
+        read_hash = subprocess.check_output(['git', 'rev-parse', '--verify', 'HEAD',
+                                             '--short=12']).strip()
+        if read_hash != hash:
             # update hash in changelog
-            update_value('CHANGELOG', r'Release Name: v%s build ' % VERSION, hash)
-            HASH = hash
+            update_value('CHANGELOG', r'Release Name: v%s build ' % version, read_hash)
+            hash = read_hash
     except subprocess.CalledProcessError: # Not a git repository
         pass
 
     for fname, pre in VERSION_FILES:
-       update_value(fname, pre, VERSION)
+       update_value(fname, pre, version)
 
     for fname, pre in HASH_FILES:
-       update_value(fname, pre, HASH)
+       update_value(fname, pre, hash)
 
     for fname, pre in BRANCH_FILES:
         # Cut off 'v' in versioned branches
-        branch = BRANCH[1:] if BRANCH[0] == 'v' else BRANCH
-        update_value(fname, pre, branch)
+        file_branch = branch[1:] if branch[0] == 'v' else branch
+        update_value(fname, pre, file_branch)
 
     for fname, pre in BRANCH_FILES_V:
-        update_value(fname, pre, BRANCH)
+        update_value(fname, pre, branch)
 
     for fname, pre in BRANCH_URLS:
         # master version of usersguide url is 'dev'
-        branch = 'dev' if BRANCH in ['dev', 'master'] else BRANCH
-        update_value(fname, pre, branch)
+        url_branch = 'dev' if branch in ['dev', 'master'] else branch
+        update_value(fname, pre, url_branch)
 
     # Update splash using inkscape
     try:
-        subprocess.check_call('inkscape -e vistrails/gui/resources/images/vistrails_splash.png -w 546 scripts/dist/common/splash/splash.svg'.split())
+        subprocess.check_call([
+            'inkscape',
+            '-e', 'vistrails/gui/resources/images/vistrails_splash.png',
+            '-w', '546',
+            'scripts/dist/common/splash/splash.svg'])
     except (OSError, subprocess.CalledProcessError):
         print "Calling inkscape failed, skipping splash screen update!"

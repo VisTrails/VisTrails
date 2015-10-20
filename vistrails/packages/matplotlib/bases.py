@@ -1,5 +1,7 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -92,29 +94,30 @@ class MplFigure(Module):
                     ("figureProperties", "(MplFigureProperties)"),
                     ("setLegend", "(MplLegend)")]
 
-    _output_ports = [("self", "(MplFigure)")]
+    _output_ports = [("figure", "(MplFigure)")]
 
     def compute(self):
         # Create a figure
-        self.figInstance = pylab.figure()
+        figInstance = pylab.figure()
         pylab.hold(True)
 
         # Run the plots
         plots = self.get_input("addPlot")
         for plot in plots:
-            plot(self.figInstance)
+            plot(figInstance)
 
         if self.has_input("figureProperties"):
             figure_props = self.get_input("figureProperties")
-            figure_props.update_props(self.figInstance)
+            figure_props.update_props(figInstance)
         if self.has_input("axesProperties"):
             axes_props = self.get_input("axesProperties")
-            axes_props.update_props(self.figInstance.gca())
+            axes_props.update_props(figInstance.gca())
         if self.has_input("setLegend"):
             legend = self.get_input("setLegend")
-            self.figInstance.gca().legend()
+            figInstance.gca().legend()
 
-        self.set_output("self", self)
+        self.set_output("figure", figInstance)
+
 
 class MplContourSet(Module):
     pass
@@ -126,8 +129,8 @@ class MplFigureToFile(ImageFileMode):
     config_cls = ImageFileModeConfig
     formats = ['pdf', 'png', 'jpg']
 
-    def compute_output(self, output_module, configuration=None):
-        value = output_module.get_input('value')
+    def compute_output(self, output_module, configuration):
+        figure = output_module.get_input('value')
         w = configuration["width"]
         h = configuration["height"]
         img_format = self.get_format(configuration)
@@ -135,8 +138,7 @@ class MplFigureToFile(ImageFileMode):
 
         w_inches = w / 72.0
         h_inches = h / 72.0
-        figure = value.figInstance
-        
+
         previous_size = tuple(figure.get_size_inches())
         figure.set_size_inches(w_inches, h_inches)
         canvas = FigureCanvasBase(figure)
@@ -151,10 +153,9 @@ class MplIPythonModeConfig(IPythonModeConfig):
 
 class MplIPythonMode(IPythonMode):
     mode_type = "ipython"
-    priority = 2
     config_cls = MplIPythonModeConfig
 
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         from IPython.display import set_matplotlib_formats
         from IPython.core.display import display
 
@@ -162,7 +163,7 @@ class MplIPythonMode(IPythonMode):
 
         # TODO: use size from configuration
         fig = output_module.get_input('value')
-        display(fig.figInstance)
+        display(fig)
 
 class MplFigureOutput(OutputModule):
     _settings = ModuleSettings(configure_widget="vistrails.gui.modules.output_configuration:OutputModuleConfigurationWidget")

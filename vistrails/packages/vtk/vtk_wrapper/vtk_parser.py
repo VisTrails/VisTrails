@@ -48,6 +48,8 @@ type information, and organizes them.
 # Copyright (c) 2004-2007, Enthought, Inc.
 # License: BSD Style.
 
+from __future__ import division
+
 import re
 
 # Local imports (these are relative imports for a good reason).

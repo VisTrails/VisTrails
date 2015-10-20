@@ -1,5 +1,7 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -158,8 +160,10 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                     'MplFigure':
                     [(None, '1.0.0', None,
                       {'dst_port_remap': {'Script': 'addPlot'},
-                       'src_port_remap': {'FigureManager': 'self',
-                                          'File': 'file'}})],
+                       'src_port_remap': {'FigureManager': 'figure',
+                                          'File': 'file'}}),
+                     ('1.0.0', '1.0.6', None,
+                      {'src_port_remap': {'self': 'figure'}})],
                     'MplFigureCell':
                     [(None, '1.0.0', None,
                       {'dst_port_remap': {'FigureManager': 'figure'}})],
@@ -204,8 +208,18 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
         action = vistrails.core.db.action.create_action([('delete', conn)])
         action_list.append(action)
 
-    normal_actions = UpgradeWorkflowHandler.remap_module(controller, module_id, 
-                                                        pipeline, module_remap)
+    try:
+        from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
+    except ImportError:
+        pass
+    else:
+        module_remap = upgrade_cell_to_output(
+                module_remap, module_id, pipeline,
+                'MplFigureCell', 'MplFigureOutput',
+                '1.0.5', 'figure')
+
+    normal_actions = UpgradeWorkflowHandler.remap_module(
+            controller, module_id, pipeline, module_remap)
     action_list.extend(normal_actions)
 
     more_ops = []

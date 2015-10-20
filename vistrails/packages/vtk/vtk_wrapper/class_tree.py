@@ -43,6 +43,8 @@ traitified VTK classes in the correct order.
 
 """
 
+from __future__ import division
+
 import __builtin__
 
 

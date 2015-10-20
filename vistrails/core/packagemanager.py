@@ -665,7 +665,7 @@ class PackageManager(object):
         try:
             g = self._dependency_graph.inverse_immutable()
             sorted_packages = g.vertices_topological_sort()
-        except vistrails.core.data_structures.graph.Graph.GraphContainsCycles, e:
+        except vistrails.core.data_structures.graph.GraphContainsCycles, e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
 
@@ -872,7 +872,7 @@ class PackageManager(object):
     def get_ordered_dependencies(self, dep_graph, identifiers=None):
         try:
             sorted_packages = dep_graph.vertices_topological_sort(identifiers)
-        except vistrails.core.data_structures.graph.Graph.GraphContainsCycles, e:
+        except vistrails.core.data_structures.graph.GraphContainsCycles, e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
         return list(reversed(sorted_packages))

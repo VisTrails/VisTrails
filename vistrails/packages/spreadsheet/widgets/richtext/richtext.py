@@ -52,7 +52,7 @@ from vistrails.packages.spreadsheet.spreadsheet_cell import QCellWidget
 
 
 class RichTextToSpreadsheet(SpreadsheetMode):
-    def compute_output(self, output_module, configuration=None):
+    def compute_output(self, output_module, configuration):
         filename = output_module.get_input('value').name
 
         with open(filename, 'rb') as fp:

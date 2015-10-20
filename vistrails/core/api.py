@@ -1,3 +1,39 @@
+###############################################################################
+##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
+## All rights reserved.
+## Contact: contact@vistrails.org
+##
+## This file is part of VisTrails.
+##
+## "Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are met:
+##
+##  - Redistributions of source code must retain the above copyright notice,
+##    this list of conditions and the following disclaimer.
+##  - Redistributions in binary form must reproduce the above copyright
+##    notice, this list of conditions and the following disclaimer in the
+##    documentation and/or other materials provided with the distribution.
+##  - Neither the name of the New York University nor the names of its
+##    contributors may be used to endorse or promote products derived from
+##    this software without specific prior written permission.
+##
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+## AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+## THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+## PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+## CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+## EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+## PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+## OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+## WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+## OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+##
+###############################################################################
+
 from __future__ import division
 
 import contextlib
@@ -24,7 +60,7 @@ from vistrails.db.domain import IdScope
 
 __all__ = ['Vistrail', 'Pipeline', 'Module', 'Package',
            'ExecutionResults', 'ExecutionErrors', 'Function',
-           'load_vistrail', 'load_pipeline', 'load_package',
+           'ipython_mode', 'load_vistrail', 'load_pipeline', 'load_package',
            'output_mode', 'run_vistrail',
            'NoSuchVersion', 'NoSuchPackage']
 
@@ -66,6 +102,22 @@ def initialize():
     is_initialized = True
 
     return True
+
+
+def ipython_mode(use_notebook=True):
+    """Selects whether the IPython notebook should be used.
+
+    Call ``vistrails.ipython_mode(True)`` to enable IPythonMode for output
+    modules, directing supported output to the notebook instead of files.
+    """
+    if use_notebook:
+        try:
+            import IPython.core.display
+        except ImportError:
+            raise ValueError("IPython doesn't seem to be installed!?")
+
+    from vistrails.core.modules.output_modules import IPythonMode
+    IPythonMode.notebook_override = use_notebook
 
 
 class Vistrail(object):
@@ -151,14 +203,15 @@ class Vistrail(object):
         else:
             raise TypeError("select_version() argument must be a string "
                             "or integer, not %r" % type(version).__name__)
-        self.controller.change_selected_version(version)
+        self.controller.do_version_switch(version)
         self._current_pipeline = None
         self._html = None
 
     def select_latest_version(self):
         """Sets the most recent version in the vistrail as current.
         """
-        self.controller.select_latest_version()
+        self.controller.do_version_switch(
+                self.controller.get_latest_version_in_graph())
         self._current_pipeline = None
         self._html = None
 
@@ -377,9 +430,13 @@ class Pipeline(object):
         else:
             pipeline = self.pipeline
             if inputs:
-                id_scope = IdScope()
-                id_remap = {}
-                pipeline = pipeline.do_copy(True, id_scope, id_remap)
+                id_scope = IdScope(1)
+                pipeline = pipeline.do_copy(False, id_scope)
+
+                # A hach to get ids from id_scope that we know won't collide:
+                # make them negative
+                id_scope.getNewId = lambda t, g=id_scope.getNewId: -g(t)
+
                 create_module = \
                         VistrailController.create_module_from_descriptor_static
                 create_function = VistrailController.create_function_static

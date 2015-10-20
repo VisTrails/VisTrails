@@ -1406,6 +1406,11 @@ class QVistrailList(QtGui.QTreeWidget):
         else:
             QtGui.QTreeWidget.keyPressEvent(self, event)
 
+    def close_vistrail(self, item):
+        if item.parent() == self.openFilesItem and hasattr(item, 'window'):
+            from vistrails.gui.vistrails_window import _app
+            _app.close_vistrail(item.window)
+
     def contextMenuEvent(self, event):
         item = self.itemAt(event.pos())
         if isinstance(item, QVistrailEntityItem):
@@ -1414,10 +1419,15 @@ class QVistrailList(QtGui.QTreeWidget):
                 return
             # item is vistrail
             menu = QtGui.QMenu(self)
-            act = QtGui.QAction("Open in New Window", self,
-                                triggered=item.open_in_new_window)
-            act.setStatusTip("Open specified vistrail file in another window")
-            menu.addAction(act)
+            new_window = QtGui.QAction("Open in New Window", self,
+                                       triggered=item.open_in_new_window)
+            new_window.setStatusTip("Open specified vistrail file in another "
+                                    "window")
+            menu.addAction(new_window)
+            close = QtGui.QAction("Close", self,
+                                  triggered=lambda: self.close_vistrail(item))
+            close.setStatusTip("Close the specified vistrail file")
+            menu.addAction(close)
             menu.exec_(event.globalPos())
         elif (isinstance(item, QWorkflowEntityItem) or 
                 isinstance(item, QVistrailListLatestItem)):

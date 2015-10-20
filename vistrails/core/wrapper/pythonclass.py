@@ -33,9 +33,12 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+from __future__ import division
+
 from itertools import izip
 
-from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.debug import format_exc
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 
 from .common import convert_input, convert_output, get_input_spec, get_output_spec
@@ -60,7 +63,7 @@ class BaseClassModule(Module):
             params = [params]
         method_name = port.method_name
         if port.method_type == 'OnOff':
-            # This converts booleans to XOn(), XOff() calls
+            # This converts OnOff ports to XOn(), XOff() calls
             method_name = method_name + ('On' if params[0] else 'Off')
             params = []
         elif port.method_type == 'nullary':
@@ -162,7 +165,7 @@ class BaseClassModule(Module):
             getattr(instance, spec.callback)(callback)
         # Optional function for creating temporary files
         if spec.tempfile:
-            getattr(instance, spec.tempfile)(self.file_pool.create_file)
+            getattr(instance, spec.tempfile)(self.interpreter.filePool.create_file)
 
         # call input methods on instance
         self.call_inputs(instance)
@@ -220,6 +223,7 @@ def gen_class_module(spec, lib, klasses, **module_settings):
          '_input_spec_table': _input_spec_table,
          '_output_spec_table': _output_spec_table,
          '_module_spec': spec,
+         'is_cacheable': lambda self:spec.cacheable,
          '_lib': lib}
 
     superklass = klasses.get(spec.superklass, BaseClassModule)

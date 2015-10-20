@@ -33,6 +33,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
+from __future__ import division
+
 from itertools import izip, chain
 import re
 
@@ -49,6 +52,8 @@ parser = VTKMethodParser()
 disallowed_classes = set(
     [
         'simplewrapper', # ticket 464: VTK 5.10 on OpenSuSE needs this
+        'vtkEventQtSlotConnect', # VTK 5.10.1 OpenSuSE (uses QObject)
+        'vtkQtView', # VTK 5.10.1 OpenSuSE (uses QWidget)
         'vtkCriticalSection',
         'vtkDataArraySelection',
         'vtkDebugLeaks',
@@ -77,6 +82,7 @@ disallowed_classes = set(
         'vtkBooleanTexture',  #Not working for VTK 5.7.0
         'vtkImageMaskBits',   #Not working for VTK 5.7.0
         'vtkHardwareSelector',#Not working for VTK 5.7.0
+        'vtkOpenGLExtensionManager',
 
         # these show up with new parse
         'vtkAbstractContextBufferId',
@@ -115,6 +121,8 @@ disallowed_classes = set(
         'vtkInformationVariantKey',
         'QImage',
         'vtkPLOT3DReader',
+        # For VTK 6.2
+        'QuantileDefinitionType'
     ])
 
 disallowed_modules = set(
@@ -132,11 +140,14 @@ def create_module(base_cls_name, node):
 
     """
     if node.name in disallowed_modules: return []
+    if node.name == 'int': return [] #enum
     def obsolete_class_list():
         lst = []
         items = ['vtkInteractorStyleTrackball',
                  'vtkStructuredPointsGeometryFilter',
-                 'vtkConstrainedPointHandleRepresentation']
+                 'vtkConstrainedPointHandleRepresentation',
+                 'vtkRenderViewBase',
+                 'vtkRenderView']
         def try_to_add_item(item):
             try:
                 lst.append(getattr(vtk, item))
@@ -176,7 +187,7 @@ def create_module(base_cls_name, node):
     is_algorithm = issubclass(node.klass, vtk.vtkAlgorithm)
     tempfile = '_set_tempfile' if issubclass(node.klass, vtk.vtkWriter) else None
     callback = '_set_callback' if is_algorithm else None
-    methods_last = issubclass(node.klass, vtk.vtkRenderer)
+    methods_last = hasattr(node.klass, 'SetRenderWindow')
 
     module_spec = ClassSpec(module_name=node.name,
                             superklass=base_cls_name,
@@ -586,9 +597,9 @@ def get_get_set_ports(cls, get_set_dict):
                 input_ports.append(ps)
             # Wrap SetRenderWindow for exporters
             # FIXME Add documentation
-            elif name == 'RenderWindow':
-                ps = InputPortSpec(name="VTKCell",
-                                   port_type="VTKCell",
+            elif name == 'RenderWindow' and cls == vtk.vtkExporter:
+                ps = InputPortSpec(name="vtkRenderer",
+                                   port_type="vtkRenderer",
                                    show_port=True)
                 input_ports.append(ps)
             else:

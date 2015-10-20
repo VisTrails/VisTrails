@@ -54,6 +54,7 @@ from vistrails.core.system import systemType
 from vistrails.core.thumbnails import ThumbnailCache
 from vistrails.core.vistrail.controller import custom_color_key, \
     parse_custom_color
+from vistrails.core.vistrail.vistrail import Vistrail
 from vistrails.gui.base_view import BaseView
 from vistrails.gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
@@ -786,9 +787,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.edges = {}     # (sourceVersion, targetVersion) -> edge gui object
         self.controller = None
         self.fullGraph = None
-        self.timer = QtCore.QBasicTimer()
-        self.animation_step = 1
-        self.num_animation_steps = 1
         self.emit_selection = True
         self.select_by_click = True
         self.connect(self, QtCore.SIGNAL("selectionChanged()"),
@@ -934,21 +932,21 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         # update link items
         dst = controller._current_terse_graph.edges_from(new_version)
-        for eto, _ in dst:
+        for eto, (expand, collapse) in dst:
             edge = self.edges[(old_version, eto)]
             edge.setupLink(self.versions[new_version],
                            self.versions[eto],
-                           self.fullGraph.parent(eto) != new_version,
+                           expand,
                            False) # We shouldn't ever need a collapse here
             self.edges[(new_version, eto)] = edge
             del self.edges[(old_version, eto)]
 
         src = controller._current_terse_graph.edges_to(new_version)
-        for efrom, _ in src:
+        for efrom, (expand, collapse) in src:
             edge = self.edges[(efrom, old_version)]
             edge.setupLink(self.versions[efrom],
                            self.versions[new_version],
-                           self.fullGraph.parent(new_version) != efrom,
+                           expand,
                            False) # We shouldn't ever need a collapse here
             self.edges[(efrom, new_version)] = edge
             del self.edges[(efrom, old_version)]
@@ -958,23 +956,11 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         Construct the scene to view a version tree
         
         """
-        import time
-        t = time.clock()
-
-        tClearRefine = time.clock()
-
-        # Clean the previous scene
-        # self.clear()
-
         self.select_by_click = False        
         self.controller = controller
 
         # perform graph layout
-        (tree, self.fullGraph, layout) = \
-            controller.refine_graph(float(self.animation_step)/
-                                    float(self.num_animation_steps))
-
-        tClearRefine = time.clock() - tClearRefine
+        (tree, self.fullGraph, layout) = controller.refine_graph()
 
         # compute nodes that should be removed
         # O(n  * (hashmap query key time)) on 
@@ -994,18 +980,16 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         # loop on the nodes of the tree
         vistrail = controller.vistrail
-        tm = vistrail.get_tagMap()
         am = vistrail.actionMap
         last_n = vistrail.getLastActions(controller.num_versions_always_shown)
 
         self.emit_selection = False
         for node in layout.nodes.itervalues():
-
             # version id
             v = node.id
 
             # version tag
-            tag = tm.get(v, None)
+            tag = tree.vertices.get(v, None)
             action = am.get(v, None)
             description = vistrail.get_description(v)
 
@@ -1016,11 +1000,10 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             else:
                 self.addVersion(node, action, tag, description)
             if select_node:
-                self.versions[v].setSelected(v == controller.current_version)
+                self.versions[v].setSelected(v == controller.current_base_version)
 
         self.emit_selection = True
         self.selectionChanged()
-
 
         # remove gui edges from scene
         for (v1, v2) in removeEdgeSet:
@@ -1030,72 +1013,27 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         for v in removeNodeSet:
             self.removeVersion(v)
 
-        tCreate = time.clock()
-
         # adjust the colors
         self.adjust_version_colors(controller)
 
         # Add or update links
-        for source in tree.vertices.iterkeys():
+        for source, source_tag in tree.vertices.iteritems():
             eFrom = tree.edges_from(source)
-            for (target, aux) in eFrom:
+            for target, (expand, collapse) in eFrom:
                 guiSource = self.versions[source]
                 guiTarget = self.versions[target]
-                sourceChildren = [to for (to, _) in 
-                                  self.fullGraph.adjacency_list[source]
-                                  if (to in am) and not vistrail.is_pruned(to)]
-                targetChildren = [to for (to, _) in
-                                  self.fullGraph.adjacency_list[target]
-                                  if (to in am) and not vistrail.is_pruned(to)]
-                expand = self.fullGraph.parent(target)!=source
-                collapse = (self.fullGraph.parent(target)==source and # No in betweens
-                            len(targetChildren) == 1 and # target is not a leaf or branch
-                            target != controller.current_version and # target is not selected
-                            target not in tm and # target has no tag
-                            target not in last_n and # not one of the last n modules
-                            (source in tm or # source has a tag
-                             source == 0 or # source is root node
-                             len(sourceChildren) > 1 or # source is branching node 
-                             source == controller.current_version)) # source is selected
                 if self.edges.has_key((source,target)):
                     linkShape = self.edges[(source,target)]
                     linkShape.setupLink(guiSource, guiTarget,
                                         expand, collapse)
                 else:
-                    #print "add link %d %d" % (source, target)
                     self.addLink(guiSource, guiTarget, 
                                  expand, collapse)
 
-        tCreate = time.clock() - tCreate
-
         # Update bounding rects and fit to all view
-        tUpdate = time.clock()
-        if not self.controller.animate_layout:
-            self.updateSceneBoundingRect()
-        elif not self.timer.isActive():
-            self.timer.start(0, self)
-        tUpdate = time.clock() - tUpdate
+        self.updateSceneBoundingRect()
 
         self.select_by_click = True
-
-        t = time.clock() - t
-        # print "time in msec to setupScene total: %f  refine %f  layout %f  create %f" % (t, tClearRefine, tCreate)
-
-    def timerEvent(self, event):
-        """ timerEvent(event: QTimerEvent) -> None
-        
-        Start up a timer for animating tree drawing events
-        """
-        if event.timerId() == self.timer.timerId():
-            self.animation_step += 1
-            if self.animation_step >= self.num_animation_steps:
-                self.animation_step = 1
-                self.timer.stop()
-                self.controller.animate_layout = False
-            self.setupScene(self.controller)
-            self.update()
-        else:
-            qt_super(QVersionTreeScene, self).timerEvent(event)
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None
@@ -1248,7 +1186,7 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
         items = self.scene().items(br)
         if len(items)==0 or items==[self.selectionBox]:
             for item in self.scene().selectedItems():
-                if isinstance(item, vistrails.gui.version_view.QGraphicsVersionItem):
+                if isinstance(item, QGraphicsVersionItem):
                     item.text.clearFocus()
         qt_super(QVersionTreeView, self).selectModules()
                 
@@ -1330,4 +1268,3 @@ class QVersionTreeView(QInteractiveGraphicsView, BaseView):
 
     def select_current_version(self):
         self.scene().setupScene(self.controller)
-################################################################################

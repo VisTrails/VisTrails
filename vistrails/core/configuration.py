@@ -73,11 +73,12 @@ detachHistoryView: Show the version tree in a separate window
 dotVistrails: User configuration directory
 enablePackagesSilently: Automatically enable packages when needed
 errorLog: Write errors to a log file
-execute: Execute any specified workflows
+NoExecute: Do not execute specified workflows
 executionLog: Track execution provenance when running workflows
 fileDir: Default vistrail directory
 fixedSpreadsheetCells: Draw spreadsheet cells at a fixed size
 handlerDontAsk: Do not ask about extension handling at startup
+hideUpgrades: Don't show upgrade nodes in the version tree
 host: The hostname for the database to load the vistrail from
 installBundles: Install missing Python dependencies
 installBundlesWithPip: Use pip to install missing Python dependencies
@@ -136,8 +137,8 @@ userPackageDir: Local packages directory
 viewOnLoad: Whether to show pipeline or history view when opening vistrail
 webRepositoryURL: Web repository URL
 webRepositoryUser: Web repository username
-withVersionTree: Output the version tree as an image
-withWorkflow: Output the workflow graph as an image
+outputVersionTree: Output the version tree as an image
+outputPipelineGraph: Output the workflow graph as an image
 """
 
 _documentation = """
@@ -198,9 +199,9 @@ errorLog: Boolean
 
     Write errors to a log file.
 
-execute: Boolean
+noExecute: Boolean
 
-    Execute any specified workflows.
+    Do not execute specified workflows.
 
 executionLog: Boolean
 
@@ -218,6 +219,10 @@ fixedSpreadsheetCells: Boolean
 handlerDontAsk: Boolean
 
     Do not ask about extension handling at startup (Linux only).
+
+hideUpgrades: Boolean
+
+    Don't show the "upgrade" nodes in the version tree.
 
 host: URL
 
@@ -520,11 +525,11 @@ webRepositoryUser: String
     The default username for logging into a VisTrails web repository
     like crowdLabs.
 
-withVersionTree: Boolean
+outputVersionTree: Boolean
 
     Output the version tree as an image.
 
-withWorkflow: Boolean
+outputPipelineGraph: Boolean
 
     Output the workflow graph as an image.
 
@@ -611,8 +616,8 @@ class ConfigFieldParent(object):
 
 base_config = {
     "Command-Line":
-    [ConfigField("execute", False, bool, ConfigType.COMMAND_LINE_FLAG,
-                 flag='-e'),
+    [ConfigField("noExecute", False, bool, ConfigType.COMMAND_LINE_FLAG,
+                 flag='-E'),
      ConfigField("batch", False, bool, ConfigType.COMMAND_LINE_FLAG,
                  flag='-b'),
      ConfigField("outputDirectory", None, ConfigPath, flag='-o'),
@@ -625,8 +630,8 @@ base_config = {
      ConfigField("parameterExploration", False, bool,
                  ConfigType.COMMAND_LINE_FLAG),
      ConfigField('showWindow', True, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("withVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
-     ConfigField("withWorkflow", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("outputVersionTree", False, bool, ConfigType.COMMAND_LINE_FLAG),
+     ConfigField("outputPipelineGraph", False, bool, ConfigType.COMMAND_LINE_FLAG),
      ConfigField("graphsAsPdf", True, bool, ConfigType.COMMAND_LINE_FLAG)],
     "Database":
     [ConfigField("host", None, ConfigURL, ConfigType.COMMAND_LINE),
@@ -670,6 +675,8 @@ base_config = {
     [ConfigField('upgrades', True, bool, ConfigType.ON_OFF),
      ConfigField('migrateTags', False, bool, ConfigType.ON_OFF,
                  depends_on="upgrades"),
+     ConfigField('hideUpgrades', True, bool, ConfigType.ON_OFF,
+                 depends_on='upgrades'),
      ConfigField('upgradeDelay', True, bool, ConfigType.ON_OFF,
                  depends_on="upgrades"),
      ConfigField('upgradeModuleFailPrompt', True, bool, ConfigType.ON_OFF,
@@ -736,7 +743,9 @@ base_config = {
      ConfigField('isRunningGUI', True, bool, ConfigType.INTERNAL),
      ConfigField('spawned', False, bool, ConfigType.INTERNAL),
      ConfigField('rootDirectory', None, ConfigPath, ConfigType.INTERNAL),
-     ConfigField('developerDebugger', False, bool, ConfigType.INTERNAL)],
+     ConfigField('developerDebugger', False, bool, ConfigType.INTERNAL),
+     ConfigField('dontUnloadModules', False, bool, ConfigType.INTERNAL),
+     ConfigField('bundleDeclinedList', '', str, ConfigType.INTERNAL)],
     "Jobs":
     [ConfigField('jobCheckInterval', 600, int),
      ConfigField('jobAutorun', False, bool),

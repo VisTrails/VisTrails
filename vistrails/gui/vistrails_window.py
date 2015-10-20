@@ -1818,8 +1818,13 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.import_workflow(DBLocator)
 
     def open_workflow(self, locator):
-        get_vistrails_application().open_workflow(locator)
         self.close_first_vistrail_if_necessary()
+        get_vistrails_application().open_workflow(locator)
+        view = self.get_current_view()
+        view.controller.recompute_terse_graph()
+        view.controller.invalidate_version_tree()
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        QWorkspaceWindow.instance().add_vt_window(view)
         self.qactions['pipeline'].trigger()
     
     def close_vistrail(self, current_view=None, quiet=False):
@@ -2449,7 +2454,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                                        "This subworkflow is from a package and "
                                        "cannot be modified.  You can create an "
                                        "editable copy in 'My Subworkflows' "
-                                       "using 'Edit->Import Subworkflow'")
+                                       "using 'Workflow->Import Subworkflow'")
     def merge_vistrail(self):
         action = self.sender()
         if action:
@@ -2474,13 +2479,15 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         vistrails.db.services.vistrail.merge(s1, s2, "", merge_gui, l1, l2)
         vistrail = s1.vistrail
-        vistrail.locator = None
+        vistrail.locator = UntitledLocator()
         vistrail.set_defaults()
         view = self.create_view(vistrail, None)
         # FIXME need to figure out what to do with this !!!
         view.controller.set_vistrail(vistrail, None, thumbnails=s1.thumbnails)
         view.controller.set_changed(True)
         self.view_changed(view)
+        from vistrails.gui.collection.workspace import QWorkspaceWindow
+        QWorkspaceWindow.instance().add_vt_window(view)
         self.reset_toolbar_for_view(view)
         self.qactions['history'].trigger()
         view.version_view.scene().fitToView(view.version_view, True)

@@ -12,41 +12,6 @@ for rootdir, dirs, files in os.walk('vistrails'):
         packages.append(rootdir.replace('\\', '.').replace('/', '.'))
 
 
-def list_files(d, root):
-    files = []
-    for e in os.listdir(os.path.join(root, d)):
-        if os.path.isdir(os.path.join(root, d, e)):
-            files.extend(list_files('%s/%s' % (d, e), root))
-        elif not e.endswith('.pyc'):
-            files.append('%s/%s' % (d, e))
-    return files
-
-
-package_data = {
-    'vistrails.core.collection': ['schema.sql', 'test.db'],
-    'vistrails.core': list_files('resources', 'vistrails/core'),
-    'vistrails.db': ['specs/all.xml'],
-    'vistrails.gui': list_files('resources/images', 'vistrails/gui') + ['resources/vistrails-mime.xml'],
-    'vistrails.packages.analytics': ['*.vt'], # FIXME : what is this?
-    'vistrails.packages.CLTools': ['icons/*.png', 'test_files/*'],
-    'vistrails.packages.persistence': ['schema.sql'],
-    'vistrails.packages.tabledata': ['test_files/*'],
-    'vistrails.tests': list_files('resources', 'vistrails/tests'),
-    }
-for version in os.listdir('vistrails/db/versions'):
-    if not version.startswith('v'):
-        continue
-    package_data['vistrails.db.versions.%s' % version] = [
-        'schemas/sql/vistrails.sql',
-        'schemas/sql/vistrails_drop.sql',
-        'schemas/xml/log.xsd',
-        'schemas/xml/vistrail.xsd',
-        'schemas/xml/vtlink.xsd',
-        'schemas/xml/workflow.xsd',
-        'specs/all.xml',
-]
-
-
 requirements = [
     # 'PyQt<5.0',
     'numpy',
@@ -54,6 +19,8 @@ requirements = [
     'certifi',
     'backports.ssl_match_hostname',
     'file_archive>=0.6',
+    'xlrd',
+    'xlwt',
 ]
 
 if sys.version_info < (2, 7):
@@ -72,9 +39,9 @@ Homepage: http://www.vistrails.org
 Who we are: http://www.vistrails.org/index.php/People
 """
 setup(name='vistrails',
-      version='2.2',
+      version='2.2.3',
       packages=packages,
-      package_data=package_data,
+      include_package_data=True,
       entry_points={
         'console_scripts': [
           'vistrails = vistrails.run:main']},

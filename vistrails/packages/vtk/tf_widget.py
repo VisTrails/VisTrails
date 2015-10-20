@@ -53,8 +53,6 @@ import StringIO
 import unittest
 ElementTree = get_elementtree_library()
 
-from .identifiers import identifier as vtk_pkg_identifier
-
 ################################################################################
 # etc
 
@@ -214,6 +212,8 @@ class TransferFunction(object):
                                  float(colorNode.get('G','0.0')),
                                  float(colorNode.get('B','0.0')))
                         break
+                else:
+                    assert "'point' node has no 'color' child"
                 tf._pts.append((scalar,opacity,color))
         tf._pts.sort()
         return tf
@@ -543,6 +543,7 @@ class QGraphicsTransferFunction(QtGui.QGraphicsWidget, ConstantWidgetMixin):
         # restore y axis inversion
         self.setTransform(QtGui.QTransform(1, 0, 0, -1, 0, GLOBAL_SCALE))
         self.setTransformOriginPoint(0, GLOBAL_SCALE)
+        self.reset_transfer_function(self._tf)
 
     def boundingRect(self):
         return QtCore.QRectF(0.0, 0.0, GLOBAL_SCALE, GLOBAL_SCALE)
@@ -693,15 +694,15 @@ class vtkScaledTransferFunction(Module):
 
     # FIXME Add documentation
     _input_ports = [
-        ['Input', vtk_pkg_identifier + ':vtkAlgorithmOutput'],
-        ['Dataset', vtk_pkg_identifier + ':vtkDataObject'],
+        ['Input', 'vtkAlgorithmOutput'],
+        ['Dataset', 'vtkDataObject'],
         ['Range', '(basic:Float, basic:Float)'],
-        ['TransferFunction', vtk_pkg_identifier + ':TransferFunction']]
+        ['TransferFunction', 'TransferFunction']]
 
     _output_ports = [
-        ['TransferFunction', vtk_pkg_identifier + ':TransferFunction'],
-        ['vtkPiecewiseFunction', vtk_pkg_identifier + ':vtkPiecewiseFunction'],
-        ['vtkColorTransferFunction', vtk_pkg_identifier + ':vtkColorTransferFunction']]
+        ['TransferFunction', 'TransferFunction'],
+        ['vtkPiecewiseFunction', 'vtkPiecewiseFunction'],
+        ['vtkColorTransferFunction', 'vtkColorTransferFunction']]
 
     def compute(self):
         reg = get_module_registry()

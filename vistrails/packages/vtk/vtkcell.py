@@ -57,15 +57,14 @@ from identifiers import identifier as vtk_pkg_identifier
 ################################################################################
 
 class vtkRendererToSpreadsheet(SpreadsheetMode):
-    def compute_output(self, output_module, configuration=None):
-        d = dict([(c(), c.obj) for c in self.inputPorts['AddRenderer']])
+    def compute_output(self, output_module, configuration):
+        d = dict([(c(), c.obj) for c in output_module.inputPorts['value']])
         for ren, m in d.iteritems():
             ren.module_id = m.moduleInfo['moduleId']
-        renderers = output_module.force_get_input_list('value')
-        handlers = output_module.force_get_input_list('interactionHandler')
+        renderers = output_module.force_get_input('value') or []
         style = output_module.force_get_input('interactorStyle')
         picker = output_module.force_get_input('picker')
-        input_ports = (renderers, None, handlers, style, picker)
+        input_ports = (renderers, None, [], style, picker)
         self.cellWidget = self.display_and_wait(output_module, configuration,
                                                 QVTKWidget, input_ports)
 
@@ -680,10 +679,10 @@ class QVTKWidget(QCellWidget):
         if not keysym:
             keysym = self.qt_key_to_key_sym(e.key())
 
-        # Ignore 'q' or 'e' or Ctrl-anykey
+        # Ignore Ctrl-anykey
         ctrl = (e.modifiers()&QtCore.Qt.ControlModifier)
         shift = (e.modifiers()&QtCore.Qt.ShiftModifier)
-        if (keysym in ['q','e'] or ctrl):
+        if ctrl:
             e.ignore()
             return
         
@@ -760,7 +759,7 @@ class QVTKWidget(QCellWidget):
         Convert Qt key code into key name
         
         """
-        handler = {QtCore.Qt.Key_Backspace:"BackSpace",
+        handler = {QtCore.Qt.Key_Backspace:"Backspace",
                    QtCore.Qt.Key_Tab:"Tab",
                    QtCore.Qt.Key_Backtab:"Tab",
                    QtCore.Qt.Key_Return:"Return",

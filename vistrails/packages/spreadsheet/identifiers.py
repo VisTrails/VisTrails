@@ -38,5 +38,5 @@ from __future__ import division
 
 identifier = 'org.vistrails.vistrails.spreadsheet'
 name = 'VisTrails Spreadsheet'
-version = '0.9.3'
+version = '0.9.4'
 old_identifiers = ['edu.utah.sci.vistrails.spreadsheet']

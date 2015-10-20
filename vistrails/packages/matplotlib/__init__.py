@@ -1,5 +1,7 @@
 ###############################################################################
 ##
+## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
@@ -31,11 +33,11 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
+
 """Matplotlib package for VisTrails.
 
 This package wrap Matplotlib to provide a plotting tool for
 VisTrails. We are going to use the 'Qt4Agg' backend of the library.
-
 """
 
 from __future__ import division
