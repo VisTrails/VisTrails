@@ -36,7 +36,6 @@
 from __future__ import division
 
 from vistrails.core import debug
-import copy
 
 ##############################################################################
 
@@ -45,7 +44,7 @@ class InternalTuple(object):
 
     list_depth = 0
 
-    def _get_length(self, length):
+    def _get_length(self):
         return len(self._values)
     def _set_length(self, length):
         self._values = [None] * length

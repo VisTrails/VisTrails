@@ -326,7 +326,7 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
             if param.strValue != '':
                 constant.setValue(param.strValue)
             else:
-                constant.setValue( \
+                constant.setValue(
                     constant.translate_to_string(constant.default_value))
             return constant
 
@@ -750,12 +750,12 @@ class CachedInterpreter(vistrails.core.interpreter.base.BaseInterpreter):
         self.finalize_pipeline(pipeline, *(res[:-1]), **new_kwargs)
 
         result = InstanceObject(objects=res[1],
-                              errors=res[2],
-                              executed=res[3],
-                              suspended=res[4],
-                              parameter_changes=res[6],
-                              modules_added=modules_added,
-                              conns_added=conns_added)
+                                errors=res[2],
+                                executed=res[3],
+                                suspended=res[4],
+                                parameter_changes=res[6],
+                                modules_added=modules_added,
+                                conns_added=conns_added)
 
         logger.finish_workflow_execution(result.errors, suspended=result.suspended)
 
