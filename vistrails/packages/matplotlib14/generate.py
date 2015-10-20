@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###############################################################################
 ##
 ## Copyright (C) 2014-2015, New York University.
@@ -34,41 +35,34 @@
 ##
 ###############################################################################
 
-"""Matplotlib package for VisTrails.
-
-This package wrap Matplotlib to provide a plotting tool for
-VisTrails. We are going to use the 'Qt4Agg' backend of the library.
-
-This package supports matplotlib < v1.4
-
-"""
-
 from __future__ import division
 
-from distutils.version import LooseVersion
-from identifiers import *
+from mako.template import Template
+import sys
+from specs import SpecList
 
-def package_dependencies():
-    import vistrails.core.packagemanager
-    manager = vistrails.core.packagemanager.get_package_manager()
-    if manager.has_package('org.vistrails.vistrails.spreadsheet'):
-        return ['org.vistrails.vistrails.spreadsheet']
+def generate_from_specs(fname, out_fname, template_fname):
+    specs = SpecList.read_from_xml(fname)
+    
+    template = Template(filename=template_fname, 
+                        module_directory='/tmp/mako')
+
+    f = open(out_fname, 'wb') # 'b' ensures that we always use LF line endings
+    f.write(template.render(specs=specs))
+    f.close()        
+
+def run(which="all"):
+    if which == "all" or which == "plots":
+        generate_from_specs("mpl_plots.xml", "plots.py", 
+                            "plots_template.py.mako")
+    if which == "all" or which == "artists":
+        generate_from_specs("mpl_artists.xml", "artists.py", 
+                            "artists_template.py.mako")
+    
+if __name__ == '__main__':
+    if len(sys.argv) <= 1:
+        run()
+    elif len(sys.argv) == 2:
+        run(sys.argv[1])
     else:
-        return []
-
-def package_requirements():
-    from vistrails.core.requirements import require_python_module, MissingRequirement
-    require_python_module('numpy', {
-            'pip': 'numpy',
-            'linux-debian': 'python-numpy',
-            'linux-ubuntu': 'python-numpy',
-            'linux-fedora': 'numpy'})
-    mpl_dict = {'pip': 'matplotlib',
-                'linux-debian': 'python-matplotlib',
-                'linux-ubuntu': 'python-matplotlib',
-                'linux-fedora': 'python-matplotlib'}
-    require_python_module('matplotlib', mpl_dict)
-    require_python_module('pylab', mpl_dict)
-    import matplotlib
-    if LooseVersion(matplotlib.__version__) >= LooseVersion('1.4'):
-        raise MissingRequirement('matplotlib<1.4')
+        raise TypeError("usage: python parse.py [all|artists|plots]")

@@ -1,0 +1,127 @@
+<diff>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.artist.Artist" port="picker" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.artist.Artist" port="picker" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.artist.Artist" port="clip_path" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.artist.Artist" port="clip_path" type="input">
+    <value>None</value>
+  </changePortSpec>
+  <addPortSpec code_ref="matplotlib.axis.Axis" port="major_ticks" type="output">
+    <value>
+      <outputPortSpec arg="major_ticks" compute_name="major_ticks" compute_parent="get_major_ticks()" name="majorTickProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.Tick" />
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.axis.Axis" port="minor_ticks" type="output">
+    <value>
+      <outputPortSpec arg="minor_ticks" compute_name="minor_ticks" compute_parent="get_minor_ticks()" name="minorTickProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.Tick" />
+    </value>
+  </addPortSpec>
+  <deletePortSpec code_ref="matplotlib.axis.Tick" port="label1" type="input" />
+  <deletePortSpec code_ref="matplotlib.axis.Tick" port="axes" type="input" />
+  <changePortSpec attr="not_setp" code_ref="matplotlib.axis.Tick" port="label1On" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="constructor_arg" code_ref="matplotlib.axis.Tick" port="label1On" type="input">
+    <value>False</value>
+  </changePortSpec>
+  <changePortSpec attr="not_setp" code_ref="matplotlib.axis.Tick" port="label2On" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="constructor_arg" code_ref="matplotlib.axis.Tick" port="label2On" type="input">
+    <value>False</value>
+  </changePortSpec>
+  <changePortSpec attr="translations" code_ref="matplotlib.axis.Tick" port="color" type="input">
+    <value>translate_color</value>
+  </changePortSpec>
+  <changePortSpec attr="port_type" code_ref="matplotlib.axis.Tick" port="color" type="input">
+    <value>basic:Color</value>
+  </changePortSpec>
+  <changePortSpec attr="not_setp" code_ref="matplotlib.axis.Tick" port="gridOn" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="docstring" code_ref="matplotlib.axis.Tick" port="gridOn" type="input">
+    <value>a boolean which determines whether to draw the tickline</value>
+  </changePortSpec>
+  <changePortSpec attr="port_type" code_ref="matplotlib.axis.Tick" port="gridOn" type="input">
+    <value>basic:Boolean</value>
+  </changePortSpec>
+  <changePortSpec attr="constructor_arg" code_ref="matplotlib.axis.Tick" port="gridOn" type="input">
+    <value>False</value>
+  </changePortSpec>
+  <changePortSpec attr="not_setp" code_ref="matplotlib.axis.Tick" port="tick2On" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="docstring" code_ref="matplotlib.axis.Tick" port="tick2On" type="input">
+    <value>a boolean which determines whether to draw the 2nd tickline</value>
+  </changePortSpec>
+  <changePortSpec attr="constructor_arg" code_ref="matplotlib.axis.Tick" port="tick2On" type="input">
+    <value>False</value>
+  </changePortSpec>
+  <changePortSpec attr="not_setp" code_ref="matplotlib.axis.Tick" port="tick1On" type="input">
+    <value>True</value>
+  </changePortSpec>
+  <changePortSpec attr="docstring" code_ref="matplotlib.axis.Tick" port="tick1On" type="input">
+    <value>a boolean which determines whether to draw the 1st tickline</value>
+  </changePortSpec>
+  <changePortSpec attr="constructor_arg" code_ref="matplotlib.axis.Tick" port="tick1On" type="input">
+    <value>False</value>
+  </changePortSpec>
+  <addPortSpec code_ref="matplotlib.axis.Tick" port="label1" type="output">
+    <value>
+      <outputPortSpec arg="label1" compute_name="label1" compute_parent="label1" name="label1Properties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text">
+        <docstring>Set the text of ticklabel</docstring>
+      </outputPortSpec>
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.axis.Tick" port="label2" type="output">
+    <value>
+      <outputPortSpec arg="label2" compute_name="label2" compute_parent="label2" name="label2Properties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text">
+        <docstring>Set the text of ticklabel2</docstring>
+      </outputPortSpec>
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.axis.Tick" port="tick1line" type="output">
+    <value>
+      <outputPortSpec arg="tick1line" compute_name="tick1line" compute_parent="tick1line" name="tick1lineProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.lines.Line2D" />
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.axis.Tick" port="tick2line" type="output">
+    <value>
+      <outputPortSpec arg="tick2line" compute_name="tick2line" compute_parent="tick2line" name="tick2lineProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.lines.Line2D" />
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.axis.Tick" port="gridline" type="output">
+    <value>
+      <outputPortSpec arg="gridline" compute_name="gridline" compute_parent="gridline" name="gridlineProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.lines.Line2D" />
+    </value>
+  </addPortSpec>
+  <changePortSpec attr="translations" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>{'caretright': 5, 'star': '*', 'point': '.', 'tickdown': 3, 'triangle_right': '&gt;', 'tickup': 2, 'hexagon1': 'h', 'hline': '_', 'vline': '|', 'mathtext': '$...$', 'nothing': ' ', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'caretdown': 7, 'tri_down': '1', 'tickright': 1, 'tri_right': '4', 'thin_diamond': 'd', 'diamond': 'D', 'octagon': '8', 'tickleft': 0, 'square': 's', 'tri_up': '2', 'plus': '+', 'x': 'x', 'triangle_down': 'v', 'triangle_up': '^', 'hexagon2': 'H', 'caretup': 6, 'circle': 'o', 'pixel': ',', 'triangle_left': '&lt;'}</value>
+  </changePortSpec>
+  <changePortSpec attr="entry_types" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>['enum']</value>
+  </changePortSpec>
+  <changePortSpec attr="values" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
+    <value>[['caretdown', 'caretleft', 'caretright', 'caretup', 'circle', 'diamond', 'hexagon1', 'hexagon2', 'hline', 'nothing', 'octagon', 'pentagon', 'pixel', 'plus', 'point', 'square', 'star', 'thin_diamond', 'tickdown', 'tickleft', 'tickright', 'tickup', 'tri_down', 'tri_left', 'tri_right', 'tri_up', 'triangle_down', 'triangle_left', 'triangle_right', 'triangle_up', 'vline', 'x', 'mathtext']]</value>
+  </changePortSpec>
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="title" type="output">
+    <value>
+      <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="xaxis" type="output">
+    <value>
+      <outputPortSpec arg="xaxis" compute_name="xaxis" compute_parent="xaxis" name="xaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.XAxis" />
+    </value>
+  </addPortSpec>
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="yaxis" type="output">
+    <value>
+      <outputPortSpec arg="yaxis" compute_name="yaxis" compute_parent="yaxis" name="yaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.YAxis" />
+    </value>
+  </addPortSpec>
+</diff>
