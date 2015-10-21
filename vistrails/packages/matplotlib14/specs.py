@@ -36,6 +36,7 @@
 
 from __future__ import division
 
+import functools
 import inspect
 import mixins
 from xml.etree import ElementTree as ET
@@ -55,7 +56,7 @@ def get_mixin_classes():
 
 class SpecList(object):
     def __init__(self, module_specs=[], custom_code=""):
-        self.module_specs = module_specs
+        self.module_specs = sorted(module_specs)
         self.custom_code = custom_code
 
     def write_to_xml(self, fname):
@@ -98,8 +99,10 @@ class SpecList(object):
         retval = SpecList(module_specs, custom_code)
         return retval
 
+@functools.total_ordering
 class ModuleSpec(object):
     attrs = ["name", "superklass", "docstring", "output_type"]
+
     def __init__(self, name, superklass, code_ref, docstring="", port_specs=[],
                  output_port_specs=[], output_type=None):
         self.name = name
@@ -111,6 +114,16 @@ class ModuleSpec(object):
         self.output_type = output_type
         self._mixin_class = None
         self._mixin_functions = None
+
+    def __eq__(self, other):
+        if not isinstance(other, ModuleSpec):
+            raise TypeError
+        return self.name == other.name
+
+    def __lt__(self, other):
+        if not isinstance(other, ModuleSpec):
+            raise TypeError
+        return self.name < other.name
 
     def to_xml(self, elt=None):
         if elt is None:
