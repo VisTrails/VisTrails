@@ -40,6 +40,7 @@ import functools
 import inspect
 import mixins
 from xml.etree import ElementTree as ET
+from vistrails.core.data_structures.graph import Graph
 
 def capfirst(s):
     return s[0].upper() + s[1:]
@@ -56,8 +57,28 @@ def get_mixin_classes():
 
 class SpecList(object):
     def __init__(self, module_specs=[], custom_code=""):
-        self.module_specs = sorted(module_specs)
+        self.module_specs = module_specs
+        self.sort_modules()
         self.custom_code = custom_code
+
+    def sort_modules(self):
+        """ Sort modules by depth-first lexicographical order
+
+        """
+        g = Graph()
+        # add subclass tree
+        for m in self.module_specs:
+            g.add_edge(m.superklass, m.name)
+        # depth-first search with lexicographically ordered siblings
+        sorted_names = []
+        stack = sorted(g.sources())
+        while stack:
+            v = stack.pop(0) 
+            sorted_names.append(v)
+            stack.extend(sorted([i[0] for i in g.edges_from(v)]))
+        module_dict = dict([(m.name, m) for m in self.module_specs])
+        sorted_classes = [module_dict[name] for name in sorted_names if name in module_dict]
+        self.module_specs = sorted_classes
 
     def write_to_xml(self, fname):
         root = ET.Element("specs")
