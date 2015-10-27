@@ -698,6 +698,13 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 module_remap.add_module_remap(
                         UpgradeModuleRemap('1.0.0', '1.0.1', '1.0.1',
                                            module_name=module_name))
+            remap = module_remap.get_module_upgrade(module_name, '1.0.1')
+            # Only difference with 1.0.2 is that the spec serialization changed
+            if remap is None:
+                # Manually upgrade to 1.0.2
+                module_remap.add_module_remap(
+                        UpgradeModuleRemap('1.0.1', '1.0.2', '1.0.2',
+                                           module_name=module_name))
 
     return UpgradeWorkflowHandler.remap_module(controller, module_id, pipeline,
                                                module_remap)
