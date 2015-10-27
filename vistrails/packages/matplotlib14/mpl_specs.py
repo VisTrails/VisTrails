@@ -40,7 +40,7 @@ import inspect
 import mixins
 
 from vistrails.core.wrapper.specs import SpecList, FunctionSpec, \
-    FunctionInputPortSpec, FunctionOutputPortSpec
+    FunctionInputPortSpec, FunctionOutputPortSpec, parse_props
 
 
 def capfirst(s):
