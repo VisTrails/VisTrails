@@ -131,14 +131,27 @@ class SpecObject(object):
         for attr, props in self.attrs.iteritems():
             value = getattr(self, attr)
             default_val, is_subelt, run_eval = parse_props(props)
-            if default_val != value:
+            if default_val != value and value is not None:
+                if run_eval:
+                    value = repr(value)
+                else:
+                    value = unicode(value)
                 if is_subelt:
                     subelt = ET.Element(attr)
-                    subelt.text = unicode(getattr(self, attr))
+                    subelt.text = value
                     elt.append(subelt)
                 else:
-                    elt.set(attr, unicode(value))
+                    elt.set(attr, value)
         return elt
+
+    def set_raw(self, attr, value):
+        """ parse the value before setting it
+        """
+        props = self.attrs[attr]
+        run_eval = parse_props(props)[2]
+        if run_eval:
+            value = ast.literal_eval(value)
+        setattr(self, attr, value)
 
     @classmethod
     def internal_from_xml(cls, elt):
@@ -186,7 +199,7 @@ class PortSpec(SpecObject):
     # other attributes
     attrs = {
         "name": "",                         # port name
-        "port_type": None                   # type signature in vistrails
+        "port_type": 'basic:String'         # type signature in vistrails
     }
     attrs.update(prop_attrs)
 
@@ -272,6 +285,9 @@ class InputPortSpec(PortSpec):
         PortSpec.__init__(self, **kwargs)
         for spec in self.alternate_specs:
             spec.set_parent(self)
+
+    def has_alternate_versions(self):
+        return len(self.alternate_specs) > 0
 
     def set_parent(self, parent):
         self._parent = parent
@@ -432,7 +448,7 @@ class FunctionInputPortSpec(InputPortSpec):
     attrs = {"arg":     "",                           # function argument name
              "in_kwargs": (True, False, True),        # Add as kwarg?
              "in_args": (False, False, True),         # Add as arg?
-             "arg_pos": [None, False, False]}         # argument position
+             "arg_pos": (-1, False, True)}         # argument position
     attrs.update(InputPortSpec.attrs)
 
     def __init__(self, arg=None, **kwargs):
@@ -445,8 +461,17 @@ class FunctionInputPortSpec(InputPortSpec):
 
 
 class FunctionOutputPortSpec(OutputPortSpec):
-    pass
+    attrs = {"arg":     "",                           # output name
+            }
+    attrs.update(InputPortSpec.attrs)
 
+    def __init__(self, arg=None, **kwargs):
+        if arg is not None:
+            kwargs['arg'] = arg
+        if 'name' not in kwargs and 'arg' in kwargs:
+            kwargs['name'] = kwargs['arg']
+
+        OutputPortSpec.__init__(self, **kwargs)
 
 class FunctionSpec(ModuleSpec):
     """ Specification for wrapping a python function
