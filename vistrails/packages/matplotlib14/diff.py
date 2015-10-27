@@ -36,12 +36,15 @@
 
 from __future__ import division
 
-import re
-from xml.etree import ElementTree as ET
-from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
-    AlternatePortSpec
+import ast
 
-def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier, 
+from xml.etree import ElementTree as ET
+from mpl_specs import MPLSpecList as SpecList, \
+    MPLFunctionSpec as ModuleSpec, \
+    MPLInputPortSpec as InputPortSpec, \
+    MPLOutputPortSpec as OutputPortSpec, parse_props
+
+def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
                     port=None):
     if qualifier == "alternate":
         if port is None:
@@ -93,7 +96,7 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
         elif qualifier == "input":
             attr_list = InputPortSpec.attrs
         elif qualifier == "alternate":
-            attr_list = AlternatePortSpec.attrs
+            attr_list = InputPortSpec.attrs
         else:
             raise ValueError('Unknown port type "%s"' % qualifier)
         for attr in attr_list:
@@ -132,13 +135,6 @@ def compute_diff(in_fname, out_fname, diff_fname):
 
     root = ET.Element("diff")
 
-    if in_specs.custom_code != out_specs.custom_code:
-        elt = ET.Element("changeCustomCode")
-        subelt = ET.Element("value")
-        subelt.text = out_specs.custom_code
-        elt.append(subelt)
-        root.append(elt)
-
     for ref in in_refs_set - out_refs_set:
         print "- %s" % ref
         elt = ET.Element("deleteModule")
@@ -172,7 +168,7 @@ def compute_diff(in_fname, out_fname, diff_fname):
                 elt.append(subelt)
                 root.append(elt)
 
-        compute_ps_diff(root, in_spec.port_specs, out_spec.port_specs, 
+        compute_ps_diff(root, in_spec.input_port_specs, out_spec.output_port_specs,
                         code_ref, "input")
         compute_ps_diff(root, in_spec.output_port_specs, 
                         out_spec.output_port_specs,
@@ -197,28 +193,26 @@ def compute_diff(in_fname, out_fname, diff_fname):
 
     tree.write(diff_fname)
 
+
 def apply_diff(in_fname, diff_fname, out_fname):
-    in_specs = SpecList.read_from_xml(in_fname)
+    in_specs = SpecList.read_from_xml(in_fname, ModuleSpec)
     
     in_refs = dict((spec.code_ref, (i, spec))
                    for i, spec in enumerate(in_specs.module_specs))
+    print in_specs.module_specs[0].input_port_specs
     in_ips_refs = dict(((spec.code_ref, ps.arg), (i, ps))
                        for spec in in_specs.module_specs 
-                       for i, ps in enumerate(spec.port_specs))
+                       for i, ps in enumerate(spec.input_port_specs))
     in_ops_refs = dict(((spec.code_ref, ps.arg), (i, ps))
                        for spec in in_specs.module_specs
                        for i, ps in enumerate(spec.output_port_specs))
     in_alt_refs = dict(((spec.code_ref, ps.arg, alt_ps.name), (i, ps))
                        for spec in in_specs.module_specs
-                       for ps in spec.port_specs
+                       for ps in spec.input_port_specs
                        for i, alt_ps in enumerate(ps.alternate_specs))
 
     tree = ET.parse(diff_fname)
     for elt in tree.getroot():
-        if elt.tag == "changeCustomCode":
-            val = elt.getchildren()[0].text
-            in_specs.custom_code = val
-            continue
         code_ref = elt.get("code_ref")
         m_spec = in_refs[code_ref][1]
         port = elt.get("port", None)
@@ -231,7 +225,7 @@ def apply_diff(in_fname, diff_fname, out_fname):
                 if port_type == "input":
                     idx = in_ips_refs[(code_ref, port)][0]
                     print "deleting", idx, (code_ref, port)
-                    del m_spec.port_specs[idx]
+                    del m_spec.input_port_specs[idx]
                 elif port_type == 'output':
                     idx = in_ops_refs[(code_ref, port)][0]
                     del m_spec.output_port_specs[idx]
@@ -252,13 +246,13 @@ def apply_diff(in_fname, diff_fname, out_fname):
                         value = subchild
             if port:
                 if port_type == "input":
-                    m_spec.port_specs.append(InputPortSpec.from_xml(value))
+                    m_spec.input_port_specs.append(InputPortSpec.from_xml(value))
                 elif port_type == "output":
                     m_spec.output_port_specs.append(
                         OutputPortSpec.from_xml(value))
                 elif port_type == "alternate":
                     ps = in_ips_refs[(code_ref, port)][1]
-                    ps.alternate_specs.append(AlternatePortSpec.from_xml(value))
+                    ps.alternate_specs.append(InputPortSpec.from_xml(value))
                 else:
                     raise ValueError('Cannot access list of type "%s"' %
                                      port_type)
@@ -269,21 +263,22 @@ def apply_diff(in_fname, diff_fname, out_fname):
             for child in elt.getchildren():
                 if child.tag == 'value':
                     value = child.text
+            print "CHANGED!!!!", attr, value
             if port:
                 # KLUDGE to fix change from output_type to port_type
                 if attr == "output_type":
                     attr = "port_type"
                 if port_type == "input":
                     port_spec = in_ips_refs[(code_ref, port)][1]
-                    setattr(port_spec, attr, value)
+                    port_spec.set_raw(attr, value)
                 elif port_type == "output":
                     port_spec = in_ops_refs[(code_ref, port)][1]
-                    setattr(port_spec, attr, value)
+                    port_spec.set_raw(attr, value)
                 elif port_type == "alternate":
                     port_spec = in_alt_refs[(code_ref, port, alt_name)][1]
-                    setattr(port_spec, attr, value)
+                    port_spec.set_raw(attr, value)
             else:
-                setattr(m_spec, attr, value)
+                m_spec.set_raw(attr, value)
 
     in_specs.write_to_xml(out_fname)
 

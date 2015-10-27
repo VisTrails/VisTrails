@@ -39,10 +39,12 @@ from __future__ import division
 
 from mako.template import Template
 import sys
-from specs import SpecList
+
+from mpl_specs import MPLSpecList as SpecList, \
+                      MPLFunctionSpec as ModuleSpec
 
 def generate_from_specs(fname, out_fname, template_fname):
-    specs = SpecList.read_from_xml(fname)
+    specs = SpecList.read_from_xml(fname, ModuleSpec)
     
     template = Template(filename=template_fname, 
                         module_directory='/tmp/mako')
