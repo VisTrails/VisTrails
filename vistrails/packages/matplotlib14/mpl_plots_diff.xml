@@ -212,7 +212,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.pcolor" port="Z" type="input">
     <value>
-      <inputPortSpec arg="Z" arg_pos="2" in_args="True" name="Z" port_type="basic:List" required="True" />
+      <inputPortSpec arg="Z" arg_pos="2" in_args="True" name="Z" port_type="basic:List" show_port="True" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.pcolor" port="polyCollection" type="output">
@@ -363,7 +363,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
       <alternateSpec arg="width" name="widthSequence" port_type="basic:List" />
     </value>
   </addPortSpec>
-  <changePortSpec attr="required" code_ref="matplotlib.pyplot.bar" port="left" type="input">
+  <changePortSpec attr="show_port" code_ref="matplotlib.pyplot.bar" port="left" type="input">
     <value>False</value>
   </changePortSpec>
   <addPortSpec altName="leftScalar" code_ref="matplotlib.pyplot.bar" port="left" type="alternate">
@@ -378,43 +378,6 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
       <outputPortSpec arg="rectangle" compute_name="rectangles" name="rectangleProperties" plural="True" port_type="__property__" property_key="0" property_type="matplotlib.artist.Rectangle" />
     </value>
   </addPortSpec>
-  <changeModule attr="docstring" code_ref="matplotlib.pyplot.imshow">
-    <value>Display an image on the axes.
-
-Call signature:
-
-imshow(X, cmap=None, norm=None, aspect=None, interpolation=None,        alpha=None, vmin=None, vmax=None, origin=None, extent=None,        **kwargs)
-
-Display the image in X to current axes.  X may be a float array, a uint8 array or a PIL image. If X is an array, X can have the following shapes:
-
-MxN -- luminance (grayscale, float array only)
-
-MxNx3 -- RGB (float or uint8 array)
-
-MxNx4 -- RGBA (float or uint8 array)
-
-The value for each component of MxNx3 and MxNx4 float arrays should be in the range 0.0 to 1.0; MxN float arrays may be normalised.
-
-An :class:`matplotlib.image.AxesImage` instance is returned.
-
-Keyword arguments:
-
-interpolation:
-
-Acceptable values are None, 'none', 'nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos'
-
-If interpolation is None, default to rc image.interpolation. See also the filternorm and filterrad parameters
-
-If interpolation is 'none', then no interpolation is performed on the Agg, ps and pdf backends. Other backends will fall back to 'nearest'.
-
-Additional kwargs are :class:`~matplotlib.artist.Artist` properties:
-
-%(Artist)s
-
-Example:
-
-Additional kwargs: hold = [True|False] overrides default hold state</value>
-  </changeModule>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.imshow" port="X" type="input">
     <value>basic:List</value>
   </changePortSpec>
@@ -423,7 +386,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   </changeModule>
   <addPortSpec code_ref="matplotlib.pyplot.plot" port="y" type="input">
     <value>
-      <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" required="True" />
+      <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" show_port="True" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.plot" port="x" type="input">
@@ -589,7 +552,6 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changePortSpec attr="name" code_ref="matplotlib.pyplot.quiver" port="scale" type="input">
     <value>scale</value>
   </changePortSpec>
-  <deletePortSpec altName="scaleScalar" code_ref="matplotlib.pyplot.quiver" port="scale" type="alternate" />
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
     <value>None</value>
   </changePortSpec>
@@ -599,7 +561,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
     <value>True</value>
   </changePortSpec>
-  <changePortSpec attr="required" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
+  <changePortSpec attr="show_port" code_ref="matplotlib.pyplot.quiver" port="U" type="input">
     <value>True</value>
   </changePortSpec>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
@@ -611,7 +573,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
     <value>True</value>
   </changePortSpec>
-  <changePortSpec attr="required" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
+  <changePortSpec attr="show_port" code_ref="matplotlib.pyplot.quiver" port="V" type="input">
     <value>True</value>
   </changePortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.quiver" port="polyCollection" type="output">
@@ -650,12 +612,12 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
   </changeModule>
   <addPortSpec code_ref="matplotlib.pyplot.semilogx" port="x" type="input">
     <value>
-      <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" required="True" />
+      <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" show_port="True" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.semilogx" port="y" type="input">
     <value>
-      <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" required="True" />
+      <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" show_port="True" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.semilogx" port="line" type="output">
@@ -667,7 +629,7 @@ Additional kwargs: hold = [True|False] overrides default hold state</value>
     <value>tuple</value>
   </changeModule>
   <changePortSpec attr="defaults" code_ref="matplotlib.pyplot.errorbar" port="barsabove" type="input">
-    <value>['below']</value>
+    <value>None</value>
   </changePortSpec>
   <changePortSpec attr="docstring" code_ref="matplotlib.pyplot.errorbar" port="xerr" type="input">
     <value>If a scalar number, len(N) array-like object, or an Nx1 array-like object, errorbars are drawn +/- value.
@@ -809,12 +771,12 @@ If a sequence of shape 2xN, errorbars are drawn at -row1 and +row2</value>
   </changeModule>
   <addPortSpec code_ref="matplotlib.pyplot.loglog" port="y" type="input">
     <value>
-      <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" required="True" />
+      <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" show_port="True" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.loglog" port="x" type="input">
     <value>
-      <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" required="True" />
+      <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" show_port="True" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.loglog" port="line" type="output">
@@ -935,12 +897,12 @@ Example:</value>
   </changeModule>
   <addPortSpec code_ref="matplotlib.pyplot.semilogy" port="y" type="input">
     <value>
-      <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" required="True" />
+      <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" show_port="True" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.semilogy" port="x" type="input">
     <value>
-      <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" required="True" />
+      <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" show_port="True" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.semilogy" port="line" type="output">
@@ -987,12 +949,12 @@ Example:</value>
   </changeModule>
   <addPortSpec code_ref="matplotlib.pyplot.fill" port="y" type="input">
     <value>
-      <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" required="True" />
+      <inputPortSpec arg="y" arg_pos="1" in_args="True" name="y" port_type="basic:List" show_port="True" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.fill" port="x" type="input">
     <value>
-      <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" required="True" />
+      <inputPortSpec arg="x" arg_pos="0" in_args="True" name="x" port_type="basic:List" show_port="True" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.pyplot.fill" port="polygon" type="output">
@@ -1037,7 +999,7 @@ Example:</value>
   <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="U" type="input">
     <value>True</value>
   </changePortSpec>
-  <changePortSpec attr="required" code_ref="matplotlib.pyplot.barbs" port="U" type="input">
+  <changePortSpec attr="show_port" code_ref="matplotlib.pyplot.barbs" port="U" type="input">
     <value>True</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.barbs" port="X" type="input">
@@ -1061,7 +1023,7 @@ Example:</value>
   <changePortSpec attr="in_args" code_ref="matplotlib.pyplot.barbs" port="V" type="input">
     <value>True</value>
   </changePortSpec>
-  <changePortSpec attr="required" code_ref="matplotlib.pyplot.barbs" port="V" type="input">
+  <changePortSpec attr="show_port" code_ref="matplotlib.pyplot.barbs" port="V" type="input">
     <value>True</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.pyplot.barbs" port="Y" type="input">

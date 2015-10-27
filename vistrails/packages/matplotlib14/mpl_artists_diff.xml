@@ -36,7 +36,7 @@
     <value>False</value>
   </changePortSpec>
   <changePortSpec attr="translations" code_ref="matplotlib.axis.Tick" port="color" type="input">
-    <value>translate_color</value>
+    <value>"translate_color"</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.axis.Tick" port="color" type="input">
     <value>basic:Color</value>
