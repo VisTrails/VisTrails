@@ -49,7 +49,7 @@ from numpydoc.docscrape import NumpyDocString
 def new_call(self, func):
     return func
 from textwrap import dedent
-from types import BuiltinFunctionType
+from types import BuiltinFunctionType, FunctionType
 
 # remove 'deprecated' directive.It triggers an 'uninitialized' error in sphinx.
 from docutils.parsers.rst.directives import _directives
@@ -65,8 +65,10 @@ import matplotlib.cbook
 ArtistInspector._get_valid_values_regex = re.compile(
     r"\n\s*ACCEPTS:\s*((?:.|\n)*?)(?:$|(?:\n\n))", re.IGNORECASE)
 
-from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
-    AlternatePortSpec
+from mpl_specs import MPLSpecList as SpecList, \
+    MPLFunctionSpec as ModuleSpec, \
+    MPLInputPortSpec as InputPortSpec, \
+    MPLOutputPortSpec as OutputPortSpec
 
 # sys.path.append('/vistrails/src/git')
 from vistrails.core.modules.utils import expand_port_spec_string
@@ -308,23 +310,28 @@ def get_type_from_val(val):
         return "basic:Integer"
     elif isinstance(val, basestring):
         return "basic:String"
-    elif isinstance(val, list):
+    elif isinstance(val, list) or isinstance(val, tuple):
         return "basic:List"
     return None
 
 def resolve_port_type(port_types, port_spec):
+    """ Resolves alternate port types
+
+    port_types: list of new port types
+    port_spec: the existing port spec
+    """
     port_types_set = set(p for p in port_types if p is not None)
 
     if ('color' in port_spec.name or 'basic:Color' in port_types_set) and \
             not 'colors' in port_spec.name:
-        if port_spec.port_type and port_spec.port_type != 'basic:Color':
+        if port_spec.port_type not in ['basic:Null', 'basic:Color']:
             # There is an alternative base type to this color port
             if port_spec.port_type == 'basic:List':
                 port_spec.port_name = port_spec.name + "Sequence"
                 alternate_spec = \
-                    AlternatePortSpec(name=port_spec.name + "Scalar",
-                                      port_type="basic:Color",
-                                      translations="translate_color")
+                    InputPortSpec(name=port_spec.name + "Scalar",
+                                  port_type="basic:Color",
+                                  translations="translate_color")
                 port_spec.alternate_specs.append(alternate_spec)
             return
 
@@ -333,7 +340,7 @@ def resolve_port_type(port_types, port_spec):
         return
 
     was_set = False
-    if port_spec.port_type is not None:
+    if port_spec.port_type != 'basic:Null':
         port_types_set.add(port_spec.port_type)
     if len(port_types_set) == 1:
         port_spec.port_type = next(iter(port_types_set))
@@ -343,23 +350,22 @@ def resolve_port_type(port_types, port_spec):
                 'basic:Integer' in port_types_set:
             port_spec.port_type = 'basic:Float'
             was_set = True
-        elif 'basic:List' in port_types_set:
-            port_spec.port_type = 'basic:List'
+        elif ('basic:List' in port_types_set and
+              port_spec.port_type not in ['basic:List', 'basic:Null']):
+            port_spec.port_type = next(iter(port_types_set-set(['basic:List'])))
             base_name = port_spec.name
-            port_spec.name = base_name + "Sequence"
+            port_spec.name = base_name + "Scalar"
             port_types_set.discard('basic:List')
             alternate_spec = \
-                AlternatePortSpec(name=base_name + "Scalar",
-                                  port_type=next(iter(port_types_set)))
+                InputPortSpec(name=base_name + "Sequence",
+                              port_type='basic:List')
             port_spec.alternate_specs.append(alternate_spec)
             was_set = True
     if not was_set:
-        if port_spec.name == "x":
+        if port_spec.name in ["x", "y", "sizes"]:
             port_spec.port_type = "basic:List"
-        elif port_spec.name == "y":
-            port_spec.port_type = "basic:List"
-        else:
-            port_spec.port_type = None
+        if port_spec.port_type == 'basic:Null':
+            port_spec.port_type = 'basic:String'
 
     # # FIXME
     # # what to do with scalar/sequence-type args
@@ -403,6 +409,8 @@ def assign_port_values(port_spec, values, default_val):
 
     if assign_port_spec is not None:
         if len(values) > 0:
+            if assign_port_spec.port_type == 'basic:Null':
+                assign_port_spec.port_type = 'basic:String'
             assign_port_spec.entry_types = ['enum']
             assign_port_spec.values = [values]
         if len(current_default) > 0:
@@ -426,6 +434,7 @@ def parse_description(desc):
                    ['color sequence', 'basic:List'],
                    ['colors', 'basic:List'],
                    ['color', 'basic:Color'],
+                   ['array', 'basic:List'],
                    ['sequence', 'basic:List'],
                    ['vector', 'basic:List'],
                    ['list', 'basic:List'],
@@ -433,7 +442,8 @@ def parse_description(desc):
                    ['float', 'basic:Float'],
                    ['integer', 'basic:Integer'],
                    ['boolean', 'basic:Boolean'],
-                   ['string', 'basic:String']]
+                   ['string', 'basic:String'],
+                   ['str', 'basic:String']]
     port_types = []
     option_strs = []
     default_val = None
@@ -517,6 +527,12 @@ def parse_description(desc):
     return (port_types, option_strs, default_val, allows_none)
 
 def parse_translation(rows, should_reverse=True):
+    """ parses a value/display translation table
+        rows: list of rows of length 2
+        should_reverse: reverse display/value
+        returns: (translation dict, list of value types, list of values)
+
+    """
     t = {}
     port_types = []
     values = []
@@ -550,6 +566,8 @@ def do_translation_override(port_specs, names, rows, opts):
     for name in names:
         if name not in port_specs:
             port_specs[name] = InputPortSpec(name)
+        if port_specs[name].port_type == 'basic:Null':
+            port_specs[name].port_type = 'basic:String'
         port_specs[name].entry_types = ['enum']
         port_specs[name].values = [values]
         if not values_only:
@@ -620,18 +638,18 @@ def parse_argspec(obj_or_str):
         if i == 0 and arg == "self":
             has_self = True
             continue
-        port_spec = InputPortSpec(arg)
+        port_spec = InputPortSpec(arg, port_type='basic:Null')
         port_spec.arg_pos = (i-1) if has_self else i
         if i >= start_defaults:
-            port_spec.required = False
+            port_spec.show_port = False
             default_val = argspec_defaults[i-start_defaults]
-            if default_val is not None:
+            if default_val is not None and not isinstance(default_val, FunctionType):
                 port_spec.defaults = [default_val]
                 port_type = get_type_from_val(default_val)
                 if port_type is not None:
                     port_spec.port_type = port_type
         else:
-            port_spec.required = True
+            port_spec.show_port = True
         port_specs_list.append(port_spec)
     return port_specs_list
 
@@ -704,7 +722,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides, obj=None):
             print "  -> ARGUMENTS"
             for (name, accepts, port_doc) in deflist:
                 if name not in port_specs:
-                    port_specs[name] = InputPortSpec(name, docstring=port_doc)
+                    port_specs[name] = InputPortSpec(name, docstring=port_doc, port_type='basic:Null')
                 else:
                     port_specs[name].docstring = port_doc
                 (port_types, option_strs, default_val, allows_none) = \
@@ -719,7 +737,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides, obj=None):
     if is_numpy:
         for (name, (port_types, option_strs, default_val, allows_none), port_doc) in np_params:
             if name not in port_specs:
-                port_specs[name] = InputPortSpec(name, docstring=port_doc)
+                port_specs[name] = InputPortSpec(name, docstring=port_doc, port_type='basic:Null')
             else:
                 port_specs[name].docstring = port_doc
             resolve_port_type(port_types, port_specs[name])
@@ -755,7 +773,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides, obj=None):
                 raise ValueError("row that has more/less than 2 columns!")
             for (name, port_doc) in rows:
                 if name not in port_specs:
-                    port_specs[name] = InputPortSpec(name, docstring=port_doc)
+                    port_specs[name] = InputPortSpec(name, docstring=port_doc, port_type='basic:Null')
                 else:
                     port_specs[name].docstring = port_doc
                 (port_types, option_strs, default_val, allows_none) = \
@@ -820,10 +838,15 @@ def parse_plots(plot_types, table_overrides):
         #         if alt_ps.values is not None:
         #             alt_ps.values = [[str(v) for v in alt_ps.values[0]]]
 
-        module_specs.append(ModuleSpec(module_name, super_name,
-                                       "matplotlib.pyplot.%s" % plot,
-                                       cleaned_docstring, port_specs.values(),
-                                       output_port_specs))
+        # Set port_type='basic:String' if Null
+        for ps in port_specs.values():
+            resolve_port_type([], ps)
+
+        module_specs.append(ModuleSpec(module_name=module_name, superklass=super_name,
+                                       code_ref="matplotlib.pyplot.%s" % plot,
+                                       docstring=cleaned_docstring,
+                                       input_port_specs=port_specs.values(),
+                                       output_port_specs=output_port_specs))
     my_specs = SpecList(module_specs)
     return my_specs
 
@@ -858,7 +881,7 @@ def parse_artists(artist_types, table_overrides={}):
 
             if s in port_specs:
                 raise ValueError('duplicate port "%s"' % s)
-            port_spec = InputPortSpec(s)
+            port_spec = InputPortSpec(s, port_type='basic:Null')
             port_specs[s] = port_spec
 
             accepts_raw = insp.get_valid_values(s)
@@ -871,6 +894,8 @@ def parse_artists(artist_types, table_overrides={}):
             if default_val is not None:
                 port_spec.default_val = default_val
             if len(option_strs) > 0:
+                if port_spec.port_type == 'basic:Null':
+                    port_spec.port_type = 'basic:String'
                 port_spec.entry_types = ['enum']
                 port_spec.values = [option_strs]
             port_spec.hide = False
@@ -942,11 +967,14 @@ def parse_artists(artist_types, table_overrides={}):
         for arg, ps in constructor_port_specs.iteritems():
             if arg not in port_specs:
                 ps.constructor_arg = True
-                ps.required = False
+                ps.show_port = False
                 port_specs[arg] = ps
 
-        module_spec = ModuleSpec(module_name, super_name, klass_qualname,
-                                 klass.__doc__, port_specs.values())
+        module_spec = ModuleSpec(module_name=module_name,
+                                 superklass=super_name,
+                                 code_ref=klass_qualname,
+                                 docstring=klass.__doc__,
+                                 input_port_specs=port_specs.values())
         module_specs.append(module_spec)
 
     my_specs = SpecList(module_specs)

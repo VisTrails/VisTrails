@@ -11,7 +11,7 @@ val = ${t_ps.translations}(val)\
 </%def>
 
 <%def name="get_port_val(spec, t_ps)">\
-        % if t_ps.required:
+        % if t_ps.show_port:
         % if t_ps.has_alternate_versions():
         if self.has_input('${t_ps.name}'):
             val = self.get_input('${t_ps.name}')
@@ -79,9 +79,9 @@ def translate_color(c):
     return c.tuple
 
 % for spec in specs.module_specs:
-% for ps in spec.port_specs:
+% for ps in spec.input_port_specs:
 % if ps.translations and type(ps.translations) == dict:
-def translate_${spec.name}_${ps.name}(val):
+def translate_${spec.module_name}_${ps.name}(val):
     translate_dict = ${ps.translations}
     return translate_dict[val]
 % endif
@@ -89,12 +89,11 @@ def translate_${spec.name}_${ps.name}(val):
 % endfor
 
 % for spec in specs.module_specs:
-class ${spec.name}(${spec.superklass}):
+class ${spec.module_name}(${spec.superklass}):
     """${spec.docstring}
     """
     _input_ports = [
-        % for ps in spec.port_specs:
-        % if not ps.hide:
+        % for ps in spec.input_port_specs:
         % if ps.is_property():
               ("${ps.name}", "${ps.get_property_type()}",
                ${ps.get_port_attrs()}),
@@ -106,7 +105,6 @@ class ${spec.name}(${spec.superklass}):
               ("${alt_ps.name}", "${alt_ps.get_port_type()}",
                ${alt_ps.get_port_attrs()}),
         % endfor
-        % endif
         % endfor
         % for ps in spec.output_port_specs:
         % if ps.is_property():
@@ -117,7 +115,7 @@ class ${spec.name}(${spec.superklass}):
         ]
 
     _output_ports = [
-        ("value", "(${spec.name})"),
+        ("value", "(${spec.module_name})"),
         % if any(not ps.is_property() for ps in spec.output_port_specs):
             # (this plot has additional output which are not exposed as ports
             # right now)
@@ -137,12 +135,12 @@ ${get_port_val(spec, ps)}\
         % endfor
 
         kwargs = {}
-        % for ps in spec.port_specs:
+        % for ps in spec.input_port_specs:
         % if ps.is_property():
         if self.has_input('${ps.name}'):
             properties = self.get_input('${ps.name}')
             properties.update_kwargs(kwargs)
-        % elif not ps.hide and not ps.in_args and ps.in_kwargs:
+        % elif not ps.in_args and ps.in_kwargs:
 ${get_port_val(spec, ps)}\
         % endif
         % endfor
@@ -201,6 +199,6 @@ ${get_port_val(spec, ps)}\
 
 _modules = [
 % for spec in specs.module_specs:
-            ${spec.name},
+            ${spec.module_name},
 % endfor
 ]

@@ -181,6 +181,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                     'MplScatter':
                     [(None, '1.1.0', None,
                       {'dst_port_remap': {'cScalar': 'c',
+                                          's': 'sScalar',
                                           'norm': None}})],
                     'MplHistogram':
                     [(None, '1.0.0', 'MplHist',

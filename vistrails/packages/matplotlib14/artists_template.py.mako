@@ -3,10 +3,6 @@ from bases import MplProperties
 import matplotlib.artist
 import matplotlib.cbook
 
-% if specs.custom_code:
-${specs.custom_code}
-% endif
-
 <%def name="get_props(t_ps)">\
 % if t_ps.constructor_arg:
 artist.constructor_props['${t_ps.arg}']\
@@ -23,7 +19,7 @@ if t_core_ps is None:
     t_core_ps = t_ps
 %>\
 % if type(t_ps.translations) == dict:
-${get_props(t_core_ps)} = translate_${t_spec.name}_${t_ps.name}(${get_props(t_core_ps)})\
+${get_props(t_core_ps)} = translate_${t_spec.module_name}_${t_ps.name}(${get_props(t_core_ps)})\
 % else:
 ${get_props(t_core_ps)} = ${t_ps.translations}(${get_props(t_core_ps)})\
 % endif
@@ -33,9 +29,9 @@ def translate_color(c):
     return c.tuple
 
 % for spec in specs.module_specs:
-% for ps in spec.port_specs:
+% for ps in spec.input_port_specs:
 % if ps.translations and type(ps.translations) == dict:
-def translate_${spec.name}_${ps.name}(val):
+def translate_${spec.module_name}_${ps.name}(val):
     translate_dict = ${ps.translations}
     return translate_dict[val]
 % endif
@@ -43,19 +39,17 @@ def translate_${spec.name}_${ps.name}(val):
 % endfor
 
 % for spec in specs.module_specs:
-class ${spec.name}(${spec.superklass}):
+class ${spec.module_name}(${spec.superklass}):
     """${spec.docstring}
     """
     _input_ports = [
-        % for ps in spec.port_specs:
-        % if not ps.hide:
+        % for ps in spec.input_port_specs:
               ("${ps.name}", "${ps.get_port_type()}",
                 ${ps.get_port_attrs()}),
         % for alt_ps in ps.alternate_specs:
               ("${alt_ps.name}", "${alt_ps.get_port_type()}",
                ${alt_ps.get_port_attrs()}),
         % endfor
-        % endif
         % endfor
         % for ps in spec.output_port_specs:
         % if ps.is_property():
@@ -66,7 +60,7 @@ class ${spec.name}(${spec.superklass}):
         ]
 
     # only one output port: 'value'
-    _output_ports = [("value", "(${spec.name})")]
+    _output_ports = [("value", "(${spec.module_name})")]
 
     class Artist(${spec.superklass}.Artist):
         def __init__(self):
@@ -111,16 +105,16 @@ class ${spec.name}(${spec.superklass}):
 
     def compute(self, artist=None):
         if artist is None:
-            artist = ${spec.name}.Artist()
+            artist = ${spec.module_name}.Artist()
             self.set_output("value", artist)
 
         % if spec.get_compute_before():
         ${spec.get_compute_before()}
         % endif
         ${spec.superklass}.compute(self, artist)
-        % for ps in spec.port_specs:
-        % if not ps.hide and ps.in_kwargs:
-        % if ps.required:
+        % for ps in spec.input_port_specs:
+        % if ps.in_kwargs:
+        % if ps.show_port:
         % if ps.has_alternate_versions():
         if self.has_input('${ps.name}'):
             ${get_props(ps)} = self.get_input('${ps.name}')
@@ -174,6 +168,6 @@ class ${spec.name}(${spec.superklass}):
 
 _modules = [
 % for spec in specs.module_specs:
-            ${spec.name},
+            ${spec.module_name},
 % endfor
 ]
