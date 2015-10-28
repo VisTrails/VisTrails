@@ -133,7 +133,7 @@ class SpecObject(object):
             default_val, is_subelt, run_eval = parse_props(props)
             if default_val != value and value is not None:
                 if run_eval:
-                    value = repr(value)
+                    value = self.get_raw(attr)
                 else:
                     value = unicode(value)
                 if is_subelt:
@@ -152,6 +152,14 @@ class SpecObject(object):
         if run_eval:
             value = ast.literal_eval(value)
         setattr(self, attr, value)
+
+    def get_raw(self, attr):
+        """ serialize the value before returning it
+        """
+        props = self.attrs[attr]
+        run_eval = parse_props(props)[2]
+        value = getattr(self, attr)
+        return repr(value) if run_eval else value
 
     @classmethod
     def internal_from_xml(cls, elt):
