@@ -80,6 +80,7 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
             if qualifier == "alternate":
                 elt.set("port", port)
                 elt.set("altName", arg)
+                out_ps.xml_name = 'alternateSpec'
             else:
                 elt.set("port", arg)
             elt.set("type", qualifier)
@@ -115,7 +116,7 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
                 elt.set("type", qualifier)
                 elt.set("attr", attr)
                 subelt = ET.Element("value")
-                subelt.text = str(out_val)
+                subelt.text = out_ps.get_raw(attr) # serializes value
                 elt.append(subelt)
                 root.append(elt)
         # only do this for input right now
@@ -124,8 +125,8 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
                             code_ref, "alternate", arg)
 
 def compute_diff(in_fname, out_fname, diff_fname):
-    in_specs = SpecList.read_from_xml(in_fname)
-    out_specs = SpecList.read_from_xml(out_fname)
+    in_specs = SpecList.read_from_xml(in_fname, ModuleSpec)
+    out_specs = SpecList.read_from_xml(out_fname, ModuleSpec)
 
     in_refs = dict((spec.code_ref, spec) for spec in in_specs.module_specs)
     out_refs = dict((spec.code_ref, spec) for spec in out_specs.module_specs)
@@ -164,11 +165,11 @@ def compute_diff(in_fname, out_fname, diff_fname):
                 elt.set("code_ref", out_spec.code_ref)
                 elt.set("attr", attr)
                 subelt = ET.Element("value")
-                subelt.text = str(out_val)
+                subelt.text = out_spec.get_raw(attr) # serializes value
                 elt.append(subelt)
                 root.append(elt)
 
-        compute_ps_diff(root, in_spec.input_port_specs, out_spec.output_port_specs,
+        compute_ps_diff(root, in_spec.input_port_specs, out_spec.input_port_specs,
                         code_ref, "input")
         compute_ps_diff(root, in_spec.output_port_specs, 
                         out_spec.output_port_specs,
