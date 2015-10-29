@@ -198,24 +198,23 @@ def compute_diff(in_fname, out_fname, diff_fname):
 def apply_diff(in_fname, diff_fname, out_fname):
     in_specs = SpecList.read_from_xml(in_fname, ModuleSpec)
     
-    in_refs = dict((spec.code_ref, (i, spec))
-                   for i, spec in enumerate(in_specs.module_specs))
-    print in_specs.module_specs[0].input_port_specs
-    in_ips_refs = dict(((spec.code_ref, ps.arg), (i, ps))
+    in_refs = dict((spec.code_ref, spec)
+                   for spec in in_specs.module_specs)
+    in_ips_refs = dict(((spec.code_ref, ps.arg), ps)
                        for spec in in_specs.module_specs 
-                       for i, ps in enumerate(spec.input_port_specs))
-    in_ops_refs = dict(((spec.code_ref, ps.arg), (i, ps))
+                       for ps in spec.input_port_specs)
+    in_ops_refs = dict(((spec.code_ref, ps.arg), ps)
                        for spec in in_specs.module_specs
-                       for i, ps in enumerate(spec.output_port_specs))
-    in_alt_refs = dict(((spec.code_ref, ps.arg, alt_ps.name), (i, ps))
+                       for ps in spec.output_port_specs)
+    in_alt_refs = dict(((spec.code_ref, ps.arg, alt_ps.name), ps)
                        for spec in in_specs.module_specs
                        for ps in spec.input_port_specs
-                       for i, alt_ps in enumerate(ps.alternate_specs))
+                       for alt_ps in ps.alternate_specs)
 
     tree = ET.parse(diff_fname)
     for elt in tree.getroot():
         code_ref = elt.get("code_ref")
-        m_spec = in_refs[code_ref][1]
+        m_spec = in_refs[code_ref]
         port = elt.get("port", None)
         if port:
             port_type = elt.get("type")
@@ -224,22 +223,21 @@ def apply_diff(in_fname, diff_fname, out_fname):
         if elt.tag.startswith('delete'):
             if port:
                 if port_type == "input":
-                    idx = in_ips_refs[(code_ref, port)][0]
-                    print "deleting", idx, (code_ref, port)
-                    del m_spec.input_port_specs[idx]
+                    port_spec = in_ips_refs[(code_ref, port)]
+                    print "deleting", (code_ref, port)
+                    m_spec.input_port_specs.remove(port_spec)
                 elif port_type == 'output':
-                    idx = in_ops_refs[(code_ref, port)][0]
-                    del m_spec.output_port_specs[idx]
+                    port_spec = in_ips_refs[(code_ref, port)]
+                    m_spec.output_port_specs.remove(port_spec)
                 elif port_type == 'alternate':
                     ps = in_ips_refs[(code_ref, port)][1]
-                    idx = in_alt_refs[(code_ref, port, alt_name)][0]
-                    del ps.alternate_specs[idx]
+                    alt_spec = in_alt_refs[(code_ref, port, alt_name)]
+                    ps.alternate_specs.remove(alt_spec)
                 else:
                     raise ValueError('Cannot access list of type "%s"' %
                                      port_type)
             else:
-                idx = in_refs[code_ref][0]
-                del in_specs.module_specs[idx]
+                in_specs.module_specs.remove(m_spec)
         elif elt.tag.startswith('add'):
             for child in elt.getchildren():
                 if child.tag == 'value':
@@ -252,7 +250,7 @@ def apply_diff(in_fname, diff_fname, out_fname):
                     m_spec.output_port_specs.append(
                         OutputPortSpec.from_xml(value))
                 elif port_type == "alternate":
-                    ps = in_ips_refs[(code_ref, port)][1]
+                    ps = in_ips_refs[(code_ref, port)]
                     ps.alternate_specs.append(InputPortSpec.from_xml(value))
                 else:
                     raise ValueError('Cannot access list of type "%s"' %
@@ -264,19 +262,18 @@ def apply_diff(in_fname, diff_fname, out_fname):
             for child in elt.getchildren():
                 if child.tag == 'value':
                     value = child.text
-            print "CHANGED!!!!", attr, value
             if port:
                 # KLUDGE to fix change from output_type to port_type
                 if attr == "output_type":
                     attr = "port_type"
                 if port_type == "input":
-                    port_spec = in_ips_refs[(code_ref, port)][1]
+                    port_spec = in_ips_refs[(code_ref, port)]
                     port_spec.set_raw(attr, value)
                 elif port_type == "output":
-                    port_spec = in_ops_refs[(code_ref, port)][1]
+                    port_spec = in_ops_refs[(code_ref, port)]
                     port_spec.set_raw(attr, value)
                 elif port_type == "alternate":
-                    port_spec = in_alt_refs[(code_ref, port, alt_name)][1]
+                    port_spec = in_alt_refs[(code_ref, port, alt_name)]
                     port_spec.set_raw(attr, value)
             else:
                 m_spec.set_raw(attr, value)
