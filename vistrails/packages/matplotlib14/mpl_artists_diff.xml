@@ -36,7 +36,7 @@
     <value>False</value>
   </changePortSpec>
   <changePortSpec attr="translations" code_ref="matplotlib.axis.Tick" port="color" type="input">
-    <value>"translate_color"</value>
+    <value>'translate_color'</value>
   </changePortSpec>
   <changePortSpec attr="port_type" code_ref="matplotlib.axis.Tick" port="color" type="input">
     <value>basic:Color</value>
@@ -101,7 +101,7 @@
     </value>
   </addPortSpec>
   <changePortSpec attr="translations" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
-    <value>{'caretright': 5, 'star': '*', 'point': '.', 'tickdown': 3, 'triangle_right': '&gt;', 'tickup': 2, 'hexagon1': 'h', 'hline': '_', 'vline': '|', 'mathtext': '$...$', 'nothing': ' ', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'caretdown': 7, 'tri_down': '1', 'tickright': 1, 'tri_right': '4', 'thin_diamond': 'd', 'diamond': 'D', 'octagon': '8', 'tickleft': 0, 'square': 's', 'tri_up': '2', 'plus': '+', 'x': 'x', 'triangle_down': 'v', 'triangle_up': '^', 'hexagon2': 'H', 'caretup': 6, 'circle': 'o', 'pixel': ',', 'triangle_left': '&lt;'}</value>
+    <value>{'caretright': 5, 'point': '.', 'mathtext': '$...$', 'triangle_right': '&gt;', 'tickup': 2, 'caretup': 6, 'hline': '_', 'vline': '|', 'caretleft': 4, 'pentagon': 'p', 'tri_left': '3', 'tickright': 1, 'tri_right': '4', 'tickleft': 0, 'tri_up': '2', 'square': 's', 'circle': 'o', 'pixel': ',', 'diamond': 'D', 'star': '*', 'hexagon1': 'h', 'octagon': '8', 'hexagon2': 'H', 'tickdown': 3, 'nothing': ' ', 'thin_diamond': 'd', 'tri_down': '1', 'triangle_left': '&lt;', 'caretdown': 7, 'plus': '+', 'triangle_down': 'v', 'triangle_up': '^', 'x': 'x'}</value>
   </changePortSpec>
   <changePortSpec attr="entry_types" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
     <value>['enum']</value>
@@ -109,9 +109,9 @@
   <changePortSpec attr="values" code_ref="matplotlib.lines.Line2D" port="marker" type="input">
     <value>[['caretdown', 'caretleft', 'caretright', 'caretup', 'circle', 'diamond', 'hexagon1', 'hexagon2', 'hline', 'nothing', 'octagon', 'pentagon', 'pixel', 'plus', 'point', 'square', 'star', 'thin_diamond', 'tickdown', 'tickleft', 'tickright', 'tickup', 'tri_down', 'tri_left', 'tri_right', 'tri_up', 'triangle_down', 'triangle_left', 'triangle_right', 'triangle_up', 'vline', 'x', 'mathtext']]</value>
   </changePortSpec>
-  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="title" type="output">
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="yaxis" type="output">
     <value>
-      <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
+      <outputPortSpec arg="yaxis" compute_name="yaxis" compute_parent="yaxis" name="yaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.YAxis" />
     </value>
   </addPortSpec>
   <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="xaxis" type="output">
@@ -119,9 +119,9 @@
       <outputPortSpec arg="xaxis" compute_name="xaxis" compute_parent="xaxis" name="xaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.XAxis" />
     </value>
   </addPortSpec>
-  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="yaxis" type="output">
+  <addPortSpec code_ref="matplotlib.axes._base._AxesBase" port="title" type="output">
     <value>
-      <outputPortSpec arg="yaxis" compute_name="yaxis" compute_parent="yaxis" name="yaxisProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.axis.YAxis" />
+      <outputPortSpec arg="title" compute_name="title" compute_parent="title" name="titleProperties" port_type="__property__" property_key="__none__" property_type="matplotlib.text.Text" />
     </value>
   </addPortSpec>
 </diff>
