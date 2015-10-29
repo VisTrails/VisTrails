@@ -206,7 +206,7 @@ def apply_diff(in_fname, diff_fname, out_fname):
     in_ops_refs = dict(((spec.code_ref, ps.arg), ps)
                        for spec in in_specs.module_specs
                        for ps in spec.output_port_specs)
-    in_alt_refs = dict(((spec.code_ref, ps.arg, alt_ps.name), ps)
+    in_alt_refs = dict(((spec.code_ref, ps.arg, alt_ps.name), alt_ps)
                        for spec in in_specs.module_specs
                        for ps in spec.input_port_specs
                        for alt_ps in ps.alternate_specs)
@@ -227,7 +227,7 @@ def apply_diff(in_fname, diff_fname, out_fname):
                     print "deleting", (code_ref, port)
                     m_spec.input_port_specs.remove(port_spec)
                 elif port_type == 'output':
-                    port_spec = in_ips_refs[(code_ref, port)]
+                    port_spec = in_ops_refs[(code_ref, port)]
                     m_spec.output_port_specs.remove(port_spec)
                 elif port_type == 'alternate':
                     ps = in_ips_refs[(code_ref, port)][1]
