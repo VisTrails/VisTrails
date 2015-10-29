@@ -200,19 +200,19 @@ def compute_diff(in_fname, out_fname, diff_fname):
 def apply_diff(in_fname, diff_fname, out_fname):
     in_specs = SpecList.read_from_xml(in_fname)
     
-    in_refs = dict((spec.code_ref, (i, spec))
-                   for i, spec in enumerate(in_specs.module_specs))
-    in_ips_refs = dict(((spec.code_ref, ps.arg), (i, ps))
+    in_refs = dict((spec.code_ref, spec)
+                   for spec in in_specs.module_specs)
+    in_ips_refs = dict(((spec.code_ref, ps.arg), ps)
                        for spec in in_specs.module_specs 
-                       for i, ps in enumerate(spec.port_specs))
-    in_ops_refs = dict(((spec.code_ref, ps.arg), (i, ps))
+                       for ps in spec.port_specs)
+    in_ops_refs = dict(((spec.code_ref, ps.arg), ps)
                        for spec in in_specs.module_specs
-                       for i, ps in enumerate(spec.output_port_specs))
-    in_alt_refs = dict(((spec.code_ref, ps.arg, alt_ps.name), (i, ps))
+                       for ps in spec.output_port_specs)
+    in_alt_refs = dict(((spec.code_ref, ps.arg, alt_ps.name), alt_ps)
                        for spec in in_specs.module_specs
                        for ps in spec.port_specs
-                       for i, alt_ps in enumerate(ps.alternate_specs))
-
+                       for alt_ps in ps.alternate_specs)
+    print in_alt_refs
     tree = ET.parse(diff_fname)
     for elt in tree.getroot():
         if elt.tag == "changeCustomCode":
@@ -220,7 +220,7 @@ def apply_diff(in_fname, diff_fname, out_fname):
             in_specs.custom_code = val
             continue
         code_ref = elt.get("code_ref")
-        m_spec = in_refs[code_ref][1]
+        m_spec = in_refs[code_ref]
         port = elt.get("port", None)
         if port:
             port_type = elt.get("type")
@@ -229,22 +229,23 @@ def apply_diff(in_fname, diff_fname, out_fname):
         if elt.tag.startswith('delete'):
             if port:
                 if port_type == "input":
-                    idx = in_ips_refs[(code_ref, port)][0]
-                    print "deleting", idx, (code_ref, port)
-                    del m_spec.port_specs[idx]
+                    port_spec = in_ips_refs[(code_ref, port)]
+                    print "deleting", (code_ref, port)
+                    m_spec.port_specs.remove(port_spec)
                 elif port_type == 'output':
-                    idx = in_ops_refs[(code_ref, port)][0]
-                    del m_spec.output_port_specs[idx]
+                    port_spec = in_ops_refs[(code_ref, port)]
+                    m_spec.output_port_specs.remove(port_spec)
                 elif port_type == 'alternate':
-                    ps = in_ips_refs[(code_ref, port)][1]
-                    idx = in_alt_refs[(code_ref, port, alt_name)][0]
-                    del ps.alternate_specs[idx]
+                    print "key", (code_ref, port, alt_name)
+                    ps = in_ips_refs[(code_ref, port)]
+                    alt_spec = in_alt_refs[(code_ref, port, alt_name)]
+                    print "obj", alt_spec, ps.alternate_specs
+                    ps.alternate_specs.remove(alt_spec)
                 else:
                     raise ValueError('Cannot access list of type "%s"' %
                                      port_type)
             else:
-                idx = in_refs[code_ref][0]
-                del in_specs.module_specs[idx]
+                in_specs.module_specs.remove(m_spec)
         elif elt.tag.startswith('add'):
             for child in elt.getchildren():
                 if child.tag == 'value':
@@ -257,7 +258,7 @@ def apply_diff(in_fname, diff_fname, out_fname):
                     m_spec.output_port_specs.append(
                         OutputPortSpec.from_xml(value))
                 elif port_type == "alternate":
-                    ps = in_ips_refs[(code_ref, port)][1]
+                    ps = in_ips_refs[(code_ref, port)]
                     ps.alternate_specs.append(AlternatePortSpec.from_xml(value))
                 else:
                     raise ValueError('Cannot access list of type "%s"' %
@@ -274,13 +275,13 @@ def apply_diff(in_fname, diff_fname, out_fname):
                 if attr == "output_type":
                     attr = "port_type"
                 if port_type == "input":
-                    port_spec = in_ips_refs[(code_ref, port)][1]
+                    port_spec = in_ips_refs[(code_ref, port)]
                     setattr(port_spec, attr, value)
                 elif port_type == "output":
-                    port_spec = in_ops_refs[(code_ref, port)][1]
+                    port_spec = in_ops_refs[(code_ref, port)]
                     setattr(port_spec, attr, value)
                 elif port_type == "alternate":
-                    port_spec = in_alt_refs[(code_ref, port, alt_name)][1]
+                    port_spec = in_alt_refs[(code_ref, port, alt_name)]
                     setattr(port_spec, attr, value)
             else:
                 setattr(m_spec, attr, value)
