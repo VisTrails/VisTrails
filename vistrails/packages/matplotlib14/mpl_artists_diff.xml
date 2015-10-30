@@ -22,7 +22,7 @@
     </value>
   </addPortSpec>
   <deletePortSpec code_ref="matplotlib.axis.Tick" port="label1" type="input" />
-  <deletePortSpec code_ref="matplotlib.axis.Tick" port="axes" type="input" />
+  <deletePortSpec code_ref="matplotlib.axis.Tick" port="label2" type="input" />
   <changePortSpec attr="not_setp" code_ref="matplotlib.axis.Tick" port="label1On" type="input">
     <value>True</value>
   </changePortSpec>

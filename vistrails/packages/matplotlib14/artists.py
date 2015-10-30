@@ -4322,8 +4322,8 @@ class MplTickProperties(MplArtistProperties):
                 {'optional': True, 'defaults': [False]}),
               ("color", "basic:Color",
                 {'optional': True}),
-              ("label2", "basic:String",
-                {'optional': True, 'docstring': 'Set the text of ticklabel2'}),
+              ("axes", "basic:Null",
+                {'optional': True}),
               ("clip_path", "basic:String",
                 {'values': [['(:class:`~matplotlib.path.Path`,         :class:`~matplotlib.transforms.Transform`)', ':class:`~matplotlib.patches.Patch`']], 'entry_types': ['enum'], 'docstring': "Set the artist's clip path, which may be:\n\na :class:`~matplotlib.patches.Patch` (or subclass) instance\n\n\n\nNone, to remove the clipping path\n\nFor efficiency, if the path happens to be an axis-aligned rectangle, this method will set the clipping box to the corresponding rectangle and set the clipping path to None.", 'optional': True}),
               ("label", "basic:String",
@@ -4420,8 +4420,8 @@ class MplTickProperties(MplArtistProperties):
         if self.has_input('color'):
             artist.constructor_props['color'] = self.get_input('color')
             artist.constructor_props['color'] = translate_color(artist.constructor_props['color'])
-        if self.has_input('label2'):
-            artist.props['label2'] = self.get_input('label2')
+        if self.has_input('axes'):
+            artist.constructor_props['axes'] = self.get_input('axes')
         if self.has_input('clip_path'):
             artist.props['clip_path'] = self.get_input('clip_path')
         if self.has_input('label'):

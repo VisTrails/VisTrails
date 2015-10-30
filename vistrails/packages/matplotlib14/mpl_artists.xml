@@ -2046,9 +2046,7 @@ text : for information on how override and the optional args work</docstring>
     <inputPortSpec arg="color" arg_pos="5" constructor_arg="True" name="color" port_type="basic:Color">
       <translations>'translate_color'</translations>
     </inputPortSpec>
-    <inputPortSpec arg="label2" name="label2">
-      <docstring>Set the text of ticklabel2</docstring>
-    </inputPortSpec>
+    <inputPortSpec arg="axes" arg_pos="0" constructor_arg="True" name="axes" port_type="basic:Null" />
     <inputPortSpec arg="clip_path" name="clip_path">
       <docstring>Set the artist's clip path, which may be:
 
