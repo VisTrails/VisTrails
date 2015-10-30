@@ -40,7 +40,7 @@ import inspect
 import mixins
 
 from vistrails.core.wrapper.specs import SpecList, FunctionSpec, \
-    FunctionInputPortSpec, FunctionOutputPortSpec, parse_props
+    FunctionInputPortSpec, FunctionOutputPortSpec
 
 
 def capfirst(s):
@@ -149,8 +149,3 @@ class MPLFunctionSpec(FunctionSpec):
 
     def get_init(self):
         return self.get_mixin_function("__init__")
-
-
-MPLSpecList = SpecList
-
-

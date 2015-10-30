@@ -43,6 +43,7 @@ import shutil
 from parse import run as run_parse
 from diff import compute_diff, apply_diff
 from generate import run as run_generate
+from mpl_specs import MPLFunctionSpec
 
 _bases = ["artists", "plots"]
 
@@ -62,11 +63,13 @@ def run(which="all"):
     else:
         bases = [which]
     for base in bases:
-        compute_diff("mpl_%s_raw.xml" % base, 
+        compute_diff(MPLFunctionSpec,
+                     "mpl_%s_raw.xml" % base,
                      "mpl_%s.xml" % base, 
                      "mpl_%s_diff.xml" % base)
         run_parse(base)
-        apply_diff("mpl_%s_raw.xml" % base,
+        apply_diff(MPLFunctionSpec,
+                   "mpl_%s_raw.xml" % base,
                    "mpl_%s_diff.xml" % base,
                    "mpl_%s.xml" % base)
         run_generate(base)

@@ -65,13 +65,11 @@ import matplotlib.cbook
 ArtistInspector._get_valid_values_regex = re.compile(
     r"\n\s*ACCEPTS:\s*((?:.|\n)*?)(?:$|(?:\n\n))", re.IGNORECASE)
 
-from mpl_specs import MPLSpecList as SpecList, \
+from mpl_specs import SpecList, \
     MPLFunctionSpec as ModuleSpec, \
     MPLInputPortSpec as InputPortSpec, \
     MPLOutputPortSpec as OutputPortSpec
 
-# sys.path.append('/vistrails/src/git')
-from vistrails.core.modules.utils import expand_port_spec_string
 
 ##############################################################################
 # docutils parsing code
