@@ -1,6 +1,8 @@
 ###############################################################################
 ##
 ## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2011-2014, NYU-Poly.
+## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
 ## Contact: contact@vistrails.org
 ##
@@ -34,11 +36,6 @@
 
 from __future__ import division
 
-from vistrails.core.requirements import require_python_module
-from identifiers import *
-
-def package_requirements():
-    require_python_module('sklearn', {
-                          'pip': 'scikit-learn',
-                          'linux-debian': 'python-sklearn',
-                          'linux-ubuntu': 'python-sklearn'})
+identifier = 'org.vistrails.vistrails.sklearn'
+name = 'sklearn'
+version = '0.15.3'

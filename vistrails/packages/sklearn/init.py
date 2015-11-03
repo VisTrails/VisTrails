@@ -33,11 +33,21 @@
 ###############################################################################
 
 from __future__ import division
+import importlib
+
+import os.path
+
+from vistrails.core.system import current_dot_vistrails
 
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.wrapper.specs import SpecList, ModuleSpec as BaseModuleSpec, \
+    InputPortSpec
+from vistrails.core.wrapper.pythonmodule import ModuleSpecGenerator
+from identifiers import *
 
 import numpy as np
+import sklearn
 from sklearn.base import ClassifierMixin
 from sklearn import datasets
 from sklearn.cross_validation import train_test_split, cross_val_score
@@ -45,6 +55,14 @@ from sklearn.metrics import SCORERS, roc_curve
 from sklearn.grid_search import GridSearchCV as _GridSearchCV
 from sklearn.pipeline import make_pipeline
 from sklearn.utils.testing import all_estimators
+
+class ModuleSpec(BaseModuleSpec):
+    """ Specification for wrapping a python class
+    """
+    attrs = {
+        '_estimator_class': (False, True, True), # estimator class as (module, name)
+        }
+    attrs.update(BaseModuleSpec.attrs)
 
 
 def try_convert(input_string):
@@ -304,25 +322,38 @@ class ROCCurve(Module):
 ###############################################################################<F2>
 # Classifiers and Regressors
 
-def make_module(name, Estimator, namespace, supervised=False, Base=None):
-    input_ports = [("training_data", "basic:List", {'shape': 'circle'})]
-    if supervised:
-        input_ports.append(("training_target", "basic:List", {'shape': 'circle'}))
-    est = Estimator()
-    input_ports.extend([(param, "basic:String", {'optional': True}) for param
-                        in est.get_params()])
-    _settings = ModuleSettings(namespace=namespace)
-    if Base is None:
-        if supervised:
-            Base = SupervisedEstimator
-        else:
-            Base = UnsupervisedEstimator
-    new_class = type(name, (Base,),
-                     {'_input_ports': input_ports, '_settings': _settings,
-                      '_estimator_class': Estimator, '__doc__':
-                      Estimator.__doc__})
-    return new_class
+est_dict = {}
 
+def make_spec(name, Estimator, namespace, supervised=False, base=None):
+    # TODO: It should generate a spec!
+    # And a different function should turn the spec into modules
+    # EXTRA SPEC ARG: _estimator_class
+
+    estimator = (Estimator.__module__, Estimator.__name__)
+    input_ports = [InputPortSpec(name="training_data",
+                                 port_type="basic:List",
+                                 shape='circle',
+                                 show_port=True)]
+    if supervised:
+        input_ports.append(InputPortSpec(name="training_target",
+                                         port_type="basic:List",
+                                         shape='circle',
+                                         show_port=True))
+    est = Estimator()
+    input_ports.extend([InputPortSpec(name=param, port_type="basic:String")
+                        for param in est.get_params()])
+    if base is None:
+        if supervised:
+            base = 'SupervisedEstimator'
+        else:
+            base = 'UnsupervisedEstimator'
+    module_spec = ModuleSpec(name=name,
+                             superklass=base,
+                             docstring=Estimator.__doc__,
+                             namespace=namespace,
+                             _estimator_class=estimator,
+                             input_port_specs=input_ports)
+    return module_spec
 
 def discover_supervised():
     classifiers = all_estimators(type_filter="classifier")
@@ -333,7 +364,7 @@ def discover_supervised():
             namespace = "classifiers"
         else:
             namespace = "regressors"
-        classes.append(make_module(name, Est, namespace, supervised=True))
+        classes.append(make_spec(name, Est, namespace, supervised=True))
     return classes
 
 
@@ -341,7 +372,7 @@ def discover_supervised():
 # Clustering
 
 def discover_clustering():
-    return [make_module(name, Est, "clustering") for (name, Est) in
+    return [make_spec(name, Est, "clustering") for (name, Est) in
             all_estimators(type_filter="cluster")]
 
 
@@ -361,7 +392,7 @@ def discover_unsupervised_transformers():
             # the manifold module does not really provide transformers and is
             # handled elsewhere (there is usually no transform method).
             continue
-        classes.append(make_module(name, Est, namespace=module))
+        classes.append(make_spec(name, Est, namespace=module))
     return classes
 
 
@@ -375,7 +406,7 @@ def discover_feature_selection():
         module = Est.__module__.split(".")[1]
         if module != "feature_selection" or name == "GenericUnivariateSelect":
             continue
-        classes.append(make_module(name, Est, namespace=module, supervised=True))
+        classes.append(make_spec(name, Est, namespace=module, supervised=True))
     return classes
 
 
@@ -408,7 +439,7 @@ def discover_manifold_learning():
         module = Est.__module__.split(".")[1]
         if module != "manifold":
             continue
-        classes.append(make_module(name, Est, namespace=module, Base=ManifoldLearner))
+        classes.append(make_spec(name, Est, namespace=module, base='ManifoldLearner'))
     return classes
 
 
@@ -416,8 +447,39 @@ _modules = [Digits, Iris, Estimator, SupervisedEstimator,
             UnsupervisedEstimator, ManifoldLearner, Predict, Transform,
             TrainTestSplit, Score, ROCCurve, CrossValScore, GridSearchCV,
             Pipeline]
-_modules.extend(discover_supervised())
-_modules.extend(discover_clustering())
-_modules.extend(discover_unsupervised_transformers())
-_modules.extend(discover_feature_selection())
-_modules.extend(discover_manifold_learning())
+
+###############################################################################
+# create module specs on first run
+
+# sklearn-SKLEARNVERSION-PKGVERSION.xml
+spec_name = os.path.join(current_dot_vistrails(),
+                         'sklearn-%s-spec-%s.xml' %
+                         (sklearn.__version__.replace('.', '_'),
+                          version.replace('.', '_')))
+# TODO: how to patch with diff/merge
+if not os.path.exists(spec_name):
+    # generate specs
+    _spec_list = []
+    _spec_list.extend(discover_supervised())
+    _spec_list.extend(discover_clustering())
+    _spec_list.extend(discover_unsupervised_transformers())
+    _spec_list.extend(discover_feature_selection())
+    _spec_list.extend(discover_manifold_learning())
+    spec_list = SpecList(_spec_list)
+    spec_list.write_to_xml(spec_name)
+else:
+    spec_list = SpecList.read_from_xml(spec_name, ModuleSpec)
+
+###############################################################################
+# generate modules
+
+base_modules = dict([(m.__name__, m) for m in _modules])
+
+class SklearnGenerator(ModuleSpecGenerator):
+    def handle_extra_arg(self, module, arg, value):
+        setattr(module, arg, getattr(importlib.import_module(value[0]), value[1]))
+
+g = SklearnGenerator(ModuleSpec)
+
+_modules.extend([g.generate(spec, base_modules)
+                 for spec in spec_list.module_specs])
