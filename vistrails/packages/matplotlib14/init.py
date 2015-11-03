@@ -182,6 +182,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                     [(None, '1.1.0', None,
                       {'dst_port_remap': {'cScalar': 'c',
                                           's': 'sScalar',
+                                          # 1.4 does not have edgecolors, but 1.5 do
+                                          'edgecolors': None,
                                           'norm': None}})],
                     'MplHistogram':
                     [(None, '1.0.0', 'MplHist',
@@ -195,7 +197,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                        'src_port_remap': {'source': 'value'}})],
                     'MplAxesProperties':
                     [(None, '1.1.0', None,
-                      {'dst_port_remap': {'xticklabelsSequence': 'xticklabels'},
+                      {'dst_port_remap': {'xticklabelsSequence': 'xticklabels',
+                                          'yticklabelsSequence': 'yticklabels'},
                        'src_port_remap': {'source': 'value',
                                           'self': 'value'}})]
                 }
