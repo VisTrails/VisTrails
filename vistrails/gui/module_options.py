@@ -535,7 +535,7 @@ class QPortCombineTreeWidget(QtGui.QTreeWidget):
 
 class TestIterationGui(unittest.TestCase):
     def testGetSet(self):
-        p = QPortCombineTreeWidget()
+        p = QPortCombineTreeWidget(lambda: None)
         v = '["cartesian", ["pairwise", "a", "b"], "c"]'
         p.setValue(v)
         self.assertEqual(v, p.getValue())
