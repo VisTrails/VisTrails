@@ -42,7 +42,7 @@ apply_diff - apply diff changes to a spec
 from __future__ import division
 
 from xml.etree import ElementTree as ET
-from specs import SpecList, InputPortSpec
+from specs import SpecList
 
 
 def edit_distance(s1, s2):
@@ -66,8 +66,48 @@ def string_similarity(s1, s2):
     """ Normalized for length so that partial matches are scored higher
 
     """
-    score = -float(edit_distance(s1, s2)) / max(len(s1), len(s2))
-    # print s1, s2, score
+    if s1 == s2:
+        return max(len(s1), len(s2))
+    score = 1 - float(edit_distance(s1, s2)) / max(len(s1), len(s2))
+    #print s1, s2, score
+    return score
+
+
+def all_specs(input_port_spec):
+    """ Return all alternate specs
+    """
+    return [input_port_spec] + input_port_spec.alternate_specs
+
+
+def module_similarity(s1, s2):
+    """ default module similarity function
+        adds name and port similarity
+    """
+    # string_similarity can actually be used on any list
+    s1_port_specs = sorted([s.name for spec in s1.input_port_specs
+                     for s in all_specs(spec)])
+    s2_port_specs = sorted([s.name for spec in s2.input_port_specs
+                     for s in all_specs(spec)])
+    input_port_score = 1 + string_similarity(s1_port_specs, s2_port_specs)
+
+    s1_port_specs = [s.name for s in s1.output_port_specs]
+    s2_port_specs = [s.name for s in s2.output_port_specs]
+    output_port_score = 1 + string_similarity(s1_port_specs, s2_port_specs)
+
+    name_score = 1 + string_similarity(s1.name.lower(), s2.name.lower())
+
+    return name_score + input_port_score + output_port_score
+
+
+def port_similarity(p1, p2):
+    """ default port similarity function
+        checks name similarity for ports of same type
+        if names don't match it is still a possible match
+    """
+    if p1.port_type != p2.port_type:
+        return 0
+    score = 1 + string_similarity(p1.name.lower(), p2.name.lower())
+    #print p1.name, p2.name, score
     return score
 
 
@@ -309,10 +349,23 @@ def apply_diff(module_spec, in_fname, diff_fname, out_fname):
     in_specs.write_to_xml(out_fname)
 
 
-def compute_upgrade(module_spec, in_fname, out_fname):
+def compute_upgrade(module_spec, in_fname, out_fname,
+                    module_similarity_func=None, port_similarity_func=None):
     """ Computes module upgrade path suggestions
 
+    Parameters
+    ----------
+    module_similarity_func : function(m1, m2)
+        compares 2 module specifications
+    port_similarity_func : function(p1, p2)
+        compares 2 port specifications and returns similarity as:
+        >0 possible match score
+        0 no match
     """
+    if module_similarity_func is None:
+        module_similarity_func = module_similarity
+    if port_similarity_func is None:
+        port_similarity_func = port_similarity
     in_specs = SpecList.read_from_xml(in_fname, module_spec)
     out_specs = SpecList.read_from_xml(out_fname, module_spec)
 
@@ -327,16 +380,22 @@ def compute_upgrade(module_spec, in_fname, out_fname):
 
     old_module_map = {}
 
+    def best_match(score_list):
+        # best score must be >0 and alone
+        if (len(score_list) == 0 or score_list[-1][0] <= 0 or
+           (len(score_list) > 1 and score_list[-2][0] == score_list[-1][0])):
+            return None
+        else:
+            return sorted(score_list)[-1][1]
+        old_module_map[best_match] = ref
+
     for ref in deleted_modules:
         # Suggest module to upgrade to by calculating similarity scores
         # FIXME: we could use something more intelligent here
-        score_list = [(string_similarity(ref), a) for a in added_modules]
-        if len(score_list) == 0:
-            best_match = None
-        else:
-            best_match = sorted(score_list)[-1][1]
-        old_module_map[best_match] = ref
-        print "%s --> %s" % (ref, best_match)
+        score_list = sorted([(module_similarity_func(in_refs[ref],
+                                                     out_refs[a]), a)
+                             for a in added_modules])
+        print "%s --> %s" % (ref, best_match(score_list))
 
     for code_ref, out_spec in out_refs.iteritems():
         # need to check port specs, which removed, which added
@@ -348,41 +407,38 @@ def compute_upgrade(module_spec, in_fname, out_fname):
             # No old module found
             continue
 
-        def all_names(port_spec):
-            """ Return all alternate names
-            """
-            return [port_spec.name] + [a.name for a in port_spec.alternate_specs]
-
         # Compute input mappings
-        old_params = [name for port_spec in in_spec.input_port_specs
-                                    for name in all_names(port_spec)]
-        new_params = [name for port_spec in out_spec.input_port_specs
-                                    for name in all_names(port_spec)]
+        old_params = dict([(spec.name, spec)
+                           for port_spec in in_spec.input_port_specs
+                           for spec in all_specs(port_spec)])
+        new_params = dict([(spec.name, spec)
+                           for port_spec in out_spec.input_port_specs
+                           for spec in all_specs(port_spec)])
         deleted_params = set(old_params) - set(new_params)
         added_params = set(new_params) - set(old_params)
 
         for ref in deleted_params:
-            # Suggest param to upgrade to by calculating similarity scores
-            # FIXME: we could use something more intelligent here
-            score_list = [(string_similarity(ref, a), a) for a in added_params]
-            if len(score_list) == 0:
-                best_match = None
-            else:
-                best_match = sorted(score_list)[-1][1]
-            print "%s.%s.%s --> %s" % (code_ref, 'input', ref, best_match)
+            ref_spec = old_params[ref]
+            # Suggest param upgrade by calculating most similar port
+            score_list = sorted([(port_similarity_func(old_params[ref],
+                                                       new_params[a]), a)
+                                 for a in added_params])
+            print "%s.%s.%s --> %s" % (code_ref, 'input', ref,
+                                       best_match(score_list))
 
         # Compute output mappings
-        old_params = [port_spec.name for port_spec in in_spec.output_port_specs]
-        new_params = [port_spec.name for port_spec in out_spec.output_port_specs]
+        old_params = dict([(spec.name, spec)
+                           for spec in in_spec.output_port_specs])
+        new_params = dict([(spec.name, spec)
+                           for spec in out_spec.output_port_specs])
+
         deleted_params = set(old_params) - set(new_params)
         added_params = set(new_params) - set(old_params)
 
         for ref in deleted_params:
             # Suggest param to upgrade to by calculating similarity scores
-            # FIXME: we could use something more intelligent here
-            score_list = [(string_similarity(ref, a), a) for a in added_params]
-            if len(score_list) == 0:
-                best_match = None
-            else:
-                best_match = sorted(score_list)[-1][1]
-            print "%s.%s.%s --> %s" % (code_ref, 'output', ref, best_match)
+            score_list = sorted([(port_similarity_func(old_params[ref],
+                                                       new_params[a]), a)
+                                 for a in added_params])
+            print "%s.%s.%s --> %s" % (code_ref, 'output', ref,
+                                       best_match(score_list))
