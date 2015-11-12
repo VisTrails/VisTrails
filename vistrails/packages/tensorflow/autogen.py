@@ -38,7 +38,7 @@ from __future__ import division
 
 import tensorflow
 
-from .init import Op, TFOperation
+from .base import Op, TFOperation
 
 
 # TODO: These should be auto-generated
