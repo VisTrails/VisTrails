@@ -42,17 +42,35 @@ from vistrails.core.modules.vistrails_module import Module
 
 
 class Op(object):
-    def __init__(self, op, *args):
-        assert all(isinstance(a, Op) for a in args)
+    def __init__(self, op, args):
+        """Constructor from a function and its arguments.
+
+        This is the type actually passed on TFOperation ports. It represents a
+        future TensorFlow operation; the actual operation is only created from
+        the Run module, allowing multiple graphs to be used (and the same
+        VisTrails-defined graph to be used from multiple Run modules).
+
+        :type args: dict | collections.Iterable
+        """
+        assert all(
+            isinstance(a, Op)
+            for a in (args.itervalues() if isinstance(args, dict) else args))
         self.op = op
         self.args = args
 
     def build(self, output_map):
+        """Builds the graph, by instanciating the operations recursively.
+        """
         if self in output_map:
             return output_map[self]
         else:
-            args = [a.build(output_map) for a in self.args]
-            obj = self.op(*args)
+            if isinstance(self.args, dict):
+                kwargs = dict((k, v.build(output_map))
+                            for k, v in self.args.iteritems())
+                obj = self.op(**kwargs)
+            else:
+                args = [a.build(output_map) for a in self.args]
+                obj = self.op(*args)
             output_map[self] = obj
             return obj
 
@@ -77,7 +95,7 @@ class Constant(TFOperation):
 
     def compute(self):
         value = self.get_input('value')
-        self.set_output('output', Op(lambda: tensorflow.constant(value)))
+        self.set_output('output', Op(lambda: tensorflow.constant(value), []))
 
 
 class Cast(TFOperation):
@@ -90,7 +108,7 @@ class Cast(TFOperation):
         value = self.get_input('value')
         type_ = self.get_input('type')
         self.set_output('output',
-                        Op(lambda x: tensorflow.cast(x, type_), value))
+                        Op(lambda x: tensorflow.cast(x, type_), [value]))
 
 
 class Variable(TFOperation):
@@ -102,7 +120,7 @@ class Variable(TFOperation):
 
     def compute(self):
         initial_value = self.get_input('initial_value')
-        self.set_output('output', Op(tensorflow.Variable, initial_value))
+        self.set_output('output', Op(tensorflow.Variable, [initial_value]))
 
 
 class Assign(TFOperation):
@@ -117,7 +135,7 @@ class Assign(TFOperation):
 
         self.set_output(
             'output',
-            Op(lambda var_, value_: var_.assign(value_), var, value))
+            Op(lambda var_, value_: var_.assign(value_), [var, value]))
 
 
 class AssignAdd(TFOperation):
@@ -132,7 +150,7 @@ class AssignAdd(TFOperation):
 
         self.set_output(
             'output',
-            Op(lambda var_, value_: var_.assign_add(value_), var, value))
+            Op(lambda var_, value_: var_.assign_add(value_), [var, value]))
 
 
 class RunResult(object):

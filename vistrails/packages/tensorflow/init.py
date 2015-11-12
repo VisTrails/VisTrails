@@ -36,8 +36,158 @@
 
 from __future__ import division
 
-from .autogen import _modules as auto_modules
-from .base import _modules as base_modules
+import functools
+import tensorflow
+import types
+
+from vistrails.core import debug
+from vistrails.core.modules.module_registry import get_module_registry
+from .base import Op, TFOperation, _modules as base_modules, wrapped
 
 
-_modules = base_modules + auto_modules
+def apply_kw(f, kw1):
+    @functools.wraps(f)
+    def wrapped(**kw2):
+        kwargs = dict(kw1)
+        kwargs.update(kw2)
+        return f(**kwargs)
+    return wrapped
+
+
+class AutoOperation(TFOperation):
+    def compute(self):
+        immediate = {}
+        stored = {}
+        for name, descr, type_ in self.args:
+            if self.has_input(name):
+                value = self.get_input(name)
+                if type_ is TFOperation:
+                    stored[name] = value
+                else:
+                    immediate[name] = value
+
+        f = apply_kw(getattr(tensorflow, self.op), immediate)
+        self.set_output('output', Op(f, stored))
+
+
+def get_indent(s):
+    indent = 0
+    for c in s:
+        if c == ' ':
+            indent += 1
+        elif c == '\t':
+            debug.warning("Found a tab in Google docstring!")
+            indent += 4
+        else:
+            break
+    return indent
+
+
+def read_args(docstring):
+    lines = iter(docstring.splitlines(False))
+    rec_line = ''
+    try:
+        # Find the "Args:" line
+        line = next(lines)
+        while line.strip() != 'Args:':
+            line = next(lines)
+        indent_header = get_indent(line)
+        indent_item = None
+
+        # Loop on rest of lines, adding indented lines to the previous one
+        line = next(lines)
+        while line.strip():
+            indent = get_indent(line)
+            line = line.strip()
+            if indent_item is None:
+                indent_item = indent
+                if indent_item <= indent_header:
+                    break
+                rec_line = line
+            elif indent > indent_item:
+                rec_line += ' ' + line
+            elif indent < indent_item:
+                break
+            elif rec_line:
+                yield rec_line
+                rec_line = line
+
+            line = next(lines)
+    except StopIteration:
+        pass
+    if rec_line:
+        yield rec_line
+
+
+def initialize():
+    from tensorflow.python.ops import standard_ops
+
+    reg = get_module_registry()
+
+    for module in base_modules:
+        reg.add_module(module)
+
+    reg.add_module(AutoOperation)
+
+    for name in dir(standard_ops):
+        if name in wrapped:
+            continue
+
+        op = getattr(standard_ops, name)
+        if isinstance(op, types.ModuleType) or name.startswith('_'):
+            continue
+
+        args = []
+        for line in read_args(op.__doc__):
+            if not ':' in line:
+                debug.log("Malformated argument in op %s's doc" % name)
+                continue
+            arg, descr = line.split(':', 1)
+            descr = descr.strip()
+
+            if descr.lower().startswith("A list "):
+                type_ = '(basic:List)'
+            elif arg == 'dtype' or arg == 'name':
+                type_ = '(basic:String)'
+            else:
+                type_ = TFOperation
+            args.append((arg, descr, type_))
+        if not args:
+            debug.log("Didn't find 'Args:' in op %s's doc; skipping" %
+                      name)
+            continue
+
+        input_ports = [(arg, type_)
+                       for (arg, descr, type_) in args]
+        reg.add_module(type(name, (AutoOperation,),
+                            {'args': args, 'op': name,
+                             '_input_ports': input_ports}))
+
+
+###############################################################################
+
+import unittest
+
+
+class TestParser(unittest.TestCase):
+    def test_get_indent(self):
+        self.assertEqual(get_indent('hello world'), 0)
+        self.assertEqual(get_indent('  hello world'), 2)
+        self.assertEqual(get_indent('    hello world'), 4)
+
+    def test_read_args(self):
+        doc = """\
+Does a thing.
+
+  This module does something.
+
+  Args:
+    one: First description
+    two: Second
+         description
+"""
+        doc = doc.strip()
+        expected = ["one: First description", "two: Second description"]
+        self.assertEqual(list(read_args(doc + '\n')), expected)
+        self.assertEqual(list(read_args(doc)), expected)
+        self.assertEqual(list(read_args(doc + '\n  Returns:\n')), expected)
