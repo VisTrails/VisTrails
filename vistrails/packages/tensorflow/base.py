@@ -73,7 +73,7 @@ class Constant(TFOperation):
     Note that it is only constant from TensorFlow's point of view; it can be
     the output of another VisTrails module.
     """
-    _input_ports = [('value', '(basic:List)')]
+    _input_ports = [('value', '(basic:Variant)')]
 
     def compute(self):
         value = self.get_input('value')

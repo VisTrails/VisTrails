@@ -74,16 +74,6 @@ class LessThan(TFOperation):
         self.set_output('output', Op(lambda a_, b_: a_ < b_, a, b))
 
 
-class LessThanScalar(TFOperation):
-    _input_ports = [('a', TFOperation),
-                    ('b', '(basic:Float)')]
-
-    def compute(self):
-        a = self.get_input('a')
-        b = self.get_input('b')
-        self.set_output('output', Op(lambda a_: a_ < b, a))
-
-
 class ComplexAbs(TFOperation):
     _input_ports = [('complex', TFOperation)]
 
@@ -103,4 +93,4 @@ class ZerosLike(TFOperation):
                         Op(lambda x: tensorflow.zeros_like(x, type_), value))
 
 
-_modules = [Multiply, Add, LessThan, LessThanScalar, ComplexAbs, ZerosLike]
+_modules = [Multiply, Add, LessThan, ComplexAbs, ZerosLike]
