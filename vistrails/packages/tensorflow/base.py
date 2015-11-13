@@ -85,7 +85,7 @@ class TFOperation(Module):
         raise NotImplementedError
 
 
-class Constant(TFOperation):
+class constant(TFOperation):
     """A TensorFlow operation that simply output a constant into the graph.
 
     Note that it is only constant from TensorFlow's point of view; it can be
@@ -98,7 +98,7 @@ class Constant(TFOperation):
         self.set_output('output', Op(lambda: tensorflow.constant(value), []))
 
 
-class Cast(TFOperation):
+class cast(TFOperation):
     """Casts tensors to the specific scalar type.
     """
     _input_ports = [('value', TFOperation),
@@ -123,7 +123,7 @@ class Variable(TFOperation):
         self.set_output('output', Op(tensorflow.Variable, [initial_value]))
 
 
-class Assign(TFOperation):
+class assign(TFOperation):
     """Assign a value to a variable.
     """
     _input_ports = [('variable', Variable),
@@ -138,7 +138,7 @@ class Assign(TFOperation):
             Op(lambda var_, value_: var_.assign(value_), [var, value]))
 
 
-class AssignAdd(TFOperation):
+class assign_add(TFOperation):
     """Assign a value to a variable.
     """
     _input_ports = [('variable', Variable),
@@ -159,12 +159,12 @@ class RunResult(object):
         self.fetch_map = fetch_map
 
 
-class Run(Module):
+class run(Module):
     """Instanciate and run a TensorFlow graph to make the results available.
     """
     _input_ports = [('output', TFOperation, {'depth': 1}),
                     ('iterations', '(basic:Integer)')]
-    _output_ports = [('result', '(org.vistrails.vistrails.tensorflow:Run)')]
+    _output_ports = [('result', '(org.vistrails.vistrails.tensorflow:run)')]
 
     def compute(self):
         outputs = self.get_input('output')
@@ -187,10 +187,10 @@ class Run(Module):
         self.set_output('result', RunResult(session, output_map))
 
 
-class Fetch(Module):
+class fetch(Module):
     """Fetch the output of a TensorFlow operation after the graph has been run.
     """
-    _input_ports = [('result', Run),
+    _input_ports = [('result', run),
                     ('op', TFOperation)]
     _output_ports = [('value', '(basic:List)')]
 
@@ -203,7 +203,7 @@ class Fetch(Module):
         self.set_output('value', value)
 
 
-_modules = [TFOperation, Constant, Cast, Variable, Assign, AssignAdd,
-            Run, Fetch]
+_modules = [TFOperation, constant, cast, Variable, assign, assign_add,
+            run, fetch]
 
 wrapped = set(['constant', 'cast', 'Variable', 'assign', 'assign_add'])
