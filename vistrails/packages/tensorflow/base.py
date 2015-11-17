@@ -123,36 +123,6 @@ class Variable(TFOperation):
         self.set_output('output', Op(tensorflow.Variable, [initial_value]))
 
 
-class assign(TFOperation):
-    """Assign a value to a variable.
-    """
-    _input_ports = [('variable', Variable),
-                    ('value', TFOperation)]
-
-    def compute(self):
-        var = self.get_input('variable')
-        value = self.get_input('value')
-
-        self.set_output(
-            'output',
-            Op(lambda var_, value_: var_.assign(value_), [var, value]))
-
-
-class assign_add(TFOperation):
-    """Assign a value to a variable.
-    """
-    _input_ports = [('variable', Variable),
-                    ('value', TFOperation)]
-
-    def compute(self):
-        var = self.get_input('variable')
-        value = self.get_input('value')
-
-        self.set_output(
-            'output',
-            Op(lambda var_, value_: var_.assign_add(value_), [var, value]))
-
-
 class RunResult(object):
     def __init__(self, session, fetch_map):
         self.session = session
@@ -203,7 +173,7 @@ class fetch(Module):
         self.set_output('value', value)
 
 
-_modules = [TFOperation, constant, cast, Variable, assign, assign_add,
+_modules = [TFOperation, constant, cast, Variable,
             run, fetch]
 
-wrapped = set(['constant', 'cast', 'Variable', 'assign', 'assign_add'])
+wrapped = set(['constant', 'cast', 'Variable'])

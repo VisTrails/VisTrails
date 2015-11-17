@@ -42,7 +42,7 @@ import types
 
 from vistrails.core import debug
 from vistrails.core.modules.module_registry import get_module_registry
-from .base import Op, TFOperation, _modules as base_modules, wrapped
+from .base import Op, TFOperation, Variable, _modules as base_modules, wrapped
 
 
 def apply_kw(f, kw1):
@@ -61,7 +61,7 @@ class AutoOperation(TFOperation):
         for name, descr, type_ in self.args:
             if self.has_input(name):
                 value = self.get_input(name)
-                if type_ is TFOperation:
+                if type_ is TFOperation or type_ is Variable:
                     stored[name] = value
                 else:
                     immediate[name] = value
@@ -145,7 +145,10 @@ def initialize():
             arg, descr = line.split(':', 1)
             descr = descr.strip()
 
-            if descr.lower().startswith("A list "):
+            if ((name == 'assign' or name.startswith('assign_')) and
+                    arg == 'ref'):
+                type_ = Variable
+            elif descr.lower().startswith("A list "):
                 type_ = '(basic:List)'
             elif arg == 'dtype' or arg == 'name':
                 type_ = '(basic:String)'
