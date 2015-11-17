@@ -198,7 +198,7 @@ class fetch(Module):
         result = self.get_input('result')
         op = self.get_input('op')
 
-        value = result.fetch_map[op].eval(result.session)
+        value = result.fetch_map[op].eval(session=result.session)
 
         self.set_output('value', value)
 
