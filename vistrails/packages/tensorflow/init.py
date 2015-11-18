@@ -56,24 +56,6 @@ def apply_kw(f, kw1):
     return wrapped
 
 
-class AutoOperation(TFOperation):
-    _settings = ModuleSettings(abstract=True)
-
-    def compute(self):
-        immediate = {}
-        stored = {}
-        for name, descr, type_ in self.args:
-            if self.has_input(name):
-                value = self.get_input(name)
-                if type_ is TFOperation or type_ is Variable:
-                    stored[name] = value
-                else:
-                    immediate[name] = value
-
-        f = apply_kw(self.op, immediate)
-        self.set_output('output', Op(f, stored))
-
-
 def get_indent(s):
     indent = 0
     for c in s:
@@ -130,6 +112,86 @@ _re_arg_int = re.compile(r'^(?:An integer)|(?:A Python integer)|'
                          r'(?:integer)', re.IGNORECASE)
 
 
+def guess_args(obj, op_name=None):
+    args = []
+    for line in read_args(obj.__doc__):
+        if not ':' in line:
+            debug.log("Malformated argument in doc: %r" % obj)
+            continue
+        arg, descr = line.split(':', 1)
+        descr = descr.strip()
+
+        if arg == 'shape':
+            type_ = '(basic:List)'
+        elif (op_name is not None and
+                (op_name == 'assign' or op_name.startswith('assign_')) and
+                arg == 'ref'):
+            type_ = Variable
+        elif (_re_arg_bool.search(descr) is not None):
+            type_ = '(basic:Boolean)'
+        elif (_re_arg_int.search(descr) is not None):
+            type_ = '(basic:Integer)'
+        elif descr.lower().startswith("A list "):
+            type_ = '(basic:List)'
+        elif arg == 'dtype' or arg == 'name':
+            type_ = '(basic:String)'
+        else:
+            type_ = TFOperation
+        args.append((arg, descr, type_))
+    if not args:
+        debug.log("Didn't find 'Args:' in doc; skipping: %r" %
+                  obj)
+    return args
+
+
+class AutoOperation(TFOperation):
+    _settings = ModuleSettings(abstract=True)
+
+    def compute(self):
+        immediate = {}
+        stored = {}
+        for name, descr, type_ in self.args:
+            if self.has_input(name):
+                value = self.get_input(name)
+                if type_ is TFOperation or type_ is Variable:
+                    stored[name] = value
+                else:
+                    immediate[name] = value
+
+        f = apply_kw(self.op, immediate)
+        self.set_output('output', Op(f, stored))
+
+
+def register_operations(reg, pkg, namespace, exclude=set()):
+    modules = set()
+
+    for name in dir(pkg):
+        if name in exclude:
+            continue
+
+        op = getattr(pkg, name)
+        if isinstance(op, types.ModuleType) or name.startswith('_'):
+            continue
+        if not callable(op):
+            continue
+        if op.__doc__ is None:
+            debug.log("Object has no __doc__: %r" % op)
+            continue
+
+        args = guess_args(op, op_name=name)
+
+        input_ports = [(arg, type_)
+                       for arg, descr, type_ in args]
+        reg.add_module(type(name, (AutoOperation,),
+                            {'args': args, 'op': op,
+                             '_input_ports': input_ports,
+                             '__doc__': op.__doc__}),
+                       namespace=namespace)
+        modules.add(name)
+
+    return modules
+
+
 def initialize():
     from tensorflow.python.ops import standard_ops
 
@@ -138,69 +200,14 @@ def initialize():
     for module in base_modules:
         reg.add_module(module)
 
+    # Operations
     reg.add_module(AutoOperation)
 
-    def handle_package(pkg, namespace, exclude=set()):
-        modules = set()
-
-        for name in dir(pkg):
-            if name in exclude:
-                continue
-
-            op = getattr(pkg, name)
-            if isinstance(op, types.ModuleType) or name.startswith('_'):
-                continue
-            if not callable(op):
-                continue
-            if op.__doc__ is None:
-                debug.log("Object has no __doc__: %r" % op)
-                continue
-
-            args = []
-            for line in read_args(op.__doc__):
-                if not ':' in line:
-                    debug.log("Malformated argument in op %s's doc" % name)
-                    continue
-                arg, descr = line.split(':', 1)
-                descr = descr.strip()
-
-                if arg == 'shape':
-                    type_ = '(basic:List)'
-                elif ((name == 'assign' or name.startswith('assign_')) and
-                        arg == 'ref'):
-                    type_ = Variable
-                elif (_re_arg_bool.search(descr) is not None):
-                    type_ = '(basic:Boolean)'
-                elif (_re_arg_int.search(descr) is not None):
-                    type_ = '(basic:Integer)'
-                elif descr.lower().startswith("A list "):
-                    type_ = '(basic:List)'
-                elif arg == 'dtype' or arg == 'name':
-                    type_ = '(basic:String)'
-                else:
-                    type_ = TFOperation
-                args.append((arg, descr, type_))
-            if not args:
-                debug.log("Didn't find 'Args:' in op %s's doc; skipping" %
-                          name)
-                continue
-
-            input_ports = [(arg, type_)
-                           for (arg, descr, type_) in args]
-            reg.add_module(type(name, (AutoOperation,),
-                                {'args': args, 'op': op,
-                                 '_input_ports': input_ports,
-                                 '__doc__': op.__doc__}),
-                           namespace=namespace)
-            modules.add(name)
-
-        return modules
-
-    done = set(wrapped)
-    done.update(handle_package(standard_ops, '', done))
-    done.update(handle_package(tensorflow.train, 'train', done))
-    done.update(handle_package(tensorflow.nn, 'nn', done))
-    done.update(handle_package(tensorflow.image, 'image', done))
+    ops = set(wrapped)
+    ops.update(register_operations(reg, standard_ops, '', ops))
+    ops.update(register_operations(reg, tensorflow.train, 'train', ops))
+    ops.update(register_operations(reg, tensorflow.nn, 'nn', ops))
+    ops.update(register_operations(reg, tensorflow.image, 'image', ops))
 
 
 ###############################################################################
