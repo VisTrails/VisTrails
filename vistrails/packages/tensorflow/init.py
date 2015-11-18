@@ -44,7 +44,9 @@ import types
 from vistrails.core import debug
 from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import get_module_registry
-from .base import Op, TFOperation, Variable, _modules as base_modules, wrapped
+
+from .base import Op, TFOperation, Variable, Optimizer, \
+    _modules as base_modules, wrapped
 
 
 def apply_kw(f, kw1):
@@ -112,9 +114,9 @@ _re_arg_int = re.compile(r'^(?:An integer)|(?:A Python integer)|'
                          r'(?:integer)', re.IGNORECASE)
 
 
-def guess_args(obj, op_name=None):
+def guess_args(obj, doc, op_name=None):
     args = []
-    for line in read_args(obj.__doc__):
+    for line in read_args(doc):
         if not ':' in line:
             debug.log("Malformated argument in doc: %r" % obj)
             continue
@@ -158,7 +160,7 @@ class AutoOperation(TFOperation):
                 else:
                     immediate[name] = value
 
-        f = apply_kw(self.op, immediate)
+        f = apply_kw(self.op[0], immediate)
         self.set_output('output', Op(f, stored))
 
 
@@ -178,15 +180,60 @@ def register_operations(reg, pkg, namespace, exclude=set()):
             debug.log("Object has no __doc__: %r" % op)
             continue
 
-        args = guess_args(op, op_name=name)
+        args = guess_args(op, op.__doc__, op_name=name)
 
         input_ports = [(arg, type_)
                        for arg, descr, type_ in args]
         reg.add_module(type(name, (AutoOperation,),
-                            {'args': args, 'op': op,
+                            {'args': args, 'op': (op,),
                              '_input_ports': input_ports,
                              '__doc__': op.__doc__}),
                        namespace=namespace)
+        modules.add(name)
+
+    return modules
+
+
+class AutoOptimizer(Optimizer):
+    _settings = ModuleSettings(abstract=True)
+    _output_ports = [('optimizer', Optimizer)]
+
+    def compute(self):
+        immediate = {}
+        stored = {}
+        for name, descr, type_ in self.args:
+            if self.has_input(name):
+                value = self.get_input(name)
+                if type_ is TFOperation or type_ is Variable:
+                    stored[name] = value
+                else:
+                    immediate[name] = value
+
+        f = apply_kw(self.class_[0], immediate)
+        self.set_output('optimizer', Op(f, stored))
+
+
+def register_optimizers(reg):
+    modules = set()
+
+    for name in dir(tensorflow.train):
+        if name == 'Optimizer' or not name.endswith('Optimizer'):
+            continue
+
+        class_ = getattr(tensorflow.train, name)
+        if class_.__doc__ is None:
+            debug.log("Object has no __doc__: %s" % class_)
+            continue
+
+        args = guess_args(class_, class_.__init__.__doc__)
+
+        input_ports = [(arg, type_)
+                       for arg, descr, type_ in args]
+        reg.add_module(type(name, (AutoOptimizer,),
+                            {'args': args, 'class_': (class_,),
+                             '_input_ports': input_ports,
+                             '__doc__': class_.__doc__}),
+                       namespace='train|optimizer')
         modules.add(name)
 
     return modules
@@ -200,12 +247,19 @@ def initialize():
     for module in base_modules:
         reg.add_module(module)
 
+    # Optimizers
+    reg.add_module(AutoOptimizer)
+
+    optimizers = set(['Optimizer'])
+    optimizers.update(register_optimizers(reg))
+
     # Operations
     reg.add_module(AutoOperation)
 
     ops = set(wrapped)
     ops.update(register_operations(reg, standard_ops, '', ops))
-    ops.update(register_operations(reg, tensorflow.train, 'train', ops))
+    ops.update(register_operations(reg, tensorflow.train, 'train',
+                                   ops | optimizers))
     ops.update(register_operations(reg, tensorflow.nn, 'nn', ops))
     ops.update(register_operations(reg, tensorflow.image, 'image', ops))
 

@@ -53,9 +53,6 @@ class Op(object):
 
         :type args: dict | collections.Iterable
         """
-        assert all(
-            isinstance(a, Op)
-            for a in (args.itervalues() if isinstance(args, dict) else args))
         self.op = op
         self.args = args
 
@@ -65,12 +62,17 @@ class Op(object):
         if self in output_map:
             return output_map[self]
         else:
+            def build(op):
+                if isinstance(op, list):
+                    return [build(e) for e in op]
+                else:
+                    return op.build(output_map)
             if isinstance(self.args, dict):
-                kwargs = dict((k, v.build(output_map))
+                kwargs = dict((k, build(v))
                             for k, v in self.args.iteritems())
                 obj = self.op(**kwargs)
             else:
-                args = [a.build(output_map) for a in self.args]
+                args = [build(a) for a in self.args]
                 obj = self.op(*args)
             output_map[self] = obj
             return obj
@@ -125,6 +127,53 @@ class Variable(TFOperation):
         self.set_output('output', Op(tensorflow.Variable, [initial_value]))
 
 
+class Optimizer(Module):
+    _settings = ModuleSettings(abstract=True,
+                               namespace='train|optimizer')
+
+
+class minimize(TFOperation):
+    __doc__ = tensorflow.train.Optimizer.__doc__
+
+    _settings = ModuleSettings(namespace='train|optimizer')
+    _input_ports = [('optimizer', Optimizer),
+                    ('loss', TFOperation),
+                    ('global_step', Variable, {'optional': True}),
+                    ('var_list', Variable, {'depth': 1, 'optional': True}),
+                    ('gate_gradients', '(basic:String)',
+                     {'optional': True, 'entry_types': '["enum"]',
+                      'values': '[["GATE_NONE", "GATE_OP", "GATE_GRAPH"]]'}),
+                    ('name', '(basic:String)', {'optional': True})]
+
+    _GATE_GRADIENTS = {'GATE_NONE': tensorflow.train.Optimizer.GATE_NONE,
+                       'GATE_OP': tensorflow.train.Optimizer.GATE_OP,
+                       'GATE_GRAPH': tensorflow.train.Optimizer.GATE_GRAPH}
+
+    def compute(self):
+        if self.has_input('gate_gradients'):
+            gate_gradients = self._GATE_GRADIENTS[
+                self.get_input('gate_gradients')]
+        else:
+            gate_gradients = None
+        name = self.force_get_input('name')
+
+        def output(optimizer, loss, **kwargs):
+            kw = {'loss': loss, 'name': name}
+            if gate_gradients is not None:
+                kw['gate_gradients'] = gate_gradients
+            kw.update(kwargs)
+            ret = optimizer.minimize(**kw)
+            return ret
+
+        kwargs = {'optimizer': self.get_input('optimizer'),
+                  'loss': self.get_input('loss')}
+        if self.has_input('global_step'):
+            kwargs['global_step'] = self.get_input('global_step')
+        if self.has_input('var_list'):
+            kwargs['var_list'] = self.get_input('var_list')
+        self.set_output('output', Op(output, kwargs))
+
+
 class RunResult(object):
     def __init__(self, session, fetch_map):
         self.session = session
@@ -176,6 +225,7 @@ class fetch(Module):
 
 
 _modules = [TFOperation, constant, cast, Variable,
+            Optimizer, minimize,
             run, fetch]
 
 wrapped = set(['constant', 'cast', 'Variable'])
