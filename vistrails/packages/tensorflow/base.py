@@ -175,7 +175,8 @@ class minimize(TFOperation):
 
 
 class RunResult(object):
-    def __init__(self, session, fetch_map):
+    def __init__(self, graph, session, fetch_map):
+        self.graph = graph
         self.session = session
         self.fetch_map = fetch_map
 
@@ -184,28 +185,37 @@ class run(Module):
     """Instanciate and run a TensorFlow graph to make the results available.
     """
     _input_ports = [('output', TFOperation, {'depth': 1}),
-                    ('iterations', '(basic:Integer)')]
+                    ('iterations', '(basic:Integer)'),
+                    ('after', '(org.vistrails.vistrails.tensorflow:run)')]
     _output_ports = [('result', '(org.vistrails.vistrails.tensorflow:run)')]
 
     def compute(self):
         outputs = self.get_input('output')
         iterations = self.get_input('iterations')
 
-        graph = tensorflow.Graph()
-        session = tensorflow.Session(graph=graph)
-        with graph.as_default():
+        if self.has_input('after'):
+            after = self.get_input('after')
+            graph = after.graph
+            session = after.session
+            output_map = after.fetch_map
+        else:
+            graph = tensorflow.Graph()
+            session = tensorflow.Session(graph=graph)
             output_map = {}
+
+        with graph.as_default():
             for op in outputs:
                 op.build(output_map)
 
-            session.run(tensorflow.initialize_all_variables())
+            if not self.has_input('after'):
+                session.run(tensorflow.initialize_all_variables())
 
         fetches = list(output_map.itervalues())
 
         for i in xrange(iterations):
             session.run(fetches)
 
-        self.set_output('result', RunResult(session, output_map))
+        self.set_output('result', RunResult(graph, session, output_map))
 
 
 class fetch(Module):
