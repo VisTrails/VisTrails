@@ -41,6 +41,7 @@ import tensorflow
 import types
 
 from vistrails.core import debug
+from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.module_registry import get_module_registry
 from .base import Op, TFOperation, Variable, _modules as base_modules, wrapped
 
@@ -55,6 +56,8 @@ def apply_kw(f, kw1):
 
 
 class AutoOperation(TFOperation):
+    _settings = ModuleSettings(abstract=True)
+
     def compute(self):
         immediate = {}
         stored = {}

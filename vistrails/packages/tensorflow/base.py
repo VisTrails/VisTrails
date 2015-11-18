@@ -38,6 +38,7 @@ from __future__ import division
 
 import tensorflow
 
+from vistrails.core.modules.config import ModuleSettings
 from vistrails.core.modules.vistrails_module import Module
 
 
@@ -78,6 +79,7 @@ class Op(object):
 class TFOperation(Module):
     """A TensorFlow operation that will be run by Run as part of the graph.
     """
+    _settings = ModuleSettings(abstract=True)
     _output_ports = [
         ('output', '(org.vistrails.vistrails.tensorflow:TFOperation)')]
 
