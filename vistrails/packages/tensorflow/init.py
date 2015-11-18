@@ -129,42 +129,54 @@ def initialize():
 
     reg.add_module(AutoOperation)
 
-    for name in dir(standard_ops):
-        if name in wrapped:
-            continue
+    def handle_package(pkg, namespace, exclude=set()):
+        modules = set()
 
-        op = getattr(standard_ops, name)
-        if isinstance(op, types.ModuleType) or name.startswith('_'):
-            continue
-
-        args = []
-        for line in read_args(op.__doc__):
-            if not ':' in line:
-                debug.log("Malformated argument in op %s's doc" % name)
+        for name in dir(pkg):
+            if name in exclude:
                 continue
-            arg, descr = line.split(':', 1)
-            descr = descr.strip()
 
-            if ((name == 'assign' or name.startswith('assign_')) and
-                    arg == 'ref'):
-                type_ = Variable
-            elif descr.lower().startswith("A list "):
-                type_ = '(basic:List)'
-            elif arg == 'dtype' or arg == 'name':
-                type_ = '(basic:String)'
-            else:
-                type_ = TFOperation
-            args.append((arg, descr, type_))
-        if not args:
-            debug.log("Didn't find 'Args:' in op %s's doc; skipping" %
-                      name)
-            continue
+            op = getattr(pkg, name)
+            if isinstance(op, types.ModuleType) or name.startswith('_'):
+                continue
 
-        input_ports = [(arg, type_)
-                       for (arg, descr, type_) in args]
-        reg.add_module(type(name, (AutoOperation,),
-                            {'args': args, 'op': name,
-                             '_input_ports': input_ports}))
+            args = []
+            for line in read_args(op.__doc__):
+                if not ':' in line:
+                    debug.log("Malformated argument in op %s's doc" % name)
+                    continue
+                arg, descr = line.split(':', 1)
+                descr = descr.strip()
+
+                if ((name == 'assign' or name.startswith('assign_')) and
+                        arg == 'ref'):
+                    type_ = Variable
+                elif descr.lower().startswith("A list "):
+                    type_ = '(basic:List)'
+                elif arg == 'dtype' or arg == 'name':
+                    type_ = '(basic:String)'
+                else:
+                    type_ = TFOperation
+                args.append((arg, descr, type_))
+            if not args:
+                debug.log("Didn't find 'Args:' in op %s's doc; skipping" %
+                          name)
+                continue
+
+            input_ports = [(arg, type_)
+                           for (arg, descr, type_) in args]
+            reg.add_module(type(name, (AutoOperation,),
+                                {'args': args, 'op': name,
+                                 '_input_ports': input_ports}),
+                           namespace=namespace)
+            modules.add(name)
+
+        return modules
+
+    done = set(wrapped)
+    done.update(handle_package(standard_ops, '', done))
+    done.update(handle_package(tensorflow.nn, 'nn', done))
+    done.update(handle_package(tensorflow.image, 'image', done))
 
 
 ###############################################################################
