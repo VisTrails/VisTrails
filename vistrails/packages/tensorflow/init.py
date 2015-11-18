@@ -184,6 +184,7 @@ def initialize():
 
     done = set(wrapped)
     done.update(handle_package(standard_ops, '', done))
+    done.update(handle_package(tensorflow.train, 'train', done))
     done.update(handle_package(tensorflow.nn, 'nn', done))
     done.update(handle_package(tensorflow.image, 'image', done))
 
