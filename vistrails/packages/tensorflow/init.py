@@ -37,6 +37,7 @@
 from __future__ import division
 
 import functools
+import re
 import tensorflow
 import types
 
@@ -122,6 +123,13 @@ def read_args(docstring):
         yield rec_line
 
 
+_re_arg_bool = re.compile(r'^(?:A(?:n optional)? `bool`)|'
+                          r'(?:If `?(?:true|false)`?)|'
+                          r'Boolean', re.IGNORECASE)
+_re_arg_int = re.compile(r'^(?:An integer)|(?:A Python integer)|'
+                         r'(?:integer)', re.IGNORECASE)
+
+
 def initialize():
     from tensorflow.python.ops import standard_ops
 
@@ -161,6 +169,10 @@ def initialize():
                 elif ((name == 'assign' or name.startswith('assign_')) and
                         arg == 'ref'):
                     type_ = Variable
+                elif (_re_arg_bool.search(descr) is not None):
+                    type_ = '(basic:Boolean)'
+                elif (_re_arg_int.search(descr) is not None):
+                    type_ = '(basic:Integer)'
                 elif descr.lower().startswith("A list "):
                     type_ = '(basic:List)'
                 elif arg == 'dtype' or arg == 'name':
