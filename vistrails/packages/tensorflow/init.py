@@ -70,7 +70,7 @@ class AutoOperation(TFOperation):
                 else:
                     immediate[name] = value
 
-        f = apply_kw(getattr(tensorflow, self.op), immediate)
+        f = apply_kw(self.op, immediate)
         self.set_output('output', Op(f, stored))
 
 
@@ -188,7 +188,7 @@ def initialize():
             input_ports = [(arg, type_)
                            for (arg, descr, type_) in args]
             reg.add_module(type(name, (AutoOperation,),
-                                {'args': args, 'op': name,
+                                {'args': args, 'op': op,
                                  '_input_ports': input_ports,
                                  '__doc__': op.__doc__}),
                            namespace=namespace)
