@@ -156,7 +156,9 @@ def initialize():
                 arg, descr = line.split(':', 1)
                 descr = descr.strip()
 
-                if ((name == 'assign' or name.startswith('assign_')) and
+                if arg == 'shape':
+                    type_ = '(basic:List)'
+                elif ((name == 'assign' or name.startswith('assign_')) and
                         arg == 'ref'):
                     type_ = Variable
                 elif descr.lower().startswith("A list "):
