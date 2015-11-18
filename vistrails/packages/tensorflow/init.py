@@ -139,6 +139,11 @@ def initialize():
             op = getattr(pkg, name)
             if isinstance(op, types.ModuleType) or name.startswith('_'):
                 continue
+            if not callable(op):
+                continue
+            if op.__doc__ is None:
+                debug.log("Object has no __doc__: %r" % op)
+                continue
 
             args = []
             for line in read_args(op.__doc__):
