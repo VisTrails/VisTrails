@@ -183,18 +183,27 @@ class RunResult(object):
         self.fetch_map = fetch_map
 
 
+class FeedGenerator(Module):
+    _settings = ModuleSettings(abstract=True)
+
+
 class run(Module):
     """Instanciate and run a TensorFlow graph to make the results available.
     """
     _input_ports = [('output', TFOperation, {'depth': 1}),
                     ('iterations', '(basic:Integer)',
                      {'optional': True, 'defaults': '["1"]'}),
-                    ('after', '(org.vistrails.vistrails.tensorflow:run)')]
+                    ('after', '(org.vistrails.vistrails.tensorflow:run)'),
+                    ('feed_generator', FeedGenerator)]
     _output_ports = [('result', '(org.vistrails.vistrails.tensorflow:run)')]
 
     def compute(self):
         outputs = self.get_input('output')
         iterations = self.get_input('iterations')
+        if self.has_input('feed_generator'):
+            feeds = self.get_input('feed_generator')()
+        else:
+            feeds = None
 
         if self.has_input('after'):
             after = self.get_input('after')
@@ -215,7 +224,16 @@ class run(Module):
                 session.run(tensorflow.initialize_all_variables())
 
         for i in xrange(iterations):
-            out = session.run(fetches)
+            feed_dict = None
+            if feeds is not None:
+                try:
+                    feed_dict = next(feeds)
+                except StopIteration:
+                    feeds = None
+                else:
+                    feed_dict = dict((operation_map[op], value)
+                                     for op, value in feed_dict.iteritems())
+            out = session.run(fetches, feed_dict=feed_dict)
 
         fetch_map = dict(itertools.izip(outputs, out))
 
@@ -245,6 +263,6 @@ class fetch(Module):
 
 _modules = [TFOperation, constant, cast, Variable,
             Optimizer, minimize,
-            run, fetch]
+            FeedGenerator, run, fetch]
 
 wrapped = set(['constant', 'cast', 'Variable'])
