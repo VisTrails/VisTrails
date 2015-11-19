@@ -185,7 +185,8 @@ class run(Module):
     """Instanciate and run a TensorFlow graph to make the results available.
     """
     _input_ports = [('output', TFOperation, {'depth': 1}),
-                    ('iterations', '(basic:Integer)'),
+                    ('iterations', '(basic:Integer)',
+                     {'optional': True, 'defaults': '["1"]'}),
                     ('after', '(org.vistrails.vistrails.tensorflow:run)')]
     _output_ports = [('result', '(org.vistrails.vistrails.tensorflow:run)')]
 
