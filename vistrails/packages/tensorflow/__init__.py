@@ -34,9 +34,7 @@
 ##
 ###############################################################################
 """
-MongoDB package for VisTrails.
-
-Uses the pymongo driver to access MongoDB.
+TensorFlow package for VisTrails.
 """
 
 from __future__ import division
