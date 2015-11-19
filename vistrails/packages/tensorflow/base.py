@@ -204,14 +204,13 @@ class run(Module):
             session = tensorflow.Session(graph=graph)
             output_map = {}
 
+        fetches = []
         with graph.as_default():
             for op in outputs:
-                op.build(output_map)
+                fetches.append(op.build(operation_map))
 
             if not self.has_input('after'):
                 session.run(tensorflow.initialize_all_variables())
-
-        fetches = list(output_map.itervalues())
 
         for i in xrange(iterations):
             session.run(fetches)
