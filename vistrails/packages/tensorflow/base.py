@@ -36,10 +36,11 @@
 
 from __future__ import division
 
+import itertools
 import tensorflow
 
 from vistrails.core.modules.config import ModuleSettings
-from vistrails.core.modules.vistrails_module import Module
+from vistrails.core.modules.vistrails_module import Module, ModuleError
 
 
 class Op(object):
@@ -56,17 +57,17 @@ class Op(object):
         self.op = op
         self.args = args
 
-    def build(self, output_map):
+    def build(self, operation_map):
         """Builds the graph, by instanciating the operations recursively.
         """
-        if self in output_map:
-            return output_map[self]
+        if self in operation_map:
+            return operation_map[self]
         else:
             def build(op):
                 if isinstance(op, list):
                     return [build(e) for e in op]
                 else:
-                    return op.build(output_map)
+                    return op.build(operation_map)
             if isinstance(self.args, dict):
                 kwargs = dict((k, build(v))
                             for k, v in self.args.iteritems())
@@ -74,7 +75,7 @@ class Op(object):
             else:
                 args = [build(a) for a in self.args]
                 obj = self.op(*args)
-            output_map[self] = obj
+            operation_map[self] = obj
             return obj
 
 
@@ -175,9 +176,10 @@ class minimize(TFOperation):
 
 
 class RunResult(object):
-    def __init__(self, graph, session, fetch_map):
+    def __init__(self, graph, session, operation_map, fetch_map):
         self.graph = graph
         self.session = session
+        self.operation_map = operation_map
         self.fetch_map = fetch_map
 
 
@@ -198,11 +200,11 @@ class run(Module):
             after = self.get_input('after')
             graph = after.graph
             session = after.session
-            output_map = after.fetch_map
+            operation_map = after.operation_map
         else:
             graph = tensorflow.Graph()
             session = tensorflow.Session(graph=graph)
-            output_map = {}
+            operation_map = {}
 
         fetches = []
         with graph.as_default():
@@ -213,9 +215,12 @@ class run(Module):
                 session.run(tensorflow.initialize_all_variables())
 
         for i in xrange(iterations):
-            session.run(fetches)
+            out = session.run(fetches)
 
-        self.set_output('result', RunResult(graph, session, output_map))
+        fetch_map = dict(itertools.izip(outputs, out))
+
+        self.set_output('result', RunResult(graph, session, operation_map,
+                                            fetch_map))
 
 
 class fetch(Module):
@@ -229,7 +234,11 @@ class fetch(Module):
         result = self.get_input('result')
         op = self.get_input('op')
 
-        value = result.fetch_map[op].eval(session=result.session)
+        try:
+            value = result.fetch_map[op]
+        except KeyError:
+            raise ModuleError(self, "Requested operation was not passed in "
+                                    "the list of outputs of the run module")
 
         self.set_output('value', value)
 
