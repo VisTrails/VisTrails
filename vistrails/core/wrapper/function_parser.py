@@ -71,7 +71,7 @@ def get_type_from_val(val):
     return None
 
 
-def get_port_specs_from__signature(f):
+def get_port_specs_from_signature(f):
     attributes, args, kwargs, defaults = inspect.getargspec(f)
 
     input_specs = []
@@ -107,13 +107,19 @@ def get_port_specs_from__signature(f):
 
 def get_spec_from_function(f, name=None, code_ref=None):
 
-    if name is None:
-        name = f.__name__
-    if code_ref is None:
-        code_ref = f.__module__ + '.' + f.__name__
+    if isinstance(f, basestring):
+        if name is None:
+            name = f.rsplit('.', 1)[-1]
+        if code_ref is None:
+            code_ref = f
+    else:
+        if name is None:
+            name = f.__name__
+        if code_ref is None:
+            code_ref = f.__module__ + '.' + f.__name__
 
     # parse function signature
-    input_specs = get_port_specs_from__signature(f)
+    input_specs = get_port_specs_from_signature(f)
 
     # Set output by default as a Variant port named 'value'
     output_spec = FunctionOutputPortSpec('value',

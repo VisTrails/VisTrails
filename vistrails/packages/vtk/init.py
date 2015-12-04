@@ -54,7 +54,7 @@ from vistrails.core.system import systemType, current_dot_vistrails
 from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler,\
                                        UpgradeModuleRemap, UpgradePackageRemap
 from vistrails.core.vistrail.connection import Connection
-from vistrails.core.wrapper.pythonclass import BaseClassModule, gen_class_module
+from vistrails.core.wrapper.pythonclass import gen_class_module
 from vistrails.core.vistrail.port import Port
 
 from .tf_widget import _modules as tf_modules
@@ -197,7 +197,6 @@ def initialize():
         from .vtk_wrapper.parse import parse
         parse(spec_name)
     vtk_classes.initialize(spec_name)
-    _modules.insert(0, BaseClassModule)
     _modules.extend([gen_class_module(spec, vtk_classes, klasses, signature=hasher.vtk_hasher)
                      for spec in vtk_classes.specs.module_specs])
 
@@ -533,7 +532,6 @@ def build_remap(module_name=None):
         function_mappings = {}
         input_specs = [desc.module._get_input_spec(s)
                      for s in get_port_specs(desc, 'input')]
-        input_names = [s.name for s in input_specs]
         for spec in input_specs:
             if spec is None:
                 continue
@@ -554,24 +552,24 @@ def build_remap(module_name=None):
             elif spec.method_type == 'SetXToY':
                 # Add one mapping for each default
                 for enum in spec.values[0]:
-                    input_mappings[spec.method_name + enum] = spec.name
+                    input_mappings[spec.arg + enum] = spec.name
                     # Add enum value to function
-                    function_mappings[spec.method_name + enum] = \
+                    function_mappings[spec.arg + enum] = \
                                                   change_func(spec.name, enum)
                 # Convert SetX(int) methods
-                old_name = spec.method_name[:-2]
-                function_mappings[spec.method_name[:-2]] = change_SetXint(spec)
+                old_name = spec.arg[:-2]
+                function_mappings[spec.arg[:-2]] = change_SetXint(spec)
             elif spec.port_type == 'basic:Color':
                 # Remove 'Widget' suffix on Color
-                input_mappings[spec.method_name + 'Widget'] = spec.name
+                input_mappings[spec.arg + 'Widget'] = spec.name
                 # Remove 'Set prefix'
-                input_mappings[spec.method_name] = spec.name
+                input_mappings[spec.arg] = spec.name
                 # Change old type (float, float, float) -> (,)*3
-                function_mappings[spec.method_name] = color_func(spec.name)
+                function_mappings[spec.arg] = color_func(spec.name)
             elif spec.port_type == 'basic:File':
-                input_mappings[spec.method_name] = to_file_func(spec.name)  # Set*FileName -> (->File->*File)
+                input_mappings[spec.arg] = to_file_func(spec.name)  # Set*FileName -> (->File->*File)
                 input_mappings['Set' + spec.name] = spec.name # Set*File -> *File
-                function_mappings[spec.method_name] = file_func(spec.name)
+                function_mappings[spec.arg] = file_func(spec.name)
             elif base_name(spec.name) == 'AddDataSetInput':
                 # SetInput* does not exist in VTK 6
                 if spec.name[15:] == '_1':
@@ -596,7 +594,7 @@ def build_remap(module_name=None):
                     # Upgrade from version without overload
                     input_mappings['SetSource'] = spec.name
                 input_mappings['SetSource' + spec.name[10:]] = spec.name
-            elif spec.method_name == 'Set' + base_name(spec.name):
+            elif spec.arg == 'Set' + base_name(spec.name):
                 if spec.name[-2:] == '_1':
                     # Upgrade from versions without overload
                     input_mappings[spec.name[:-2]] = spec.name
@@ -615,16 +613,15 @@ def build_remap(module_name=None):
             spec = desc.module._get_output_spec(spec_name)
             if spec is None:
                 continue
-            if spec.method_name == 'Get' + spec.name:
+            if spec.arg == 'Get' + spec.name:
                 # Remove 'Get' prefixes
-                output_mappings[spec.method_name] = spec.name
+                output_mappings[spec.arg] = spec.name
         if desc.name == 'vtkMultiBlockPLOT3DReader':
             # Move GetOutput to custom FirstBlock
             output_mappings['GetOutput'] = wrap_block_func()  # what!?
             # Move GetOutputPort0 to custom FirstBlock
             # and change destination port to AddInputData_1 or similar
             output_mappings['GetOutputPort0'] = wrap_block_func()
-
         remap = UpgradeModuleRemap('0.9.5', '1.0.0', '1.0.0',
                                    module_name=desc.name)
         for k, v in input_mappings.iteritems():
@@ -673,7 +670,6 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
     module_name = module_name_remap.get(module_name, module_name)
     if not _remap.has_module_remaps(module_name):
         build_remap(module_name)
-
     try:
         from vistrails.packages.spreadsheet.init import upgrade_cell_to_output
     except ImportError:

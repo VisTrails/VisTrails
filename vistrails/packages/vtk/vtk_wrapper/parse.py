@@ -435,7 +435,7 @@ def get_algorithm_ports(cls):
             for i in xrange(instance.GetNumberOfInputPorts()):
                 port_name = "SetInputConnection%d" % i
                 port_spec = InputPortSpec(name=port_name,
-                                          method_name="SetInputConnection",
+                                          arg="SetInputConnection",
                                           port_type="vtkAlgorithmOutput",
                                           docstring=get_doc(cls,
                                                         "SetInputConnection"),
@@ -445,7 +445,7 @@ def get_algorithm_ports(cls):
             for i in xrange(instance.GetNumberOfOutputPorts()):
                 port_name = "GetOutputPort%d" % i
                 port_spec = OutputPortSpec(name=port_name,
-                                           method_name="GetOutputPort",
+                                           arg="GetOutputPort",
                                            port_type="vtkAlgorithmOutput",
                                            docstring=get_doc(cls,
                                                              "GetOutputPort"),
@@ -485,7 +485,7 @@ def get_get_ports(cls, get_list):
             if is_type_allowed(port_type):
                 n = resolve_overloaded_name(name[3:], ix, signatures)
                 port_spec = OutputPortSpec(name=n,
-                                           method_name=name,
+                                           arg=name,
                                            port_type=port_type,
                                            show_port=False,
                                            docstring=get_doc(cls, name))
@@ -551,14 +551,14 @@ def get_get_set_ports(cls, get_set_dict):
             if is_type_allowed(port_type):
                 if name in color_ports:
                     ps = OutputPortSpec(name=name,
-                                        method_name=getter_name,
+                                        arg=getter_name,
                                         port_type="basic:Color",
                                         show_port=False,
                                         docstring=get_doc(cls, getter_name))
                     input_ports.append(ps)
                 else:
                     ps = OutputPortSpec(name=name,
-                                        method_name=getter_name,
+                                        arg=getter_name,
                                         port_type=port_type,
                                         show_port=False,
                                         docstring=get_doc(cls, getter_name))
@@ -583,7 +583,7 @@ def get_get_set_ports(cls, get_set_dict):
             # FIXME add documentation
             if file_name_pattern.match(name):
                 ps = InputPortSpec(name=name[:-4],
-                                   method_name=setter_name,
+                                   arg=setter_name,
                                    port_type="basic:File",
                                    show_port=True)
                 input_ports.append(ps)
@@ -591,7 +591,7 @@ def get_get_set_ports(cls, get_set_dict):
             # FIXME add documentation
             elif name in color_ports:
                 ps = InputPortSpec(name=name,
-                                   method_name=setter_name,
+                                   arg=setter_name,
                                    port_type="basic:Color",
                                    show_port=False)
                 input_ports.append(ps)
@@ -616,7 +616,7 @@ def get_get_set_ports(cls, get_set_dict):
                     else:
                         show_port = False
                     ps = InputPortSpec(name=n,
-                                       method_name=setter_name,
+                                       arg=setter_name,
                                        port_type=port_types,
                                        show_port=show_port,
                                        docstring=docstring,
@@ -643,7 +643,7 @@ def get_toggle_ports(cls, toggle_dict):
         if name in disallowed_toggle_ports:
             continue
         ps = InputPortSpec(name=name,
-                           method_name=name, # With On/Off appended
+                           arg=name, # With On/Off appended
                            method_type='OnOff',
                            port_type="basic:Boolean",
                            show_port=False,
@@ -666,8 +666,8 @@ def get_state_ports(cls, state_dict):
     for name in state_dict:
         enum_values = []
         translations = {}
-        method_name = "Set%sTo%s" % (name, state_dict[name][0][0])
-        method_name_short = "Set%sTo" % name
+        arg = "Set%sTo%s" % (name, state_dict[name][0][0])
+        arg_short = "Set%sTo" % name
         for mode in state_dict[name]:
             if (name, mode[0]) in disallowed_state_ports:
                 continue
@@ -679,13 +679,13 @@ def get_state_ports(cls, state_dict):
             enum_values.append(mode[0])
 
         ps = InputPortSpec(name=name,
-                           method_name=method_name_short,
+                           arg=arg_short,
                            method_type='SetXToY',
                            port_type="basic:String",
                            entry_types=['enum'],
                            values=[enum_values],
                            show_port=False,
-                           docstring=get_doc(cls, method_name))
+                           docstring=get_doc(cls, arg))
         input_ports.append(ps)
 
     return input_ports, []
@@ -761,7 +761,7 @@ def get_other_ports(cls, other_list):
         elif name=='CopyImportVoidPointer':
             # FIXME add documentation
             ps = InputPortSpec(name='CopyImportVoidString',
-                               method_name='CopyImportVoidPointer',
+                               arg='CopyImportVoidPointer',
                                port_type='basic:String',
                                show_port=True)
 
@@ -804,7 +804,7 @@ def get_other_ports(cls, other_list):
                                 pass
                         port_types = port_types[0]
                     ps = InputPortSpec(name=n,
-                                       method_name=name,
+                                       arg=name,
                                        port_type=port_types,
                                        show_port=show_port,
                                        docstring=docstring,
@@ -813,7 +813,7 @@ def get_other_ports(cls, other_list):
                 elif result == None or port_types == []:
                     n = resolve_overloaded_name(name, ix, signatures)
                     ps = InputPortSpec(name=n,
-                                       method_name=name,
+                                       arg=name,
                                        port_type='basic:Boolean',
                                        method_type='nullary',
                                        docstring=get_doc(cls, name),
@@ -848,33 +848,33 @@ def get_custom_ports(cls):
         output_ports.append(ps)
     elif cls == vtk.vtkVolumeProperty:
         ps = InputPortSpec(name='TransferFunction',
-                           method_name='SetTransferFunction',
+                           arg='SetTransferFunction',
                            port_type='TransferFunction',
                            docstring='Sets the transfer function to use')
         input_ports.append(ps)
     elif cls == vtk.vtkDataSet:
         ps = InputPortSpec(name='SetPointData',
-                           method_name='PointData',
+                           arg='PointData',
                            port_type='vtkPointData',
                            show_port=True,
                            docstring='Sets the point data')
         input_ports.append(ps)
         ps = InputPortSpec(name='SetCellData',
-                           method_name='CellData',
+                           arg='CellData',
                            port_type='vtkCellData',
                            show_port=True,
                            docstring='Sets the cell data')
         input_ports.append(ps)
     elif cls==vtk.vtkCell:
         ps = InputPortSpec(name='SetPointIds',
-                           method_name='PointIds',
+                           arg='PointIds',
                            port_type='vtkIdList',
                            show_port=True,
                            docstring='Sets the point id list')
         input_ports.append(ps)
     elif cls==vtk.vtkMultiBlockPLOT3DReader:
         ps = OutputPortSpec(name='StructuredGrid',
-                            method_name='FirstBlock',
+                            arg='FirstBlock',
                             port_type='vtkStructuredGrid',
                             show_port=True,
                             docstring='Returns .GetOutput().GetBlock(0)')
