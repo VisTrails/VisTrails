@@ -33,54 +33,84 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
-from vistrails.core.modules.vistrails_module import ModuleError
-from .common import convert_input, convert_output, get_input_spec, get_output_spec
 
-def gen_function_module(spec, lib, klasses, **module_settings):
+import importlib
+
+from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
+from vistrails.core.modules.vistrails_module import Module, ModuleError
+from .common import convert_input, convert_output
+
+
+def gen_function_module(spec, lib=None, klasses=None, **module_settings):
     """Create a module from a python function specification
 
     Parameters
     ----------
-    spec : ModuleSpec
-        A module specification
+    spec : FunctionSpec
+        A function specification
     """
+    if klasses is None:
+        klasses = {}
+
     module_settings.update(spec.get_module_settings())
     _settings = ModuleSettings(**module_settings)
 
     # convert input/output specs into VT port objects
-    input_ports = [CIPort(ispec.name, ispec.get_port_type(), **ispec.get_port_attrs())
-                   for ispec in spec.input_port_specs if not ispec.hide]
+    input_ports = []
+    for ispec in spec.all_input_port_specs():
+        input_ports.append(CIPort(ispec.name, ispec.get_port_type(),
+                                  **ispec.get_port_attrs()))
     output_ports = [COPort(ospec.name, ospec.get_port_type(), **ospec.get_port_attrs())
-                    for ospec in spec.output_port_specs if not ospec.hide]
-
-
-    _input_spec_table = {}
-    for ps in spec.input_port_specs:
-        _input_spec_table[ps.name] = ps
-    _output_spec_table = {}
-    for ps in spec.output_port_specs:
-        _output_spec_table[ps.name] = ps
+                    for ospec in spec.output_port_specs]
 
     def compute(self):
         # read inputs, convert, and translate to args
-        inputs = dict([(self._get_input_spec(s.name).arg, convert_input(self.get_input(s.name),
-                                              self.input_specs[s.name].signature))
-                       for s in self.input_specs.itervalues() if self.has_input(s.name)])
+        args = []
+        kwargs = {}
+        for port in spec.all_input_port_specs():
+            if self.has_input(port.name):
+                value = self.get_input(port.name)
+                value = convert_input(value, self.input_specs[port.name].signature)
+                if -1 == port.arg_pos:
+                        kwargs[port.arg] = value
+                elif -2 == port.arg_pos:
+                    args = value
+                elif -3 == port.arg_pos:
+                    kwargs.update(value)
+                else:
+                    # make room for arg
+                    while len(args) <= port.arg_pos:
+                        args.append(None)
+                    args[port.arg_pos] = value
 
         # Optional callback used for progress reporting
         if spec.callback:
             def callback(c):
                 self.logging.update_progress(self, c)
-            inputs[spec.callback] = callback
+            kwargs[spec.callback] = callback
 
         # Optional temp file
         if spec.tempfile:
-            inputs[spec.tempfile] = self.file_pool.create_file
+            kwargs[spec.tempfile] = self.file_pool.create_file
 
-        function = getattr(lib, spec.code_ref)
+        if spec.is_method:
+            if '.' in spec.code_ref:
+                # full paths are imported directly
+                m, c, n = spec.code_ref.rsplit('.', 2)
+                function = getattr(getattr(importlib.import_module(m), c), n)
+            else:
+                function = getattr(lib, spec.code_ref)
+        else:
+            if '.' in spec.code_ref:
+                # full paths are imported directly
+                m, f = spec.code_ref.rsplit('.', 1)
+                function = getattr(importlib.import_module(m), f)
+            else:
+                function = getattr(lib, spec.code_ref)
+
         try:
-            result = function(**inputs)
+            print args, kwargs
+            result = function(*args, **kwargs)
         except Exception, e:
             raise ModuleError(self, e.message)
 
@@ -89,7 +119,8 @@ def gen_function_module(spec, lib, klasses, **module_settings):
         outputs_list = self.output_specs_order
         outputs_list.remove('self') # self is automatically set by base Module
 
-        if spec.output_type is None:
+        if spec.output_type is None or spec.output_type == 'object':
+            # single object
             for name in self.output_specs_order:
                 outputs[name] = result
         elif spec.output_type == 'list':
@@ -117,17 +148,11 @@ def gen_function_module(spec, lib, klasses, **module_settings):
          '_settings': _settings,
          '__doc__': spec.docstring,
          '__name__': spec.name or spec.module_name,
+         'is_cacheable': lambda self:spec.cacheable,
          '_input_ports': input_ports,
-         '_output_ports': output_ports,
-         '_input_spec_table': _input_spec_table,
-         '_output_spec_table': _output_spec_table}
+         '_output_ports': output_ports}
 
-    superklass = klasses.get(spec.superklass, None)
-    # Put methods for accessing superclasses on top classes
-    if superklass == None:
-        d['_get_input_spec'] = classmethod(get_input_spec)
-        d['_get_output_spec'] = classmethod(get_output_spec)
-
+    superklass = klasses.get(spec.superklass, Module) if klasses else Module
     new_klass = type(str(spec.module_name), (superklass,), d)
     klasses[spec.module_name] = new_klass
     return new_klass

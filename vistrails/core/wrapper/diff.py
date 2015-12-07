@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###############################################################################
 ##
 ## Copyright (C) 2014-2015, New York University.
@@ -45,8 +46,74 @@ from xml.etree import ElementTree as ET
 from specs import SpecList
 
 
+def edit_distance(s1, s2):
+    """ Calculates string edit distance
+    """
+    m=len(s1)+1
+    n=len(s2)+1
+
+    tbl = {}
+    for i in range(m): tbl[i,0]=i
+    for j in range(n): tbl[0,j]=j
+    for i in range(1, m):
+        for j in range(1, n):
+            cost = 0 if s1[i-1] == s2[j-1] else 1
+            tbl[i,j] = min(tbl[i, j-1]+1, tbl[i-1, j]+1, tbl[i-1, j-1]+cost)
+
+    return tbl[i,j]
+
+
+def string_similarity(s1, s2):
+    """ Normalized for length so that partial matches are scored higher
+
+    """
+    if s1 == s2:
+        return max(len(s1), len(s2))
+    score = 1 - float(edit_distance(s1, s2)) / max(len(s1), len(s2))
+    #print s1, s2, score
+    return score
+
+
+def all_specs(input_port_spec):
+    """ Return all alternate specs
+    """
+    return [input_port_spec] + input_port_spec.alternate_specs
+
+
+def module_similarity(s1, s2):
+    """ default module similarity function
+        adds name and port similarity
+    """
+    # string_similarity can actually be used on any list
+    s1_port_specs = sorted([s.name for spec in s1.input_port_specs
+                     for s in all_specs(spec)])
+    s2_port_specs = sorted([s.name for spec in s2.input_port_specs
+                     for s in all_specs(spec)])
+    input_port_score = 1 + string_similarity(s1_port_specs, s2_port_specs)
+
+    s1_port_specs = [s.name for s in s1.output_port_specs]
+    s2_port_specs = [s.name for s in s2.output_port_specs]
+    output_port_score = 1 + string_similarity(s1_port_specs, s2_port_specs)
+
+    name_score = 1 + string_similarity(s1.name.lower(), s2.name.lower())
+
+    return name_score + input_port_score + output_port_score
+
+
+def port_similarity(p1, p2):
+    """ default port similarity function
+        checks name similarity for ports of same type
+        if names don't match it is still a possible match
+    """
+    if p1.port_type != p2.port_type:
+        return 0
+    score = 1 + string_similarity(p1.name.lower(), p2.name.lower())
+    #print p1.name, p2.name, score
+    return score
+
+
 def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
-                    port=None):
+                    port=None, show_docstring=True):
     if qualifier == "alternate":
         if port is None:
             raise ValueError("Must specify port with alternate")
@@ -60,7 +127,8 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
     in_port_specs_set = set(in_port_specs.iterkeys())
 
     for arg in in_port_specs_set - out_port_specs_set:
-        print "- %s.%s.%s" % (code_ref, qualifier, arg)
+        if show_docstring or arg != 'docstring':
+            print "--- %s.%s.%s" % (code_ref, qualifier, arg)
         elt = ET.Element("deletePortSpec")
         elt.set("code_ref", code_ref)
         if qualifier == "alternate":
@@ -73,9 +141,9 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
 
     for arg, out_ps in out_port_specs.iteritems():
         if arg not in in_port_specs:
-            print "out_ps:", out_ps
-            print "+ %s.%s.%s %s" % (code_ref, qualifier, arg, 
-                                     ET.tostring(out_ps.to_xml()))
+            if show_docstring or arg != 'docstring':
+                print "+++ %s.%s.%s %s" % (code_ref, qualifier, arg,
+                                           ET.tostring(out_ps.to_xml()))
             elt = ET.Element("addPortSpec")
             elt.set("code_ref", code_ref)
             if qualifier == "alternate":
@@ -97,8 +165,9 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
             in_val = getattr(in_ps, attr) 
             out_val = getattr(out_ps, attr)
             if in_val != out_val:
-                print "C %s.%s.%s.%s %s" % (code_ref, qualifier, arg, attr, 
-                                            out_val)
+                if show_docstring or attr != 'docstring':
+                    print ("CCC %s.%s.%s.%s (%s -> %s)" %
+                           (code_ref, qualifier, arg, attr, in_val, out_val))
                 elt = ET.Element("changePortSpec")
                 elt.set("code_ref", code_ref)
                 if qualifier == "alternate":
@@ -115,10 +184,10 @@ def compute_ps_diff(root, in_ps_list, out_ps_list, code_ref, qualifier,
         # only do this for input right now
         if qualifier == "input":
             compute_ps_diff(root, in_ps.alternate_specs, out_ps.alternate_specs,
-                            code_ref, "alternate", arg)
+                            code_ref, "alternate", arg, show_docstring=show_docstring)
 
 
-def compute_diff(module_spec, in_fname, out_fname, diff_fname):
+def compute_diff(module_spec, in_fname, out_fname, diff_fname=None, show_docstring=True):
     in_specs = SpecList.read_from_xml(in_fname, module_spec)
     out_specs = SpecList.read_from_xml(out_fname, module_spec)
 
@@ -131,7 +200,7 @@ def compute_diff(module_spec, in_fname, out_fname, diff_fname):
     root = ET.Element("diff")
 
     for ref in in_refs_set - out_refs_set:
-        print "- %s" % ref
+        print "--- %s" % ref
         elt = ET.Element("deleteModule")
         elt.set("code_ref", ref)
         root.append(elt)
@@ -139,7 +208,7 @@ def compute_diff(module_spec, in_fname, out_fname, diff_fname):
     for code_ref, out_spec in out_refs.iteritems():
         # need to check port specs, which removed, which added
         if code_ref not in in_refs:
-            print "+ %s %s" % (ref, ET.tostring(out_spec.to_xml()))
+            print "+++ %s %s" % (ref, ET.tostring(out_spec.to_xml()))
             elt = ET.Element("addModule")
             elt.set("code_ref", ref)
             subelt = ET.Element("value")
@@ -154,7 +223,8 @@ def compute_diff(module_spec, in_fname, out_fname, diff_fname):
             in_val = getattr(in_spec, attr)
             out_val = getattr(out_spec, attr)
             if in_val != out_val:
-                print "C %s.%s %s" % (out_spec.code_ref, attr, out_val)
+                if show_docstring or attr != 'docstring':
+                    print "CCC %s.%s %s" % (out_spec.code_ref, attr, out_val)
                 elt = ET.Element("changeModule")
                 elt.set("code_ref", out_spec.code_ref)
                 elt.set("attr", attr)
@@ -164,10 +234,11 @@ def compute_diff(module_spec, in_fname, out_fname, diff_fname):
                 root.append(elt)
 
         compute_ps_diff(root, in_spec.input_port_specs, out_spec.input_port_specs,
-                        code_ref, "input")
+                        code_ref, "input", show_docstring=show_docstring)
         compute_ps_diff(root, in_spec.output_port_specs, 
                         out_spec.output_port_specs,
-                        code_ref, "output")
+                        code_ref, "output",
+                        show_docstring=show_docstring)
 
     tree = ET.ElementTree(root)
 
@@ -187,7 +258,8 @@ def compute_diff(module_spec, in_fname, out_fname, diff_fname):
                 elem.tail = i
     indent(tree.getroot())
 
-    tree.write(diff_fname)
+    if diff_fname:
+        tree.write(diff_fname)
 
 
 def apply_diff(module_spec, in_fname, diff_fname, out_fname):
@@ -276,3 +348,134 @@ def apply_diff(module_spec, in_fname, diff_fname, out_fname):
                 m_spec.set_raw(attr, value)
 
     in_specs.write_to_xml(out_fname)
+
+
+def compute_upgrade(module_spec, in_fname, out_fname,
+                    module_similarity_func=None, port_similarity_func=None):
+    """ Computes module upgrade path suggestions
+
+    Parameters
+    ----------
+    module_similarity_func : function(m1, m2)
+        compares 2 module specifications
+    port_similarity_func : function(p1, p2)
+        compares 2 port specifications and returns similarity as:
+        >0 possible match score
+        0 no match
+    """
+    if module_similarity_func is None:
+        module_similarity_func = module_similarity
+    if port_similarity_func is None:
+        port_similarity_func = port_similarity
+    in_specs = SpecList.read_from_xml(in_fname, module_spec)
+    out_specs = SpecList.read_from_xml(out_fname, module_spec)
+
+    in_refs = dict((spec.module_name, spec) for spec in in_specs.module_specs)
+    out_refs = dict((spec.module_name, spec) for spec in out_specs.module_specs)
+
+    in_refs_set = set(in_refs.iterkeys())
+    out_refs_set = set(out_refs.iterkeys())
+
+    deleted_modules = in_refs_set - out_refs_set
+    added_modules = out_refs_set - in_refs_set
+
+    old_module_map = {}
+
+    def best_match(score_list):
+        # best score must be >0 and alone
+        if (len(score_list) == 0 or score_list[-1][0] <= 0 or
+           (len(score_list) > 1 and score_list[-2][0] == score_list[-1][0])):
+            return None
+        else:
+            return sorted(score_list)[-1][1]
+        old_module_map[best_match] = ref
+
+    for ref in deleted_modules:
+        # Suggest module to upgrade to by calculating similarity scores
+        # FIXME: we could use something more intelligent here
+        score_list = sorted([(module_similarity_func(in_refs[ref],
+                                                     out_refs[a]), a)
+                             for a in added_modules])
+        print "%s --> %s" % (ref, best_match(score_list))
+
+    for code_ref, out_spec in out_refs.iteritems():
+        # need to check port specs, which removed, which added
+        if code_ref in in_refs:
+            in_spec = in_refs[code_ref]
+        elif code_ref in old_module_map:
+            in_spec = in_refs[old_module_map[code_ref]]
+        else:
+            # No old module found
+            continue
+
+        # Compute input mappings
+        old_params = dict([(spec.name, spec)
+                           for port_spec in in_spec.input_port_specs
+                           for spec in all_specs(port_spec)])
+        new_params = dict([(spec.name, spec)
+                           for port_spec in out_spec.input_port_specs
+                           for spec in all_specs(port_spec)])
+        deleted_params = set(old_params) - set(new_params)
+        added_params = set(new_params) - set(old_params)
+
+        for ref in deleted_params:
+            ref_spec = old_params[ref]
+            # Suggest param upgrade by calculating most similar port
+            score_list = sorted([(port_similarity_func(old_params[ref],
+                                                       new_params[a]), a)
+                                 for a in added_params])
+            print "%s.%s.%s --> %s" % (code_ref, 'input', ref,
+                                       best_match(score_list))
+
+        # Compute output mappings
+        old_params = dict([(spec.name, spec)
+                           for spec in in_spec.output_port_specs])
+        new_params = dict([(spec.name, spec)
+                           for spec in out_spec.output_port_specs])
+
+        deleted_params = set(old_params) - set(new_params)
+        added_params = set(new_params) - set(old_params)
+
+        for ref in deleted_params:
+            # Suggest param to upgrade to by calculating similarity scores
+            score_list = sorted([(port_similarity_func(old_params[ref],
+                                                       new_params[a]), a)
+                                 for a in added_params])
+            print "%s.%s.%s --> %s" % (code_ref, 'output', ref,
+                                       best_match(score_list))
+
+
+#########################################################################
+# Script commands for diff'ing function and class specs
+# This needs to be re-implemented when using subclasses
+
+def usage():
+    print "Usage: %s %s [apply[f|c] raw diff xml|compute[f|c] raw xml diff|upgrade[f|c] spec1 spec2|show[f|c] spec1 spec2)]" % (sys.executable, sys.argv[0])
+
+
+if __name__ == '__main__':
+    import sys
+    from vistrails.core.wrapper.specs import FunctionSpec, ClassSpec
+    if len(sys.argv) < 2:
+        usage()
+    elif sys.argv[1] == "applyf":
+        apply_diff(FunctionSpec, sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == "applyc":
+        apply_diff(ClassSpec, sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == "computef":
+        compute_diff(FunctionSpec, sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == "computec":
+        compute_diff(ClassSpec, sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == "upgradef":
+        compute_upgrade(FunctionSpec, sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == "upgradec":
+        compute_upgrade(ClassSpec, sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == "showf":
+        compute_diff(FunctionSpec, sys.argv[2], sys.argv[3], show_docstring=False)
+    elif sys.argv[1] == "showc":
+        compute_diff(ClassSpec, sys.argv[2], sys.argv[3], show_docstring=False)
+    else:
+        usage()
+
+# example
+# PYTHONPATH=/home/tommy/git/vistrails python diff.py computef ~/.vistrails/numpy-1_10_1-spec-0_1_0-functions.xml ~/.vistrails/numpy-1_10_1-spec-0_1_0-functions.xml function-diff.xml
