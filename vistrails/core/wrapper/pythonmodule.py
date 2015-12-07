@@ -67,7 +67,7 @@ class ModuleSpecGenerator(object):
 
         # convert input/output specs into VT port objects
         input_ports = [CIPort(ispec.name, ispec.get_port_type(), **ispec.get_port_attrs())
-                       for ispec in spec.input_port_specs]
+                       for ispec in spec.all_input_port_specs()]
         output_ports = [COPort(ospec.name, ospec.get_port_type(), **ospec.get_port_attrs())
                         for ospec in spec.output_port_specs]
 

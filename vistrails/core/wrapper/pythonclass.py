@@ -35,10 +35,11 @@
 ###############################################################################
 from __future__ import division
 
+import importlib
+
 from itertools import izip
 
-from vistrails.core.debug import format_exc
-from vistrails.core.modules.vistrails_module import Module, ModuleError
+from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.config import CIPort, COPort, ModuleSettings
 
 from .common import convert_input, convert_output, get_input_spec, get_output_spec
@@ -54,14 +55,14 @@ class BaseClassModule(Module):
     _get_input_spec = classmethod(get_input_spec)
     _get_output_spec = classmethod(get_output_spec)
 
-    def call_set_method(self, instance, port, params):
+    def call_set_method(self, instance, port, params, method_results):
         # convert params
         params = convert_input(params, self.input_specs[port.name].signature)
-        if isinstance(params, tuple):
+        if len(self.input_specs[port.name].signature) > 1:
             params = list(params)
-        elif not isinstance(params, list):
+        else:
             params = [params]
-        method_name = port.method_name
+        method_name = port.arg
         if port.method_type == 'OnOff':
             # This converts OnOff ports to XOn(), XOff() calls
             method_name = method_name + ('On' if params[0] else 'Off')
@@ -77,16 +78,16 @@ class BaseClassModule(Module):
             method_name += params[0]
             params = []
         prepend_params = port.get_prepend_params()
-        # print "SETTING", method_name, prepend_params + params, instance.vtkInstance.__class__.__name__
         method = getattr(instance, method_name)
         try:
-            method(*(prepend_params + params))
+            result = method(*(prepend_params + params))
+            # store result for output methods
+            method_results[port.arg] = result
         except Exception, e:
             raise
 
     def call_get_method(self, instance, port):
-        # print "GETTING", port.method_name, port.get_prepend_params(), instance.vtkInstance.__class__.__name__
-        method = getattr(instance, port.method_name)
+        method = getattr(instance, port.arg)
         try:
             value = method(*(port.get_prepend_params()))
             # convert params
@@ -94,7 +95,7 @@ class BaseClassModule(Module):
         except Exception, e:
             raise
 
-    def call_inputs(self, instance):
+    def call_inputs(self, instance, method_results):
         # compute input methods and connections
         # We need to preserve the order of the inputs
         methods = self.is_method.values()
@@ -132,13 +133,16 @@ class BaseClassModule(Module):
             to_call = methods_to_call + connections_to_call
         for port_name, params in to_call:
             port = self._get_input_spec(port_name)
+            # skip non-methods
+            if port.method_type in ['Instance', 'argument', 'attribute']:
+                continue
             # Call method once for each item in depth1 lists
             if port.depth == 0:
                 params = [params]
             for ps in params:
-                self.call_set_method(instance, port, ps)
+                self.call_set_method(instance, port, ps, method_results)
 
-    def call_outputs(self, instance):
+    def call_outputs(self, instance, method_results):
         outputs_list = self.output_specs_order
         if 'self' in outputs_list:
             outputs_list.remove('self')
@@ -149,14 +153,71 @@ class BaseClassModule(Module):
                 # not connected
                 continue
             port = self._get_output_spec(port_name)
-            result = self.call_get_method(instance, port)
-            self.set_output(port_name, result)
+            if port.method_type == 'method':
+                if port.arg in method_results:
+                    result = method_results[port.arg]
+                else:
+                    result = self.call_get_method(instance, port)
+                self.set_output(port_name, result)
+
+    def get_parameters(self):
+        """
+        Compute constructor/function arguments
+        """
+        args = []
+        kwargs = {}
+        for port_name in self.inputPorts:
+            port = self._get_input_spec(port_name)
+            if port and port.method_type == 'argument':
+                params = self.get_input(port_name)
+                if -1 == port.arg_pos:
+                    kwargs[port.arg] = params
+                elif -2 == port.arg_pos:
+                    args = params
+                elif -3 == port.arg_pos:
+                    kwargs.update(params)
+                else:
+                    # make room for arg
+                    while len(args) <= port.arg_pos:
+                        args.append(None)
+                    args[port.arg_pos] = params
+        return args, kwargs
+
+    def set_attributes(self, instance):
+        """
+        set class attributes
+        """
+        for port_name in self.inputPorts:
+            port = self._get_input_spec(port_name)
+            if port and port.method_type == 'attribute':
+                params = self.get_input(port_name)
+                setattr(instance, port.arg, params)
+
+    def get_attributes(self, instance):
+        """
+        set class attributes
+        """
+        for port_name in self.outputPorts:
+            port = self._get_output_spec(port_name)
+            if port and port.method_type == 'attribute':
+                self.set_output(port_name, getattr(instance, port.arg))
 
     def compute(self):
         spec = self._module_spec
-        # First create the instance
-        # TODO: How to handle parameters to instance
-        instance = getattr(self._lib, spec.code_ref)()
+        if self.has_input('Instance'):
+            instance = self.get_input('Instance')
+        else:
+            # Handle parameters to instance
+            args, kwargs = self.get_parameters()
+            # create the instance
+            if not kwargs:
+                # some constructors fail if passed empty kwarg
+                if not args:
+                    instance = self._class[0]()
+                else:
+                    instance = self._class[0](*args)
+            else:
+               instance = self._class[0](*args, **kwargs)
 
         # Optional callback used for progress reporting
         if spec.callback:
@@ -167,20 +228,27 @@ class BaseClassModule(Module):
         if spec.tempfile:
             getattr(instance, spec.tempfile)(self.interpreter.filePool.create_file)
 
+        # set input attributes on instance
+        self.set_attributes(instance)
+
+        # input methods can transfer results to outputs
+        method_results = {}
         # call input methods on instance
-        self.call_inputs(instance)
+        self.call_inputs(instance, method_results)
 
         # optional compute method
         if spec.compute:
             getattr(instance, spec.compute)()
 
+        # get output attributes from instance
+        self.get_attributes(instance)
+
         # convert outputs to dict
-        outputs = {}
         outputs_list = self.output_specs_order
         outputs_list.remove('self') # self is automatically set by base Module
 
         # Get outputs
-        self.call_outputs(instance)
+        self.call_outputs(instance, method_results)
 
         self.set_output('Instance', instance)
 
@@ -189,30 +257,49 @@ class BaseClassModule(Module):
             getattr(instance, spec.cleanup)()
 
 
-def gen_class_module(spec, lib, klasses, **module_settings):
+def gen_class_module(spec, lib=None, modules=None, **module_settings):
     """Create a module from a python class specification
 
     Parameters
     ----------
     spec : ClassSpec
         A class to module specification
+    module : pythonmodule
+        The module to load classes from
+    modules : dict of name:module
     """
+    if modules is None:
+        modules = {}
     module_settings.update(spec.get_module_settings())
     _settings = ModuleSettings(**module_settings)
 
     # convert input/output specs into VT port objects
-    input_ports = [CIPort(ispec.name, ispec.get_port_type(), **ispec.get_port_attrs())
-                   for ispec in spec.input_port_specs]
-    output_ports = [COPort(ospec.name, ospec.get_port_type(), **ospec.get_port_attrs())
+    input_ports = []
+    for ispec in spec.all_input_port_specs():
+        input_ports.append(CIPort(ispec.name, ispec.get_port_type(),
+                                  **ispec.get_port_attrs()))
+    output_ports = [COPort(ospec.name, ospec.get_port_type(),
+                           **ospec.get_port_attrs())
                     for ospec in spec.output_port_specs]
-    output_ports.insert(0, COPort('Instance', spec.module_name)) # Adds instance output port
+    # Instance input is used to access an already existing Instance
+    i_name = (spec.namespace + '|' if spec.namespace else '') + spec.module_name
+    if 'Instance' not in [o.name for o in output_ports]:
+        output_ports.insert(0, COPort('Instance', i_name,
+            docstring='The class instance'))
 
     _input_spec_table = {}
-    for ps in spec.input_port_specs:
+    for ps in spec.all_input_port_specs():
         _input_spec_table[ps.name] = ps
     _output_spec_table = {}
     for ps in spec.output_port_specs:
         _output_spec_table[ps.name] = ps
+
+    if '.' in spec.code_ref:
+        # full paths are imported directly
+        m, c = spec.code_ref.rsplit('.', 1)
+        _class = getattr(importlib.import_module(m), c)
+    else:
+        _class = getattr(lib, spec.code_ref)
 
     d = {'__module__': __name__,
          '_settings': _settings,
@@ -224,9 +311,9 @@ def gen_class_module(spec, lib, klasses, **module_settings):
          '_output_spec_table': _output_spec_table,
          '_module_spec': spec,
          'is_cacheable': lambda self:spec.cacheable,
-         '_lib': lib}
+         '_class': [_class]} # Avoid attaching it to the class
 
-    superklass = klasses.get(spec.superklass, BaseClassModule)
+    superklass = modules.get(spec.superklass, BaseClassModule)
     new_klass = type(str(spec.module_name), (superklass,), d)
-    klasses[spec.module_name] = new_klass
+    modules[spec.module_name] = new_klass
     return new_klass

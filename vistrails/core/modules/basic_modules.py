@@ -1345,9 +1345,10 @@ def initialize(*args, **kwargs):
     # initialize the sub_module modules, too
     import vistrails.core.modules.sub_module
     import vistrails.core.modules.output_modules
+    from vistrails.core.wrapper.pythonclass import BaseClassModule
     _modules.extend(vistrails.core.modules.sub_module._modules)
     _modules.extend(vistrails.core.modules.output_modules._modules)
-
+    _modules.append(BaseClassModule)
 
 def handle_module_upgrade_request(controller, module_id, pipeline):
     from vistrails.core.upgradeworkflow import UpgradeWorkflowHandler

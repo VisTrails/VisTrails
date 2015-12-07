@@ -37,6 +37,8 @@
 from __future__ import division
 
 import ast
+import copy
+
 from xml.etree import cElementTree as ET
 
 def parse_props(props):
@@ -312,6 +314,28 @@ class InputPortSpec(PortSpec):
                 self.name = base_name + "Scalar"
         #self.arg = self._parent.arg
 
+    def full(self):
+        """ Construct full spec for an alternate spec
+        """
+        """ Check parent spec first
+
+        """
+        if not self._parent:
+            # This is not an Alternate PortSpec
+            return self
+        full_spec = copy.copy(self)
+        for k in self.attrs:
+            default, _, _ = parse_props(self.attrs[k])
+            # never copy port type attributes and name
+            # FIXME remove "translations"
+            type_props = ['name', 'defaults', 'values', 'entry_types', 'translations', 'port_type']
+            if k in type_props:
+                continue
+            alt_value = getattr(self, k)
+            if alt_value == default:
+                setattr(full_spec, k, getattr(self._parent, k))
+        return full_spec
+
     def to_xml(self, elt=None):
         elt = PortSpec.to_xml(self, elt)
         for spec in self.alternate_specs:
@@ -339,8 +363,7 @@ class InputPortSpec(PortSpec):
         """ Check parent spec first
 
         """
-        if not self._parent\
-                :
+        if not self._parent:
             return PortSpec.get_port_attrs(self)
 
         # This is an Alternate PortSpec
@@ -390,7 +413,7 @@ class ModuleSpec(SpecObject):
         'docstring': ('', True),   # module __doc__
         'cacheable': (False, False, True),   # should this module be cached
         # special attributes
-        'callback': None,    # name of attribute for progress callback
+        'callback': None,    # attribute name for progress callback
         'tempfile': None    # attribute name for temporary file creation method
     }
     attrs.update(ms_attrs)
@@ -432,6 +455,16 @@ class ModuleSpec(SpecObject):
         kwargs['output_port_specs'] = output_port_specs
         return cls(**kwargs)
 
+    def all_input_port_specs(self):
+        """ appends alternate specs as normal specs
+        """
+        input_specs = list(self.input_port_specs)
+        for ispec in self.input_port_specs:
+            input_specs.append(ispec)
+            for aspec in ispec.alternate_specs:
+                input_specs.append(aspec.full())
+        return input_specs
+
     def get_output_port_spec(self, compute_name):
         for ps in self.output_port_specs:
             if ps.compute_name == compute_name:
@@ -453,10 +486,10 @@ class ModuleSpec(SpecObject):
 ######### PYTHON FUNCTION SPEC ###########
 
 class FunctionInputPortSpec(InputPortSpec):
-    attrs = {"arg":     "",                           # function argument name
-             "in_kwargs": (True, False, True),        # Add as kwarg?
-             "in_args": (False, False, True),         # Add as arg?
-             "arg_pos": (-1, False, True)}         # argument position
+    attrs = {"arg":     "",                # function argument name
+             # arg_pos: argument position (-1=kwarg, -2=*argv, -3=*kwarg)
+             # *-types replaces/extends arglist/dict
+             "arg_pos": (-1, False, True)}
     attrs.update(InputPortSpec.attrs)
 
     def __init__(self, arg=None, **kwargs):
@@ -488,10 +521,13 @@ class FunctionSpec(ModuleSpec):
     OutputSpecType = FunctionOutputPortSpec
 
     # output_type tells VisTrails what the function returns
-    # None - single data object
+    # None - single object
+    # "none" - no return value
     # "list" - ordered list
     # "dict" - dict with attr:value
-    attrs = {'output_type': None}
+    attrs = {'output_type': 'object',
+             # is this a class method?
+             'is_method': (False, False, True)}
     attrs.update(ModuleSpec.attrs)
 
 
@@ -500,29 +536,44 @@ class FunctionSpec(ModuleSpec):
 
 class ClassInputPortSpec(InputPortSpec):
     attrs = {
-        "method_name": "",                   # method name
-        "method_type": "",                   # Type like nullary, OnOff or SetXToY
-        "prepend_params": (None, True, True) # prepended params like index
+        "arg": "",                   # method name
+        # method_type can be
+        # 'Instance' - class instances (no constructor call)
+        # 'argument' - for constructor arguments,
+        # 'attribute' - class attribute setter
+        # 'method' - class method caller
+        # or method type like 'nullary', 'OnOff' or 'SetXToY'
+        "method_type": "method",
+        # arg_pos: argument position (-1=kwarg, -2=*argv, -3=*kwarg)
+        # *-types replaces/extends arglist/dict
+        # attributes only
+        "arg_pos": (-1, False, True),        # argument position (-1 means kwarg)
+        "prepend_params": (None, True, True) # prepended method params like index
         }
     attrs.update(InputPortSpec.attrs)
 
     def __init__(self, **kwargs):
         InputPortSpec.__init__(self, **kwargs)
-        if not self.method_name:
-            self.method_name = self.name
+        if not self.arg:
+            self.arg = self.name
 
 
 class ClassOutputPortSpec(OutputPortSpec):
     attrs = {
-        "method_name": "",                   # method/attribute name
-        "prepend_params": (None, True, True) # prepended params used with indexed methods
+        "arg": "",              # method/attribute name
+        # method_type can be
+        # 'Instance' - class instance
+        # 'attribute' - class attribute getter
+        # 'method' - class method output
+        "method_type": "method",
+        "prepend_params": (None, True, True) # prepended method params like index
         }
     attrs.update(OutputPortSpec.attrs)
 
     def __init__(self, **kwargs):
         OutputPortSpec.__init__(self, **kwargs)
-        if not self.method_name:
-            self.method_name = self.name
+        if not self.arg:
+            self.arg = self.name
 
 
 class ClassSpec(ModuleSpec):
@@ -631,7 +682,7 @@ class TestModuleSpec(unittest.TestCase):
                                    show_port=False,
                                    sort_key=5,
                                    depth=1,
-                                   method_name='MyClassMethodName',
+                                   arg='MyClassMethodName',
                                    method_type='SetXToY',
                                    prepend_params=[1])
         in_attrs = input_spec.get_port_attrs()
@@ -644,7 +695,7 @@ class TestModuleSpec(unittest.TestCase):
                                    show_port=False,
                                    sort_key=5,
                                    depth=1,
-                                   method_name='MyClassMethodName',
+                                   arg='MyClassMethodName',
                                    prepend_params=[1])
         out_attrs = output_spec.get_port_attrs()
 

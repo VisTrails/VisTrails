@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###############################################################################
 ##
 ## Copyright (C) 2014-2015, New York University.
@@ -442,3 +443,39 @@ def compute_upgrade(module_spec, in_fname, out_fname,
                                  for a in added_params])
             print "%s.%s.%s --> %s" % (code_ref, 'output', ref,
                                        best_match(score_list))
+
+
+#########################################################################
+# Script commands for diff'ing function and class specs
+# This needs to be re-implemented when using subclasses
+
+def usage():
+    print "Usage: %s %s [apply[f|c] raw diff xml|compute[f|c] raw xml diff|upgrade[f|c] spec1 spec2|show[f|c] spec1 spec2)]" % (sys.executable, sys.argv[0])
+
+
+if __name__ == '__main__':
+    import sys
+    from vistrails.core.wrapper.specs import FunctionSpec, ClassSpec
+    if len(sys.argv) < 2:
+        usage()
+    elif sys.argv[1] == "applyf":
+        apply_diff(FunctionSpec, sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == "applyc":
+        apply_diff(ClassSpec, sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == "computef":
+        compute_diff(FunctionSpec, sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == "computec":
+        compute_diff(ClassSpec, sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == "upgradef":
+        compute_upgrade(FunctionSpec, sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == "upgradec":
+        compute_upgrade(ClassSpec, sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == "showf":
+        compute_diff(FunctionSpec, sys.argv[2], sys.argv[3], show_docstring=False)
+    elif sys.argv[1] == "showc":
+        compute_diff(ClassSpec, sys.argv[2], sys.argv[3], show_docstring=False)
+    else:
+        usage()
+
+# example
+# PYTHONPATH=/home/tommy/git/vistrails python diff.py computef ~/.vistrails/numpy-1_10_1-spec-0_1_0-functions.xml ~/.vistrails/numpy-1_10_1-spec-0_1_0-functions.xml function-diff.xml
