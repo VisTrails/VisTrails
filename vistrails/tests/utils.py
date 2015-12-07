@@ -37,9 +37,13 @@
 from __future__ import division
 
 import contextlib
+import functools
 import logging
 import os
+import pdb
 import sys
+import traceback
+import unittest
 
 try:
     import cStringIO as StringIO
@@ -371,3 +375,44 @@ class MockLogHandler(logging.Handler):
         finally:
             if hasattr(logging, '_acquireLock'):
                 logging._releaseLock()
+
+
+def debug_func(f):
+    """Decorator starting a debugger when a method raises an exception.
+    """
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except Exception:
+            info = sys.exc_info()
+            traceback.print_exception(*info)
+            tb = info[2]
+            tb_it = tb
+            while tb_it.tb_next is not None:
+                tb_it = tb_it.tb_next
+            frame = tb_it.tb_frame
+            p = pdb.Pdb()
+            p.reset()
+            p.interaction(frame, tb)
+            raise
+    return wrapper
+
+
+class debug_metaclass(type):
+    """Metaclass adding `debug_func` on every ``test_*`` method.
+    """
+    def __new__(cls, name, bases, dct):
+        new_dct = {}
+        for k, v in dct.iteritems():
+            if k.startswith('test_'):
+                new_dct[k] = debug_func(v)
+            else:
+                new_dct[k] = v
+        return type.__new__(cls, name, bases, new_dct)
+
+
+class DebugTestCaseMetaBase(unittest.TestCase):
+    """Base class used to bring in `debug_metaclass`.
+    """
+    __metaclass__ = debug_metaclass
