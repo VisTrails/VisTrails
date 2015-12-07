@@ -1,0 +1,52 @@
+<diff>
+  <deletePortSpec code_ref="numpy.matlib.rand" port="\*args" type="input" />
+  <addPortSpec code_ref="numpy.matlib.rand" port="dimensions" type="input">
+    <value>
+      <inputPortSpec arg="dimensions" arg_pos="-2" depth="1" name="dimensions" port_type="basic:Integer">
+        <docstring>Shape of the output.
+If given as N integers, each integer specifies the size of one
+dimension.
+If given as a tuple, this tuple gives the complete shape.</docstring>
+      </inputPortSpec>
+    </value>
+  </addPortSpec>
+  <deletePortSpec code_ref="numpy.matlib.randn" port="\*args" type="input" />
+  <addPortSpec code_ref="numpy.matlib.randn" port="dimensions" type="input">
+    <value>
+      <inputPortSpec arg="dimensions" arg_pos="-2" depth="1" name="dimensions" port_type="basic:Integer">
+        <docstring>Shape of the output.
+If given as N integers, each integer specifies the size of one
+dimension.
+If given as a tuple, this tuple gives the complete shape.</docstring>
+      </inputPortSpec>
+    </value>
+  </addPortSpec>
+  <deletePortSpec code_ref="numpy.random.rand" port="dn" type="input" />
+  <deletePortSpec code_ref="numpy.random.rand" port="..." type="input" />
+  <deletePortSpec code_ref="numpy.random.rand" port="d0" type="input" />
+  <deletePortSpec code_ref="numpy.random.rand" port="d1" type="input" />
+  <addPortSpec code_ref="numpy.random.rand" port="dimensions" type="input">
+    <value>
+      <inputPortSpec arg="dimensions" arg_pos="-2" depth="1" name="dimensions" port_type="basic:Integer">
+        <docstring>Shape of the output.
+If given as N integers, each integer specifies the size of one
+dimension.
+If given as a tuple, this tuple gives the complete shape.</docstring>
+      </inputPortSpec>
+    </value>
+  </addPortSpec>
+  <deletePortSpec code_ref="numpy.random.randn" port="dn" type="input" />
+  <deletePortSpec code_ref="numpy.random.randn" port="..." type="input" />
+  <deletePortSpec code_ref="numpy.random.randn" port="d0" type="input" />
+  <deletePortSpec code_ref="numpy.random.randn" port="d1" type="input" />
+  <addPortSpec code_ref="numpy.random.randn" port="dimensions" type="input">
+    <value>
+      <inputPortSpec arg="dimensions" arg_pos="-2" depth="1" name="dimensions" port_type="basic:Integer">
+        <docstring>Shape of the output.
+If given as N integers, each integer specifies the size of one
+dimension.
+If given as a tuple, this tuple gives the complete shape.</docstring>
+      </inputPortSpec>
+    </value>
+  </addPortSpec>
+</diff>
