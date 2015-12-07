@@ -8,6 +8,7 @@ Developer's Guide
    :maxdepth: 2
 
    packages
+   wrapping
    batch
    job_submission
    log
