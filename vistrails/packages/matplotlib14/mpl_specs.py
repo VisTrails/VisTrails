@@ -78,7 +78,9 @@ class PropertyMixin:
 class MPLInputPortSpec(PropertyMixin, FunctionInputPortSpec):
     attrs = {"constructor_arg": (False, False, True), # Add as constructor arg
              "not_setp": (False, False, True),        # Should we not set properties
-             "property_type": "",
+             "in_kwargs": (True, False, True),        # is kwarg
+             "in_args": (False, False, True),         # is arg
+             "property_type": "",                     # vistrails type
              "translations": (None, True, True)}      # Translation function(s) (dict or string)
     attrs.update(FunctionInputPortSpec.attrs)
 
