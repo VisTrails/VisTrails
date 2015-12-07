@@ -171,6 +171,11 @@ def setNewPyQtAPI():
         print "Could not set PyQt API, is PyQt4 installed?"
 setNewPyQtAPI()
 
+# Start debugger on test failure
+if debug_mode:
+    from vistrails.tests.utils import DebugTestCaseMetaBase
+    unittest.TestCase = DebugTestCaseMetaBase
+
 # Log to the console
 import vistrails.core.debug
 vistrails.core.debug.DebugPrint.getInstance().log_to_console()

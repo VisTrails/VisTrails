@@ -43,6 +43,7 @@ import os
 import pdb
 import sys
 import traceback
+import unittest
 
 try:
     import cStringIO as StringIO
@@ -396,3 +397,22 @@ def debug_func(f):
             p.interaction(frame, tb)
             raise
     return wrapper
+
+
+class debug_metaclass(type):
+    """Metaclass adding `debug_func` on every ``test_*`` method.
+    """
+    def __new__(cls, name, bases, dct):
+        new_dct = {}
+        for k, v in dct.iteritems():
+            if k.startswith('test_'):
+                new_dct[k] = debug_func(v)
+            else:
+                new_dct[k] = v
+        return type.__new__(cls, name, bases, new_dct)
+
+
+class DebugTestCaseMetaBase(unittest.TestCase):
+    """Base class used to bring in `debug_metaclass`.
+    """
+    __metaclass__ = debug_metaclass
