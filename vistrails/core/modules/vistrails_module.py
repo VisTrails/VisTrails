@@ -37,9 +37,8 @@ from __future__ import division
 
 from base64 import b16encode, b16decode
 import copy
-from itertools import izip, product
+from itertools import izip, product, chain
 import json
-import sys
 import time
 import traceback
 import warnings
@@ -1194,7 +1193,12 @@ class Module(object):
 
             if (self.input_specs[port_name].depth + self.list_depth > 0) or \
                 self.input_specs[port_name].descriptors() == [list_desc]:
-                return [j for i in self.get_input_list(port_name) for j in i]
+                ret = self.get_input_list(port_name)
+                if len(ret) > 1:
+                    ret = list(chain.from_iterable(ret))
+                else:
+                    ret = ret[0]
+                return ret
 
         # else return first connector item
         value = self.inputPorts[port_name][0]()
