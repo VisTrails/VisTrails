@@ -115,6 +115,211 @@ alternate_suffix = {'basic:Integer': 'Scalar',
                     'basic:List': 'Sequence'}
 
 
+def parse_numpydoc(docstring):
+    """ Parse parameters and attributes from numpy docstring
+
+    """
+    from numpydoc.docscrape import NumpyDocString
+
+    root = NumpyDocString(docstring)
+    # list of (arg, typestring, docstring)
+    signature = root['Signature']
+    if not signature and root['Summary']:
+        signature = root['Summary'][:1][0]
+    if signature:
+        m = re.search(r"\w+\((.*?)\)", signature, re.IGNORECASE)
+        if m:
+            signature = m.group(0)
+        else:
+            signature = ''
+
+    parameters = []
+    for args, typestring, fdocstring in root['Parameters'] + root['Other Parameters']:
+        for arg in args.split(','):
+            arg = arg.strip()
+            if arg.startswith('(') or ' ' in arg:
+                # Ignore parameter section comments
+                continue
+            parameters.append((arg, typestring, '\n'.join(fdocstring)))
+    attributes = []
+    for args, typestring, fdocstring in root['Attributes']:
+        for arg in args.split(','):
+            arg = arg.strip()
+            attributes.append((arg, typestring, '\n'.join(fdocstring)))
+
+    methods = []
+    for args, typestring, fdocstring in root['Methods']:
+        for arg in args.split(','):
+            arg = arg.strip()
+            methods.append((arg, typestring, '\n'.join(fdocstring)))
+
+    returns = []
+    for args, typestring, fdocstring in root['Returns']:
+        for arg in args.split(','):
+            arg = arg.strip()
+            returns.append((arg, typestring, '\n'.join(fdocstring)))
+    if not returns:
+        # try to extract return value from first line of summary
+        summary = root['Summary'][:1]
+        if summary:
+            m = re.search(r"\w+\((.*?)\) \-\> (\w+)", summary[0], re.IGNORECASE)
+            if m:
+                returns.append((m.group(2), '', ''))
+
+    return signature, parameters, attributes, methods, returns
+
+def parse_googledoc(docstring):
+    """ Parse parameters and attributes from numpy docstring
+
+    """
+    # signature is not parsed by googledoc
+    signature = docstring.split('\n')[0]
+    if signature:
+        m = re.search(r"\w+\((.*?)\)", signature, re.IGNORECASE)
+        if m:
+            signature = m.group(0)
+        else:
+            signature = ''
+    from googledocstring import GoogleDocstring
+    g = GoogleDocstring(docstring)
+    print signature, g.arguments, g.attributes, g.methods, g.returns
+    return signature, g.arguments, g.attributes, g.methods, g.returns
+
+def parse_type_string(desc, conf):
+    """ parse_type_string(desc: string) ->
+            {(port_type, depth): (option_strs, default_val)}
+
+        Parses an argument description string.
+
+        port_type: vistrail type
+        option_strs: list of values (for enums)
+        default_val: default value
+        depth: port depth
+    """
+    # type priority table [[keyword, type]]
+    # desc is searched for keywords until a match is found
+    # this usually need to be updated for specific libraries
+
+    # multiple types may be supported
+    port_types = {}
+    def add_port_type(port_type):
+        if port_type not in port_types:
+            # (type, depth) : (option list, default)
+            port_types[port_type] = [[], None]
+    default_val = None
+    default_paren_re = re.compile(r"((\S*)\s+)?\(default:?(\s+((\[[^\]]*\])|([^\s\[]*)))?\)",
+                                  re.IGNORECASE)
+    default_is_re = re.compile(r"default\s+(value\s+)?is\s+((\[[^\]]*\])|([^\s\[]*))", re.IGNORECASE)
+
+    def parse_desc(opt):
+        # search for type keywords
+        for key, value in conf.key_to_type:
+            if key in opt:
+                add_port_type((value, 0))
+                if conf.typed_lists and value == 'basic:List':
+                    for key, listtype in conf.list_types:
+                        if key in opt:
+                            # Convert list to type of depth 1
+                            del port_types[(value, 0)]
+                            add_port_type((listtype, 1))
+                            break
+
+                return True
+        return False
+
+    def parse_opts(opts, default_val):
+        for opt in opts:
+            opt = opt.strip()
+            m = default_paren_re.search(opt)
+            if m:
+                # it is a default value
+                _, before_res, _, after_res, _, _= m.groups()
+                if after_res:
+                    #assert default_val is None, ('Multiple defaults: '
+                    #        '"%s" "%s"' % (default_val, after_res))
+                    default_val = after_res
+                    opt = after_res
+                elif before_res:
+                    #assert default_val is None, ('Multiple defaults: '
+                    #        '"%s" "%s"' % (default_val, before_res))
+                    default_val = before_res
+                    opt = before_res
+            found_type = False
+            opt_lower = opt.lower()
+            if opt_lower == "none":
+                # Ignores None types
+                found_type = True
+            elif opt_lower == "true" or opt_lower == "false":
+                found_type = True
+                add_port_type(("basic:Boolean", 0))
+            else:
+                # search for type keywords
+                found_type = found_type or parse_desc(opt_lower)
+
+            if not found_type:
+                (val, port_type) = get_value_and_type(opt)
+                if port_type is not None:
+                    add_port_type((port_type, 0))
+                    if val is not None and (not isinstance(val, basestring)
+                                      or (',' not in val and ' ' not in val)):
+                        port_types[(port_type, 0)][0].append(val)
+        return default_val
+
+    if '|' in desc:
+        # assume multiple types or enum values
+        m = re.search("\[([\s\S]*?)\]", desc)
+        if m:
+            opt_str = m.group(1)
+        else:
+            opt_str = desc
+        opts = opt_str.split('|')
+        default_val = parse_opts(opts, default_val)
+
+    if '{' in desc:
+        # assume enum values separated by comma
+        m = re.search("\{([\s\S]*?)\}", desc)
+        if m:
+            opt_str = m.group(1)
+        else:
+            opt_str = desc
+        if '(' not in opt_str: # cannot handle weird nesting
+            opts = opt_str.split(',')
+            default_val = parse_opts(opts, default_val)
+
+    if ' or ' in desc:
+        # assume multiple types or enum values
+        opts = desc.split(' or ')
+        default_val = parse_opts(opts, default_val)
+
+    # search for default value
+    if default_val is None:
+        m = default_paren_re.search(desc)
+        if m:
+            _, before_res, _, after_res, _, _= m.groups()
+            if after_res:
+                default_val = after_res
+            elif before_res:
+                default_val = before_res
+        else:
+            m = default_is_re.search(desc)
+            if m:
+                _, default_val, _, _ = m.groups()
+                if default_val.endswith('.') or default_val.endswith(','):
+                    default_val = default_val[:-1]
+
+    if default_val is not None:
+        (default_val, port_type) = get_value_and_type(default_val)
+        if port_type is not None:
+            add_port_type((port_type, 0))
+            port_types[((port_type, 0))][1] = default_val
+
+    if len(port_types) == 0:
+        # only check first line
+        line1 = desc.split('\n')[0]
+        parse_desc(line1)
+
+    return port_types
+
 class PythonParser(object):
     """
     Class that can turn python functions and classes into module specifications
@@ -127,15 +332,15 @@ class PythonParser(object):
         self.instance_type = kwargs.pop('instance_type', None)
         # typed_lists: whether to use type lists of depth 1 when possible
         self.typed_lists = kwargs.pop('typed_lists', True)
-        # list_types: types that can be converted from list to depth 1 type
+        # key_to_type: Defines the types that will be parsed
         self.key_to_type = kwargs.pop('key_to_type', default_key_to_type)
         # list_types: types that can be converted from list to depth 1 type
         self.list_types = kwargs.pop('list_types', default_list_types)
         # parser function (default is numpydoc)
-        self.parse_doc = kwargs.pop('docstring_type', self.parse_numpydoc)
+        self.parse_doc = kwargs.pop('parse_doc', parse_numpydoc)
         # type_string_parser: custom type string parser function
         self.type_string_parser = kwargs.pop('type_string_parser',
-                                             self.parse_type_string)
+                                             parse_type_string)
         # class specification
         self.class_spec = kwargs.pop('class_spec', ClassSpec)
         # function specification
@@ -210,203 +415,6 @@ class PythonParser(object):
             port_specs[arg] = (arg_pos, default)
         return port_specs
 
-    def parse_type_string(self, desc):
-        """ parse_type_string(desc: string) ->
-                {(port_type, depth): (option_strs, default_val)}
-
-            Parses an argument description string.
-
-            port_type: vistrail type
-            option_strs: list of values (for enums)
-            default_val: default value
-            depth: port depth
-        """
-        # type priority table [[keyword, type]]
-        # desc is searched for keywords until a match is found
-        # this usually need to be updated for specific libraries
-
-        # multiple types may be supported
-        port_types = {}
-        def add_port_type(port_type):
-            if port_type not in port_types:
-                # (type, depth) : (option list, default)
-                port_types[port_type] = [[], None]
-        default_val = None
-        default_paren_re = re.compile(r"((\S*)\s+)?\(default:?(\s+((\[[^\]]*\])|([^\s\[]*)))?\)",
-                                      re.IGNORECASE)
- #       default_is_re = re.compile(r"default\s+is\s+(\S*)", re.IGNORECASE)
-        default_is_re = re.compile(r"default\s+(value\s+)?is\s+((\[[^\]]*\])|([^\s\[]*))", re.IGNORECASE)
- #       default_is_re = re.compile(r"default\s+(value\s+)?is\s+(\S*)", re.IGNORECASE)
-
-        def parse_desc(opt):
-            # search for type keywords
-            for key, value in self.key_to_type:
-                if key in opt:
-                    add_port_type((value, 0))
-                    if self.typed_lists and value == 'basic:List':
-                        for key, listtype in self.list_types:
-                            if key in opt:
-                                # Convert list to type of depth 1
-                                del port_types[(value, 0)]
-                                add_port_type((listtype, 1))
-                                break
-
-                    return True
-            return False
-
-        def parse_opts(opts, default_val):
-            for opt in opts:
-                opt = opt.strip()
-                m = default_paren_re.search(opt)
-                if m:
-                    # it is a default value
-                    _, before_res, _, after_res, _, _= m.groups()
-                    if after_res:
-                        #assert default_val is None, ('Multiple defaults: '
-                        #        '"%s" "%s"' % (default_val, after_res))
-                        default_val = after_res
-                        opt = after_res
-                    elif before_res:
-                        #assert default_val is None, ('Multiple defaults: '
-                        #        '"%s" "%s"' % (default_val, before_res))
-                        default_val = before_res
-                        opt = before_res
-                found_type = False
-                opt_lower = opt.lower()
-                if opt_lower == "none":
-                    # Ignores None types
-                    found_type = True
-                elif opt_lower == "true" or opt_lower == "false":
-                    found_type = True
-                    add_port_type(("basic:Boolean", 0))
-                else:
-                    # search for type keywords
-                    found_type = found_type or parse_desc(opt_lower)
-
-                if not found_type:
-                    (val, port_type) = get_value_and_type(opt)
-                    if port_type is not None:
-                        add_port_type((port_type, 0))
-                        if val is not None and (not isinstance(val, basestring)
-                                          or (',' not in val and ' ' not in val)):
-                            port_types[(port_type, 0)][0].append(val)
-            return default_val
-
-        if '|' in desc:
-            # assume multiple types or enum values
-            m = re.search("\[([\s\S]*?)\]", desc)
-            if m:
-                opt_str = m.group(1)
-            else:
-                opt_str = desc
-            opts = opt_str.split('|')
-            default_val = parse_opts(opts, default_val)
-
-        if '{' in desc:
-            # assume enum values separated by comma
-            m = re.search("\{([\s\S]*?)\}", desc)
-            if m:
-                opt_str = m.group(1)
-            else:
-                opt_str = desc
-            if '(' not in opt_str: # cannot handle weird nesting
-                opts = opt_str.split(',')
-                default_val = parse_opts(opts, default_val)
-
-        if ' or ' in desc:
-            # assume multiple types or enum values
-            opts = desc.split(' or ')
-            default_val = parse_opts(opts, default_val)
-
-        # search for default value
-        if default_val is None:
-            m = default_paren_re.search(desc)
-            if m:
-                _, before_res, _, after_res, _, _= m.groups()
-                if after_res:
-                    default_val = after_res
-                elif before_res:
-                    default_val = before_res
-            else:
-                m = default_is_re.search(desc)
-                if m:
-                    _, default_val, _, _ = m.groups()
-                    if default_val.endswith('.') or default_val.endswith(','):
-                        default_val = default_val[:-1]
-
-        if default_val is not None:
-            (default_val, port_type) = get_value_and_type(default_val)
-            if port_type is not None:
-                add_port_type((port_type, 0))
-                port_types[((port_type, 0))][1] = default_val
-
-        if len(port_types) == 0:
-            # only check first line
-            line1 = desc.split('\n')[0]
-            parse_desc(line1)
-
-        return port_types
-
-    def parse_numpydoc(self, docstring):
-        """ Parse parameters and attributes from numpy docstring
-
-        """
-        from numpydoc.docscrape import NumpyDocString
-
-        root = NumpyDocString(docstring)
-        # list of (arg, typestring, docstring)
-        signature = root['Signature']
-        if not signature and root['Summary']:
-            signature = root['Summary'][:1][0]
-        if signature:
-            m = re.search(r"\w+\((.*?)\)", signature, re.IGNORECASE)
-            if m:
-                signature = m.group(0)
-            else:
-                signature = ''
-
-        parameters = []
-        for args, typestring, fdocstring in root['Parameters'] + root['Other Parameters']:
-            for arg in args.split(','):
-                arg = arg.strip()
-                if arg.startswith('(') or ' ' in arg:
-                    # Ignore parameter section comments
-                    continue
-                parameters.append((arg, typestring, '\n'.join(fdocstring)))
-        attributes = []
-        for args, typestring, fdocstring in root['Attributes']:
-            for arg in args.split(','):
-                arg = arg.strip()
-                attributes.append((arg, typestring, '\n'.join(fdocstring)))
-
-        methods = []
-        for args, typestring, fdocstring in root['Methods']:
-            for arg in args.split(','):
-                arg = arg.strip()
-                methods.append((arg, typestring, '\n'.join(fdocstring)))
-
-        returns = []
-        for args, typestring, fdocstring in root['Returns']:
-            for arg in args.split(','):
-                arg = arg.strip()
-                returns.append((arg, typestring, '\n'.join(fdocstring)))
-        if not returns:
-            # try to extract return value from first line of summary
-            summary = root['Summary'][:1]
-            if summary:
-                m = re.search(r"\w+\((.*?)\) \-\> (\w+)", summary[0], re.IGNORECASE)
-                if m:
-                    returns.append((m.group(2), '', ''))
-
-        return signature, parameters, attributes, methods, returns
-
-    def parse_googledoc(self, docstring):
-        """ Parse parameters and attributes from numpy docstring
-
-        """
-        # TODO
-        pass
-
     def parse_arguments(self, sig_dict, arguments, klass=False, is_method=False):
         """ parsing arguments using signature and documentation
             returns list of parsed input ports
@@ -414,7 +422,7 @@ class PythonParser(object):
         Spec = self.class_spec if klass else self.function_spec
         input_specs = []
         for arg, typestring, fdocstring in arguments:
-            port_types = self.type_string_parser(typestring)
+            port_types = self.type_string_parser(typestring, self)
             sig_arg = sig_dict.get(arg, None)
             # Add type from sig if there is no other default
             if sig_arg and sig_arg[1] is not None and not [v[1] for v in port_types.itervalues() if v[1] is not None]:
@@ -464,7 +472,7 @@ class PythonParser(object):
 
             if default_val is None:
                 # try to parse fdocstring
-                default_types = self.type_string_parser(fdocstring)
+                default_types = self.type_string_parser(fdocstring, self)
                 for default_port, p in default_types.items():
                     if p[1] is not None:
                         # find port with this type
@@ -600,7 +608,7 @@ class PythonParser(object):
                 typestring = arg
                 arg = 'value'
 
-            port_types = self.type_string_parser(typestring)
+            port_types = self.type_string_parser(typestring, self)
             if ('basic:Float', 0) in port_types and ('basic:Integer', 0) in port_types:
                 del port_types[('basic:Integer', 0)]
 
@@ -636,7 +644,7 @@ class PythonParser(object):
                 port_name = '.' + attr
             else:
                 port_name = attr
-            port_types = self.type_string_parser(typestring)
+            port_types = self.type_string_parser(typestring, self)
             if not port_types:
                 port_type, depth = self.default_type, 0
             else:
@@ -705,13 +713,13 @@ class PythonParser(object):
             if not parameters and not returns:
                 continue
 
-            #port_types = self.type_string_parser(typestring)
+            #port_types = self.type_string_parser(typestring, self)
             if parameters:
                 name_list = []
                 type_list = []
                 default_list = []
                 for argname, typestring, fdocstring in parameters:
-                    port_types = self.type_string_parser(typestring)
+                    port_types = self.type_string_parser(typestring, self)
                     if not port_types:
                         port_type, depth, default_val = self.default_type, 0, None
                     else:
@@ -750,7 +758,7 @@ class PythonParser(object):
             if returns:
                 type_list = []
                 for _, typestring, fdocstring in returns:
-                    port_types = self.type_string_parser(typestring)
+                    port_types = self.type_string_parser(typestring, self)
                     if not port_types:
                         port_type, depth = self.default_type, 0
                     else:
