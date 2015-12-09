@@ -1,69 +1,50 @@
 .. _chap-wrapping:
 
-****************************
+*************************
 Python Wrapping Framework
-****************************
+*************************
 
 Introduction
 ============
 
 .. index:: python wrapping framework
 
-|vistrails| provides a framework for automating the wrapping of python functions and classes
-into |vistrails| modules. It is located in ``vistrails.core.wrapping``. It uses introspection
-and docstrings to figure out arguments, type information, default values, and enum values. It
-creates a wrapping specification that is used used to create a vistrails module.
-Currently numpy docstrings are supported, but parsers for other types of docstrings can be also be used.
+|vistrails| provides a framework for automating the wrapping of python functions and classes into |vistrails| modules. It is located in ``vistrails.core.wrapping``. It uses introspection and docstrings to figure out arguments, type information, default values, and enum values. It creates a wrapping specification that is used used to create a vistrails module. Currently numpy docstrings are supported, but parsers for other types of docstrings can be also be used.
 
-It is also possible to use only parts of the framework, such as the specification, which gives you
-access to the diff and patch tools, but requires you write your own module generator.
+It is also possible to use only parts of the framework, such as the specification, which gives you access to the diff and patch tools, but requires you write your own module generator.
 
 Module wrapping specification
 =============================
-The framework contains a specification for describing the translation between modules and
-functions/classes located in ``vistrails.core.wrapper.spec``. ModuleSpec is the base specification. It
-describes the attributes of a module, similarly to ModuleSettings. Modules have InputSpecs and
-OutputSpecs for describing port attributes and how they translate into function and class attributes.
 
-InputSpecs can have alternate specs that describes alternate port types for inputs. This can be useful
-when wrapping functions with multiple call signatures, such as for ``VTK`` methods.
+The framework contains a specification for describing the translation between modules and functions/classes located in ``vistrails.core.wrapper.spec``. ModuleSpec is the base specification. It describes the attributes of a module, similarly to ModuleSettings. Modules have InputSpecs and OutputSpecs for describing port attributes and how they translate into function and class attributes.
 
-ModuleSpec can be used directly but will need the implementation of a generator method that turns the
-specification into a vistrails module. See the ``sklearn`` package for an example.
+InputSpecs can have alternate specs that describes alternate port types for inputs. This can be useful when wrapping functions with multiple call signatures, such as for ``VTK`` methods.
 
-For python :ref:`functions <sec-wrapping_functions>` and :ref:`classes <sec-wrapping_classes>`
-there are module generators that can create vistrails modules from specifications.
+ModuleSpec can be used directly but will need the implementation of a generator method that turns the specification into a vistrails module. See the ``sklearn`` package for an example.
 
-Specs can be subclassed and extended by adding attributes to ``attr``. Diffing will then work on the new
-attributes. Creating subclasses are usually only needed when using custom module generators.
+For python :ref:`functions <sec-wrapping_functions>` and :ref:`classes <sec-wrapping_classes>` there are module generators that can create vistrails modules from specifications.
 
-There are a few tools for working with specifications. They can be used for patching
-incomplete specifications, diff'ing to see differences between wrappings or to suggest module upgrades
-between package and library versions. They are available in ``vistrails.core.wrapper.diff``.
+Specs can be subclassed and extended by adding attributes to ``attr``. Diffing will then work on the new attributes. Creating subclasses are usually only needed when using custom module generators.
+
+There are a few tools for working with specifications. They can be used for patching incomplete specifications, diff'ing to see differences between wrappings or to suggest module upgrades between package and library versions. They are available in ``vistrails.core.wrapper.diff``.
 
 Patching
 --------
 
-Automatic wrapping often generate incomplete or incorrect wrappers, which will require patching of
-the wrapping specification. The spec is designed to be easily patched, and provides tools to help
-with this.
+Automatic wrapping often generate incomplete or incorrect wrappers, which will require patching of the wrapping specification. The spec is designed to be easily patched, and provides tools to help with this.
 
 Attribute patching
 ^^^^^^^^^^^^^^^^^^
-If the patch consists of only type or attribute changes, this can be done by editing the
-specification directly, or using code to update the specification before writing
-it to xml.
 
-To avoid the patched specification being overwritten when the specification is regenerated, a diff/merge
-step is supported. After patches are added to the spec, a diff should be created between the unpatched
-and patched specifications.
+If the patch consists of only type or attribute changes, this can be done by editing the specification directly, or using code to update the specification before writing it to xml.
+
+To avoid the patched specification being overwritten when the specification is regenerated, a diff/merge step is supported. After patches are added to the spec, a diff should be created between the unpatched and patched specifications.
 
 .. code-block:: bash
 
   python core/wrapper/diff.py computef functions-raw.xml functions-patched.xml functions-diff.xml
 
-And after rerunning the function parser, the diff should be applied to the unparsed spec to create
-the new patched spec.
+And after rerunning the function parser, the diff should be applied to the unparsed spec to create the new patched spec.
 
 .. code-block:: bash
 
@@ -77,9 +58,8 @@ This can be combined into an update procedure:
 
 Code patching
 ^^^^^^^^^^^^^
-Sometimes the called object itself needs to be patched, with custom code. Then the object will need to
-be wrapped and the wrapped object be called by the generated module that wraps the required behaviour.
-In addition, the module spec contains a few helper attributes for common cases such as:
+
+Sometimes the called object itself needs to be patched, with custom code. Then the object will need to be wrapped and the wrapped object be called by the generated module that wraps the required behaviour. In addition, the module spec contains a few helper attributes for common cases such as:
 
   * compute - Run a specific method after executing inputs
   * cleanup - Run a specific method after outputs have been computed
@@ -88,18 +68,12 @@ In addition, the module spec contains a few helper attributes for common cases s
 
 Currently these are used mostly by the 'vtk' package.
 
-If you are using a custom module generator you can of course do all the code wrapping there using either
-spec attributes or class checks. See the ``matplotlib14`` package for examples.
+If you are using a custom module generator you can of course do all the code wrapping there using either spec attributes or class checks. See the ``matplotlib14`` package for examples.
 
 Diff'ing specifications
 -----------------------
 
-Besides patching, the diff too can be used to check differences between specs and to suggest upgrades.
-When calling ``wrapper.diff`` from the comand line, ``showf/showc`` shows differences between
-specifications and ``upgradef/upgradec`` prints upgrade path suggestions between specifications.
-The upgrade command supports custom functions for calculating module and port similarities.
-This can be useful because which module and port upgrades that are possible are usually very
-library-specific.
+Besides patching, the diff too can be used to check differences between specs and to suggest upgrades. When calling ``wrapper.diff`` from the comand line, ``showf/showc`` shows differences between specifications and ``upgradef/upgradec`` prints upgrade path suggestions between specifications. The upgrade command supports custom functions for calculating module and port similarities. This can be useful because which module and port upgrades that are possible are usually very library-specific.
 
 The python wrapper
 ==================
@@ -108,9 +82,7 @@ The PythonParser is the main class for automatically wrapping functions and clas
 
   vistrails.core.wrapper.python_parser.PythonParser
 
-The wrapping often needs to be adjusted for different libraries. For instance, ``VTK`` classes contains
-many getter/setter methods, whereas ``numpy` mostly expose operations as functions. Therefore the wrapper
-is designed to be extensible to support different types of wrappings. PythonParser options include:
+The wrapping often needs to be adjusted for different libraries. For instance, ``VTK`` classes contains many getter/setter methods, whereas ``numpy` mostly expose operations as functions. Therefore the wrapper is designed to be extensible to support different types of wrappings. PythonParser options include:
 
   * default_type - default type to use
   * instance_type - default type for class instances
@@ -126,10 +98,8 @@ is designed to be extensible to support different types of wrappings. PythonPars
 
 Function wrapping
 -----------------
-Functions can be wrapped using ``parse_function``. It takes the function or its import
-string and an optional namespace, and generates a function specification (``FunctionSpec``). Some function
-syntax need to be patched manually, e.g., if an argument should be supplied as an argv
-or kwarg.
+
+Functions can be wrapped using ``parse_function``. It takes the function or its import string and an optional namespace, and generates a function specification (``FunctionSpec``). Some function syntax need to be patched manually, e.g., if an argument should be supplied as an argv or kwarg.
 
 FunctionSpec can be loaded as a module using the function generator:
 
@@ -137,18 +107,14 @@ FunctionSpec can be loaded as a module using the function generator:
 
   module = vistrails.core.wrapper.pythonfunction.gen_function_module(functionspec)
 
-Python functions can be wrapped without docstrings, using introspection only, but will then only
-have type information from argument default values. But this is usually enough to get at least a
-working module.
+Python functions can be wrapped without docstrings, using introspection only, but will then only have type information from argument default values. But this is usually enough to get at least a working module.
 
 .. _sec-wrapping_classes:
 
 Class wrapping
 --------------
-There is no straightforward mapping from Classes to Modules. Classes can have constructor
-arguments, attrubutes, and methods. The different types can all be put in the same
-module, or split up with separate modules for class constructors (``ClassSpec``), attribute
-inspectors (``ClassSpec``), and class methods (``FunctionSpec``).
+
+There is no straightforward mapping from Classes to Modules. Classes can have constructor arguments, attrubutes, and methods. The different types can all be put in the same module, or split up with separate modules for class constructors (``ClassSpec``), attribute inspectors (``ClassSpec``), and class methods (``FunctionSpec``).
 
 ClassSpec describes a class and can be loaded as a module using the class generator:
 
@@ -158,17 +124,15 @@ ClassSpec describes a class and can be loaded as a module using the class genera
 
 The ``numpy`` and ``scipy`` packages are using both function and class specs.
 
-Classes can be parsed with parse_class, with flags specifying whether to
-parse arguments, attributes, and methods.
+Classes can be parsed with parse_class, with flags specifying whether to parse arguments, attributes, and methods.
 
-One option is to have one class with constructor, one attribute inspector class, and
-one class for each class method, like this:
+One option is to have one class with constructor, one attribute inspector class, and one class for each class method, like this:
 
 .. code-block:: python
 
-    classes = [parse_class(c, attribute_parsing=False),
-               parse_class(c, argument_parsing=False), name=classname + 'Inspector']
-    functions = parse_class_methods(c, namespace=classname + 'Methods')
+  classes = [parse_class(c, attribute_parsing=False),
+             parse_class(c, argument_parsing=False), name=classname + 'Inspector']
+  functions = parse_class_methods(c, namespace=classname + 'Methods')
 
 Examples in Packages
 ====================
