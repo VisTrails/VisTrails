@@ -7,31 +7,31 @@ Python Wrapping Framework
 Introduction
 ============
 
-.. index:: python wrapping framework
+.. index:: Python wrapping framework
 
-|vistrails| provides a framework for automating the wrapping of python functions and classes into |vistrails| modules. It is located in ``vistrails.core.wrapping``. It uses introspection and docstrings to figure out arguments, type information, default values, and enum values. It creates a wrapping specification that is used used to create a vistrails module. Currently numpy docstrings are supported, but parsers for other types of docstrings can be also be used.
+|vistrails| provides a framework for automating the wrapping of Python functions and classes into |vistrails| modules. It is located in ``vistrails.core.wrapping``. It uses introspection and docstrings to figure out arguments, type information, default values, and enum values. It creates a wrapping specification that is used to create a vistrails module. Currently numpy docstrings are supported, but parsers for other types of docstrings can be also be used.
 
 It is also possible to use only parts of the framework, such as the specification, which gives you access to the diff and patch tools, but requires you write your own module generator.
 
 Module wrapping specification
 =============================
 
-The framework contains a specification for describing the translation between modules and functions/classes located in ``vistrails.core.wrapper.spec``. ModuleSpec is the base specification. It describes the attributes of a module, similarly to ModuleSettings. Modules have InputSpecs and OutputSpecs for describing port attributes and how they translate into function and class attributes.
+The framework contains a specification for describing the translation between modules and functions/classes located in :mod:`vistrails.core.wrapper.spec`. :class:`~vistrails.core.wrapper.specs.ModuleSpec` is the base specification. It describes the attributes of a module, similarly to :class:`~vistrails.core.modules.config.ModuleSettings`. Modules have :class:`~vistrails.core.wrapper.specs.InputPortSpec`\ s and :class:`~ vistrails.core.wrapper.specs.OutputPortSpec`\ s for describing port attributes and how they translate into function and class attributes.
 
-InputSpecs can have alternate specs that describes alternate port types for inputs. This can be useful when wrapping functions with multiple call signatures, such as for ``VTK`` methods.
+``InputPortSpec``\ s can have alternate specs that describes alternate port types for inputs. This can be useful when wrapping functions with multiple call signatures, such as for ``VTK`` methods.
 
-ModuleSpec can be used directly but will need the implementation of a generator method that turns the specification into a vistrails module. See the ``sklearn`` package for an example.
+`ModuleSpec`` can be used directly but will need the implementation of a generator method that turns the specification into a vistrails module. See the ``sklearn`` package for an example.
 
-For python :ref:`functions <sec-wrapping_functions>` and :ref:`classes <sec-wrapping_classes>` there are module generators that can create vistrails modules from specifications.
+For Python :ref:`functions <sec-wrapping_functions>` and :ref:`classes <sec-wrapping_classes>` there are module generators that can create vistrails modules from specifications.
 
 Specs can be subclassed and extended by adding attributes to ``attr``. Diffing will then work on the new attributes. Creating subclasses are usually only needed when using custom module generators.
 
-There are a few tools for working with specifications. They can be used for patching incomplete specifications, diff'ing to see differences between wrappings or to suggest module upgrades between package and library versions. They are available in ``vistrails.core.wrapper.diff``.
+There are a few tools for working with specifications. They can be used for patching incomplete specifications, diff'ing to see differences between package and library versions. They are available in :mod:`vistrails.core.wrapper.diff`.
 
 Patching
 --------
 
-Automatic wrapping often generate incomplete or incorrect wrappers, which will require patching of the wrapping specification. The spec is designed to be easily patched, and provides tools to help with this.
+Automatic wrapping often generates incomplete or incorrect wrappers, which will require patching of the wrapping specification. The spec is designed to be easily patched, and provides tools to help with this.
 
 Attribute patching
 ^^^^^^^^^^^^^^^^^^
@@ -75,14 +75,14 @@ Diff'ing specifications
 
 Besides patching, the diff too can be used to check differences between specs and to suggest upgrades. When calling ``wrapper.diff`` from the comand line, ``showf/showc`` shows differences between specifications and ``upgradef/upgradec`` prints upgrade path suggestions between specifications. The upgrade command supports custom functions for calculating module and port similarities. This can be useful because which module and port upgrades that are possible are usually very library-specific.
 
-The python wrapper
+The Python wrapper
 ==================
 
 The PythonParser is the main class for automatically wrapping functions and classes:
 
   vistrails.core.wrapper.python_parser.PythonParser
 
-The wrapping often needs to be adjusted for different libraries. For instance, ``VTK`` classes contains many getter/setter methods, whereas ``numpy` mostly expose operations as functions. Therefore the wrapper is designed to be extensible to support different types of wrappings. PythonParser options include:
+The wrapping often needs to be adjusted for different libraries. For instance, ``VTK`` classes contains many getter/setter methods, whereas ``numpy`` mostly expose operations as functions. Therefore the wrapper is designed to be extensible to support different types of wrappings. PythonParser options include:
 
   * default_type - default type to use
   * instance_type - default type for class instances
@@ -99,7 +99,7 @@ The wrapping often needs to be adjusted for different libraries. For instance, `
 Function wrapping
 -----------------
 
-Functions can be wrapped using ``parse_function``. It takes the function or its import string and an optional namespace, and generates a function specification (``FunctionSpec``). Some function syntax need to be patched manually, e.g., if an argument should be supplied as an argv or kwarg.
+Functions can be wrapped using :meth:`~vistrails.core.wrapper.python_parser.PythonParser.parse_function`. It takes the function or its import string and an optional namespace, and generates a function specification (:class:`~vistrails.core.wrapper.specs.FunctionSpec`). Some function syntax needs to be patched manually, e.g., if an argument should be supplied as an argv or kwarg.
 
 FunctionSpec can be loaded as a module using the function generator:
 
@@ -114,7 +114,7 @@ Python functions can be wrapped without docstrings, using introspection only, bu
 Class wrapping
 --------------
 
-There is no straightforward mapping from Classes to Modules. Classes can have constructor arguments, attrubutes, and methods. The different types can all be put in the same module, or split up with separate modules for class constructors (``ClassSpec``), attribute inspectors (``ClassSpec``), and class methods (``FunctionSpec``).
+There is no straightforward mapping from Classes to Modules. Classes can have constructor arguments, attrubutes, and methods. The different types can all be put in the same module, or split up with separate modules for class constructors (:class:`~vistrails.core.wrapper.specs.ClassSpec`), attribute inspectors (``ClassSpec``), and class methods (:class:`~vistrails.core.wrapper.specs.FunctionSpec`).
 
 ClassSpec describes a class and can be loaded as a module using the class generator:
 
