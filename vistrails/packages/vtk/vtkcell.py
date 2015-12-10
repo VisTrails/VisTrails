@@ -364,7 +364,6 @@ class QVTKWidget(QCellWidget):
                     version = [v.GetVTKMajorVersion(),
                                v.GetVTKMinorVersion(),
                                v.GetVTKBuildVersion()]
-                    display = hex(display)[2:]
                     if version < [5, 7, 0]:
                         vp = ('_%s_void_p\0x00' % display)
                     elif version < [6, 2, 0]:
