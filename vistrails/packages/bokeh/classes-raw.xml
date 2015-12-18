@@ -1,0 +1,408 @@
+<specs>
+  <moduleSpec code_ref="bokeh.plotting.Figure" module_name="Figure" namespace="'plotting'">
+    <docstring>A subclass of :class:`~bokeh.models.plots.Plot` that simplifies plot
+creation with default axes, grids, tools, etc.</docstring>
+    <inputPortSpec arg="above" method_type="argument" name="above" port_type="basic:List">
+      <docstring>A list of renderers to occupy the area above of the plot.
+Property: above:List(Instance(Renderer))
+default is []</docstring>
+      <defaults>[[]]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="background_fill_alpha" method_type="argument" name="background_fill_alpha(float)" port_type="basic:Float">
+      <docstring>The fill alpha for the plot background style.
+Property: background_fill_alpha:NumberSpec(String, Dict(String, Either(String, Float)), Float)
+default is 1.0</docstring>
+      <defaults>[1.0]</defaults>
+      <alternateSpec arg="background_fill_alpha" method_type="argument" name="background_fill_alpha(str)" />
+      <alternateSpec arg="background_fill_alpha" method_type="argument" name="background_fill_alpha(dict)" port_type="basic:Dictionary" />
+      <alternateSpec arg="background_fill_alpha" method_type="argument" name="background_fill_alpha(list)" port_type="basic:List" />
+    </inputPortSpec>
+    <inputPortSpec arg="background_fill_color" method_type="argument" name="background_fill_color(str)">
+      <docstring>The fill color for the plot background style.
+Property: background_fill_color:ColorSpec(String, Dict(String, Either(String, Color)), Color)
+default is '#ffffff'</docstring>
+      <defaults>['#ffffff']</defaults>
+      <alternateSpec arg="background_fill_color" method_type="argument" name="background_fill_color" port_type="basic:Color" />
+    </inputPortSpec>
+    <inputPortSpec arg="below" method_type="argument" name="below" port_type="basic:List">
+      <docstring>A list of renderers to occupy the area below of the plot.
+Property: below:List(Instance(Renderer))
+default is []</docstring>
+      <defaults>[[]]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="border_fill_alpha" method_type="argument" name="border_fill_alpha(float)" port_type="basic:Float">
+      <docstring>The fill alpha for the plot border style.
+Property: border_fill_alpha:NumberSpec(String, Dict(String, Either(String, Float)), Float)
+default is 1.0</docstring>
+      <defaults>[1.0]</defaults>
+      <alternateSpec arg="border_fill_alpha" method_type="argument" name="border_fill_alpha(str)" />
+      <alternateSpec arg="border_fill_alpha" method_type="argument" name="border_fill_alpha(dict)" port_type="basic:Dictionary" />
+      <alternateSpec arg="border_fill_alpha" method_type="argument" name="border_fill_alpha(list)" port_type="basic:List" />
+    </inputPortSpec>
+    <inputPortSpec arg="border_fill_color" method_type="argument" name="border_fill_color(str)">
+      <docstring>The fill color for the plot border style.
+Property: border_fill_color:ColorSpec(String, Dict(String, Either(String, Color)), Color)
+default is '#ffffff'</docstring>
+      <defaults>['#ffffff']</defaults>
+      <alternateSpec arg="border_fill_color" method_type="argument" name="border_fill_color" port_type="basic:Color" />
+    </inputPortSpec>
+    <inputPortSpec arg="disabled" method_type="argument" name="disabled" port_type="basic:Boolean">
+      <docstring>Whether the widget will be disabled when rendered. If ``True``,
+    the widget will be greyed-out, and not respond to UI events.
+Property: disabled:Bool
+default is False</docstring>
+      <defaults>[False]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="extra_x_ranges" method_type="argument" name="extra_x_ranges" port_type="basic:Dictionary">
+      <docstring>Additional named ranges to make available for mapping x-coordinates.
+
+    This is useful for adding additional axes.
+Property: extra_x_ranges:Dict(String, Instance(Range1d))
+default is {}</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="extra_y_ranges" method_type="argument" name="extra_y_ranges" port_type="basic:Dictionary">
+      <docstring>Additional named ranges to make available for mapping y-coordinates.
+
+    This is useful for adding additional axes.
+Property: extra_y_ranges:Dict(String, Instance(Range))
+default is {}</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="h_symmetry" method_type="argument" name="h_symmetry" port_type="basic:Boolean">
+      <docstring>Whether the total horizontal padding on both sides of the plot will
+    be made equal (the left or right padding amount, whichever is larger).
+Property: h_symmetry:Bool
+default is True</docstring>
+      <defaults>[True]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="left" method_type="argument" name="left" port_type="basic:List">
+      <docstring>A list of renderers to occupy the area to the left of the plot.
+Property: left:List(Instance(Renderer))
+default is []</docstring>
+      <defaults>[[]]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="lod_factor" method_type="argument" name="lod_factor" port_type="basic:Integer">
+      <docstring>Decimation factor to use when applying level-of-detail decimation.
+Property: lod_factor:Int
+default is 10</docstring>
+      <defaults>[10]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="lod_interval" method_type="argument" name="lod_interval" port_type="basic:Integer">
+      <docstring>Interval (in ms) during which an interactive tool event will enable
+    level-of-detail downsampling.
+Property: lod_interval:Int
+default is 300</docstring>
+      <defaults>[300]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="lod_threshold" method_type="argument" name="lod_threshold" port_type="basic:Integer">
+      <docstring>A number of data points, above which level-of-detail downsampling may
+    be performed by glyph renderers. Set to ``None`` to disable any
+    level-of-detail downsampling.
+Property: lod_threshold:Int
+default is 2000</docstring>
+      <defaults>[2000]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="lod_timeout" method_type="argument" name="lod_timeout" port_type="basic:Integer">
+      <docstring>Timeout (in ms) for checking whether interactive tool events are still
+    occurring. Once level-of-detail mode is enabled, a check is made every
+    ``lod_timeout`` ms. If no interactive tool events have happened,
+    level-of-detail mode is disabled.
+Property: lod_timeout:Int
+default is 500</docstring>
+      <defaults>[500]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="logo" method_type="argument" name="logo">
+      <docstring>What version of the Bokeh logo to display on the toolbar. If
+    set to None, no logo will be displayed.
+Property: logo:Enum('normal', 'grey')
+default is 'normal'</docstring>
+      <defaults>['normal']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="min_border" method_type="argument" name="min_border" port_type="basic:Integer">
+      <docstring>A convenience property to set all all the ``min_X_border`` properties
+    to the same value. If an individual border property is explicitly set,
+    it will override ``min_border``.
+Property: min_border:Int
+default is 40</docstring>
+      <defaults>[40]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="min_border_bottom" method_type="argument" name="min_border_bottom" port_type="basic:Integer">
+      <docstring>Minimum size in pixels of the padding region below the bottom of
+    the central plot region.
+
+    .. note::
+        This is a *minimum*. The padding region may expand as needed to
+        accommodate titles or axes, etc.
+Property: min_border_bottom:Int
+default is 50</docstring>
+      <defaults>[50]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="min_border_left" method_type="argument" name="min_border_left" port_type="basic:Integer">
+      <docstring>Minimum size in pixels of the padding region to the left of
+    the central plot region.
+
+    .. note::
+        This is a *minimum*. The padding region may expand as needed to
+        accommodate titles or axes, etc.
+Property: min_border_left:Int
+default is 50</docstring>
+      <defaults>[50]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="min_border_right" method_type="argument" name="min_border_right" port_type="basic:Integer">
+      <docstring>Minimum size in pixels of the padding region to the right of
+    the central plot region.
+
+    .. note::
+        This is a *minimum*. The padding region may expand as needed to
+        accommodate titles or axes, etc.
+Property: min_border_right:Int
+default is 50</docstring>
+      <defaults>[50]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="min_border_top" method_type="argument" name="min_border_top" port_type="basic:Integer">
+      <docstring>Minimum size in pixels of the padding region above the top of the
+    central plot region.
+
+    .. note::
+        This is a *minimum*. The padding region may expand as needed to
+        accommodate titles or axes, etc.
+Property: min_border_top:Int
+default is 50</docstring>
+      <defaults>[50]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="name" method_type="argument" name="name">
+      <docstring>Property: name:String</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="outline_line_alpha" method_type="argument" name="outline_line_alpha(float)" port_type="basic:Float">
+      <docstring>The line alpha for the plot border outline.
+Property: outline_line_alpha:NumberSpec(String, Dict(String, Either(String, Float)), Float)
+default is 1.0</docstring>
+      <defaults>[1.0]</defaults>
+      <alternateSpec arg="outline_line_alpha" method_type="argument" name="outline_line_alpha(str)" />
+      <alternateSpec arg="outline_line_alpha" method_type="argument" name="outline_line_alpha(dict)" port_type="basic:Dictionary" />
+      <alternateSpec arg="outline_line_alpha" method_type="argument" name="outline_line_alpha(list)" port_type="basic:List" />
+    </inputPortSpec>
+    <inputPortSpec arg="outline_line_cap" method_type="argument" name="outline_line_cap">
+      <docstring>The line cap for the plot border outline.
+Property: outline_line_cap:Enum('butt', 'round', 'square')
+default is 'butt'</docstring>
+      <defaults>['butt']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="outline_line_color" method_type="argument" name="outline_line_color(str)">
+      <docstring>The line color for the plot border outline.
+Property: outline_line_color:ColorSpec(String, Dict(String, Either(String, Color)), Color)
+default is '#aaaaaa'</docstring>
+      <defaults>['#aaaaaa']</defaults>
+      <alternateSpec arg="outline_line_color" method_type="argument" name="outline_line_color" port_type="basic:Color" />
+    </inputPortSpec>
+    <inputPortSpec arg="outline_line_dash" method_type="argument" name="outline_line_dash(str)">
+      <docstring>The line dash for the plot border outline.
+Property: outline_line_dash:DashPattern
+default is []</docstring>
+      <alternateSpec arg="outline_line_dash" method_type="argument" name="outline_line_dash(int)" port_type="basic:Integer" />
+    </inputPortSpec>
+    <inputPortSpec arg="outline_line_dash_offset" method_type="argument" name="outline_line_dash_offset" port_type="basic:Integer">
+      <docstring>The line dash offset for the plot border outline.
+Property: outline_line_dash_offset:Int
+default is 0</docstring>
+      <defaults>[0]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="outline_line_join" method_type="argument" name="outline_line_join">
+      <docstring>The line join for the plot border outline.
+Property: outline_line_join:Enum('miter', 'round', 'bevel')
+default is 'miter'</docstring>
+      <defaults>['miter']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="outline_line_width" method_type="argument" name="outline_line_width(str)">
+      <docstring>The line width for the plot border outline.
+Property: outline_line_width:NumberSpec(String, Dict(String, Either(String, Float)), Float)
+default is 1</docstring>
+      <alternateSpec arg="outline_line_width" method_type="argument" name="outline_line_width(float)" port_type="basic:Float" />
+      <alternateSpec arg="outline_line_width" method_type="argument" name="outline_line_width(dict)" port_type="basic:Dictionary" />
+      <alternateSpec arg="outline_line_width" method_type="argument" name="outline_line_width(list)" port_type="basic:List" />
+    </inputPortSpec>
+    <inputPortSpec arg="plot_height" method_type="argument" name="plot_height" port_type="basic:Integer">
+      <docstring>Total height of the entire plot (including any axes, titles,
+    border padding, etc.)
+
+    .. note::
+        This corresponds directly to the height of the HTML
+        canvas that will be used.
+Property: plot_height:Int
+default is 600</docstring>
+      <defaults>[600]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="plot_width" method_type="argument" name="plot_width" port_type="basic:Integer">
+      <docstring>Total width of the entire plot (including any axes, titles,
+    border padding, etc.)
+
+    .. note::
+        This corresponds directly to the width of the HTML
+        canvas that will be used.
+Property: plot_width:Int
+default is 600</docstring>
+      <defaults>[600]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="renderers" method_type="argument" name="renderers" port_type="basic:List">
+      <docstring>A list of all renderers for this plot, including guides and annotations
+    in addition to glyphs and markers.
+
+    This property can be manipulated by hand, but the ``add_glyph`` and
+    ``add_layout`` methods are recommended to help make sure all necessary
+    setup is performed.
+Property: renderers:List(Instance(Renderer))
+default is []</docstring>
+      <defaults>[[]]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="responsive" method_type="argument" name="responsive" port_type="basic:Boolean">
+      <docstring>If True, the plot will automatically resize based on the size of its container. The
+    aspect ratio of the plot will be preserved, but ``plot_width`` and ``plot_height`` will
+    act only to set the initial aspect ratio.
+    .. warning::
+
+       The responsive setting is known not to work with HBox layout and may not work
+       in combination with other widgets or layouts.
+Property: responsive:Bool
+default is False</docstring>
+      <defaults>[False]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="right" method_type="argument" name="right" port_type="basic:List">
+      <docstring>A list of renderers to occupy the area to the right of the plot.
+Property: right:List(Instance(Renderer))
+default is []</docstring>
+      <defaults>[[]]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="tags" method_type="argument" name="tags" port_type="basic:List">
+      <docstring>Property: tags:List(Any)
+default is []</docstring>
+      <defaults>[[]]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="title" method_type="argument" name="title">
+      <docstring>A title for the plot.
+Property: title:String
+default is ''</docstring>
+      <defaults>['']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="title_text_align" method_type="argument" name="title_text_align">
+      <docstring>The text align for the plot title.
+Property: title_text_align:Enum('left', 'right', 'center')
+default is 'center'</docstring>
+      <defaults>['center']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="title_text_alpha" method_type="argument" name="title_text_alpha(float)" port_type="basic:Float">
+      <docstring>The text alpha for the plot title.
+Property: title_text_alpha:NumberSpec(String, Dict(String, Either(String, Float)), Float)
+default is 1.0</docstring>
+      <defaults>[1.0]</defaults>
+      <alternateSpec arg="title_text_alpha" method_type="argument" name="title_text_alpha(str)" />
+      <alternateSpec arg="title_text_alpha" method_type="argument" name="title_text_alpha(dict)" port_type="basic:Dictionary" />
+      <alternateSpec arg="title_text_alpha" method_type="argument" name="title_text_alpha(list)" port_type="basic:List" />
+    </inputPortSpec>
+    <inputPortSpec arg="title_text_baseline" method_type="argument" name="title_text_baseline">
+      <docstring>The text baseline for the plot title.
+Property: title_text_baseline:Enum('top', 'middle', 'bottom', 'alphabetic', 'hanging')
+default is 'alphabetic'</docstring>
+      <defaults>['alphabetic']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="title_text_color" method_type="argument" name="title_text_color(str)">
+      <docstring>The text color for the plot title.
+Property: title_text_color:ColorSpec(String, Dict(String, Either(String, Color)), Color)
+default is '#444444'</docstring>
+      <defaults>['#444444']</defaults>
+      <alternateSpec arg="title_text_color" method_type="argument" name="title_text_color" port_type="basic:Color" />
+    </inputPortSpec>
+    <inputPortSpec arg="title_text_font" method_type="argument" name="title_text_font">
+      <docstring>The text font for the plot title.
+Property: title_text_font:String
+default is 'helvetica'</docstring>
+      <defaults>['helvetica']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="title_text_font_size" method_type="argument" name="title_text_font_size(str)">
+      <docstring>The text font size for the plot title.
+Property: title_text_font_size:FontSizeSpec(String, Dict(String, Either(String, List(String))), List(String))
+default is {'value': '20pt'}</docstring>
+      <defaults>["{'value':"]</defaults>
+      <alternateSpec arg="title_text_font_size" depth="1" method_type="argument" name="title_text_font_size(list)" />
+      <alternateSpec arg="title_text_font_size" method_type="argument" name="title_text_font_size(dict)" port_type="basic:Dictionary" />
+    </inputPortSpec>
+    <inputPortSpec arg="title_text_font_style" method_type="argument" name="title_text_font_style">
+      <docstring>The text font style for the plot title.
+Property: title_text_font_style:Enum('normal', 'italic', 'bold')
+default is 'normal'</docstring>
+      <defaults>['normal']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="tool_events" method_type="argument" name="tool_events" port_type="basic:Variant">
+      <docstring>A ToolEvents object to share and report tool events.
+Property: tool_events:Instance(ToolEvents)</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="toolbar_location" method_type="argument" name="toolbar_location">
+      <docstring>Where the toolbar will be located. If set to None, no toolbar
+    will be attached to the plot.
+Property: toolbar_location:Enum('above', 'below', 'left', 'right')
+default is 'above'</docstring>
+      <defaults>['above']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="tools" method_type="argument" name="tools" port_type="basic:List">
+      <docstring>A list of tools to add to the plot.
+Property: tools:List(Instance(Tool))
+default is []</docstring>
+      <defaults>[[]]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="v_symmetry" method_type="argument" name="v_symmetry" port_type="basic:Boolean">
+      <docstring>Whether the total vertical padding on both sides of the plot will
+    be made equal (the top or bottom padding amount, whichever is larger).
+Property: v_symmetry:Bool
+default is False</docstring>
+      <defaults>[False]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="webgl" method_type="argument" name="webgl" port_type="basic:Boolean">
+      <docstring>Whether WebGL is enabled for this plot. If True, the glyphs that
+    support this will render via WebGL instead of the 2D canvas.
+Property: webgl:Bool
+default is False</docstring>
+      <defaults>[False]</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="x_mapper_type" method_type="argument" name="x_mapper_type">
+      <docstring>What kind of mapper to use to convert x-coordinates in data space
+    into x-coordinates in screen space.
+
+    Typically this can be determined automatically, but this property
+    can be useful to, e.g., show datetime values as floating point
+    "seconds since epoch" instead of formatted dates.
+Property: x_mapper_type:Either(Auto, String)
+default is 'auto'</docstring>
+      <defaults>['auto']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="x_range" method_type="argument" name="x_range" port_type="basic:Variant">
+      <docstring>The (default) data range of the horizontal dimension of the plot.
+Property: x_range:Instance(Range)</docstring>
+    </inputPortSpec>
+    <inputPortSpec arg="y_mapper_type" method_type="argument" name="y_mapper_type">
+      <docstring>What kind of mapper to use to convert y-coordinates in data space
+    into y-coordinates in screen space.
+
+    Typically this can be determined automatically, but this property
+    can be useful to, e.g., show datetime values as floating point
+    "seconds since epoch" instead of formatted dates
+Property: y_mapper_type:Either(Auto, String)
+default is 'auto'</docstring>
+      <defaults>['auto']</defaults>
+    </inputPortSpec>
+    <inputPortSpec arg="y_range" method_type="argument" name="y_range" port_type="basic:Variant">
+      <docstring>The (default) data range of the vertical dimension of the plot.
+Property: y_range:Instance(Range)</docstring>
+    </inputPortSpec>
+    <outputPortSpec arg="Instance" method_type="Instance" name="Instance" port_type="plotting|Figure" show_port="True" sort_key="-1000">
+      <docstring>The class instance</docstring>
+    </outputPortSpec>
+  </moduleSpec>
+  <translation signature="basic:Color">def input_t(value):
+    return '#%02X%02X%02X' % tuple([int(c*255) for c in value.tuple])
+def output_t(value):
+    from vistrails.core.utils import InstanceObject
+    return InstanceObject(tuple=tuple([float(ord(c))/255.0 for c in value.replace('#', '').decode('hex')]))</translation>
+  <translation signature="basic:Path">def input_t(value):
+    return value.name
+def output_t(value):
+    from vistrails.core.modules.basic_modules import PathObject
+    return PathObject(tuple=value)</translation>
+</specs>
