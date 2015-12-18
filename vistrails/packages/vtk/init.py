@@ -197,7 +197,9 @@ def initialize():
         from .vtk_wrapper.parse import parse
         parse(spec_name)
     vtk_classes.initialize(spec_name)
-    _modules.extend([gen_class_module(spec, vtk_classes, klasses, signature=hasher.vtk_hasher)
+    _modules.extend([gen_class_module(spec, vtk_classes, klasses,
+                                      translations=vtk_classes.specs.get_translations(),
+                                      signature=hasher.vtk_hasher)
                      for spec in vtk_classes.specs.module_specs])
 
 ################# UPGRADES ###################################################

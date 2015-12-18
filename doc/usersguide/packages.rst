@@ -1093,6 +1093,12 @@ The expand_ports and build_modules methods are functions to help the constructio
 
 .. _sec-wrapping_cmdline_tools:
 
+Wrapping Python Libraries
+=========================
+|vistrails| has a framework for automatically wrapping python functions and classes into
+vistrails modules. It is documented :ref:`here <chap-wrapping>`.
+
+
 Wrapping Command-line tools
 ===========================
 
