@@ -931,7 +931,23 @@ def parse(filename="vtk_raw.xml"):
                     continue
                 specs_list.extend(create_module("vtkObjectBase", child))
 
-    specs = SpecList(specs_list)
+    # Translate File and Color ports
+    translations = {
+        'basic:Color':
+            "def input_t(value):\n"
+            "    return value.tuple\n"
+            "def output_t(value):\n" # Assumes receiving hex string, which is probably wrong
+            "    from vistrails.core.utils import InstanceObject\n"
+            "    return InstanceObject(tuple=value)",
+        'basic:File':
+            "def input_t(value):\n"
+            "    return value.name\n"
+            "def output_t(value):\n"
+            "    from vistrails.core.modules.basic_modules import PathObject\n"
+            "    return PathObject(value)"}
+
+
+    specs = SpecList(specs_list, translations=translations)
     specs.write_to_xml(filename)
 
 

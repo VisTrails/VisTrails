@@ -380,7 +380,7 @@ class GoogleDocstring(object):
         return 'attributes\n'
 
     def _parse_keyword_arguments_section(self, section):
-        self.kwargs.extend(self.join_docs(self._consume_fields()))
+        self.arguments.extend(self.join_docs(self._consume_fields()))
         return 'arguments\n'
 
 

@@ -62,15 +62,30 @@ class SpecList(object):
         maps to modules in vistrails
     """
 
-    def __init__(self, module_specs=None):
+    def __init__(self, module_specs=None, translations=None):
+        """
+        translations : {signature: code}
+            A dict of port translations. 'code' should create
+            'input_t' and 'output_t' translation functions.
+
+
+        """
         if module_specs is None:
             module_specs = []
         self.module_specs = module_specs
+        if translations is None:
+            translations = {}
+        self.translations = translations
 
     def write_to_xml(self, fname):
         root = ET.Element("specs")
         for spec in self.module_specs:
             root.append(spec.to_xml())
+        for key, code in self.translations.iteritems():
+            subelt = ET.Element('translation')
+            subelt.set('signature', key)
+            subelt.text = code
+            root.append(subelt)
         tree = ET.ElementTree(root)
 
         def indent(elem, level=0):
@@ -96,12 +111,25 @@ class SpecList(object):
         if klass is None:
             klass = ModuleSpec
         module_specs = []
+        translations = {}
         tree = ET.parse(fname)
         for elt in tree.getroot():
             if elt.tag == klass.xml_name:
                 module_specs.append(klass.from_xml(elt))
-        retval = SpecList(module_specs)
+            if elt.tag == 'translation':
+                translations[elt.get('signature')] = elt.text
+        retval = SpecList(module_specs, translations)
         return retval
+
+    def get_translations(self):
+        # create function 'f' from translation code
+        # {input/output: {signature: function} }
+        translations = {'input':{}, 'output':{}}
+        for key, code in self.translations.iteritems():
+            exec code
+            translations['input'][key] = input_t
+            translations['output'][key] = output_t
+        return translations
 
 ######### BASE MODULE SPEC ###########
 
@@ -137,7 +165,10 @@ class SpecObject(object):
                 if run_eval:
                     value = self.get_raw(attr)
                 else:
-                    value = unicode(value)
+                    if not isinstance(value, basestring):
+                        value = unicode(value)
+                    elif not isinstance(value, unicode):
+                        value = unicode(value, 'utf-8')
                 if is_subelt:
                     subelt = ET.Element(attr)
                     subelt.text = value
@@ -487,7 +518,8 @@ class ModuleSpec(SpecObject):
 
 class FunctionInputPortSpec(InputPortSpec):
     attrs = {"arg":     "",                # function argument name
-             # arg_pos: argument position (-1=kwarg, -2=*argv, -3=*kwarg)
+             # arg_pos: argument position
+             # -1=kwarg, -2=*argv, -3=*kwarg, -4=self
              # *-types replaces/extends arglist/dict
              "arg_pos": (-1, False, True)}
     attrs.update(InputPortSpec.attrs)
@@ -521,10 +553,11 @@ class FunctionSpec(ModuleSpec):
     OutputSpecType = FunctionOutputPortSpec
 
     # output_type tells VisTrails what the function returns
-    # None - single object
+    # None - single result
     # "none" - no return value
     # "list" - ordered list
     # "dict" - dict with attr:value
+    # "self" - instance passthrough for object methods
     attrs = {'output_type': 'object',
              # is this a class method?
              'is_method': (False, False, True)}
@@ -755,6 +788,16 @@ class TestModuleSpec(unittest.TestCase):
         self.assertEqual(in_attrs, in_attrs2)
         self.assertEqual(alt_attrs, alt_attrs2)
 
+    def test_translations(self):
+        translations = {
+            'basic:Color':
+                "input_t = lambda value:tuple([int(c*256) for c in value.tuple])\n"
+                "def output_t(value):\n"
+                "    from vistrails.core.utils import InstanceObject\n"
+                "    return InstanceObject(tuple=value)"}
+        t_spec = SpecList([], translations)
+        translations = t_spec.get_translations()
+        self.assertEqual((1,2,3), translations['output']['basic:Color']((1,2,3)).tuple)
 
 #def run():
 #    specs = SpecList.read_from_xml("mpl_plots_raw.xml")

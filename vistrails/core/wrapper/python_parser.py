@@ -107,20 +107,54 @@ default_list_types = [['int', 'basic:Integer'],
                       ['bool', 'basic:Boolean'],
                       ['str', 'basic:String']]
 
+
 # Name for alternate ports (what to do with multiple scalars?)
-alternate_suffix = {'basic:Integer': 'Scalar',
-                    'basic:Float': 'Scalar',
-                    'basic:String': 'Scalar',
-                    'basic:Boolean': 'Bool',
-                    'basic:List': 'Sequence'}
+default_alt_suffixes = {'basic:Integer': 'Scalar',
+                        'basic:Float': 'Scalar',
+                        'basic:String': 'Scalar',
+                        'basic:Boolean': 'Bool',
+                        'basic:List': 'Sequence'}
 
 
-def parse_numpydoc(docstring):
+def clean_sections(signature, _arguments, _attributes, _methods, _returns):
+
+    def clean(_descs):
+        """
+        * Fixes multi-arg descriptions
+        * Discards invalid args
+        * Joins docstrings
+        """
+        descs = []
+        arg_list = []
+        for args, typestring, fdocstring in _descs:
+            # args can specify multiple descs
+            for arg in args.split(','):
+                arg = arg.strip()
+                if arg.startswith('(') or ' ' in arg or '*' in arg:
+                    # Ignore comments argv, and kwarg
+                    continue
+                if isinstance(fdocstring, list):
+                    fdocstring = '\n'.join(fdocstring)
+                # avoid duplicates
+                if arg not in arg_list:
+                    descs.append((arg, typestring, fdocstring))
+                    arg_list.append(arg)
+        return descs
+
+    arguments = clean(_arguments)
+    attributes = clean(_attributes)
+    methods = clean(_methods)
+    returns = clean(_returns)
+
+    return signature, arguments, attributes, methods, returns
+
+
+def parse_numpydoc(f):
     """ Parse parameters and attributes from numpy docstring
 
     """
+    docstring = pydoc.getdoc(f)
     from numpydoc.docscrape import NumpyDocString
-
     root = NumpyDocString(docstring)
     # list of (arg, typestring, docstring)
     signature = root['Signature']
@@ -133,31 +167,10 @@ def parse_numpydoc(docstring):
         else:
             signature = ''
 
-    parameters = []
-    for args, typestring, fdocstring in root['Parameters'] + root['Other Parameters']:
-        for arg in args.split(','):
-            arg = arg.strip()
-            if arg.startswith('(') or ' ' in arg:
-                # Ignore parameter section comments
-                continue
-            parameters.append((arg, typestring, '\n'.join(fdocstring)))
-    attributes = []
-    for args, typestring, fdocstring in root['Attributes']:
-        for arg in args.split(','):
-            arg = arg.strip()
-            attributes.append((arg, typestring, '\n'.join(fdocstring)))
-
-    methods = []
-    for args, typestring, fdocstring in root['Methods']:
-        for arg in args.split(','):
-            arg = arg.strip()
-            methods.append((arg, typestring, '\n'.join(fdocstring)))
-
-    returns = []
-    for args, typestring, fdocstring in root['Returns']:
-        for arg in args.split(','):
-            arg = arg.strip()
-            returns.append((arg, typestring, '\n'.join(fdocstring)))
+    parameters = root['Parameters'] + root['Other Parameters']
+    attributes = root['Attributes']
+    methods = root['Methods']
+    returns = root['Returns']
     if not returns:
         # try to extract return value from first line of summary
         summary = root['Summary'][:1]
@@ -168,10 +181,12 @@ def parse_numpydoc(docstring):
 
     return signature, parameters, attributes, methods, returns
 
-def parse_googledoc(docstring):
+
+def parse_googledoc(f):
     """ Parse parameters and attributes from numpy docstring
 
     """
+    docstring = pydoc.getdoc(f)
     # signature is not parsed by googledoc
     signature = docstring.split('\n')[0]
     if signature:
@@ -182,8 +197,19 @@ def parse_googledoc(docstring):
             signature = ''
     from googledocstring import GoogleDocstring
     g = GoogleDocstring(docstring)
-    print signature, g.arguments, g.attributes, g.methods, g.returns
+
+    if not g.returns:
+        returns = []
+        # try to extract return value from first line of docstring
+        summary = docstring.split('\n')[0]
+        if summary:
+            m = re.search(r"\w+\((.*?)\) \-\> (\w+)", summary[0], re.IGNORECASE)
+            if m:
+                returns.append((m.group(2), '', ''))
+        g.returns = returns
+
     return signature, g.arguments, g.attributes, g.methods, g.returns
+
 
 def parse_type_string(desc, conf):
     """ parse_type_string(desc: string) ->
@@ -207,8 +233,10 @@ def parse_type_string(desc, conf):
             # (type, depth) : (option list, default)
             port_types[port_type] = [[], None]
     default_val = None
+    # Finds: "(default: X)"
     default_paren_re = re.compile(r"((\S*)\s+)?\(default:?(\s+((\[[^\]]*\])|([^\s\[]*)))?\)",
                                   re.IGNORECASE)
+    # Finds: "default [value] id: X"
     default_is_re = re.compile(r"default\s+(value\s+)?is\s+((\[[^\]]*\])|([^\s\[]*))", re.IGNORECASE)
 
     def parse_desc(opt):
@@ -263,6 +291,7 @@ def parse_type_string(desc, conf):
                     if val is not None and (not isinstance(val, basestring)
                                       or (',' not in val and ' ' not in val)):
                         port_types[(port_type, 0)][0].append(val)
+
         return default_val
 
     if '|' in desc:
@@ -316,9 +345,10 @@ def parse_type_string(desc, conf):
     if len(port_types) == 0:
         # only check first line
         line1 = desc.split('\n')[0]
-        parse_desc(line1)
+        parse_desc(line1.lower())
 
     return port_types
+
 
 class PythonParser(object):
     """
@@ -326,25 +356,61 @@ class PythonParser(object):
 
     """
     def __init__(self, **kwargs):
-        # default type for unknown types
+        """
+        Parameters
+        ----------
+        default_type : string
+          Default vistrail type when it cannot be determined
+        instance_type : string
+          Default vistrail type for class instances
+        typed_lists : bool
+          whether to use type lists of depth 1 when possible
+        key_to_type : list
+          Defines the types that will be parsed
+          See default_key_to_type
+        list_types : list
+          types that can be converted from list to depth 1 type
+          See default_list_types
+        alt_suffixes : list
+          Defines name suffixes for alternate port types
+          See default_alt_suffixes
+        parsers : list of functions
+          List of parser methods to use in order (default is numpydoc)
+        type_string_parser : function
+          custom type string parser function
+          Default is parse_type_string
+        class_spec : class
+          Class specification. Default is ClassSpec
+        function_spec : class
+          Function specification. Default is FunctionSpec
+        """
         self.default_type = kwargs.pop('default_type', 'basic:Variant')
-        # default type for class instances
         self.instance_type = kwargs.pop('instance_type', None)
-        # typed_lists: whether to use type lists of depth 1 when possible
         self.typed_lists = kwargs.pop('typed_lists', True)
-        # key_to_type: Defines the types that will be parsed
         self.key_to_type = kwargs.pop('key_to_type', default_key_to_type)
-        # list_types: types that can be converted from list to depth 1 type
         self.list_types = kwargs.pop('list_types', default_list_types)
-        # parser function (default is numpydoc)
-        self.parse_doc = kwargs.pop('parse_doc', parse_numpydoc)
-        # type_string_parser: custom type string parser function
+        self.alt_suffixes = kwargs.pop('alt_suffixes', default_alt_suffixes)
+        self.parsers = kwargs.pop('parsers', parse_numpydoc)
+        if not isinstance(self.parsers, list):
+            self.parsers = [self.parsers]
         self.type_string_parser = kwargs.pop('type_string_parser',
                                              parse_type_string)
-        # class specification
         self.class_spec = kwargs.pop('class_spec', ClassSpec)
-        # function specification
         self.function_spec = kwargs.pop('function_spec', FunctionSpec)
+
+    def parse(self, object):
+        # Extract port information from object using self.parsers
+
+        sections =  '', [], [], [], []
+        if not self.parsers:
+            return sections
+        for parser in self.parsers:
+            new_sec = parser(object)
+            if new_sec[0] and not sections[0]:
+                sections[0] = new_sec[0]
+            for s1, s2 in zip(sections[1:], new_sec[1:]):
+                s1.extend(s2)
+        return clean_sections(*sections)
 
     def parse_argspec(self, obj_or_str):
         """ parse method signature and extract types using default values
@@ -415,7 +481,7 @@ class PythonParser(object):
             port_specs[arg] = (arg_pos, default)
         return port_specs
 
-    def parse_arguments(self, sig_dict, arguments, klass=False, is_method=False):
+    def parse_arguments(self, sig_dict, arguments, klass=False, method=None):
         """ parsing arguments using signature and documentation
             returns list of parsed input ports
         """
@@ -490,19 +556,19 @@ class PythonParser(object):
                 # create alternate specs
                 port_type, depth = ports[0]
                 if depth > 0:
-                    method_name = arg + alternate_suffix['basic:List']
+                    method_name = arg + self.alt_suffixes['basic:List']
                 else:
                     # an unknown port will get default name
-                    method_name = arg + alternate_suffix.get(port_type, '')
+                    method_name = arg + self.alt_suffixes.get(port_type, '')
 
                 used_names = [method_name]
                 for port in ports[1:]:
                     port_type2, depth2 = port
                     option_strs2, default_val2 = port_types[port]
                     if depth2 > 0:
-                        method_name2 = arg + alternate_suffix['basic:List']
+                        method_name2 = arg + self.alt_suffixes['basic:List']
                     else:
-                        method_name2 = arg + alternate_suffix.get(port_type2, '')
+                        method_name2 = arg + self.alt_suffixes.get(port_type2, '')
                     if method_name2 in used_names:
                         print "WARNING: Skipping alt port with existing name '%s'" % method_name2
                         if len(port_types) == 2:
@@ -518,7 +584,7 @@ class PythonParser(object):
                     if klass:
                         alt_spec.method_type = 'argument'
 
-                    if option_strs2:
+                    if option_strs2 and len(option_strs2) > 1:
                         alt_spec.entry_types = ['enum']
                         alt_spec.values = [option_strs2]
                     if default_val2 is not None:
@@ -548,7 +614,7 @@ class PythonParser(object):
             if klass:
                 input_spec.method_type = 'argument'
 
-            if option_strs:
+            if option_strs and len(option_strs) > 1:
                 input_spec.entry_types = ['enum']
                 input_spec.values = [option_strs]
 
@@ -581,12 +647,12 @@ class PythonParser(object):
                 input_spec.method_type = 'argument'
             input_specs.append(input_spec)
 
-        if is_method:
+        if method:
             # Add self port
             input_spec = Spec.InputSpecType(
                 name='Instance',
-                port_type=self.default_type,
-                arg_pos=0,
+                port_type=method,
+                arg_pos=-4,
                 min_conns=1,
                 max_conns=1,
                 show_port=True,
@@ -595,7 +661,7 @@ class PythonParser(object):
             input_specs.append(input_spec)
         return input_specs
 
-    def parse_function_returns(self, returns):
+    def parse_function_returns(self, returns, output_type=None):
         """ parsing arguments using signature and documentation
             returns list of parsed input ports
         """
@@ -613,7 +679,7 @@ class PythonParser(object):
                 del port_types[('basic:Integer', 0)]
 
             if not port_types:
-                port_type, depth = self.default_type, 0
+                port_type, depth = output_type or self.default_type, 0
             else:
                 port_type, depth = port_types.keys()[0]
 
@@ -706,7 +772,7 @@ class PythonParser(object):
             try:
                 argument = getattr(c,arg)
                 arg_dict = self.parse_argspec(argument)
-                _, parameters, _, _, returns = self.parse_doc(pydoc.getdoc(argument))
+                _, parameters, _, _, returns = self.parse(argument)
             except:
                 continue
             required_args = max([i[0] for i in arg_dict.values()]) + 1 if arg_dict else 0
@@ -814,7 +880,7 @@ class PythonParser(object):
                 code_ref = c.__module__ + '.' + c.__name__
 
         # parse documentation
-        signature, parameters, attributes, methods, _ = self.parse_doc(pydoc.getdoc(c))
+        signature, parameters, attributes, methods, _ = self.parse(c)
 
         input_specs = []
         output_specs = []
@@ -874,20 +940,18 @@ class PythonParser(object):
                                output_port_specs=output_specs)
         return spec
 
-    def parse_class_methods(self, c, namespace=None):
+    def parse_class_methods(self, c, classname=None, namespace=None):
         """
         Create a module for each class method
 
         Parameters
         ----------
         c : class
-            class to parse
-        name : string
-            name of class
-        code_ref : string
-            class import string
+          class to parse
+        classname : string
+          class type signature
         namespace : string
-            module namespace
+          module namespace
 
         """
         if isinstance(c, basestring):
@@ -895,16 +959,16 @@ class PythonParser(object):
             c = getattr(importlib.import_module(m), n)
 
         # get documented methods
-        _, _, _, methods, _ = self.parse_doc(pydoc.getdoc(c))
+        _, _, _, methods, _ = self.parse(c)
         specs = []
         for arg, _, _ in methods:
             specs.append(self.parse_function(getattr(c, arg),
                                              namespace=namespace,
-                                             is_method=True))
+                                             method=classname or self.instance_type))
         return specs
 
     def parse_function(self, f, name=None, code_ref=None, namespace=None,
-                       is_method=False):
+                       method=None, is_empty=False, output_type=None):
         """
         Parmeters
         ---------
@@ -913,18 +977,23 @@ class PythonParser(object):
         name : string
             module name
         code_ref : string
+        method : string or None
+            If set the function will be parsed as a class method
+        is_empty : bool
+            Ignore return values (Methods returns instance)
 
         """
-
+        if method is True:
+            method = self.instance_type
         if isinstance(f, basestring):
             if name is None:
-                if is_method:
+                if method:
                     name = '.'.join(f.rsplit('.', 2)[-2:])
                 else:
                     name = f.rsplit('.', 1)[-1]
             if code_ref is None:
                 code_ref = f
-            if is_method:
+            if method:
                 m, c, n = f.rsplit('.', 2)
                 f = getattr(getattr(importlib.import_module(m), c), n)
             else:
@@ -932,50 +1001,58 @@ class PythonParser(object):
                 f = getattr(importlib.import_module(m), n)
         else:
             if name is None:
-                if is_method:
+                if method:
                     klass = f.im_class
                     name =  klass.__name__ + '.' + f.__name__
                 else:
                     name = f.__name__
             if code_ref is None:
-                if is_method:
+                if method:
                     klass = f.im_class
                     code_ref =  klass.__module__ + '.' + klass.__name__ + '.' + f.__name__
                 else:
                     code_ref = f.__module__ + '.' + f.__name__
 
-        # parse documentation
-        signature, parameters, _, _, returns = self.parse_doc(pydoc.getdoc(f))
+        signature, parameters, _, _, returns = self.parse(f)
 
         # parse signature
         arg_dict = self.parse_argspec(f)
         if not arg_dict and signature:
             arg_dict = self.parse_argspec(signature)
+        input_specs = self.parse_arguments(arg_dict, parameters, method=method)
 
-        input_specs = self.parse_arguments(arg_dict, parameters, is_method=is_method)
-        output_specs = self.parse_function_returns(returns)
+        output_specs = []
+        if not is_empty:
+            output_specs = self.parse_function_returns(returns, output_type)
+            if not output_specs:
+                # Add default port
+                output_specs.append(self.function_spec.OutputSpecType(
+                    name='value',
+                    arg='value',
+                    port_type=output_type or self.default_type,
+                    show_port=True))
 
-        if not output_specs:
-            # Add default port
+        if not output_specs and method:
+            # Methods without return value returns instance
+            output_type = 'self'
             output_specs.append(self.function_spec.OutputSpecType(
-                name='value',
-                arg='value',
-                port_type=self.default_type,
+                name='Instance',
+                arg='Instance',
+                port_type=method,
                 show_port=True))
+        elif not output_specs:
+            output_type = 'none'
+        elif len(output_specs) == 1:
+            output_type = 'object'
+        else:
+            output_type = 'list'
 
         spec = self.function_spec(module_name=name,
                                   code_ref=code_ref,
                                   docstring=pydoc.getdoc(f) or '',
                                   namespace=namespace,
-                                  is_method=is_method,
+                                  is_method=method is not None,
+                                  output_type=output_type,
                                   input_port_specs=input_specs,
                                   output_port_specs=output_specs)
-
-        if len(output_specs) == 0:
-            spec.output_type = 'none'
-        elif len(output_specs) == 1:
-            spec.output_type = 'object'
-        else:
-            spec.output_type = 'list'
-
         return spec
