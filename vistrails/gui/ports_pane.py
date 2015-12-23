@@ -612,7 +612,7 @@ class PortsList(QtGui.QTreeWidget):
                 self.controller.current_pipeline_scene.recreate_module(
                     self.controller.current_pipeline, self.module.id)
         if col == 1:
-            if item.is_optional:
+            if item.is_optional and not item.is_connected:
                 item.set_visible(not item.is_visible)
                 if item.is_visible:
                     visible_ports.add(item.port_spec.name)

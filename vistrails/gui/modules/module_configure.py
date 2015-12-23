@@ -242,9 +242,8 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.setUpdatesEnabled(False)
         for i in xrange(len(self.inputPorts)):
             port = self.inputPorts[i]
-            entry = (PortEndPoint.Destination, port.name)
             checkBox = self.inputDict[port.name]
-            if not port.optional or entry in self.module.portVisible:
+            if not port.optional or port.name in self.module.visible_input_ports:
                 checkBox.setCheckState(QtCore.Qt.Checked)
             else:
                 checkBox.setCheckState(QtCore.Qt.Unchecked)
@@ -252,9 +251,8 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
                 checkBox.setEnabled(False)
         for i in xrange(len(self.outputPorts)):
             port = self.outputPorts[i]
-            entry = (PortEndPoint.Source, port.name)
             checkBox = self.outputDict[port.name]
-            if not port.optional or entry in self.module.portVisible:
+            if not port.optional or port.name in self.module.visible_output_ports:
                 checkBox.setCheckState(QtCore.Qt.Checked)
             else:
                 checkBox.setCheckState(QtCore.Qt.Unchecked)

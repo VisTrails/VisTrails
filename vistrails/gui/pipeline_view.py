@@ -1132,16 +1132,17 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             cop = sorted([x.key_no_id() for x in self.outputPorts])
             d = PortEndPoint.Destination
             s = PortEndPoint.Source
-            pv = core_module.portVisible
+            ipv = core_module.visible_input_ports
+            opv = core_module.visible_output_ports
             new_ip = []
             new_op = []
             try:
                 new_ip = sorted([x.key_no_id() 
                                  for x in core_module.destinationPorts()
-                                 if (not x.optional or (d, x._db_name) in pv)])
+                                 if (not x.optional or x._db_name in ipv)])
                 new_op = sorted([x.key_no_id() 
                                  for x in core_module.sourcePorts()
-                                 if (not x.optional or (s, x._db_name) in pv)])
+                                 if (not x.optional or x._db_name in opv)])
             except ModuleRegistryException, e:
                 debug.critical("MODULE REGISTRY EXCEPTION: %s" % e)
             if cip <> new_ip or cop <> new_op:
@@ -1502,22 +1503,18 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         error = None
         if module.is_valid:
             try:
-                d = PortEndPoint.Destination
                 for p in module.destinationPorts():
                     if not p.optional:
                         inputPorts.append(p)
-                    # elif (d, p.name) in module.portVisible:
                     elif p.name in module.visible_input_ports:
                         visibleOptionalInputPorts.append(p)
                     else:
                         self.optionalInputPorts.append(p)
                 inputPorts += visibleOptionalInputPorts
 
-                s = PortEndPoint.Source
                 for p in module.sourcePorts():
                     if not p.optional:
                         outputPorts.append(p)
-                    # elif (s, p.name) in module.portVisible:
                     elif p.name in module.visible_output_ports:
                         visibleOptionalOutputPorts.append(p)
                     else:
@@ -2269,12 +2266,12 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 s = connection.source.spec
                 if s and s.optional:
                     smm = pipeline.modules[smid]
-                    smm.portVisible.add((PortEndPoint.Source,s.name))
+                    smm.visible_output_ports.add(s.name)
                 dmid = connection.destination.moduleId   
                 d = connection.destination.spec
                 if d and d.optional:
                     dmm = pipeline.modules[dmid]
-                    dmm.portVisible.add((PortEndPoint.Destination,d.name))
+                    dmm.visible_input_ports.add(d.name)
 
             # remove old connection shapes
             for c_id in connections_to_be_deleted:
