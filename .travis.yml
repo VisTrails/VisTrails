@@ -20,8 +20,8 @@ addons:
       - unzip
       - xvfb
       - python-rpy2
+      - python-zmq
       - python-zsi
-# python-zmq is needed by parallelflow, but Travis has a bug right now (2015-01-12)
 install:
   - virtualenv --system-site-packages venv && source venv/bin/activate
   - pip install -U pip wheel setuptools
