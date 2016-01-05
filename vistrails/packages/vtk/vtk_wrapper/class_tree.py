@@ -60,7 +60,7 @@ class TreeNode(object):
     
     """
 
-    def __init__(self, klass):
+    def __init__(self, name, klass):
         """Given a class, create a node in the tree.
 
         Parameters
@@ -71,7 +71,7 @@ class TreeNode(object):
 
         """
         self.klass = klass
-        self.name = klass.__name__
+        self.name = name
         self.children = []
         self.parents = []
         # Uninitialized level is set to None
@@ -177,13 +177,18 @@ class ClassTree(object):
             self.modules = [modules]
         else:
             self.modules = modules
+        self.class2name = {}
 
     def __iter__(self):
         return iter(self.nodes.values())
 
     def _generate_hierarchy(self, klass):
         """Does the hard work of generating the class hierarchy."""
-        node = self.get_node(klass.__name__, create=1)
+        if klass in self.class2name:
+            name = self.class2name[klass]
+        else:
+            name = klass.__name__
+        node = self.get_node(name, create=1)
         for base in klass.__bases__:
             base_node = self.get_node_from_class(base, create=1)
             node.add_parent(base_node)
@@ -202,14 +207,17 @@ class ClassTree(object):
             try:
                 klass = self.nodes[name].klass
             except KeyError:
-                raise KeyError, "Cannot find class of name %s"%name
+                raise KeyError, "Cannot find class of name %s" % name
         return klass
 
     def add_node(self, klass):
         """Create a node for the given class."""
-        name = klass.__name__
+        if klass in self.class2name:
+            name = self.class2name[klass]
+        else:
+            name = klass.__name__
         if not self.nodes.has_key(name):
-            node = TreeNode(klass)
+            node = TreeNode(name, klass)
             self.nodes[name] = node
             return node
 
@@ -260,8 +268,11 @@ class ClassTree(object):
         - `TreeNode`
 
         """
-        name = cls.__name__
-        if self.nodes.has_key(name):
+        if cls in self.class2name:
+            name = self.class2name[cls]
+        else:
+            name = cls.__name__
+        if name in self.nodes:
             return self.nodes[name]
         elif create:
             return self.add_node(cls)
@@ -282,9 +293,13 @@ class ClassTree(object):
         """
         if class_names is None:
             class_names = []
-            for m in self.modules:            
+            for m in self.modules:
                 class_names.extend(dir(m))
-            
+                for classname in dir(m):
+                    klass = getattr(m, classname)
+                    if hasattr(klass, '__hash__') and klass.__hash__:
+                        self.class2name[klass] = classname
+
         # Generate the nodes.
         for name in class_names:
             klass = self.get_class(name)
