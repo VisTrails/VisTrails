@@ -45,11 +45,11 @@ import re
 
 
 # The new copyright: the found copyright line will be replaced by this
-NEW_COPYRIGHT = ["// Copyright (C) 2014-2016, New York University.\n"]
+NEW_COPYRIGHT = ["## Copyright (C) 2014-2016, New York University.\n"]
 
 # The old copyright line: the first matching line in a file will be replaced
 # by NEW_COPYRIGHT
-RE_COPYRIGHT = re.compile(r"\s*// Copyright \(C\) 20\d\d-20\d\d, "
+RE_COPYRIGHT = re.compile(r"\s*## Copyright \(C\) 20\d\d-20\d\d, "
                           r"New York University\.\s*")
 
 # Number of lines in which to search for the old copyright
@@ -61,14 +61,13 @@ IGNORE_LIST = ["update_copyright_year.py"]
 files = []
 for (path, dnames, fnames) in os.walk('.'):
     for fn in fnames:
-        if fn not in IGNORE_LIST and fn.endswith(".php"):
+        if fn not in IGNORE_LIST and fn.endswith(".py"):
             files.append(os.path.join(path, fn))
 
 # Go through files and update them
 print "%d files found" % len(files)
 count = 0
 for fname in files:
-    print fname
     fp = open(fname, 'rb')
     try:
         # Search only in the first few lines
