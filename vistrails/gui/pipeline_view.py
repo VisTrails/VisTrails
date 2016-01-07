@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -2258,9 +2258,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
             common_connections = new_connections.intersection(self._old_connection_ids)
 
 
-            # Check if connections to be added require 
+            # Check if connections to be added require
             # optional ports in modules to be visible
-            for c_id in connections_to_be_added:
+            # check all connections because the visible flag
+            # may have been cleared
+            for c_id in new_connections:
                 connection = pipeline.connections[c_id]
                 smid = connection.source.moduleId
                 s = connection.source.spec

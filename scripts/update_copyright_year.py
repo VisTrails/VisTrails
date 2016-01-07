@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -45,7 +45,7 @@ import re
 
 
 # The new copyright: the found copyright line will be replaced by this
-NEW_COPYRIGHT = ["## Copyright (C) 2014-2015, New York University.\n"]
+NEW_COPYRIGHT = ["## Copyright (C) 2014-2016, New York University.\n"]
 
 # The old copyright line: the first matching line in a file will be replaced
 # by NEW_COPYRIGHT

@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-## Copyright (C) 2014-2015, New York University.
+## Copyright (C) 2014-2016, New York University.
 ## Copyright (C) 2011-2014, NYU-Poly.
 ## Copyright (C) 2006-2011, University of Utah.
 ## All rights reserved.
@@ -45,7 +45,7 @@ import sys
 
 sys.setrecursionlimit(1500)
 
-VERSION = '2.3'
+VERSION = '2.x'
 
 # Add VTK 6.2 to path
 sys.path.insert(0,'/Users/vistrails/src/VTK6/build/Wrapping/Python')

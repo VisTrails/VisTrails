@@ -1,6 +1,6 @@
 ;###############################################################################
 ;##
-;## Copyright (C) 2014-2015, New York University.
+;## Copyright (C) 2014-2016, New York University.
 ;## Copyright (C) 2011-2014, NYU-Poly.
 ;## Copyright (C) 2006-2011, University of Utah.
 ;## All rights reserved.
@@ -38,7 +38,7 @@
 
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 2.3
+AppVerName=VisTrails 2.x
 OutputBaseFilename=vistrails-gdal-setup
 DefaultGroupName=VisTrails
 
