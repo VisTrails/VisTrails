@@ -33,13 +33,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
-from auto_gen import DBVistrail as _DBVistrail
-from auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
+from .auto_gen import DBVistrail as _DBVistrail
+from .auto_gen import DBAdd, DBChange, DBDelete, DBAbstraction, DBGroup, \
     DBModule
-from id_scope import IdScope
+from .id_scope import IdScope
 
 class DBVistrail(_DBVistrail):
     def __init__(self, *args, **kwargs):
@@ -125,6 +125,6 @@ class DBVistrail(_DBVistrail):
         # need this for updating aliases...
         # hack it using setattr...
         real_obj = self.db_objects[(obj.vtType, obj.db_id)]
-        for (k, v) in kwargs.iteritems():
+        for (k, v) in kwargs.items():
             if hasattr(real_obj, k):
                 setattr(real_obj, k, v)

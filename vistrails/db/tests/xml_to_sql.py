@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 # MACOSX binary install stuff
-from __future__ import division
+
 
 import os
 
@@ -54,17 +54,17 @@ def convert_xml_to_sql(filename):
         vistrail = io.open_vistrail_from_xml(filename)
         dbConnection = io.open_db_connection(config)
 
-        print dbConnection.get_server_info()
-        print dbConnection.get_host_info()
-        print dbConnection.stat()
-        print str(dbConnection)
+        print(dbConnection.get_server_info())
+        print(dbConnection.get_host_info())
+        print(dbConnection.stat())
+        print(str(dbConnection))
 
         io.save_vistrail_to_db(vistrail, dbConnection)
         io.close_db_connection(dbConnection)
-        print 'db_id: ', vistrail.db_id
+        print('db_id: ', vistrail.db_id)
 
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
 
 if __name__ == '__main__':
     # convert_xml_to_sql('/vistrails/vtk_http_new.xml')

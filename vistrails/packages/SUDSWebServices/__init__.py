@@ -37,7 +37,7 @@
 It requires suds library to be installed. Click on configure to add wsdl
 urls to the package (use a ; to separate the urls).
 """
-from __future__ import division
+
 
 from vistrails.core.configuration import ConfigurationObject
 import vistrails.core

@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 import os.path
@@ -213,7 +213,7 @@ class MashupController(object):
         one change (eg., an alias rename, an alias addition, an alias removal)
         
         """
-        pip_aliases = pipeline.aliases.keys()
+        pip_aliases = list(pipeline.aliases.keys())
         mashup_aliases = [a.name for a in self.currentMashup.alias_list]
         new_aliases = []
         if len(pip_aliases) == len(mashup_aliases):
@@ -280,7 +280,7 @@ class MashupController(object):
         self.resetVistrailPipeline()
         self.vtPipeline = copy.copy(self.vtController.current_pipeline)
         #first we clear all aliases in pipeline
-        to_remove = self.vtPipeline.aliases.values()
+        to_remove = list(self.vtPipeline.aliases.values())
         for (type, oId, parentType, parentId, mid) in to_remove:
             self.vtPipeline.remove_alias(type, oId, parentType, parentId, mid)
             parameter = self.vtPipeline.db_get_object(type,oId)

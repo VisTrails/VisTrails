@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import colorsys
 from string import Template
@@ -67,8 +67,8 @@ class TitlesMixin(object):
             table = self.get_input("table")
         title_col_idx = self.force_get_input('titleColIdx')
         title_col_name = self.force_get_input('titleColName')
-        print "title_col_idx:", title_col_idx
-        print "title_col_name:", title_col_name
+        print("title_col_idx:", title_col_idx)
+        print("title_col_name:", title_col_name)
 
         if (title_col_idx is None and
                 title_col_name is None and 
@@ -118,7 +118,7 @@ class GMapVis(Module, OptionsMixin):
         center = (sum(float(x) for x in lat_col)/len(lat_col),
                   sum(float(x) for x in lng_col)/len(lng_col))
         positions = []
-        for i in xrange(table.rows):
+        for i in range(table.rows):
             positions.append(GMapLatLng(lat_col[i], lng_col[i]))
         return (positions, center)
 
@@ -146,7 +146,7 @@ class GMapMarkers(GMapVis, TitlesMixin):
         (positions, center) = self.get_positions()
         marker_options = self.get_options(self.SPECS)
         titles = self.get_titles()
-        print "got titles:", titles
+        print("got titles:", titles)
         data = {"marker_options": marker_options,
                 "marker_data": positions,
                 "marker_titles": titles}
@@ -202,7 +202,7 @@ class GMapCircles(GMapValueVis):
         (positions, center) = self.get_positions()
         values = self.get_values()
         circle_data = [[positions[i], float(values[i])/200.0]
-                       for i in xrange(len(positions))]
+                       for i in range(len(positions))]
         circle_options = self.get_options(self.SPECS)
         data = {"circle_options": circle_options,
                 "circle_data": circle_data}
@@ -260,7 +260,7 @@ class GMapSymbols(GMapValueVis, TitlesMixin):
         use_values = True
         try:
             values = [float(x) for x in self.get_values()]
-        except ValueError, e:
+        except ValueError as e:
             # LEGACY SUPPORT
             if legacy:
                 use_values = False
@@ -292,14 +292,14 @@ class GMapSymbols(GMapValueVis, TitlesMixin):
                 end_c[0] = start_c[0]
 
             symbol_data = []
-            for i in xrange(len(positions)):
+            for i in range(len(positions)):
                 val = values[i]
                 if max_value - min_value < 1e-8:
                     norm_val = 1.0
                 else:
                     norm_val = (val - min_value) / (max_value - min_value)
                 color = []
-                for j in xrange(len(start_c)):
+                for j in range(len(start_c)):
                     color.append((1.0 - norm_val) * start_c[j] + 
                                  norm_val * end_c[j])
                 color = colorsys.hsv_to_rgb(*color)
@@ -340,7 +340,7 @@ class GMapHeatmap(GMapValueVis):
         values = self.get_values()
         heatmap_data = [{"location": positions[i],
                          "weight": float(values[i])} 
-                        for i in xrange(len(positions))]
+                        for i in range(len(positions))]
         heatmap_options = self.get_options(self.SPECS)
         data = {"heatmap_data": heatmap_data,
                 "heatmap_options": heatmap_options}

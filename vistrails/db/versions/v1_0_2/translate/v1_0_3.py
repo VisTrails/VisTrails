@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db.versions.v1_0_2.domain import DBVistrail, DBAnnotation, \
                                       DBWorkflow, DBLog, DBRegistry, \
@@ -64,11 +64,11 @@ def update_portSpec(old_obj, translate_dict):
     if all(not d for d in defaults):
         new_obj.db_defaults = None
     else:
-        new_obj.db_defaults = unicode(defaults)
+        new_obj.db_defaults = str(defaults)
     if all(not label for label in labels):
         new_obj.db_labels = None
     else:
-        new_obj.db_labels = unicode(labels)
+        new_obj.db_labels = str(labels)
         
     return new_obj
 

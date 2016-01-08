@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import os
 import re
@@ -66,11 +66,11 @@ def initialize(*args, **kwargs):
     cannot_load = {}
     while len(abs_vistrails) > 0 and len(abs_vistrails) < last_count:
         new_vistrails = {}
-        for (abs_name, abs_info) in abs_vistrails.iteritems():
+        for (abs_name, abs_info) in abs_vistrails.items():
             (abs_vistrail, abs_fname, abs_depends) = abs_info
             packages = get_abstraction_dependencies(abs_vistrail)
             add_abstraction = True
-            for package, inter_depends in packages.iteritems():
+            for package, inter_depends in packages.items():
                 if package != identifier:
                     if not manager.has_package(package):
                         add_abstraction = False
@@ -91,7 +91,7 @@ def initialize(*args, **kwargs):
                 try:
                     abstraction = \
                         new_abstraction(abs_name, abs_vistrail, abs_fname)
-                except InvalidPipeline, e:
+                except InvalidPipeline as e:
                     # handle_invalid_pipeline will raise it's own InvalidPipeline
                     # exception if it fails
                     try:
@@ -100,15 +100,15 @@ def initialize(*args, **kwargs):
                         # Use a "dummy" controller to handle the upgrade
                         controller = vistrails.core.vistrail.controller.VistrailController(abs_vistrail)
                         (new_version, new_pipeline) = \
-                            controller.handle_invalid_pipeline(e, long(module_version), 
+                            controller.handle_invalid_pipeline(e, int(module_version), 
                                                                abs_vistrail, False, True)
                         del controller
                         save_abstraction(abs_vistrail, abs_fname)
                         abstraction = new_abstraction(abs_name, abs_vistrail, abs_fname,
                                                       new_version, new_pipeline)
-                    except Exception, _e:
+                    except Exception as _e:
                         cannot_load[abs_name] = (abs_vistrail, _e)
-                except Exception, e:
+                except Exception as e:
                     cannot_load[abs_name] = (abs_vistrail, e)
                 if abstraction is not None:
                     # add descriptors for all available version namespaces
@@ -139,7 +139,7 @@ def initialize(*args, **kwargs):
         last_count = len(abs_vistrails)
         abs_vistrails = new_vistrails
 
-    for abs_name, (_, e) in cannot_load.iteritems():
+    for abs_name, (_, e) in cannot_load.items():
         debug.critical("Cannot load subworkflow '%s'" % abs_name)
         if e:
             debug.critical("- %s" % e)
@@ -169,11 +169,11 @@ def package_dependencies():
             vistrail = read_vistrail(abs_fname)
             try:
                 dependencies = get_abstraction_dependencies(vistrail)
-            except vistrails.core.modules.module_registry.MissingPackage, e:
+            except vistrails.core.modules.module_registry.MissingPackage as e:
                 dependencies = {e._identifier: set()}
             add_abstraction = True
             inter_depends = []
-            for package, depends in dependencies.iteritems():
+            for package, depends in dependencies.items():
                 if package != identifier:
                     if not manager.has_package(package):
                         add_abstraction = False
@@ -182,7 +182,7 @@ def package_dependencies():
                     inter_depends.append(depends)
             if add_abstraction:
                 # print 'adding', abstraction[:-4]
-                all_packages.update(p for p in dependencies.iterkeys()
+                all_packages.update(p for p in dependencies.keys()
                                     if p != identifier)
                 my_vistrails[abstraction[:-4]] = \
                     (vistrail, abs_fname, inter_depends)

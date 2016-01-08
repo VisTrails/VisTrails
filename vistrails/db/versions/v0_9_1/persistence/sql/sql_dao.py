@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from datetime import date, datetime
 
@@ -49,7 +49,7 @@ class SQLDAO:
             if type == 'str':
                 return str(value)
             elif type == 'long':
-                return long(value)
+                return int(value)
             elif type == 'float':
                 return float(value)
             elif type == 'int':
@@ -91,7 +91,7 @@ class SQLDAO:
         columnStr = ', '.join(columns)
         whereStr = ''
         whereClause = ''
-        for column, value in whereMap.iteritems():
+        for column, value in whereMap.items():
             whereStr += '%s %s = %s' % \
                         (whereClause, column, value)
             whereClause = ' AND'
@@ -107,7 +107,7 @@ class SQLDAO:
     def createSQLInsert(self, table, columnMap):
         columns = []
         values = []
-        for column, value in columnMap.iteritems():
+        for column, value in columnMap.items():
             if value is None:
                 value = 'NULL'
             columns.append(column)
@@ -121,14 +121,14 @@ class SQLDAO:
     def createSQLUpdate(self, table, columnMap, whereMap):
         setStr = ''
         comma = ''
-        for column, value in columnMap.iteritems():
+        for column, value in columnMap.items():
             if value is None:
                 value = 'NULL'
             setStr += '%s %s = %s' % (comma, column, value)
             comma = ','
         whereStr = ''
         whereClause = ''
-        for column, value in whereMap.iteritems():
+        for column, value in whereMap.items():
             whereStr += '%s %s = %s' % \
                         (whereClause, column, value)
             whereClause = ' AND'
@@ -139,7 +139,7 @@ class SQLDAO:
     def createSQLDelete(self, table, whereMap):
         whereStr = ''
         whereClause = ''
-        for column, value in whereMap.iteritems():
+        for column, value in whereMap.items():
             whereStr += '%s%s = %s' % \
                 (whereClause, column, value)
             whereClause = ' AND '

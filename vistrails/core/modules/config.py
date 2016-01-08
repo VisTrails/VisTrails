@@ -34,10 +34,10 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from collections import namedtuple as _namedtuple, Mapping
-from itertools import izip
+
 
 _docs = {}
 
@@ -93,10 +93,10 @@ def namedtuple(typename, fields):
     if len(default_values) > 0:
         T.__new__.__defaults__ = tuple(default_values)
         args.extend("%s=%s" % (field_name, '"%s"' % default_val \
-                               if isinstance(default_val, basestring) \
+                               if isinstance(default_val, str) \
                                else default_val) \
                     for (field_name, default_val) in \
-                    izip(reversed(field_names), reversed(default_values)))
+                    zip(reversed(field_names), reversed(default_values)))
         args.reverse()
         args = field_names[:len(field_names)-len(default_values)] + args
     else:
@@ -104,15 +104,15 @@ def namedtuple(typename, fields):
     
     init_docstring = ""
     for (field_name, field_type, docstring) in \
-        izip(field_names, field_types, docstrings):
+        zip(field_names, field_types, docstrings):
         init_docstring += "    .. py:attribute:: %s %s\n%s\n" % \
                           (field_name, field_type, docstring)
 
     init_template = "def __init__(self, %s): pass" % ', '.join(args)
     d = {}
-    exec init_template in d
+    exec(init_template, d)
     T.__init__ = d['__init__']
-    T.__init__.im_func.__doc__ = init_docstring
+    T.__init__.__func__.__doc__ = init_docstring
     T._vistrails_fields = fields
 
     return T
@@ -430,14 +430,14 @@ _documentation = \
 
 def parse_documentation():
     line_iter = iter(_documentation.splitlines())
-    line_iter.next()
+    next(line_iter)
     for line in line_iter:
         field, field_type = line.strip().split(':', 1)
         (cls_name, field_name) = field.split('.')
         doc_lines = []
-        line = line_iter.next()
+        line = next(line_iter)
         while True:
-            line = line_iter.next()
+            line = next(line_iter)
             if not line.strip():
                 break
             doc_lines.append(line.strip())

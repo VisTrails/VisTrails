@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -190,7 +190,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         # check if a controller has been closed
         from vistrails.gui.vistrails_window import _app
         controllers = [view.controller for view in _app.getAllViews()]
-        for c in self.widgets.keys():
+        for c in list(self.widgets.keys()):
             if c not in controllers:
                 self.jobView.takeTopLevelItem(self.jobView.indexOfTopLevelItem(self.widgets[c]))
                 del self.widgets[c]
@@ -250,7 +250,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             workflow_item = job
             job = None
         else:
-            for workflow_item in job.workflowItems.values():
+            for workflow_item in list(job.workflowItems.values()):
                 self.update_job(workflow_item, force)
             return
         jm = vistrail_item.jobMonitor
@@ -291,7 +291,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
             self.updating_now = True
             return
 
-        job_items = workflow_item.jobs.values() if job is None else [job]
+        job_items = list(workflow_item.jobs.values()) if job is None else [job]
         for job_item in job_items:
             if job_item.job.finished or job_item.job.ready:
                 continue
@@ -299,7 +299,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
                 # call monitor
                 if jm.isDone(job_item.handle):
                     job_item.job.ready = True
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Error checking job %s: %s" %
                                (workflow_item.text(0), e))
         if workflow_item.updateJobs():
@@ -345,7 +345,7 @@ class QJobView(QtGui.QWidget, QVistrailsPaletteInterface):
         self.updating_now = True
         try:
             if job is None:
-                for i in xrange(self.jobView.topLevelItemCount()):
+                for i in range(self.jobView.topLevelItemCount()):
                     vistrail_item = self.jobView.topLevelItem(i)
                     self.update_job(vistrail_item, force=False)
             else:
@@ -407,11 +407,11 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         """
         workflows = self.jobMonitor.workflows
         # update gui
-        for workflow in workflows.itervalues():
+        for workflow in workflows.values():
             if workflow.id not in self.workflowItems:
                 workflow_item = QWorkflowItem(workflow, self)
                 self.workflowItems[workflow.id] = workflow_item
-                for job in workflow.jobs.itervalues():
+                for job in workflow.jobs.values():
                     if job.id not in workflow_item.jobs:
                         workflow_item.jobs[job.id] = QJobItem(job, workflow_item)
                         workflow_item.updateJobs()
@@ -452,7 +452,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
 
         """
 
-        for workflow_item in self.workflowItems.itervalues():
+        for workflow_item in self.workflowItems.values():
             if id in workflow_item.jobs:
                 job_item = workflow_item.jobs[id]
                 job_item.parent().takeChild(job_item.parent().indexOfChild(job_item))
@@ -499,7 +499,7 @@ class QVistrailItem(QtGui.QTreeWidgetItem):
         """
         workflow = self.jobMonitor.currentWorkflow()
         # untangle parents
-        for parent in workflow.parents.itervalues():
+        for parent in workflow.parents.values():
             self.addJobRec(parent)
 
         workflow_item = self.workflowItems.get(workflow.id, None)
@@ -600,13 +600,13 @@ class QWorkflowItem(QtGui.QTreeWidgetItem):
         self.setToolTip(1, "Log id: %s" % self.workflow.id)
         changed = False
         self.has_handle = True
-        for job in self.jobs.itervalues():
+        for job in self.jobs.values():
             if job.updateJob():
                 changed = True
             if not job.job.finished and not job.handle:
                 self.has_handle = False
         count = len(self.jobs)
-        finished = sum([job.job.finished or job.job.ready for job in self.jobs.values()])
+        finished = sum([job.job.finished or job.job.ready for job in list(self.jobs.values())])
         self.setText(1, "(%s/%s)" % (finished, count))
         self.workflowFinished = (finished == count)
         if self.workflowFinished:
@@ -803,7 +803,7 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(result.errors, {})
         self.assertEqual(result.suspended, {})
 
-        for i in c.jobMonitor.workflows.keys():
+        for i in list(c.jobMonitor.workflows.keys()):
             c.jobMonitor.deleteWorkflow(i)
 
     def testGroup(self):
@@ -817,7 +817,7 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(result.errors, {})
         self.assertNotEqual(result.suspended, {})
 
-        for i in c.jobMonitor.workflows.keys():
+        for i in list(c.jobMonitor.workflows.keys()):
             c.jobMonitor.deleteWorkflow(i)
 
     def testMap(self):
@@ -836,7 +836,7 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(result.errors, {})
         self.assertEqual(result.suspended, {})
 
-        for i in c.jobMonitor.workflows.keys():
+        for i in list(c.jobMonitor.workflows.keys()):
             c.jobMonitor.deleteWorkflow(i)
 
     def testLoop(self):
@@ -855,7 +855,7 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         self.assertEqual(result.errors, {})
         self.assertEqual(result.suspended, {})
 
-        for i in c.jobMonitor.workflows.keys():
+        for i in list(c.jobMonitor.workflows.keys()):
             c.jobMonitor.deleteWorkflow(i)
 
     def testParameterExploration(self):
@@ -871,8 +871,8 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
             self.fail("Parameter Exploration with Job failed")
 
         # Check that we have 2 jobs
-        self.assertEqual(len(c.jobMonitor.workflows.keys()), 2)
-        for i in c.jobMonitor.workflows.keys():
+        self.assertEqual(len(list(c.jobMonitor.workflows.keys())), 2)
+        for i in list(c.jobMonitor.workflows.keys()):
             wf = c.jobMonitor.workflows[i]
             self.assertFalse(wf.completed())
 
@@ -882,11 +882,11 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
             self.fail("Parameter Exploration with Job failed")
 
         # Check that the 2 jobs has completed
-        for i in c.jobMonitor.workflows.keys():
+        for i in list(c.jobMonitor.workflows.keys()):
             wf = c.jobMonitor.workflows[i]
             self.assertTrue(wf.completed())
 
-        for i in c.jobMonitor.workflows.keys():
+        for i in list(c.jobMonitor.workflows.keys()):
             c.jobMonitor.deleteWorkflow(i)
 
     def testMashup(self):
@@ -900,18 +900,18 @@ class TestJobMonitor(vistrails.gui.utils.TestVisTrailsGUI):
         self.assert_(mashup)
 
         view.open_mashup(mashup)
-        self.assertEqual(len(c.jobMonitor.workflows.keys()), 1)
-        self.assertFalse(c.jobMonitor.workflows.values()[0].completed())
+        self.assertEqual(len(list(c.jobMonitor.workflows.keys())), 1)
+        self.assertFalse(list(c.jobMonitor.workflows.values())[0].completed())
 
         # close associated mashup apps
         from vistrails.gui.version_prop import QVersionProp
         version_prop = QVersionProp.instance()
-        for app in version_prop.versionMashups.apps.values():
+        for app in list(version_prop.versionMashups.apps.values()):
             app.close()
 
         view.open_mashup(mashup)
-        self.assertEqual(len(c.jobMonitor.workflows.keys()), 1)
-        self.assertTrue(c.jobMonitor.workflows.values()[0].completed())
+        self.assertEqual(len(list(c.jobMonitor.workflows.keys())), 1)
+        self.assertTrue(list(c.jobMonitor.workflows.values())[0].completed())
 
-        for i in c.jobMonitor.workflows.keys():
+        for i in list(c.jobMonitor.workflows.keys()):
             c.jobMonitor.deleteWorkflow(i)

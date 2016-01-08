@@ -37,7 +37,7 @@
 This module defines common functions and exception class definitions
 used all over VisTrails.
 """
-from __future__ import division, with_statement
+
 
 from vistrails.core.utils.enum import enum
 from vistrails.core.utils.timemethod import time_method, time_call
@@ -57,6 +57,7 @@ import weakref
 
 import unittest
 import tempfile
+import collections
 
 ################################################################################
 
@@ -68,7 +69,7 @@ def invert(d):
     structure to a core.data_structures.bijectivedict.Bidict instead.
 
     """
-    return dict([[v,k] for k,v in d.items()])
+    return dict([[v,k] for k,v in list(d.items())])
 
 ################################################################################
 
@@ -103,7 +104,7 @@ def deprecated(*args):
                               stacklevel=2)
             return func(*args, **kwargs)
         return new_func
-    if len(args) == 1 and callable(args[0]):
+    if len(args) == 1 and isinstance(args[0], collections.Callable):
         return _deprecated(args[0])
     else:
         new_name = args[0]
@@ -372,9 +373,9 @@ if sys.version_info < (2, 5):
                 return False
         return True
 else:
-    import __builtin__
-    any = __builtin__.any
-    all = __builtin__.all
+    import builtins
+    any = builtins.any
+    all = builtins.all
 
 def iter_index(iterable, item):
     """iter_index(iterable, item) -> int - Iterates through iterator
@@ -382,8 +383,8 @@ def iter_index(iterable, item):
 
     iter_index is analogous to list.index for iterators."""
     try:
-        itor = itertools.izip(iterable, itertools.count(0))
-        return itertools.dropwhile(lambda (v,c): v != item, itor).next()[1]
+        itor = zip(iterable, itertools.count(0))
+        return itertools.dropwhile(lambda v_c: v_c[0] != item, itor).next()[1]
     except StopIteration:
         return -1
                                               
@@ -392,8 +393,8 @@ def eprint(*args):
     """eprint(*args) -> False - Prints the arguments, then returns
     false. Useful inside a lambda expression, for example."""
     for v in args:
-        print v,
-    print
+        print(v, end=' ')
+    print()
 
 def uniq(l):
     """uniq(l) -> List. Returns a new list consisting of elements that
@@ -405,7 +406,7 @@ def uniq(l):
     a.sort()
     l1 = a[:-1] 
     l2 = a[1:]
-    return [a[0]] + [next for (i, next) in itertools.izip(l1, l2) if i != next]
+    return [a[0]] + [next for (i, next) in zip(l1, l2) if i != next]
 
 class InstanceObject(object):
     """InstanceObject is a convenience class created to facilitate
@@ -433,7 +434,7 @@ class InstanceObject(object):
             else:
                 result += prefix
                 result += "." + str(k) + " = " 
-                if isinstance(v, basestring):
+                if isinstance(v, str):
                     result +=  "'" + str(v) + "'\n"
                 else:
                     result += str(v) + "\n"
@@ -499,7 +500,7 @@ class Ref(object):
     def __init__(self, fn):
         try:
             #try getting object, function, and class
-            o, f, c = fn.im_self, fn.im_func, fn.im_class
+            o, f, c = fn.__self__, fn.__func__, fn.__self__.__class__
         except AttributeError: #it's not a bound method
             self._obj = None
             self._func = fn
@@ -535,7 +536,7 @@ def xor(first, *others):
         if len(oth) != l:
             raise ValueError("All bytestrings should have the same length: "
                              "%d != %d" % (l, len(oth)))
-        first = [c ^ ord(o) for (c, o) in itertools.izip(first, oth)]
+        first = [c ^ ord(o) for (c, o) in zip(first, oth)]
     return ''.join(chr(c) for c in first)
 
 def long2bytes(nb, length=None):
@@ -591,18 +592,18 @@ class _TestMemoFibo(_TestRegularFibo):
 class TestCommon(unittest.TestCase):
     def test_append_to_dict_of_lists(self):
         f = {}
-        self.assertEquals(f.has_key(1), False)
+        self.assertEquals(1 in f, False)
         append_to_dict_of_lists(f, 1, 1)
-        self.assertEquals(f.has_key(1), True)
+        self.assertEquals(1 in f, True)
         self.assertEquals(f[1], [1])
         append_to_dict_of_lists(f, 1, 1)
-        self.assertEquals(f.has_key(1), True)
+        self.assertEquals(1 in f, True)
         self.assertEquals(f[1], [1, 1])
         append_to_dict_of_lists(f, 1, 2)
-        self.assertEquals(f.has_key(1), True)
+        self.assertEquals(1 in f, True)
         self.assertEquals(f[1], [1, 1, 2])
         append_to_dict_of_lists(f, 2, "Foo")
-        self.assertEquals(f.has_key(2), True)
+        self.assertEquals(2 in f, True)
         self.assertEquals(f[2], ["Foo"])
 
     def test_memo(self):

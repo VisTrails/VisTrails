@@ -48,13 +48,14 @@ type information, and organizes them.
 # Copyright (c) 2004-2007, Enthought, Inc.
 # License: BSD Style.
 
-from __future__ import division
+
 
 import re
 
 # Local imports (these are relative imports for a good reason).
-import class_tree
-import vtk_module as vtk
+from . import class_tree
+from . import vtk_module as vtk
+import collections
 
 
 class VTKMethodParser:
@@ -190,7 +191,7 @@ class VTKMethodParser:
         if no_warn:
             # Save warning setting and shut it off before parsing.
             warn = vtk.vtkObject.GetGlobalWarningDisplay()
-            if klass.__name__ <> 'vtkObject':
+            if klass.__name__ != 'vtkObject':
                 vtk.vtkObject.GlobalWarningDisplayOff()
 
         self._organize_methods(klass, methods)
@@ -207,7 +208,7 @@ class VTKMethodParser:
             meths = dir(klass)
             d = methods.fromkeys(meths)
             methods.update(d)
-        return methods.keys()
+        return list(methods.keys())
 
     def get_methods(self, klass):
         """Returns all the relevant methods of the given VTK class."""
@@ -346,7 +347,7 @@ class VTKMethodParser:
         # Remove all the C++ function signatures.
         doc = method.__doc__
         if not doc:
-            print "Ignoring method %r, no __doc__" % method
+            print("Ignoring method %r, no __doc__" % method)
             return []
         doc = doc[:doc.find('\n\n')]
         sig = []
@@ -498,7 +499,7 @@ class VTKMethodParser:
         meths = self._find_get_set_methods(klass, meths)
         meths = self._find_get_methods(klass, meths)
         self.other_meths = [x for x in meths \
-                            if callable(getattr(klass, x)) and
+                            if isinstance(getattr(klass, x), collections.Callable) and
                                 '__' not in x and
                                 not isinstance(getattr(klass, x), type)]
 
@@ -542,7 +543,7 @@ class VTKMethodParser:
                     try:
                         tm[key] = getattr(obj, 'Get%s'%key)()
                     except (TypeError, AttributeError):
-                        print klass.__name__, key
+                        print(klass.__name__, key)
                         pass
         return meths
 
@@ -572,7 +573,7 @@ class VTKMethodParser:
                     if (('Get' + key) in methods):
                         val = method[match.start()+2:] # <Value> part.
                         meths.remove(method)
-                        if sm.has_key(key):
+                        if key in sm:
                             sm[key].append([val, None])
                         else:
                             sm[key] = [[val, None]]
@@ -594,7 +595,7 @@ class VTKMethodParser:
             if obj and not klass_name.endswith('Viewer'):
                 # We do not try to inspect viewers, because they'll
                 # trigger segfaults during the inspection
-                for key, values in sm.items():
+                for key, values in list(sm.items()):
                     default = getattr(obj, 'Get%s'%key)()
                     for x in values[:]:
                         try:
@@ -666,7 +667,7 @@ class VTKMethodParser:
         if gsm:
             obj = self._get_instance(klass)
             if obj:
-                for key, value in gsm.items():
+                for key, value in list(gsm.items()):
                     if klass_name in ['vtkPolyData', 'vtkContext2D']:
                         # Evil hack, these classes segfault!
                         default = None
@@ -688,7 +689,7 @@ class VTKMethodParser:
                         gsm[key] = (default, None)
             else:
                 # We still might have methods that have a default range.
-                for key, value in gsm.items():
+                for key, value in list(gsm.items()):
                     if value == 1:
                         gsm[key] = None
 

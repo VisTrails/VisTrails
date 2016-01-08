@@ -34,14 +34,14 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.modules.vistrails_module import Module
 from vistrails.core.modules.module_registry import get_module_registry
 from vistrails.core.modules.basic_modules import List, String
 
-from engine_manager import EngineManager
-from map import Map
+from .engine_manager import EngineManager
+from .map import Map
 
 
 def initialize(*args,**keywords):

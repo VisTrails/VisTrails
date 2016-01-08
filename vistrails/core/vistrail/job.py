@@ -37,7 +37,7 @@
 
 """
 
-from __future__ import division
+
 
 from vistrails.core.configuration import get_vistrails_configuration
 from vistrails.core import debug
@@ -115,7 +115,7 @@ class JobMixin(object):
         debug.log("Calling checkJob()")
         try:
             jm.checkJob(self, self.signature, self.job_get_handle(params))
-        except ModuleSuspended, e:
+        except ModuleSuspended as e:
             debug.log("checkJob() raised ModuleSuspended, job handle is %r" %
                       e.handle)
             raise
@@ -234,7 +234,7 @@ class Workflow(object):
         wf['name'] = self.name
         wf['user'] = self.user
         wf['start'] = self.start
-        wf['jobs'] = self.jobs.keys()
+        wf['jobs'] = list(self.jobs.keys())
         return wf
 
     @staticmethod
@@ -260,14 +260,14 @@ class Workflow(object):
         return True
 
     def reset(self):
-        for job in self.jobs.itervalues():
+        for job in self.jobs.values():
             job.reset()
         self.parents = {}
 
     def completed(self):
         """ Returns true if there are no suspended jobs
         """
-        for job in self.jobs.itervalues():
+        for job in self.jobs.values():
             if not job.finished:
                 return False
         return True
@@ -375,12 +375,12 @@ class JobMonitor(object):
         _dict = {}
 
         jobs = dict()
-        for id, job in self.jobs.items():
+        for id, job in list(self.jobs.items()):
             jobs[id] = job.to_dict()
         _dict['jobs'] = jobs
 
         workflows = dict()
-        for id, workflow in self.workflows.items():
+        for id, workflow in list(self.workflows.items()):
             workflows[id] = workflow.to_dict()
         _dict['workflows'] = workflows
 
@@ -396,12 +396,12 @@ class JobMonitor(object):
 
         jobs = _dict.get('jobs', {})
         self.jobs = {}
-        for id, job in jobs.iteritems():
+        for id, job in jobs.items():
             self.jobs[id] = Job.from_dict(job)
 
         workflows = _dict.get('workflows', {})
         self.workflows = {}
-        for id, workflow in workflows.iteritems():
+        for id, workflow in workflows.items():
             workflow['jobs'] = dict([(i, self.jobs[i])
                                      for i in workflow['jobs']
                                      if i in self.jobs])
@@ -414,7 +414,7 @@ class JobMonitor(object):
 
         """
         self.workflows[workflow.id] = workflow
-        for id, job in workflow.jobs.iteritems():
+        for id, job in workflow.jobs.items():
             self.jobs[id] = job
 
     def getWorkflow(self, id):
@@ -435,7 +435,7 @@ class JobMonitor(object):
         # delete jobs that only occur in this workflow
         for job_id in workflow.jobs:
             delete = True
-            for wf in self.workflows.values():
+            for wf in list(self.workflows.values()):
                 if job_id in wf.jobs:
                     delete = False
             if delete:
@@ -448,7 +448,7 @@ class JobMonitor(object):
             deletes a job from all workflows
         """
         del self.jobs[id]
-        for wf in self.workflows.itervalues():
+        for wf in self.workflows.values():
             if id in wf.jobs:
                 del wf.jobs[id]
         if self.callback is not None and self.callback() is not None:
@@ -503,17 +503,17 @@ class JobMonitor(object):
             # untangle parents
             # only keep the top item
             c = set()
-            for exception in workflow.parents.itervalues():
+            for exception in workflow.parents.values():
                 if exception.children:
                     c.update([id(child) for child in exception.children])
             for child in c:
                 if child in workflow.parents:
                     del workflow.parents[child]
-            for parent in workflow.parents.itervalues():
+            for parent in workflow.parents.values():
                 self.addJobRec(parent)
 
             # Assume all unfinished jobs that were not updated are now finished
-            for job in workflow.jobs.values():
+            for job in list(workflow.jobs.values()):
                 if not job.finished and not job.updated:
                     job.finish()
             if self.callback is not None and self.callback() is not None:
@@ -589,8 +589,8 @@ class JobMonitor(object):
                 try:
                     while not self.isDone(handle):
                         time.sleep(interval)
-                        print ("Waiting for job: %s,"
-                               "press Ctrl+C to suspend") % job.name
+                        print(("Waiting for job: %s,"
+                               "press Ctrl+C to suspend") % job.name)
                 except KeyboardInterrupt:
                     raise ModuleSuspended(module, 'Interrupted by user, job'
                                           ' is still running', handle=handle)
@@ -621,7 +621,7 @@ class JobMonitor(object):
         return id in self.jobs
 
     def updateUrl(self, new, old):
-        for workflow in self.workflows.values():
+        for workflow in list(self.workflows.values()):
             if workflow.vistrail == old:
                 workflow.vistrail = new
 

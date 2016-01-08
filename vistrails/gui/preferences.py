@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtGui, QtCore
 from vistrails.core import get_vistrails_application
@@ -296,7 +296,7 @@ class QPackagesWidget(QtGui.QWidget):
 
         try:
             new_deps = self._current_package.dependencies()
-        except Exception, e:
+        except Exception as e:
             debug.critical("Failed getting dependencies of package %s, "
                            "so it will not be enabled" %
                             self._current_package.name,
@@ -308,7 +308,7 @@ class QPackagesWidget(QtGui.QWidget):
 
         try:
             pm.check_dependencies(self._current_package, new_deps)
-        except Package.MissingDependency, e:
+        except Package.MissingDependency as e:
             debug.critical("Missing dependencies", e)
         else:
             # Deselects available list to prevent another package from getting
@@ -319,7 +319,7 @@ class QPackagesWidget(QtGui.QWidget):
             palette.setUpdatesEnabled(False)
             try:
                 pm.late_enable_package(codepath)
-            except (Package.InitializationFailed, MissingRequirement), e:
+            except (Package.InitializationFailed, MissingRequirement) as e:
                 debug.unexpected_exception(e)
                 debug.critical("Initialization of package '%s' failed" %
                                codepath,
@@ -382,7 +382,7 @@ class QPackagesWidget(QtGui.QWidget):
         pm = get_package_manager()
         try:
             pm.reload_package_enable(reverse_deps, prefix_dictionary)
-        except Package.InitializationFailed, e:
+        except Package.InitializationFailed as e:
             debug.critical("Re-initialization of package '%s' failed" % 
                             codepath,
                             e)
@@ -470,7 +470,7 @@ class QPackagesWidget(QtGui.QWidget):
 
         try:
             p.load()
-        except Exception, e:
+        except Exception as e:
             msg = 'ERROR: Could not load package.'
             self._name_label.setText(msg)
             self._version_label.setText(msg)
@@ -484,7 +484,7 @@ class QPackagesWidget(QtGui.QWidget):
             try:
                 deps = ', '.join(str(d) for d in p.dependencies()) or \
                     'No package dependencies.'
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Failed getting dependencies of package %s" %
                                p.name,
                                e)
@@ -572,12 +572,11 @@ class QOutputConfigurationPane(QtGui.QWidget):
         modes = {}
         for d in sublist:
             if hasattr(d.module, '_output_modes_dict'):
-                for mode_type, (mode, _) in (d.module._output_modes_dict
-                                                     .iteritems()):
+                for mode_type, (mode, _) in (iter(d.module._output_modes_dict.items())):
                     modes[mode_type] = mode
 
         found_modes = set()
-        for mode_type, mode in modes.iteritems():
+        for mode_type, mode in modes.items():
             found_modes.add(mode_type)
             if mode_type not in self.mode_widgets:
                 mode_config = None
@@ -589,15 +588,15 @@ class QOutputConfigurationPane(QtGui.QWidget):
                 self.inner_layout.addWidget(widget)
                 self.mode_widgets[mode_type] = widget
         
-        for mode_type, widget in self.mode_widgets.items():
+        for mode_type, widget in list(self.mode_widgets.items()):
             if mode_type not in found_modes:
                 self.inner_layout.removeWidget(self.mode_widgets[mode_type])
                 del self.mode_widgets[mode_type]
 
     def field_was_changed(self, mode_widget):
         # FIXME need to use temp_config to show command-line overrides
-        for k1, v_dict in mode_widget._changed_config.iteritems():
-            for k2, v in v_dict.iteritems():
+        for k1, v_dict in mode_widget._changed_config.items():
+            for k2, v in v_dict.items():
                 k = "%s.%s" % (k1, k2)
                 self.persistent_config.outputDefaultSettings.set_deep_value(
                     k, v, True)
@@ -746,7 +745,7 @@ class TestPreferencesDialog(unittest.TestCase):
         av = packages._available_packages_list
         items = av.selectedItems()
         self.assertEqual(len(items), 1, "No available items selected!")
-        self.assertEqual(items[0].text(), unicode(pkg),
+        self.assertEqual(items[0].text(), str(pkg),
                          "Wrong available item selected: %s" % items[0].text())
 
         # check if configuration has been written correctly

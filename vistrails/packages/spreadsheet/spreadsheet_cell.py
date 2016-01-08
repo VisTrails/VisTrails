@@ -40,7 +40,7 @@ esizer, etc.:
   QCellToolBar
 """
 
-from __future__ import division
+
 
 import datetime
 import os
@@ -53,8 +53,8 @@ from vistrails.core.system import strftime
 
 from .analogy_api import SpreadsheetAnalogy
 from .spreadsheet_config import configuration
-import cell_rc
-import celltoolbar_rc
+from . import cell_rc
+from . import celltoolbar_rc
 
 
 class QCellWidget(QtGui.QWidget):
@@ -386,7 +386,7 @@ class QCellToolBar(QtGui.QToolBar):
         self.appendAction(self.executeActionVar)
 
     def executeCell(self, checked=False):
-        from spreadsheet_execute import executePipelineWithProgress
+        from .spreadsheet_execute import executePipelineWithProgress
         #cell = self.sheet.getCell(self.row, self.col)
         info = self.sheet.getCellPipelineInfo(self.row, self.col)
         if info:
@@ -974,7 +974,7 @@ class QPipelineInfo(QtGui.QFrame):
 
         self.edits = []
         texts = ['Vistrail', 'Index', 'Created by']
-        for i in xrange(len(texts)):
+        for i in range(len(texts)):
             label = QInfoLabel(texts[i])
             layout.addWidget(label, i, 0, 1, 1)
             edit = QInfoLineEdit()

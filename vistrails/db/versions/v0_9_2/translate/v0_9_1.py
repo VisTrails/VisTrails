@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db import VistrailsDBException
 from vistrails.db.versions.v0_9_1.domain import DBAdd, DBAnnotation, DBChange, DBDelete

@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
@@ -314,7 +314,7 @@ class QMashupsListPanel(QtGui.QWidget):
         if self.controller:
             self.tagMap = self.controller.mshptrail.getTagMap()
             currentTag = self.controller.getCurrentTag()
-            tags = self.tagMap.keys()
+            tags = list(self.tagMap.keys())
             latestversion = self.controller.mshptrail.getLatestVersion()
             if not self.controller.versionHasTag(latestversion):
                 item = QMashupListPanelItem("<latest>",

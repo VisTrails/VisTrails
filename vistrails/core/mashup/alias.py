@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db.domain import DBMashupAlias
 from vistrails.core.mashup.component import Component
@@ -138,8 +138,8 @@ class Alias(DBMashupAlias):
 class TestAlias(unittest.TestCase):
     def create_alias(self, id_scope=IdScope()):
         c1 = Component(id=id_scope.getNewId('mashup_component'),
-                          vttype='parameter', param_id=15L, 
-                          parent_vttype='function', parent_id=3L, mid=4L,
+                          vttype='parameter', param_id=15, 
+                          parent_vttype='function', parent_id=3, mid=4,
                           type='String', value='test', p_pos=0, pos=1, 
                           strvaluelist='test1,test2', widget="text")
         a1 = Alias(id=id_scope.getNewId('mashup_alias'), name='alias1', component=c1)

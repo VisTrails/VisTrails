@@ -79,13 +79,13 @@ if __name__ == '__main__':
         v = vistrails.gui.application_server.start_server(optionsDict,
                                                           args=sys.argv[1:])
         app = vistrails.gui.application_server.VistrailsServer()
-    except SystemExit, e:
-        print str(e)
+    except SystemExit as e:
+        print(str(e))
         sys.exit(e)
-    except Exception, e:
+    except Exception as e:
         import traceback
-        print "Uncaught exception on initialization: %s" % (
-                traceback._format_final_exc_line(type(e).__name__, e))
+        print("Uncaught exception on initialization: %s" % (
+                traceback._format_final_exc_line(type(e).__name__, e)))
         traceback.print_exc()
         sys.exit(255)
      

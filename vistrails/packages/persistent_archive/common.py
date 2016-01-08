@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.modules.basic_modules import Constant, String
 from vistrails.core.modules.config import IPort, OPort
@@ -89,7 +89,7 @@ class PersistentHash(Constant):
             self._hash = None
 
     def _set_hash(self, h):
-        if not (isinstance(h, basestring)):
+        if not (isinstance(h, str)):
             raise TypeError("File hash should be a string")
         elif len(h) != 40:
             raise ValueError("File hash should be 40 characters long")
@@ -132,7 +132,7 @@ class PersistentHash(Constant):
         else:
             try:
                 self._set_hash(self.get_input('hash'))
-            except ValueError, e:
+            except ValueError as e:
                 raise ModuleError(self, e.message)
 
 PersistentHash._input_ports = [

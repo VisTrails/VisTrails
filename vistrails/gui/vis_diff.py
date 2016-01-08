@@ -35,7 +35,7 @@
 ###############################################################################
 """ This modules builds a widget to interact with vistrail diff
 operation """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.system import get_vistrails_basic_pkg_id
@@ -76,7 +76,7 @@ class QFunctionItemModel(QtGui.QStandardItemModel):
         Return the current flags of the item with the index 'index'
         
         """
-        if index.isValid() and self.disabledRows.has_key(index.row()):
+        if index.isValid() and index.row() in self.disabledRows:
             return (QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled |
                     QtCore.Qt.ItemIsSelectable)
         return QtGui.QStandardItemModel.flags(self,index)
@@ -608,7 +608,7 @@ class QDiffView(QPipelineView):
 
         # Find the max version id from v1 and start the adding process
         self.maxId1 = 0
-        for m1id in p1.modules.keys():
+        for m1id in list(p1.modules.keys()):
             if m1id>self.maxId1:
                 self.maxId1 = m1id
         shiftId = self.maxId1 + 1
@@ -763,14 +763,14 @@ class QDiffView(QPipelineView):
 
         # Next we're going to add connections, only connections of
         # v2Only need to shift their ids
-        if p1.connections.keys():
+        if list(p1.connections.keys()):
             connectionShift = max(p1.connections.keys())+1
         else:
             connectionShift = 0
         allConnections = copy.copy(p1.connections)
         sharedConnections = []
         v2OnlyConnections = []        
-        for (cid2, connection2) in copy.copy(p2.connections.items()):
+        for (cid2, connection2) in copy.copy(list(p2.connections.items())):
             if connection2.sourceId in v2Only:
                 connection2.sourceId += shiftId
             else:
@@ -783,7 +783,7 @@ class QDiffView(QPipelineView):
 
             # Is this connection also shared by p1?
             shared = False
-            for (cid1, connection1) in p1.connections.items():
+            for (cid1, connection1) in list(p1.connections.items()):
                 if (connection1.sourceId==connection2.sourceId and
                     connection1.destinationId==connection2.destinationId and
                     connection1.source.name==connection2.source.name and
@@ -797,7 +797,7 @@ class QDiffView(QPipelineView):
                 v2OnlyConnections.append(cid2+connectionShift)
 
         connectionItems = []
-        for c in allConnections.values():
+        for c in list(allConnections.values()):
             p_both.add_connection(copy.copy(c))
             connectionItems.append(scene.addConnection(c))
 
@@ -1104,7 +1104,7 @@ class QVisualDiff(QtGui.QMainWindow):
 
         # Find the max version id from v1 and start the adding process
         self.maxId1 = 0
-        for m1id in p1.modules.keys():
+        for m1id in list(p1.modules.keys()):
             if m1id>self.maxId1:
                 self.maxId1 = m1id
         shiftId = self.maxId1 + 1
@@ -1256,14 +1256,14 @@ class QVisualDiff(QtGui.QMainWindow):
 
         # Next we're going to add connections, only connections of
         # v2Only need to shift their ids
-        if p1.connections.keys():
+        if list(p1.connections.keys()):
             connectionShift = max(p1.connections.keys())+1
         else:
             connectionShift = 0
         allConnections = copy.copy(p1.connections)
         sharedConnections = []
         v2OnlyConnections = []        
-        for (cid2, connection2) in copy.copy(p2.connections.items()):
+        for (cid2, connection2) in copy.copy(list(p2.connections.items())):
             if connection2.sourceId in v2Only:
                 connection2.sourceId += shiftId
             else:
@@ -1276,7 +1276,7 @@ class QVisualDiff(QtGui.QMainWindow):
 
             # Is this connection also shared by p1?
             shared = False
-            for (cid1, connection1) in p1.connections.items():
+            for (cid1, connection1) in list(p1.connections.items()):
                 if (connection1.sourceId==connection2.sourceId and
                     connection1.destinationId==connection2.destinationId and
                     connection1.source.name==connection2.source.name and
@@ -1290,7 +1290,7 @@ class QVisualDiff(QtGui.QMainWindow):
                 v2OnlyConnections.append(cid2+connectionShift)
 
         connectionItems = []
-        for c in allConnections.values():
+        for c in list(allConnections.values()):
             p_both.add_connection(copy.copy(c))
             connectionItems.append(scene.addConnection(c))
 

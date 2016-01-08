@@ -34,6 +34,6 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from auto_gen import *
+
+from .auto_gen import *

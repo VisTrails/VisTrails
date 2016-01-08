@@ -136,7 +136,7 @@ parser.add_option('--no-unbuffered', action='store_false', dest='unbuffered',
 
 (options, test_modules) = parser.parse_args()
 # remove empty strings
-test_modules = filter(len, test_modules)
+test_modules = list(filter(len, test_modules))
 verbose = options.verbose
 locale.setlocale(locale.LC_ALL, options.locale or '')
 test_examples = options.examples
@@ -168,7 +168,7 @@ def setNewPyQtAPI():
         sip.setapi('QString', 2)
         sip.setapi('QVariant', 2)
     except Exception:
-        print "Could not set PyQt API, is PyQt4 installed?"
+        print("Could not set PyQt API, is PyQt4 installed?")
 setNewPyQtAPI()
 
 # Start debugger on test failure
@@ -233,9 +233,9 @@ VT_EXAMPLES = { 'EMBOSS_webservices.vt': ["ProphetOutput"],
 def sub_print(s, overline=False):
     """Prints line with underline (and optionally overline) ASCII dashes."""
     if overline:
-        print "-" * len(s)
-    print s
-    print "-" * len(s)
+        print("-" * len(s))
+    print(s)
+    print("-" * len(s))
 
 ###############################################################################
 
@@ -289,29 +289,29 @@ app = vistrails.gui.application.get_vistrails_application()
 app.builderWindow.auto_view = False
 app.builderWindow.close_all_vistrails(True)
 
-print "Test Suite for VisTrails"
-print "Locale settings: %s" % ', '.join('%s: %s' % (s, locale.setlocale(getattr(locale, s), None)) for s in ('LC_ALL', 'LC_TIME'))
-print "Running on %s" % ', '.join(platform.uname())
-print "Python is %s" % sys.version
+print("Test Suite for VisTrails")
+print("Locale settings: %s" % ', '.join('%s: %s' % (s, locale.setlocale(getattr(locale, s), None)) for s in ('LC_ALL', 'LC_TIME')))
+print("Running on %s" % ', '.join(platform.uname()))
+print("Python is %s" % sys.version)
 try:
     from PyQt4 import QtCore
-    print "Using PyQt4 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion())
+    print("Using PyQt4 %s with Qt %s" % (QtCore.PYQT_VERSION_STR, QtCore.qVersion()))
 except ImportError:
-    print "PyQt4 not available"
+    print("PyQt4 not available")
 for pkg in ('numpy', 'scipy', 'matplotlib'):
     try:
         ipkg = __import__(pkg, globals(), locals(), [], -1)
-        print "Using %s %s" % (pkg, ipkg.__version__)
+        print("Using %s %s" % (pkg, ipkg.__version__))
     except ImportError:
-        print "%s not available" % pkg
+        print("%s not available" % pkg)
 try:
     import vtk
-    print "Using vtk %s" % vtk.vtkVersion().GetVTKVersion()
+    print("Using vtk %s" % vtk.vtkVersion().GetVTKVersion())
 except ImportError:
-    print "vtk not available"
+    print("vtk not available")
 
 
-print ""
+print("")
 
 tests_passed = True
 
@@ -360,8 +360,8 @@ for (p, subdirs, files) in os.walk(root_directory):
                 l = fp.readline()
             if import_skip_regex.match(l):
                 if verbose >= 1:
-                    print >>sys.stderr, ("Skipping %s, not an importable "
-                                         "module" % module)
+                    print(("Skipping %s, not an importable "
+                                         "module" % module), file=sys.stderr)
                 continue
 
         m = None
@@ -371,7 +371,7 @@ for (p, subdirs, files) in os.walk(root_directory):
             else:
                 m = __import__(module)
         except BaseException:
-            print >>sys.stderr, "ERROR: Could not import module: %s" % module
+            print("ERROR: Could not import module: %s" % module, file=sys.stderr)
             if verbose >= 1:
                 traceback.print_exc(file=sys.stderr)
             continue
@@ -393,11 +393,11 @@ for (p, subdirs, files) in os.walk(root_directory):
         main_test_suite.addTests(suite)
 
         if suite.countTestCases() == 0 and verbose >= 1:
-            print >>sys.stderr, "WARNING: module has no tests: %s" % module
+            print("WARNING: module has no tests: %s" % module, file=sys.stderr)
         elif verbose >= 2:
-            print >>sys.stderr, "OK: module has %d test cases: %s" % (
+            print("OK: module has %d test cases: %s" % (
                     suite.countTestCases(),
-                    module)
+                    module), file=sys.stderr)
 
 sub_print("Imported modules. Running %d tests%s..." % (
           main_test_suite.countTestCases(),
@@ -450,7 +450,7 @@ else:
     except ImportError:
         imread = None
     if test_images:
-        print "Warning: old VTK version detected, NOT comparing thumbnails"
+        print("Warning: old VTK version detected, NOT comparing thumbnails")
     if imread is not None:
         def compare_thumbnails(prev, next):
             prev_img = imread(prev)
@@ -484,9 +484,9 @@ def image_test_generator(vtfile, version):
                     extra_info={'compare_thumbnails': compare_thumbnails})
             if len(errs) > 0:
                 for err in errs:
-                    print("   *** Error in %s:%s:%s -- %s" % err)
+                    print(("   *** Error in %s:%s:%s -- %s" % err))
                     self.fail(str(err))
-        except Exception, e:
+        except Exception as e:
             self.fail(debug.format_exception(e))
     return test
 
@@ -524,41 +524,41 @@ if test_examples:
     summary = {}
     nworkflows = 0
     nvtfiles = 0
-    for vtfile in VT_EXAMPLES.keys():
+    for vtfile in list(VT_EXAMPLES.keys()):
         try:
             errs = []
             filename = os.path.join(EXAMPLES_PATH,
                                     vtfile)
-            print filename
+            print(filename)
             locator = vistrails.core.db.locator.FileLocator(os.path.abspath(filename))
             (v, abstractions, thumbnails, mashups) = vistrails.core.db.io.load_vistrail(locator)
             w_list = []
-            for version,tag in v.get_tagMap().iteritems():
+            for version,tag in v.get_tagMap().items():
                 if tag not in VT_EXAMPLES[vtfile]:
                     w_list.append((locator,version))
                     nworkflows += 1
             if len(w_list) > 0:
                 errs = vistrails.core.console_mode.run(w_list, update_vistrail=False)
                 summary[vtfile] = errs
-        except Exception, e:
+        except Exception as e:
             errs.append((vtfile,"None", "None", debug.format_exception(e)))
             summary[vtfile] = errs
         nvtfiles += 1
 
-    print "-" * 79
-    print "Summary of Examples: %s workflows in %s vistrail files" % (
-              nworkflows, nvtfiles)
-    print ""
+    print("-" * 79)
+    print("Summary of Examples: %s workflows in %s vistrail files" % (
+              nworkflows, nvtfiles))
+    print("")
     errors = False
-    for vtfile, errs in summary.iteritems():
-        print vtfile
+    for vtfile, errs in summary.items():
+        print(vtfile)
         if len(errs) > 0:
             for err in errs:
-                print("   *** Error in %s:%s:%s -- %s" % err)
+                print(("   *** Error in %s:%s:%s -- %s" % err))
             errors = True
         else:
-            print "  Ok."
-    print "-" * 79
+            print("  Ok.")
+    print("-" * 79)
     if errors:
         tests_passed = False
         sub_print("There were errors. See summary for more information")

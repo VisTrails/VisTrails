@@ -58,7 +58,7 @@ ChangeLog
     * Updated package to version 0.9.1 
     * Expanded map of simple types
 """
-from __future__ import division
+
 
 from vistrails.core.configuration import ConfigurationObject
 import vistrails.core

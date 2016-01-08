@@ -35,7 +35,7 @@
 ###############################################################################
 """Helper functions for cache package."""
 
-from __future__ import division
+
 
 try:
     import hashlib

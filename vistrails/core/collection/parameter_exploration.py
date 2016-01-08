@@ -34,9 +34,9 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from entity import Entity
+
+from .entity import Entity
 
 class ParameterExplorationEntity(Entity):
     type_id = 6

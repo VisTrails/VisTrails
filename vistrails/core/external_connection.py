@@ -41,7 +41,7 @@ classes:
  - DBConnection
  - ExtConnectionList
 """
-from __future__ import division
+
 
 import os
 import tempfile
@@ -195,8 +195,8 @@ class ExtConnectionList(XMLWrapper):
             self.load_connections()
             ExtConnectionList._instance = self
         else:
-            raise RuntimeError, 'Only one instance of ExtConnectionList is \
-allowed!'
+            raise RuntimeError('Only one instance of ExtConnectionList is \
+allowed!')
 
     def load_connections(self):
         """load_connections()-> None
@@ -211,7 +211,7 @@ allowed!'
         Adds a connection to the list
 
         """
-        if self.__connections.has_key(conn.id):
+        if conn.id in self.__connections:
             msg = "External Connection '%s' with repeated id" % conn.name
             raise VistrailsInternalError(msg)
         self.__connections[conn.id] = conn
@@ -223,7 +223,7 @@ allowed!'
         Returns connection object associated with id
 
         """
-        if self.__connections.has_key(id):
+        if id in self.__connections:
             return self.__connections[id]
         else:
             return None
@@ -231,7 +231,7 @@ allowed!'
     def has_connection(self, id):
         """has_connection(id: int) -> Boolean
         Returns True if connection with id exists """
-        return self.__connections.has_key(id)
+        return id in self.__connections
 
     def find_db_connection(self, host, port, db):
         """find_db_connection(host: str, port: int, db: str) -> id
@@ -239,7 +239,7 @@ allowed!'
         parameters. It will return -1 if not found
 
         """
-        for conn in self.__connections.itervalues():
+        for conn in self.__connections.values():
             if conn.host == host and conn.port == port and conn.database == db:
                 return conn.id
         return -1
@@ -249,7 +249,7 @@ allowed!'
         Updates the connection with id to be conn
 
         """
-        if self.__connections.has_key(id):
+        if id in self.__connections:
             self.__connections[id] = conn
             self.serialize()
             
@@ -258,7 +258,7 @@ allowed!'
         Remove connection with id 'id'
         
         """
-        if self.__connections.has_key(id):
+        if id in self.__connections:
             del self.__connections[id]
             self.serialize()
         
@@ -274,7 +274,7 @@ allowed!'
 
     def items(self):
         """ items() -> - Returns the connections """
-        return self.__connections.items()
+        return list(self.__connections.items())
 
     def parse(self, filename):
         """parse(filename: str) -> None  
@@ -296,7 +296,7 @@ allowed!'
         dom = self.create_document('connections')
         root = dom.documentElement
         
-        for conn in self.__connections.values():
+        for conn in list(self.__connections.values()):
             conn.serialize(dom, root)
 
         self.write_document(root, self.filename)
@@ -306,7 +306,7 @@ allowed!'
         Recomputes the next unused id from scratch
         
         """
-        self.current_id = max([0] + self.__connections.keys()) + 1
+        self.current_id = max([0] + list(self.__connections.keys())) + 1
 
     def get_fresh_id(self):
         """get_fresh_id() -> int - Returns an unused id. """

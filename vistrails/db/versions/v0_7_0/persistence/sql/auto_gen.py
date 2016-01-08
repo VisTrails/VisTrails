@@ -35,9 +35,9 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
-from __future__ import division
 
-from sql_dao import SQLDAO
+
+from .sql_dao import SQLDAO
 from vistrails.db.versions.v0_7_0.domain import *
 
 class DBPortSpecSQLDAOBase(SQLDAO):
@@ -143,7 +143,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -328,7 +328,7 @@ class DBModuleSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -534,7 +534,7 @@ class DBTagSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -695,7 +695,7 @@ class DBPortSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -838,7 +838,7 @@ class DBLogSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -1007,7 +1007,7 @@ class DBMachineSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -1185,7 +1185,7 @@ class DBAddSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -1441,7 +1441,7 @@ class DBOtherSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -1595,7 +1595,7 @@ class DBLocationSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -1772,7 +1772,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -1971,7 +1971,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -2118,7 +2118,7 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -2279,7 +2279,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -2485,7 +2485,7 @@ class DBAbstractionRefSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -2660,7 +2660,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -2819,7 +2819,7 @@ class DBChangeSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -3095,7 +3095,7 @@ class DBParameterSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -3255,7 +3255,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -3425,7 +3425,7 @@ class DBActionSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -3626,7 +3626,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -3778,7 +3778,7 @@ class DBVistrailSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
@@ -3979,7 +3979,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         elif foreignKey is not None:
             whereMap.update(foreignKey)
         elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
+            print('***ERROR: need to specify id or foreign key info')
         if globalProps is not None:
             whereMap.update(globalProps)
         dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)

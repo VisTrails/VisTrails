@@ -9,7 +9,7 @@ reprounzip modules. A separate component, reprounzip-vistrails, is a plugin for
 reprounzip that creates VisTrails pipelines that use this package.
 """
 
-from __future__ import division
+
 
 from vistrails.core.configuration import ConfigurationObject
 

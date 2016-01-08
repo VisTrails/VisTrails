@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import os
 import shutil
@@ -48,7 +48,7 @@ if vistrails_src not in sys.path:
 
 import vistrails.db.services.io
 
-from identifiers import identifier as persistence_pkg, \
+from .identifiers import identifier as persistence_pkg, \
     old_identifiers as persistence_old_ids
 persistence_pkg_ids = set(persistence_old_ids)
 persistence_pkg_ids.add(persistence_pkg)
@@ -62,7 +62,7 @@ def find_files(filename, version=None):
     log = vistrails.db.services.io.open_log_from_xml(log_fname, True)
 
     if version:
-        if isinstance(version, basestring):
+        if isinstance(version, str):
             # need to lookup version number
             if version in vistrail.db_tags_name_index:
                 version = vistrail.db_tags_name_index[version].db_id
@@ -106,11 +106,11 @@ if __name__ == '__main__':
         except ValueError:
             pass
     all_files, tags = find_files(fname, version)
-    for version, filenames in all_files.iteritems():
+    for version, filenames in all_files.items():
         if version in tags:
-            print str(version) + ' (' + tags[version] + '):'
+            print(str(version) + ' (' + tags[version] + '):')
         else:
-            print str(version) + ':'
+            print(str(version) + ':')
         for fname in filenames:
-            print ' ', fname
+            print(' ', fname)
                     

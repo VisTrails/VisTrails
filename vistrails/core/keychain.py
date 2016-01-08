@@ -41,14 +41,14 @@ A value can only be retrieved by the same object that set it.
 Use this at your own risk!
 
 """
-from __future__ import division
+
 
 import inspect
 import os
 import sys
 from vistrails.core import debug
 from vistrails.core.utils import VistrailsInternalError
-from itertools import izip
+
 
 import struct
 
@@ -75,7 +75,7 @@ class KeyChain(object):
         Returns the number of keys
 
         """
-        return len(self.__keys.keys())
+        return len(list(self.__keys.keys()))
 
     def clear(self):
         """clear() -> None
@@ -116,7 +116,7 @@ class KeyChain(object):
             caller = id(args['self'])
             newkey = str(caller)+str(key)
             hashkey = md5_hash(newkey).hexdigest()[:16]
-            if self.__keys.has_key(hashkey):
+            if hashkey in self.__keys:
                 return crypt(hashkey,self.__keys[hashkey])
             else:
                 debug.debug("KeyChain: the key is not present or only the"
@@ -189,7 +189,7 @@ def crypt(key,data,iv='\00\00\00\00\00\00\00\00',n=32):
             iv = xtea_encrypt(key,iv,n)
             for k in iv:
                 yield ord(k)
-    xor = [ chr(x^y) for (x,y) in izip(map(ord,data),keygen(key,iv,n))]
+    xor = [ chr(x^y) for (x,y) in zip(list(map(ord,data)),keygen(key,iv,n))]
     return "".join(xor)
 
 def xtea_encrypt(key,block,n=32,endian="!"):
@@ -214,8 +214,8 @@ def xtea_encrypt(key,block,n=32,endian="!"):
     """
     v0,v1 = struct.unpack(endian+"2L",block)
     k = struct.unpack(endian+"4L",key)
-    sum,delta,mask = 0L,0x9e3779b9L,0xffffffffL
-    for round in xrange(n):
+    sum,delta,mask = 0,0x9e3779b9,0xffffffff
+    for round in range(n):
         v0 = (v0 + (((v1<<4 ^ v1>>5) + v1) ^ (sum + k[sum & 3]))) & mask
         sum = (sum + delta) & mask
         v1 = (v1 + (((v0<<4 ^ v0>>5) + v0) ^ (sum + k[sum>>11 & 3]))) & mask
@@ -243,9 +243,9 @@ def xtea_decrypt(key,block,n=32,endian="!"):
     """
     v0,v1 = struct.unpack(endian+"2L",block)
     k = struct.unpack(endian+"4L",key)
-    delta,mask = 0x9e3779b9L,0xffffffffL
+    delta,mask = 0x9e3779b9,0xffffffff
     sum = (delta * n) & mask
-    for round in xrange(n):
+    for round in range(n):
         v1 = (v1 - (((v0<<4 ^ v0>>5) + v0) ^ (sum + k[sum>>11 & 3]))) & mask
         sum = (sum - delta) & mask
         v0 = (v0 - (((v1<<4 ^ v1>>5) + v1) ^ (sum + k[sum & 3]))) & mask

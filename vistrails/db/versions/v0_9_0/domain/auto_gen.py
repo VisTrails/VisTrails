@@ -36,7 +36,7 @@
 
 """generated automatically by auto_dao.py"""
 
-from __future__ import division
+
 
 import copy
 
@@ -65,7 +65,7 @@ class DBPortSpec(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -215,7 +215,7 @@ class DBModule(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -398,7 +398,7 @@ class DBModule(object):
     def db_change_function(self, function):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_functions)):
+        for i in range(len(self.__db_functions)):
             if self.__db_functions[i].db_id == function.db_id:
                 self.__db_functions[i] = function
                 found = True
@@ -408,7 +408,7 @@ class DBModule(object):
         self.db_functions_id_index[function.db_id] = function
     def db_delete_function(self, function):
         self.is_dirty = True
-        for i in xrange(len(self.__db_functions)):
+        for i in range(len(self.__db_functions)):
             if self.__db_functions[i].db_id == function.db_id:
                 if not self.__db_functions[i].is_new:
                     self.db_deleted_functions.append(self.__db_functions[i])
@@ -416,14 +416,14 @@ class DBModule(object):
                 break
         del self.db_functions_id_index[function.db_id]
     def db_get_function(self, key):
-        for i in xrange(len(self.__db_functions)):
+        for i in range(len(self.__db_functions)):
             if self.__db_functions[i].db_id == key:
                 return self.__db_functions[i]
         return None
     def db_get_function_by_id(self, key):
         return self.db_functions_id_index[key]
     def db_has_function_with_id(self, key):
-        return self.db_functions_id_index.has_key(key)
+        return key in self.db_functions_id_index
     
     def __get_db_annotations(self):
         return self.__db_annotations
@@ -441,7 +441,7 @@ class DBModule(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
                 self.__db_annotations[i] = annotation
                 found = True
@@ -452,7 +452,7 @@ class DBModule(object):
         self.db_annotations_key_index[annotation.db_key] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
                 if not self.__db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self.__db_annotations[i])
@@ -461,18 +461,18 @@ class DBModule(object):
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == key:
                 return self.__db_annotations[i]
         return None
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
-        return self.db_annotations_key_index.has_key(key)
+        return key in self.db_annotations_key_index
     
     def __get_db_portSpecs(self):
         return self.__db_portSpecs
@@ -490,7 +490,7 @@ class DBModule(object):
     def db_change_portSpec(self, portSpec):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_portSpecs)):
+        for i in range(len(self.__db_portSpecs)):
             if self.__db_portSpecs[i].db_id == portSpec.db_id:
                 self.__db_portSpecs[i] = portSpec
                 found = True
@@ -501,7 +501,7 @@ class DBModule(object):
         self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)] = portSpec
     def db_delete_portSpec(self, portSpec):
         self.is_dirty = True
-        for i in xrange(len(self.__db_portSpecs)):
+        for i in range(len(self.__db_portSpecs)):
             if self.__db_portSpecs[i].db_id == portSpec.db_id:
                 if not self.__db_portSpecs[i].is_new:
                     self.db_deleted_portSpecs.append(self.__db_portSpecs[i])
@@ -510,18 +510,18 @@ class DBModule(object):
         del self.db_portSpecs_id_index[portSpec.db_id]
         del self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)]
     def db_get_portSpec(self, key):
-        for i in xrange(len(self.__db_portSpecs)):
+        for i in range(len(self.__db_portSpecs)):
             if self.__db_portSpecs[i].db_id == key:
                 return self.__db_portSpecs[i]
         return None
     def db_get_portSpec_by_id(self, key):
         return self.db_portSpecs_id_index[key]
     def db_has_portSpec_with_id(self, key):
-        return self.db_portSpecs_id_index.has_key(key)
+        return key in self.db_portSpecs_id_index
     def db_get_portSpec_by_name(self, key):
         return self.db_portSpecs_name_index[key]
     def db_has_portSpec_with_name(self, key):
-        return self.db_portSpecs_name_index.has_key(key)
+        return key in self.db_portSpecs_name_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -547,12 +547,12 @@ class DBTag(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_id') and id_remap.has_key(('action', self.db_id)):
+            if hasattr(self, 'db_id') and ('action', self.db_id) in id_remap:
                 cp.db_id = id_remap[('action', self.db_id)]
         
         # recreate indices and set flags
@@ -629,12 +629,12 @@ class DBPort(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_moduleId') and id_remap.has_key(('module', self.db_moduleId)):
+            if hasattr(self, 'db_moduleId') and ('module', self.db_moduleId) in id_remap:
                 cp.db_moduleId = id_remap[('module', self.db_moduleId)]
         
         # recreate indices and set flags
@@ -787,12 +787,12 @@ class DBLog(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_vistrail_id') and id_remap.has_key(('vistrail', self.db_vistrail_id)):
+            if hasattr(self, 'db_vistrail_id') and ('vistrail', self.db_vistrail_id) in id_remap:
                 cp.db_vistrail_id = id_remap[('vistrail', self.db_vistrail_id)]
         
         # recreate indices and set flags
@@ -920,7 +920,7 @@ class DBLog(object):
     def db_change_workflow_exec(self, workflow_exec):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_workflow_execs)):
+        for i in range(len(self.__db_workflow_execs)):
             if self.__db_workflow_execs[i].db_id == workflow_exec.db_id:
                 self.__db_workflow_execs[i] = workflow_exec
                 found = True
@@ -930,7 +930,7 @@ class DBLog(object):
         self.db_workflow_execs_id_index[workflow_exec.db_id] = workflow_exec
     def db_delete_workflow_exec(self, workflow_exec):
         self.is_dirty = True
-        for i in xrange(len(self.__db_workflow_execs)):
+        for i in range(len(self.__db_workflow_execs)):
             if self.__db_workflow_execs[i].db_id == workflow_exec.db_id:
                 if not self.__db_workflow_execs[i].is_new:
                     self.db_deleted_workflow_execs.append(self.__db_workflow_execs[i])
@@ -938,14 +938,14 @@ class DBLog(object):
                 break
         del self.db_workflow_execs_id_index[workflow_exec.db_id]
     def db_get_workflow_exec(self, key):
-        for i in xrange(len(self.__db_workflow_execs)):
+        for i in range(len(self.__db_workflow_execs)):
             if self.__db_workflow_execs[i].db_id == key:
                 return self.__db_workflow_execs[i]
         return None
     def db_get_workflow_exec_by_id(self, key):
         return self.db_workflow_execs_id_index[key]
     def db_has_workflow_exec_with_id(self, key):
-        return self.db_workflow_execs_id_index.has_key(key)
+        return key in self.db_workflow_execs_id_index
     
     def __get_db_machines(self):
         return self.__db_machines
@@ -962,7 +962,7 @@ class DBLog(object):
     def db_change_machine(self, machine):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_machines)):
+        for i in range(len(self.__db_machines)):
             if self.__db_machines[i].db_id == machine.db_id:
                 self.__db_machines[i] = machine
                 found = True
@@ -972,7 +972,7 @@ class DBLog(object):
         self.db_machines_id_index[machine.db_id] = machine
     def db_delete_machine(self, machine):
         self.is_dirty = True
-        for i in xrange(len(self.__db_machines)):
+        for i in range(len(self.__db_machines)):
             if self.__db_machines[i].db_id == machine.db_id:
                 if not self.__db_machines[i].is_new:
                     self.db_deleted_machines.append(self.__db_machines[i])
@@ -980,14 +980,14 @@ class DBLog(object):
                 break
         del self.db_machines_id_index[machine.db_id]
     def db_get_machine(self, key):
-        for i in xrange(len(self.__db_machines)):
+        for i in range(len(self.__db_machines)):
             if self.__db_machines[i].db_id == key:
                 return self.__db_machines[i]
         return None
     def db_get_machine_by_id(self, key):
         return self.db_machines_id_index[key]
     def db_has_machine_with_id(self, key):
-        return self.db_machines_id_index.has_key(key)
+        return key in self.db_machines_id_index
     
     def __get_db_vistrail_id(self):
         return self.__db_vistrail_id
@@ -1034,12 +1034,12 @@ class DBMachine(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_vistrailId') and id_remap.has_key(('vistrail', self.db_vistrailId)):
+            if hasattr(self, 'db_vistrailId') and ('vistrail', self.db_vistrailId) in id_remap:
                 cp.db_vistrailId = id_remap[('vistrail', self.db_vistrailId)]
         
         # recreate indices and set flags
@@ -1170,14 +1170,14 @@ class DBAdd(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_objectId') and id_remap.has_key((self.db_what, self.db_objectId)):
+            if hasattr(self, 'db_objectId') and (self.db_what, self.db_objectId) in id_remap:
                 cp.db_objectId = id_remap[(self.db_what, self.db_objectId)]
-            if hasattr(self, 'db_parentObjId') and id_remap.has_key((self.db_parentObjType, self.db_parentObjId)):
+            if hasattr(self, 'db_parentObjId') and (self.db_parentObjType, self.db_parentObjId) in id_remap:
                 cp.db_parentObjId = id_remap[(self.db_parentObjType, self.db_parentObjId)]
         
         # recreate indices and set flags
@@ -1311,7 +1311,7 @@ class DBOther(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -1398,7 +1398,7 @@ class DBLocation(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -1511,7 +1511,7 @@ class DBWorkflowExec(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -1693,7 +1693,7 @@ class DBWorkflowExec(object):
     def db_change_module_exec(self, module_exec):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_module_execs)):
+        for i in range(len(self.__db_module_execs)):
             if self.__db_module_execs[i].db_id == module_exec.db_id:
                 self.__db_module_execs[i] = module_exec
                 found = True
@@ -1703,7 +1703,7 @@ class DBWorkflowExec(object):
         self.db_module_execs_id_index[module_exec.db_id] = module_exec
     def db_delete_module_exec(self, module_exec):
         self.is_dirty = True
-        for i in xrange(len(self.__db_module_execs)):
+        for i in range(len(self.__db_module_execs)):
             if self.__db_module_execs[i].db_id == module_exec.db_id:
                 if not self.__db_module_execs[i].is_new:
                     self.db_deleted_module_execs.append(self.__db_module_execs[i])
@@ -1711,14 +1711,14 @@ class DBWorkflowExec(object):
                 break
         del self.db_module_execs_id_index[module_exec.db_id]
     def db_get_module_exec(self, key):
-        for i in xrange(len(self.__db_module_execs)):
+        for i in range(len(self.__db_module_execs)):
             if self.__db_module_execs[i].db_id == key:
                 return self.__db_module_execs[i]
         return None
     def db_get_module_exec_by_id(self, key):
         return self.db_module_execs_id_index[key]
     def db_has_module_exec_with_id(self, key):
-        return self.db_module_execs_id_index.has_key(key)
+        return key in self.db_module_execs_id_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -1758,7 +1758,7 @@ class DBFunction(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -1849,7 +1849,7 @@ class DBFunction(object):
     def db_change_parameter(self, parameter):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_parameters)):
+        for i in range(len(self.__db_parameters)):
             if self.__db_parameters[i].db_id == parameter.db_id:
                 self.__db_parameters[i] = parameter
                 found = True
@@ -1859,7 +1859,7 @@ class DBFunction(object):
         self.db_parameters_id_index[parameter.db_id] = parameter
     def db_delete_parameter(self, parameter):
         self.is_dirty = True
-        for i in xrange(len(self.__db_parameters)):
+        for i in range(len(self.__db_parameters)):
             if self.__db_parameters[i].db_id == parameter.db_id:
                 if not self.__db_parameters[i].is_new:
                     self.db_deleted_parameters.append(self.__db_parameters[i])
@@ -1867,14 +1867,14 @@ class DBFunction(object):
                 break
         del self.db_parameters_id_index[parameter.db_id]
     def db_get_parameter(self, key):
-        for i in xrange(len(self.__db_parameters)):
+        for i in range(len(self.__db_parameters)):
             if self.__db_parameters[i].db_id == key:
                 return self.__db_parameters[i]
         return None
     def db_get_parameter_by_id(self, key):
         return self.db_parameters_id_index[key]
     def db_has_parameter_with_id(self, key):
-        return self.db_parameters_id_index.has_key(key)
+        return key in self.db_parameters_id_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -1930,7 +1930,7 @@ class DBAbstraction(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -2049,7 +2049,7 @@ class DBAbstraction(object):
     def db_change_action(self, action):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_actions)):
+        for i in range(len(self.__db_actions)):
             if self.__db_actions[i].db_id == action.db_id:
                 self.__db_actions[i] = action
                 found = True
@@ -2059,7 +2059,7 @@ class DBAbstraction(object):
         self.db_actions_id_index[action.db_id] = action
     def db_delete_action(self, action):
         self.is_dirty = True
-        for i in xrange(len(self.__db_actions)):
+        for i in range(len(self.__db_actions)):
             if self.__db_actions[i].db_id == action.db_id:
                 if not self.__db_actions[i].is_new:
                     self.db_deleted_actions.append(self.__db_actions[i])
@@ -2067,14 +2067,14 @@ class DBAbstraction(object):
                 break
         del self.db_actions_id_index[action.db_id]
     def db_get_action(self, key):
-        for i in xrange(len(self.__db_actions)):
+        for i in range(len(self.__db_actions)):
             if self.__db_actions[i].db_id == key:
                 return self.__db_actions[i]
         return None
     def db_get_action_by_id(self, key):
         return self.db_actions_id_index[key]
     def db_has_action_with_id(self, key):
-        return self.db_actions_id_index.has_key(key)
+        return key in self.db_actions_id_index
     
     def __get_db_tags(self):
         return self.__db_tags
@@ -2092,7 +2092,7 @@ class DBAbstraction(object):
     def db_change_tag(self, tag):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_tags)):
+        for i in range(len(self.__db_tags)):
             if self.__db_tags[i].db_id == tag.db_id:
                 self.__db_tags[i] = tag
                 found = True
@@ -2103,7 +2103,7 @@ class DBAbstraction(object):
         self.db_tags_name_index[tag.db_name] = tag
     def db_delete_tag(self, tag):
         self.is_dirty = True
-        for i in xrange(len(self.__db_tags)):
+        for i in range(len(self.__db_tags)):
             if self.__db_tags[i].db_id == tag.db_id:
                 if not self.__db_tags[i].is_new:
                     self.db_deleted_tags.append(self.__db_tags[i])
@@ -2112,18 +2112,18 @@ class DBAbstraction(object):
         del self.db_tags_id_index[tag.db_id]
         del self.db_tags_name_index[tag.db_name]
     def db_get_tag(self, key):
-        for i in xrange(len(self.__db_tags)):
+        for i in range(len(self.__db_tags)):
             if self.__db_tags[i].db_id == key:
                 return self.__db_tags[i]
         return None
     def db_get_tag_by_id(self, key):
         return self.db_tags_id_index[key]
     def db_has_tag_with_id(self, key):
-        return self.db_tags_id_index.has_key(key)
+        return key in self.db_tags_id_index
     def db_get_tag_by_name(self, key):
         return self.db_tags_name_index[key]
     def db_has_tag_with_name(self, key):
-        return self.db_tags_name_index.has_key(key)
+        return key in self.db_tags_name_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -2217,12 +2217,12 @@ class DBWorkflow(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_vistrail_id') and id_remap.has_key(('vistrail', self.db_vistrail_id)):
+            if hasattr(self, 'db_vistrail_id') and ('vistrail', self.db_vistrail_id) in id_remap:
                 cp.db_vistrail_id = id_remap[('vistrail', self.db_vistrail_id)]
         
         # recreate indices and set flags
@@ -2327,7 +2327,7 @@ class DBWorkflow(object):
     def db_change_module(self, module):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_modules)):
+        for i in range(len(self.__db_modules)):
             if self.__db_modules[i].db_id == module.db_id:
                 self.__db_modules[i] = module
                 found = True
@@ -2337,7 +2337,7 @@ class DBWorkflow(object):
         self.db_modules_id_index[module.db_id] = module
     def db_delete_module(self, module):
         self.is_dirty = True
-        for i in xrange(len(self.__db_modules)):
+        for i in range(len(self.__db_modules)):
             if self.__db_modules[i].db_id == module.db_id:
                 if not self.__db_modules[i].is_new:
                     self.db_deleted_modules.append(self.__db_modules[i])
@@ -2345,14 +2345,14 @@ class DBWorkflow(object):
                 break
         del self.db_modules_id_index[module.db_id]
     def db_get_module(self, key):
-        for i in xrange(len(self.__db_modules)):
+        for i in range(len(self.__db_modules)):
             if self.__db_modules[i].db_id == key:
                 return self.__db_modules[i]
         return None
     def db_get_module_by_id(self, key):
         return self.db_modules_id_index[key]
     def db_has_module_with_id(self, key):
-        return self.db_modules_id_index.has_key(key)
+        return key in self.db_modules_id_index
     
     def __get_db_id(self):
         return self.__db_id
@@ -2434,7 +2434,7 @@ class DBWorkflow(object):
     def db_change_connection(self, connection):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_connections)):
+        for i in range(len(self.__db_connections)):
             if self.__db_connections[i].db_id == connection.db_id:
                 self.__db_connections[i] = connection
                 found = True
@@ -2444,7 +2444,7 @@ class DBWorkflow(object):
         self.db_connections_id_index[connection.db_id] = connection
     def db_delete_connection(self, connection):
         self.is_dirty = True
-        for i in xrange(len(self.__db_connections)):
+        for i in range(len(self.__db_connections)):
             if self.__db_connections[i].db_id == connection.db_id:
                 if not self.__db_connections[i].is_new:
                     self.db_deleted_connections.append(self.__db_connections[i])
@@ -2452,14 +2452,14 @@ class DBWorkflow(object):
                 break
         del self.db_connections_id_index[connection.db_id]
     def db_get_connection(self, key):
-        for i in xrange(len(self.__db_connections)):
+        for i in range(len(self.__db_connections)):
             if self.__db_connections[i].db_id == key:
                 return self.__db_connections[i]
         return None
     def db_get_connection_by_id(self, key):
         return self.db_connections_id_index[key]
     def db_has_connection_with_id(self, key):
-        return self.db_connections_id_index.has_key(key)
+        return key in self.db_connections_id_index
     
     def __get_db_annotations(self):
         return self.__db_annotations
@@ -2476,7 +2476,7 @@ class DBWorkflow(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
                 self.__db_annotations[i] = annotation
                 found = True
@@ -2486,7 +2486,7 @@ class DBWorkflow(object):
         self.db_annotations_id_index[annotation.db_id] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
                 if not self.__db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self.__db_annotations[i])
@@ -2494,14 +2494,14 @@ class DBWorkflow(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
     def db_get_annotation(self, key):
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == key:
                 return self.__db_annotations[i]
         return None
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     
     def __get_db_abstractions(self):
         return self.__db_abstractions
@@ -2518,7 +2518,7 @@ class DBWorkflow(object):
     def db_change_abstraction(self, abstraction):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_abstractions)):
+        for i in range(len(self.__db_abstractions)):
             if self.__db_abstractions[i].db_id == abstraction.db_id:
                 self.__db_abstractions[i] = abstraction
                 found = True
@@ -2528,7 +2528,7 @@ class DBWorkflow(object):
         self.db_abstractions_id_index[abstraction.db_id] = abstraction
     def db_delete_abstraction(self, abstraction):
         self.is_dirty = True
-        for i in xrange(len(self.__db_abstractions)):
+        for i in range(len(self.__db_abstractions)):
             if self.__db_abstractions[i].db_id == abstraction.db_id:
                 if not self.__db_abstractions[i].is_new:
                     self.db_deleted_abstractions.append(self.__db_abstractions[i])
@@ -2536,14 +2536,14 @@ class DBWorkflow(object):
                 break
         del self.db_abstractions_id_index[abstraction.db_id]
     def db_get_abstraction(self, key):
-        for i in xrange(len(self.__db_abstractions)):
+        for i in range(len(self.__db_abstractions)):
             if self.__db_abstractions[i].db_id == key:
                 return self.__db_abstractions[i]
         return None
     def db_get_abstraction_by_id(self, key):
         return self.db_abstractions_id_index[key]
     def db_has_abstraction_with_id(self, key):
-        return self.db_abstractions_id_index.has_key(key)
+        return key in self.db_abstractions_id_index
     
     def __get_db_others(self):
         return self.__db_others
@@ -2560,7 +2560,7 @@ class DBWorkflow(object):
     def db_change_other(self, other):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_others)):
+        for i in range(len(self.__db_others)):
             if self.__db_others[i].db_id == other.db_id:
                 self.__db_others[i] = other
                 found = True
@@ -2570,7 +2570,7 @@ class DBWorkflow(object):
         self.db_others_id_index[other.db_id] = other
     def db_delete_other(self, other):
         self.is_dirty = True
-        for i in xrange(len(self.__db_others)):
+        for i in range(len(self.__db_others)):
             if self.__db_others[i].db_id == other.db_id:
                 if not self.__db_others[i].is_new:
                     self.db_deleted_others.append(self.__db_others[i])
@@ -2578,14 +2578,14 @@ class DBWorkflow(object):
                 break
         del self.db_others_id_index[other.db_id]
     def db_get_other(self, key):
-        for i in xrange(len(self.__db_others)):
+        for i in range(len(self.__db_others)):
             if self.__db_others[i].db_id == key:
                 return self.__db_others[i]
         return None
     def db_get_other_by_id(self, key):
         return self.db_others_id_index[key]
     def db_has_other_with_id(self, key):
-        return self.db_others_id_index.has_key(key)
+        return key in self.db_others_id_index
     
     def __get_db_vistrail_id(self):
         return self.__db_vistrail_id
@@ -2660,12 +2660,12 @@ class DBAbstractionRef(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_abstraction_id') and id_remap.has_key(('abstraction', self.db_abstraction_id)):
+            if hasattr(self, 'db_abstraction_id') and ('abstraction', self.db_abstraction_id) in id_remap:
                 cp.db_abstraction_id = id_remap[('abstraction', self.db_abstraction_id)]
         
         # recreate indices and set flags
@@ -2817,7 +2817,7 @@ class DBAbstractionRef(object):
     def db_change_function(self, function):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_functions)):
+        for i in range(len(self.__db_functions)):
             if self.__db_functions[i].db_id == function.db_id:
                 self.__db_functions[i] = function
                 found = True
@@ -2827,7 +2827,7 @@ class DBAbstractionRef(object):
         self.db_functions_id_index[function.db_id] = function
     def db_delete_function(self, function):
         self.is_dirty = True
-        for i in xrange(len(self.__db_functions)):
+        for i in range(len(self.__db_functions)):
             if self.__db_functions[i].db_id == function.db_id:
                 if not self.__db_functions[i].is_new:
                     self.db_deleted_functions.append(self.__db_functions[i])
@@ -2835,14 +2835,14 @@ class DBAbstractionRef(object):
                 break
         del self.db_functions_id_index[function.db_id]
     def db_get_function(self, key):
-        for i in xrange(len(self.__db_functions)):
+        for i in range(len(self.__db_functions)):
             if self.__db_functions[i].db_id == key:
                 return self.__db_functions[i]
         return None
     def db_get_function_by_id(self, key):
         return self.db_functions_id_index[key]
     def db_has_function_with_id(self, key):
-        return self.db_functions_id_index.has_key(key)
+        return key in self.db_functions_id_index
     
     def __get_db_annotations(self):
         return self.__db_annotations
@@ -2860,7 +2860,7 @@ class DBAbstractionRef(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
                 self.__db_annotations[i] = annotation
                 found = True
@@ -2871,7 +2871,7 @@ class DBAbstractionRef(object):
         self.db_annotations_key_index[annotation.db_key] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
                 if not self.__db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self.__db_annotations[i])
@@ -2880,18 +2880,18 @@ class DBAbstractionRef(object):
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == key:
                 return self.__db_annotations[i]
         return None
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
-        return self.db_annotations_key_index.has_key(key)
+        return key in self.db_annotations_key_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -2919,7 +2919,7 @@ class DBAnnotation(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -3016,16 +3016,16 @@ class DBChange(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_oldObjId') and id_remap.has_key((self.db_what, self.db_oldObjId)):
+            if hasattr(self, 'db_oldObjId') and (self.db_what, self.db_oldObjId) in id_remap:
                 cp.db_oldObjId = id_remap[(self.db_what, self.db_oldObjId)]
-            if hasattr(self, 'db_newObjId') and id_remap.has_key((self.db_what, self.db_newObjId)):
+            if hasattr(self, 'db_newObjId') and (self.db_what, self.db_newObjId) in id_remap:
                 cp.db_newObjId = id_remap[(self.db_what, self.db_newObjId)]
-            if hasattr(self, 'db_parentObjId') and id_remap.has_key((self.db_parentObjType, self.db_parentObjId)):
+            if hasattr(self, 'db_parentObjId') and (self.db_parentObjType, self.db_parentObjId) in id_remap:
                 cp.db_parentObjId = id_remap[(self.db_parentObjType, self.db_parentObjId)]
         
         # recreate indices and set flags
@@ -3178,7 +3178,7 @@ class DBParameter(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -3314,7 +3314,7 @@ class DBConnection(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -3381,7 +3381,7 @@ class DBConnection(object):
     def db_change_port(self, port):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_ports)):
+        for i in range(len(self.__db_ports)):
             if self.__db_ports[i].db_id == port.db_id:
                 self.__db_ports[i] = port
                 found = True
@@ -3392,7 +3392,7 @@ class DBConnection(object):
         self.db_ports_type_index[port.db_type] = port
     def db_delete_port(self, port):
         self.is_dirty = True
-        for i in xrange(len(self.__db_ports)):
+        for i in range(len(self.__db_ports)):
             if self.__db_ports[i].db_id == port.db_id:
                 if not self.__db_ports[i].is_new:
                     self.db_deleted_ports.append(self.__db_ports[i])
@@ -3401,18 +3401,18 @@ class DBConnection(object):
         del self.db_ports_id_index[port.db_id]
         del self.db_ports_type_index[port.db_type]
     def db_get_port(self, key):
-        for i in xrange(len(self.__db_ports)):
+        for i in range(len(self.__db_ports)):
             if self.__db_ports[i].db_id == key:
                 return self.__db_ports[i]
         return None
     def db_get_port_by_id(self, key):
         return self.db_ports_id_index[key]
     def db_has_port_with_id(self, key):
-        return self.db_ports_id_index.has_key(key)
+        return key in self.db_ports_id_index
     def db_get_port_by_type(self, key):
         return self.db_ports_type_index[key]
     def db_has_port_with_type(self, key):
-        return self.db_ports_type_index.has_key(key)
+        return key in self.db_ports_type_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -3472,7 +3472,7 @@ class DBAction(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -3539,7 +3539,7 @@ class DBAction(object):
     def db_change_operation(self, operation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_operations)):
+        for i in range(len(self.__db_operations)):
             if self.__db_operations[i].db_id == operation.db_id:
                 self.__db_operations[i] = operation
                 found = True
@@ -3549,7 +3549,7 @@ class DBAction(object):
         self.db_operations_id_index[operation.db_id] = operation
     def db_delete_operation(self, operation):
         self.is_dirty = True
-        for i in xrange(len(self.__db_operations)):
+        for i in range(len(self.__db_operations)):
             if self.__db_operations[i].db_id == operation.db_id:
                 if not self.__db_operations[i].is_new:
                     self.db_deleted_operations.append(self.__db_operations[i])
@@ -3557,14 +3557,14 @@ class DBAction(object):
                 break
         del self.db_operations_id_index[operation.db_id]
     def db_get_operation(self, key):
-        for i in xrange(len(self.__db_operations)):
+        for i in range(len(self.__db_operations)):
             if self.__db_operations[i].db_id == key:
                 return self.__db_operations[i]
         return None
     def db_get_operation_by_id(self, key):
         return self.db_operations_id_index[key]
     def db_has_operation_with_id(self, key):
-        return self.db_operations_id_index.has_key(key)
+        return key in self.db_operations_id_index
     
     def __get_db_id(self):
         return self.__db_id
@@ -3660,7 +3660,7 @@ class DBAction(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
                 self.__db_annotations[i] = annotation
                 found = True
@@ -3671,7 +3671,7 @@ class DBAction(object):
         self.db_annotations_key_index[annotation.db_key] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
                 if not self.__db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self.__db_annotations[i])
@@ -3680,18 +3680,18 @@ class DBAction(object):
         del self.db_annotations_id_index[annotation.db_id]
         del self.db_annotations_key_index[annotation.db_key]
     def db_get_annotation(self, key):
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == key:
                 return self.__db_annotations[i]
         return None
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
-        return self.db_annotations_key_index.has_key(key)
+        return key in self.db_annotations_key_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -3723,14 +3723,14 @@ class DBDelete(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_objectId') and id_remap.has_key((self.db_what, self.db_objectId)):
+            if hasattr(self, 'db_objectId') and (self.db_what, self.db_objectId) in id_remap:
                 cp.db_objectId = id_remap[(self.db_what, self.db_objectId)]
-            if hasattr(self, 'db_parentObjId') and id_remap.has_key((self.db_parentObjType, self.db_parentObjId)):
+            if hasattr(self, 'db_parentObjId') and (self.db_parentObjType, self.db_parentObjId) in id_remap:
                 cp.db_parentObjId = id_remap[(self.db_parentObjType, self.db_parentObjId)]
         
         # recreate indices and set flags
@@ -3888,7 +3888,7 @@ class DBVistrail(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -4073,7 +4073,7 @@ class DBVistrail(object):
     def db_change_action(self, action):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_actions)):
+        for i in range(len(self.__db_actions)):
             if self.__db_actions[i].db_id == action.db_id:
                 self.__db_actions[i] = action
                 found = True
@@ -4083,7 +4083,7 @@ class DBVistrail(object):
         self.db_actions_id_index[action.db_id] = action
     def db_delete_action(self, action):
         self.is_dirty = True
-        for i in xrange(len(self.__db_actions)):
+        for i in range(len(self.__db_actions)):
             if self.__db_actions[i].db_id == action.db_id:
                 if not self.__db_actions[i].is_new:
                     self.db_deleted_actions.append(self.__db_actions[i])
@@ -4091,14 +4091,14 @@ class DBVistrail(object):
                 break
         del self.db_actions_id_index[action.db_id]
     def db_get_action(self, key):
-        for i in xrange(len(self.__db_actions)):
+        for i in range(len(self.__db_actions)):
             if self.__db_actions[i].db_id == key:
                 return self.__db_actions[i]
         return None
     def db_get_action_by_id(self, key):
         return self.db_actions_id_index[key]
     def db_has_action_with_id(self, key):
-        return self.db_actions_id_index.has_key(key)
+        return key in self.db_actions_id_index
     
     def __get_db_tags(self):
         return self.__db_tags
@@ -4116,7 +4116,7 @@ class DBVistrail(object):
     def db_change_tag(self, tag):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_tags)):
+        for i in range(len(self.__db_tags)):
             if self.__db_tags[i].db_id == tag.db_id:
                 self.__db_tags[i] = tag
                 found = True
@@ -4127,7 +4127,7 @@ class DBVistrail(object):
         self.db_tags_name_index[tag.db_name] = tag
     def db_delete_tag(self, tag):
         self.is_dirty = True
-        for i in xrange(len(self.__db_tags)):
+        for i in range(len(self.__db_tags)):
             if self.__db_tags[i].db_id == tag.db_id:
                 if not self.__db_tags[i].is_new:
                     self.db_deleted_tags.append(self.__db_tags[i])
@@ -4136,18 +4136,18 @@ class DBVistrail(object):
         del self.db_tags_id_index[tag.db_id]
         del self.db_tags_name_index[tag.db_name]
     def db_get_tag(self, key):
-        for i in xrange(len(self.__db_tags)):
+        for i in range(len(self.__db_tags)):
             if self.__db_tags[i].db_id == key:
                 return self.__db_tags[i]
         return None
     def db_get_tag_by_id(self, key):
         return self.db_tags_id_index[key]
     def db_has_tag_with_id(self, key):
-        return self.db_tags_id_index.has_key(key)
+        return key in self.db_tags_id_index
     def db_get_tag_by_name(self, key):
         return self.db_tags_name_index[key]
     def db_has_tag_with_name(self, key):
-        return self.db_tags_name_index.has_key(key)
+        return key in self.db_tags_name_index
     
     def __get_db_abstractions(self):
         return self.__db_abstractions
@@ -4164,7 +4164,7 @@ class DBVistrail(object):
     def db_change_abstraction(self, abstraction):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_abstractions)):
+        for i in range(len(self.__db_abstractions)):
             if self.__db_abstractions[i].db_id == abstraction.db_id:
                 self.__db_abstractions[i] = abstraction
                 found = True
@@ -4174,7 +4174,7 @@ class DBVistrail(object):
         self.db_abstractions_id_index[abstraction.db_id] = abstraction
     def db_delete_abstraction(self, abstraction):
         self.is_dirty = True
-        for i in xrange(len(self.__db_abstractions)):
+        for i in range(len(self.__db_abstractions)):
             if self.__db_abstractions[i].db_id == abstraction.db_id:
                 if not self.__db_abstractions[i].is_new:
                     self.db_deleted_abstractions.append(self.__db_abstractions[i])
@@ -4182,14 +4182,14 @@ class DBVistrail(object):
                 break
         del self.db_abstractions_id_index[abstraction.db_id]
     def db_get_abstraction(self, key):
-        for i in xrange(len(self.__db_abstractions)):
+        for i in range(len(self.__db_abstractions)):
             if self.__db_abstractions[i].db_id == key:
                 return self.__db_abstractions[i]
         return None
     def db_get_abstraction_by_id(self, key):
         return self.db_abstractions_id_index[key]
     def db_has_abstraction_with_id(self, key):
-        return self.db_abstractions_id_index.has_key(key)
+        return key in self.db_abstractions_id_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -4243,14 +4243,14 @@ class DBModuleExec(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_module_id') and id_remap.has_key(('module', self.db_module_id)):
+            if hasattr(self, 'db_module_id') and ('module', self.db_module_id) in id_remap:
                 cp.db_module_id = id_remap[('module', self.db_module_id)]
-            if hasattr(self, 'db_machine_id') and id_remap.has_key(('machine', self.db_machine_id)):
+            if hasattr(self, 'db_machine_id') and ('machine', self.db_machine_id) in id_remap:
                 cp.db_machine_id = id_remap[('machine', self.db_machine_id)]
         
         # recreate indices and set flags
@@ -4429,7 +4429,7 @@ class DBModuleExec(object):
     def db_change_annotation(self, annotation):
         self.is_dirty = True
         found = False
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
                 self.__db_annotations[i] = annotation
                 found = True
@@ -4439,7 +4439,7 @@ class DBModuleExec(object):
         self.db_annotations_id_index[annotation.db_id] = annotation
     def db_delete_annotation(self, annotation):
         self.is_dirty = True
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
                 if not self.__db_annotations[i].is_new:
                     self.db_deleted_annotations.append(self.__db_annotations[i])
@@ -4447,14 +4447,14 @@ class DBModuleExec(object):
                 break
         del self.db_annotations_id_index[annotation.db_id]
     def db_get_annotation(self, key):
-        for i in xrange(len(self.__db_annotations)):
+        for i in range(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == key:
                 return self.__db_annotations[i]
         return None
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     
     def getPrimaryKey(self):
         return self.__db_id

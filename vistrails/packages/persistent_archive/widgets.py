@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -46,7 +46,7 @@ from .queries import QueryCondition, EqualString, EqualInt
 
 
 def str_repr(s):
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         s = (s.replace('\\', '\\\\')
               .replace("'", "\\'")
               .encode('ascii', 'backslashreplace'))
@@ -219,7 +219,7 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         ops = [('delete', func) for func in self._loaded_keys]
 
         # Add the metadata in the list
-        for i in xrange(self._list_layout.count()):
+        for i in range(self._list_layout.count()):
             widget = self._list_layout.itemAt(i).widget()
             ops.extend(self.controller.update_function_ops(
                     self.module, 'metadata',
@@ -235,7 +235,7 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
         return True
 
     def getCurrentFunctions(self):
-        for i in xrange(self.module.getNumFunctions()):
+        for i in range(self.module.getNumFunctions()):
             func = self.module.functions[i]
             if func.name == 'metadata':
                 yield func, func.params[0].strValue
@@ -258,7 +258,7 @@ class SetMetadataWidget(StandardModuleConfigurationWidget):
                 self._loaded_keys.add(func)
 
     def resetTriggered(self, checked = False):
-        for i in xrange(self._list_layout.count()):
+        for i in range(self._list_layout.count()):
             self._list_layout.itemAt(i).widget().deleteLater()
 
         self.createEntries()

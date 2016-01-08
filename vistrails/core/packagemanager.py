@@ -37,7 +37,7 @@
 """The package manager takes care of everything that has got to do
 with handling packages, from setting paths to adding new packages
 to checking dependencies to initializing them."""
-from __future__ import division
+
 
 import copy
 import inspect
@@ -175,15 +175,15 @@ class PackageManager(object):
 
         # Setup a global __import__ hook that calls Package#import_override()
         # for all imports executed from that package
-        import __builtin__
-        self._orig_import = __builtin__.__import__
-        __builtin__.__import__ = self._import_override
+        import builtins
+        self._orig_import = builtins.__import__
+        builtins.__import__ = self._import_override
 
         # Compute the list of available packages, _available_packages
         self.build_available_package_names_list()
 
         if get_vistrails_configuration().loadPackages:
-            for pkg in self._startup.enabled_packages.itervalues():
+            for pkg in self._startup.enabled_packages.values():
                 self.add_package(pkg.name, prefix=pkg.prefix)
         else:
             try:
@@ -233,8 +233,8 @@ class PackageManager(object):
                 importing_pkg = current
             else:
                 for pkg in itertools.chain(
-                        self._package_list.itervalues(),
-                        self._available_packages.itervalues()):
+                        iter(self._package_list.values()),
+                        iter(self._available_packages.values())):
                     if (pkg.prefix is not None and
                             module.startswith(pkg.prefix + pkg.codepath)):
                         importing_pkg = pkg
@@ -266,7 +266,7 @@ class PackageManager(object):
         VisTrails.
 
         """
-        for package in self._package_list.itervalues():
+        for package in self._package_list.values():
             package.finalize()
         self._package_list = {}
         self._package_versions = {}
@@ -303,7 +303,7 @@ class PackageManager(object):
     def remove_old_identifiers(self, identifier):
         # remove refs in old_identifier_map
         old_ids = []
-        for old_id, cur_id in self._old_identifier_map.iteritems():
+        for old_id, cur_id in self._old_identifier_map.items():
             if cur_id == identifier:
                 old_ids.append(old_id)
         for old_id in old_ids:
@@ -366,7 +366,7 @@ class PackageManager(object):
 
         max_version = '0'
         max_pkg = None
-        for version, pkg in package_versions.iteritems():
+        for version, pkg in package_versions.items():
             if versions_increasing(max_version, version):
                 max_version = version
                 max_pkg = pkg
@@ -436,7 +436,7 @@ class PackageManager(object):
                     continue
                 found_version = False
                 for version, pkg in \
-                        self._package_versions[identifier].iteritems():
+                        self._package_versions[identifier].items():
                     if ((min_version is None or
                          versions_increasing(min_version, version)) and
                         (max_version is None or
@@ -492,7 +492,7 @@ class PackageManager(object):
         try:
             pkg.load(prefix_dictionary.get(pkg.codepath, None))
             # pkg.create_startup_package_node()
-        except Exception, e:
+        except Exception as e:
             # invert self.add_package
             del self._package_list[codepath]
             raise
@@ -511,7 +511,7 @@ class PackageManager(object):
             app.send_notification("package_added", codepath)
             self.add_menu_items(pkg)
             self._startup.set_package_to_enabled(codepath)
-        except Exception, e:
+        except Exception as e:
             del self._package_versions[pkg.identifier][pkg.version]
             if len(self._package_versions[pkg.identifier]) == 0:
                 del self._package_versions[pkg.identifier]
@@ -578,7 +578,7 @@ class PackageManager(object):
         failed = []
         # import the modules
         app = get_vistrails_application()
-        for package in self._package_list.itervalues():
+        for package in self._package_list.values():
             # print '+ initializing', package.codepath, id(package)
             if package.initialized():
                 # print '- already initialized'
@@ -588,7 +588,7 @@ class PackageManager(object):
                 if prefix is None:
                     prefix = self._default_prefix_dict.get(package.codepath)
                 package.load(prefix)
-            except Package.LoadFailed, e:
+            except Package.LoadFailed as e:
                 debug.critical(
                         "Package %s failed to load and will be disabled" % (
                             package.name or
@@ -599,12 +599,12 @@ class PackageManager(object):
                 # the reference in the package list
                 self._startup.set_package_to_disabled(package.codepath)
                 failed.append(package)
-            except MissingRequirement, e:
+            except MissingRequirement as e:
                 debug.critical("Package <codepath %s> is missing a "
                                "requirement: %s" % (
                                    package.codepath, e.requirement),
                                e)
-            except Package.InitializationFailed, e:
+            except Package.InitializationFailed as e:
                 debug.critical("Initialization of package <codepath %s> "
                                "failed and will be disabled" %
                                package.codepath,
@@ -638,15 +638,15 @@ class PackageManager(object):
         failed = []
 
         # determine dependencies
-        for package in self._package_list.itervalues():
+        for package in self._package_list.values():
             try:
                 self.add_dependencies(package)
-            except Package.MissingDependency, e:
+            except Package.MissingDependency as e:
                 if report_missing_dependencies:
                     debug.critical("Dependencies of package %s are missing "
                                    "so it will be disabled" % package.name,
                                    e)
-            except Exception, e:
+            except Exception as e:
                 if report_missing_dependencies:
                     debug.critical("Got an exception while getting dependencies "
                                    "of %s so it will be disabled" % package.name,
@@ -668,7 +668,7 @@ class PackageManager(object):
         try:
             g = self._dependency_graph.inverse_immutable()
             sorted_packages = g.vertices_topological_sort()
-        except vistrails.core.data_structures.graph.GraphContainsCycles, e:
+        except vistrails.core.data_structures.graph.GraphContainsCycles as e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
 
@@ -679,14 +679,14 @@ class PackageManager(object):
                 #pkg.check_requirements()
                 try:
                     self._registry.initialize_package(pkg)
-                except MissingRequirement, e:
+                except MissingRequirement as e:
                     if report_missing_dependencies:
                         debug.critical("Package <codepath %s> is missing a "
                                        "requirement: %s" % (
                                            pkg.codepath, e.requirement),
                                        e)
                     self.late_disable_package(pkg.codepath)
-                except Package.InitializationFailed, e:
+                except Package.InitializationFailed as e:
                     debug.critical("Initialization of package <codepath %s> "
                                    "failed and will be disabled" %
                                    pkg.codepath,
@@ -746,7 +746,7 @@ class PackageManager(object):
 
     def enabled_package_list(self):
         """package_list() -> returns list of all enabled packages."""
-        return self._package_list.values()
+        return list(self._package_list.values())
 
     def identifier_is_available(self, identifier):
         """identifier_is_available(identifier: str) -> Pkg
@@ -769,7 +769,7 @@ class PackageManager(object):
             except (pkg.LoadFailed, pkg.InitializationFailed,
                     MissingRequirement):
                 pass
-            except Exception, e:
+            except Exception as e:
                 pass
         return None
 
@@ -780,7 +780,7 @@ class PackageManager(object):
         The distinction between package names, identifiers and
         code-paths is described in doc/package_system.txt
         """
-        return self._available_packages.keys()
+        return list(self._available_packages.keys())
 
     def build_available_package_names_list(self):
         def is_vistrails_package(path):
@@ -829,7 +829,7 @@ class PackageManager(object):
                 # Create the Package, with the right prefix
                 self.get_available_package(name, prefix=prefix)
 
-        return self._available_packages.keys()
+        return list(self._available_packages.keys())
 
     def dependency_graph(self):
         """dependency_graph() -> Graph.  Returns a graph with package
@@ -875,7 +875,7 @@ class PackageManager(object):
     def get_ordered_dependencies(self, dep_graph, identifiers=None):
         try:
             sorted_packages = dep_graph.vertices_topological_sort(identifiers)
-        except vistrails.core.data_structures.graph.GraphContainsCycles, e:
+        except vistrails.core.data_structures.graph.GraphContainsCycles as e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
         return list(reversed(sorted_packages))

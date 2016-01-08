@@ -33,10 +33,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.query import Query
-from combined import CombinedSearch
+from .combined import CombinedSearch
 
 class MultipleSearch(Query):
     # vistrails_to_check { Vistrail: set(version_ids) }
@@ -54,7 +54,7 @@ class MultipleSearch(Query):
         self.cur_vistrail = vistrail
 
     def run(self):
-        for entity, versions_to_check in self.entities_to_check.iteritems():
+        for entity, versions_to_check in self.entities_to_check.items():
             query = CombinedSearch(self.search_str, self.queryPipeline, 
                                    versions_to_check, self.use_regex)
             query.run(entity.vistrail, '')
@@ -72,7 +72,7 @@ class MultipleSearch(Query):
     
     def getResultEntities(self):
         result_entities = []
-        for entity, query in self.queries.iteritems():
+        for entity, query in self.queries.items():
             versions_to_check = self.entities_to_check[entity]
             result_entity = query.getResultEntity(entity.vistrail, 
                                                   versions_to_check)

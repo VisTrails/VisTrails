@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleError
@@ -55,11 +55,11 @@ class If(Module):
         # upstream of TruePort or FalsePort
         excluded_ports = set(['TruePort', 'FalsePort', 'TrueOutputPorts',
                               'FalseOutputPorts'])
-        for port_name, connector_list in self.inputPorts.iteritems():
+        for port_name, connector_list in self.inputPorts.items():
             if port_name not in excluded_ports:
                 for connector in connector_list:
                     connector.obj.update()
-        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+        for port_name, connectorList in copy.copy(list(self.inputPorts.items())):
             if port_name not in excluded_ports:
                 for connector in connectorList:
                     if connector.obj.get_output(connector.port) is \
@@ -125,7 +125,7 @@ class Default(Module):
 ###############################################################################
 
 import unittest
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 from vistrails.tests.utils import intercept_result, execute
 
@@ -172,7 +172,7 @@ class TestDefault(unittest.TestCase):
             src = ('from vistrails.core.modules.vistrails_module import '
                    'InvalidOutput\n'
                    'o = InvalidOutput')
-        src = urllib2.quote(src)
+        src = urllib.parse.quote(src)
         with intercept_result(Default, 'Result') as results:
             self.assertFalse(execute([
                     ('Default', 'org.vistrails.vistrails.control_flow', [

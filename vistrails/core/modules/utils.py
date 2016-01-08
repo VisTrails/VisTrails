@@ -33,14 +33,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.system import _defaultPkgPrefix, \
     get_vistrails_basic_pkg_id, get_module_registry
 
 def load_cls(cls_item, prefix=None):
     path = None
-    if isinstance(cls_item, basestring):
+    if isinstance(cls_item, str):
         (path, cls_name) = cls_item.split(':')[:2]
     elif isinstance(cls_item, tuple):
         (path, cls_name) = cls_item
@@ -203,7 +203,7 @@ def make_modules_dict(*dcts, **kwargs):
         if not isinstance(d, dict):
             d = {'': d}
 
-        for subname, sublist in d.iteritems():
+        for subname, sublist in d.items():
             if subname:
                 name = build_namespace(subname)
             else:

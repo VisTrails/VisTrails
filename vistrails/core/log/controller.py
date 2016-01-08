@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import copy
 
@@ -317,7 +317,7 @@ class LogWorkflowController(LogController):
     def insert_module_annotations(self, module, a_dict):
         """Adds an annotation on the execution object for this module.
         """
-        for k, v in a_dict.iteritems():
+        for k, v in a_dict.items():
             a_id = self.log.id_scope.getNewId(Annotation.vtType)
             annotation = Annotation(id=a_id,
                                     key=k,
@@ -331,7 +331,7 @@ class LogWorkflowController(LogController):
         module but of the whole pipeline.
         """
         if self.workflow_exec:
-            for k, v in a_dict.iteritems():
+            for k, v in a_dict.items():
                 a_id = self.log.id_scope.getNewId(Annotation.vtType)
                 annotation = Annotation(id=a_id,
                                         key=k,

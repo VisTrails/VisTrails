@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.data_structures.point import Point
 from vistrails.db.domain import DBLocation
@@ -179,14 +179,14 @@ class TestLocation(unittest.TestCase):
 
     def test_add_length(self):
         """Uses triangle inequality to exercise add and length"""
-        for i in xrange(100):
+        for i in range(100):
             x = Location(x=random.uniform(-1.0, 1.0), y=random.uniform(-1.0, 1.0))
             y = Location(x=random.uniform(-1.0, 1.0), y=random.uniform(-1.0, 1.0))
             assert (x+y).length() <= x.length() + y.length()
 
     def test_mul_length(self):
         """Uses vector space properties to exercise mul, rmul and length"""
-        for i in xrange(100):
+        for i in range(100):
             x = Location(x=random.uniform(-1.0, 1.0), y=random.uniform(-1.0, 1.0))
             s = random.uniform(0.0, 10.0)
             self.assert_double_equals(s * x.length(), (s * x).length())

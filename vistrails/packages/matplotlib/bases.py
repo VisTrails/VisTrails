@@ -34,10 +34,10 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import pylab
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 from matplotlib.backend_bases import FigureCanvasBase
 
@@ -85,7 +85,7 @@ class MplSource(CodeRunnerMixin, MplPlot):
         s = ('from pylab import *\n'
              'from numpy import *\n' +
              'figure(%d)\n' % figure.number +
-             urllib.unquote(source))
+             urllib.parse.unquote(source))
         self.run_code(s, use_input=True, use_output=True)
 
 class MplFigure(Module):

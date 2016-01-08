@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from file_archive import FileStore
 import os
@@ -97,5 +97,5 @@ _modules = {
 
 
 def menu_items():
-    from ui import show_viewer
+    from .ui import show_viewer
     return [("Show archive content", show_viewer)]

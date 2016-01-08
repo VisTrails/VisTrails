@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.modules.utils import make_modules_dict
 

@@ -35,11 +35,11 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from mako.template import Template
 import sys
-from specs import SpecList
+from .specs import SpecList
 
 def generate_from_specs(fname, out_fname, template_fname):
     specs = SpecList.read_from_xml(fname)

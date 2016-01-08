@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import itertools
 import tensorflow
@@ -70,7 +70,7 @@ class Op(object):
                     return op.build(operation_map)
             if isinstance(self.args, dict):
                 kwargs = dict((k, build(v))
-                            for k, v in self.args.iteritems())
+                            for k, v in self.args.items())
                 obj = self.op(**kwargs)
             else:
                 args = [build(a) for a in self.args]
@@ -223,7 +223,7 @@ class run(Module):
             if not self.has_input('after'):
                 session.run(tensorflow.initialize_all_variables())
 
-        for i in xrange(iterations):
+        for i in range(iterations):
             feed_dict = None
             if feeds is not None:
                 try:
@@ -232,10 +232,10 @@ class run(Module):
                     feeds = None
                 else:
                     feed_dict = dict((operation_map[op], value)
-                                     for op, value in feed_dict.iteritems())
+                                     for op, value in feed_dict.items())
             out = session.run(fetches, feed_dict=feed_dict)
 
-        fetch_map = dict(itertools.izip(outputs, out))
+        fetch_map = dict(zip(outputs, out))
 
         self.set_output('result', RunResult(graph, session, operation_map,
                                             fetch_map))

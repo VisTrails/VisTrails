@@ -35,7 +35,7 @@
 ###############################################################################
 
 """Module with utilities to try and install a bundle if possible."""
-from __future__ import division
+
 
 from vistrails.core import get_vistrails_application
 from vistrails.core.configuration import get_vistrails_configuration, \
@@ -74,11 +74,11 @@ def shell_escape(arg):
 
 
 def run_install_command(graphical, cmd, args, as_root=True):
-    if isinstance(args, basestring):
+    if isinstance(args, str):
         cmd += ' %s' % shell_escape(args)
     elif isinstance(args, list):
         for package in args:
-            if not isinstance(package, basestring):
+            if not isinstance(package, str):
                 raise TypeError("Expected string or list of strings")
             cmd += ' %s' % shell_escape(package)
     else:
@@ -103,17 +103,17 @@ def run_install_command(graphical, cmd, args, as_root=True):
         else:
             cmd = sucmd % cmd
 
-    print "about to run: %s" % cmd
+    print("about to run: %s" % cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT,
                               shell=True)
     lines = []
     try:
         for line in iter(p.stdout.readline, ''):
-            print line,
+            print(line, end=' ')
             lines.append(line)
-    except IOError, e:
-        print "Ignoring IOError: %s" % e
+    except IOError as e:
+        print("Ignoring IOError: %s" % e)
     result = p.wait()
 
     if result != 0:
@@ -179,7 +179,7 @@ def pip_install(package_name):
     return run_install_command(qt_available(), cmd, package_name, use_root)
 
 def show_question(which_files, has_distro_pkg, has_pip):
-    if isinstance(which_files, basestring):
+    if isinstance(which_files, str):
         which_files = [which_files]
     if qt_available():
         from PyQt4 import QtCore, QtGui
@@ -238,18 +238,18 @@ def show_question(which_files, has_distro_pkg, has_pip):
                     return 'pip'
             return 'distro'
     else:
-        print "\nRequired package(s) missing: %s" % (" ".join(which_files))
+        print("\nRequired package(s) missing: %s" % (" ".join(which_files)))
         print ("A required package is missing, but VisTrails can "
                "automatically install it. "
                "If you say Yes, VisTrails will need "
                "administrator privileges, and you "
                "might be asked for the administrator password.")
         if has_distro_pkg:
-            print "(VisTrails will use your distribution's package manager)"
+            print("(VisTrails will use your distribution's package manager)")
         else:
-            print "(VisTrails will use the 'pip' installer)"
-        print "Give VisTrails permission to try to install package? (y/N)"
-        v = raw_input().upper()
+            print("(VisTrails will use the 'pip' installer)")
+        print("Give VisTrails permission to try to install package? (y/N)")
+        v = input().upper()
         if v == 'Y' or v == 'YES':
             if has_distro_pkg:
                 return 'distro'

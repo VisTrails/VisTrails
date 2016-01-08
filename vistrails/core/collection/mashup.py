@@ -34,9 +34,9 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from entity import Entity
+
+from .entity import Entity
 
 class MashupEntity(Entity):
     type_id = 5

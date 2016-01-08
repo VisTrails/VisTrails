@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import datetime
 from distutils.version import LooseVersion
@@ -245,7 +245,7 @@ class StringsToDates(Module):
 
             # Check if it is in fact during daylight saving
             if hasattr(tz, 'normalize'):
-                for i in xrange(len(result)):
+                for i in range(len(result)):
                     dt = result[i]
                     dst = tz.dst(dt.replace(tzinfo=None))
                     if dst:
@@ -271,7 +271,7 @@ class StringsToDates(Module):
 
         try:
             result = self.convert(strings, fmt, tz)
-        except ValueError, e:
+        except ValueError as e:
             raise ModuleError(self, e.message)
         self.set_output('dates', result)
 
@@ -369,7 +369,7 @@ class StringsToMatplotlib(Module):
 
         try:
             result = self.convert(strings, fmt, tz)
-        except ValueError, e:
+        except ValueError as e:
             raise ModuleError(self, e.message)
         self.set_output('dates', result)
 
@@ -538,7 +538,7 @@ class TestDatesToMatplotlib(unittest.TestCase):
 
         from matplotlib.dates import date2num
 
-        import urllib2
+        import urllib.request, urllib.error, urllib.parse
         source = (""
         "import datetime\n"
         "from vistrails.packages.tabledata.convert.convert_dates import \\\n"
@@ -547,7 +547,7 @@ class TestDatesToMatplotlib(unittest.TestCase):
         "        datetime.datetime(2013, 5, 29, 11, 18, 33),\n"
         "        datetime.datetime(2013, 5, 29, 8, 11, 47,\n"
         "                          tzinfo=make_timezone('-0700'))]\n")
-        source = urllib2.quote(source)
+        source = urllib.parse.quote(source)
 
         with intercept_result(DatesToMatplotlib, 'dates') as results:
             self.assertFalse(execute([

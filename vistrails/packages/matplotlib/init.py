@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import matplotlib
 matplotlib.use('Qt4Agg', warn=False)
@@ -44,10 +44,10 @@ import vistrails.core.db.action
 from vistrails.core.vistrail.module import Module
 from vistrails.core.vistrail.operation import AddOp
 
-from bases import _modules as _base_modules, MplFigureOutput
-from plots import _modules as _plot_modules
-from artists import _modules as _artist_modules
-from identifiers import identifier
+from .bases import _modules as _base_modules, MplFigureOutput
+from .plots import _modules as _plot_modules
+from .artists import _modules as _artist_modules
+from .identifiers import identifier
 
 ################################################################################
 
@@ -58,7 +58,7 @@ def initialize(*args, **kwargs):
     reg = vistrails.core.modules.module_registry.get_module_registry()
     if reg.has_module('org.vistrails.vistrails.spreadsheet',
                       'SpreadsheetCell'):
-        from figure_cell import MplFigureCell, MplFigureToSpreadsheet
+        from .figure_cell import MplFigureCell, MplFigureToSpreadsheet
         _modules.append(MplFigureCell)
         MplFigureOutput.register_output_mode(MplFigureToSpreadsheet)
 
@@ -108,8 +108,8 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
             if port_name in inputs[0]:
                 for f in inputs[0][port_name]:
                     if len(f.parameters) > 0:
-                        new_param_vals, aliases = zip(*[(p.strValue, p.alias) 
-                                                        for p in f.parameters])
+                        new_param_vals, aliases = list(zip(*[(p.strValue, p.alias) 
+                                                        for p in f.parameters]))
                     else:
                         new_param_vals = []
                         aliases = []

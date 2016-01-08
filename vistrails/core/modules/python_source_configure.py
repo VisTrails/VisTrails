@@ -36,7 +36,7 @@
 ###############################################################################
 
 # *** MOVED *** to gui.modules.python_source_configure
-from __future__ import division
+
 
 import traceback
 from vistrails.core import debug

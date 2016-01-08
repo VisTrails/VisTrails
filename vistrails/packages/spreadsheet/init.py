@@ -37,7 +37,7 @@
 """Spreadsheet Package for VisTrails
 """
 
-from __future__ import division
+
 
 import copy
 import os
@@ -90,7 +90,7 @@ def addWidget(packagePath):
         widget.registerWidget(registry, basic_modules, basicWidgets)
         spreadsheetRegistry.registerPackage(widget, packagePath)
         debug.log('  ==> Successfully import <%s>' % widgetName)
-    except Exception, e:
+    except Exception as e:
         debug.log('  ==> Ignored package <%s>' % packagePath, e)
         widget = None
     return widget
@@ -120,7 +120,7 @@ def initialize(*args, **keywords):
     """
     import vistrails.core.application
     if not vistrails.core.application.is_running_gui():
-        raise RuntimeError, "GUI is not running. The Spreadsheet package requires the GUI"
+        raise RuntimeError("GUI is not running. The Spreadsheet package requires the GUI")
 
     # initialize widgets
     debug.log('Loading Spreadsheet widgets...')

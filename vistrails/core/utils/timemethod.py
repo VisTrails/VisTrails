@@ -35,7 +35,7 @@
 ###############################################################################
 """Defines a time decorator that times function calls."""
 
-from __future__ import division
+
 
 import time
 
@@ -45,7 +45,7 @@ def time_method(method):
         try:
             return method(self, *args, **kwargs)
         finally:
-            print time.time() - t
+            print(time.time() - t)
     return decorated
 
 def time_call(callable_):
@@ -54,7 +54,7 @@ def time_call(callable_):
         try:
             return callable_(*args, **kwargs)
         finally:
-            print time.time() - t
+            print(time.time() - t)
     return decorated
 
 ##############################################################################

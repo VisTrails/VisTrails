@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -137,7 +137,7 @@ class QueryController(object):
                             versions_to_check = controller.current_version
                         else:
                             graph = controller._current_terse_graph
-                            versions_to_check = set(graph.vertices.iterkeys())
+                            versions_to_check = set(graph.vertices.keys())
                         entities_to_check[entity] = versions_to_check
                 self.set_search(MultipleSearch(search_str, search_pipeline,
                                                entities_to_check,

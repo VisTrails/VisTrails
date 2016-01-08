@@ -33,10 +33,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
-from itertools import izip
+
 
 from vistrails.core.vistrail.annotation import Annotation
 from vistrails.core.vistrail.location import Location
@@ -158,14 +158,14 @@ class Group(DBGroup, Module):
                 self.make_port_specs()
             self._port_specs_id_index = {}
             self._port_specs_id_index = \
-                dict([(p.id, p) for p in self._port_specs.itervalues()])
+                dict([(p.id, p) for p in self._port_specs.values()])
         return self._port_specs_id_index
     port_specs = property(_get_port_specs)
 
     def _get_port_spec_list(self):
         if self._port_specs is None:
             self.make_port_specs()
-        return self._port_specs.values()
+        return list(self._port_specs.values())
     port_spec_list = property(_get_port_spec_list)
 
     def has_portSpec_with_name(self, name):
@@ -273,10 +273,10 @@ class Group(DBGroup, Module):
             return False
         if len(self.annotations) != len(other.annotations):
             return False
-        for f,g in izip(self.functions, other.functions):
+        for f,g in zip(self.functions, other.functions):
             if f != g:
                 return False
-        for f,g in izip(self.annotations, other.annotations):
+        for f,g in zip(self.annotations, other.annotations):
             if f != g:
                 return False
         return True

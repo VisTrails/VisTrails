@@ -1,2 +1,2 @@
 # pragma: no testimport
-import module2
+from . import module2

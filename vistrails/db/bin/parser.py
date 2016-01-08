@@ -34,11 +34,11 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import os
 from xml.dom import minidom, Node
-from auto_gen_objects import Object, Property, Choice
+from .auto_gen_objects import Object, Property, Choice
 
 class AutoGenParser(object):
     def __init__(self):
@@ -57,13 +57,13 @@ class AutoGenParser(object):
                     objects[curObject.getName()] = curObject
 
         # set the referenced objects here
-        for obj in objects.itervalues():
+        for obj in objects.values():
             for prop in obj.properties:
                 if prop.getReference():
                     try:
                         prop.setReferencedObject(objects[prop.getReference()])
                     except KeyError:
-                        print 'error:', prop.getReference()
+                        print('error:', prop.getReference())
             for choice in obj.choices:
                 for prop in choice.properties:
                     if prop.getReference():
@@ -71,16 +71,16 @@ class AutoGenParser(object):
                             prop.setReferencedObject(
                                 objects[prop.getReference()])
                         except KeyError:
-                            print 'error:', prop.getReference()
+                            print('error:', prop.getReference())
                 
-        return objects.values()
+        return list(objects.values())
 
     def parseObject(self, node):
         params = {}
         properties = []
         choices = []
         layouts = None
-        for attr in node.attributes.keys():
+        for attr in list(node.attributes.keys()):
             params[attr] = node.attributes.get(attr).value
         for child in node.childNodes:
             if child.nodeType == Node.ELEMENT_NODE:
@@ -104,7 +104,7 @@ class AutoGenParser(object):
     def parseProperty(self, node):
         params = {}
         specs = {}
-        for attr in node.attributes.keys():
+        for attr in list(node.attributes.keys()):
             params[attr] = node.attributes.get(attr).value
         for child in node.childNodes:
             if child.nodeType == Node.ELEMENT_NODE:
@@ -114,7 +114,7 @@ class AutoGenParser(object):
     def parseChoice(self, node):
         params = {}
         properties = []
-        for attr in node.attributes.keys():
+        for attr in list(node.attributes.keys()):
             params[attr] = node.attributes.get(attr).value
         for child in node.childNodes:
             if child.nodeType == Node.ELEMENT_NODE and \
@@ -125,7 +125,7 @@ class AutoGenParser(object):
     def parseDataToDict(self, node):
         dict = {}
         if node.nodeType == Node.ELEMENT_NODE:
-            for attr in node.attributes.keys():
+            for attr in list(node.attributes.keys()):
                 dict[attr] = node.attributes.get(attr).value
             for child in node.childNodes:
                 if child.nodeType == Node.ELEMENT_NODE:

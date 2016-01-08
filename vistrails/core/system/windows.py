@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import os
 import shutil
@@ -150,7 +150,7 @@ def executable_is_in_path(filename):
 
 def list2cmdline(lst):
     for el in lst:
-        assert isinstance(el, basestring)
+        assert isinstance(el, str)
     return subprocess.list2cmdline(lst)
 
 def execute_cmdline(lst, output):
@@ -223,7 +223,7 @@ class TestWindows(unittest.TestCase):
     def test1(self):
         """ Test if guess_total_memory() is returning an int >= 0"""
         result = guess_total_memory()
-        assert isinstance(result, (int, long))
+        assert isinstance(result, int)
         assert result >= 0
 
     def test2(self):

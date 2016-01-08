@@ -39,7 +39,7 @@ of parameters
 
 QAliasParameterView
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
@@ -197,20 +197,20 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
 #            aliasRoot.setExpanded(True)
             
         # Now go through all modules and functions
-        self.aliasNames = pipeline.aliases.keys()
+        self.aliasNames = list(pipeline.aliases.keys())
         inspector = PipelineInspector()
         inspector.inspect_ambiguous_modules(pipeline)
-        sortedModules = sorted(pipeline.modules.iteritems(),
+        sortedModules = sorted(iter(pipeline.modules.items()),
                                key=lambda item: item[1].name)
         for mId, module in sortedModules:
             if len(module.functions)>0:
                 mLabel = [module.name]
                 moduleItem = None
-                for fId in xrange(len(module.functions)):
+                for fId in range(len(module.functions)):
                     function = module.functions[fId]
                     if len(function.params)==0: continue
                     if moduleItem==None:
-                        if inspector.annotated_modules.has_key(mId):
+                        if mId in inspector.annotated_modules:
                             annotatedId = inspector.annotated_modules[mId]
                             moduleItem = QAliasParameterTreeWidgetItem(annotatedId,
                                                                        self, mLabel)
@@ -230,7 +230,7 @@ class QAliasParameterTreeWidget(QSearchTreeWidget):
                                            parent_id=function.real_id,
                                            alias=function.params[pId].alias,
                                            mId=mId)
-                             for pId in xrange(len(function.params))]
+                             for pId in range(len(function.params))]
                     mName = module.name
                     if moduleItem.parameter!=None:
                         mName += '(%d)' % moduleItem.parameter

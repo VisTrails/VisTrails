@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.vistrails_module import ModuleError
@@ -165,7 +165,7 @@ class ExcelTestCase(unittest.TestCase):
                 'test_files')
 
     def assertAlmostEqual_lists(self, a, b):
-        for i, j in itertools.izip(a, b):
+        for i, j in zip(a, b):
             self.assertAlmostEqual(i, j, places=5)
 
     def test_xls_numeric(self):

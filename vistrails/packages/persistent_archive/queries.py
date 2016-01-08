@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from file_archive.parser import parse_expression
 
@@ -188,7 +188,7 @@ class EqualInt(Metadata):
     def __init__(self, *args):
         if args:
             key, value = args
-            assert isinstance(value, (int, long))
+            assert isinstance(value, int)
         Metadata.__init__(self, *args)
 
 
@@ -210,8 +210,8 @@ class IntInRange(QueryCondition):
 
         if args:
             self.key, self.low, self.high = args
-            assert isinstance(self.low, (int, long))
-            assert isinstance(self.high, (int, long))
+            assert isinstance(self.low, int)
+            assert isinstance(self.high, int)
             self.set_results()
         else:
             self.key, self.low, self.high = None, None, None

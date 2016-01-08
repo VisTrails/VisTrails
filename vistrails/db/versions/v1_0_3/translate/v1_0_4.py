@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db.versions.v1_0_3.domain import DBVistrail, DBAnnotation, \
                                       DBWorkflow, DBLog, DBRegistry, \

@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 name = 'CLTools'
 identifier = "org.vistrails.vistrails.cltools"

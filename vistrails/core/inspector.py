@@ -35,7 +35,7 @@
 ###############################################################################
 
 """Helper classes for inspecting vistrails/pipelines at runtime"""
-from __future__ import division
+
 
 from vistrails.core.modules.module_registry import get_module_registry
 ################################################################################
@@ -113,7 +113,7 @@ class PipelineInspector(object):
         self.output_ports = {}
         self.output_port_by_name = {}
         if not pipeline: return        
-        for cId, conn in pipeline.connections.iteritems():
+        for cId, conn in pipeline.connections.items():
             src_module = pipeline.modules[conn.source.moduleId]
             dst_module = pipeline.modules[conn.destination.moduleId]
             if src_module.name=='InputPort':
@@ -169,7 +169,7 @@ class PipelineInspector(object):
         def find_spreadsheet_cells(pipeline, root_id=None):
             if root_id is None:
                 root_id = []
-            for mId, module in pipeline.modules.iteritems():
+            for mId, module in pipeline.modules.items():
                 desc = registry.get_descriptor_by_name(module.package,
                                                        module.name,
                                                        module.namespace)
@@ -193,7 +193,7 @@ class PipelineInspector(object):
         if not pipeline: 
             return
         subworkflows = []
-        for m_id, module in pipeline.modules.iteritems():
+        for m_id, module in pipeline.modules.items():
             if module.is_abstraction() or module.is_group():
                 subworkflows.append(m_id)
         return subworkflows
@@ -214,9 +214,9 @@ class PipelineInspector(object):
         orig_pipeline = pipeline
         count = {}
         module_name = {}
-        for moduleId in pipeline.modules.iterkeys():
+        for moduleId in pipeline.modules.keys():
             module = pipeline.modules[moduleId]
-            if module_name.has_key(module.name): # ambiguous
+            if module.name in module_name: # ambiguous
                 if count[module.name]==1:
                     self.annotated_modules[module_name[module.name]] = 1
                 count[module.name] += 1
@@ -230,7 +230,7 @@ class PipelineInspector(object):
             # only need to worry about nested cells here
             if len(id_list) >= 2:
                 id_iter = iter(id_list)
-                m = pipeline.modules[id_iter.next()]
+                m = pipeline.modules[next(id_iter)]
                 for m_id in id_iter:
                     pipeline = m.pipeline
                     m = pipeline.modules[m_id]

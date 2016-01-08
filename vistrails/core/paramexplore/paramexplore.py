@@ -35,7 +35,7 @@
 ###############################################################################
 """ This file contains the definition of the class ParameterExploration """
 
-from __future__ import division
+
 
 from xml.sax.saxutils import unescape
 
@@ -142,9 +142,9 @@ class ParameterExploration(DBParameterExploration):
         added_functions = {}
         vistrail_vars = []
         function_actions = []
-        tmp_f_id = -1L
-        tmp_p_id = -1L
-        for i in xrange(len(self.functions)):
+        tmp_f_id = -1
+        tmp_p_id = -1
+        for i in range(len(self.functions)):
             pe_function = self.functions[i]
             module = pipeline.db_get_object(Module.vtType, pe_function.module_id)
             # collect overridden vistrail vars
@@ -248,7 +248,7 @@ class ParameterExploration(DBParameterExploration):
                     action = vistrails.core.db.action.create_action([action_spec])
                     actions.append(action)
                 parameterValues[dim].append(actions)
-        return [zip(*p) for p in parameterValues], function_actions, vistrail_vars
+        return [list(zip(*p)) for p in parameterValues], function_actions, vistrail_vars
 
     def __eq__(self, other):
         """ __eq__(other: ParameterExploration) -> boolean

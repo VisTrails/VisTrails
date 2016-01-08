@@ -35,7 +35,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import ast
 import re
@@ -43,7 +43,7 @@ import sys
 from xml.etree import ElementTree as ET
 import docutils.core
 import docutils.nodes
-from itertools import izip
+
 import inspect
 import matplotlib
 matplotlib.use('Qt4Agg')
@@ -61,7 +61,7 @@ import matplotlib.cbook
 ArtistInspector._get_valid_values_regex = re.compile(
     r"\n\s*ACCEPTS:\s*((?:.|\n)*?)(?:$|(?:\n\n))", re.IGNORECASE)
 
-from specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
+from .specs import SpecList, ModuleSpec, InputPortSpec, OutputPortSpec, \
     AlternatePortSpec
 
 # sys.path.append('/vistrails/src/git')
@@ -102,9 +102,9 @@ def parse_docutils_table(elt):
                     header = parse_docutils_thead(subchild)
                 elif subchild.__class__ == docutils.nodes.tbody:
                     rows = parse_docutils_tbody(subchild)
-    print "== TABLE =="
-    print "HEADER:", header
-    print "ROWS:", '\n'.join(str(r) for r in rows)
+    print("== TABLE ==")
+    print("HEADER:", header)
+    print("ROWS:", '\n'.join(str(r) for r in rows))
     return (header, rows)
 
 def parse_docutils_term(elt):
@@ -128,7 +128,7 @@ def parse_docutils_term(elt):
     return terms, accepts
 
 def parse_docutils_deflist(elt):
-    print "GOT DEFLIST!"
+    print("GOT DEFLIST!")
     args = []
     term = None
     definition = None
@@ -137,12 +137,12 @@ def parse_docutils_deflist(elt):
         for subchild in child.children:
             if subchild.__class__ == docutils.nodes.term:
                 terms, accepts = parse_docutils_term(subchild)
-                print "TERMS:", terms
+                print("TERMS:", terms)
                 if accepts:
-                    print "ACCEPTS:", accepts
+                    print("ACCEPTS:", accepts)
             elif subchild.__class__ == docutils.nodes.definition:
                 definition = parse_docutils_elt(subchild)[0].rstrip()
-                print "DEFINITION:", definition
+                print("DEFINITION:", definition)
                 for term in terms:
                     args.append((term, accepts, definition))
     return args
@@ -201,7 +201,7 @@ def parse_docutils_elt(elt, last_text=""):
 def parse_docutils_str(docstring, should_print=False):
     root = docutils.core.publish_doctree(docstring)
     if should_print:
-        print root
+        print(root)
     return parse_docutils_elt(root)
 
 ##############################################################################
@@ -239,9 +239,9 @@ def get_type_from_val(val):
         return "basic:Float"
     elif isinstance(val, bool):
         return "basic:Boolean"
-    elif isinstance(val, (int, long)):
+    elif isinstance(val, int):
         return "basic:Integer"
-    elif isinstance(val, basestring):
+    elif isinstance(val, str):
         return "basic:String"
     elif isinstance(val, list):
         return "basic:List"
@@ -403,7 +403,7 @@ def parse_description(desc):
 
     should_print = False
     if len(port_types) == 0:
-        for key, port_type in key_to_type.iteritems():
+        for key, port_type in key_to_type.items():
             if key in desc:
                 port_types.append(port_type)
 
@@ -434,14 +434,14 @@ def do_translation_override(port_specs, names, rows, opts):
         names = opts['name']
     if names is None:
         raise ValueError("Must specify name of port to use translation for")
-    if isinstance(names, basestring) or not matplotlib.cbook.iterable(names):
+    if isinstance(names, str) or not matplotlib.cbook.iterable(names):
         names = [names]
     should_reverse = opts.get('reverse', True)
     values_only = opts.get('values_only', False)
     (t, port_type, values) = \
         parse_translation(rows, should_reverse)
     for name in names:
-        print "TRANSLATING", name
+        print("TRANSLATING", name)
         if name not in port_specs:
             port_specs[name] = InputPortSpec(name) 
         port_specs[name].entry_types = ['enum']
@@ -475,7 +475,7 @@ def get_names(obj, default_module_base, default_super_base,
 ##############################################################################
 
 def parse_argspec(obj_or_str):
-    if isinstance(obj_or_str, basestring):
+    if isinstance(obj_or_str, str):
         obj_or_str = obj_or_str.strip()
         if not obj_or_str.endswith(":"):
             obj_or_str += ":"
@@ -485,11 +485,11 @@ def parse_argspec(obj_or_str):
             tree = ast.parse(obj_or_str + "\n  pass")
         except SyntaxError:
             # cannot parse the argspec
-            print "*** CANNOT PARSE", obj_or_str
+            print("*** CANNOT PARSE", obj_or_str)
             return []
         argspec_name = tree.body[0].name
         argspec_args = [a.id for a in tree.body[0].args.args]
-        print tree.body[0].args.defaults
+        print(tree.body[0].args.defaults)
         argspec_defaults = []
         for i, d in enumerate(tree.body[0].args.defaults):
             try:
@@ -546,9 +546,9 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                             # old_port_spec.defaults = port_spec.defaults
                     elif old_port_spec.defaults != port_spec.defaults:
                         # keep it as the old spec is
-                        print "*** Different defaults!" + \
+                        print("*** Different defaults!" + \
                             str(old_port_spec.defaults) + \
-                            " : " + str(port_spec.defaults)
+                            " : " + str(port_spec.defaults))
                         assign_port_values(old_port_spec, [],
                                            old_port_spec.defaults[0])
                 else:
@@ -556,9 +556,9 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
 
     output_port_specs = []
     for (deflist_intro, deflist) in args:
-        print "PROCESSING DEFLIST", deflist_intro
+        print("PROCESSING DEFLIST", deflist_intro)
         if re.search("return value", deflist_intro, re.IGNORECASE):
-            print "  -> RETURN VALUE"
+            print("  -> RETURN VALUE")
             for (name, accepts, port_doc) in deflist:
                 (port_types, option_strs, default_val, allows_none) = \
                     parse_description(accepts)
@@ -571,7 +571,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                 output_port_specs.append(oport)
         elif (re.search("argument", deflist_intro, re.IGNORECASE) or
               re.search("kwarg", deflist_intro, re.IGNORECASE)):
-            print "  -> ARGUMENTS"
+            print("  -> ARGUMENTS")
             for (name, accepts, port_doc) in deflist:
                 if name not in port_specs:
                     port_specs[name] = InputPortSpec(name, docstring=port_doc)
@@ -587,7 +587,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                 assign_port_values(port_specs[name], option_strs, default_val)
 
     for (table_intro, header, rows) in tables:
-        print "GOT TABLE", table_intro, rows[0]
+        print("GOT TABLE", table_intro, rows[0])
         table_key = parent + (table_intro,)
         if table_key in table_overrides:
             (override_type, opts) = table_overrides[table_key]
@@ -600,7 +600,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                 continue
 
         if re.search("return value", table_intro, re.IGNORECASE):
-            print "  -> RETURN"
+            print("  -> RETURN")
             if len(rows[0]) != 2:
                 raise ValueError("row that has more/less than 2 columns!")
             for (name, port_doc) in rows:
@@ -611,7 +611,7 @@ def process_docstring(docstring, port_specs, parent, table_overrides):
                 output_port_specs.append(oport)
         elif (re.search("argument", table_intro, re.IGNORECASE) or
               re.search("kwarg", table_intro, re.IGNORECASE)):
-            print "  -> ARGUMENT"
+            print("  -> ARGUMENT")
             if len(rows[0]) != 2:
                 raise ValueError("row that has more/less than 2 columns!")
             for (name, port_doc) in rows:
@@ -637,9 +637,9 @@ def parse_plots(plot_types, table_overrides):
     module_specs = []
     for plot in plot_types:
         port_specs = {}
-        print "========================================"
-        print plot
-        print "========================================"
+        print("========================================")
+        print(plot)
+        print("========================================")
         
         (plot, module_name, super_name) = \
             get_names(plot, get_module_base, get_super_base, "Mpl", "")
@@ -647,8 +647,8 @@ def parse_plots(plot_types, table_overrides):
         try:
             plot_obj = getattr(matplotlib.pyplot, plot)
         except AttributeError:
-            print '*** CANNOT ADD PLOT "%s";' \
-                'IT DOES NOT EXIST IN THIS MPL VERSION ***' % plot
+            print('*** CANNOT ADD PLOT "%s";' \
+                'IT DOES NOT EXIST IN THIS MPL VERSION ***' % plot)
             continue
         
         port_specs_list = parse_argspec(plot_obj)
@@ -658,14 +658,14 @@ def parse_plots(plot_types, table_overrides):
         docstring = plot_obj.__doc__
         if plot == 'contour':
             # want to change the double newline to single newline...
-            print "&*&* FINDING:", \
-                docstring.find("*extent*: [ *None* | (x0,x1,y0,y1) ]\n\n")
+            print("&*&* FINDING:", \
+                docstring.find("*extent*: [ *None* | (x0,x1,y0,y1) ]\n\n"))
             docstring = docstring.replace("*extent*: [ *None* | (x0,x1,y0,y1) ]\n\n", 
                               "*extent*: [ *None* | (x0,x1,y0,y1) ]\n")
         if plot == 'annotate':
-            docstring = docstring % dict((k,v) for k, v in matplotlib.docstring.interpd.params.iteritems() if k == 'Annotation')
+            docstring = docstring % dict((k,v) for k, v in matplotlib.docstring.interpd.params.items() if k == 'Annotation')
         elif plot == 'barbs':
-            docstring = docstring % dict((k,v) for k,v in matplotlib.docstring.interpd.params.iteritems() if k == 'barbs_doc')
+            docstring = docstring % dict((k,v) for k,v in matplotlib.docstring.interpd.params.items() if k == 'barbs_doc')
 
         cleaned_docstring, output_port_specs = \
             process_docstring(docstring, port_specs, ('pyplot', plot),
@@ -684,7 +684,7 @@ def parse_plots(plot_types, table_overrides):
                 
         module_specs.append(ModuleSpec(module_name, super_name,
                                        "matplotlib.pyplot.%s" % plot, 
-                                       cleaned_docstring, port_specs.values(),
+                                       cleaned_docstring, list(port_specs.values()),
                                        output_port_specs))
     my_specs = SpecList(module_specs)
     return my_specs
@@ -713,7 +713,7 @@ def parse_artists(artist_types, table_overrides={}):
         klass_name = klass.__name__
         klass_qualname = klass.__module__ + "." + klass_name
         for (s, t) in insp._get_setters_and_targets():
-            print "** %s **" % s
+            print("** %s **" % s)
             if t.rsplit('.',1)[0] != klass_qualname:
                 # let inheritance work
                 continue
@@ -744,13 +744,13 @@ def parse_artists(artist_types, table_overrides={}):
                 docstring = docstring % matplotlib.docstring.interpd.params
             match = _get_accepts_regex.search(docstring)
             if match is not None:
-                print "STARTING DOCSTRING:", docstring
+                print("STARTING DOCSTRING:", docstring)
                 groups = match.groups()
                 if len(groups) > 2 and groups[2]:
                     docstring = groups[0] + groups[2]
                 else:
                     docstring = groups[0]
-                print "FIXED DOCSTRING:", docstring
+                print("FIXED DOCSTRING:", docstring)
             
             (cleaned_docstring, args, tables, call_sigs) = \
                 parse_docutils_str(docstring)
@@ -758,7 +758,7 @@ def parse_artists(artist_types, table_overrides={}):
 
             translations = None
             for (table_intro, header, rows) in tables:
-                print "TABLE:", table_intro
+                print("TABLE:", table_intro)
                 if (klass.__name__, s, table_intro) in table_overrides:
                     (override_type, opts) = \
                         table_overrides[(klass.__name__, s, table_intro)]
@@ -790,14 +790,14 @@ def parse_artists(artist_types, table_overrides={}):
                                                      (klass.__name__, 
                                                       '__init__'),
                                                      table_overrides)
-        for arg, ps in constructor_port_specs.iteritems():
+        for arg, ps in constructor_port_specs.items():
             if arg not in port_specs:
                 ps.constructor_arg = True
                 ps.required = False
                 port_specs[arg] = ps            
 
         module_spec = ModuleSpec(module_name, super_name, klass_qualname,
-                                 klass.__doc__, port_specs.values())
+                                 klass.__doc__, list(port_specs.values()))
         module_specs.append(module_spec)
 
     my_specs = SpecList(module_specs)
@@ -833,10 +833,10 @@ def run_artists():
             if issubclass(cls, Artist) and cls != Artist:
                 artist_types.add(cls)
 
-    print "ARTIST TYPES:", artist_types
+    print("ARTIST TYPES:", artist_types)
     artist_types = [(Artist, None, "MplProperties")] + \
         list(sorted(artist_types, key=lambda x: list(reversed(x.mro()))))
-    print "SORTED ARTIST TYPES:", artist_types
+    print("SORTED ARTIST TYPES:", artist_types)
 
     # FIXME want this to be indexed by artist name, too...
     artist_overrides = {('Axes', 'aspect', 'aspect'):
@@ -965,7 +965,7 @@ def get_docutils(plot):
     import matplotlib.pyplot
     plot_obj = getattr(matplotlib.pyplot, plot)
     (_, _, _, call_sigs) = parse_docutils_str(plot_obj.__doc__, True)
-    print call_sigs
+    print(call_sigs)
     
 if __name__ == '__main__':
     if len(sys.argv) <= 1:

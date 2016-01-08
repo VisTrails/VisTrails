@@ -37,7 +37,7 @@
     * Port
 
  """
-from __future__ import division
+
 
 from vistrails.db.domain import DBPort
 from vistrails.core.utils import VistrailsInternalError, all
@@ -195,17 +195,17 @@ class Port(DBPort):
 
     def show_comparison(self, other):
         if type(self) != type(other):
-            print "Type mismatch"
+            print("Type mismatch")
         elif self.endPoint != other.endPoint:
-            print "endpoint mismatch"
+            print("endpoint mismatch")
         elif self.moduleName != other.moduleName:
-            print "moduleName mismatch"
+            print("moduleName mismatch")
         elif self.name != other.name:
-            print "name mismatch"
+            print("name mismatch")
         elif self.spec != other.spec:
-            print "spec mismatch"
+            print("spec mismatch")
         else:
-            print "no difference found"
+            print("no difference found")
             assert self == other
 
     ##########################################################################
@@ -257,7 +257,7 @@ class TestPort(unittest.TestCase):
     def create_port(self, id_scope=IdScope()):
         port = Port(id=id_scope.getNewId(Port.vtType),
                     type='source',
-                    moduleId=12L, 
+                    moduleId=12, 
                     moduleName='String', 
                     name='value',
                     signature='(%s:String)' % get_vistrails_basic_pkg_id())

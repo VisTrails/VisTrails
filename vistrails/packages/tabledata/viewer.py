@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import os
 from PyQt4 import QtCore, QtGui
@@ -85,21 +85,21 @@ class TableCellWidget(QCellWidget):
         self.table.setColumnCount(table.columns + 1)
         self.table.setRowCount(table.rows)
 
-        for row in xrange(table.rows):
+        for row in range(table.rows):
             item = QtGui.QTableWidgetItem()
             item.setData(QtCore.Qt.EditRole, row)
             item.setFlags(QtCore.Qt.NoItemFlags)
             self.table.setItem(row, 0, item)
 
         try:
-            for col in xrange(table.columns):
+            for col in range(table.columns):
                 column = table.get_column(col)
-                for row in xrange(table.rows):
+                for row in range(table.rows):
                     elem = column[row]
                     if isinstance(elem, bytes):
                         elem = elem.decode('utf-8', 'replace')
-                    elif not isinstance(elem, unicode):
-                        elem = unicode(elem)
+                    elif not isinstance(elem, str):
+                        elem = str(elem)
                     item = QtGui.QTableWidgetItem(elem)
                     item.setFlags(QtCore.Qt.ItemIsEnabled |
                                   QtCore.Qt.ItemIsSelectable)
@@ -111,7 +111,7 @@ class TableCellWidget(QCellWidget):
         if table.names is not None:
             names = table.names
         else:
-            names = ['col %d' % n for n in xrange(table.columns)]
+            names = ['col %d' % n for n in range(table.columns)]
         self.table.setHorizontalHeaderLabels(['row' ] + names)
         self.table.setSortingEnabled(True)
         self.table.sortByColumn(0, QtCore.Qt.AscendingOrder)
@@ -132,19 +132,19 @@ class TableCellWidget(QCellWidget):
         if table.names is not None:
             names = table.names
         else:
-            names = ['col %d' % n for n in xrange(table.columns)]
+            names = ['col %d' % n for n in range(table.columns)]
         document.append('<tr>\n')
         document.extend('  <th>%s</th>\n' % name for name in names)
         document.append('</tr>\n')
-        columns = [table.get_column(col) for col in xrange(table.columns)]
-        for row in xrange(table.rows):
+        columns = [table.get_column(col) for col in range(table.columns)]
+        for row in range(table.rows):
             document.append('<tr>\n')
-            for col in xrange(table.columns):
+            for col in range(table.columns):
                 elem = columns[col][row]
                 if isinstance(elem, bytes):
                     elem = elem.decode('utf-8', 'replace')
-                elif not isinstance(elem, unicode):
-                    elem = unicode(elem)
+                elif not isinstance(elem, str):
+                    elem = str(elem)
                 document.append('  <td>%s</td>\n' % elem)
             document.append('</tr>\n')
         document.append('    </table>\n  </body>\n</html>\n')

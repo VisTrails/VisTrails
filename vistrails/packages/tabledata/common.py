@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core.modules.basic_modules import List, ListType
@@ -133,7 +133,7 @@ class TableObject(object):
                 raise ValueError("No entry in sequence")
             return cls([[]] * len(keys), 0, list(keys))
         if keys is None:
-            keys = first.keys()
+            keys = list(first.keys())
         columns = [[first[key]] for key in keys]
         count = 1
         for dct in iterator:
@@ -166,7 +166,7 @@ def choose_column(nb_columns, column_names=None, name=None, index=None):
     same column.
     """
     if name is not None:
-        if isinstance(name, unicode):
+        if isinstance(name, str):
             name = name.encode('utf-8')
         if column_names is None:
             raise ValueError("Unable to get column by name: table doesn't "
@@ -205,7 +205,7 @@ def choose_columns(nb_columns, column_names=None, names=None, indexes=None):
                              "doesn't have column names")
         result = []
         for name in names:
-            if isinstance(name, unicode):
+            if isinstance(name, str):
                 name = name.encode('utf-8')
             try:
                 idx = column_names.index(name)
@@ -259,7 +259,7 @@ class ExtractColumn(Module):
             self.set_output('value', table.get_column(
                     column_idx,
                     self.get_input('numeric', allow_default=True)))
-        except ValueError, e:
+        except ValueError as e:
             raise ModuleError(self, e.message)
 
 
@@ -303,12 +303,12 @@ class BuildTable(Module):
                 else:
                     nb_rows = item.rows
                 cols.extend(item.get_column(c)
-                            for c in xrange(item.columns))
+                            for c in range(item.columns))
                 if item.names is not None:
                     names.extend(item.names)
                 else:
                     names.extend("%s col %d" % (portname, i)
-                                 for i in xrange(len(cols) - len(names)))
+                                 for i in range(len(cols) - len(names)))
             else:
                 if nb_rows is not None:
                     if len(item) != nb_rows:
@@ -356,19 +356,19 @@ class HtmlRendererMixin(object):
         if table.names is not None:
             names = table.names
         else:
-            names = ['col %d' % n for n in xrange(table.columns)]
+            names = ['col %d' % n for n in range(table.columns)]
         document.append('<tr>\n')
         document.extend('  <th>%s</th>\n' % name for name in names)
         document.append('</tr>\n')
-        columns = [table.get_column(col) for col in xrange(table.columns)]
-        for row in xrange(table.rows):
+        columns = [table.get_column(col) for col in range(table.columns)]
+        for row in range(table.rows):
             document.append('<tr>\n')
-            for col in xrange(table.columns):
+            for col in range(table.columns):
                 elem = columns[col][row]
                 if isinstance(elem, bytes):
                     elem = elem.decode('utf-8', 'replace')
-                elif not isinstance(elem, unicode):
-                    elem = unicode(elem)
+                elif not isinstance(elem, str):
+                    elem = str(elem)
                 document.append('  <td>%s</td>\n' % elem)
             document.append('</tr>\n')
         document.append('    </table>\n  </body>\n</html>\n')

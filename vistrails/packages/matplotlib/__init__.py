@@ -40,9 +40,9 @@ This package wrap Matplotlib to provide a plotting tool for
 VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 """
 
-from __future__ import division
 
-from identifiers import *
+
+from .identifiers import *
 
 def package_dependencies():
     import vistrails.core.packagemanager

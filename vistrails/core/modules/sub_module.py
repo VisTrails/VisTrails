@@ -35,9 +35,9 @@
 ###############################################################################
 
 """ Define facilities for setting up SubModule Module in VisTrails """
-from __future__ import division
 
-from itertools import izip
+
+
 import random
 import uuid
 
@@ -121,7 +121,7 @@ def group_signature(pipeline, module, chm):
             input_functions[function.name] = []
         input_functions[function.name].append(function)
     covered_modules = dict((k, False) for k in module._input_remap)
-    for input_port_name, conn_list in input_conns.iteritems():
+    for input_port_name, conn_list in input_conns.items():
         covered_modules[input_port_name] = True
         input_module = module._input_remap[input_port_name]
         upstream_sigs = [(pipeline.subpipeline_signature(m) +
@@ -134,7 +134,7 @@ def group_signature(pipeline, module, chm):
                                      Hasher.function_signature, chm)
             sig = Hasher.compound_signature([sig, function_sig])
         input_module._input_port_signature = sig
-    for input_port_name, done in covered_modules.iteritems():
+    for input_port_name, done in covered_modules.items():
         if done:
             continue
         covered_modules[input_port_name] = True
@@ -180,14 +180,14 @@ class Group(Module):
 
         # Setup pipeline for execution
         res = self.interpreter.setup_pipeline(self.pipeline)
-        self.persistent_modules = res[0].values()
+        self.persistent_modules = list(res[0].values())
         if len(res[5]) > 0:
             raise ModuleError(self, "Error(s) inside group:\n" +
-                              "\n".join(me.msg for me in res[5].itervalues()))
+                              "\n".join(me.msg for me in res[5].values()))
         tmp_id_to_module_map = res[0]
 
         # Connect Group's external input ports to internal InputPort modules
-        for iport_name, conn in self.inputPorts.iteritems():
+        for iport_name, conn in self.inputPorts.items():
             from vistrails.core.modules.basic_modules import create_constant
             # The type information is lost when passing as Variant,
             # so we need to use the the final normalized value
@@ -216,16 +216,16 @@ class Group(Module):
             raise ModuleError(self, "Error(s) inside group:\n" +
                               "\n".join("%s: %s" % (
                                       me.module.__class__.__name__, me.msg)
-                              for me in res[2].itervalues()))
+                              for me in res[2].values()))
 
         # Check and propagate ModuleSuspended exceptions
         if res[4]:
-            message = "\n".join([ms.msg for ms in res[4].itervalues()])
+            message = "\n".join([ms.msg for ms in res[4].values()])
             children = list(res[4].values())
             raise ModuleSuspended(self, message, children=children)
 
         # Connect internal OutputPort modules to Group's external output ports
-        for oport_name, oport_module in self.output_remap.iteritems():
+        for oport_name, oport_module in self.output_remap.items():
             if oport_name is not 'self':
                 oport_obj = tmp_id_to_module_map[oport_module.id]
                 self.set_output(oport_name,
@@ -279,7 +279,7 @@ def coalesce_port_specs(neighbors, type):
                                              "connect to types with "
                                              "different list depth")
             descs = []
-            for cur_desc, next_desc in izip(cur_descs, next_descs):
+            for cur_desc, next_desc in zip(cur_descs, next_descs):
                 if cur_desc is Variant_desc:
                     new_desc = next_desc
                 elif next_desc is Variant_desc:
@@ -406,7 +406,7 @@ def save_abstraction(vistrail, fname):
     vistrail.set_annotation(annotation_key, new_namespace)
     save_vistrail_to_xml(vistrail, fname)
 
-def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
+def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1,
                     pipeline=None):
     """make_abstraction(name: str, 
                         vistrail: (str or Vistrail), 
@@ -420,14 +420,14 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     can either be a tag (string) or an id (long)
     """
 
-    if isinstance(vistrail, basestring):
+    if isinstance(vistrail, str):
         vt_fname = vistrail
         vistrail = read_vistrail(vistrail)
     elif vt_fname is None:
         raise VistrailsInternalError("Abstraction must provide "
                                      "vt_fname with vistrail")
     
-    if internal_version == -1L:
+    if internal_version == -1:
         internal_version = vistrail.get_latest_version()
     action = vistrail.actionMap[internal_version]
     if pipeline is None:
@@ -482,10 +482,10 @@ def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L,
     # print "output_ports", d['_output_ports']
     return new_module(Abstraction, name, d, docstring)
 
-def get_abstraction_dependencies(vistrail, internal_version=-1L):
-    if isinstance(vistrail, basestring):
+def get_abstraction_dependencies(vistrail, internal_version=-1):
+    if isinstance(vistrail, str):
         vistrail = read_vistrail(vistrail)
-    if internal_version == -1L:
+    if internal_version == -1:
         internal_version = vistrail.get_latest_version()
     pipeline = vistrail.getPipeline(internal_version)
 
@@ -501,10 +501,10 @@ def get_abstraction_dependencies(vistrail, internal_version=-1L):
     pipeline_deps(pipeline)
     return packages
 
-def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1L):
-    if isinstance(vistrail, basestring):
+def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1):
+    if isinstance(vistrail, str):
         vistrail = read_vistrail(os.path.join(pkg.package_dir, vistrail))
-    if internal_version == -1L:
+    if internal_version == -1:
         internal_version = vistrail.get_latest_version()
     pipeline = vistrail.getPipeline(internal_version)
     abstractions = []
@@ -525,7 +525,7 @@ def parse_abstraction_name(filename, get_all_parts=False):
     sufpat = '|'.join(suffixes).replace('.','\\.')
     pattern = re.compile("(" + prepat + ")?(.+?)(\(" + uuidpat + "\))?(" + sufpat + ")", re.DOTALL)
     matchobj = pattern.match(fname)
-    prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in xrange(1,5)]
+    prefix, absname, uuid, suffix = [matchobj.group(x) or '' for x in range(1,5)]
     if get_all_parts:
         return (path, prefix, absname, uuid[1:-1], suffix)
     return absname

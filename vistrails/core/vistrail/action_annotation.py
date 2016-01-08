@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db.domain import DBActionAnnotation
 
@@ -118,7 +118,7 @@ class TestActionAnnotation(unittest.TestCase):
             id_scope = IdScope()
         annotation = \
             ActionAnnotation(id=id_scope.getNewId(ActionAnnotation.vtType),
-                             key='akey', action_id=1L,
+                             key='akey', action_id=1,
                              value='some value', user='test')
         return annotation
 

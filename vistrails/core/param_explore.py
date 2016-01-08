@@ -36,7 +36,7 @@
 """
 This module handles Parameter Exploration in VisTrails
 """
-from __future__ import division
+
 
 from vistrails.core import debug
 from vistrails.core.vistrail.module_function import ModuleFunction
@@ -70,7 +70,7 @@ class ParameterExploration(object):
         
         """
         pipelineList = [pipeline]
-        for i in xrange(len(self.specs)):
+        for i in range(len(self.specs)):
             pipelineList = self.interpolateList(pipelineList, self.specs[i])
         return pipelineList
 
@@ -85,7 +85,7 @@ class ParameterExploration(object):
         if len(interpList)<1: return pipelineList
         stepCount = interpList[0].stepCount
         result = []
-        for step in xrange(stepCount):
+        for step in range(stepCount):
             for pipeline in pipelineList:
                 newp = copy.copy(pipeline)
                 for interp in interpList:
@@ -143,7 +143,7 @@ class InterpolateDiscreteParam(object):
             interpolatedValues = []
             argumentType = type(r[0])
             if argumentType in [int, float]:
-                for i in xrange(stepCount):
+                for i in range(stepCount):
                     if stepCount>1: t = i/float(stepCount-1)
                     else: t = 0
                     interpolatedValues.append(argumentType(r[0]+t*(r[1]-r[0])))
@@ -153,7 +153,7 @@ class InterpolateDiscreteParam(object):
                 debug.critical('Cannot interpolate non-cardinal types')
                 assert False
             params.append(interpolatedValues)
-        return zip(*params)
+        return list(zip(*params))
         
         
     def perform(self, pipeline, step):
@@ -255,7 +255,7 @@ def _pipelinePositions(sheetCount, rowCount, colCount,
     """
 
     pipelinePositions = []
-    for pId in xrange(len(pipelines)):
+    for pId in range(len(pipelines)):
         col = pId % colCount
         row = (pId // colCount) % rowCount
         sheet = (pId // (colCount*rowCount)) % sheetCount

@@ -45,7 +45,7 @@ from setting okToCreateQObjects directly.
 
 As the python saying goes, 'we are all consenting adults here'."""
 
-from __future__ import division
+
 
 import inspect
 from PyQt4 import QtGui, QtCore
@@ -63,7 +63,7 @@ class qt_super(object):
         s = super(self._class, self._obj)
         try:
             return getattr(s, attr)
-        except AttributeError, e:
+        except AttributeError as e:
             mro = type(self._obj).mro()
             try:
                 ix = mro.index(self._class)
@@ -106,7 +106,7 @@ def allowQObjects():
     # tries to check if caller is allowed to call this
     caller = inspect.currentframe().f_back
     d = caller.f_locals
-    if (not d.has_key('self') or
+    if ('self' not in d or
         not isinstance(d['self'], QtCore.QCoreApplication)):
         raise DisallowedCaller
     global okToCreateQObjects
@@ -219,7 +219,7 @@ def enableSignalDebugging(**kwargs):
 
     def printIt(msg):
         def call(*args):
-            print msg, args
+            print(msg, args)
         return call
     QtCore.QObject.connect = _wrapConnect(connectCall)
     QtCore.QObject.disconnect = _wrapDisconnect(disconnectCall)

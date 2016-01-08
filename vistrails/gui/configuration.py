@@ -35,7 +35,7 @@
 ###############################################################################
 
 """Widgets to display/edit configuration objects."""
-from __future__ import division
+
 
 import os
 import os.path
@@ -312,7 +312,7 @@ class QConfigurationLineEdit(QtGui.QLineEdit, QConfigurationWidgetItem):
             value = ""
         if not signal:
             self.editingFinished.disconnect(self.value_changed)
-        self.setText(unicode(value))
+        self.setText(str(value))
         if not signal:
             self.editingFinished.connect(self.value_changed)
 
@@ -346,7 +346,7 @@ class QConfigurationLineEditButton(QtGui.QWidget, QConfigurationWidgetItem):
             value = ""
         if not signal:
             self.line_edit.editingFinished.disconnect(self.value_changed)
-        self.line_edit.setText(unicode(value))
+        self.line_edit.setText(str(value))
         if not signal:
             self.line_edit.editingFinished.connect(self.value_changed)
 
@@ -438,7 +438,7 @@ class QConfigurationComboBox(QtGui.QComboBox, QConfigurationWidgetItem):
             values = options["allowed_values"]
             if "remap" in options:
                 remap = options["remap"]
-                inv_remap = dict((v, k) for (k, v) in remap.iteritems())
+                inv_remap = dict((v, k) for (k, v) in remap.items())
                 entries = [remap[v] for v in values]
             else:
                 entries = values

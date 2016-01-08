@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from ast import literal_eval
 import copy
@@ -74,7 +74,7 @@ class PortSpecItem(DBPortSpecItem):
                 kwargs["namespace"] = namespace
         if "values" in kwargs:
             if (kwargs["values"] is not None and
-                    not isinstance(kwargs["values"], basestring)):
+                    not isinstance(kwargs["values"], str)):
                 kwargs["values"] = str(kwargs["values"])
         if 'id' not in kwargs:
             kwargs['id'] = -1
@@ -191,7 +191,7 @@ class PortSpecItem(DBPortSpecItem):
             self._values = literal_eval(self.db_values)
         return self._values
     def _set_values(self, values):
-        if not isinstance(values, basestring):
+        if not isinstance(values, str):
             self._values = values
             self.db_values = str(values)
         else:

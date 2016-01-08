@@ -35,7 +35,7 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
-from __future__ import division
+
 
 from vistrails.db.versions.v0_3_0.persistence.xml.xml_dao import XMLDAO
 from vistrails.db.versions.v0_3_0.domain.auto_gen import *
@@ -394,7 +394,7 @@ class DBActionXMLDAOBase(XMLDAO):
                 datas.append(data)
                 what = 'deleteModulePort'
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         return DBAction(time=time,
                         parent=parent,
@@ -550,7 +550,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
                 tag = self.getDao('tag').fromXML(child)
                 tags[tag.db_time] = tag
             elif child.nodeType != child.TEXT_NODE:
-                print '*** ERROR *** nodeName = %s' % child.nodeName
+                print('*** ERROR *** nodeName = %s' % child.nodeName)
         
         return DBVistrail(version=version,
                           actions=actions,
@@ -564,10 +564,10 @@ class DBVistrailXMLDAOBase(XMLDAO):
         
         # set elements
         actions = vistrail.db_actions
-        for action in actions.itervalues():
+        for action in actions.values():
             node.appendChild(self.getDao('action').toXML(action, doc))
         tags = vistrail.db_tags
-        for tag in tags.itervalues():
+        for tag in tags.values():
             node.appendChild(self.getDao('tag').toXML(tag, doc))
         
         return node

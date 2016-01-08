@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.db.domain import IdScope
 from vistrails.db.domain import DBMashuptrail
@@ -54,7 +54,7 @@ class Mashuptrail(DBMashuptrail):
         self.db_annotations = []
         self.db_actionAnnotations = []
         if not id_scope:
-            self.id_scope = IdScope(1L)
+            self.id_scope = IdScope(1)
         else:
             self.id_scope = id_scope
         
@@ -80,7 +80,7 @@ class Mashuptrail(DBMashuptrail):
 
         for aannotation in _mtrail.actionAnnotations:
             ActionAnnotation.convert(aannotation)
-        _mtrail.id_scope = IdScope(1L)
+        _mtrail.id_scope = IdScope(1)
         _mtrail.updateIdScope()
             
     def addVersion(self, parent_id, mashup, user, date):
@@ -112,7 +112,7 @@ class Mashuptrail(DBMashuptrail):
         return max_ver
 
     def getMashup(self, version):
-        if version in self.actionMap.keys():
+        if version in list(self.actionMap.keys()):
             return self.actionMap[version].mashup
         else:
             return None

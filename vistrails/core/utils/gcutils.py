@@ -36,7 +36,7 @@
 
 """Utilities for debugging garbage collection, leaked memory, etc."""
 
-from __future__ import division
+
 
 import gc
 
@@ -56,7 +56,7 @@ def get_objects_by_livecount(obj_dict=None):
         obj_dict = get_objects_by_typename()
     else:
         gc.collect()
-    lst = [(len(val), k) for (k, val) in obj_dict.iteritems()]
+    lst = [(len(val), k) for (k, val) in obj_dict.items()]
     lst.sort()
     return lst
 

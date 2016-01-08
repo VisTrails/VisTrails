@@ -34,9 +34,9 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-import urllib2
+
+import urllib.request, urllib.error, urllib.parse
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core import debug
@@ -56,6 +56,6 @@ except ImportError:
         if not insecure:
             debug.warning("Unable to use secure SSL requests -- please "
                           "install certifi and ssl_match_hostname")
-        return urllib2.build_opener(*args, **kwargs)
+        return urllib.request.build_opener(*args, **kwargs)
 else:
     from .https import *

@@ -41,7 +41,7 @@
   SpreadsheetCell
 """
 
-from __future__ import division
+
 
 from PyQt4 import QtCore
 

@@ -34,11 +34,11 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from auto_gen import DBWorkflow as _DBWorkflow
-from auto_gen import DBAbstractionRef, DBModule, DBGroup
-from id_scope import IdScope
+
+from .auto_gen import DBWorkflow as _DBWorkflow
+from .auto_gen import DBAbstractionRef, DBModule, DBGroup
+from .id_scope import IdScope
 
 import copy
 
@@ -81,8 +81,8 @@ class DBWorkflow(_DBWorkflow):
         return str[0].upper() + str[1:]
 
     def db_print_objects(self):
-        for k,v in self.objects.iteritems():
-            print '%s: %s' % (k, v)
+        for k,v in self.objects.items():
+            print('%s: %s' % (k, v))
 
     def db_has_object(self, type, id):
         return (type, id) in self.objects

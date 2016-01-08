@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db.services.action_chain import simplify_ops
 from vistrails.db.domain import DBAction, DBAdd, DBDelete, DBChange

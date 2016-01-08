@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 import contextlib
 import functools
@@ -46,9 +46,9 @@ import traceback
 import unittest
 
 try:
-    import cStringIO as StringIO
+    import io as StringIO
 except ImportError:
-    import StringIO
+    import io
 
 from vistrails.core.modules.vistrails_module import Module
 
@@ -240,7 +240,7 @@ def run_file(filename, tag_filter=lambda x: True):
     controller = VistrailController(loaded_objs[0], locator, *loaded_objs[1:])
 
     errors = []
-    for version, name in controller.vistrail.get_tagMap().iteritems():
+    for version, name in controller.vistrail.get_tagMap().items():
         if tag_filter(name):
             controller.change_selected_version(version)
             (result,), _ = controller.execute_current_workflow()
@@ -300,7 +300,7 @@ def intercept_results(*args):
     for arg in args:
         if isinstance(arg, type) and issubclass(arg, Module):
             current_module = arg
-        elif isinstance(arg, basestring):
+        elif isinstance(arg, str):
             if current_module is None:
                 raise ValueError
             ctx.append(intercept_result(current_module, arg))
@@ -313,7 +313,7 @@ def intercept_results(*args):
 def capture_stream(stream):
     lines = []
     old = getattr(sys, stream)
-    sio = StringIO.StringIO()
+    sio = io.StringIO()
     setattr(sys, stream, sio)
     try:
         yield lines
@@ -404,7 +404,7 @@ class debug_metaclass(type):
     """
     def __new__(cls, name, bases, dct):
         new_dct = {}
-        for k, v in dct.iteritems():
+        for k, v in dct.items():
             if k.startswith('test_'):
                 new_dct[k] = debug_func(v)
             else:
@@ -412,7 +412,6 @@ class debug_metaclass(type):
         return type.__new__(cls, name, bases, new_dct)
 
 
-class DebugTestCaseMetaBase(unittest.TestCase):
+class DebugTestCaseMetaBase(unittest.TestCase, metaclass=debug_metaclass):
     """Base class used to bring in `debug_metaclass`.
     """
-    __metaclass__ = debug_metaclass

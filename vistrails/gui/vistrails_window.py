@@ -35,7 +35,7 @@
 ###############################################################################
 """ The file describes a container widget consisting of a pipeline
 view and a version tree for each opened Vistrail """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 import copy
@@ -132,7 +132,7 @@ class QBaseViewWindow(QtGui.QMainWindow):
                 if 'callback' in options:
                     callback = options['callback']
                     del options['callback']
-                for option, value in options.iteritems():
+                for option, value in options.items():
                     method = getattr(qaction, 'set%s' % \
                                          option[0].capitalize() + \
                                          option[1:])
@@ -449,7 +449,7 @@ class QVistrailViewWindow(QBaseViewWindow):
         if len(self._package_menu_items) == 0:
             self.qmenus['packages'].menuAction().setEnabled(True)
             
-        for (pkg_id, d) in _app._package_menu_items.iteritems():
+        for (pkg_id, d) in _app._package_menu_items.items():
             self._package_menu_items[pkg_id] = {}
             for pkg_name,items in d['items']:
                 pkg_menu = self.qmenus['packages'].addMenu(str(pkg_name))
@@ -943,7 +943,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         self.stack.setCurrentIndex(index)
         self.view_notifications[view] = {}
         for notification_id, method_list in \
-                view.get_notifications().iteritems():
+                view.get_notifications().items():
             for method in method_list:
                 self.register_notification(notification_id, method, True, view)
         return view
@@ -996,7 +996,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     # enumeration for dock areas
     (UPPER_LEFT_DOCK_AREA, LOWER_LEFT_DOCK_AREA, RIGHT_DOCK_AREA,
-     UTILITY_WINDOW_AREA) = range(4)
+     UTILITY_WINDOW_AREA) = list(range(4))
     DOCK_AREA_MAP = {UPPER_LEFT_DOCK_AREA: QtCore.Qt.LeftDockWidgetArea,
                      LOWER_LEFT_DOCK_AREA: QtCore.Qt.LeftDockWidgetArea,
                      RIGHT_DOCK_AREA: QtCore.Qt.RightDockWidgetArea,
@@ -1167,7 +1167,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     def dock_palettes(self, window=None):
         if not window:
             window = QtGui.QApplication.activeWindow()
-        if window == self or window in self.windows.values():
+        if window == self or window in list(self.windows.values()):
             left_first_added = None
             right_first_added = None
             for dock_area, p_group in self.palette_layout:
@@ -1270,7 +1270,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             def do_check_and_set(*args, **kwargs):
                 _qaction.setEnabled(_check(*args, **kwargs))
             return do_check_and_set
-        for action, (notification_id, check) in action_links.iteritems():
+        for action, (notification_id, check) in action_links.items():
             window = obj.window()
             if isinstance(window, BaseView):
                 window = window.vistrail_view.window()
@@ -1292,7 +1292,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         if isinstance(window, BaseView):
             window = window.vistrail_view.window()
         qactions = window.qactions
-        for action, mlist in obj.action_defaults.iteritems():
+        for action, mlist in obj.action_defaults.items():
             if action in qactions:
                 qaction = qactions[action]
                 for (method, is_callback, value) in mlist:
@@ -1512,12 +1512,12 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         if controller is None:
             return None
-        for i in xrange(self.stack.count()):
+        for i in range(self.stack.count()):
             view = self.stack.widget(i)
             if view.controller is controller:
                 self.change_view(view)
                 return view
-        for (view, window) in self.windows.iteritems():
+        for (view, window) in self.windows.items():
             if view.controller == controller:
                 window.activateWindow()
                 window.raise_()
@@ -1535,11 +1535,11 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         if locator is None:
             return None
-        for i in xrange(self.stack.count()):
+        for i in range(self.stack.count()):
             view = self.stack.widget(i)
             if view.controller.vistrail.locator == locator:
                 return view
-        for (view, window) in self.windows.iteritems():
+        for (view, window) in self.windows.items():
             if view.controller.vistrail.locator == locator:
                 return view
         return None
@@ -1550,7 +1550,7 @@ class QVistrailsWindow(QVistrailViewWindow):
 
         """
         views = []
-        for i in xrange(self.stack.count()):
+        for i in range(self.stack.count()):
             views.append(self.stack.widget(i))
         views.extend(self.windows)
         return views
@@ -1563,12 +1563,12 @@ class QVistrailsWindow(QVistrailViewWindow):
         """
         if locator is None:
             return None
-        for i in xrange(self.stack.count()):
+        for i in range(self.stack.count()):
             view = self.stack.widget(i)
             if view.controller.vistrail.locator == locator:
                 self.change_view(view)
                 return view
-        for (view, window) in self.windows.iteritems():
+        for (view, window) in self.windows.items():
             if view.controller.vistrail.locator == locator:
                 window.activateWindow()
                 window.raise_()
@@ -1667,7 +1667,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             pe = vistrail.get_paramexp(pe_id)
         except ValueError:
             pe= vistrail.get_named_paramexp(pe_id)
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             return
         self.current_view.open_parameter_exploration(pe.id)
@@ -1872,11 +1872,11 @@ class QVistrailsWindow(QVistrailViewWindow):
 
     def close_all_vistrails(self, quiet=False):
         self.current_view = None
-        for view in [self.stack.widget(i) for i in xrange(self.stack.count())]:
+        for view in [self.stack.widget(i) for i in range(self.stack.count())]:
             if not self.close_vistrail(view, quiet=quiet):
                 return False
         while len(self.windows) > 0:
-            window = self.windows.values()[0]
+            window = list(self.windows.values())[0]
             window.activateWindow()
             window.raise_()
             if not window.close():
@@ -1916,7 +1916,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             return self.stack.currentWidget()
         else:
             if len(self.windows) > 0:
-                return next(self.windows.iterkeys())
+                return next(iter(self.windows.keys()))
         return None
         
     def get_current_controller(self):
@@ -2039,7 +2039,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 
         update_menu(self._package_menu_items,self.qmenus['packages'])    
         
-        for w in self.windows.values():
+        for w in list(self.windows.values()):
             update_menu(w._package_menu_items, w.qmenus['packages'])
 
     def remove_package_menu_items(self, pkg_id):
@@ -2055,7 +2055,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 menu.menuAction().setEnabled(False)
             
         update_menu(self._package_menu_items, self.qmenus['packages'])
-        for w in self.windows.values():
+        for w in list(self.windows.values()):
             update_menu(w._package_menu_items, w.qmenus['packages'])
             
     def show_package_error_message(self, pkg_id, pkg_name, msg):
@@ -2238,7 +2238,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 action.setText("&%d %s" % (i+1, locator.name))
                 openRecentMenu.addAction(action)
         update_menu(self.qmenus['openRecent'])
-        for w in self.windows.values():
+        for w in list(self.windows.values()):
             update_menu(w.qmenus['openRecent'])
 
     def update_window_menu(self):
@@ -2257,23 +2257,23 @@ class QVistrailsWindow(QVistrailViewWindow):
             if current_view and current_view.window() == self:
                 for i in range(self.stack.count()):
                     view = self.stack.widget(i)
-                    for dview, dw in current_view.detached_views.iteritems():
+                    for dview, dw in current_view.detached_views.items():
                         base_view_windows[dview] = dw
             if len(self.windows) > 0:
                 windowactions = []
-                for view, w in self.windows.iteritems():
+                for view, w in self.windows.items():
                     action = QtGui.QAction(view.get_name(), self,
                            triggered=lambda checked=False: w.activateWindow())
                     action.setCheckable(True)
                     if w == QtGui.QApplication.activeWindow():
                         action.setChecked(True)
                     windowactions.append(action)
-                    for dview, dw in view.detached_views.iteritems():
+                    for dview, dw in view.detached_views.items():
                         base_view_windows[dview] = dw
                 actions.append(windowactions)
             if len(base_view_windows) > 0:
                 base_view_actions = []
-                for view, w in base_view_windows.iteritems():
+                for view, w in base_view_windows.items():
                     action = QtGui.QAction(w.windowTitle(), self,
                            triggered=lambda checked=False: w.activateWindow())
                     action.setCheckable(True)
@@ -2302,14 +2302,14 @@ class QVistrailsWindow(QVistrailViewWindow):
         if current_view and current_view.window() == self:
             for i in range(self.stack.count()):
                 view = self.stack.widget(i)
-                for dw in view.detached_views.values():
+                for dw in list(view.detached_views.values()):
                     update_menu(dw.qmenus['window'])
-        for v, w in self.windows.iteritems():
+        for v, w in self.windows.items():
             update_menu(w.qmenus['window'])
-            for dw in v.detached_views.values():
+            for dw in list(v.detached_views.values()):
                 update_menu(dw.qmenus['window'])
                 
-        if current_view and current_view.window() in self.windows.values():
+        if current_view and current_view.window() in list(self.windows.values()):
             # add detach action
             current_view.window().qmenus['window'].addSeparator()
             action = QtGui.QAction(
@@ -2322,7 +2322,7 @@ class QVistrailsWindow(QVistrailViewWindow):
         #check if we have enough actions
         def update_menu(mergeMenu):
             mergeMenu.clear()
-            for i in xrange(self.stack.count()):
+            for i in range(self.stack.count()):
                 view = self.stack.widget(i)
                 # skip merge with self and not saved views
                 if view == self.current_view or not view.controller.vistrail.locator:
@@ -2333,7 +2333,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 action.controller = view.controller
                 action.setText("%s" % view.controller.vistrail.locator.name)
                 mergeMenu.addAction(action)
-            for view, w in self.windows.iteritems():
+            for view, w in self.windows.items():
                 # skip merge with self and not saved views
                 if view == self.current_view or not view.controller.vistrail.locator:
                     continue
@@ -2345,7 +2345,7 @@ class QVistrailsWindow(QVistrailViewWindow):
                 mergeMenu.addAction(action)
                 
         update_menu(self.qmenus['merge'])
-        for w in self.windows.values():
+        for w in list(self.windows.values()):
             update_menu(w.qmenus['merge'])
 
     def update_recent_vistrail_actions(self):
@@ -2538,7 +2538,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             view.version_selected(view.controller.current_version,
                                   True, from_root=True)
         
-        for i in xrange(self.stack.count()):
+        for i in range(self.stack.count()):
             view = self.stack.widget(i)
             reload_view(view)
         for view in self.windows:
@@ -2546,7 +2546,7 @@ class QVistrailsWindow(QVistrailViewWindow):
     
     def closeNotPinPalettes(self):
         if (QtGui.QApplication.activeWindow() == self or 
-            QtGui.QApplication.activeWindow() in self.windows.values()):
+            QtGui.QApplication.activeWindow() in list(self.windows.values())):
             for p in self.palettes:
                 if p.toolWindow().window() == QtGui.QApplication.activeWindow():
                     if (p.toolWindow().isVisible() and 
@@ -2590,7 +2590,7 @@ class QVistrailsWindow(QVistrailViewWindow):
             view = None
             if self.isAncestorOf(current):
                 view = self.stack.currentWidget()
-            elif  owner in self.windows.values():
+            elif  owner in list(self.windows.values()):
                 view = owner.get_current_view()
             if view:
                 # owner is a vistrail view

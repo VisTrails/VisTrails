@@ -1,7 +1,7 @@
-from __future__ import division
+
 
 from vistrails.core.modules.vistrails_module import Module
-from bases import MplProperties
+from .bases import MplProperties
 import matplotlib.artist
 import matplotlib.cbook
 
@@ -87,7 +87,7 @@ class MplArtistProperties(MplProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -189,7 +189,7 @@ class Mpl_AxesImageBaseProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -271,7 +271,7 @@ class MplAxesImageProperties(Mpl_AxesImageBaseProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -347,7 +347,7 @@ class MplNonUniformImageProperties(MplAxesImageProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -423,7 +423,7 @@ class MplBboxImageProperties(Mpl_AxesImageBaseProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -506,7 +506,7 @@ class MplPcolorImageProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -582,7 +582,7 @@ class MplFigureImageProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -727,7 +727,7 @@ class MplCollectionProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -823,7 +823,7 @@ class MplPathCollectionProperties(MplCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -877,7 +877,7 @@ class MplPolyCollectionProperties(MplCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -934,7 +934,7 @@ class MplBrokenBarHCollectionProperties(MplPolyCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -986,7 +986,7 @@ class MplRegularPolyCollectionProperties(MplCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1041,7 +1041,7 @@ class MplStarPolygonCollectionProperties(MplRegularPolyCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1096,7 +1096,7 @@ class MplAsteriskPolygonCollectionProperties(MplRegularPolyCollectionProperties)
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1179,7 +1179,7 @@ class MplLineCollectionProperties(MplCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1251,7 +1251,7 @@ class MplCircleCollectionProperties(MplCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1305,7 +1305,7 @@ class MplEllipseCollectionProperties(MplCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1369,7 +1369,7 @@ class MplPatchCollectionProperties(MplCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1427,7 +1427,7 @@ class MplTriMeshProperties(MplCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1514,7 +1514,7 @@ class MplQuadMeshProperties(MplCollectionProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1593,7 +1593,7 @@ class MplPatchProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1666,7 +1666,7 @@ class MplShadowProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1731,7 +1731,7 @@ class MplRectangleProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1795,7 +1795,7 @@ class MplRegularPolygonProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1853,7 +1853,7 @@ class MplCirclePolygonProperties(MplRegularPolygonProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1905,7 +1905,7 @@ class MplPathPatchProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -1955,7 +1955,7 @@ class MplPolygonProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2025,7 +2025,7 @@ class MplFancyArrowProperties(MplPolygonProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2101,7 +2101,7 @@ class MplWedgeProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2165,7 +2165,7 @@ class MplArrowProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2234,7 +2234,7 @@ class MplYAArrowProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2298,7 +2298,7 @@ class MplEllipseProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2354,7 +2354,7 @@ class MplCircleProperties(MplEllipseProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2421,7 +2421,7 @@ class MplArcProperties(MplEllipseProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2504,7 +2504,7 @@ class MplFancyBboxPatchProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2598,7 +2598,7 @@ class MplFancyArrowPatchProperties(MplPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2715,7 +2715,7 @@ class MplConnectionPatchProperties(MplFancyArrowPatchProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2856,7 +2856,7 @@ class MplLine2DProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -2998,7 +2998,7 @@ class MplTextProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -3172,7 +3172,7 @@ class MplTextWithDashProperties(MplTextProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -3334,7 +3334,7 @@ class MplTickProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -3475,7 +3475,7 @@ class MplXTickProperties(MplTickProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -3588,7 +3588,7 @@ class MplYTickProperties(MplTickProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -3714,7 +3714,7 @@ class MplAxisProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -3823,7 +3823,7 @@ class MplXAxisProperties(MplAxisProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -3895,7 +3895,7 @@ class MplYAxisProperties(MplAxisProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -4041,7 +4041,7 @@ class MplLegendProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -4257,7 +4257,7 @@ class MplAxesProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -4411,7 +4411,7 @@ class MplAxesSubplotProperties(MplAxesProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -4495,7 +4495,7 @@ class MplFigureProperties(MplArtistProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 
@@ -4584,7 +4584,7 @@ class MplAnnotationProperties(MplTextProperties):
             else:
                 objs_iter = matplotlib.cbook.flatten(objs)
             for obj in objs_iter:
-                for attr_name, attr_val in self.not_setp_props.iteritems():
+                for attr_name, attr_val in self.not_setp_props.items():
                     setattr(obj, attr_name, attr_val)
             self.update_sub_props(objs)
 

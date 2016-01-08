@@ -36,7 +36,7 @@
 
 ################################################################################
 
-from __future__ import division
+
 
 class Queue(object):
 
@@ -169,12 +169,12 @@ class TestQueue(unittest.TestCase):
     def test_expand_basic(self):
         """Test if the queue is expanding its capacity right with push()"""
         q = Queue()
-        for i in xrange(512):
+        for i in range(512):
             assert len(q) == i
             q.push(i)
             assert len(q) == i+1
         self.assertEquals(len(q), 512)
-        for i in xrange(512):
+        for i in range(512):
             assert len(q) == 512 - i
             self.assertEquals(q.pop(), i)
             assert len(q) == 511 - i
@@ -185,8 +185,8 @@ class TestQueue(unittest.TestCase):
             pushed = 0
             popped = 0
             q = Queue()
-            for t in xrange(100):
-                for i in xrange(100):
+            for t in range(100):
+                for i in range(100):
                     # Test expand with high probability
                     a = random.choice([0,0,0,0,0,1])
                     if (a == 0) or (len(q) == 0):
@@ -202,7 +202,7 @@ class TestQueue(unittest.TestCase):
                         assert olen == nlen+1, "pop invariant"
                         self.assertEquals(v, popped)
                         popped += 1
-                for i in xrange(100):
+                for i in range(100):
                     # Test contract with high probability
                     a = random.choice([1,1,1,1,1,0])
                     if (a == 0) or (len(q) == 0):
@@ -219,7 +219,7 @@ class TestQueue(unittest.TestCase):
                         self.assertEquals(v, popped)
                         popped += 1
         # run test 100 times
-        for i in xrange(1):
+        for i in range(1):
             run_it()
 
     def test_pop(self):

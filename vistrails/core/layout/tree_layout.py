@@ -53,7 +53,7 @@ The original paper is:
 
 """
 
-from __future__ import division
+
 
 class TreeLW(object):
     """
@@ -118,13 +118,13 @@ class TreeLW(object):
     def randomTree(n,  k=10000000):
         p = [0] * n
         import random
-        for i in xrange(1, n):
+        for i in range(1, n):
             minIndex = max(i-k, 0)
             index = random.randint(minIndex, i-1) # random number in {0,1,2,...,i-1}
             p[i] = index
         t = TreeLW()
         nodes= []
-        for i in xrange(n):
+        for i in range(n):
             if i==0:
                 parent= None
             else:
@@ -280,7 +280,7 @@ class TreeLayoutLW(object):
         maxNodeHeightPerLevel = self.tree.getMaxNodeHeightPerLevel()
         info_level = []
         position_level = 0
-        for level in xrange(len(maxNodeHeightPerLevel)):
+        for level in range(len(maxNodeHeightPerLevel)):
             height_level = maxNodeHeightPerLevel[level]
             info_level.append((position_level,height_level))
             position_level += self.ydistance + height_level
@@ -416,7 +416,7 @@ class TreeLayoutLW(object):
     def executeShifts(self, v):
         shift = 0
         change = 0
-        for i in xrange(v.getNumChilds()-1,-1,-1):
+        for i in range(v.getNumChilds()-1,-1,-1):
             w = v.children[i]
             w.prelim += shift
             w.mod += shift

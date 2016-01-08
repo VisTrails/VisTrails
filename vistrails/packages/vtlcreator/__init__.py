@@ -36,7 +36,7 @@
 """This package contains a module that generates a .vtl file for the 
 workflow it is contained into."""
 
-from __future__ import division
+
 
 identifier = 'org.vistrails.vistrails.vtlcreator'
 name = 'vtlCreator'

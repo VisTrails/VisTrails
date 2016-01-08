@@ -33,9 +33,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from itertools import izip
+
+
 import operator
 
 from vistrails.core.data_structures.bijectivedict import Bidict
@@ -99,7 +99,7 @@ class PortSpec(DBPortSpec):
 
         if 'optional' not in kwargs:
             kwargs['optional'] = 0 # False
-        elif not isinstance(kwargs['optional'], (int, long)):
+        elif not isinstance(kwargs['optional'], int):
             if isinstance(kwargs['optional'], bool):
                 if kwargs['optional']:
                     kwargs['optional'] = 1
@@ -279,15 +279,15 @@ class PortSpec(DBPortSpec):
     def _resize_attrs(self, target, *lists):
         for rlist in lists:
             if len(target) > len(rlist):
-                rlist.extend(None for i in xrange(len(target)-len(rlist)))
+                rlist.extend(None for i in range(len(target)-len(rlist)))
 
     def _set_attrs(self, item, *attrs):
         attr_order = ['default', 'label', 'values', 'entry_type']
         if item is None:
-            kwargs = dict(izip(attr_order, attrs))
+            kwargs = dict(zip(attr_order, attrs))
             return kwargs
         else:
-            for (attr_key, attr) in izip(attr_order, attrs):
+            for (attr_key, attr) in zip(attr_order, attrs):
                 if attr is not None:
                     setattr(item, attr_key, attr)
 
@@ -297,19 +297,19 @@ class PortSpec(DBPortSpec):
                           entry_types=None):
         if defaults is None:
             defaults = []
-        elif isinstance(defaults, basestring):
+        elif isinstance(defaults, str):
             defaults = literal_eval(defaults)
         if labels is None:
             labels = []
-        elif isinstance(labels, basestring):
+        elif isinstance(labels, str):
             labels = literal_eval(labels)
         if values is None:
             values = []
-        elif isinstance(values, basestring):
+        elif isinstance(values, str):
             values = literal_eval(values)
         if entry_types is None:
             entry_types = []
-        elif isinstance(entry_types, basestring):
+        elif isinstance(entry_types, str):
             entry_types = literal_eval(entry_types)
         attrs = [defaults, labels, values, entry_types]
         if items:
@@ -322,7 +322,7 @@ class PortSpec(DBPortSpec):
 
     def set_items(self, items, *attrs):
         self._resize_attrs(items, *attrs)
-        for i, item_tuple in enumerate(izip(items, *attrs)):
+        for i, item_tuple in enumerate(zip(items, *attrs)):
             item_tuple[0].pos = i
             self._set_attrs(*item_tuple)
 
@@ -361,7 +361,7 @@ class PortSpec(DBPortSpec):
         if not isinstance(signature, list):
             signature = [signature]
         self._resize_attrs(signature, *attrs)
-        for i, item_tuple in enumerate(izip(signature, *attrs)):
+        for i, item_tuple in enumerate(zip(signature, *attrs)):
             descriptor, item_label = canonicalize(item_tuple[0])
             kwargs = self._set_attrs(None, *item_tuple[1:])
             if not kwargs['label']:
@@ -382,7 +382,7 @@ class PortSpec(DBPortSpec):
             return ps_items
 
         self._resize_attrs(specs_list, *attrs)
-        for i, item_tuple in enumerate(izip(specs_list, *attrs)):
+        for i, item_tuple in enumerate(zip(specs_list, *attrs)):
             kwargs = self._set_attrs(None, *item_tuple[1:])
             ps_item = PortSpecItem(pos=i,
                                    package=item_tuple[0][0],
@@ -437,7 +437,7 @@ class PortSpec(DBPortSpec):
             return False
         if len(self.descriptors()) != len(other.descriptors()):
             return False
-        for (mine, their) in izip(self.descriptors(), other.descriptors()):
+        for (mine, their) in zip(self.descriptors(), other.descriptors()):
             if mine != their:
                 return False
         return True
@@ -456,7 +456,7 @@ class PortSpec(DBPortSpec):
             return True
         if len(self.descriptors()) != len(other.descriptors()):
             return False
-        for (mine, their) in izip(self.descriptors(), other.descriptors()):
+        for (mine, their) in zip(self.descriptors(), other.descriptors()):
             if mine != their:
                 return False
         return True

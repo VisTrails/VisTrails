@@ -33,18 +33,18 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from base64 import b16encode, b16decode
 import copy
-from itertools import izip
+
 import time
 
 from vistrails.core.modules.vistrails_module import Module, InvalidOutput, \
     ModuleError, ModuleConnector, ModuleSuspended, ModuleWasSuspended
 from vistrails.core.utils import xor, long2bytes
 
-from fold import create_constant
+from .fold import create_constant
 
 try:
     import hashlib
@@ -67,22 +67,22 @@ class While(Module):
         # FunctionPort
         suspended = []
         was_suspended = None
-        for port_name, connector_list in self.inputPorts.iteritems():
+        for port_name, connector_list in self.inputPorts.items():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
                     try:
                         connector.obj.update_upstream()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
             else:
                 for connector in connector_list:
                     try:
                         connector.obj.update()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
         if len(suspended) == 1:
             raise suspended[0]
@@ -135,7 +135,7 @@ class While(Module):
         state = None
 
         loop = self.logging.begin_loop_execution(self, max_iterations)
-        for i in xrange(max_iterations):
+        for i in range(max_iterations):
             if not self.upToDate:
                 module.upToDate = False
                 module.computed = False
@@ -143,7 +143,7 @@ class While(Module):
                 # Set state on input ports
                 if i > 0 and name_state_input:
                     for value, input_port, output_port \
-                    in izip(state, name_state_input, name_state_output):
+                    in zip(state, name_state_input, name_state_output):
                         if input_port in module.inputPorts:
                             del module.inputPorts[input_port]
                         new_connector = ModuleConnector(
@@ -201,22 +201,22 @@ class For(Module):
         # FunctionPort
         suspended = []
         was_suspended = None
-        for port_name, connector_list in self.inputPorts.iteritems():
+        for port_name, connector_list in self.inputPorts.items():
             if port_name == 'FunctionPort':
                 for connector in connector_list:
                     try:
                         connector.obj.update_upstream()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
             else:
                 for connector in connector_list:
                     try:
                         connector.obj.update()
-                    except ModuleWasSuspended, e:
+                    except ModuleWasSuspended as e:
                         was_suspended = e
-                    except ModuleSuspended, e:
+                    except ModuleSuspended as e:
                         suspended.append(e)
         if len(suspended) == 1:
             raise suspended[0]
@@ -249,7 +249,7 @@ class For(Module):
         suspended = []
         loop = self.logging.begin_loop_execution(self,
                                                  higher_bound - lower_bound)
-        for i in xrange(lower_bound, higher_bound):
+        for i in range(lower_bound, higher_bound):
             module = copy.copy(connectors[0].obj)
 
             if not self.upToDate:
@@ -275,7 +275,7 @@ class For(Module):
 
             try:
                 module.update()
-            except ModuleSuspended, e:
+            except ModuleSuspended as e:
                 suspended.append(e)
                 loop.end_iteration(module)
                 continue
@@ -303,11 +303,11 @@ import unittest
 
 class TestWhile(unittest.TestCase):
     def test_pythonsource(self):
-        import urllib2
+        import urllib.request, urllib.error, urllib.parse
         source = ('o = i * 2\n'
                   "r = \"it's %d!!!\" % o\n"
                   'go_on = o < 100')
-        source = urllib2.quote(source)
+        source = urllib.parse.quote(source)
         from vistrails.tests.utils import execute, intercept_result
         with intercept_result(While, 'Result') as results:
             self.assertFalse(execute([

@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.utils import VistrailsInternalError
@@ -187,7 +187,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         label.font().setPointSize(12)
         self.listContainer.layout().addWidget(label, 0, 1)
 
-        for i in xrange(len(self.inputPorts)):
+        for i in range(len(self.inputPorts)):
             port = self.inputPorts[i]
             checkBox = self.checkBoxFromPort(port, True)
             checkBox.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -196,7 +196,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
             self.inputDict[port.name] = checkBox
             self.listContainer.layout().addWidget(checkBox, i+1, 0)
         
-        for i in xrange(len(self.outputPorts)):
+        for i in range(len(self.outputPorts)):
             port = self.outputPorts[i]
             checkBox = self.checkBoxFromPort(port)
             checkBox.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -240,7 +240,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
     def resetTriggered(self):
         self.setFocus(QtCore.Qt.MouseFocusReason)
         self.setUpdatesEnabled(False)
-        for i in xrange(len(self.inputPorts)):
+        for i in range(len(self.inputPorts)):
             port = self.inputPorts[i]
             checkBox = self.inputDict[port.name]
             if not port.optional or port.name in self.module.visible_input_ports:
@@ -249,7 +249,7 @@ class _DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
                 checkBox.setCheckState(QtCore.Qt.Unchecked)
             if not port.optional or port.sigstring=='()':
                 checkBox.setEnabled(False)
-        for i in xrange(len(self.outputPorts)):
+        for i in range(len(self.outputPorts)):
             port = self.outputPorts[i]
             checkBox = self.outputDict[port.name]
             if not port.optional or port.name in self.module.visible_output_ports:

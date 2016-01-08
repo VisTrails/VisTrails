@@ -46,7 +46,7 @@ QGraphicsModuleItem
 QPipelineScene
 QPipelineView
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.configuration import get_vistrails_configuration
@@ -196,7 +196,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         Set this link to be ghosted or not
         
         """
-        if self.ghosted <> ghosted:
+        if self.ghosted != ghosted:
             self.ghosted = ghosted
             self.setPainterState()
 
@@ -267,7 +267,7 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
         if (self.port is not None and self.port.is_valid and
             hasattr(self.port, 'toolTip')):
             tooltip = self.port.toolTip()
-        for vistrail_var in self.vistrail_vars.itervalues():
+        for vistrail_var in self.vistrail_vars.values():
             tooltip += '\nConnected to vistrail var "%s"' % vistrail_var
         self.setToolTip(tooltip)
         
@@ -388,14 +388,14 @@ class QAbstractGraphicsPortItem(QtGui.QAbstractGraphicsShapeItem):
             if snapModule and snapModule != self.parentItem():
                 if self.port.type == 'output':
                     portMatch = self.scene().findPortMatch(
-                        [self], snapModule.inputPorts.values(),
+                        [self], list(snapModule.inputPorts.values()),
                         fixed_out_pos=event.scenePos(),
                         allow_conversion=True, out_converters=converters)
                     if portMatch[1] is not None:
                         snapPort = portMatch[1]
                 elif self.port.type == 'input':
                     portMatch = self.scene().findPortMatch(
-                        snapModule.outputPorts.values(), [self],
+                        list(snapModule.outputPorts.values()), [self],
                         fixed_in_pos=event.scenePos(),
                         allow_conversion=True, out_converters=converters)
                     if portMatch[0] is not None:
@@ -584,7 +584,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         Set this link to be ghosted or not
         
         """
-        if ghosted <> self.ghosted:
+        if ghosted != self.ghosted:
             self.ghosted = ghosted
             if ghosted:
                 self.setPen(CurrentTheme.GHOSTED_CONFIGURE_PEN)
@@ -969,8 +969,8 @@ class QGraphicsConnectionItem(QGraphicsItemInterface,
         startDepth = srcParent.module.list_depth + 1 if srcParent else 1
         dstParent = self.dstPortItem.parentItem()
         endDepth = dstParent.module.list_depth + 1 if dstParent else 1
-        starts = [diff(i, startDepth) for i in xrange(startDepth)]
-        ends = [diff(i, endDepth) for i in xrange(endDepth)]
+        starts = [diff(i, startDepth) for i in range(startDepth)]
+        ends = [diff(i, endDepth) for i in range(endDepth)]
     
         first = True
         for start in starts:
@@ -1143,9 +1143,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 new_op = sorted([x.key_no_id() 
                                  for x in core_module.sourcePorts()
                                  if (not x.optional or x._db_name in opv)])
-            except ModuleRegistryException, e:
+            except ModuleRegistryException as e:
                 debug.critical("MODULE REGISTRY EXCEPTION: %s" % e)
-            if cip <> new_ip or cop <> new_op:
+            if cip != new_ip or cop != new_op:
                 return True
         return False
 
@@ -1325,9 +1325,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         if self.ghosted != ghosted:
             self.ghosted = ghosted
-            for port in self.inputPorts.itervalues():
+            for port in self.inputPorts.values():
                 port.setGhosted(ghosted)
-            for port in self.outputPorts.itervalues():
+            for port in self.outputPorts.values():
                 port.setGhosted(ghosted)
             self._needs_state_updated = True
 
@@ -1343,9 +1343,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
     def setInvalid(self, invalid):
         if self.invalid != invalid:
             self.invalid = invalid
-            for port in self.inputPorts.itervalues():
+            for port in self.inputPorts.values():
                 port.setInvalid(invalid)
-            for port in self.outputPorts.itervalues():
+            for port in self.outputPorts.values():
                 port.setInvalid(invalid)
             self._needs_state_updated = True
 
@@ -1431,13 +1431,13 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                QtGui.QPainter.SmoothPixmapTransform)
         painter.translate(center_x, center_y)
         self.paint(painter, QtGui.QStyleOptionGraphicsItem())
-        for port in self.inputPorts.itervalues():
+        for port in self.inputPorts.values():
             m = port.matrix()
             painter.save()
             painter.translate(m.dx(), m.dy())
             port.paint(painter, QtGui.QStyleOptionGraphicsItem())
             painter.restore()
-        for port in self.outputPorts.itervalues():
+        for port in self.outputPorts.values():
             m = port.matrix()
             painter.save()
             painter.translate(m.dx(), m.dy())
@@ -1520,7 +1520,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     else:
                         self.optionalOutputPorts.append(p)
                 outputPorts += visibleOptionalOutputPorts
-            except ModuleRegistryException, e:
+            except ModuleRegistryException as e:
                 error = e
 
         # Local dictionary lookups are faster than global ones..
@@ -1580,7 +1580,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 fringe = descriptor.module_fringe()
                 if fringe:
                     self.set_module_shape(self.create_shape_from_fringe(fringe))
-            except ModuleRegistryException, e:
+            except ModuleRegistryException as e:
                 error = e
 
             if self.functions_widget:
@@ -1663,7 +1663,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         kwargs = {}
         shape = port.shape()
         if shape is not None:
-            if isinstance(shape, basestring):
+            if isinstance(shape, str):
                 if shape.startswith("triangle"):
                     port_klass = QGraphicsPortTriangleItem
                     try:
@@ -1715,7 +1715,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # if we haven't validated pipeline, don't try to use the registry
         if self.module.is_valid:
             # check enabled ports
-            for (p, item) in port_dict.iteritems():
+            for (p, item) in port_dict.items():
                 if registry.port_and_port_spec_match(port, p):
                     return item
                         
@@ -1726,7 +1726,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # port_descs = port.descriptors()
                 
         # first, check if we've already added the port
-        for (p, item) in port_dict.iteritems():
+        for (p, item) in port_dict.items():
             if (PortSpec.port_type_map.inverse[port.type] == p.type and
                 port.name == p.name and 
                 port.sigstring == p.sigstring):
@@ -1837,7 +1837,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
     # this is a generator that yields (connection, is_source [bool]) pairs
     def dependingConnectionItemsWithDir(self):
-        for item in self.connectionItems.itervalues():
+        for item in self.connectionItems.values():
             if item.connectingModules[0].id == self.id:
                 yield (item, False)
             else:
@@ -1953,7 +1953,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                         item.useSelectionRules = False
                         item.setSelected(False)
             # Handle connections from self
-            for item in self.dependingConnectionItems().itervalues():
+            for item in self.dependingConnectionItems().values():
                 # Select any connections between self and other selected modules
                 (srcModule, dstModule) = item.connectingModules
                 if value:
@@ -2244,7 +2244,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.clear()
         if not pipeline: return 
 
-        needReset = len(self.items())==0
+        needReset = len(list(self.items()))==0
         try:
             self.skip_update = True
             new_modules = set(pipeline.modules)
@@ -2330,7 +2330,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             for m_id in selected_modules:
                 self.modules[m_id].setSelected(True)
 
-        except ModuleRegistryException, e:
+        except ModuleRegistryException as e:
             debug.print_exc()
             views = self.views()
             assert len(views) > 0
@@ -2343,7 +2343,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.skip_update = False
             self.update_connections()
 
-        if needReset and len(self.items())>0:
+        if needReset and len(list(self.items()))>0:
             self.fitToAllViews()
 
     def findModuleUnder(self, pos):
@@ -2513,13 +2513,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
     def updateTmpInputConnection(self, pos):
         self.tmp_input_conn = \
             self.updateTmpConnection(pos, self.tmp_input_conn, 
-                                     self.tmp_module_item.inputPorts.values(), 
+                                     list(self.tmp_module_item.inputPorts.values()), 
                                      -1, lambda x: x)
             
     def updateTmpOutputConnection(self, pos):
         self.tmp_output_conn = \
             self.updateTmpConnection(pos, self.tmp_output_conn, 
-                                     self.tmp_module_item.outputPorts.values(), 
+                                     list(self.tmp_module_item.outputPorts.values()), 
                                      1, reversed)
 
     def dragEnterEvent(self, event):
@@ -2572,7 +2572,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                     tmp_port.port = data.variableData[0]
                     (_, nearest_port) = \
                         self.findPortMatch([tmp_port], \
-                                               snapModule.inputPorts.values(), \
+                                               list(snapModule.inputPorts.values()), \
                                                fixed_out_pos=event.scenePos())
                     del tmp_port
                 # Unhighlight previous nearest port
@@ -2699,7 +2699,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         item = data.items[0]
         self.controller.reset_pipeline_view = False
         self.noUpdate = True
-        internal_version = -1L
+        internal_version = -1
         reg = get_module_registry()
         if reg.is_abstraction(item.descriptor):
             internal_version = item.descriptor.module.internal_version
@@ -2775,7 +2775,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 for module_id, list_depth in depths:
                     if module_id in self.modules:
                         self.modules[module_id].module.list_depth = list_depth
-        for c in self.connections.itervalues():
+        for c in self.connections.values():
             c.setupConnection()
 
     def delete_tmp_module(self):
@@ -2861,7 +2861,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 dep_connection_ids = set()
                 for m in modules:
                     dep_connection_ids.update(
-                        m.dependingConnectionItems().iterkeys())
+                        iter(m.dependingConnectionItems().keys()))
                 # remove_connection updates the dependency list on the
                 # other side of connections, cannot use removeItem
                 for c_id in dep_connection_ids:
@@ -2940,7 +2940,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                     connection_ids[vvc] = 1
         for item in selectedItems:
             if isinstance(item, QGraphicsModuleItem):
-                for connItem in item.dependingConnectionItems().itervalues():
+                for connItem in item.dependingConnectionItems().values():
                     conn = connItem.connection
                     if not conn.id in connection_ids:
                         source_exists = conn.sourceId in module_ids
@@ -2949,7 +2949,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                             connection_ids[conn.id] = 1
                         elif dangling and (source_exists or dest_exists):
                             connection_ids[conn.id] = 1
-        return (module_ids.keys(), connection_ids.keys())
+        return (list(module_ids.keys()), list(connection_ids.keys()))
 
     def group(self):
         items = self.get_selected_item_ids(True)
@@ -2966,7 +2966,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             self.setupScene(self.controller.current_pipeline)
         
     def layout(self):
-        if len(self.items()) <= 0:
+        if len(list(self.items())) <= 0:
             return
         
         def _func(module):
@@ -3068,7 +3068,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         Select all module items in the scene
         
         """
-        for item in self.items():
+        for item in list(self.items()):
             if isinstance(item, QGraphicsModuleItem) or \
                     isinstance(item, QGraphicsConnectionItem):
                 item.setSelected(True)
@@ -3292,13 +3292,13 @@ class QPipelineScene(QInteractiveGraphicsScene):
             p.setValue(int(progress * 100))
 
     def reset_module_colors(self):
-        for module in self.modules.itervalues():
+        for module in self.modules.values():
             module.statusBrush = None
             module._needs_state_updated = True
 
     def hasMoveActions(self):
         controller = self.controller
-        for (mId, item) in self.modules.iteritems():
+        for (mId, item) in self.modules.items():
             module = controller.current_pipeline.modules[mId]
             (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
             if (dx != module.center.x or dy != module.center.y):
@@ -3312,7 +3312,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         controller = self.controller
         moves = []
-        for (mId, item) in self.modules.iteritems():
+        for (mId, item) in self.modules.items():
             module = controller.current_pipeline.modules[mId]
             (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
             if (dx != module.center.x or dy != module.center.y):
@@ -3421,7 +3421,7 @@ class QGraphicsFunctionWidget(QtGui.QGraphicsWidget):
             #height += bounds(name).height()
             height += 11 # hardcoded because fontmetric can give wrong value
 
-        for i in xrange(len(function.parameters)):
+        for i in range(len(function.parameters)):
             param = function.parameters[i]
             # check
             psi = param.port_spec_item
@@ -3622,7 +3622,7 @@ class QPipelineView(QInteractiveGraphicsView, BaseView):
                         reason="Execute specific module")
             else:
                 self.controller.execute_user_workflow()
-        except Exception, e:
+        except Exception as e:
             debug.unexpected_exception(e)
             debug.critical("Error executing workflow: %s" % debug.format_exception(e))
         else:

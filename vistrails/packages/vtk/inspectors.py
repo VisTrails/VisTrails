@@ -36,7 +36,7 @@
 
 ##############################################################################
 # Data inspectors for VTK
-from __future__ import division
+
 
 from vistrails.core.modules.vistrails_module import ModuleError
 from vistrails.core.modules.basic_modules import Module, Float, Integer
@@ -50,7 +50,7 @@ class vtkBaseInspector(Module):
     _settings = ModuleSettings(abstract=True)
     def auto_set_results(self, vtk_object):
         mid = self.moduleInfo['moduleId']
-        for function in self.outputPorts.keys():
+        for function in list(self.outputPorts.keys()):
             if hasattr(vtk_object, function):
                 retValues = getattr(vtk_object, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
@@ -58,7 +58,7 @@ class vtkBaseInspector(Module):
                     self.set_output(function, output)
                 elif isinstance(retValues, (tuple, list)):
                     result = list(retValues)
-                    for i in xrange(len(result)):
+                    for i in range(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
                             result[i] = VTKInstanceWrapper(result[i], mid)
                     self.set_output(function, type(retValues)(result))

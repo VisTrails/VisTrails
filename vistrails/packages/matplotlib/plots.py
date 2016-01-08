@@ -1,8 +1,8 @@
-from __future__ import division
+
 
 import matplotlib.pyplot
 from vistrails.core.modules.vistrails_module import Module, ModuleError
-from bases import MplPlot
+from .bases import MplPlot
 
 
 
@@ -659,8 +659,8 @@ Additional kwargs: hold = [True|False] overrides default hold state
                                                                  args, kwargs))
 
     def plot_figure(self, figure, args, kwargs):
-        if not kwargs.has_key('left'):
-            kwargs['left'] = range(len(kwargs['height']))
+        if 'left' not in kwargs:
+            kwargs['left'] = list(range(len(kwargs['height'])))
         rectangles = matplotlib.pyplot.bar(*args, **kwargs)
         if self.has_input('rectangleProperties'):
             properties = self.get_input('rectangleProperties')

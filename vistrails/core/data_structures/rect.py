@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 from vistrails.core.data_structures.point import Point
@@ -135,7 +135,7 @@ class TestRect(unittest.TestCase):
 
     def test_create(self):
         """Exercises Rect.create()"""
-        for i in xrange(100):
+        for i in range(100):
             a = random.uniform(-1.0, 1.0)
             b = random.uniform(-1.0, 1.0)
             c = random.uniform(-1.0, 1.0)

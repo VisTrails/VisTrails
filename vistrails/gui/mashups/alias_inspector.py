@@ -46,7 +46,7 @@ QListEditDialog
 QListEditItemDelegate
 
 """
-from __future__ import division
+
 
 import copy
 from PyQt4 import QtCore, QtGui
@@ -269,7 +269,7 @@ class QAliasDetailsWidget(QtGui.QWidget):
         new_alias = str(self.name_edit.text())
         if old_alias == new_alias:
             return
-        if new_alias in self.table.aliases.keys():
+        if new_alias in list(self.table.aliases.keys()):
             show_warning("Mashup",
                          "Label name %s already exists. "
                          "Please type a different name." % new_alias)
@@ -655,7 +655,7 @@ class QListEditDialog(QtGui.QDialog):
         
         """
         result = []
-        for i in xrange(self.table.rowCount()):
+        for i in range(self.table.rowCount()):
             logicalIndex = self.table.verticalHeader().logicalIndex(i)
             value = self.table.cellWidget(logicalIndex, 0).contents()            
             result.append(str(value))
@@ -668,7 +668,7 @@ class QListEditDialog(QtGui.QDialog):
         """
         vHeader = self.table.verticalHeader()
         labels = []        
-        for i in xrange(self.table.rowCount()):
+        for i in range(self.table.rowCount()):
             labels.append(str(vHeader.visualIndex(i)+1))
         self.table.setVerticalHeaderLabels(labels)
 

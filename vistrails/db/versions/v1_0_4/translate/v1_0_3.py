@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db.versions.v1_0_4.domain import DBVistrail, DBVistrailVariable, \
                                       DBWorkflow, DBLog, DBRegistry, \
@@ -52,7 +52,7 @@ from vistrails.db.versions.v1_0_4.domain import DBVistrail, DBVistrailVariable, 
 
 from vistrails.db.services.vistrail import materializeWorkflow
 from xml.dom.minidom import parseString
-from itertools import izip
+
 import os
 import shutil
 import string
@@ -216,7 +216,7 @@ def translateStartup(_startup):
 
     def invert_bool(_key, t_dict):
         def invert_value(_value, t):
-            return unicode(not (_value.db_value.lower() == 'true'))
+            return str(not (_value.db_value.lower() == 'true'))
         return change_value(DBConfigBool, invert_value, _key, t_dict)
 
     def use_dirname(_key, t_dict):
@@ -407,7 +407,7 @@ def translateStartup(_startup):
 
     # add any translations to packages, creating startup_pkg and
     # configuration if necessary
-    for pkg, keys in translate_dict['__startup_package_config__'].iteritems():
+    for pkg, keys in translate_dict['__startup_package_config__'].items():
         if pkg in startup.db_enabled_packages.db_packages_name_index:
             s_pkg = startup.db_enabled_packages.db_packages_name_index[pkg]
         elif pkg in startup.db_disabled_packages.db_packages_name_index:

@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import os
 import stat
@@ -41,7 +41,7 @@ from time import localtime
 from datetime import datetime
 from vistrails.core.thumbnails import ThumbnailCache
 
-from entity import Entity
+from .entity import Entity
 
 class ThumbnailEntity(Entity):
     type_id = 4

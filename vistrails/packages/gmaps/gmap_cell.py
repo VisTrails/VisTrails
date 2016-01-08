@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from string import Template
 
@@ -120,7 +120,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
             center = [0.0, 0.0]
             for layer in layers:
                 layer_data = dict((k, json.dumps(v, cls=RawJsJSONEncoder))
-                                   for k, v in layer.data.iteritems())
+                                   for k, v in layer.data.items())
                 layers_js += layer.init_template.substitute(layer_data)
                 center[0] += layer.center[0]
                 center[1] += layer.center[1]
@@ -133,8 +133,8 @@ google.maps.event.addDomListener(window, 'load', initialize);
                                 json.dumps(map_options, cls=RawJsJSONEncoder),
                                 'layers':
                                 layers_js}
-            print >>f, self.TEMPLATE.substitute(template_options)
-        print "GMAP FILENAME:", fname
+            print(self.TEMPLATE.substitute(template_options), file=f)
+        print("GMAP FILENAME:", fname)
 
         WebViewCellWidget.updateContents(self, (None, file_module))
 

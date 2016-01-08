@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core.modules.vistrails_module import Module, ModuleError
 import vistrails.core.vistrail.vistrail
@@ -100,7 +100,7 @@ class CountActions(Module):
     # loop through the actionMap dictionary's (key, value) pairs in
     # sorted order
         Tally={}
-        for id, action in sorted(vistrail.actionMap.iteritems()):
+        for id, action in sorted(vistrail.actionMap.items()):
             # print action information
             for action in action.operations:
                 # look for action(what) in dictionary
@@ -109,14 +109,14 @@ class CountActions(Module):
                     Tally[action.what] = {action.vtType : 1}
 
                 # if is there, if subdictionray has the vtType key, update vtType count
-                elif Tally.has_key(action.what):
-                    if Tally[action.what].has_key(action.vtType):
+                elif action.what in Tally:
+                    if action.vtType in Tally[action.what]:
                         Tally[action.what][action.vtType] += 1
                     else:
                         Tally[action.what] = {action.vtType : 1}
 
                 # if is there, if subdictionary does not have vtType key, create entry
-                elif Tally.has_key(action.what) is None:
+                elif (action.what in Tally) is None:
                     Tally[action.what] = {action.vtType : 1}
         return Tally
 
@@ -149,7 +149,7 @@ class TotalDays(Module):
     def calc_time(self, vistrail):
         time = {}
         totals = {}
-        for id,action in sorted(vistrail.actionMap.iteritems()):
+        for id,action in sorted(vistrail.actionMap.items()):
             if action.user not in time:
                 # action.date is a string representation
                 # action.db_date is the real python datetime object
@@ -157,7 +157,7 @@ class TotalDays(Module):
             else:
                 time[action.user].append(action.db_date)
 
-        for user, time_list in time.iteritems():
+        for user, time_list in time.items():
             max_time = max(time_list)
             min_time = min(time_list)
 

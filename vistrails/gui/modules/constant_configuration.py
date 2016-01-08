@@ -41,7 +41,7 @@ constants.
 
 """
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.utils import any, expression, versions_increasing
@@ -194,7 +194,7 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         self.validate(value)
 
     def contents(self):
-        contents = expression.evaluate_expressions(unicode(self.toPlainText()))
+        contents = expression.evaluate_expressions(str(self.toPlainText()))
         self.setPlainText(contents)
         self.validate(contents)
         return contents
@@ -203,7 +203,7 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         try:
             self.psi and \
             self.psi.descriptor.module.translate_to_python(value)
-        except Exception, e:
+        except Exception as e:
             self.setToolTip("Invalid value: %s" % str(e))
             self.is_valid = False
         else:
@@ -303,7 +303,7 @@ class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
             self.update_parent()
 
     def contents(self):
-        contents = expression.evaluate_expressions(unicode(self.text()))
+        contents = expression.evaluate_expressions(str(self.text()))
         self.setText(contents)
         self.validate(contents)
         return contents
@@ -312,7 +312,7 @@ class StandardConstantWidget(QtGui.QLineEdit,ConstantWidgetBase):
         try:
             self.psi and \
             self.psi.descriptor.module.translate_to_python(value)
-        except Exception, e:
+        except Exception as e:
             # Color background yellow and add tooltip
             self.setStyleSheet("border:2px dashed %s;" %
                                CurrentTheme.PARAM_INVALID_COLOR.name())
@@ -434,7 +434,7 @@ class MultiLineStringWidget(QtGui.QTextEdit, ConstantWidgetBase):
         self.setPlainText(expression.evaluate_expressions(contents))
 
     def contents(self):
-        contents = expression.evaluate_expressions(unicode(self.toPlainText()))
+        contents = expression.evaluate_expressions(str(self.toPlainText()))
         self.setPlainText(contents)
         return contents
 

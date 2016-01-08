@@ -35,9 +35,9 @@
 ###############################################################################
 
 """generated automatically by auto_dao.py"""
-from __future__ import division
 
-from sql_dao import SQLDAO
+
+from .sql_dao import SQLDAO
 from vistrails.db.versions.v0_9_0.domain import *
 
 class DBPortSpecSQLDAOBase(SQLDAO):
@@ -508,10 +508,10 @@ class DBLogSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
+            if 'entity_id' not in global_props:
                 global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
+            if 'entity_type' not in global_props:
                 global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
@@ -571,9 +571,9 @@ class DBLogSQLDAOBase(SQLDAO):
         if obj.db_id is None:
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if not global_props.has_key('entity_type'):
+        if 'entity_type' not in global_props:
             global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
-        if not global_props.has_key('entity_id'):
+        if 'entity_id' not in global_props:
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
@@ -1272,10 +1272,10 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
+            if 'entity_id' not in global_props:
                 global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
+            if 'entity_type' not in global_props:
                 global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             name = self.convertFromDB(row[2], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[3], 'datetime', 'datetime')
@@ -1325,9 +1325,9 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         if obj.db_id is None:
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if not global_props.has_key('entity_type'):
+        if 'entity_type' not in global_props:
             global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
-        if not global_props.has_key('entity_id'):
+        if 'entity_id' not in global_props:
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
@@ -1369,10 +1369,10 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
+            if 'entity_id' not in global_props:
                 global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
+            if 'entity_type' not in global_props:
                 global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             name = self.convertFromDB(row[2], 'str', 'varchar(255)')
             version = self.convertFromDB(row[3], 'str', 'char(16)')
@@ -1432,9 +1432,9 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         if obj.db_id is None:
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if not global_props.has_key('entity_type'):
+        if 'entity_type' not in global_props:
             global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
-        if not global_props.has_key('entity_id'):
+        if 'entity_id' not in global_props:
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
@@ -2262,10 +2262,10 @@ class DBVistrailSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
+            if 'entity_id' not in global_props:
                 global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
+            if 'entity_type' not in global_props:
                 global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
@@ -2320,9 +2320,9 @@ class DBVistrailSQLDAOBase(SQLDAO):
         if obj.db_id is None:
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if not global_props.has_key('entity_type'):
+        if 'entity_type' not in global_props:
             global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
-        if not global_props.has_key('entity_id'):
+        if 'entity_id' not in global_props:
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):

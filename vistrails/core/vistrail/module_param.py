@@ -37,7 +37,7 @@
     * ModuleParam
 
  """
-from __future__ import division
+
 
 from vistrails.db.domain import DBParameter
 from vistrails.core.modules.utils import parse_port_spec_item_string, \
@@ -234,30 +234,30 @@ class ModuleParam(DBParameter):
 
     def show_comparison(self, other):
         if type(self) != type(other):
-            print "type mismatch"
+            print("type mismatch")
             return
         if self.typeStr != other.typeStr:
-            print "paramtype mismatch"
+            print("paramtype mismatch")
             return
         if self.strValue != other.strValue:
-            print "strvalue mismatch"
+            print("strvalue mismatch")
             return
         if self.name != other.name:
-            print "name mismatch"
+            print("name mismatch")
             return
         if self.alias != other.alias:
-            print "alias mismatch"
+            print("alias mismatch")
             return
         if self.minValue != other.minValue:
-            print "minvalue mismatch"
+            print("minvalue mismatch")
             return
         if self.maxValue != other.maxValue:
-            print "maxvalue mismatch"
+            print("maxvalue mismatch")
             return
         if self.evaluatedStrValue != other.evaluatedStrValue:
-            print "evaluatedStrValue mismatch"
+            print("evaluatedStrValue mismatch")
             return
-        print "no difference found"
+        print("no difference found")
         assert self == other
         return
         

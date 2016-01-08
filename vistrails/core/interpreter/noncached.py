@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import vistrails.core.interpreter.base
 import vistrails.core.interpreter.cached
@@ -46,7 +46,7 @@ class Interpreter(vistrails.core.interpreter.cached.CachedInterpreter):
 
     def clean_non_cacheable_modules(self):
         non_cacheable_modules = [i for
-                                 (i, mod) in self._objects.iteritems()]
+                                 (i, mod) in self._objects.items()]
         self.clean_modules(non_cacheable_modules)
 
     __instance = None

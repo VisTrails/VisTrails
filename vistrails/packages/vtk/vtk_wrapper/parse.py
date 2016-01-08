@@ -34,9 +34,9 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from itertools import izip, chain
+
+from itertools import chain
 import re
 
 import vtk
@@ -174,7 +174,7 @@ def create_module(base_cls_name, node):
     try:
         node.klass.__doc__.decode('latin-1')
     except UnicodeDecodeError:
-        print "ERROR decoding docstring", node.name
+        print("ERROR decoding docstring", node.name)
         raise
 
     input_ports, output_ports = get_ports(node.klass)
@@ -309,7 +309,7 @@ def prune_signatures(cls, name, signatures, output=False):
         return False
 
     signatures[:] = [original for (flattened, hit_count, original)
-                     in izip(flattened_entries,
+                     in zip(flattened_entries,
                              hits,
                              signatures)
                      if passes(flattened, hit_count, original)]
@@ -378,7 +378,7 @@ type_map_dict = {'int': "basic:Integer",
                  'bool': "basic:Boolean",
                  'unicode': 'basic:String'}
 
-type_map_values = set(type_map_dict.itervalues())
+type_map_values = set(type_map_dict.values())
 # ["basic:Integer", "basic:Float", "basic:String", "basic:Boolean"]
 
 def get_port_types(name):
@@ -424,7 +424,7 @@ def get_algorithm_ports(cls):
         except TypeError:
             pass
         else:
-            for i in xrange(instance.GetNumberOfInputPorts()):
+            for i in range(instance.GetNumberOfInputPorts()):
                 port_name = "SetInputConnection%d" % i
                 port_spec = InputPortSpec(name=port_name,
                                           method_name="SetInputConnection",
@@ -434,7 +434,7 @@ def get_algorithm_ports(cls):
                                           show_port=True,
                                           prepend_params=[i])
                 input_ports.append(port_spec)
-            for i in xrange(instance.GetNumberOfOutputPorts()):
+            for i in range(instance.GetNumberOfOutputPorts()):
                 port_name = "GetOutputPort%d" % i
                 port_spec = OutputPortSpec(name=port_name,
                                            method_name="GetOutputPort",
@@ -631,7 +631,7 @@ def get_toggle_ports(cls, toggle_dict):
     """
 
     input_ports = []
-    for name, default_val in toggle_dict.iteritems():
+    for name, default_val in toggle_dict.items():
         if name in disallowed_toggle_ports:
             continue
         ps = InputPortSpec(name=name,
@@ -892,9 +892,9 @@ def get_ports(cls):
     ports_tuples.append(get_other_ports(cls, parser.get_other_methods()))
     ports_tuples.append(get_custom_ports(cls))
 
-    zipped_ports = izip(*ports_tuples)
-    input_ports = chain(*zipped_ports.next())
-    output_ports = chain(*zipped_ports.next())
+    zipped_ports = zip(*ports_tuples)
+    input_ports = chain(*next(zipped_ports))
+    output_ports = chain(*next(zipped_ports))
     return input_ports, output_ports
 
 def parse(filename="vtk_raw.xml"):

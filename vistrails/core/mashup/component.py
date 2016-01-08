@@ -33,9 +33,9 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-import urllib
+
+import urllib.request, urllib.parse, urllib.error
 from vistrails.core.mashup import conv_from_bool, conv_to_bool, convert_symbols
 from vistrails.db.domain import DBMashupComponent
 
@@ -94,12 +94,12 @@ class Component(DBMashupComponent):
         data = self.strvaluelist.split(',')
         result = []
         for d in data:
-            result.append(urllib.unquote_plus(d))
+            result.append(urllib.parse.unquote_plus(d))
         return result
     def _set_valuelist(self, valuelist):
         q = []
         for v in valuelist:
-            q.append(urllib.quote_plus(v))
+            q.append(urllib.parse.quote_plus(v))
         self.strvaluelist = ",".join(q)
     valueList = property(_get_valuelist,_set_valuelist)
 
@@ -292,8 +292,8 @@ maxVal='%s' stepSize='%s' strvaluelist='%s' parent='%s' seq='%s' widget='%s')@%X
 class TestComponent(unittest.TestCase):
     def create_component(self, id_scope=IdScope()):
         c = Component(id=id_scope.getNewId('mashup_component'),
-                          vttype='parameter', param_id=15L, 
-                          parent_vttype='function', parent_id=3L, mid=4L,
+                          vttype='parameter', param_id=15, 
+                          parent_vttype='function', parent_id=3, mid=4,
                           type='String', value='test', p_pos=0, pos=1, 
                           strvaluelist='test1,test2', widget="text")
         return c

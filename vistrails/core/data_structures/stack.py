@@ -37,7 +37,7 @@
 
 ###############################################################################
 
-from __future__ import division
+
 
 class EmptyStack(Exception):
     pass

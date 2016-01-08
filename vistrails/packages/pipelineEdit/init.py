@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 import vistrails.api
@@ -99,7 +99,7 @@ class QPipelineEditor(QtGui.QWidget):
         if not fn.isNull():
             self.filenameLabel.setText('Vistrail: %s' % fn)
             self.vistrail = vistrails.api.get_vistrail_from_file(str(fn))
-            for item in self.vistrail.get_tagMap().items():
+            for item in list(self.vistrail.get_tagMap().items()):
                 self.versions.append(item)
             self.pipelineList.clear()
             self.pipelineList.addItems([version for (name, version) in self.versions])
@@ -115,7 +115,7 @@ class QPipelineEditor(QtGui.QWidget):
         else:
             versionName = self.pipelineList.currentItem().text()
             pipeline = self.vistrail.getPipelineVersionName(str(versionName))
-            aliases = pipeline.aliases.keys()
+            aliases = list(pipeline.aliases.keys())
             self.aliasTable.setRowCount(len(aliases))
             row = 0
             for name in aliases:
@@ -130,7 +130,7 @@ class QPipelineEditor(QtGui.QWidget):
 
         """
         aliases = {}
-        for r in xrange(self.aliasTable.rowCount()):
+        for r in range(self.aliasTable.rowCount()):
             name = str(self.aliasTable.item(r, 0).text())
             value = str(self.aliasTable.item(r, 1).text())
             aliases[name] = value

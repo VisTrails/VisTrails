@@ -36,7 +36,7 @@
 
 """ Utilities for creating simple dialogs, notifications in Vistrails
 without exposing Qt codes """
-from __future__ import division
+
 
 from PyQt4 import QtGui, QtCore
 from vistrails.gui.theme import CurrentTheme
@@ -154,7 +154,7 @@ def build_custom_window(title, message, icon=None,
     for b in buttons:
         msgBox.addButton(b)
         abstractButtons[b] = msgBox.button(b)
-    if abstractButtons.has_key(default):
+    if default in abstractButtons:
         msgBox.setDefaultButton(abstractButtons[default])
     if escape != -1:
         msgBox.setEscapeButton(abstractButtons[escape])

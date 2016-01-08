@@ -37,7 +37,7 @@
 """This file contains the spreadsheet registry: SpreadsheetRegistry
 """
 
-from __future__ import division
+
 
 class SpreadsheetRegistry(object):
     """
@@ -65,7 +65,7 @@ class SpreadsheetRegistry(object):
         Unregister a package out of the spreadsheet
 
         """
-        if self.packages.has_key(package):
+        if package in self.packages:
             del self.packages[package]
 
     def registerSheet(self, name, sheetType):
@@ -80,7 +80,7 @@ class SpreadsheetRegistry(object):
         Unregister a named sheet type
 
         """
-        if self.sheets.has_key(name):
+        if name in self.sheets:
             del self.sheets[name]
 
     def getSheet(self, name):
@@ -88,7 +88,7 @@ class SpreadsheetRegistry(object):
         Return the type of sheet with the corresponding name
 
         """
-        if self.sheets.has_key(name):
+        if name in self.sheets:
             return self.sheets[name]
         else:
             return None
@@ -98,7 +98,7 @@ class SpreadsheetRegistry(object):
         Return the name of sheet with the corresponding type
 
         """
-        for (n,t) in self.sheets.items():
+        for (n,t) in list(self.sheets.items()):
             if t==type:
                 return n
         return None

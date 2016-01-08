@@ -36,7 +36,7 @@
 
 # This is the user-defined hasher for VTK, that takes into account
 # incoming and outgoing connections
-from __future__ import division
+
 
 from vistrails.core.cache.hasher import Hasher
 

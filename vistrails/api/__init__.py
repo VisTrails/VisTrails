@@ -184,7 +184,7 @@ def get_modules_by_name(name, package=None, namespace=None, controller=None):
     if controller is None:
         controller = get_current_controller()
     res = []
-    for module in controller.current_pipeline.modules.itervalues():
+    for module in controller.current_pipeline.modules.values():
         if (module.name == name and
             (package is None or module.package == package) and
             (namespace is None or module.namespace == namespace)):
@@ -203,7 +203,7 @@ def get_selected_modules(controller=None):
         modules.append(controller.current_pipeline.modules[m_id])
     return modules
     
-def change_parameter(module_id, function_name, param_list, function_id=-1L,
+def change_parameter(module_id, function_name, param_list, function_id=-1,
                      alias_list=[], controller=None):
     """change_parameter(module_id: long, 
                         function_name: str, 
@@ -302,7 +302,7 @@ def get_available_versions():
     """
     ctrl = get_current_controller()
     vistrail = ctrl.vistrail
-    return (vistrail.actionMap.keys(), vistrail.get_tagMap())
+    return (list(vistrail.actionMap.keys()), vistrail.get_tagMap())
 
 def open_vistrail_from_file(filename):
     from vistrails.core.db.locator import FileLocator

@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from .gmap_cell import _modules as gmap_modules
 from .vis import _modules as vis_modules
@@ -63,15 +63,15 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 if remap is None:
                     # don't add the function back in
                     continue
-                elif not isinstance(remap, basestring):
+                elif not isinstance(remap, str):
                     function_ops.extend(remap(function, new_module))
                     continue
                 else:
                     function_name = remap
 
                 if len(function.parameters) > 0:
-                    new_param_vals, aliases = zip(*[(p.strValue, p.alias)
-                                                    for p in function.parameters])
+                    new_param_vals, aliases = list(zip(*[(p.strValue, p.alias)
+                                                    for p in function.parameters]))
                 else:
                     new_param_vals = []
                     aliases = []
@@ -85,7 +85,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                     n_items = len(new_param_vals)
                     function_port_spec = PortSpec(name=function_name,
                                                   items=[mk_psi(i)
-                                                         for i in xrange(n_items)])
+                                                         for i in range(n_items)])
                 new_function = controller.create_function(new_module,
                                                           function_port_spec,
                                                           new_param_vals,
@@ -111,7 +111,7 @@ def handle_module_upgrade_request(controller, module_id, pipeline):
                 if remap is None:
                     # don't add this connection back in
                     continue
-                elif not isinstance(remap, basestring):
+                elif not isinstance(remap, str):
                     ops.extend(remap(old_conn, new_module))
                     continue
                 else:

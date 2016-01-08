@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtGui, QtCore
 from vistrails.core.modules.vistrails_module import ModuleError
@@ -181,7 +181,7 @@ class QObjectInspector(QtGui.QTreeWidget):
             inputs_item = QDebugModuleItem(module_item)
             inputs_item.setText(0, "inputPorts")
             inputs_item.setText(1, "")   
-            for port_name, port_val in input_ports.iteritems():
+            for port_name, port_val in input_ports.items():
                 self.create_port_item(port_name, port_val, True, 
                                       inputs_item)
                 
@@ -194,7 +194,7 @@ class QObjectInspector(QtGui.QTreeWidget):
         dict_item = QDebugModuleItem(parent_item)
         dict_item.setText(0, "__dict__")
         dict_item.setText(1, "")
-        for k in m.__dict__.keys():
+        for k in list(m.__dict__.keys()):
             d_val = QDebugModuleItem(dict_item)
             d_val.setText(0, str(k))
             d_val.setText(1, str(m.__dict__[k]))

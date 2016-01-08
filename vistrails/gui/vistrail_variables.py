@@ -37,7 +37,7 @@
 drop constants from the module palette
 
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.gui.variable_dropbox import QVariableDropBox

@@ -35,7 +35,7 @@
 ###############################################################################
 """basic_modules defines basic VisTrails Modules that are used in most
 pipelines."""
-from __future__ import division
+
 
 import vistrails.core.cache.hasher
 from vistrails.core.debug import format_exception
@@ -51,14 +51,14 @@ from vistrails.core import debug
 
 from abc import ABCMeta
 from ast import literal_eval
-from itertools import izip
+
 import mimetypes
 import os
 import pickle
 import re
 import shutil
 import zipfile
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 try:
     import hashlib
@@ -110,7 +110,7 @@ class meta_add_value_ports(type):
 
         return mod
 
-class Constant(Module):
+class Constant(Module, metaclass=meta_add_value_ports):
     """Base class for all Modules that represent a constant value of
     some type.
     
@@ -146,8 +146,6 @@ class Constant(Module):
     """
     _settings = ModuleSettings(abstract=True)
     _output_ports = [OPort("value_as_string", "String")]
-
-    __metaclass__ = meta_add_value_ports
 
     @staticmethod
     def validate(x):
@@ -271,7 +269,7 @@ class Float(Constant):
 
     @staticmethod
     def validate(x):
-        return isinstance(x, (int, long, float))
+        return isinstance(x, (int, float))
 
     @staticmethod
     def query_compute(value_a, value_b, query_method):
@@ -303,7 +301,7 @@ class Integer(Float):
 
     @staticmethod
     def validate(x):
-        return isinstance(x, (int, long))
+        return isinstance(x, int)
 
 class String(Constant):
     _settings = ModuleSettings(
@@ -317,7 +315,7 @@ class String(Constant):
 
     @staticmethod
     def translate_to_python(x):
-        assert isinstance(x, (str, unicode))
+        assert isinstance(x, str)
         return str(x)
 
     @staticmethod
@@ -464,7 +462,7 @@ class Directory(Path):
                 self.get_input("create_directory")):
             try:
                 vistrails.core.system.mkdir(n)
-            except Exception, e:
+            except Exception as e:
                 raise ModuleError(self, 'mkdir: %s' % format_exception(e))
         if not os.path.isdir(n):
             raise ModuleError(self, 'Directory "%s" does not exist' % n)
@@ -523,7 +521,7 @@ class FileSink(NotCacheable, Module):
             if self.get_input('overwrite'):
                 try:
                     os.remove(full_path)
-                except OSError, e:
+                except OSError as e:
                     msg = ('Could not delete existing path "%s" '
                            '(overwrite on)' % full_path)
                     raise ModuleError(self, msg)
@@ -534,15 +532,15 @@ class FileSink(NotCacheable, Module):
 
         try:
             vistrails.core.system.link_or_copy(input_file.name, full_path)
-        except OSError, e:
+        except OSError as e:
             msg = "Could not create file '%s': %s" % (full_path, e)
             raise ModuleError(self, msg)
 
         if (self.has_input("publishFile") and
             self.get_input("publishFile") or 
             not self.has_input("publishFile")):
-            if self.moduleInfo.has_key('extra_info'):
-                if self.moduleInfo['extra_info'].has_key('pathDumpCells'):
+            if 'extra_info' in self.moduleInfo:
+                if 'pathDumpCells' in self.moduleInfo['extra_info']:
                     folder = self.moduleInfo['extra_info']['pathDumpCells']
                     base_fname = os.path.basename(full_path)
                     (base_fname, file_extension) = os.path.splitext(base_fname)
@@ -556,7 +554,7 @@ class FileSink(NotCacheable, Module):
                         counter += 1
                     try:
                         vistrails.core.system.link_or_copy(input_file.name, filename)
-                    except OSError, e:
+                    except OSError as e:
                         msg = "Could not publish file '%s' \n   on  '%s':" % (
                                 full_path, filename)
                         # I am not sure whether we should raise an error
@@ -586,7 +584,7 @@ class DirectorySink(NotCacheable, Module):
                         os.remove(full_path)
                     else:
                         shutil.rmtree(full_path)
-                except OSError, e:
+                except OSError as e:
                     msg = ('Could not delete existing path "%s" '
                            '(overwrite on)' % full_path)
                     raise ModuleError(
@@ -599,7 +597,7 @@ class DirectorySink(NotCacheable, Module):
             
         try:
             shutil.copytree(input_dir.name, full_path)
-        except OSError, e:
+        except OSError as e:
             msg = 'Could not copy path from "%s" to "%s"' % \
                 (input_dir.name, full_path)
             raise ModuleError(self, '%s\n%s' % (msg, format_exception(e)))
@@ -749,7 +747,7 @@ class Color(Constant):
         
         # cie76 difference
         diff = sum((v_1 - v_2) ** 2 
-                   for v_1, v_2 in izip(value_a_lab, value_b_lab)) ** (0.5)
+                   for v_1, v_2 in zip(value_a_lab, value_b_lab)) ** (0.5)
 
         # print "CIE 76 DIFFERENCE:", diff
         if query_method is None:
@@ -771,7 +769,7 @@ class StandardOutput(NotCacheable, Module):
             try:
                 fp = open(v.name, 'rb')
             except IOError:
-                print v
+                print(v)
             else:
                 try:
                     CHUNKSIZE = 2048
@@ -786,7 +784,7 @@ class StandardOutput(NotCacheable, Module):
                 finally:
                     fp.close()
         else:
-            print v
+            print(v)
 
 ##############################################################################
 
@@ -840,7 +838,7 @@ class Untuple(Module):
             values = tuple.values
         else:
             values = self.get_input("value")
-        for p, value in izip(self.output_ports_order, values):
+        for p, value in zip(self.output_ports_order, values):
             self.set_output(p, value)
 
 ##############################################################################
@@ -855,12 +853,12 @@ class ConcatenateString(Module):
 
     fieldCount = 4
     _input_ports = [IPort("str%d" % i, "String")
-                    for i in xrange(1, 1 + fieldCount)]
+                    for i in range(1, 1 + fieldCount)]
     _output_ports = [OPort("value", "String")]
 
     def compute(self):
         result = "".join(self.force_get_input('str%d' % i, '')
-                         for i in xrange(1, 1 + self.fieldCount))
+                         for i in range(1, 1 + self.fieldCount))
         self.set_output('value', result)
 
 ##############################################################################
@@ -880,8 +878,8 @@ class Not(Module):
 # List
 
 # If numpy is available, we consider numpy arrays to be lists as well
-class ListType(object):
-    __metaclass__ = ABCMeta
+class ListType(object, metaclass=ABCMeta):
+    pass
 
 ListType.register(list)
 try:
@@ -1050,7 +1048,7 @@ class CodeRunnerMixin(object):
         if 'source' in locals_:
             del locals_['source']
         # Python 2.6 needs code to end with newline
-        exec code_str + '\n' in locals_, locals_
+        exec(code_str + '\n', locals_, locals_)
         if use_output:
             for k in self.output_ports_order:
                 if locals_.get(k) is not None:
@@ -1078,7 +1076,7 @@ class PythonSource(CodeRunnerMixin, NotCacheable, Module):
     _output_pors = [OPort('self', 'Module')]
 
     def compute(self):
-        s = urllib.unquote(str(self.get_input('source')))
+        s = urllib.parse.unquote(str(self.get_input('source')))
         self.run_code(s, use_input=True, use_output=True)
 
 ##############################################################################
@@ -1211,7 +1209,7 @@ class Generator(object):
             module.generator = generator
             Generator.generators.append(module)
             
-    def next(self):
+    def __next__(self):
         """ return next value - the generator """
         value = self.module.get_output(self.port)
         if isinstance(value, Generator):
@@ -1223,10 +1221,10 @@ class Generator(object):
         
         """
         items = []
-        item = self.next()
+        item = next(self)
         while item is not None:
             items.append(item)
-            item = self.next()
+            item = next(self)
         return items
 
     @staticmethod
@@ -1240,7 +1238,7 @@ class Generator(object):
             return
         while result is not None:
             for g in Generator.generators:
-                result = g.next()
+                result = next(g)
         Generator.generators = []
 
 ##############################################################################
@@ -1327,7 +1325,7 @@ class StringFormat(Module):
         fmt = self.get_input('format')
         args, kwargs = StringFormat.list_placeholders(fmt)
         f_args = [self.get_input('_%d' % n)
-                  for n in xrange(args)]
+                  for n in range(args)]
         f_kwargs = dict((n, self.get_input(n))
                         for n in kwargs)
         self.set_output('value', fmt.format(*f_args, **f_kwargs))
@@ -1462,7 +1460,7 @@ def get_module(value, signature=None):
            (len(signature) == 1 and signature[0][0] == Variant):
             return (Variant,)*len(value)
         v_modules = ()
-        for element in xrange(len(value)):
+        for element in range(len(value)):
             v_modules += (get_module(value[element], signature[element]),)
         if None in v_modules: # Identification failed
             return None
@@ -1486,7 +1484,7 @@ class TestConcatenateString(unittest.TestCase):
             errors = execute([
                     ('ConcatenateString', 'org.vistrails.vistrails.basic', [
                         (name, [('String', value)])
-                        for name, value in kwargs.iteritems()
+                        for name, value in kwargs.items()
                     ]),
                 ])
             if errors:
@@ -1611,13 +1609,13 @@ class TestList(unittest.TestCase):
                 errors = execute([
                         ('List', 'org.vistrails.vistrails.basic', [
                             (k, [('String', v)])
-                            for k, v in kwargs.iteritems()
+                            for k, v in kwargs.items()
                         ]),
                     ],
                     add_port_specs=[
                         (0, 'input', 'item%d' % i,
                          '(org.vistrails.vistrails.basic:Module)')
-                        for i in xrange(nb_items)
+                        for i in range(nb_items)
                     ])
                 if errors:
                     return None
@@ -1635,10 +1633,10 @@ class TestList(unittest.TestCase):
 class TestPythonSource(unittest.TestCase):
     def test_simple(self):
         """A simple PythonSource returning a string"""
-        import urllib2
+        import urllib.request, urllib.error, urllib.parse
         from vistrails.tests.utils import execute, intercept_result
         source = 'customout = "nb is %d" % customin'
-        source = urllib2.quote(source)
+        source = urllib.parse.quote(source)
         with intercept_result(PythonSource, 'customout') as results:
             self.assertFalse(execute([
                     ('PythonSource', 'org.vistrails.vistrails.basic', [
@@ -1756,7 +1754,7 @@ class TestTypechecking(unittest.TestCase):
                 self.assertEqual(results, expected)
 
     def test_basic(self):
-        import urllib2
+        import urllib.request, urllib.error, urllib.parse
         # Base case: no typing error
         # This should succeed in every case
         self.run_test_pipeline(
@@ -1765,10 +1763,10 @@ class TestTypechecking(unittest.TestCase):
              (True, True, ["test"])],
             [
                 ('PythonSource', 'org.vistrails.vistrails.basic', [
-                    ('source', [('String', urllib2.quote('o = "test"'))]),
+                    ('source', [('String', urllib.parse.quote('o = "test"'))]),
                 ]),
                 ('PythonSource', 'org.vistrails.vistrails.basic', [
-                    ('source', [('String', urllib2.quote('r = i'))])
+                    ('source', [('String', urllib.parse.quote('r = i'))])
                 ]),
             ],
             [
@@ -1784,7 +1782,7 @@ class TestTypechecking(unittest.TestCase):
             ])
 
     def test_fake(self):
-        import urllib2
+        import urllib.request, urllib.error, urllib.parse
         # A module is lying, declaring a String but returning an int
         # This should fail with showConnectionErrors=True (not the
         # default)
@@ -1795,10 +1793,10 @@ class TestTypechecking(unittest.TestCase):
              (True, True, False)],
             [
                 ('PythonSource', 'org.vistrails.vistrails.basic', [
-                    ('source', [('String', urllib2.quote('o = 42'))]),
+                    ('source', [('String', urllib.parse.quote('o = 42'))]),
                 ]),
                 ('PythonSource', 'org.vistrails.vistrails.basic', [
-                    ('source', [('String', urllib2.quote('r = i'))])
+                    ('source', [('String', urllib.parse.quote('r = i'))])
                 ]),
             ],
             [
@@ -1814,7 +1812,7 @@ class TestTypechecking(unittest.TestCase):
             ])
 
     def test_inputport(self):
-        import urllib2
+        import urllib.request, urllib.error, urllib.parse
         # This test uses an InputPort module, whose output port should not be
         # considered a Variant port (although it is)
         self.run_test_pipeline(
@@ -1827,7 +1825,7 @@ class TestTypechecking(unittest.TestCase):
                     ('ExternalPipe', [('Integer', '42')]),
                 ]),
                 ('PythonSource', 'org.vistrails.vistrails.basic', [
-                    ('source', [('String', urllib2.quote('r = i'))])
+                    ('source', [('String', urllib.parse.quote('r = i'))])
                 ]),
             ],
             [
@@ -1851,7 +1849,7 @@ class TestStringFormat(unittest.TestCase):
         from vistrails.tests.utils import execute, intercept_result
         functions = [('format', [('String', fmt)])]
         functions.extend((n, [(t, v)])
-                         for n, (t, v) in kwargs.iteritems())
+                         for n, (t, v) in kwargs.items())
         with intercept_result(StringFormat, 'value') as results:
             self.assertFalse(execute([
                     ('StringFormat', 'org.vistrails.vistrails.basic',
@@ -1859,7 +1857,7 @@ class TestStringFormat(unittest.TestCase):
                 ],
                 add_port_specs=[
                     (0, 'input', n, t)
-                    for n, (t, v) in kwargs.iteritems()
+                    for n, (t, v) in kwargs.items()
                 ]))
         self.assertEqual(results, [expected])
 

@@ -34,11 +34,11 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from auto_gen import DBLog as _DBLog
-from auto_gen import DBAbstractionRef, DBModule
-from id_scope import IdScope
+
+from .auto_gen import DBLog as _DBLog
+from .auto_gen import DBAbstractionRef, DBModule
+from .id_scope import IdScope
 
 import copy
 

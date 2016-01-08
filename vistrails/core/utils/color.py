@@ -40,7 +40,7 @@ color defines
 
 ################################################################################
 
-from __future__ import division
+
 
 class ColorByName(object):
     """
@@ -328,7 +328,7 @@ class ColorManipulator(object):
         
         """
         result = []
-        for i in xrange(len(color)):
+        for i in range(len(color)):
             if i<3:
                 result.append(color[i]*ratio)
             else:
@@ -430,7 +430,7 @@ class TestColorConversion(unittest.TestCase):
     def test_hsv_conversions(self):
         for color in self.colors:
             res = hsv2rgb(rgb2hsv(color))
-            for i in xrange(3):
+            for i in range(3):
                 self.assertAlmostEqual(color[i], res[i])
 
     def test_hsv_with_qt(self):
@@ -440,7 +440,7 @@ class TestColorConversion(unittest.TestCase):
             self.skipTest("QtGui not available")
         for color in self.colors:
             our_hsv = rgb2hsv(color)
-            qcolor = QtGui.QColor(*[int(color[i]*255) for i in xrange(3)])
+            qcolor = QtGui.QColor(*[int(color[i]*255) for i in range(3)])
             qt_hsv = [qcolor.hueF(), qcolor.saturationF(), qcolor.valueF()]
             if qt_hsv[0] == -1.0:
                 qt_hsv[0] = None

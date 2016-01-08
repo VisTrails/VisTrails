@@ -38,7 +38,7 @@
 Matplotlib viewer into our spreadsheet
 """
 
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 import os
@@ -219,7 +219,7 @@ class MplFigureCellToolBar(QCellToolBar):
                 cellWidget = act.toolBar.getSnappedWidget()
                 getattr(cellWidget.mplToolbar, cb)()
                 if txt in exclusive_actions:
-                    for t, a in exclusive_actions.iteritems():
+                    for t, a in exclusive_actions.items():
                         if txt != t:
                             a.setChecked(False)
             return callback

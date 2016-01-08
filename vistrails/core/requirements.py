@@ -37,7 +37,7 @@
 """Online checking for required runtime components.
 """
 
-from __future__ import division
+
 
 import sys
 

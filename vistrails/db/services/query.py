@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db import VistrailsDBException
 from vistrails.db.services.io import open_db_connection, close_db_connection, get_db_lib
@@ -78,7 +78,7 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
                db.escape(user, get_db_lib().converters.conversions)
     next_port = 1
     old_alias = None
-    for i, module, connected in zip(range(1,len(modules)+1), *zip(*modules)):
+    for i, module, connected in zip(list(range(1,len(modules)+1)), *list(zip(*modules))):
         module = module.lower()
         alias = "m%s"%i
         from_part += \
@@ -129,7 +129,7 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
         rows = c.fetchall()
         result = rows
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't perform query on db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -145,7 +145,7 @@ def runWorkflowQuery(config, vistrail=None, version=None, fromTime=None,
             res = c.fetchall()
             result= (result, res[0][0])
             c.close()
-        except get_db_lib().Error, e:
+        except get_db_lib().Error as e:
             msg = "Couldn't perform query on db (%d : %s)" % \
                 (e.args[0], e.args[1])
             raise VistrailsDBException(msg)
@@ -216,7 +216,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
         select_part += ', NULL'
         
     # TODO nested module executions are not detected
-    for i, module, mCompleted in zip(range(1,len(modules)+1), *zip(*modules)):
+    for i, module, mCompleted in zip(list(range(1,len(modules)+1)), *list(zip(*modules))):
         alias = "m%s"%i
         from_part += \
         """ JOIN module_exec %s ON
@@ -240,7 +240,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
         rows = c.fetchall()
         result = rows
         c.close()
-    except get_db_lib().Error, e:
+    except get_db_lib().Error as e:
         msg = "Couldn't perform query on db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -256,7 +256,7 @@ def runLogQuery(config, vistrail=None, version=None, fromTime=None, toTime=None,
             res = c.fetchall()
             result= (result, res[0][0])
             c.close()
-        except get_db_lib().Error, e:
+        except get_db_lib().Error as e:
             msg = "Couldn't perform query on db (%d : %s)" % \
                 (e.args[0], e.args[1])
             raise VistrailsDBException(msg)

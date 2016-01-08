@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 name = "Maps"
 identifier = "org.vistrails.vistrails.gmaps"

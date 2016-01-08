@@ -43,7 +43,7 @@ QAliasListItem
 QAliasList
 
 """
-from __future__ import division
+
 
 import copy
 from PyQt4 import QtCore, QtGui
@@ -204,7 +204,7 @@ class QAliasList(QtGui.QTreeWidget):
         if col == 0:
             old_alias = item.alias.alias
             new_alias = str(item.text())
-            if new_alias in self.aliases.keys():
+            if new_alias in list(self.aliases.keys()):
                 QtGui.QMessageBox.warning(self,
                                           "VisMashup",
                                           """Label name %s already exists. 

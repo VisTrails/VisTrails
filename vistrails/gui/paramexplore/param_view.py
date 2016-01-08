@@ -37,7 +37,7 @@
 
 QParameterView
 """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.inspector import PipelineInspector
@@ -182,7 +182,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
         if len(pipeline.aliases)>0:
             aliasRoot = QParameterTreeWidgetItem(None, self, ['Aliases'])
             aliasRoot.setFlags(QtCore.Qt.ItemIsEnabled)
-            for (alias, info) in pipeline.aliases.iteritems():
+            for (alias, info) in pipeline.aliases.items():
                 ptype, pId, parentType, parentId, mId = info
                 parameter = pipeline.db_get_object(ptype, pId)
                 function = pipeline.db_get_object(parentType, parentId)
@@ -208,7 +208,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
 
         inspector = PipelineInspector()
         inspector.inspect_ambiguous_modules(pipeline)
-        sortedModules = sorted(pipeline.modules.iteritems(),
+        sortedModules = sorted(iter(pipeline.modules.items()),
                                key=lambda item: item[1].name)
 
         reg = get_module_registry()
@@ -236,7 +236,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                        value="",
                                        spec=port_spec.port_spec_items[pId],
                                        is_alias=False)
-                         for pId in xrange(len(port_spec.port_spec_items))]
+                         for pId in range(len(port_spec.port_spec_items))]
                 QParameterTreeWidgetItem((vv.name, pList),
                                          vistrailVarsRoot,
                                          label)
@@ -247,12 +247,12 @@ class QParameterTreeWidget(QSearchTreeWidget):
             mLabel = [module.name]
             moduleItem = None
             if len(module.functions)>0:
-                for fId in xrange(len(module.functions)):
+                for fId in range(len(module.functions)):
                     function = module.functions[fId]
                     function_names[function.name] = function
                     if len(function.params)==0: continue
                     if moduleItem==None:
-                        if inspector.annotated_modules.has_key(mId):
+                        if mId in inspector.annotated_modules:
                             annotatedId = inspector.annotated_modules[mId]
                             moduleItem = QParameterTreeWidgetItem(annotatedId,
                                                                   self, mLabel)
@@ -275,7 +275,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                            value=function.params[pId].strValue,
                                            spec=port_spec_items[pId],
                                            is_alias=False)
-                             for pId in xrange(len(function.params))]
+                             for pId in range(len(function.params))]
                     mName = module.name
                     if moduleItem.parameter is not None:
                         mName += '(%d)' % moduleItem.parameter
@@ -294,7 +294,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                         # or contains non-constant modules
                         continue
                     if moduleItem==None:
-                        if inspector.annotated_modules.has_key(mId):
+                        if mId in inspector.annotated_modules:
                             annotatedId = inspector.annotated_modules[mId]
                             moduleItem = QParameterTreeWidgetItem(annotatedId,
                                                                   self, 
@@ -311,7 +311,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                            value="",
                                            spec=port_spec.port_spec_items[pId],
                                            is_alias=False)
-                             for pId in xrange(len(port_spec.port_spec_items))]
+                             for pId in range(len(port_spec.port_spec_items))]
                     mName = module.name
                     if moduleItem.parameter is not None:
                         mName += '(%d)' % moduleItem.parameter

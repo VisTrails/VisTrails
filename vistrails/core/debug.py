@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import inspect
 import logging
@@ -92,12 +92,12 @@ def unexpected_exception(e, tb=None, frame=None):
         QtCore.pyqtRemoveInputHook()
 
     # Prints the exception and traceback
-    print >>sys.stderr, "!!!!!!!!!!"
-    print >>sys.stderr, "Got unexpected exception, starting debugger"
+    print("!!!!!!!!!!", file=sys.stderr)
+    print("Got unexpected exception, starting debugger", file=sys.stderr)
     print_exception(None, e, tb, 3, file=sys.stderr)
 
     # Starts the debugger
-    print >>sys.stderr, "!!!!!!!!!!"
+    print("!!!!!!!!!!", file=sys.stderr)
     # pdb.post_mortem()
     p = pdb.Pdb()
     p.reset()
@@ -116,7 +116,7 @@ sys.excepthook = _excepthook
 
 def _format_exception(etype, value, etb, rtb):
     yield "Traceback (most recent call last):\n"
-    if isinstance(rtb, (int, long)):
+    if isinstance(rtb, int):
         try:
             raise ZeroDivisionError
         except ZeroDivisionError:
@@ -356,7 +356,7 @@ class DebugPrint(object):
             self.fhandler = handler
             self.logger.addHandler(handler)
 
-        except Exception, e:
+        except Exception as e:
             self.critical("Could not set log file %s:" % f, e)
 
     def log_to_console(self, enable=True):
@@ -459,7 +459,7 @@ def object_at(desc):
     it.  Warning: THIS IS FOR DEBUGGING ONLY. IT IS SLOW."""
     if isinstance(desc, int):
         target_id = desc
-    elif isinstance(desc, basestring):
+    elif isinstance(desc, str):
         target_id = int(desc, 16) # Reads desc as the hex address
     else:
         raise TypeError
@@ -490,7 +490,7 @@ class TestStack(unittest.TestCase):
 
     def test_print_exc(self):
         import itertools
-        from StringIO import StringIO
+        from io import StringIO
 
         sio = StringIO()
 
@@ -523,6 +523,6 @@ r'^    raise_\(\)',
 r'^  File .+, line \d+, in raise_',
 r'^    raise RuntimeError\("message here"\)',
 r'^RuntimeError: message here')
-        for a, e in itertools.izip(result[-len(expected):], expected):
+        for a, e in zip(result[-len(expected):], expected):
             self.assertIsNotNone(re.search(e, a),
                                  "%r doesn't match %r" % (a, e))

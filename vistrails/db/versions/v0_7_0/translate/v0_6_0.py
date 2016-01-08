@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 from vistrails.db.versions.v0_7_0.domain import DBVistrail, DBAction, DBTag, DBModule, \
@@ -43,7 +43,7 @@ from vistrails.db.versions.v0_7_0.domain import DBVistrail, DBAction, DBTag, DBM
 def translateVistrail(_vistrail):
     vistrail = DBVistrail()
 
-    for _action in _vistrail.db_actions.itervalues():
+    for _action in _vistrail.db_actions.values():
         ops = []
         for op in _action.db_operations:
             if op.vtType == 'add':
@@ -76,10 +76,10 @@ def translateVistrail(_vistrail):
                           date=_action.db_date, 
                           user=_action.db_user, 
                           operations=ops,
-                          annotations=_action.db_annotations.values())
+                          annotations=list(_action.db_annotations.values()))
         vistrail.db_add_action(action)
 
-    for _tag in _vistrail.db_tags.itervalues():
+    for _tag in _vistrail.db_tags.values():
         tag = DBTag(id=_tag.db_id,
                     name=_tag.db_name)
         vistrail.db_add_tag(tag)

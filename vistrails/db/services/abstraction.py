@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.db.domain import DBWorkflow
 from vistrails.db.services.action_chain import getActionChain, getCurrentOperationDict, \

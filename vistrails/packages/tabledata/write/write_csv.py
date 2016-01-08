@@ -33,9 +33,9 @@
 ##
 ###############################################################################
 
-from __future__ import division
 
-from itertools import izip
+
+
 
 from vistrails.core import debug
 from vistrails.core.modules.vistrails_module import Module, ModuleError
@@ -60,14 +60,14 @@ class WriteCSV(Module):
 
     @staticmethod
     def write(fname, table, delimiter=';', write_header=True):
-        cols = [table.get_column(i) for i in xrange(table.columns)]
+        cols = [table.get_column(i) for i in range(table.columns)]
 
         with open(fname, 'w') as fp:
             if write_header and table.names is not None:
                 fp.write(delimiter.join(table.names) + '\n')
 
             line = 0
-            for l in izip(*cols):
+            for l in zip(*cols):
                 fp.write(delimiter.join(str(e) for e in l) + '\n')
                 line += 1
 

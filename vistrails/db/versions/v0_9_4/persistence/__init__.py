@@ -33,10 +33,10 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
 
-from xml.auto_gen import XMLDAOListBase
-from sql.auto_gen import SQLDAOListBase
+
+from .xml.auto_gen import XMLDAOListBase
+from .sql.auto_gen import SQLDAOListBase
 from vistrails.core.system import get_elementtree_library
 
 from vistrails.db import VistrailsDBException
@@ -81,7 +81,7 @@ class DAOList(dict):
         if version is None:
             version = my_version
         root.set('version', version)
-        for k, v in tags.iteritems():
+        for k, v in tags.items():
             root.set(k, v)
         tree = ElementTree.ElementTree(root)
         self.write_xml_file(filename, tree)
@@ -104,10 +104,10 @@ class DAOList(dict):
                                            (vtType, id))
 
         all_objects.update(res_objects)
-        res = res_objects.values()[0]
+        res = list(res_objects.values())[0]
         del global_props['id']
 
-        for dao in self['sql'].itervalues():
+        for dao in self['sql'].values():
             if (dao == self['sql'][DBVistrail.vtType] or
                 # dao == self['sql'][DBWorkflow.vtType] or
                 dao == self['sql'][DBLog.vtType] or
@@ -116,7 +116,7 @@ class DAOList(dict):
             current_objs = dao.get_sql_columns(db_connection, global_props, 
                                                lock)
             if dao == self['sql'][DBWorkflow.vtType]:
-                for key, obj in current_objs.iteritems():
+                for key, obj in current_objs.items():
                     if key[0] == vtType and key[1] == id:
                         continue
                     elif key[0] == DBWorkflow.vtType:
@@ -128,11 +128,11 @@ class DAOList(dict):
             else:
                 all_objects.update(current_objs)
 
-        for key, obj in all_objects.iteritems():
+        for key, obj in all_objects.items():
             if key[0] == vtType and key[1] == id:
                 continue
             self['sql'][obj.vtType].from_sql_fast(obj, all_objects)
-        for obj in all_objects.itervalues():
+        for obj in all_objects.values():
             obj.is_dirty = False
             obj.is_new = False
         return res
@@ -201,7 +201,7 @@ class DAOList(dict):
             obj = self.read_xml_object(obj_type, root)
             set_dirty(obj)
             return obj
-        except SyntaxError, e:
+        except SyntaxError as e:
             msg = "Invalid VisTrails serialized object %s" % str
             raise VistrailsDBException(msg)
             return None

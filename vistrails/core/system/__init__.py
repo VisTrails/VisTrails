@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division, with_statement
+
 
 import datetime
 import functools
@@ -42,7 +42,7 @@ import os
 import platform
 import sys
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import warnings
 
 from vistrails.core import debug
@@ -51,7 +51,7 @@ from vistrails.core.utils import unimplemented, VistrailsDeprecation, Chdir
 
 ###############################################################################
 
-from common import *
+from .common import *
 
 def with_c_locale(func):
     @functools.wraps(func)
@@ -316,10 +316,10 @@ def get_latest_vistrails_version():
     version_url = \
             "http://www.vistrails.org/download/download.php?id=release_version.txt"
     try:
-        request = urllib2.Request(version_url)
-        get_latest_version = urllib2.urlopen(request)
+        request = urllib.request.Request(version_url)
+        get_latest_version = urllib.request.urlopen(request)
         version = get_latest_version.read().strip()
-    except urllib2.HTTPError, err:
+    except urllib.error.HTTPError as err:
         debug.warning("Unable to check for updates: %s" % str(err))
         return version
 

@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 """ This modules builds a widget to visualize workflow execution logs """
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.vistrail.pipeline import Pipeline
@@ -576,7 +576,7 @@ class QLogView(QPipelineView):
             else:
                 item.execution = None
         connectionItems = []
-        for c in self.pipeline.connections.values():
+        for c in list(self.pipeline.connections.values()):
             connectionItems.append(scene.addConnection(c))
 
         # Color Code connections

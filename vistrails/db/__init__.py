@@ -34,7 +34,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 class VistrailsDBException(Exception):
     """VistrailsDBException is raised when there is any exception in the 

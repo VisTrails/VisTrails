@@ -39,7 +39,7 @@ MongoDB package for VisTrails.
 Uses the pymongo driver to access MongoDB.
 """
 
-from __future__ import division
+
 
 identifier = 'org.vistrails.vistrails.mongodb'
 name = 'MongoDB'

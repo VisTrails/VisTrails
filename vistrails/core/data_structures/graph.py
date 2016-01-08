@@ -33,13 +33,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 import random
 import unittest
 
-from itertools import imap, chain, izip
+from itertools import chain
 
 from vistrails.core.data_structures.queue import Queue
 from vistrails.core.data_structures.stack import Stack
@@ -100,13 +100,13 @@ class Graph(object):
             vertex_map = dict((v, v) for v in graph.vertices)
         if edge_map is None:
             edge_map = {}
-            for vfrom, lto in graph.adjacency_list.iteritems():
+            for vfrom, lto in graph.adjacency_list.items():
                 for (vto, eid) in lto:
                     edge_map[eid] = eid
         result.vertices = dict((vertex_map[v], True) for v in graph.vertices)
-        for (vto, lto) in graph.adjacency_list.iteritems():
+        for (vto, lto) in graph.adjacency_list.items():
             result.adjacency_list[vto] = [(vertex_map[to], edge_map[eid]) for (to, eid) in lto]
-        for (vto, lto) in graph.inverse_adjacency_list.iteritems():
+        for (vto, lto) in graph.inverse_adjacency_list.items():
             result.inverse_adjacency_list[vto] = [(vertex_map[to], edge_map[eid]) for (to, eid) in lto]
         return result
 
@@ -179,7 +179,7 @@ class Graph(object):
         Find all vertices whose out_degree is zero and return a list of ids
 
         """
-        return [idx for idx in self.vertices.keys() \
+        return [idx for idx in list(self.vertices.keys()) \
                 if self.out_degree(idx) == 0]
     
     def sources(self):
@@ -187,7 +187,7 @@ class Graph(object):
         Find all vertices whose in_degree is zero and return a list of ids
 
         """
-        return [idx for idx in self.vertices.keys() if self.in_degree(idx) == 0]
+        return [idx for idx in list(self.vertices.keys()) if self.in_degree(idx) == 0]
 
     def edges_to(self, id):
         """ edges_to(id: id type) -> list(list)
@@ -442,7 +442,7 @@ class Graph(object):
         finish = {}  # f in CLRS
         t = [0]
 
-        (enter, leave, back, other) = xrange(4)
+        (enter, leave, back, other) = range(4)
 
         # inspired by http://www.ics.uci.edu/~eppstein/PADS/DFS.py
 
@@ -475,7 +475,7 @@ class Graph(object):
                 while stack.size:
                     parent, children = stack.top()
                     try:
-                        child, _ = children.next()
+                        child, _ = next(children)
                         if child in visited:
                             handle(parent, child, (child in gray
                                                    and back
@@ -536,7 +536,7 @@ class Graph(object):
         # lst = [(v, k) for (k,v) in f.iteritems()]
         # lst.sort(reverse=True)
         # return [v for (k, v) in lst]
-        return [k for (k, _) in sorted(f.iteritems(), 
+        return [k for (k, _) in sorted(iter(f.items()), 
                                        key=lambda x: (x[1], x[0]),
                                        reverse=True)]
 
@@ -549,9 +549,9 @@ class Graph(object):
         x = copy.copy(self)
         conns_to_subgraph = self.connections_to_subgraph(subgraph)
         conns_from_subgraph = self.connections_from_subgraph(subgraph)
-        for v in subgraph.vertices.iterkeys():
+        for v in subgraph.vertices.keys():
             x.delete_vertex(v)
-        free_vertex = max(subgraph.vertices.iterkeys()) + 1
+        free_vertex = max(subgraph.vertices.keys()) + 1
         x.add_vertex(free_vertex)
         for (edge_from, edge_to, edge_id) in conns_to_subgraph:
             x.add_edge(free_vertex, edge_to)
@@ -588,8 +588,8 @@ class Graph(object):
 
         Returns the list of all edges that connect to a vertex \in
         subgraph. subgraph is assumed to be a subgraph of self"""
-        vertices_to_traverse = set(self.vertices.iterkeys())
-        subgraph_verts = set(subgraph.vertices.iterkeys())
+        vertices_to_traverse = set(self.vertices.keys())
+        subgraph_verts = set(subgraph.vertices.keys())
         vertices_to_traverse -= subgraph_verts
 
         result = []
@@ -606,7 +606,7 @@ class Graph(object):
         Returns the list of all edges that connect from a vertex \in
         subgraph to a vertex \not \in subgraph. subgraph is assumed to
         be a subgraph of self"""
-        subgraph_verts = set(subgraph.vertices.iterkeys())
+        subgraph_verts = set(subgraph.vertices.keys())
         vertices_to_traverse = subgraph_verts
 
         result = []
@@ -629,7 +629,7 @@ class Graph(object):
         def fn(edge):
             (edge_to, edge_id) = edge
             return (vertex, edge_to, edge_id)
-        return imap(fn, self.adjacency_list[vertex])
+        return map(fn, self.adjacency_list[vertex])
 
     def iter_edges_to(self, vertex):
         """iter_edges_to(self, vertex) -> iterable
@@ -639,7 +639,7 @@ class Graph(object):
         def fn(edge):
             (edge_from, edge_id) = edge
             return (edge_from, vertex, edge_id)
-        return imap(fn, self.inverse_adjacency_list[vertex])
+        return map(fn, self.inverse_adjacency_list[vertex])
 
     def iter_all_edges(self):
         """iter_all_edges() -> iterable
@@ -647,14 +647,14 @@ class Graph(object):
         Returns an iterator over all edges in the graph in the form
         (vert_from, vert_to, edge_id)."""
         verts = self.iter_vertices()
-        edge_itors = imap(self.iter_edges_from, verts)
+        edge_itors = map(self.iter_edges_from, verts)
         return chain(*[v for v in edge_itors])
 
     def iter_vertices(self):
         """iter_vertices() -> iterable
 
         Returns an iterator over all vertex ids of the graph."""
-        return self.vertices.iterkeys()
+        return iter(self.vertices.keys())
 
     ##########################################################################
     # Special Python methods
@@ -664,10 +664,10 @@ class Graph(object):
         Format the graph for serialization and return a string
 
         """
-        vs = self.vertices.keys()
+        vs = list(self.vertices.keys())
         vs.sort()
         al = [(vfrom, vto, edgeid)
-              for vfrom, lto in self.adjacency_list.iteritems()
+              for vfrom, lto in self.adjacency_list.items()
               for vto, edgeid in lto]
         al.sort()
         return ("digraph G {\n"
@@ -690,19 +690,19 @@ class Graph(object):
         """
         cp = Graph()
         cp.vertices = copy.copy(self.vertices)
-        cp.adjacency_list = dict((k, v[:]) for (k,v) in self.adjacency_list.iteritems())
-        cp.inverse_adjacency_list = dict((k, v[:]) for (k,v) in self.inverse_adjacency_list.iteritems())
+        cp.adjacency_list = dict((k, v[:]) for (k,v) in self.adjacency_list.items())
+        cp.inverse_adjacency_list = dict((k, v[:]) for (k,v) in self.inverse_adjacency_list.items())
         return cp
 
     def __eq__(self, other):
         # Does not test isomorphism - vertices must be consistently labeled
         # might be slow - don't use in tight code
-        if type(self) <> type(other):
+        if type(self) != type(other):
             return False
         for v in self.vertices:
             if not v in other.vertices:
                 return False
-        for vfrom, elist in self.adjacency_list.iteritems():
+        for vfrom, elist in self.adjacency_list.items():
             for vto, eid in elist:
                 if not other.get_edge(vfrom, vto) == eid:
                     return False
@@ -726,10 +726,10 @@ class TestGraph(unittest.TestCase):
     def make_complete(self, v):
         """returns a complete graph with v verts."""
         g = Graph()
-        for x in xrange(v):
+        for x in range(v):
             g.add_vertex(x)
-        for f in xrange(v):
-            for t in xrange(f+1, v):
+        for f in range(v):
+            for t in range(f+1, v):
                 g.add_edge(f, t, f * v + t)
         return g
 
@@ -737,9 +737,9 @@ class TestGraph(unittest.TestCase):
         """returns a linear graph with v verts. if bw=True, add
         backward links."""
         g = Graph()
-        for x in xrange(v):
+        for x in range(v):
             g.add_vertex(x)
-        for x,y in izip(xrange(v-1), xrange(1, v)):
+        for x,y in zip(range(v-1), range(1, v)):
             g.add_edge(x, y, x)
             if bw:
                 g.add_edge(y, x, x + v)
@@ -778,29 +778,29 @@ class TestGraph(unittest.TestCase):
         """Test bread-first-search"""
         g = self.get_default_graph()
         p = g.bfs(0)
-        k = p.keys()
+        k = list(p.keys())
         k.sort()
         self.assertEquals(k, [1, 2, 3, 4])
         inv = g.inverse()
         p_inv = inv.bfs(4)
-        k2 = p_inv.keys()
+        k2 = list(p_inv.keys())
         k2.sort()
         self.assertEquals(k2, [0, 1, 2, 3])
         
     def test3(self):
         """Test sink and source degree consistency"""
         g = Graph()
-        for i in xrange(100):
+        for i in range(100):
             g.add_vertex(i)
-        for i in xrange(1000):
+        for i in range(1000):
             v1 = random.randint(0,99)
             v2 = random.randint(0,99)
             g.add_edge(v1, v2, i)
         sinkResult = [None for i in g.sinks() if g.out_degree(i) == 0]
         sourceResult = [None for i in g.sources() if g.in_degree(i) == 0]
-        if len(sinkResult) <> len(g.sinks()):
+        if len(sinkResult) != len(g.sinks()):
             assert False
-        if len(sourceResult) <> len(g.sources()):
+        if len(sourceResult) != len(g.sources()):
             assert False
 
     def test_remove_vertices(self):
@@ -933,9 +933,9 @@ class TestGraph(unittest.TestCase):
         g.add_vertex(3)
         g.add_edge(0, 1)
         g.add_edge(2, 3)
-        for i in xrange(1, 16):
+        for i in range(1, 16):
             s = []
-            for j in xrange(4):
+            for j in range(4):
                 if i & (1 << j): s.append(j)
             assert g.topologically_contractible(g.subgraph(s))
 
@@ -980,14 +980,14 @@ class TestGraph(unittest.TestCase):
               leave_vertex=after)
         assert inc == [0,1,2,3,4,5,6,7,8,9]
         assert inc == list(reversed(dec))
-        assert all(a < b for a, b in izip(inc[:-1], inc[1:]))
-        assert all(a > b for a, b in izip(dec[:-1], dec[1:]))
+        assert all(a < b for a, b in zip(inc[:-1], inc[1:]))
+        assert all(a > b for a, b in zip(dec[:-1], dec[1:]))
 
     def test_parent_source(self):
         g = self.make_linear(10)
         self.assertRaises(g.VertexHasNoParentError,
                           lambda: g.parent(0))
-        for i in xrange(1, 10):
+        for i in range(1, 10):
             assert g.parent(i) == i-1
 
     def test_rename_vertex(self):
@@ -1012,19 +1012,19 @@ class TestGraph(unittest.TestCase):
 
     def test_bfs(self):
         g = self.make_linear(5)
-        lst = g.bfs(0).items()
+        lst = list(g.bfs(0).items())
         lst.sort()
         assert lst == [(1, 0), (2, 1), (3, 2), (4, 3)]
-        lst = g.bfs(2).items()
+        lst = list(g.bfs(2).items())
         lst.sort()
         assert lst == [(3, 2), (4, 3)]
 
     def test_undirected(self):
         g = self.make_linear(5).undirected_immutable()
-        lst = g.bfs(0).items()
+        lst = list(g.bfs(0).items())
         lst.sort()
         assert lst == [(1, 0), (2, 1), (3, 2), (4, 3)]
-        lst = g.bfs(2).items()
+        lst = list(g.bfs(2).items())
         lst.sort()
         assert lst == [(0, 1), (1, 2), (3, 2), (4, 3)]
 
@@ -1048,8 +1048,8 @@ class TestGraph(unittest.TestCase):
         g = self.make_linear(10)
         g2 = copy.copy(g)
         for v in g.vertices:
-            assert id(g.adjacency_list[v]) <> id(g2.adjacency_list[v])
-            assert id(g.inverse_adjacency_list[v]) <> id(g2.inverse_adjacency_list[v])
+            assert id(g.adjacency_list[v]) != id(g2.adjacency_list[v])
+            assert id(g.inverse_adjacency_list[v]) != id(g2.inverse_adjacency_list[v])
 
     def test_copy_works(self):
         g = self.make_linear(10)
@@ -1064,14 +1064,14 @@ class TestGraph(unittest.TestCase):
         assert copy.copy(g) == g
         g2 = copy.copy(g)
         g2.add_vertex(10)
-        assert g2 <> g
+        assert g2 != g
 
     def test_map_vertices(self):
         g = self.make_linear(5)
         m = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
         assert g == Graph.map_vertices(g, m)
         m = {0: 5, 1: 6, 2: 7, 3: 8, 4: 9}
-        assert g <> Graph.map_vertices(g, m)
+        assert g != Graph.map_vertices(g, m)
         
 if __name__ == '__main__':
     unittest.main()

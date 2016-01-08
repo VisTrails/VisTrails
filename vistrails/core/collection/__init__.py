@@ -33,20 +33,20 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import glob
 import os
 import sqlite3
 from itertools import chain
 
-from entity import Entity
-from vistrail import VistrailEntity
-from workflow import WorkflowEntity
-from workflow_exec import WorkflowExecEntity
-from thumbnail import ThumbnailEntity
-from mashup import MashupEntity
-from parameter_exploration import ParameterExplorationEntity
+from .entity import Entity
+from .vistrail import VistrailEntity
+from .workflow import WorkflowEntity
+from .workflow_exec import WorkflowExecEntity
+from .thumbnail import ThumbnailEntity
+from .mashup import MashupEntity
+from .parameter_exploration import ParameterExplorationEntity
 
 from vistrails.core.db.locator import FileLocator, BaseLocator
 from vistrails.core.db.io import load_vistrail
@@ -89,7 +89,7 @@ class Collection(object):
                 for s in schema:
                     cur.execute(s)
                 self.conn.commit()
-            except Exception, e:
+            except Exception as e:
                 debug.critical("Could not create vistrail index schema", e)
         else:
             self.conn = sqlite3.connect(self.database)
@@ -134,8 +134,8 @@ class Collection(object):
 
     def get_current_entities(self):
         """NOTE: returns an iterator"""
-        return chain(self.entities.itervalues(), 
-                     self.temp_entities.itervalues())
+        return chain(iter(self.entities.values()), 
+                     iter(self.temp_entities.values()))
 
     def load_entities(self):
         cur = self.conn.cursor()
@@ -171,11 +171,11 @@ class Collection(object):
 
     def save_entities(self):
         # TODO delete entities with no workspace
-        for entity in self.deleted_entities.itervalues():
+        for entity in self.deleted_entities.values():
             self.db_delete_entity(entity)
         self.deleted_entities = {}
         
-        for entity in self.entities.itervalues():
+        for entity in self.entities.values():
             if entity.was_updated:
                 self.save_entity(entity)
                 
@@ -186,7 +186,7 @@ class Collection(object):
 
         cur.execute('delete from entity_workspace;')
         cur.executemany("insert into entity_workspace values (?, ?)", 
-            ((k.id, i) for i,j in self.workspaces.iteritems() for k in j))
+            ((k.id, i) for i,j in self.workspaces.items() for k in j))
 
     def load_entity(self, *args):
         if args[1] in Collection.entity_types:
@@ -300,7 +300,7 @@ class Collection(object):
 
     def fromUrl(self, url):
         """ Check if entity with this url exist in index and return it """
-        for e in self.entities.itervalues():
+        for e in self.entities.values():
             if e.url == url:
                 return e
         return None
@@ -317,7 +317,7 @@ class Collection(object):
         Update the specified entity url. Delete or reload as necessary.
         Need to make sure workspaces are updated if the entity is changed.
         """
-        entities = [e for e in self.entities.itervalues() if e.url == url]
+        entities = [e for e in self.entities.values() if e.url == url]
         entity = entities[0] if len(entities) else None
         while entity and entity.parent:
             entity = entity.parent 

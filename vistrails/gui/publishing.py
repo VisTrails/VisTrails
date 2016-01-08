@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 import os
@@ -284,7 +284,7 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
 
         if opt_dict is None:
             opt_dict = {}
-        for k, v in check_links.iteritems():
+        for k, v in check_links.items():
             opt_set = k in opt_dict
             if isinstance(v, tuple):
                 chb = v[0]
@@ -432,8 +432,8 @@ class QLatexAssistant(QtGui.QWidget, QVistrailsPaletteInterface):
         f = open(fname, 'w')
         raw_texts = self.texts[0]
         figure_items = [self.figure_list.item(i) 
-                        for i in xrange(self.figure_list.count())]
-        for i in xrange(len(raw_texts)):
+                        for i in range(self.figure_list.count())]
+        for i in range(len(raw_texts)):
             f.write(raw_texts[i])
             if i < len(figure_items):
                 f.write(build_vt_command(figure_items[i].get_opt_dict()))

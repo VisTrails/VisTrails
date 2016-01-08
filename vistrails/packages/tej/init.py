@@ -1,11 +1,11 @@
-from __future__ import absolute_import, division
+
 
 import contextlib
 import io
 import logging
 import os
 import shutil
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import sys
 
 from vistrails.core import debug
@@ -393,7 +393,7 @@ class SubmitShellJob(BaseSubmitJob):
                 prefix='vt_tmp_shelljob_').name
         # We use io.open() here because we could be writing scripts on Windows
         # before uploading them to a POSIX server
-        source = urllib.unquote(self.get_input('source'))
+        source = urllib.parse.unquote(self.get_input('source'))
         if isinstance(source, bytes):
             kwargs = {'mode': 'wb'}
         else:

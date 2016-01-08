@@ -33,7 +33,7 @@
 ##
 ###############################################################################
 
-from __future__ import division
+
 
 from vistrails.core.bundles.pyimport import py_import
 from vistrails.core import debug
@@ -74,7 +74,7 @@ class WriteExcelSpreadsheet(Module):
         fileobj = self.interpreter.filePool.create_file(suffix='.xls')
         fname = fileobj.name
 
-        for c in xrange(table.columns):
+        for c in range(table.columns):
             column = table.get_column(c)
             for r, e in enumerate(column):
                 sheet.write(r, c, e)

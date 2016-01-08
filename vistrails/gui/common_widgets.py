@@ -36,7 +36,7 @@
 """ This common widgets using on the interface of VisTrails. These are
 only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
-from __future__ import division
+
 
 import os
 
@@ -231,7 +231,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
 
             visible = enabled
             child = item.child
-            for childIndex in xrange(item.childCount()):
+            for childIndex in range(item.childCount()):
                 visible |= recursiveSetVisible(child(childIndex),
                                                testFunction)
 
@@ -265,7 +265,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
             if self._search_was_empty:
                 self.expandAll()
                 self._search_was_empty = False
-        for itemIndex in xrange(self.topLevelItemCount()):
+        for itemIndex in range(self.topLevelItemCount()):
             recursiveSetVisible(self.topLevelItem(itemIndex),
                                 testFunction)
     
@@ -662,7 +662,7 @@ class QSearchBox(QtGui.QWidget):
         """
         count = self.searchEdit.count() 
         if index == count-1: 
-            for i in xrange(count-1): 
+            for i in range(count-1): 
                 self.searchEdit.removeItem(0) 
             self.resetSearch() 
         else: 

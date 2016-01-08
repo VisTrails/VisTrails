@@ -36,7 +36,7 @@
 
 """generated automatically by auto_dao.py"""
 
-from __future__ import division
+
 
 class DBChangeParameter(object):
 
@@ -590,7 +590,7 @@ class DBAction(object):
         self.__db_datas.append(data)
     def db_change_data(self, data):
         found = False
-        for i in xrange(len(self.__db_datas)):
+        for i in range(len(self.__db_datas)):
             if self.__db_datas[i].db_id == data.db_id:
                 self.__db_datas[i] = data
                 found = True
@@ -598,12 +598,12 @@ class DBAction(object):
         if not found:
             self.__db_datas.append(data)
     def db_delete_data(self, data):
-        for i in xrange(len(self.__db_datas)):
+        for i in range(len(self.__db_datas)):
             if self.__db_datas[i].db_id == data.db_id:
                 del self.__db_datas[i]
                 break
     def db_get_data(self, key):
-        for i in xrange(len(self.__db_datas)):
+        for i in range(len(self.__db_datas)):
             if self.__db_datas[i].db_id == data.db_id:
                 return self.__db_datas[i]
         return None
@@ -795,7 +795,7 @@ class DBVistrail(object):
         self.__db_actions = actions
     db_actions = property(__get_db_actions, __set_db_actions)
     def db_get_actions(self):
-        return self.__db_actions.values()
+        return list(self.__db_actions.values())
     def db_add_action(self, action):
         self.__db_actions[action.db_time] = action
     def db_change_action(self, action):
@@ -803,7 +803,7 @@ class DBVistrail(object):
     def db_delete_action(self, action):
         del self.__db_actions[action.db_time]
     def db_get_action(self, key):
-        if self.__db_actions.has_key(key):
+        if key in self.__db_actions:
             return self.__db_actions[key]
         return None
     
@@ -813,7 +813,7 @@ class DBVistrail(object):
         self.__db_tags = tags
     db_tags = property(__get_db_tags, __set_db_tags)
     def db_get_tags(self):
-        return self.__db_tags.values()
+        return list(self.__db_tags.values())
     def db_add_tag(self, tag):
         self.__db_tags[tag.db_time] = tag
     def db_change_tag(self, tag):
@@ -821,7 +821,7 @@ class DBVistrail(object):
     def db_delete_tag(self, tag):
         del self.__db_tags[tag.db_time]
     def db_get_tag(self, key):
-        if self.__db_tags.has_key(key):
+        if key in self.__db_tags:
             return self.__db_tags[key]
         return None
     

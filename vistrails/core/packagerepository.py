@@ -33,14 +33,14 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from vistrails.core import debug
 import os
 import vistrails.core.configuration
 from vistrails.core import system
 import shutil
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import tempfile
 import os.path
 
@@ -111,7 +111,7 @@ class LocalPackageRepository(PackageRepository):
         # read manifest
         try:
             f = open(os.path.join(self._path, codepath, 'MANIFEST'))
-        except IOError, e:
+        except IOError as e:
             raise PackageRepository.InvalidPackage("Package is missing manifest.")
         # create directory
         self.create_main_directory(codepath)
@@ -138,17 +138,17 @@ class HTTPPackageRepository(PackageRepository):
         identifier = identifier.replace('.', '_')
         package_url = self._path + '/' + identifier
         try:
-            f = urllib2.urlopen(package_url)
+            f = urllib.request.urlopen(package_url)
             return identifier
-        except urllib2.HTTPError:
+        except urllib.error.HTTPError:
             return None
 
     def install_package(self, codepath):
         debug.log("package found!")
         # read manifest
         try:
-            f = urllib2.urlopen(self._path + '/' + codepath + '/MANIFEST')
-        except urllib2.HTTPError, e:
+            f = urllib.request.urlopen(self._path + '/' + codepath + '/MANIFEST')
+        except urllib.error.HTTPError as e:
             raise PackageRepository.InvalidPackage("Package is missing manifest.")
         self.create_main_directory(codepath)
         for l in f:
@@ -164,7 +164,7 @@ class HTTPPackageRepository(PackageRepository):
                 os.close(fd)
                 try:
                     fout = open(name, 'w')
-                    fin = urllib2.urlopen(self._path + '/' + codepath + '/' + l)
+                    fin = urllib.request.urlopen(self._path + '/' + codepath + '/' + l)
                     fout.write(fin.read()) # There should be a better way to do this
                     fin.close()
                     fout.close()

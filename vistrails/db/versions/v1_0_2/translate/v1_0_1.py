@@ -33,7 +33,7 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 import copy
 from vistrails.db.versions.v1_0_2.domain import DBVistrail, DBWorkflow, DBLog, \
@@ -56,9 +56,9 @@ def translateVistrail(_vistrail):
                     [namespace, module] = m_and_ns.rsplit('|', 1)
                     new_type = ':'.join([identifier, module, namespace])
                     return new_type
-                except Exception, e:
+                except Exception as e:
                     # just bail for now
-                    print e
+                    print(e)
                     pass
         return old_obj.db_type
 
@@ -112,7 +112,7 @@ def translateVistrail(_vistrail):
                  '__thumb__': thumb_annotations,
                  '__upgrade__': upgrade_annotations,
                  '__prune__': prune_annotations}
-    for key, annotations in key_lists.iteritems():
+    for key, annotations in key_lists.items():
         for action_id, value, new_id in annotations:
             if new_id is None:
                 new_id = id_scope.getNewId(DBActionAnnotation.vtType)

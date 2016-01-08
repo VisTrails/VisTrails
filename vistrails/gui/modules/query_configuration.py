@@ -33,13 +33,13 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 ##
 ###############################################################################
-from __future__ import division
+
 
 from PyQt4 import QtCore, QtGui
 from vistrails.core.utils import any, expression
 from vistrails.core import system
 
-from constant_configuration import StandardConstantWidget, ColorWidget
+from .constant_configuration import StandardConstantWidget, ColorWidget
 
 ############################################################################
 
