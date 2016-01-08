@@ -62,7 +62,7 @@ except ImportError:
 
 def random_signature(pipeline, obj, chm):
     hasher = sha_hash()
-    hasher.update(str(random.random()))
+    hasher.update(str(random.random()).encode())
     return hasher.digest()
 
 def input_port_signature(pipeline, obj, chm):

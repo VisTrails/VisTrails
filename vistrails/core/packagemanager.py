@@ -201,7 +201,7 @@ class PackageManager(object):
                 self.add_package(abs_pkg.name, prefix=abs_pkg.prefix)
 
     def _import_override(self,
-                         name, globals={}, locals={}, fromlist=[], level=-1):
+                         name, globals={}, locals={}, fromlist=[], level=0):
         # Get the caller module, using globals (like the original __import
         # does)
         try:

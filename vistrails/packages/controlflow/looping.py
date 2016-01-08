@@ -152,7 +152,7 @@ class While(Module):
                         module.set_input_port(input_port, new_connector)
                         # Affix a fake signature on the module
                         inputPort_hash = sha1_hash()
-                        inputPort_hash.update(input_port)
+                        inputPort_hash.update(input_port.encode())
                         module.signature = b16encode(xor(
                                 b16decode(self.signature.upper()),
                                 inputPort_hash.digest()))

@@ -531,13 +531,12 @@ def xor(first, *others):
     Example: xor('abcd', '\x20\x01\x57\x56') = 'Ac42'
     """
     l = len(first)
-    first = [ord(c) for c in first]
     for oth in others:
         if len(oth) != l:
             raise ValueError("All bytestrings should have the same length: "
                              "%d != %d" % (l, len(oth)))
-        first = [c ^ ord(o) for (c, o) in zip(first, oth)]
-    return ''.join(chr(c) for c in first)
+        first = [c ^ o for (c, o) in zip(first, oth)]
+    return bytes(first)
 
 def long2bytes(nb, length=None):
     """Turns a single integer into a little-endian bytestring.

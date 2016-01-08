@@ -51,7 +51,6 @@ from vistrails.core.vistrail.vistrail import Vistrail
 import vistrails.core.system
 
 
-@apply
 class DummyLogController(object):
     """DummyLogger is a class that has the entire interface for a logger
     but simply ignores the calls."""
@@ -70,6 +69,7 @@ class DummyLogController(object):
     def add_machine(self, *args, **kwargs): return -1
     def get_iteration_from_module(self, *args, **kwargs): return None
     def __call__(self): return self
+DummyLogController = DummyLogController()
 
 
 class LogController(object):

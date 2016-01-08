@@ -58,20 +58,20 @@ class Hasher(object):
         else:
             hasher = sha_hash()
             u = hasher.update
-            u(p.type)
-            u(p.identifier)
-            u(p.namespace or "")
-            u(p.strValue)
-            u(p.name)
-            u(p.evaluatedStrValue)
+            u(p.type.encode())
+            u(p.identifier.encode())
+            u((p.namespace or "").encode())
+            u(p.strValue.encode())
+            u(p.name.encode())
+            u(p.evaluatedStrValue.encode())
             return hasher.digest()
 
     @staticmethod
     def function_signature(function, constant_hasher_map={}):
         hasher = sha_hash()
         u = hasher.update
-        u(function.name)
-        u(function.returnType)
+        u(function.name.encode())
+        u(function.returnType.encode())
         u(hash_list(function.params,
                     Hasher.parameter_signature,
                     constant_hasher_map))
@@ -81,16 +81,16 @@ class Hasher(object):
     def control_param_signature(control_param, constant_hasher_map={}):
         hasher = sha_hash()
         u = hasher.update
-        u(control_param.name)
-        u(control_param.value)
+        u(control_param.name.encode())
+        u(control_param.value.encode())
         return hasher.digest()
 
     @staticmethod
     def connection_signature(c):
         hasher = sha_hash()
         u = hasher.update
-        u(c.source.name)
-        u(c.destination.name)
+        u(c.source.name.encode())
+        u(c.destination.name.encode())
         return hasher.digest()
 
     @staticmethod
@@ -110,11 +110,11 @@ class Hasher(object):
     def module_signature(obj, constant_hasher_map={}):
         hasher = sha_hash()
         u = hasher.update
-        u(obj.module_descriptor.name)
-        u(obj.module_descriptor.package)
-        u(obj.module_descriptor.namespace or '')
-        u(obj.module_descriptor.package_version or '')
-        u(obj.module_descriptor.version or '')
+        u(obj.module_descriptor.name.encode())
+        u(obj.module_descriptor.package.encode())
+        u((obj.module_descriptor.namespace or '').encode())
+        u((obj.module_descriptor.package_version or '').encode())
+        u((obj.module_descriptor.version or '').encode())
         u(hash_list(obj.functions, Hasher.function_signature,
                     constant_hasher_map))
         u(hash_list(obj.control_parameters, Hasher.control_param_signature,

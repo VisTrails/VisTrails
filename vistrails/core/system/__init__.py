@@ -361,7 +361,7 @@ def vistrails_revision():
                 lines)
             if len(lines) == 1:
                 if result == 0:
-                    release = lines[0].strip(" \n")
+                    release = str(lines[0]).strip(" \n")
     return release
 
 

@@ -112,7 +112,7 @@ def namedtuple(typename, fields):
     d = {}
     exec(init_template, d)
     T.__init__ = d['__init__']
-    T.__init__.__func__.__doc__ = init_docstring
+    T.__init__.__doc__ = init_docstring
     T._vistrails_fields = fields
 
     return T
