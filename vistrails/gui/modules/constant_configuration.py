@@ -181,7 +181,8 @@ class QGraphicsLineEdit(QtGui.QGraphicsTextItem, ConstantWidgetBase):
         self.is_valid = True
         self.document().setDocumentMargin(1)
         ConstantWidgetBase.__init__(self, param)
-        self.document().contentsChanged.connect(self.ensureCursorVisible)
+        d = self.document()
+        d.contentsChanged.connect(self.ensureCursorVisible)
 
     def setContents(self, value, silent=False):
         self.setPlainText(expression.evaluate_expressions(value))
